@@ -3,18 +3,10 @@ image: oven/bun:latest
 pipelines:
   default:
     - step:
-        name: Install dependencies
+        name: CI (install, lint, build)
         caches:
-          - node # cache ~/.npm + node_modules for faster installs
+          - node            # caches your npm/yarn cache
         script:
-          - bun install
-
-    - step:
-        name: Lint
-        script:
-          - bun run lint
-
-    - step:
-        name: Build
-        script:
-          - bun run build
+          - bun install     # pull in next, react, etc.
+          - bun run lint    # runs `next lint`
+          - bun run build   # runs `next build`
