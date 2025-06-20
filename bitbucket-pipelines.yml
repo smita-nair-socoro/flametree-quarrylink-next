@@ -1,0 +1,12 @@
+image: oven/bun:latest
+
+pipelines:
+  default:
+    - step:
+        name: Install dependencies
+        caches:
+          - node # cache ~/.npm + node_modules for faster installs
+        script:
+          - bun install
+          - bun run lint
+          - bun run build

@@ -3,7 +3,13 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from 'react-oidc-context';
-import { Spinner } from '@/components/ui/spinner';
+import { AppSidebar } from '@/components/app-sidebar';
+import { Separator } from '@/components/ui/separator';
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
@@ -16,17 +22,29 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   }, [auth.isLoading, auth.isAuthenticated, router]);
 
   if (auth.isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center space-x-2">
-        <Spinner className="h-8 w-8 animate-spin" />
-        <span className="text-lg font-medium">Loading…</span>
-      </div>
-    );
-  }
-
-  if (!auth.isAuthenticated) {
     return null;
   }
 
-  return <>{children}</>;
+  if (!auth.isAuthenticated) {
+    // redirect is already firing, so just don’t render anything
+    return null;
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+          </div>
+        </header>
+        {children}
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }
