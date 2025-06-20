@@ -5,6 +5,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
+import { ModeToggle } from '@/components/toggle';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -56,7 +57,13 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <div className="relative min-h-screen">
+              <div className="absolute top-4 right-4 z-50">
+                <ModeToggle />
+              </div>
+
+              <main>{children}</main>
+            </div>
           </ThemeProvider>
         </AuthProvider>
       </body>
