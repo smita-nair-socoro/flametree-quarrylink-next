@@ -76,6 +76,8 @@ export function AddNewProductDrawerDialog() {
   );
 }
 
+//TODO: move the below to add-new-product-form.tsx
+
 function ProfileForm({ className }: React.ComponentProps<'form'>) {
   return (
     <form className={cn('grid items-start gap-6', className)}>
