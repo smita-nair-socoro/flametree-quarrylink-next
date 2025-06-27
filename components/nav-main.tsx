@@ -21,6 +21,7 @@ import { useLocalStorageState } from '@/hooks/use-localstorage';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { setLocalStorage } from '@/lib/utils';
+import Link from 'next/link';
 
 export function NavMain({
   items,
@@ -85,9 +86,9 @@ export function NavMain({
                       return (
                         <SidebarMenuSubItem key={sub.url}>
                           <SidebarMenuSubButton asChild isActive={subActive}>
-                            <a href={sub.url}>
+                            <Link href={sub.url}>
                               <span>{sub.title}</span>
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       );

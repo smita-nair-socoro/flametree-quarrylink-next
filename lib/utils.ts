@@ -1,8 +1,30 @@
 import { clsx, type ClassValue } from 'clsx';
+import { User } from 'oidc-client-ts';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function isDevEnv(): boolean {
+  return process.env.NODE_ENV == 'development';
+}
+
+export function baseUrl(): string {
+  return process.env.API_URL || '';
+}
+
+export function getUser() {
+  const authority = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
+  const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
+  const oidcStorage = localStorage.getItem(
+    `oidc.user:${authority}:${clientId}`,
+  );
+  if (!oidcStorage) {
+    return null;
+  }
+
+  return User.fromStorageString(oidcStorage);
 }
 
 export function getLocalStorage<T>(key: string, defaultValue: T): T {

@@ -6,6 +6,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
 import { ModeToggle } from '@/components/toggle';
+import { TanstackQueryProvider } from '@/lib/providers/tanstack-query-provider';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -62,7 +64,11 @@ export default function RootLayout({
                 <ModeToggle />
               </div>
 
-              <main>{children}</main>
+              {/* TanstackQuery */}
+              <TanstackQueryProvider>
+                <ReactQueryDevtools initialIsOpen={false} />
+                <main>{children}</main>
+              </TanstackQueryProvider>
             </div>
           </ThemeProvider>
         </AuthProvider>
