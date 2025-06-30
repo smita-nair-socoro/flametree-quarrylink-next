@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,16 +22,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
+import AddNewProductForm from './add-new-product-form';
 
 export function AddNewProductDrawerDialog() {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const btnTitle = 'Add New Product';
   const dlgDescription =
-    'Create or make changes to your product here. Click save when you&apos;re done.';
+    "Create or make changes to your product here. Click save when you're done.";
 
   if (isDesktop) {
     return (
@@ -47,7 +45,7 @@ export function AddNewProductDrawerDialog() {
             <DialogTitle>{btnTitle}</DialogTitle>
             <DialogDescription>{dlgDescription}</DialogDescription>
           </DialogHeader>
-          <ProfileForm />
+          <AddNewProductForm />
         </DialogContent>
       </Dialog>
     );
@@ -65,7 +63,9 @@ export function AddNewProductDrawerDialog() {
           <DrawerTitle>{btnTitle}</DrawerTitle>
           <DrawerDescription>{dlgDescription}</DrawerDescription>
         </DrawerHeader>
-        <ProfileForm className="px-4" />
+
+        <AddNewProductForm className="px-4" />
+
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
@@ -73,23 +73,5 @@ export function AddNewProductDrawerDialog() {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  );
-}
-
-//TODO: move the below to add-new-product-form.tsx
-
-function ProfileForm({ className }: React.ComponentProps<'form'>) {
-  return (
-    <form className={cn('grid items-start gap-6', className)}>
-      <div className="grid gap-3">
-        <Label htmlFor="email">Email</Label>
-        <Input type="email" id="email" defaultValue="shadcn@example.com" />
-      </div>
-      <div className="grid gap-3">
-        <Label htmlFor="username">Username</Label>
-        <Input id="username" defaultValue="@shadcn" />
-      </div>
-      <Button type="submit">Save changes</Button>
-    </form>
   );
 }
