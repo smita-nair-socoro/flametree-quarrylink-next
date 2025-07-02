@@ -23,9 +23,9 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Plus } from 'lucide-react';
-import AddNewProductForm from './add-new-product-form';
+import ProductForm from './product-form';
 
-export function AddNewProductDrawerDialog() {
+export function AddProductDrawerDialog() {
   const [open, setOpen] = React.useState(false);
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const btnTitle = 'Add New Product';
@@ -45,7 +45,7 @@ export function AddNewProductDrawerDialog() {
             <DialogTitle>{btnTitle}</DialogTitle>
             <DialogDescription>{dlgDescription}</DialogDescription>
           </DialogHeader>
-          <AddNewProductForm />
+          <ProductForm />
         </DialogContent>
       </Dialog>
     );
@@ -64,7 +64,7 @@ export function AddNewProductDrawerDialog() {
           <DrawerDescription>{dlgDescription}</DrawerDescription>
         </DrawerHeader>
 
-        <AddNewProductForm className="px-4" />
+        <ProductForm className="px-4" />
 
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>

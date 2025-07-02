@@ -1,4 +1,4 @@
-import { AddNewProductDrawerDialog } from './(components)/add-new-product-dialog';
+import { AddProductDrawerDialog } from "./(components)/add-product-dialog";
 
 export default function ProductsPage() {
   return (
@@ -7,7 +7,7 @@ export default function ProductsPage() {
         <h1 className="text-2xl">Products</h1>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-          <AddNewProductDrawerDialog />
+          <AddProductDrawerDialog />
         </div>
       </div>
 

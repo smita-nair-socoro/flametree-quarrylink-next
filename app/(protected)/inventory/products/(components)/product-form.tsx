@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-export default function AddNewProductForm({
+export default function ProductForm({
   className,
 }: React.ComponentProps<'form'>) {
   const NewProductFormSchema = z.object({
