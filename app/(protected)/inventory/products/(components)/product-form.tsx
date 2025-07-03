@@ -17,6 +17,10 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Separator } from "@/components/ui/separator"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Check, ChevronsUpDown } from 'lucide-react';
 
 export default function ProductForm({
   className,
@@ -32,7 +36,10 @@ export default function ProductForm({
       .array(z.string())
       .min(1, { message: 'Select at least one category.' }),
     description: z
-      .string().optional()
+      .string().optional(),
+    quarry_sources: z.string().min(2, { message: "Please select at least one quarry" }),
+    cost_price_per_tonne: z.string(),
+    sell_price_per_tonne: z.string(),
   });
 
   const form = useForm<z.infer<typeof NewProductFormSchema>>({
@@ -42,6 +49,9 @@ export default function ProductForm({
       product_code: '',
       category: [],
       description: '',
+      quarry_sources: '',
+      cost_price_per_tonne: '',
+      sell_price_per_tonne: '',
     },
   });
 
@@ -61,6 +71,19 @@ export default function ProductForm({
     { value: "ember", label: "Ember" },
   ];
 
+  //TODO: Fetch this from api call as well
+  const languages = [
+    { label: "English", value: "en" },
+    { label: "French", value: "fr" },
+    { label: "German", value: "de" },
+    { label: "Spanish", value: "es" },
+    { label: "Portuguese", value: "pt" },
+    { label: "Russian", value: "ru" },
+    { label: "Japanese", value: "ja" },
+    { label: "Korean", value: "ko" },
+    { label: "Chinese", value: "zh" },
+  ] as const
+
   return (
     <Form {...form}>
       <form
@@ -73,7 +96,7 @@ export default function ProductForm({
             name="product_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>Product Name*</FormLabel>
                 <FormControl>
                   <Input className="w-full" placeholder="product name" {...field} />
                 </FormControl>
@@ -106,7 +129,7 @@ export default function ProductForm({
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Categories</FormLabel>
+                <FormLabel>Categories*</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={categoryList}
@@ -142,6 +165,108 @@ export default function ProductForm({
             )}
           />
         </div>
+
+        <Separator className='md:col-span-2' orientation='horizontal' />
+
+        <h2 className='col-span-2 font-bold'>Quarry Sources</h2>
+
+        <div className='grid grid-cols-1 md:col-span-2 md:grid-cols-3 gap-3'>
+          <FormField
+            control={form.control}
+            name="quarry_sources"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Quarry</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value
+                          ? languages.find(
+                            (language) => language.value === field.value
+                          )?.label
+                          : "Select Quarry"}
+                        <ChevronsUpDown className="opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search Quarry..."
+                        className="h-9"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No Quarry found.</CommandEmpty>
+                        <CommandGroup>
+                          {languages.map((language) => (
+                            <CommandItem
+                              value={language.label}
+                              key={language.value}
+                              onSelect={() => {
+                                form.setValue("quarry_sources", language.value)
+                              }}
+                            >
+                              {language.label}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  language.value === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+
+          <FormField
+            control={form.control}
+            name="cost_price_per_tonne"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cost Price per tonne</FormLabel>
+                <FormControl>
+                  <Input type='number' className='w-full' placeholder="$00" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+
+          <FormField
+            control={form.control}
+            name="sell_price_per_tonne"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sell Price per tonne</FormLabel>
+                <FormControl>
+                  <Input type='number' className='w-full' placeholder="$00" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+        </div>
+
         <div className="md:col-span-2">
           <Button className="w-full" type="submit">
             Save changes
