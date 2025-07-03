@@ -194,7 +194,7 @@ export default function ProductForm({
 
           <h2 className="col-span-2 font-bold">Quarry Sources</h2>
 
-          <div className="grid grid-cols-1 col-span-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 col-span-2 md:grid-cols-4 gap-3 items-end">
             <FormField
               control={form.control}
               name="quarry_sources"
@@ -299,6 +299,8 @@ export default function ProductForm({
                 </FormItem>
               )}
             />
+
+            <Button type="button">+ Add to Quarry</Button>
           </div>
 
           <div className="col-span-2">
