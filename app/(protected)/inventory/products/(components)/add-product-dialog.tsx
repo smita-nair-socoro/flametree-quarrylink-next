@@ -40,7 +40,7 @@ export function AddProductDrawerDialog() {
             <Plus className="mr-1 h-4 w-4" /> {btnTitle}
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{btnTitle}</DialogTitle>
             <DialogDescription>{dlgDescription}</DialogDescription>
