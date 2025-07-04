@@ -2,6 +2,7 @@
 
 import { DateCell } from '@/components/date-cell';
 import { TableBadges } from '@/components/table-badges';
+import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,7 +21,9 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
   {
     id: 'name',
     accessorFn: (row) => row.product.name,
-    header: 'NAME',
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="NAME" />;
+    },
     cell: (info) => info.getValue(),
     meta: 'PRODUCT',
   },
@@ -39,7 +42,9 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
   {
     id: 'cost_price',
     accessorFn: (row) => row.quarries[0]?.price?.cost_price ?? 0,
-    header: () => <div> COST PRICE </div>,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="COST PRICE" />;
+    },
     cell: ({ row }) => {
       const cents = parseFloat(row.getValue('cost_price'));
       const dollars = cents / 100;
@@ -56,7 +61,10 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
   {
     id: 'sell_price',
     accessorFn: (row) => row.quarries[0]?.price?.sell_price ?? 0,
-    header: 'SELL PRICE',
+
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="SELL PRICE" />;
+    },
     cell: ({ row }) => {
       const cents = parseFloat(row.getValue('sell_price'));
       const dollars = cents / 100;
@@ -76,7 +84,9 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
       const { cost_price: cost, sell_price: sell } = row.quarries[0].price;
       return cost === 0 ? 0 : Math.round(((sell - cost) / cost) * 100);
     },
-    header: 'MARGIN',
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="MARGIN" />;
+    },
     cell: ({ getValue }) => {
       const marginValue = getValue<number>();
       const colorClass = marginValue < 0 ? 'text-red-600' : 'text-green-600';
@@ -104,7 +114,11 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
   {
     id: 'update_at',
     accessorFn: (row) => row.product.updated_at,
-    header: 'LAST UPDATE',
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="LAST UPDATED AT" />
+      );
+    },
     cell: ({ getValue }) => {
       return <DateCell dateString={getValue<string>()} side="top" />;
     },
@@ -116,7 +130,9 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
   {
     id: 'status',
     accessorFn: (row) => row.quarries[0]?.price?.status,
-    header: 'STATUS',
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="STATUS" />;
+    },
     cell: ({ getValue }) => {
       const names = getValue<string>();
       return <TableBadges names={names} visibleCount={1} />;

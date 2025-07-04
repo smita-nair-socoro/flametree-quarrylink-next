@@ -1,4 +1,7 @@
-import { DataTableClient } from '@/components/ui/data-table-client';
+import {
+  DataTableClient,
+  FacetedFilterConfig,
+} from '@/components/ui/data-table-client';
 import { AddProductDrawerDialog } from './(components)/add-product-dialog';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import rawData from '@/lib/tests/productData.json';
@@ -8,6 +11,17 @@ const productData: ProductWithCategoriesAndQuarry[] =
   rawData.items as ProductWithCategoriesAndQuarry[];
 
 export default function ProductsPage() {
+  const myFacets: FacetedFilterConfig[] = [
+    {
+      column: 'status',
+      title: 'Status',
+      options: [
+        { value: 'ACTIVE', label: 'ACTIVE' },
+        { value: 'INACTIVE', label: 'INACTIVE' },
+      ],
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
@@ -19,7 +33,11 @@ export default function ProductsPage() {
       </div>
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min p-2">
-        <DataTableClient data={productData} columns={productColumns} />
+        <DataTableClient
+          data={productData}
+          columns={productColumns}
+          facetedFilters={myFacets}
+        />
       </div>
     </div>
   );
