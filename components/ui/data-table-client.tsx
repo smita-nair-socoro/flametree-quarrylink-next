@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from './button';
 import { useMemo, useState } from 'react';
-import { useIsMobile } from '@/hooks/use-mobile';
+// import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Select,
   SelectContent,
