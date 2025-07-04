@@ -1,10 +1,13 @@
+import { Category } from './category';
+import { QuarriesWithPrice } from './quarry';
+
 export interface Product {
   id: number;
   organisation_id: number;
   name: string;
   product_code?: string;
   unit: string;
-  description: string;
+  description: string | null;
   cost_price: number;
   sell_price: number;
   status: string;

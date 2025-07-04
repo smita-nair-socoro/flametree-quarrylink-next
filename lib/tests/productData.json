@@ -1,0 +1,5519 @@
+{
+  "items": [
+    {
+      "product": {
+        "id": 1,
+        "organisation_id": 1,
+        "name": "Product 1",
+        "product_code": "001",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "IRON",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+
+        {
+          "id": 4,
+          "organisation_id": 1,
+          "name": "EXODIA",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 100,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 1,
+            "cost_price": 1010,
+            "sell_price": 1520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 200,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 1,
+            "cost_price": 1020,
+            "sell_price": 1540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 300,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 1,
+            "cost_price": 1030,
+            "sell_price": 1560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 400,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 1,
+            "cost_price": 1040,
+            "sell_price": 1580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 2,
+        "organisation_id": 1,
+        "name": "Product 2",
+        "product_code": "002",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 99,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 2,
+            "cost_price": 2010,
+            "sell_price": 2520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 199,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 2,
+            "cost_price": 2020,
+            "sell_price": 2540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 299,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 2,
+            "cost_price": 2030,
+            "sell_price": 2560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 399,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 2,
+            "cost_price": 2040,
+            "sell_price": 2580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 3,
+        "organisation_id": 1,
+        "name": "Product 3",
+        "product_code": "003",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 98,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 3,
+            "cost_price": 3010,
+            "sell_price": 3520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 198,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 3,
+            "cost_price": 3020,
+            "sell_price": 3540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 298,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 3,
+            "cost_price": 3030,
+            "sell_price": 3560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 398,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 3,
+            "cost_price": 3040,
+            "sell_price": 3580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 4,
+        "organisation_id": 1,
+        "name": "Product 4",
+        "product_code": "004",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 97,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 4,
+            "cost_price": 4010,
+            "sell_price": 4520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 197,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 4,
+            "cost_price": 4020,
+            "sell_price": 4540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 297,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 4,
+            "cost_price": 4030,
+            "sell_price": 4560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 397,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4,
+            "cost_price": 4040,
+            "sell_price": 4580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 5,
+        "organisation_id": 1,
+        "name": "Product 5",
+        "product_code": "005",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 96,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 5,
+            "cost_price": 5010,
+            "sell_price": 5520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 196,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 5,
+            "cost_price": 5020,
+            "sell_price": 5540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 296,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 5,
+            "cost_price": 5030,
+            "sell_price": 5560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 396,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 5,
+            "cost_price": 5040,
+            "sell_price": 5580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 6,
+        "organisation_id": 1,
+        "name": "Product 6",
+        "product_code": "006",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 95,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 6,
+            "cost_price": 6010,
+            "sell_price": 6520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 195,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 6,
+            "cost_price": 6020,
+            "sell_price": 6540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 295,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 6,
+            "cost_price": 6030,
+            "sell_price": 6560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 395,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 6,
+            "cost_price": 6040,
+            "sell_price": 6580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 7,
+        "organisation_id": 1,
+        "name": "Product 7",
+        "product_code": "007",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 94,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 7,
+            "cost_price": 7010,
+            "sell_price": 7520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 194,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 7,
+            "cost_price": 7020,
+            "sell_price": 7540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 294,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 7,
+            "cost_price": 7030,
+            "sell_price": 7560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 394,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 7,
+            "cost_price": 7040,
+            "sell_price": 7580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 8,
+        "organisation_id": 1,
+        "name": "Product 8",
+        "product_code": "008",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 93,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 8,
+            "cost_price": 8010,
+            "sell_price": 8520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 193,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 8,
+            "cost_price": 8020,
+            "sell_price": 8540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 293,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 8,
+            "cost_price": 8030,
+            "sell_price": 8560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 393,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 8,
+            "cost_price": 8040,
+            "sell_price": 8580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 9,
+        "organisation_id": 1,
+        "name": "Product 9",
+        "product_code": "009",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 92,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 9,
+            "cost_price": 9010,
+            "sell_price": 9520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 192,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 9,
+            "cost_price": 9020,
+            "sell_price": 9540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 292,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 9,
+            "cost_price": 9030,
+            "sell_price": 9560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 392,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 9,
+            "cost_price": 9040,
+            "sell_price": 9580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 10,
+        "organisation_id": 1,
+        "name": "Product 10",
+        "product_code": "010",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 91,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 10,
+            "cost_price": 10010,
+            "sell_price": 10520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 191,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 10,
+            "cost_price": 10020,
+            "sell_price": 10540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 291,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 10,
+            "cost_price": 10030,
+            "sell_price": 10560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 391,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 10,
+            "cost_price": 10040,
+            "sell_price": 10580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 11,
+        "organisation_id": 1,
+        "name": "Product 11",
+        "product_code": "011",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 90,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 11,
+            "cost_price": 11010,
+            "sell_price": 11520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 190,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 11,
+            "cost_price": 11020,
+            "sell_price": 11540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 290,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 11,
+            "cost_price": 11030,
+            "sell_price": 11560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 390,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 11,
+            "cost_price": 11040,
+            "sell_price": 11580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 12,
+        "organisation_id": 1,
+        "name": "Product 12",
+        "product_code": "012",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 89,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 12,
+            "cost_price": 12010,
+            "sell_price": 12520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 189,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 12,
+            "cost_price": 12020,
+            "sell_price": 12540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 289,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 12,
+            "cost_price": 12030,
+            "sell_price": 12560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 389,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 12,
+            "cost_price": 12040,
+            "sell_price": 12580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 13,
+        "organisation_id": 1,
+        "name": "Product 13",
+        "product_code": "013",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 88,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 13,
+            "cost_price": 13010,
+            "sell_price": 13520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 188,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 13,
+            "cost_price": 13020,
+            "sell_price": 13540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 288,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 13,
+            "cost_price": 13030,
+            "sell_price": 13560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 388,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 13,
+            "cost_price": 13040,
+            "sell_price": 13580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 14,
+        "organisation_id": 1,
+        "name": "Product 14",
+        "product_code": "014",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 87,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 14,
+            "cost_price": 14010,
+            "sell_price": 14520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 187,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 14,
+            "cost_price": 14020,
+            "sell_price": 14540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 287,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 14,
+            "cost_price": 14030,
+            "sell_price": 14560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 387,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 14,
+            "cost_price": 14040,
+            "sell_price": 14580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 15,
+        "organisation_id": 1,
+        "name": "Product 15",
+        "product_code": "015",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 86,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 15,
+            "cost_price": 15010,
+            "sell_price": 15520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 186,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 15,
+            "cost_price": 15020,
+            "sell_price": 15540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 286,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 15,
+            "cost_price": 15030,
+            "sell_price": 15560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 386,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 15,
+            "cost_price": 15040,
+            "sell_price": 15580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 16,
+        "organisation_id": 1,
+        "name": "Product 16",
+        "product_code": "016",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 85,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 16,
+            "cost_price": 16010,
+            "sell_price": 16520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 185,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 16,
+            "cost_price": 16020,
+            "sell_price": 16540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 285,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 16,
+            "cost_price": 16030,
+            "sell_price": 16560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 385,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 16,
+            "cost_price": 16040,
+            "sell_price": 16580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 17,
+        "organisation_id": 1,
+        "name": "Product 17",
+        "product_code": "017",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 84,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 17,
+            "cost_price": 17010,
+            "sell_price": 17520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 184,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 17,
+            "cost_price": 17020,
+            "sell_price": 17540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 284,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 17,
+            "cost_price": 17030,
+            "sell_price": 17560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 384,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 17,
+            "cost_price": 17040,
+            "sell_price": 17580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 18,
+        "organisation_id": 1,
+        "name": "Product 18",
+        "product_code": "018",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 83,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 18,
+            "cost_price": 18010,
+            "sell_price": 18520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 183,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 18,
+            "cost_price": 18020,
+            "sell_price": 18540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 283,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 18,
+            "cost_price": 18030,
+            "sell_price": 18560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 383,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 18,
+            "cost_price": 18040,
+            "sell_price": 18580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 19,
+        "organisation_id": 1,
+        "name": "Product 19",
+        "product_code": "019",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 82,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 19,
+            "cost_price": 19010,
+            "sell_price": 19520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 182,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 19,
+            "cost_price": 19020,
+            "sell_price": 19540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 282,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 19,
+            "cost_price": 19030,
+            "sell_price": 19560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 382,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 19,
+            "cost_price": 19040,
+            "sell_price": 19580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 20,
+        "organisation_id": 1,
+        "name": "Product 20",
+        "product_code": "020",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 81,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 20,
+            "cost_price": 20010,
+            "sell_price": 20520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 181,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 20,
+            "cost_price": 20020,
+            "sell_price": 20540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 281,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 20,
+            "cost_price": 20030,
+            "sell_price": 20560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 381,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 20,
+            "cost_price": 20040,
+            "sell_price": 20580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 21,
+        "organisation_id": 1,
+        "name": "Product 21",
+        "product_code": "021",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 80,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 21,
+            "cost_price": 21010,
+            "sell_price": 21520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 180,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 21,
+            "cost_price": 21020,
+            "sell_price": 21540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 280,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 21,
+            "cost_price": 21030,
+            "sell_price": 21560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 380,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 21,
+            "cost_price": 21040,
+            "sell_price": 21580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 22,
+        "organisation_id": 1,
+        "name": "Product 22",
+        "product_code": "022",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 79,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 22,
+            "cost_price": 22010,
+            "sell_price": 22520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 179,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 22,
+            "cost_price": 22020,
+            "sell_price": 22540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 279,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 22,
+            "cost_price": 22030,
+            "sell_price": 22560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 379,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 22,
+            "cost_price": 22040,
+            "sell_price": 22580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 23,
+        "organisation_id": 1,
+        "name": "Product 23",
+        "product_code": "023",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 78,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 23,
+            "cost_price": 23010,
+            "sell_price": 23520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 178,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 23,
+            "cost_price": 23020,
+            "sell_price": 23540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 278,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 23,
+            "cost_price": 23030,
+            "sell_price": 23560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 378,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 23,
+            "cost_price": 23040,
+            "sell_price": 23580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 24,
+        "organisation_id": 1,
+        "name": "Product 24",
+        "product_code": "024",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 77,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 24,
+            "cost_price": 24010,
+            "sell_price": 24520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 177,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 24,
+            "cost_price": 24020,
+            "sell_price": 24540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 277,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 24,
+            "cost_price": 24030,
+            "sell_price": 24560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 377,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 24,
+            "cost_price": 24040,
+            "sell_price": 24580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 25,
+        "organisation_id": 1,
+        "name": "Product 25",
+        "product_code": "025",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 76,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 25,
+            "cost_price": 25010,
+            "sell_price": 25520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 176,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 25,
+            "cost_price": 25020,
+            "sell_price": 25540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 276,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 25,
+            "cost_price": 25030,
+            "sell_price": 25560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 376,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 25,
+            "cost_price": 25040,
+            "sell_price": 25580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 26,
+        "organisation_id": 1,
+        "name": "Product 26",
+        "product_code": "026",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 75,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 26,
+            "cost_price": 26010,
+            "sell_price": 26520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 175,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 26,
+            "cost_price": 26020,
+            "sell_price": 26540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 275,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 26,
+            "cost_price": 26030,
+            "sell_price": 26560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 375,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 26,
+            "cost_price": 26040,
+            "sell_price": 26580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 27,
+        "organisation_id": 1,
+        "name": "Product 27",
+        "product_code": "027",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 74,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 27,
+            "cost_price": 27010,
+            "sell_price": 27520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 174,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 27,
+            "cost_price": 27020,
+            "sell_price": 27540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 274,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 27,
+            "cost_price": 27030,
+            "sell_price": 27560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 374,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 27,
+            "cost_price": 27040,
+            "sell_price": 27580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 28,
+        "organisation_id": 1,
+        "name": "Product 28",
+        "product_code": "028",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 73,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 28,
+            "cost_price": 28010,
+            "sell_price": 28520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 173,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 28,
+            "cost_price": 28020,
+            "sell_price": 28540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 273,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 28,
+            "cost_price": 28030,
+            "sell_price": 28560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 373,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 28,
+            "cost_price": 28040,
+            "sell_price": 28580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 29,
+        "organisation_id": 1,
+        "name": "Product 29",
+        "product_code": "029",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 72,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 29,
+            "cost_price": 29010,
+            "sell_price": 29520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 172,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 29,
+            "cost_price": 29020,
+            "sell_price": 29540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 272,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 29,
+            "cost_price": 29030,
+            "sell_price": 29560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 372,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 29,
+            "cost_price": 29040,
+            "sell_price": 29580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 30,
+        "organisation_id": 1,
+        "name": "Product 30",
+        "product_code": "030",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 71,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 30,
+            "cost_price": 30010,
+            "sell_price": 30520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 171,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 30,
+            "cost_price": 30020,
+            "sell_price": 30540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 271,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 30,
+            "cost_price": 30030,
+            "sell_price": 30560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 371,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 30,
+            "cost_price": 30040,
+            "sell_price": 30580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 31,
+        "organisation_id": 1,
+        "name": "Product 31",
+        "product_code": "031",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 70,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 31,
+            "cost_price": 31010,
+            "sell_price": 31520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 170,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 31,
+            "cost_price": 31020,
+            "sell_price": 31540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 270,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 31,
+            "cost_price": 31030,
+            "sell_price": 31560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 370,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 31,
+            "cost_price": 31040,
+            "sell_price": 31580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 32,
+        "organisation_id": 1,
+        "name": "Product 32",
+        "product_code": "032",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 69,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 32,
+            "cost_price": 32010,
+            "sell_price": 32520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 169,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 32,
+            "cost_price": 32020,
+            "sell_price": 32540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 269,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 32,
+            "cost_price": 32030,
+            "sell_price": 32560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 369,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 32,
+            "cost_price": 32040,
+            "sell_price": 32580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 33,
+        "organisation_id": 1,
+        "name": "Product 33",
+        "product_code": "033",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 68,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 33,
+            "cost_price": 33010,
+            "sell_price": 33520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 168,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 33,
+            "cost_price": 33020,
+            "sell_price": 33540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 268,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 33,
+            "cost_price": 33030,
+            "sell_price": 33560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 368,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 33,
+            "cost_price": 33040,
+            "sell_price": 33580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 34,
+        "organisation_id": 1,
+        "name": "Product 34",
+        "product_code": "034",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 67,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 34,
+            "cost_price": 34010,
+            "sell_price": 34520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 167,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 34,
+            "cost_price": 34020,
+            "sell_price": 34540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 267,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 34,
+            "cost_price": 34030,
+            "sell_price": 34560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 367,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 34,
+            "cost_price": 34040,
+            "sell_price": 34580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 35,
+        "organisation_id": 1,
+        "name": "Product 35",
+        "product_code": "035",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 66,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 35,
+            "cost_price": 35010,
+            "sell_price": 35520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 166,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 35,
+            "cost_price": 35020,
+            "sell_price": 35540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 266,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 35,
+            "cost_price": 35030,
+            "sell_price": 35560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 366,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 35,
+            "cost_price": 35040,
+            "sell_price": 35580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 36,
+        "organisation_id": 1,
+        "name": "Product 36",
+        "product_code": "036",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 65,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 36,
+            "cost_price": 36010,
+            "sell_price": 36520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 165,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 36,
+            "cost_price": 36020,
+            "sell_price": 36540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 265,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 36,
+            "cost_price": 36030,
+            "sell_price": 36560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 365,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 36,
+            "cost_price": 36040,
+            "sell_price": 36580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 37,
+        "organisation_id": 1,
+        "name": "Product 37",
+        "product_code": "037",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 64,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 37,
+            "cost_price": 37010,
+            "sell_price": 37520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 164,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 37,
+            "cost_price": 37020,
+            "sell_price": 37540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 264,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 37,
+            "cost_price": 37030,
+            "sell_price": 37560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 364,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 37,
+            "cost_price": 37040,
+            "sell_price": 37580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 38,
+        "organisation_id": 1,
+        "name": "Product 38",
+        "product_code": "038",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 63,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 38,
+            "cost_price": 38010,
+            "sell_price": 38520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 163,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 38,
+            "cost_price": 38020,
+            "sell_price": 38540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 263,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 38,
+            "cost_price": 38030,
+            "sell_price": 38560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 363,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 38,
+            "cost_price": 38040,
+            "sell_price": 38580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 39,
+        "organisation_id": 1,
+        "name": "Product 39",
+        "product_code": "039",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 62,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 39,
+            "cost_price": 39010,
+            "sell_price": 39520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 162,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 39,
+            "cost_price": 39020,
+            "sell_price": 39540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 262,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 39,
+            "cost_price": 39030,
+            "sell_price": 39560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 362,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 39,
+            "cost_price": 39040,
+            "sell_price": 39580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 40,
+        "organisation_id": 1,
+        "name": "Product 40",
+        "product_code": "040",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 61,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 40,
+            "cost_price": 40010,
+            "sell_price": 40520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 161,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 40,
+            "cost_price": 40020,
+            "sell_price": 40540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 261,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 40,
+            "cost_price": 40030,
+            "sell_price": 40560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 361,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 40,
+            "cost_price": 40040,
+            "sell_price": 40580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 41,
+        "organisation_id": 1,
+        "name": "Product 41",
+        "product_code": "041",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 60,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 41,
+            "cost_price": 41010,
+            "sell_price": 41520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 160,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 41,
+            "cost_price": 41020,
+            "sell_price": 41540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 260,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 41,
+            "cost_price": 41030,
+            "sell_price": 41560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 360,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 41,
+            "cost_price": 41040,
+            "sell_price": 41580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 42,
+        "organisation_id": 1,
+        "name": "Product 42",
+        "product_code": "042",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 59,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 42,
+            "cost_price": 42010,
+            "sell_price": 42520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 159,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 42,
+            "cost_price": 42020,
+            "sell_price": 42540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 259,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 42,
+            "cost_price": 42030,
+            "sell_price": 42560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 359,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 42,
+            "cost_price": 42040,
+            "sell_price": 42580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 43,
+        "organisation_id": 1,
+        "name": "Product 43",
+        "product_code": "043",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 58,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 43,
+            "cost_price": 43010,
+            "sell_price": 43520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 158,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 43,
+            "cost_price": 43020,
+            "sell_price": 43540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 258,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 43,
+            "cost_price": 43030,
+            "sell_price": 43560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 358,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 43,
+            "cost_price": 43040,
+            "sell_price": 43580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 44,
+        "organisation_id": 1,
+        "name": "Product 44",
+        "product_code": "044",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 57,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 44,
+            "cost_price": 44010,
+            "sell_price": 44520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 157,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 44,
+            "cost_price": 44020,
+            "sell_price": 44540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 257,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 44,
+            "cost_price": 44030,
+            "sell_price": 44560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 357,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 44,
+            "cost_price": 44040,
+            "sell_price": 44580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 45,
+        "organisation_id": 1,
+        "name": "Product 45",
+        "product_code": "045",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 56,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 45,
+            "cost_price": 45010,
+            "sell_price": 45520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 156,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 45,
+            "cost_price": 45020,
+            "sell_price": 45540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 256,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 45,
+            "cost_price": 45030,
+            "sell_price": 45560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 356,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 45,
+            "cost_price": 45040,
+            "sell_price": 45580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 46,
+        "organisation_id": 1,
+        "name": "Product 46",
+        "product_code": "046",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 55,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 46,
+            "cost_price": 46010,
+            "sell_price": 46520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 155,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 46,
+            "cost_price": 46020,
+            "sell_price": 46540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 255,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 46,
+            "cost_price": 46030,
+            "sell_price": 46560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 355,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 46,
+            "cost_price": 46040,
+            "sell_price": 46580,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 47,
+        "organisation_id": 1,
+        "name": "Product 47",
+        "product_code": "047",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 54,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 47,
+            "cost_price": 47010,
+            "sell_price": 47520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 154,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 47,
+            "cost_price": 47020,
+            "sell_price": 47540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 254,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 47,
+            "cost_price": 47030,
+            "sell_price": 47560,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 354,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 47,
+            "cost_price": 47040,
+            "sell_price": 47580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 48,
+        "organisation_id": 1,
+        "name": "Product 48",
+        "product_code": "048",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 53,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 48,
+            "cost_price": 48010,
+            "sell_price": 48520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 153,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 48,
+            "cost_price": 48020,
+            "sell_price": 48540,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 253,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 48,
+            "cost_price": 48030,
+            "sell_price": 48560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 353,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 48,
+            "cost_price": 48040,
+            "sell_price": 48580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 49,
+        "organisation_id": 1,
+        "name": "Product 49",
+        "product_code": "049",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 1,
+          "organisation_id": 1,
+          "name": "Hardware",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 52,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 49,
+            "cost_price": 49010,
+            "sell_price": 49520,
+            "status": "INACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 152,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 49,
+            "cost_price": 49020,
+            "sell_price": 49540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 252,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 49,
+            "cost_price": 49030,
+            "sell_price": 49560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 352,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 49,
+            "cost_price": 49040,
+            "sell_price": 49580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    },
+    {
+      "product": {
+        "id": 50,
+        "organisation_id": 1,
+        "name": "Product 50",
+        "product_code": "050",
+        "unit": "pcs",
+        "description": null,
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "organisation_id": 1,
+          "name": "Machinery",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        },
+        {
+          "id": 3,
+          "organisation_id": 1,
+          "name": "Materials",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505"
+        }
+      ],
+      "quarries": [
+        {
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Quarry 1",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 51,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 50,
+            "cost_price": 50010,
+            "sell_price": 50520,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 2,
+            "organisation_id": 1,
+            "name": "Quarry 2",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 151,
+            "organisation_id": 1,
+            "quarries_id": 2,
+            "product_id": 50,
+            "cost_price": 50020,
+            "sell_price": 50540,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Quarry 3",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 251,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 50,
+            "cost_price": 50030,
+            "sell_price": 50560,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        },
+        {
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Quarry 4",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          },
+          "price": {
+            "id": 351,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 50,
+            "cost_price": 50040,
+            "sell_price": 50580,
+            "status": "ACTIVE",
+            "created_at": "2025-06-02T03:55:14.626505",
+            "updated_at": "2025-06-02T03:55:14.626505"
+          }
+        }
+      ]
+    }
+  ]
+}

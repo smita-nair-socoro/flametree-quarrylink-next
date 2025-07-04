@@ -1,0 +1,157 @@
+'use client';
+
+import { DateCell } from '@/components/date-cell';
+import { TableBadges } from '@/components/table-badges';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ProductWithCategoriesAndQuarry } from '@/lib/types/product';
+import { dateSortingFn } from '@/lib/utils';
+import { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal } from 'lucide-react';
+
+export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
+  {
+    id: 'name',
+    accessorFn: (row) => row.product.name,
+    header: 'NAME',
+    cell: (info) => info.getValue(),
+    meta: 'PRODUCT',
+  },
+
+  {
+    id: 'category',
+    accessorFn: (row) => row.categories.map((c) => c.name),
+    header: 'CATEGORIES',
+    cell: ({ getValue }) => {
+      const names = getValue<string[]>();
+      return <TableBadges names={names} visibleCount={1} />;
+    },
+    meta: 'CATEGORY',
+  },
+
+  {
+    id: 'cost_price',
+    accessorFn: (row) => row.quarries[0]?.price?.cost_price ?? 0,
+    header: () => <div> COST PRICE </div>,
+    cell: ({ row }) => {
+      const cents = parseFloat(row.getValue('cost_price'));
+      const dollars = cents / 100;
+      const formatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'AUD',
+      }).format(dollars);
+
+      return <div className="font-medium">{formatted}</div>;
+    },
+    meta: 'COST PRICE',
+  },
+
+  {
+    id: 'sell_price',
+    accessorFn: (row) => row.quarries[0]?.price?.sell_price ?? 0,
+    header: 'SELL PRICE',
+    cell: ({ row }) => {
+      const cents = parseFloat(row.getValue('sell_price'));
+      const dollars = cents / 100;
+      const formatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'AUD',
+      }).format(dollars);
+
+      return <div className="font-medium">{formatted}</div>;
+    },
+    meta: 'SELL PRICE',
+  },
+
+  {
+    id: 'margin',
+    accessorFn: (row) => {
+      const { cost_price: cost, sell_price: sell } = row.quarries[0].price;
+      return cost === 0 ? 0 : Math.round(((sell - cost) / cost) * 100);
+    },
+    header: 'MARGIN',
+    cell: ({ getValue }) => {
+      const marginValue = getValue<number>();
+      const colorClass = marginValue < 0 ? 'text-red-600' : 'text-green-600';
+
+      return (
+        <div className="flex items-center font-medium">
+          <span className={colorClass}>{marginValue}%</span>
+        </div>
+      );
+    },
+    meta: 'MARGIN',
+  },
+
+  {
+    id: 'quarries',
+    accessorFn: (row) => row.quarries.map((q) => q.quarry.name),
+    header: 'QUARRY SUPPLY',
+    cell: ({ getValue }) => {
+      const names = getValue<string[]>();
+      return <TableBadges names={names} visibleCount={1} />;
+    },
+    meta: 'QUARRY SUPPLY',
+  },
+
+  {
+    id: 'update_at',
+    accessorFn: (row) => row.product.updated_at,
+    header: 'LAST UPDATE',
+    cell: ({ getValue }) => {
+      return <DateCell dateString={getValue<string>()} side="top" />;
+    },
+    sortingFn: dateSortingFn,
+
+    meta: 'LAST UPDATE',
+  },
+
+  {
+    id: 'status',
+    accessorFn: (row) => row.quarries[0]?.price?.status,
+    header: 'STATUS',
+    cell: ({ getValue }) => {
+      const names = getValue<string>();
+      return <TableBadges names={names} visibleCount={1} />;
+    },
+    meta: 'STATUS',
+  },
+
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const productId = row.original.product.id;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() =>
+                navigator.clipboard.writeText(productId.toString())
+              }
+            >
+              Copy product ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>View product</DropdownMenuItem>
+            <DropdownMenuItem>View payment details</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];

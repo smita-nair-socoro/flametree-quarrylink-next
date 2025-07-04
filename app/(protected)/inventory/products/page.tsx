@@ -1,4 +1,11 @@
-import { AddProductDrawerDialog } from "./(components)/add-product-dialog";
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { AddProductDrawerDialog } from './(components)/add-product-dialog';
+import { productColumns } from './(components)/(data-tables)/products/columns';
+import rawData from '@/lib/tests/productData.json';
+import { ProductWithCategoriesAndQuarry } from '@/lib/types/product';
+
+const productData: ProductWithCategoriesAndQuarry[] =
+  rawData.items as ProductWithCategoriesAndQuarry[];
 
 export default function ProductsPage() {
   return (
@@ -11,12 +18,9 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
+      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min p-2">
+        <DataTableClient data={productData} columns={productColumns} />
       </div>
-      <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
     </div>
   );
 }
