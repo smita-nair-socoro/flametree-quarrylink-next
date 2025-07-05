@@ -3,6 +3,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -94,6 +95,24 @@ export function DataTableClient<TData, TValue>({
     return found?.label ?? 'Select page size';
   }, [paginationSize, paginationSizeSelect]);
 
+  // Define the filter function
+  const arrIncludesSome: FilterFn<TData> = (row, columnId, filterValues) => {
+    if (!Array.isArray(filterValues) || filterValues.length === 0) return true;
+
+    const raw = row.getValue<any>(columnId);
+
+    let arr: string[] = [];
+    if (Array.isArray(raw)) {
+      arr = raw.map((v) => String(v).trim());
+    } else if (typeof raw === 'string' && raw.includes(',')) {
+      arr = raw.split(',').map((v) => v.trim());
+    } else {
+      arr = raw != null ? [String(raw).trim()] : [];
+    }
+
+    return arr.some((v) => filterValues.includes(v));
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -106,16 +125,9 @@ export function DataTableClient<TData, TValue>({
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
 
     globalFilterFn: 'auto',
-    filterFns: {
-      arrIncludesSome: (row, id, filterValues) => {
-        if (!filterValues || filterValues.length === 0) return true;
-        const value = row.getValue(id);
-        return filterValues.includes(value);
-      },
-    },
-    defaultColumn: {
-      filterFn: 'arrIncludesSome',
-    },
+
+    filterFns: { arrIncludesSome },
+    defaultColumn: { filterFn: arrIncludesSome },
 
     onSortingChange: setSorting,
     onPaginationChange: setPagination,

@@ -1,9 +1,9 @@
 'use client';
 
-import { FacetDefinition } from '@/components/ui/data-table-client';
+import { useMemo } from 'react';
 import { Table } from '@tanstack/react-table';
 import { LucideIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { FacetDefinition } from '@/components/ui/data-table-client';
 
 export function useFacets<TData>(
   table: Table<TData>,
@@ -16,30 +16,43 @@ export function useFacets<TData>(
 }> {
   return useMemo(() => {
     return defs.map((def) => {
-      const col = table.getColumn(def.column);
-      if (!col) {
-        console.warn(`useFacets: column "${def.column}" not found on table`);
-        return {
-          column: def.column,
-          title: def.title ?? def.column,
-          options: [],
-          counts: {},
-        };
+      const counts: Record<string, number> = {};
+
+      for (const row of table.getPreFilteredRowModel().rows) {
+        const raw = row.getValue<any>(def.column);
+
+        // if it’s already an array, iterate it
+        if (Array.isArray(raw)) {
+          raw.forEach((v) => {
+            const key = String(v).trim();
+            if (key) counts[key] = (counts[key] || 0) + 1;
+          });
+
+          // if it’s a comma-string, split it
+        } else if (typeof raw === 'string' && raw.includes(',')) {
+          raw
+            .split(',')
+            .map((v) => v.trim())
+            .filter((v) => v)
+            .forEach((key) => {
+              counts[key] = (counts[key] || 0) + 1;
+            });
+
+          // otherwise treat as single value
+        } else {
+          const key = raw != null ? String(raw).trim() : '';
+          if (key) counts[key] = (counts[key] || 0) + 1;
+        }
       }
 
-      const facetedMap = col.getFacetedUniqueValues() as Map<any, number>;
-      const entries = Array.from(facetedMap.entries());
-
-      const counts: Record<string, number> = Object.fromEntries(
-        entries.map(([value, cnt]) => [String(value), cnt]),
-      );
-
-      const options = entries.map(([value]) => ({
-        value: String(value),
-        label: String(value),
+      // turn into options array
+      const options = Object.keys(counts).map((value) => ({
+        value,
+        label: value,
         icon: def.icon,
       }));
 
+      // sort by descending count
       options.sort((a, b) => (counts[b.value] || 0) - (counts[a.value] || 0));
 
       return {

@@ -16,6 +16,7 @@ const productData: ProductWithCategoriesAndQuarry[] =
 export default function ProductsPage() {
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: ChartPie },
+    { column: 'category', title: 'Categories', icon: ChartPie },
   ];
 
   return (
