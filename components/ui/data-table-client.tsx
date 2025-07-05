@@ -162,7 +162,7 @@ export function DataTableClient<TData, TValue>({
           <Input
             placeholder="Filter…"
             type="search"
-            value=""
+            value={table.getState().globalFilter ?? ''}
             onChange={(e) => table.setGlobalFilter(String(e.target.value))}
             className="h-8 w-full md:w-[150px] lg:w-[250px]"
           />
