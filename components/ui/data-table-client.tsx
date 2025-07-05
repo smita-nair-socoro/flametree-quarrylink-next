@@ -66,6 +66,14 @@ export type FacetDefinition = {
   icon?: LucideIcon;
 };
 
+const paginationSizeSelect = [
+  { value: '10', label: '10' },
+  { value: '25', label: '25' },
+  { value: '50', label: '50' },
+  { value: '100', label: '100' },
+  { value: '200', label: '200' },
+];
+
 export function DataTableClient<TData, TValue>({
   columns,
   data,
@@ -80,34 +88,26 @@ export function DataTableClient<TData, TValue>({
   const [globalFilter, setGlobalFilter] = useState<GlobalFilterTableState>();
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
-  const paginationSizeSelect = [
-    { value: '10', label: '10' },
-    { value: '25', label: '25' },
-    { value: '50', label: '50' },
-    { value: '100', label: '100' },
-    { value: '200', label: '200' },
-  ];
-
   const [paginationSize, setPaginationSize] = useState('10');
 
   const pageSizeTriggerContent = useMemo(() => {
     const found = paginationSizeSelect.find((f) => f.value === paginationSize);
     return found?.label ?? 'Select page size';
-  }, [paginationSize, paginationSizeSelect]);
+  }, [paginationSize]);
 
   // Define the filter function
   const arrIncludesSome: FilterFn<TData> = (row, columnId, filterValues) => {
     if (!Array.isArray(filterValues) || filterValues.length === 0) return true;
 
-    const raw = row.getValue<any>(columnId);
+    const raw = row.getValue<unknown>(columnId);
 
     let arr: string[] = [];
     if (Array.isArray(raw)) {
       arr = raw.map((v) => String(v).trim());
     } else if (typeof raw === 'string' && raw.includes(',')) {
       arr = raw.split(',').map((v) => v.trim());
-    } else {
-      arr = raw != null ? [String(raw).trim()] : [];
+    } else if (typeof raw === 'string') {
+      arr = [raw.trim()];
     }
 
     return arr.some((v) => filterValues.includes(v));
