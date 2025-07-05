@@ -8,15 +8,16 @@ import { AddProductDrawerDialog } from './(components)/add-product-dialog';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import rawData from '@/lib/tests/productData.json';
 import { ProductWithCategoriesAndQuarry } from '@/lib/types/product';
-import { ChartPie } from 'lucide-react';
+import { Activity, Factory, Tags } from 'lucide-react';
 
 const productData: ProductWithCategoriesAndQuarry[] =
   rawData.items as ProductWithCategoriesAndQuarry[];
 
 export default function ProductsPage() {
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: ChartPie },
-    { column: 'category', title: 'Categories', icon: ChartPie },
+    { column: 'status', title: 'Status', icon: Activity },
+    { column: 'category', title: 'Categories', icon: Tags },
+    { column: 'quarries', title: 'Quarry', icon: Factory },
   ];
 
   return (
