@@ -3,7 +3,6 @@
 import {
   ColumnDef,
   ColumnFiltersState,
-  FilterFn,
   flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -29,7 +28,6 @@ import {
 } from '@/components/ui/table';
 import { Button } from './button';
 import { useMemo, useState } from 'react';
-// import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Select,
   SelectContent,
@@ -80,10 +78,6 @@ export function DataTableClient<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState<GlobalFilterTableState>();
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-
-  // const filterValuesMap = useState<Record<string, string[]>>({});
-  //
-  // const isMobile = useIsMobile();
 
   const paginationSizeSelect = [
     { value: '10', label: '10' },
