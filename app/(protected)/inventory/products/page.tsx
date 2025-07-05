@@ -1,25 +1,21 @@
+'use client';
+
 import {
   DataTableClient,
-  FacetedFilterConfig,
+  FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { AddProductDrawerDialog } from './(components)/add-product-dialog';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import rawData from '@/lib/tests/productData.json';
 import { ProductWithCategoriesAndQuarry } from '@/lib/types/product';
+import { ChartPie } from 'lucide-react';
 
 const productData: ProductWithCategoriesAndQuarry[] =
   rawData.items as ProductWithCategoriesAndQuarry[];
 
 export default function ProductsPage() {
-  const myFacets: FacetedFilterConfig[] = [
-    {
-      column: 'status',
-      title: 'Status',
-      options: [
-        { value: 'ACTIVE', label: 'ACTIVE' },
-        { value: 'INACTIVE', label: 'INACTIVE' },
-      ],
-    },
+  const facetDefs: FacetDefinition[] = [
+    { column: 'status', title: 'Status', icon: ChartPie },
   ];
 
   return (
@@ -36,7 +32,7 @@ export default function ProductsPage() {
         <DataTableClient
           data={productData}
           columns={productColumns}
-          facetedFilters={myFacets}
+          facetDefination={facetDefs}
         />
       </div>
     </div>

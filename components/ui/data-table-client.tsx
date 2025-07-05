@@ -3,6 +3,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -52,29 +53,24 @@ import {
 } from './dropdown-menu';
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { DataTableFacetedFilter } from '../table-faceted-filter';
+import { useFacets } from '@/hooks/useFacets';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  facetedFilters?: FacetedFilterConfig[];
+  facetDefination?: FacetDefinition[];
 }
 
-export type FilterOption = {
-  value: string;
-  label: string;
-  icon?: LucideIcon;
-};
-
-export type FacetedFilterConfig = {
+export type FacetDefinition = {
   column: string;
-  title: string;
-  options: FilterOption[];
+  title?: string;
+  icon?: LucideIcon;
 };
 
 export function DataTableClient<TData, TValue>({
   columns,
   data,
-  facetedFilters: propsFacets = [],
+  facetDefination = [],
 }: DataTableProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -115,6 +111,18 @@ export function DataTableClient<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
 
+    globalFilterFn: 'auto',
+    filterFns: {
+      arrIncludesSome: (row, id, filterValues) => {
+        if (!filterValues || filterValues.length === 0) return true;
+        const value = row.getValue(id);
+        return filterValues.includes(value);
+      },
+    },
+    defaultColumn: {
+      filterFn: 'arrIncludesSome',
+    },
+
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onColumnFiltersChange: setColumnFilters,
@@ -130,6 +138,8 @@ export function DataTableClient<TData, TValue>({
     },
   });
 
+  const facetedWithCounts = useFacets(table, facetDefination);
+
   function handleFilterChange(columnId: string, values: string[]) {
     setColumnFilters((old) => {
       const others = old.filter((f) => f.id !== columnId);
@@ -138,23 +148,6 @@ export function DataTableClient<TData, TValue>({
         : others;
     });
   }
-
-  const facetedWithCounts = useMemo(() => {
-    const rows = table.getPreFilteredRowModel().rows;
-
-    return propsFacets.map((cfg) => {
-      const counts = rows.reduce<Record<string, number>>((acc, row) => {
-        const val = row.getValue<string>(cfg.column);
-        acc[val] = (acc[val] || 0) + 1;
-        return acc;
-      }, {});
-
-      return {
-        ...cfg,
-        counts,
-      };
-    });
-  }, [table, propsFacets]);
 
   return (
     <div className="space-y-4">
