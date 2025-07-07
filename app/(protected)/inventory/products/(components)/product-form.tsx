@@ -18,41 +18,30 @@ import z from 'zod';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Separator } from '@/components/ui/separator';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import React from 'react';
+import { Dialog } from '@radix-ui/react-dialog';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
+import {
+  NewCategoryFormSchema,
+  NewProductFormSchema,
+  NewQuarryFormSchema,
+} from './product-form-schemas';
 
 export default function ProductForm({
   className,
 }: React.ComponentProps<'form'>) {
-  const NewProductFormSchema = z.object({
-    product_name: z
-      .string()
-      .min(2, { message: 'Product Name must be at least 2 characters.' })
-      .max(100, { message: "Product Name can't be more than 100 characters" }),
-    product_code: z.string().optional(),
-    category: z
-      .array(z.string())
-      .min(1, { message: 'Select at least one category.' }),
-    description: z.string().optional(),
-    quarry_sources: z
-      .string()
-      .min(2, { message: 'Please select at least one quarry' }),
-    cost_price_per_tonne: z.string(),
-    sell_price_per_tonne: z.string(),
-  });
+  const [isNewCategoryDialogOpen, setIsNewCategoryDialogOpen] =
+    React.useState(false);
+
+  const [isNewQuarryDialogOpen, setIsNewQuarryDialogOpen] =
+    React.useState(false);
 
   const form = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
@@ -67,40 +56,98 @@ export default function ProductForm({
     },
   });
 
+  const categoryForm = useForm<z.infer<typeof NewCategoryFormSchema>>({
+    resolver: zodResolver(NewCategoryFormSchema),
+    defaultValues: {
+      name: '',
+    },
+  });
+
+  const quarryForm = useForm<z.infer<typeof NewQuarryFormSchema>>({
+    resolver: zodResolver(NewQuarryFormSchema),
+    defaultValues: {
+      name: '',
+    },
+  });
+
   function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     // Do something with the form values.
     // This will be type-safe and validated.
     console.log(values);
   }
 
-  //TODO: Fetch this from api call for now hard code it
-  const categoryList = [
-    { value: 'react', label: 'React' },
-    { value: 'angular', label: 'Angular' },
-    { value: 'vue', label: 'Vue' },
-    { value: 'svelte', label: 'Svelte' },
-    { value: 'ember', label: 'Ember' },
+  function onSubmitNewCategory(values: z.infer<typeof NewCategoryFormSchema>) {
+    // Do something with the form values.
+    // This will be type-safe and validated.
+
+    setIsNewCategoryDialogOpen(false);
+
+    console.log(values);
+  }
+
+  function onSubmitNewQuarry(values: z.infer<typeof NewQuarryFormSchema>) {
+    // Do something with the form values.
+    // This will be type-safe and validated.
+
+    setIsNewCategoryDialogOpen(false);
+
+    console.log(values);
+  }
+
+  const handleAddClick = () => {
+    // open your Dialog (implemented elsewhere)
+    setIsNewCategoryDialogOpen(true);
+  };
+
+  // TODO: Fetch this from API – for now hard-coded:
+  const categoryList: FormSelectOption[] = [
+    { value: 'bulk-gravel', label: 'Bulk Gravel' },
+    { value: 'fine-sand', label: 'Fine Sand' },
+    { value: 'coarse-sand', label: 'Coarse Sand' },
+    { value: 'pea-gravel', label: 'Pea Gravel' },
+    { value: 'shingle', label: 'Shingle' },
+    { value: 'limestone-chippings', label: 'Limestone Chippings' },
+    { value: 'granite-aggregate', label: 'Granite Aggregate' },
+    { value: 'recycled-aggregate', label: 'Recycled Aggregate' },
+    { value: 'ballast', label: 'Ballast' },
+    { value: 'riprap-stone', label: 'Riprap Stone' },
+    { value: 'crusher-run', label: 'Crusher Run' },
+    { value: 'screened-topsoil', label: 'Screened Topsoil' },
+    { value: 'road-base', label: 'Road Base' },
+    { value: 'drainage-stone', label: 'Drainage Stone' },
+    { value: 'decorative-gravel', label: 'Decorative Gravel' },
+    { value: 'building-sand', label: 'Building Sand' },
+    { value: 'sharp-sand', label: 'Sharp Sand' },
   ];
 
-  //TODO: Fetch this from api call as well
-  const languages = [
-    { label: 'English', value: 'en' },
-    { label: 'French', value: 'fr' },
-    { label: 'German', value: 'de' },
-    { label: 'Spanish', value: 'es' },
-    { label: 'Portuguese', value: 'pt' },
-    { label: 'Russian', value: 'ru' },
-    { label: 'Japanese', value: 'ja' },
-    { label: 'Korean', value: 'ko' },
-    { label: 'Chinese', value: 'zh' },
-  ] as const;
+  // TODO: Fetch this from API – for now hard-coded:
+  const quarryList: FormSelectOption[] = [
+    { value: 'highland-quarry', label: 'Highland Quarry' },
+    { value: 'blue-ridge-quarry', label: 'Blue Ridge Quarry' },
+    { value: 'silverstone-quarry', label: 'Silverstone Quarry' },
+    { value: 'granite-hill-quarry', label: 'Granite Hill Quarry' },
+    { value: 'stonebrook-quarry', label: 'Stonebrook Quarry' },
+    { value: 'green-valley-quarry', label: 'Green Valley Quarry' },
+    { value: 'sunset-ridge-quarry', label: 'Sunset Ridge Quarry' },
+    { value: 'riverside-quarry', label: 'Riverside Quarry' },
+    { value: 'emerald-rock-quarry', label: 'Emerald Rock Quarry' },
+    { value: 'mountain-view-quarry', label: 'Mountain View Quarry' },
+    { value: 'oakfield-quarry', label: 'Oakfield Quarry' },
+    { value: 'pebble-creek-quarry', label: 'Pebble Creek Quarry' },
+    { value: 'northport-quarry', label: 'Northport Quarry' },
+    { value: 'redstone-quarry', label: 'Redstone Quarry' },
+    { value: 'blackrock-quarry', label: 'Blackrock Quarry' },
+    { value: 'sierra-madre-quarry', label: 'Sierra Madre Quarry' },
+    { value: 'canyon-falls-quarry', label: 'Canyon Falls Quarry' },
+    { value: 'golden-peak-quarry', label: 'Golden Peak Quarry' },
+  ];
 
   return (
     <ScrollArea className="overflow-auto">
       <Form {...form}>
         <form
           className={cn(
-            'grid grid-cols-1 md:grid-cols-2 items-start gap-6',
+            'grid grid-cols-1 md:grid-cols-2 items-start gap-6 p-1 ',
             className,
           )}
           onSubmit={form.handleSubmit(onSubmit)}
@@ -158,7 +205,10 @@ export default function ProductForm({
                       placeholder="Pick categories…"
                       defaultValue={field.value}
                       onValueChange={field.onChange}
+                      modalPopover={true}
                       maxCount={3}
+                      onAddClick={handleAddClick}
+                      addButtonLabel="+ New Category"
                     />
                   </FormControl>
                   <FormDescription>
@@ -195,71 +245,14 @@ export default function ProductForm({
           <h2 className="col-span-2 font-bold">Quarry Sources</h2>
 
           <div className="grid grid-cols-1 col-span-2 md:grid-cols-4 gap-3 items-end">
-            <FormField
+            <FormSelect
               control={form.control}
               name="quarry_sources"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Quarry</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {field.value
-                            ? languages.find(
-                                (language) => language.value === field.value,
-                              )?.label
-                            : 'Select Quarry'}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search Quarry..."
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>No Quarry found.</CommandEmpty>
-                          <CommandGroup>
-                            {languages.map((language) => (
-                              <CommandItem
-                                value={language.label}
-                                key={language.value}
-                                onSelect={() => {
-                                  form.setValue(
-                                    'quarry_sources',
-                                    language.value,
-                                  );
-                                }}
-                              >
-                                {language.label}
-                                <Check
-                                  className={cn(
-                                    'ml-auto',
-                                    language.value === field.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0',
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Quarry"
+              options={quarryList}
+              placeholder="Select Quarry"
+              onAddClick={() => setIsNewQuarryDialogOpen(true)}
+              addButtonLabel="+ New Quarry"
             />
 
             <FormField
@@ -310,6 +303,100 @@ export default function ProductForm({
           </div>
         </form>
       </Form>
+
+      <Dialog
+        open={isNewCategoryDialogOpen}
+        onOpenChange={setIsNewCategoryDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+            <DialogDescription>
+              Create a new product category to organise your inventory.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...categoryForm}>
+            <form
+              className={cn('grid grid-cols-1 tems-start gap-3', className)}
+              onSubmit={categoryForm.handleSubmit(onSubmitNewCategory)}
+            >
+              <div className="grid col-span-1 gap-2">
+                <FormField
+                  control={categoryForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category Name*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          placeholder="Enter category name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div>
+                <Button className="w-full" type="submit">
+                  Add Category
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isNewQuarryDialogOpen}
+        onOpenChange={setIsNewQuarryDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Quarry</DialogTitle>
+            <DialogDescription>
+              Create a new quarry organise your resources.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...quarryForm}>
+            <form
+              className={cn('grid grid-cols-1 tems-start gap-3', className)}
+              onSubmit={categoryForm.handleSubmit(onSubmitNewQuarry)}
+            >
+              <div className="grid col-span-1 gap-2">
+                <FormField
+                  control={quarryForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quarry Name*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          placeholder="Enter quarry name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div>
+                <Button className="w-full" type="submit">
+                  Add Quarry
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </ScrollArea>
   );
 }

@@ -76,6 +76,13 @@ interface MultiSelectProps
    */
   onValueChange: (value: string[]) => void;
 
+  /** If present, show a “add” button at the bottom */
+  onAddClick?: () => void;
+  /** Label for the add button (default “+ New Category”) */
+  addButtonLabel?: string;
+  /** Extra classes on the add-button row */
+  addButtonClassName?: string;
+
   /** The default selected values when the component mounts. */
   defaultValue?: string[];
 
@@ -133,6 +140,9 @@ export const MultiSelect = React.forwardRef<
       modalPopover = false,
       asChild = true,
       className,
+      onAddClick,
+      addButtonLabel = '',
+      addButtonClassName,
       ...props
     },
     ref,
@@ -318,6 +328,7 @@ export const MultiSelect = React.forwardRef<
                   </div>
                   <span>(Select All)</span>
                 </CommandItem>
+
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value);
                   return (
@@ -343,6 +354,23 @@ export const MultiSelect = React.forwardRef<
                     </CommandItem>
                   );
                 })}
+
+                <CommandSeparator className="mb-1" />
+
+                {onAddClick && (
+                  <CommandItem
+                    onSelect={() => {
+                      setIsPopoverOpen(false);
+                      onAddClick();
+                    }}
+                    className={cn(
+                      'justify-center text-primary cursor-pointer flex-1',
+                      addButtonClassName,
+                    )}
+                  >
+                    {addButtonLabel}
+                  </CommandItem>
+                )}
               </CommandGroup>
               <CommandSeparator />
               <CommandGroup>
