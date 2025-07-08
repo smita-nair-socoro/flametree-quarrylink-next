@@ -19,6 +19,8 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+const redirectUri = `${window.location.origin}/callback`;
+
 const webStorageStore =
   typeof window !== 'undefined'
     ? new WebStorageStateStore({ store: window.localStorage })
@@ -27,7 +29,7 @@ const webStorageStore =
 const cognitoAuthConfig = {
   authority: process.env.NEXT_PUBLIC_COGNITO_DOMAIN,
   client_id: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID,
-  redirect_uri: process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI,
+  redirect_uri: redirectUri,
   response_type: 'code',
   scope: 'email openid phone',
 
