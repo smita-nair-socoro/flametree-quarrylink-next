@@ -23,6 +23,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { useAuth } from 'react-oidc-context';
+import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 
 // This is sample data.
 const data = {
@@ -116,10 +117,13 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const auth = useAuth();
+  const cookieAuth = useCookieAuth();
 
   // Set user details here
-  data.user.email = auth.user?.profile.email || '';
-  data.user.name = auth.user?.profile.name || 'name not provided';
+  data.user.email =
+    auth.user?.profile.email || cookieAuth.user?.email || 'email undefined';
+  data.user.name =
+    auth.user?.profile.name || cookieAuth.user?.username || 'name undefined';
 
   return (
     <Sidebar collapsible="icon" {...props}>

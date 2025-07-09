@@ -125,6 +125,7 @@ export async function HttpClient<T = unknown>(
 
   const init: RequestInit = {
     method: config.method,
+    credentials: 'include',
     headers: {
       Accept: '*/*',
       'x-requested-with': 'XMLHttpRequest',
@@ -236,7 +237,7 @@ export async function HttpClient<T = unknown>(
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 500: {
-        const health = await window.fetch(`${baseUrl()}api/healthz/liveness`);
+        const health = await window.fetch(`${baseUrl()}/api/healthz/liveness`);
         if (!health.ok) {
           return Promise.reject(
             new Error(`[500] Offline (Internal server error): "${endpoint}"`),
@@ -324,6 +325,14 @@ const appClient = {
 };
 
 export const APIClient = {
+  auth: {
+    login: (email: string, password: string, username?: string) =>
+      appClient.Post<User>('/api/v1/users/login', {
+        body: { email, username, password },
+      }),
+    logout: () => appClient.Post(`/api/v1/users/logout`),
+    validate: () => appClient.Get<User>(`/api/v1/users/get-auth-user`),
+  },
   products: {
     findQuery: (params: ProductQueryParams) =>
       appClient.Get<PaginatedProductsResponse>('/api/v1/products', {

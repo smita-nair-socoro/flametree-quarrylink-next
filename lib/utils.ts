@@ -12,7 +12,7 @@ export function isDevEnv(): boolean {
 }
 
 export function baseUrl(): string {
-  return process.env.API_URL || '';
+  return process.env.NEXT_PUBLIC_API_URL || '';
 }
 
 export function getUser() {

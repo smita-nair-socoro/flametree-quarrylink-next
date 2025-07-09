@@ -22,14 +22,26 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useAuth } from 'react-oidc-context';
+import React from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
+import { useRouter } from 'next/navigation';
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
+  const showCredentials = process.env.NEXT_PUBLIC_BACKEND === 'rust';
+  const cookie = useCookieAuth();
+  const router = useRouter();
+
   const loginFormSchema = z.object({
-    email: z.string().min(2).email(),
-    password: z.string().min(1),
+    email: z
+      .string()
+      .nonempty({ message: 'Email is required' })
+      .email({ message: 'Please enter a valid email address' }),
+    password: z.string().nonempty({ message: 'Password is required' }),
   });
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -38,11 +50,12 @@ export function LoginForm({
       email: '',
       password: '',
     },
+    mode: 'onBlur',
   });
 
   const email = form.watch('email');
 
-  function LoginButton({ email }: { email: string }) {
+  function LoginWithAWSButton({ email }: { email: string }) {
     const auth = useAuth();
 
     const handleLogin = () => {
@@ -50,15 +63,31 @@ export function LoginForm({
     };
 
     return (
-      <Button type="submit" className="w-full" onClick={handleLogin}>
-        Login
+      <Button type="button" className="w-full" onClick={handleLogin}>
+        Continue as {email || 'your email'}
       </Button>
     );
   }
 
+  const loginMutation = useMutation({
+    mutationFn: (data: z.infer<typeof loginFormSchema>) => {
+      return cookie.login(data.email, data.password);
+    },
+    onSuccess: (_, variables: z.infer<typeof loginFormSchema>) => {
+      notifySuccess(`Successfully logged in ${variables.email}`, {
+        dismissible: true,
+      });
+
+      router.replace('/dashboard');
+    },
+    onError: (error) => {
+      notifyError('Login failed', { description: error.message });
+      console.error(error);
+    },
+  });
+
   function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    // If you still want email/password, call your own auth API here.
-    console.log('Credentials login:', values);
+    loginMutation.mutate(values);
   }
 
   return (
@@ -132,18 +161,39 @@ export function LoginForm({
                     Or continue with
                   </span>
                 </div>
-                <div className="grid gap-6">
-                  <div className="grid gap-3">
+
+                <div className="grid gap-3">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="you@example.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {showCredentials && (
+                  <div className="grid gap-6">
                     <FormField
                       control={form.control}
-                      name="email"
+                      name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
                             <Input
-                              type="email"
-                              placeholder="email"
+                              type="password"
+                              placeholder="••••••••"
                               {...field}
                             />
                           </FormControl>
@@ -151,9 +201,13 @@ export function LoginForm({
                         </FormItem>
                       )}
                     />
+                    <Button type="submit" className="w-full ">
+                      Sign In
+                    </Button>
                   </div>
-                  <LoginButton email={email} />
-                </div>
+                )}
+
+                {<LoginWithAWSButton email={email} />}
               </div>
             </form>
           </Form>

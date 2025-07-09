@@ -2,7 +2,8 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from 'react-oidc-context';
+import { useAuth as useOidc } from 'react-oidc-context';
+import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -12,21 +13,25 @@ import {
 } from '@/components/ui/sidebar';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
-  const auth = useAuth();
+  const oidc = useOidc();
+  const cookie = useCookieAuth();
   const router = useRouter();
 
+  const isLoading = oidc.isLoading || cookie.loading;
+
+  const isAuthenticated = oidc.isAuthenticated || Boolean(cookie.user);
+
   useEffect(() => {
-    if (!auth.isLoading && !auth.isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.replace('/login');
     }
-  }, [auth.isLoading, auth.isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (auth.isLoading) {
+  if (isLoading) {
     return null;
   }
 
-  if (!auth.isAuthenticated) {
-    // redirect is already firing, so just don’t render anything
+  if (!isAuthenticated) {
     return null;
   }
 
