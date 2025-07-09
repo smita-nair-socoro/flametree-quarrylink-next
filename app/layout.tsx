@@ -9,6 +9,8 @@ import { ModeToggle } from '@/components/toggle';
 import { TanstackQueryProvider } from '@/lib/providers/tanstack-query-provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
+import { Toaster } from '@/components/ui/sonner';
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -19,7 +21,10 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const redirectUri =  typeof window !== 'undefined' ? `${window.location.origin}/callback` : undefined;
+const redirectUri =
+  typeof window !== 'undefined'
+    ? `${window.location.origin}/callback`
+    : undefined;
 
 const webStorageStore =
   typeof window !== 'undefined'
@@ -70,6 +75,7 @@ export default function RootLayout({
               <TanstackQueryProvider>
                 <ReactQueryDevtools initialIsOpen={false} />
                 <main>{children}</main>
+                <Toaster />
               </TanstackQueryProvider>
             </div>
           </ThemeProvider>
