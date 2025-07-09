@@ -25,7 +25,6 @@ import {
 import { useAuth } from 'react-oidc-context';
 import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 
-// This is sample data.
 const data = {
   user: {
     name: 'undefined',

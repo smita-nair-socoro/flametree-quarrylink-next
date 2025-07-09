@@ -23,8 +23,12 @@ export default function ProductsPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <h1 className="text-2xl">Products</h1>
-
+        <div>
+          <h1 className="text-2xl">Products</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your product catalog and inventory
+          </p>
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
           <AddProductDrawerDialog />
         </div>
@@ -35,6 +39,7 @@ export default function ProductsPage() {
           data={productData}
           columns={productColumns}
           facetDefination={facetDefs}
+          searchPlaceHolder="Search products..."
         />
       </div>
     </div>

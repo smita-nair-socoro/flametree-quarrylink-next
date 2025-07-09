@@ -3,7 +3,6 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { ModeToggle } from '@/components/toggle';
 import { TanstackQueryProvider } from '@/lib/providers/tanstack-query-provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
@@ -38,10 +37,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="relative min-h-screen">
-              <div className="absolute top-4 right-4 z-50">
-                <ModeToggle />
-              </div>
-
               {/* TanstackQuery */}
               <TanstackQueryProvider>
                 <ReactQueryDevtools initialIsOpen={false} />

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { parseISO, formatDistanceToNow, format } from 'date-fns';
 import {
@@ -18,16 +20,18 @@ export const DateCell: React.FC<DateCellProps> = ({
   side = 'top',
 }) => {
   const date = parseISO(dateString);
+
+  const displayDate = format(date, 'dd MMM yyyy');
+
   const relative = formatDistanceToNow(date, { addSuffix: true });
-  const absolute = format(date, 'PPpp');
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="cursor-help font-medium">{relative}</span>
+        <span className="cursor-help font-medium">{displayDate}</span>
       </TooltipTrigger>
       <TooltipContent side={side}>
-        <span className="whitespace-nowrap">{absolute}</span>
+        <span className="text-sm">{relative}</span>
       </TooltipContent>
     </Tooltip>
   );

@@ -43,8 +43,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   LucideIcon,
+  Search,
 } from 'lucide-react';
-import { Input } from './input';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -53,11 +53,13 @@ import {
 import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
+import { InputIcon } from './input-icon';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   facetDefination?: FacetDefinition[];
+  searchPlaceHolder?: string;
 }
 
 export type FacetDefinition = {
@@ -78,6 +80,7 @@ export function DataTableClient<TData, TValue>({
   columns,
   data,
   facetDefination = [],
+  searchPlaceHolder = 'Filter..',
 }: DataTableProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -159,12 +162,13 @@ export function DataTableClient<TData, TValue>({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2 flex-grow md:flex-grow-0">
-          <Input
-            placeholder="Filter…"
+          <InputIcon
+            placeholder={searchPlaceHolder}
             type="search"
             value={table.getState().globalFilter ?? ''}
             onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-            className="h-8 w-full md:w-[150px] lg:w-[250px]"
+            startIcon={<Search size={18} />}
+            className="h-8 w-full md:w-[250px] lg:w-[350px]"
           />
 
           <div className="hidden md:flex space-x-2">
@@ -191,7 +195,7 @@ export function DataTableClient<TData, TValue>({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
-                Columns
+                Show/Hide Columns
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

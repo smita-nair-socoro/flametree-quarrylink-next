@@ -36,8 +36,9 @@ export function AddProductDrawerDialog() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline">
-            <Plus className="mr-1 h-4 w-4" /> {btnTitle}
+          <Button className="bg-primary" variant="default">
+            <Plus className="mr-1 h-4 w-4" />
+            {btnTitle}
           </Button>
         </DialogTrigger>
         <DialogContent className="min-w-[650px]">
@@ -54,8 +55,9 @@ export function AddProductDrawerDialog() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline">
-          <Plus className="mr-1 h-4 w-4" /> {btnTitle}
+        <Button className="bg-primary" variant="default">
+          <Plus className="mr-1 h-4 w-4" />
+          {btnTitle}
         </Button>
       </DrawerTrigger>
       <DrawerContent>

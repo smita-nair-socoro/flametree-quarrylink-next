@@ -50,7 +50,7 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
       const dollars = cents / 100;
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'AUD',
+        currency: 'USD',
       }).format(dollars);
 
       return <div className="font-medium">{formatted}</div>;
@@ -70,7 +70,7 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
       const dollars = cents / 100;
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'AUD',
+        currency: 'USD',
       }).format(dollars);
 
       return <div className="font-medium">{formatted}</div>;
