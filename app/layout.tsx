@@ -47,6 +47,7 @@ export default function RootLayout({
                   toastOptions={{
                     // global defaults
                     duration: 4000,
+                    closeButton: true,
                   }}
                 />
               </TanstackQueryProvider>

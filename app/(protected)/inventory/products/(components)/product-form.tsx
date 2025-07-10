@@ -33,10 +33,28 @@ import {
   NewProductFormSchema,
   NewQuarryFormSchema,
 } from './product-form-schemas';
+import { useQuery } from '@tanstack/react-query';
+import {
+  CategoryListQueryOptions,
+  ProductQueryOptions,
+  QuarryListQueryOptions,
+} from '@/lib/api/quaries';
+import { useMediaQuery } from '@/hooks/use-media-query';
+
+interface ProductFormProps {
+  productId?: number;
+  onSuccess?: () => void;
+  className?: string;
+  onCancel?: () => void;
+}
 
 export default function ProductForm({
+  productId,
+  onCancel,
   className,
-}: React.ComponentProps<'form'>) {
+}: ProductFormProps) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+
   const [isNewCategoryDialogOpen, setIsNewCategoryDialogOpen] =
     React.useState(false);
 
@@ -70,6 +88,45 @@ export default function ProductForm({
     },
   });
 
+  // Queries
+  const productQuery = useQuery({
+    ...ProductQueryOptions(productId!),
+    enabled: Boolean(productId), // skips if it's creating a new product instead of editing.
+  });
+
+  React.useEffect(() => {
+    if (productQuery.data) {
+      form.reset({
+        product_name: productQuery.data.product.name,
+        product_code: productQuery.data.product.product_code,
+        description: productQuery.data.product.description ?? '',
+        category: productQuery.data.categories.map((c) => c.id.toString()),
+        quarry_sources:
+          productQuery.data.quarries[0]?.quarry.id.toString() ?? '',
+        cost_price_per_tonne: (
+          (productQuery.data.quarries[0]?.price.cost_price ?? 0) / 100
+        ).toString(),
+        sell_price_per_tonne: (
+          (productQuery.data.quarries[0]?.price.sell_price ?? 0) / 100
+        ).toString(),
+      });
+    }
+  }, [productQuery.data, form]);
+
+  const { data: categories = [] } = useQuery(CategoryListQueryOptions());
+
+  const { data: quarries = [] } = useQuery(QuarryListQueryOptions());
+
+  const categoryOptions: FormSelectOption[] = categories.map((c) => ({
+    value: c.id.toString(),
+    label: c.name,
+  }));
+
+  const quarryOptions: FormSelectOption[] = quarries.map((q) => ({
+    value: q.id.toString(),
+    label: q.name,
+  }));
+
   function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     // Do something with the form values.
     // This will be type-safe and validated.
@@ -95,52 +152,9 @@ export default function ProductForm({
   }
 
   const handleAddClick = () => {
-    // open your Dialog (implemented elsewhere)
+    // open your Dialog (implemented elsewhere
     setIsNewCategoryDialogOpen(true);
   };
-
-  // TODO: Fetch this from API – for now hard-coded:
-  const categoryList: FormSelectOption[] = [
-    { value: 'bulk-gravel', label: 'Bulk Gravel' },
-    { value: 'fine-sand', label: 'Fine Sand' },
-    { value: 'coarse-sand', label: 'Coarse Sand' },
-    { value: 'pea-gravel', label: 'Pea Gravel' },
-    { value: 'shingle', label: 'Shingle' },
-    { value: 'limestone-chippings', label: 'Limestone Chippings' },
-    { value: 'granite-aggregate', label: 'Granite Aggregate' },
-    { value: 'recycled-aggregate', label: 'Recycled Aggregate' },
-    { value: 'ballast', label: 'Ballast' },
-    { value: 'riprap-stone', label: 'Riprap Stone' },
-    { value: 'crusher-run', label: 'Crusher Run' },
-    { value: 'screened-topsoil', label: 'Screened Topsoil' },
-    { value: 'road-base', label: 'Road Base' },
-    { value: 'drainage-stone', label: 'Drainage Stone' },
-    { value: 'decorative-gravel', label: 'Decorative Gravel' },
-    { value: 'building-sand', label: 'Building Sand' },
-    { value: 'sharp-sand', label: 'Sharp Sand' },
-  ];
-
-  // TODO: Fetch this from API – for now hard-coded:
-  const quarryList: FormSelectOption[] = [
-    { value: 'highland-quarry', label: 'Highland Quarry' },
-    { value: 'blue-ridge-quarry', label: 'Blue Ridge Quarry' },
-    { value: 'silverstone-quarry', label: 'Silverstone Quarry' },
-    { value: 'granite-hill-quarry', label: 'Granite Hill Quarry' },
-    { value: 'stonebrook-quarry', label: 'Stonebrook Quarry' },
-    { value: 'green-valley-quarry', label: 'Green Valley Quarry' },
-    { value: 'sunset-ridge-quarry', label: 'Sunset Ridge Quarry' },
-    { value: 'riverside-quarry', label: 'Riverside Quarry' },
-    { value: 'emerald-rock-quarry', label: 'Emerald Rock Quarry' },
-    { value: 'mountain-view-quarry', label: 'Mountain View Quarry' },
-    { value: 'oakfield-quarry', label: 'Oakfield Quarry' },
-    { value: 'pebble-creek-quarry', label: 'Pebble Creek Quarry' },
-    { value: 'northport-quarry', label: 'Northport Quarry' },
-    { value: 'redstone-quarry', label: 'Redstone Quarry' },
-    { value: 'blackrock-quarry', label: 'Blackrock Quarry' },
-    { value: 'sierra-madre-quarry', label: 'Sierra Madre Quarry' },
-    { value: 'canyon-falls-quarry', label: 'Canyon Falls Quarry' },
-    { value: 'golden-peak-quarry', label: 'Golden Peak Quarry' },
-  ];
 
   return (
     <ScrollArea className="overflow-auto">
@@ -162,7 +176,7 @@ export default function ProductForm({
                   <FormControl>
                     <Input
                       className="w-full"
-                      placeholder="product name"
+                      placeholder="Enter product name"
                       {...field}
                     />
                   </FormControl>
@@ -180,7 +194,11 @@ export default function ProductForm({
                 <FormItem>
                   <FormLabel>Product Code</FormLabel>
                   <FormControl>
-                    <Input className="w-full" placeholder="ION001" {...field} />
+                    <Input
+                      className="w-full"
+                      placeholder="Enter product code"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Optional unique identifier for this product
@@ -200,15 +218,15 @@ export default function ProductForm({
                   <FormLabel>Categories*</FormLabel>
                   <FormControl>
                     <MultiSelect
-                      options={categoryList}
+                      options={categoryOptions}
                       className="w-full"
                       placeholder="Pick categories…"
-                      defaultValue={field.value}
+                      value={field.value}
                       onValueChange={field.onChange}
                       modalPopover={true}
-                      maxCount={3}
+                      maxCount={2}
                       onAddClick={handleAddClick}
-                      addButtonLabel="+ New Category"
+                      addButtonLabel="+ Add New Category"
                     />
                   </FormControl>
                   <FormDescription>
@@ -249,10 +267,10 @@ export default function ProductForm({
               control={form.control}
               name="quarry_sources"
               label="Quarry"
-              options={quarryList}
+              options={quarryOptions}
               placeholder="Select Quarry"
               onAddClick={() => setIsNewQuarryDialogOpen(true)}
-              addButtonLabel="+ New Quarry"
+              addButtonLabel="+ Add New Quarry"
             />
 
             <FormField
@@ -295,10 +313,14 @@ export default function ProductForm({
 
             <Button type="button">+ Add to Quarry</Button>
           </div>
-
-          <div className="col-span-2">
-            <Button className="w-full" type="submit">
-              Save changes
+          <div className="col-span-2 flex justify-end space-x-2">
+            {isDesktop && (
+              <Button variant="outline" type="button" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
+            <Button className={!isDesktop ? 'w-full' : ''} type="submit">
+              Create Product
             </Button>
           </div>
         </form>
@@ -341,10 +363,15 @@ export default function ProductForm({
                 />
               </div>
 
-              <div>
-                <Button className="w-full" type="submit">
-                  Add Category
+              <div className="col-span-2 flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsNewCategoryDialogOpen(false)}
+                >
+                  Cancel
                 </Button>
+                <Button type="submit">Add Category</Button>
               </div>
             </form>
           </Form>
@@ -388,10 +415,15 @@ export default function ProductForm({
                 />
               </div>
 
-              <div>
-                <Button className="w-full" type="submit">
-                  Add Quarry
+              <div className="col-span-2 flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsNewQuarryDialogOpen(false)}
+                >
+                  Cancel
                 </Button>
+                <Button type="submit"> Add Quarry</Button>
               </div>
             </form>
           </Form>

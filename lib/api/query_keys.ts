@@ -1,5 +1,3 @@
-import { ProductQueryParams, ProductsQueryParams } from '../types/product';
-
 export const UserKeys = {
   all: ['users'] as const,
   lists: () => [...UserKeys.all, 'list'] as const,
@@ -9,13 +7,19 @@ export const UserKeys = {
 
 export const ProductKeys = {
   all: ['products'] as const,
-  lists: () => [...ProductKeys.all, 'list'] as const,
-  list: (params: ProductQueryParams) =>
-    [...ProductKeys.lists(), params] as const,
-  //TODO: This can be moved to list later, and deleted after initial version just for testing purposes
-  list_v2: (params: ProductsQueryParams) =>
-    [...ProductKeys.lists(), params] as const,
+  list: (filters?: { page?: number; perPage?: number; search?: string }) =>
+    [...ProductKeys.all, 'list', filters] as const,
+  detail: (id: number) => [...ProductKeys.all, 'detail', id] as const,
+};
 
-  details: () => [...ProductKeys.all, 'detail'] as const,
-  detail: (id: number) => [...ProductKeys.details(), id] as const,
+export const QuarryKeys = {
+  all: ['quarries'] as const,
+  list: () => [...QuarryKeys.all, 'list'] as const,
+  detail: (id: number) => [...QuarryKeys.all, 'detail', id] as const,
+};
+
+export const CategoryKeys = {
+  all: ['categories'] as const,
+  list: () => [...CategoryKeys.all, 'list'] as const,
+  detail: (id: number) => [...CategoryKeys.all, 'detail', id] as const,
 };

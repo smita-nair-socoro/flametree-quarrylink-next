@@ -25,50 +25,94 @@ import {
 import { Plus } from 'lucide-react';
 import ProductForm from './product-form';
 
-export function AddProductDrawerDialog() {
-  const [open, setOpen] = React.useState(false);
+interface AddProductDrawerDialogProps {
+  /** If set, we’re editing that product; otherwise we’re creating a new one */
+  productId?: number;
+
+  /**
+   * We expect a single React element here that at least
+   * accepts an `onClick` prop.
+   */
+  trigger?: React.ReactElement<{ onClick?: () => void }>;
+
+  /** control externally (menu) or let it be uncontrolled */
+  open: boolean;
+
+  onOpenChangeAction: (open: boolean) => void;
+
+  /** when true, do NOT render any trigger button */
+  hideTrigger?: boolean;
+}
+
+export function AddProductDrawerDialog({
+  productId,
+  trigger,
+  open: openProp,
+  onOpenChangeAction: onOpenChangeProp,
+  hideTrigger,
+}: AddProductDrawerDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  const open = openProp ?? uncontrolledOpen;
+  const setOpen = onOpenChangeProp ?? setUncontrolledOpen;
+
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const btnTitle = 'Add New Product';
-  const dlgDescription =
-    "Create or make changes to your product here. Click save when you're done.";
+  const title = productId ? 'View / Edit Product' : 'Add New Product';
+
+  const triggerNode = trigger ? (
+    React.isValidElement(trigger) ? (
+      React.cloneElement(trigger, { onClick: () => setOpen(true) })
+    ) : (
+      <span onClick={() => setOpen(true)}>{trigger}</span>
+    )
+  ) : (
+    !hideTrigger && (
+      <Button onClick={() => setOpen(true)} variant="default">
+        <Plus className="mr-1 h-4 w-4" /> {title}
+      </Button>
+    )
+  );
+
+  const closeDialog = () => {
+    setOpen(false);
+  };
+
+  const content = (
+    <>
+      <DialogHeader>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription></DialogDescription>
+      </DialogHeader>
+      <ProductForm
+        productId={productId}
+        onCancel={() => closeDialog()}
+        onSuccess={() => closeDialog()}
+      />
+    </>
+  );
 
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button className="bg-primary" variant="default">
-            <Plus className="mr-1 h-4 w-4" />
-            {btnTitle}
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="min-w-[650px]">
-          <DialogHeader>
-            <DialogTitle>{btnTitle}</DialogTitle>
-            <DialogDescription>{dlgDescription}</DialogDescription>
-          </DialogHeader>
-          <ProductForm />
-        </DialogContent>
+        <DialogTrigger asChild>{triggerNode}</DialogTrigger>
+        <DialogContent className="min-w-[650px]">{content}</DialogContent>
       </Dialog>
     );
   }
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button className="bg-primary" variant="default">
-          <Plus className="mr-1 h-4 w-4" />
-          {btnTitle}
-        </Button>
-      </DrawerTrigger>
+      <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent>
-        <DrawerHeader className="text-left">
-          <DrawerTitle>{btnTitle}</DrawerTitle>
-          <DrawerDescription>{dlgDescription}</DrawerDescription>
+        <DrawerHeader>
+          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerDescription></DrawerDescription>
         </DrawerHeader>
-
-        <ProductForm className="px-4" />
-
-        <DrawerFooter className="pt-2">
+        <ProductForm
+          productId={productId}
+          onSuccess={() => setOpen(false)}
+          className="px-4"
+        />
+        <DrawerFooter>
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
           </DrawerClose>

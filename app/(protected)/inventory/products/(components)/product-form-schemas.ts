@@ -10,9 +10,7 @@ export const NewProductFormSchema = z.object({
     .array(z.string())
     .min(1, { message: 'Select at least one category.' }),
   description: z.string().optional(),
-  quarry_sources: z
-    .string()
-    .min(2, { message: 'Please select at least one quarry' }),
+  quarry_sources: z.string().nonempty({ message: 'Required' }),
   cost_price_per_tonne: z.string(),
   sell_price_per_tonne: z.string(),
 });
@@ -23,9 +21,8 @@ export const NewCategoryFormSchema = z.object({
     .trim()
     .min(2, { message: 'Category Name must be at least 2 characters.' })
     .max(100, { message: "Category Name can't be more than 100 characters" })
-    .regex(/^[A-Za-z0-9_-]+$/, {
-      message:
-        'Use only letters, numbers, dashes or underscores—no spaces or other symbols.',
+    .regex(/^[A-Za-z0-9 _-]+$/, {
+      message: 'Use only letters, numbers, spaces, dashes or underscores.',
     }),
 });
 

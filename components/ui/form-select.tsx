@@ -166,7 +166,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         onSelect={() => field.onChange(opt.value)}
                         className="cursor-pointer"
                       >
-                        <span className="text-center flex-1">{opt.label}</span>
+                        <span className="flex-1">{opt.label}</span>
                         <Check
                           className={cn(
                             'ml-auto h-4 w-4',
@@ -184,7 +184,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         <CommandItem
                           onSelect={() => onAddClick()}
                           className={cn(
-                            'justify-center text-primary cursor-pointer',
+                            'text-primary cursor-pointer',
                             addButtonClassName,
                           )}
                         >

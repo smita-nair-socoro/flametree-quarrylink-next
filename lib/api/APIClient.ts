@@ -1,10 +1,9 @@
 import { baseUrl, getUser, isDevEnv } from '../utils';
 import { userManager } from '../auth/authManager';
 import {
+  AllProductWithCategoriesAndQuarryResponse,
   PaginatedProductsResponse,
-  ProductMgmtResponse,
   ProductQueryParams,
-  ProductsQueryParams,
   ProductWithCategoriesAndQuarry,
 } from '../types/product';
 import { Quarry } from '../types/quarry';
@@ -237,7 +236,13 @@ export async function HttpClient<T = unknown>(
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 500: {
-        const health = await window.fetch(`${baseUrl()}/api/healthz/liveness`);
+        const healthUrl =
+          process.env.NODE_ENV === 'development'
+            ? '/api/healthz/liveness'
+            : `${baseUrl()}/api/healthz/liveness`;
+
+        const health = await fetcher(healthUrl);
+
         if (!health.ok) {
           return Promise.reject(
             new Error(`[500] Offline (Internal server error): "${endpoint}"`),
@@ -358,12 +363,10 @@ export const APIClient = {
         `/api/v1/products/${productId}`,
       ),
 
-    list: (params: ProductsQueryParams) =>
-      appClient.Get<ProductMgmtResponse>('/api/v1/productmanagement/products', {
-        queryString: {
-          quarryId: params.quarryId,
-        },
-      }),
+    list: () =>
+      appClient.Get<AllProductWithCategoriesAndQuarryResponse>(
+        '/api/v1/products/all',
+      ),
   },
   quarries: {
     getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
