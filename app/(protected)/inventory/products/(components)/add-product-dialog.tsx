@@ -37,9 +37,9 @@ interface AddProductDrawerDialogProps {
   trigger?: React.ReactElement<{ onClick?: () => void }>;
 
   /** control externally (menu) or let it be uncontrolled */
-  open: boolean;
+  open?: boolean;
 
-  onOpenChangeAction: (open: boolean) => void;
+  onOpenChangeAction?: (open: boolean) => void;
 
   /** when true, do NOT render any trigger button */
   hideTrigger?: boolean;

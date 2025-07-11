@@ -40,19 +40,9 @@ export function TableActions({ productId }: TableActionsProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-          <DropdownMenuItem
-            onClick={() => navigator.clipboard.writeText(productId.toString())}
-          >
-            Copy product ID
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem onClick={() => setOpen(true)}>
             View product
           </DropdownMenuItem>
-
-          <DropdownMenuItem>View payment details</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
