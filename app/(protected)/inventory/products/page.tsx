@@ -6,14 +6,23 @@ import {
 } from '@/components/ui/data-table-client';
 import { AddProductDrawerDialog } from './(components)/add-product-dialog';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import rawData from '@/lib/tests/productData.json';
-import { ProductWithCategoriesAndQuarry } from '@/lib/types/product';
 import { Activity, Factory, Tags } from 'lucide-react';
-
-const productData: ProductWithCategoriesAndQuarry[] =
-  rawData.items as ProductWithCategoriesAndQuarry[];
+import { useQuery } from '@tanstack/react-query';
+import { ProductsListQueryOptions } from '@/lib/api/quaries';
+import { LoadingSpinner } from '@/components/loading-spinner';
+import { notifyError } from '@/lib/toast';
 
 export default function ProductsPage() {
+  const productQuery = useQuery(ProductsListQueryOptions());
+
+  if (productQuery.isLoading) {
+    return <LoadingSpinner message="Loading Products" />;
+  }
+
+  if (productQuery.error) {
+    notifyError('Products', { description: 'Error loading products' });
+  }
+
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Activity },
     { column: 'category', title: 'Categories', icon: Tags },
@@ -36,7 +45,7 @@ export default function ProductsPage() {
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min p-2">
         <DataTableClient
-          data={productData}
+          data={productQuery.data?.items ?? []}
           columns={productColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search products..."

@@ -18,7 +18,6 @@ import z from 'zod';
 import { Textarea } from '@/components/ui/textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import React from 'react';
 import { Dialog } from '@radix-ui/react-dialog';
 import {
@@ -40,6 +39,10 @@ import {
   QuarryListQueryOptions,
 } from '@/lib/api/quaries';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { InputIcon } from '@/components/ui/input-icon';
+import { DollarSign } from 'lucide-react';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { quarrySourcesColumns } from './(data-tables)/products/quarry-sources-columns';
 
 interface ProductFormProps {
   productId?: number;
@@ -60,6 +63,8 @@ export default function ProductForm({
 
   const [isNewQuarryDialogOpen, setIsNewQuarryDialogOpen] =
     React.useState(false);
+
+  const [isEditing] = React.useState(Boolean(productId));
 
   const form = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
@@ -93,6 +98,8 @@ export default function ProductForm({
     ...ProductQueryOptions(productId!),
     enabled: Boolean(productId), // skips if it's creating a new product instead of editing.
   });
+
+  const productQuarriesWithPrice = productQuery.data?.quarries ?? [];
 
   React.useEffect(() => {
     if (productQuery.data) {
@@ -157,7 +164,7 @@ export default function ProductForm({
   };
 
   return (
-    <ScrollArea className="overflow-auto">
+    <div className="overflow-auto">
       <Form {...form}>
         <form
           className={cn(
@@ -280,10 +287,11 @@ export default function ProductForm({
                 <FormItem>
                   <FormLabel>Cost Price per tonne</FormLabel>
                   <FormControl>
-                    <Input
+                    <InputIcon
                       type="number"
                       className="w-full"
                       placeholder="$00"
+                      startIcon={<DollarSign size={19} />}
                       {...field}
                     />
                   </FormControl>
@@ -299,10 +307,11 @@ export default function ProductForm({
                 <FormItem>
                   <FormLabel>Sell Price per tonne</FormLabel>
                   <FormControl>
-                    <Input
+                    <InputIcon
                       type="number"
                       className="w-full"
                       placeholder="$00"
+                      startIcon={<DollarSign size={19} />}
                       {...field}
                     />
                   </FormControl>
@@ -313,6 +322,17 @@ export default function ProductForm({
 
             <Button type="button">+ Add to Quarry</Button>
           </div>
+
+          {productQuarriesWithPrice.length > 0 && (
+            <div className="col-span-2">
+              <DataTableClient
+                columns={quarrySourcesColumns}
+                data={productQuarriesWithPrice}
+                simpleTable={true}
+              />
+            </div>
+          )}
+
           <div className="col-span-2 flex justify-end space-x-2">
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
@@ -320,7 +340,7 @@ export default function ProductForm({
               </Button>
             )}
             <Button className={!isDesktop ? 'w-full' : ''} type="submit">
-              Create Product
+              {isEditing ? 'Save Changes' : 'Create Product'}
             </Button>
           </div>
         </form>
@@ -429,6 +449,6 @@ export default function ProductForm({
           </Form>
         </DialogContent>
       </Dialog>
-    </ScrollArea>
+    </div>
   );
 }

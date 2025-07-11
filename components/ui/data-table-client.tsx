@@ -60,6 +60,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   facetDefination?: FacetDefinition[];
   searchPlaceHolder?: string;
+  simpleTable?: boolean;
 }
 
 export type FacetDefinition = {
@@ -78,9 +79,10 @@ const paginationSizeSelect = [
 
 export function DataTableClient<TData, TValue>({
   columns,
-  data,
+  data = [],
   facetDefination = [],
   searchPlaceHolder = 'Filter..',
+  simpleTable = false,
 }: DataTableProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -160,90 +162,87 @@ export function DataTableClient<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 flex-grow md:flex-grow-0">
-          <InputIcon
-            placeholder={searchPlaceHolder}
-            type="search"
-            value={table.getState().globalFilter ?? ''}
-            onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-            startIcon={<Search size={18} />}
-            className="h-8 w-full md:w-[250px] lg:w-[350px]"
-          />
+      {!simpleTable && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2 flex-grow md:flex-grow-0">
+            <InputIcon
+              placeholder={searchPlaceHolder}
+              type="search"
+              value={table.getState().globalFilter ?? ''}
+              onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+              startIcon={<Search size={18} />}
+              className="h-8 w-full md:w-[250px] lg:w-[350px]"
+            />
 
-          <div className="hidden md:flex space-x-2">
-            {facetedWithCounts.map((filter) => (
-              <DataTableFacetedFilter
-                key={filter.column}
-                title={filter.title}
-                options={filter.options}
-                counts={filter.counts}
-                filterValues={
-                  (columnFilters.find((f) => f.id === filter.column)
-                    ?.value as string[]) || []
-                }
-                onFilterChange={(vals) =>
-                  handleFilterChange(filter.column, vals)
-                }
-              />
-            ))}
+            <div className="hidden md:flex space-x-2">
+              {facetedWithCounts.map((filter) => (
+                <DataTableFacetedFilter
+                  key={filter.column}
+                  title={filter.title}
+                  options={filter.options}
+                  counts={filter.counts}
+                  filterValues={
+                    (columnFilters.find((f) => f.id === filter.column)
+                      ?.value as string[]) || []
+                  }
+                  onFilterChange={(vals) =>
+                    handleFilterChange(filter.column, vals)
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden md:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Show/Hide Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((col) => col.getCanHide())
+                  .map((col) => (
+                    <DropdownMenuCheckboxItem
+                      key={col.id}
+                      className="capitalize"
+                      checked={col.getIsVisible()}
+                      onCheckedChange={(val) => col.toggleVisibility(!!val)}
+                    >
+                      {col.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+      )}
 
-        {/* “View” dropdown to toggle column visibility */}
-        <div className="hidden md:block">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
-                Show/Hide Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
+      {/** Table Wrapper **/}
       <div className="rounded-md border p-2">
         <div className="overflow-auto">
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
+              {table.getHeaderGroups().map((hg) => (
+                <TableRow key={hg.id}>
+                  {hg.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
+
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
@@ -272,20 +271,22 @@ export function DataTableClient<TData, TValue>({
             </TableBody>
           </Table>
         </div>
+      </div>
 
+      {/** Pagination Controls **/}
+      {!simpleTable && (
         <div className="overflow-x-auto">
           <div className="min-w-full py-2">
             <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-              {/* Rows per page */}
               <div className="mb-4 flex items-center space-x-2 sm:mb-0">
                 <p className="whitespace-nowrap text-sm font-medium">
                   Rows per page
                 </p>
                 <Select
                   value={paginationSize}
-                  onValueChange={(value) => {
-                    setPaginationSize(value);
-                    table.setPageSize(Number(value));
+                  onValueChange={(val) => {
+                    setPaginationSize(val);
+                    table.setPageSize(Number(val));
                   }}
                 >
                   <SelectTrigger className="h-8 w-[80px]">
@@ -303,7 +304,7 @@ export function DataTableClient<TData, TValue>({
                 </Select>
               </div>
 
-              {/* Page indicator & nav buttons */}
+              {/** Page nav **/}
               <div className="flex items-center space-x-4">
                 <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
                   Page {pagination.pageIndex + 1} of {table.getPageCount()}
@@ -352,7 +353,7 @@ export function DataTableClient<TData, TValue>({
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

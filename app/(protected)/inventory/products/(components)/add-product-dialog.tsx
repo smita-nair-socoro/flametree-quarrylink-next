@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/drawer';
 import { Plus } from 'lucide-react';
 import ProductForm from './product-form';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AddProductDrawerDialogProps {
   /** If set, we’re editing that product; otherwise we’re creating a new one */
@@ -82,11 +83,13 @@ export function AddProductDrawerDialog({
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription></DialogDescription>
       </DialogHeader>
-      <ProductForm
-        productId={productId}
-        onCancel={() => closeDialog()}
-        onSuccess={() => closeDialog()}
-      />
+      <ScrollArea className="px-6 pb-6 h-[calc(80vh-5rem)]">
+        <ProductForm
+          productId={productId}
+          onCancel={() => closeDialog()}
+          onSuccess={() => closeDialog()}
+        />
+      </ScrollArea>
     </>
   );
 
@@ -94,7 +97,7 @@ export function AddProductDrawerDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
-        <DialogContent className="min-w-[650px]">{content}</DialogContent>
+        <DialogContent className="min-w-[700px]">{content}</DialogContent>
       </Dialog>
     );
   }
@@ -107,11 +110,13 @@ export function AddProductDrawerDialog({
           <DrawerTitle>{title}</DrawerTitle>
           <DrawerDescription></DrawerDescription>
         </DrawerHeader>
-        <ProductForm
-          productId={productId}
-          onSuccess={() => setOpen(false)}
-          className="px-4"
-        />
+        <ScrollArea className="h-[calc(80vh-5rem)]">
+          <ProductForm
+            productId={productId}
+            onSuccess={() => setOpen(false)}
+            className="px-4"
+          />
+        </ScrollArea>
         <DrawerFooter>
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
