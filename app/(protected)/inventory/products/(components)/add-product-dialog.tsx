@@ -83,7 +83,7 @@ export function AddProductDrawerDialog({
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription></DialogDescription>
       </DialogHeader>
-      <ScrollArea className="px-6 pb-6 h-[calc(80vh-5rem)]">
+      <ScrollArea className="px-6 pb-6 h-[calc(50vh-5rem)]">
         <ProductForm
           productId={productId}
           onCancel={() => closeDialog()}

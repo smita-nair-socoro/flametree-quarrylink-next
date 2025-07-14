@@ -137,7 +137,7 @@ export default function ProductForm({
   function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     // Do something with the form values.
     // This will be type-safe and validated.
-    console.log(values);
+    console.log('Product Form', values);
   }
 
   function onSubmitNewCategory(values: z.infer<typeof NewCategoryFormSchema>) {
@@ -167,6 +167,7 @@ export default function ProductForm({
     <div className="overflow-auto">
       <Form {...form}>
         <form
+          id="product-form"
           className={cn(
             'grid grid-cols-1 md:grid-cols-2 items-start gap-6 p-1 ',
             className,
@@ -339,7 +340,11 @@ export default function ProductForm({
                 Cancel
               </Button>
             )}
-            <Button className={!isDesktop ? 'w-full' : ''} type="submit">
+            <Button
+              form="product-form"
+              className={!isDesktop ? 'w-full' : ''}
+              type="submit"
+            >
               {isEditing ? 'Save Changes' : 'Create Product'}
             </Button>
           </div>
@@ -360,6 +365,7 @@ export default function ProductForm({
 
           <Form {...categoryForm}>
             <form
+              id="category-form"
               className={cn('grid grid-cols-1 tems-start gap-3', className)}
               onSubmit={categoryForm.handleSubmit(onSubmitNewCategory)}
             >
@@ -412,6 +418,7 @@ export default function ProductForm({
 
           <Form {...quarryForm}>
             <form
+              id="quarry-form"
               className={cn('grid grid-cols-1 tems-start gap-3', className)}
               onSubmit={categoryForm.handleSubmit(onSubmitNewQuarry)}
             >

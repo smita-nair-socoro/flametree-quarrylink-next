@@ -3,7 +3,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { QuarriesWithPrice } from '@/lib/types/quarry';
 import { Switch } from '@/components/ui/switch';
-import { Edit2, Trash2 } from 'lucide-react';
+import React from 'react';
+import { QuarrySourcesActionCell } from '../quarry-sources-action-cell';
 
 export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
   {
@@ -78,26 +79,13 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
   {
     id: 'actions',
     header: () => <div className="w-full text-center ">ACTIONS</div>,
-    cell: ({}) => {
-      // const id = row.original.price.id;
+    cell: ({ row }) => {
+      const id = row.original.price.id;
+      const cost = row.original.price.cost_price;
+      const sell = row.original.price.sell_price;
 
       return (
-        <div className="flex w-full justify-center space-x-2">
-          <Edit2
-            size={16}
-            className="cursor-pointer hover:text-blue-600"
-            onClick={() => {
-              /* TODO: open your edit drawer, e.g. handleEdit(id) */
-            }}
-          />
-          <Trash2
-            size={16}
-            className="cursor-pointer text-red-500 hover:text-red-700"
-            onClick={() => {
-              /* TODO: confirm & delete, e.g. handleDelete(id) */
-            }}
-          />
-        </div>
+        <QuarrySourcesActionCell id={id} cost_price={cost} sell_price={sell} />
       );
     },
     meta: 'ACTIONS',

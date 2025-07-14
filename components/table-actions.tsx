@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { AddProductDrawerDialog } from '@/app/(protected)/inventory/products/(components)/add-product-dialog';
+import { DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu';
 
 interface TableActionsProps {
   productId: number;
@@ -38,10 +39,13 @@ export function TableActions({ productId }: TableActionsProps) {
 
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={() => setOpen(true)}>
             View product
           </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
