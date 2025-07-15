@@ -25,6 +25,7 @@ import {
 import { Plus } from 'lucide-react';
 import ProductForm from './product-form';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import clsx from 'clsx';
 
 interface AddProductDrawerDialogProps {
   /** If set, we’re editing that product; otherwise we’re creating a new one */
@@ -83,7 +84,12 @@ export function AddProductDrawerDialog({
         <DialogTitle>{title}</DialogTitle>
         <DialogDescription></DialogDescription>
       </DialogHeader>
-      <ScrollArea className="px-6 pb-6 h-[calc(50vh-5rem)]">
+      <ScrollArea
+        className={clsx(
+          'px-6 pb-6',
+          productId ? 'h-[calc(80vh-5rem)]' : 'h-auto',
+        )}
+      >
         <ProductForm
           productId={productId}
           onCancel={() => closeDialog()}
