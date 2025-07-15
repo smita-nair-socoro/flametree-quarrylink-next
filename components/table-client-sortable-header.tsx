@@ -35,7 +35,8 @@ export function TableClientSortableHeader<TData>({
     <Button
       variant="ghost"
       onClick={handleClick}
-      className="inline-flex items-center"
+      className="
+    flex w-full h-full justify-start items-center text-left !px-0 !py-0" // Override the button padding
     >
       {title}
       <Icon className="ml-2 h-4 w-4" />

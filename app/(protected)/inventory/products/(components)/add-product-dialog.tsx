@@ -85,10 +85,7 @@ export function AddProductDrawerDialog({
         <DialogDescription></DialogDescription>
       </DialogHeader>
       <ScrollArea
-        className={clsx(
-          'px-6 pb-6',
-          productId ? 'h-[calc(80vh-5rem)]' : 'h-auto',
-        )}
+        className={clsx(productId ? 'h-[calc(80vh-5rem)]' : 'h-auto')}
       >
         <ProductForm
           productId={productId}

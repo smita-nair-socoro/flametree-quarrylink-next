@@ -11,7 +11,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
     id: 'name',
     accessorFn: (row) => row.quarry.name,
     header: ({}) => {
-      return <div className="text-center">NAME</div>;
+      return <div>NAME</div>;
     },
     cell: (info) => info.getValue(),
     meta: 'NAME',
@@ -21,7 +21,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
     id: 'cost_price',
     accessorFn: (row) => row.price.cost_price,
     header: ({}) => {
-      return <div className="text-center">COST PRICE</div>;
+      return <div>COST PRICE</div>;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.getValue('cost_price'));
@@ -41,7 +41,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
     accessorFn: (row) => row.price.sell_price,
 
     header: ({}) => {
-      return <div className="text-center">SELL PRICE</div>;
+      return <div>SELL PRICE</div>;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.getValue('sell_price'));
@@ -58,7 +58,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
 
   {
     id: 'status',
-    header: () => <div className="w-full text-center">STATUS</div>,
+    header: () => <div className="">STATUS</div>,
     accessorFn: (row) => row.price.status,
     cell: ({ row }) => {
       const current = row.original.price.status;
@@ -67,7 +67,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
       //TODO: Call Patch api endpoint to update price status
 
       return (
-        <div className="flex w-full items-center justify-center gap-2">
+        <div className="flex w-full  gap-2">
           <Switch checked={isActive} />
           <span className="text-sm text-muted-foreground">{current}</span>
         </div>
@@ -78,7 +78,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
 
   {
     id: 'actions',
-    header: () => <div className="w-full text-center ">ACTIONS</div>,
+    header: () => <div className=""></div>,
     cell: ({ row }) => {
       const id = row.original.price.id;
       const cost = row.original.price.cost_price;
