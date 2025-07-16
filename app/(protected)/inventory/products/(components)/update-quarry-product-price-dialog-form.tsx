@@ -122,7 +122,7 @@ export function UpdateQuarryProductPriceDialogForm({
                   className="w-full"
                   readOnly={true}
                   disabled={true}
-                  placeholder="$0.00"
+                  placeholder="0.00"
                   value={current_cost_price}
                   startIcon={<DollarSign size={19} />}
                 />
@@ -136,7 +136,7 @@ export function UpdateQuarryProductPriceDialogForm({
                   className="w-full"
                   readOnly={true}
                   disabled={true}
-                  placeholder="$0.00"
+                  placeholder="0.00"
                   value={current_sell_price}
                   startIcon={<DollarSign size={19} />}
                 />
@@ -152,9 +152,16 @@ export function UpdateQuarryProductPriceDialogForm({
                       <InputIcon
                         type="number"
                         className="w-full"
-                        placeholder="$0.00"
+                        placeholder="0.00"
                         startIcon={<DollarSign size={19} />}
+                        step="0.01"
+                        min="0"
                         {...field}
+                        onBlur={(e) => {
+                          const val = parseFloat(e.target.value);
+                          field.onChange(isNaN(val) ? '' : val.toFixed(2));
+                          field.onBlur();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -172,9 +179,16 @@ export function UpdateQuarryProductPriceDialogForm({
                       <InputIcon
                         type="number"
                         className="w-full"
-                        placeholder="$0.00"
+                        placeholder="0.00"
                         startIcon={<DollarSign size={19} />}
+                        step="0.01"
+                        min="0"
                         {...field}
+                        onBlur={(e) => {
+                          const val = parseFloat(e.target.value);
+                          field.onChange(isNaN(val) ? '' : val.toFixed(2));
+                          field.onBlur();
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

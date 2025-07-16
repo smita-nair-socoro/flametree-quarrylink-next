@@ -5,6 +5,7 @@ import { QuarriesWithPrice } from '@/lib/types/quarry';
 import { Switch } from '@/components/ui/switch';
 import React from 'react';
 import { QuarrySourcesActionCell } from '../quarry-sources-action-cell';
+import { Badge } from '@/components/ui/badge';
 
 export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
   {
@@ -31,7 +32,7 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
         currency: 'USD',
       }).format(dollars);
 
-      return <div className="text-right font-medium">{formatted}</div>;
+      return <div className="text-center font-medium">{formatted}</div>;
     },
     meta: 'COST PRICE',
   },
@@ -39,19 +40,27 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
   {
     id: 'sell_price',
     accessorFn: (row) => row.price.sell_price,
-
-    header: ({}) => {
-      return <div>SELL PRICE</div>;
-    },
+    header: () => <div>SELL PRICE</div>,
     cell: ({ row }) => {
-      const cents = parseFloat(row.getValue('sell_price'));
-      const dollars = cents / 100;
+      const costCents = row.original.price.cost_price;
+      const sellCents = row.getValue<number>('sell_price');
+
+      const sellDollars = sellCents / 100;
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-      }).format(dollars);
+      }).format(sellDollars);
 
-      return <div className="text-right font-medium">{formatted}</div>;
+      return (
+        <div className="flex flex-col items-center">
+          <div className="text-center font-medium">{formatted}</div>
+          {sellCents < costCents && (
+            <Badge variant="destructive" className="mt-1">
+              Alert: Below Cost
+            </Badge>
+          )}
+        </div>
+      );
     },
     meta: 'SELL PRICE',
   },

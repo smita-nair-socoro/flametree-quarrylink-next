@@ -112,10 +112,10 @@ export default function ProductForm({
           productQuery.data.quarries[0]?.quarry.id.toString() ?? '',
         cost_price_per_tonne: (
           (productQuery.data.quarries[0]?.price.cost_price ?? 0) / 100
-        ).toString(),
+        ).toFixed(2),
         sell_price_per_tonne: (
           (productQuery.data.quarries[0]?.price.sell_price ?? 0) / 100
-        ).toString(),
+        ).toFixed(2),
       });
     }
   }, [productQuery.data, form]);
@@ -291,9 +291,16 @@ export default function ProductForm({
                     <InputIcon
                       type="number"
                       className="w-full"
-                      placeholder="$00"
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
                       startIcon={<DollarSign size={19} />}
                       {...field}
+                      onBlur={(e) => {
+                        const val = parseFloat(e.target.value);
+                        field.onChange(isNaN(val) ? '' : val.toFixed(2));
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -311,9 +318,16 @@ export default function ProductForm({
                     <InputIcon
                       type="number"
                       className="w-full"
-                      placeholder="$00"
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
                       startIcon={<DollarSign size={19} />}
                       {...field}
+                      onBlur={(e) => {
+                        const val = parseFloat(e.target.value);
+                        field.onChange(isNaN(val) ? '' : val.toFixed(2));
+                        field.onBlur();
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
