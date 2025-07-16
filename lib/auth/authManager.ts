@@ -2,6 +2,8 @@
 
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
 
+export const SCOPE = 'email openid phone profile';
+
 const redirectUri =
   typeof window !== 'undefined'
     ? `${window.location.origin}/callback`
@@ -17,7 +19,7 @@ export const userManager = new UserManager({
   client_id: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
   redirect_uri: redirectUri || process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
   response_type: 'code',
-  scope: 'email openid phone profile',
+  scope: SCOPE,
 
   stateStore: webStorageStore,
   userStore: webStorageStore,

@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import { AuthProvider as OidcProvider } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
 import { CookieAuthProvider } from '../auth/cookieAuthContext';
+import { SCOPE } from '../auth/authManager';
 
 const redirectUri =
   typeof window !== 'undefined'
@@ -20,7 +21,7 @@ const oidcConfig = {
   client_id: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
   redirect_uri: redirectUri || process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
   response_type: 'code',
-  scope: 'email openid phone profile',
+  scope: SCOPE,
   stateStore: webStorageStore,
   userStore: webStorageStore,
   onSigninCallback: () => {
