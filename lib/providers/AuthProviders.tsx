@@ -20,7 +20,7 @@ const oidcConfig = {
   client_id: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
   redirect_uri: redirectUri || process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
   response_type: 'code',
-  scope: 'email openid phone',
+  scope: 'email openid phone profile',
   stateStore: webStorageStore,
   userStore: webStorageStore,
   onSigninCallback: () => {
