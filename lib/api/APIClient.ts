@@ -374,5 +374,11 @@ export const APIClient = {
 
   categories: {
     getAll: () => appClient.Get<Category[]>(`/api/v1/categories`),
+    new: (name: string) =>
+      appClient.Post<Category>('/api/v1/categories/new', {
+        body: {
+          name,
+        },
+      }),
   },
 };

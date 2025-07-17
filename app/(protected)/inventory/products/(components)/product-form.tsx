@@ -32,7 +32,7 @@ import {
   NewProductFormSchema,
   NewQuarryFormSchema,
 } from './product-form-schemas';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CategoryListQueryOptions,
   ProductQueryOptions,
@@ -43,6 +43,9 @@ import { InputIcon } from '@/components/ui/input-icon';
 import { DollarSign } from 'lucide-react';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { quarrySourcesColumns } from './(data-tables)/products/quarry-sources-columns';
+import { APIClient } from '@/lib/api/APIClient';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { CategoryKeys } from '@/lib/api/query_keys';
 
 interface ProductFormProps {
   productId?: number;
@@ -56,6 +59,7 @@ export default function ProductForm({
   onCancel,
   className,
 }: ProductFormProps) {
+  const queryClient = useQueryClient();
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const [isNewCategoryDialogOpen, setIsNewCategoryDialogOpen] =
@@ -134,6 +138,24 @@ export default function ProductForm({
     label: q.name,
   }));
 
+  const newCategoryMutation = useMutation({
+    mutationFn: (data: z.infer<typeof NewCategoryFormSchema>) => {
+      return APIClient.categories.new(data.name);
+    },
+    onSuccess: (_, variables: z.infer<typeof NewCategoryFormSchema>) => {
+      // invalidate the key that way it refetches new category
+      queryClient.invalidateQueries({ queryKey: CategoryKeys.list() });
+      notifySuccess(`Successfully created new category: ${variables.name}`, {
+        dismissible: true,
+      });
+
+      setIsNewCategoryDialogOpen(false);
+    },
+    onError: (error) => {
+      notifyError('Add New Category Failed', { description: error.message });
+    },
+  });
+
   function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     // Do something with the form values.
     // This will be type-safe and validated.
@@ -141,12 +163,7 @@ export default function ProductForm({
   }
 
   function onSubmitNewCategory(values: z.infer<typeof NewCategoryFormSchema>) {
-    // Do something with the form values.
-    // This will be type-safe and validated.
-
-    setIsNewCategoryDialogOpen(false);
-
-    console.log(values);
+    newCategoryMutation.mutate(values);
   }
 
   function onSubmitNewQuarry(values: z.infer<typeof NewQuarryFormSchema>) {
