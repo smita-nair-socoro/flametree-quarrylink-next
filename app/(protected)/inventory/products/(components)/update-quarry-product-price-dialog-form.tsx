@@ -31,6 +31,12 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import z from 'zod';
+import { APIClient } from '@/lib/api/APIClient';
+import { ProductKeys } from '@/lib/api/query_keys';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { dollarsToCents } from '@/lib/utils/currency';
 
 interface UpdateQuarryProductPriceDialogFormProps {
   quarryPriceId: number;
@@ -50,6 +56,7 @@ export function UpdateQuarryProductPriceDialogForm({
   current_cost_price,
   current_sell_price,
 }: UpdateQuarryProductPriceDialogFormProps) {
+  const queryClient = useQueryClient();
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const title = 'Update Product Prices';
 
@@ -81,12 +88,31 @@ export function UpdateQuarryProductPriceDialogForm({
     }
   }, [watchTiming, quarryPriceForm]);
 
-  function onSubmit(values: UpdatePriceInput) {
-    //close dialog
-    handleOpenChange(false);
+  const patchQuarryPriceMutation = useMutation({
+    mutationFn: (data: z.infer<typeof UpdatePriceSchema>) => {
+      return APIClient.quarries.patchQuarryProductPrice(quarryPriceId, {
+        cost_price: dollarsToCents(data.cost_price),
+        sell_price: dollarsToCents(data.sell_price),
+      });
+    },
+    onSuccess: () => {
+      // invalidate the key that way it refetches new category
+      queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+      notifySuccess(`Successfully updated price!`, {
+        dismissible: true,
+      });
+      // reset form
+      quarryPriceForm.reset();
+      // close Dialog
+      handleOpenChange(false);
+    },
+    onError: (error) => {
+      notifyError('Add New Category Failed', { description: error.message });
+    },
+  });
 
-    console.log('submitting', values);
-    // send to our API…
+  function onSubmit(values: UpdatePriceInput) {
+    patchQuarryPriceMutation.mutate(values);
   }
 
   const handleOpenChange = (next: boolean) => {

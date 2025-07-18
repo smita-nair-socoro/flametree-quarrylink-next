@@ -2,30 +2,55 @@
 
 import * as React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
-import { centsToDollars } from '@/lib/utils';
+import { centsToDollars } from '@/lib/utils/currency';
 import { UpdateQuarryProductPriceDialogForm } from '../update-quarry-product-price-dialog-form';
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { APIClient } from '@/lib/api/APIClient';
+import { ProductKeys } from '@/lib/api/query_keys';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { Quarry, QuarryProductPrice } from '@/lib/types/quarry';
 
 interface QuarrySourcesActionProps {
-  id: number;
-  cost_price: number;
-  sell_price: number;
+  quarry: Quarry;
+  quarry_product_price: QuarryProductPrice;
+  quarry_product_id: number;
 }
 
 export function QuarrySourcesActionCell({
-  id,
-  cost_price,
-  sell_price,
+  quarry,
+  quarry_product_price,
+  quarry_product_id,
 }: QuarrySourcesActionProps) {
-  const cost = centsToDollars(cost_price);
-  const sell = centsToDollars(sell_price);
+  const queryClient = useQueryClient();
+
+  const cost = centsToDollars(quarry_product_price.cost_price);
+  const sell = centsToDollars(quarry_product_price.sell_price);
 
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isDeleteOpen, setDeleteOpen] = React.useState(false);
 
+  const { mutate: priceDeleteMutation } = useMutation({
+    mutationFn: () =>
+      APIClient.quarries.deleteProductFromQuarry(quarry_product_id),
+    onSuccess: () => {
+      notifySuccess(`Product delete successfully from: ${quarry.name}`, {
+        dismissible: true,
+      });
+      queryClient.invalidateQueries({
+        queryKey: ProductKeys.all,
+      });
+    },
+    onError: (error, variables) => {
+      setDeleteOpen((prev) => !prev);
+      notifyError(`Failed to delete price product from: ${variables}`, {
+        description: error.message,
+      });
+    },
+  });
+
   function handleDeleteConfirm() {
-    // call your delete API…
-    console.log('Deleting price', id);
+    priceDeleteMutation();
   }
 
   return (
@@ -42,7 +67,7 @@ export function QuarrySourcesActionCell({
       />
 
       <UpdateQuarryProductPriceDialogForm
-        quarryPriceId={id}
+        quarryPriceId={quarry_product_price.id}
         open={isDialogOpen}
         onOpenChangeAction={setIsDialogOpen}
         current_sell_price={sell}

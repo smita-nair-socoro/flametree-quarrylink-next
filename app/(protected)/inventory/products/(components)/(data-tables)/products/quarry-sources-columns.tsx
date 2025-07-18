@@ -74,7 +74,8 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
     accessorFn: (row) => row.price.status,
     cell: ({ row }) => {
       const status = row.original.price.status;
-      return <StatusToggle currentStatus={status} />;
+      const priceId = row.original.price.id;
+      return <StatusToggle priceId={priceId} currentStatus={status} />;
     },
     meta: 'STATUS',
   },
@@ -83,12 +84,16 @@ export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
     id: 'actions',
     header: () => <div className=""></div>,
     cell: ({ row }) => {
-      const id = row.original.price.id;
-      const cost = row.original.price.cost_price;
-      const sell = row.original.price.sell_price;
+      const quarry = row.original.quarry;
+      const price = row.original.price;
+      const quarryProductId = row.original.quarry_product_id;
 
       return (
-        <QuarrySourcesActionCell id={id} cost_price={cost} sell_price={sell} />
+        <QuarrySourcesActionCell
+          quarry={quarry}
+          quarry_product_price={price}
+          quarry_product_id={quarryProductId}
+        />
       );
     },
     meta: 'ACTIONS',

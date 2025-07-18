@@ -6,7 +6,7 @@ import {
   ProductQueryParams,
   ProductWithCategoriesAndQuarry,
 } from '../types/product';
-import { Quarry } from '../types/quarry';
+import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
@@ -358,7 +358,7 @@ export const APIClient = {
           ...(params.quarries?.length ? { quarries: params.quarries } : {}),
         },
       }),
-    getById: (productId: number) =>
+    detail: (productId: number) =>
       appClient.Get<ProductWithCategoriesAndQuarry>(
         `/api/v1/products/${productId}`,
       ),
@@ -370,6 +370,16 @@ export const APIClient = {
   },
   quarries: {
     getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
+    patchQuarryProductPrice: (priceId: number, data: QuarryProductPricePatch) =>
+      appClient.Patch(`/api/v1/quarries/quarry-product-prices/${priceId}`, {
+        body: data,
+      }),
+    deleteProductFromQuarry: (quarryProductPriceId: number) =>
+      appClient.Delete(
+        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`,
+      ),
+    deletePrice: (priceId: number) =>
+      appClient.Delete(`/api/v1/quarries/quarry-product-prices/${priceId}`),
   },
 
   categories: {

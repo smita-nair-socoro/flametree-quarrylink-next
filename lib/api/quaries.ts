@@ -13,7 +13,7 @@ export const ProductsListQueryOptions = () =>
 export const ProductQueryOptions = (productId: number) =>
   queryOptions({
     queryKey: ProductKeys.detail(productId),
-    queryFn: () => APIClient.products.getById(productId),
+    queryFn: () => APIClient.products.detail(productId),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
