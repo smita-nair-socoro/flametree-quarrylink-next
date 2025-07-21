@@ -1,12 +1,56 @@
+'use client';
+
+import {
+  DataTableClient,
+  FacetDefinition,
+} from '@/components/ui/data-table-client';
+import { AddProductDrawerDialog } from './(components)/add-product-dialog';
+import { productColumns } from './(components)/(data-tables)/products/columns';
+import { Activity, Factory, Tags } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ProductsListQueryOptions } from '@/lib/api/quaries';
+import { LoadingSpinner } from '@/components/loading-spinner';
+import { notifyError } from '@/lib/toast';
+
 export default function ProductsPage() {
+  const productQuery = useQuery(ProductsListQueryOptions());
+
+  if (productQuery.isLoading) {
+    return <LoadingSpinner message="Loading Products" />;
+  }
+
+  if (productQuery.error) {
+    notifyError('Products', { description: 'Error loading products' });
+  }
+
+  const facetDefs: FacetDefinition[] = [
+    { column: 'status', title: 'Status', icon: Activity },
+    { column: 'category', title: 'Categories', icon: Tags },
+    { column: 'quarries', title: 'Quarry', icon: Factory },
+  ];
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div>
+          <h1 className="text-2xl">Products</h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your product catalog and inventory
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+          <AddProductDrawerDialog />
+        </div>
       </div>
-      <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
+
+      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min p-2">
+        <DataTableClient
+          data={productQuery.data?.items ?? []}
+          columns={productColumns}
+          facetDefination={facetDefs}
+          searchPlaceHolder="Search products..."
+        />
+      </div>
     </div>
   );
 }

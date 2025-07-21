@@ -19,6 +19,15 @@ export interface NewQuarryProductPriceRequest {
   status: string;
 }
 
+export interface QuarryProductPricePatch {
+  cost_price?: number;
+  sell_price?: number;
+  scheduled_cost_price?: number | null;
+  scheduled_sell_price?: number | null;
+  status?: string;
+  valid_from?: string;
+}
+
 export interface Quarry {
   id: number;
   organisation_id: number;
@@ -28,15 +37,8 @@ export interface Quarry {
 }
 
 export interface QuarriesWithPrice {
+  /// The primary key from the `quarry_products` table
+  quarry_product_id: number;
   quarry: Quarry;
   price: QuarryProductPrice;
-}
-
-export interface Quarries {
-  id: number;
-  clientId: number;
-  quarryRef: string;
-  quarryName: string;
-  quarryDescription: string;
-  enabled: boolean;
 }

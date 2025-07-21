@@ -1,12 +1,35 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
-import { ProductsQueryParams } from '../types/product';
 import { APIClient } from './APIClient';
-import { ProductKeys } from './query_keys';
+import { CategoryKeys, ProductKeys, QuarryKeys } from './query_keys';
 
-export const ProductsListQueryOptions = (params: ProductsQueryParams) =>
+export const ProductsListQueryOptions = () =>
   queryOptions({
-    queryKey: ProductKeys.list_v2(params),
-    queryFn: () => APIClient.products.list(params),
+    queryKey: ProductKeys.list(),
+    queryFn: () => APIClient.products.list(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const ProductQueryOptions = (productId: number) =>
+  queryOptions({
+    queryKey: ProductKeys.detail(productId),
+    queryFn: () => APIClient.products.detail(productId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const QuarryListQueryOptions = () =>
+  queryOptions({
+    queryKey: QuarryKeys.list(),
+    queryFn: () => APIClient.quarries.getAll(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const CategoryListQueryOptions = () =>
+  queryOptions({
+    queryKey: CategoryKeys.list(),
+    queryFn: () => APIClient.categories.getAll(),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

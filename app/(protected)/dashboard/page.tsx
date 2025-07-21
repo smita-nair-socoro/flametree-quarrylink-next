@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { addDays, startOfToday } from 'date-fns';
 import { DatePicker } from '@/components/date-picker';
 import { Button } from '@/components/ui/button';
@@ -9,17 +9,11 @@ import { DownloadIcon } from 'lucide-react';
 export default function DashboardPage() {
   const [date, setDate] = useState<Date | undefined>();
 
-  useEffect(() => {
-    console.log(date);
-  }, [date]);
-
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {/* on xs: column (stacked), from sm up: row, with space between */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Dashboard</h1>
 
-        {/* controls: stacked on xs, inline on sm+, small gap */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
           <DatePicker
             value={date}

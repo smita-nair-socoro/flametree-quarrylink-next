@@ -3,11 +3,11 @@
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
-import { AuthProvider } from 'react-oidc-context';
-import { WebStorageStateStore } from 'oidc-client-ts';
-import { ModeToggle } from '@/components/toggle';
 import { TanstackQueryProvider } from '@/lib/providers/tanstack-query-provider';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import { Toaster } from '@/components/ui/sonner';
+import { AppAuthProviders } from '@/lib/providers/AuthProviders';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,29 +19,6 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const webStorageStore =
-  typeof window !== 'undefined'
-    ? new WebStorageStateStore({ store: window.localStorage })
-    : undefined;
-
-const cognitoAuthConfig = {
-  authority: process.env.NEXT_PUBLIC_COGNITO_DOMAIN,
-  client_id: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID,
-  redirect_uri: process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI,
-  response_type: 'code',
-  scope: 'email openid phone',
-
-  stateStore: webStorageStore,
-  userStore: webStorageStore,
-
-  // Once sign-in completes, strip code & state from the URL
-  onSigninCallback: () => {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  },
-
-  automaticSilentRenew: true,
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -52,7 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider {...cognitoAuthConfig}>
+        <AppAuthProviders>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -60,18 +37,23 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="relative min-h-screen">
-              <div className="absolute top-4 right-4 z-50">
-                <ModeToggle />
-              </div>
-
               {/* TanstackQuery */}
               <TanstackQueryProvider>
                 <ReactQueryDevtools initialIsOpen={false} />
                 <main>{children}</main>
+                <Toaster
+                  position="top-right"
+                  richColors
+                  toastOptions={{
+                    // global defaults
+                    duration: 4000,
+                    closeButton: true,
+                  }}
+                />
               </TanstackQueryProvider>
             </div>
           </ThemeProvider>
-        </AuthProvider>
+        </AppAuthProviders>
       </body>
     </html>
   );

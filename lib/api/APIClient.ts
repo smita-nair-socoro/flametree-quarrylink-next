@@ -1,13 +1,12 @@
 import { baseUrl, getUser, isDevEnv } from '../utils';
 import { userManager } from '../auth/authManager';
 import {
+  AllProductWithCategoriesAndQuarryResponse,
   PaginatedProductsResponse,
-  ProductMgmtResponse,
   ProductQueryParams,
-  ProductsQueryParams,
   ProductWithCategoriesAndQuarry,
 } from '../types/product';
-import { Quarry } from '../types/quarry';
+import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
@@ -125,6 +124,7 @@ export async function HttpClient<T = unknown>(
 
   const init: RequestInit = {
     method: config.method,
+    credentials: 'include',
     headers: {
       Accept: '*/*',
       'x-requested-with': 'XMLHttpRequest',
@@ -236,7 +236,13 @@ export async function HttpClient<T = unknown>(
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 500: {
-        const health = await window.fetch(`${baseUrl()}api/healthz/liveness`);
+        const healthUrl =
+          process.env.NODE_ENV === 'development'
+            ? '/api/healthz/liveness'
+            : `${baseUrl()}/api/healthz/liveness`;
+
+        const health = await fetcher(healthUrl);
+
         if (!health.ok) {
           return Promise.reject(
             new Error(`[500] Offline (Internal server error): "${endpoint}"`),
@@ -324,6 +330,14 @@ const appClient = {
 };
 
 export const APIClient = {
+  auth: {
+    login: (email: string, password: string, username?: string) =>
+      appClient.Post<User>('/api/v1/users/login', {
+        body: { email, username, password },
+      }),
+    logout: () => appClient.Post(`/api/v1/users/logout`),
+    validate: () => appClient.Get<User>(`/api/v1/users/get-auth-user`),
+  },
   products: {
     findQuery: (params: ProductQueryParams) =>
       appClient.Get<PaginatedProductsResponse>('/api/v1/products', {
@@ -344,23 +358,37 @@ export const APIClient = {
           ...(params.quarries?.length ? { quarries: params.quarries } : {}),
         },
       }),
-    getById: (productId: number) =>
+    detail: (productId: number) =>
       appClient.Get<ProductWithCategoriesAndQuarry>(
         `/api/v1/products/${productId}`,
       ),
 
-    list: (params: ProductsQueryParams) =>
-      appClient.Get<ProductMgmtResponse>('/api/v1/productmanagement/products', {
-        queryString: {
-          quarryId: params.quarryId,
-        },
-      }),
+    list: () =>
+      appClient.Get<AllProductWithCategoriesAndQuarryResponse>(
+        '/api/v1/products/all',
+      ),
   },
   quarries: {
     getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
+    patchQuarryProductPrice: (priceId: number, data: QuarryProductPricePatch) =>
+      appClient.Patch(`/api/v1/quarries/quarry-product-prices/${priceId}`, {
+        body: data,
+      }),
+    deleteProductFromQuarry: (quarryProductPriceId: number) =>
+      appClient.Delete(
+        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`,
+      ),
+    deletePrice: (priceId: number) =>
+      appClient.Delete(`/api/v1/quarries/quarry-product-prices/${priceId}`),
   },
 
   categories: {
     getAll: () => appClient.Get<Category[]>(`/api/v1/categories`),
+    new: (name: string) =>
+      appClient.Post<Category>('/api/v1/categories/new', {
+        body: {
+          name,
+        },
+      }),
   },
 };

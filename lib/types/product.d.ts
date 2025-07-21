@@ -1,10 +1,13 @@
+import { Category } from './category';
+import { QuarriesWithPrice } from './quarry';
+
 export interface Product {
   id: number;
   organisation_id: number;
   name: string;
   product_code?: string;
   unit: string;
-  description: string;
+  description: string | null;
   cost_price: number;
   sell_price: number;
   status: string;
@@ -16,6 +19,10 @@ export interface ProductWithCategoriesAndQuarry {
   product: Product;
   categories: Category[];
   quarries: QuarriesWithPrice[];
+}
+
+export interface AllProductWithCategoriesAndQuarryResponse {
+  items: ProductWithCategoriesAndQuarry[];
 }
 
 export interface PaginatedProductsResponse {
@@ -34,32 +41,4 @@ export interface ProductQueryParams {
 
   categories?: string[]; // e.g. ["Fruit","Hardware"]
   quarries?: string[]; // e.g. ["Main Quarry","Secondary"]
-}
-
-// Microservice Ranil Version..
-
-export interface Products {
-  id: number;
-  qlClientId: number;
-  quarryId: number;
-  productName: string;
-  productCode: string;
-  productDetails: string;
-}
-
-export interface ProductsQueryParams {
-  quarryId: number;
-}
-
-export interface ProductMgmtResponse {
-  /** Whether the operation succeeded */
-  exeStatus: boolean;
-  /** Any error messages returned by the operation */
-  exeErrorMsg: string[];
-  /** Numeric status or error code */
-  exeCode: number;
-  /** List of products */
-  products: Products[];
-  /** Single product object (often the “current” or newly created/updated one) */
-  productVo: Products;
 }

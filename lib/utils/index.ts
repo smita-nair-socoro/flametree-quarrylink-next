@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from 'clsx';
+import { compareAsc, parseISO } from 'date-fns';
 import { User } from 'oidc-client-ts';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,7 +12,7 @@ export function isDevEnv(): boolean {
 }
 
 export function baseUrl(): string {
-  return process.env.API_URL || '';
+  return process.env.NEXT_PUBLIC_API_URL || '';
 }
 
 export function getUser() {
@@ -44,4 +45,22 @@ export function setLocalStorage<T>(key: string, value: T) {
   } catch (err) {
     console.log('failed to write into localstorage err : ', err);
   }
+}
+
+/**
+ * A sorting function you can reuse on any date-string column.
+ * Returns negative if a < b, positive if a > b.
+ */
+export function dateSortingFn(
+  a: { getValue: (colId: string) => string },
+  b: { getValue: (colId: string) => string },
+  columnId: string,
+) {
+  const da = parseISO(a.getValue(columnId));
+  const db = parseISO(b.getValue(columnId));
+  return compareAsc(da, db);
+}
+
+export function centsToDollars(cents: number): string {
+  return (cents / 100).toFixed(2);
 }
