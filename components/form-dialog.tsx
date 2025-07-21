@@ -269,7 +269,7 @@ export function FormDialog({
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5 pb-10',
+          'rounded-md overflow-auto px-5 pb-10'
         )}
       >
         {contentNode}
