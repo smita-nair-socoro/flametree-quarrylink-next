@@ -52,7 +52,7 @@ export default function ProductsPage() {
           data={productQuery.data?.items ?? []}
           columns={productColumns}
           facetDefination={facetDefs}
-          searchPlaceHolder="Search products..."
+          searchPlaceHolder="Search quotes..."
         />
       </div>
     </div>
