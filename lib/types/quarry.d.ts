@@ -22,7 +22,10 @@ export interface NewQuarryProductPriceRequest {
 export interface QuarryProductPricePatch {
   cost_price?: number;
   sell_price?: number;
+  scheduled_cost_price?: number | null;
+  scheduled_sell_price?: number | null;
   status?: string;
+  valid_from?: string;
 }
 
 export interface Quarry {

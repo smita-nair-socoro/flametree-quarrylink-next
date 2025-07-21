@@ -32,7 +32,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import z from 'zod';
 import { APIClient } from '@/lib/api/APIClient';
 import { ProductKeys } from '@/lib/api/query_keys';
 import { notifyError, notifySuccess } from '@/lib/toast';
@@ -64,11 +63,11 @@ export function UpdateQuarryProductPriceDialogForm({
     resolver: zodResolver(UpdatePriceSchema),
     defaultValues: {
       id: quarryPriceId,
-      cost_price: 0,
-      sell_price: 0,
+      scheduled_cost_price: 0,
+      scheduled_sell_price: 0,
       status: 'ACTIVE',
       applyTiming: 'immediate',
-      scheduledDate: undefined,
+      validFrom: new Date(),
     },
   });
 
@@ -84,17 +83,35 @@ export function UpdateQuarryProductPriceDialogForm({
   // Reset date selection if it goes back to immediate
   React.useEffect(() => {
     if (watchTiming === 'immediate') {
-      quarryPriceForm.setValue('scheduledDate', undefined);
+      quarryPriceForm.setValue('validFrom', new Date());
     }
   }, [watchTiming, quarryPriceForm]);
 
   const patchQuarryPriceMutation = useMutation({
-    mutationFn: (data: z.infer<typeof UpdatePriceSchema>) => {
+    mutationFn: (data: UpdatePriceInput) => {
+      const isScheduled = data.applyTiming === 'scheduled';
+
+      const currentCostCents = dollarsToCents(parseFloat(current_cost_price));
+      const currentSellCents = dollarsToCents(parseFloat(current_sell_price));
+
+      const newCostCents = dollarsToCents(data.scheduled_cost_price);
+      const newSellCents = dollarsToCents(data.scheduled_sell_price);
+
       return APIClient.quarries.patchQuarryProductPrice(quarryPriceId, {
-        cost_price: dollarsToCents(data.cost_price),
-        sell_price: dollarsToCents(data.sell_price),
+        // always send the effective “cost_price” + “sell_price”
+        cost_price: isScheduled ? currentCostCents : newCostCents,
+        sell_price: isScheduled ? currentSellCents : newSellCents,
+
+        // only set these when scheduling
+        scheduled_cost_price: isScheduled ? newCostCents : null,
+        scheduled_sell_price: isScheduled ? newSellCents : null,
+
+        valid_from: isScheduled
+          ? data.validFrom!.toISOString()
+          : new Date().toISOString(),
       });
     },
+
     onSuccess: () => {
       // invalidate the key that way it refetches new category
       queryClient.invalidateQueries({ queryKey: ProductKeys.all });
@@ -170,7 +187,7 @@ export function UpdateQuarryProductPriceDialogForm({
 
               <FormField
                 control={quarryPriceForm.control}
-                name="cost_price"
+                name="scheduled_cost_price"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>New Cost Price</FormLabel>
@@ -197,7 +214,7 @@ export function UpdateQuarryProductPriceDialogForm({
 
               <FormField
                 control={quarryPriceForm.control}
-                name="sell_price"
+                name="scheduled_sell_price"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>New Sell Price</FormLabel>
@@ -256,7 +273,7 @@ export function UpdateQuarryProductPriceDialogForm({
               {watchTiming === 'scheduled' && (
                 <FormField
                   control={quarryPriceForm.control}
-                  name="scheduledDate"
+                  name="validFrom"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Effective Date</FormLabel>
