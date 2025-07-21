@@ -48,14 +48,14 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { CategoryKeys } from '@/lib/api/query_keys';
 
 interface ProductFormProps {
-  productId?: number;
+  id?: number;
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
 }
 
 export default function ProductForm({
-  productId,
+  id,
   onCancel,
   className,
 }: ProductFormProps) {
@@ -68,7 +68,7 @@ export default function ProductForm({
   const [isNewQuarryDialogOpen, setIsNewQuarryDialogOpen] =
     React.useState(false);
 
-  const [isEditing] = React.useState(Boolean(productId));
+  const [isEditing] = React.useState(Boolean(id));
 
   const form = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
@@ -99,8 +99,8 @@ export default function ProductForm({
 
   // Queries
   const productQuery = useQuery({
-    ...ProductQueryOptions(productId!),
-    enabled: Boolean(productId), // skips if it's creating a new product instead of editing.
+    ...ProductQueryOptions(id!),
+    enabled: Boolean(id), // skips if it's creating a new product instead of editing.
   });
 
   const productQuarriesWithPrice = productQuery.data?.quarries ?? [];
