@@ -5,8 +5,8 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { dateSortingFn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { TableActions } from '@/components/product-table-actions';
 import { QuotationDetails } from '@/lib/types/quotation';
+import { QuotationTableActions } from './quotation-table-actions';
 
 export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   {
@@ -134,7 +134,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     cell: ({ row }) => {
       const id = row.original.id;
 
-      return <TableActions productId={id} />;
+      return <QuotationTableActions id={id} />;
     },
   },
 ];
