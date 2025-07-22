@@ -23,22 +23,32 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
 
   {
     id: 'customer_name',
-    accessorFn: (row) => row.customer_id,
+    accessorFn: (row) => row.customer.name,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Customer Name" />
       );
     },
-    cell: ({ getValue }) => {
-      const name = getValue<string[]>();
-      return <TableBadges names={name} visibleCount={1} />;
-    },
+    cell: (info) => info.getValue(),
     meta: 'Customer Name',
   },
 
   {
+    id: 'quote_type',
+    accessorFn: (row) => row.quote_type,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Quote Type" />;
+    },
+    cell: ({ row }) => {
+      const quote_type = row.original.quote_type;
+      return <TableBadges names={quote_type} visibleCount={1} />;
+    },
+    meta: 'Quote Type',
+  },
+
+  {
     id: 'products',
-    accessorFn: (row) => row.quarryProducts.map((c) => c.name),
+    accessorFn: (row) => row.quarryProducts.map((qp) => qp.quarry.name),
     header: 'Products',
     cell: ({ getValue }) => {
       const names = getValue<string[]>();
@@ -76,13 +86,13 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   },
 
   {
-    id: 'total_price',
+    id: 'total_cost_price',
     accessorFn: (row) => row.total_cost_price,
     header: ({}) => {
       return <div>Total Price (Ex-GST)</div>;
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.getValue('total_cost_price'));
+      const cents = parseFloat(row.original.total_cost_price.toString());
       const dollars = cents / 100;
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -104,6 +114,19 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     },
     cell: (info) => info.getValue(),
     meta: 'Account Manager',
+  },
+
+  {
+    id: 'status',
+    accessorFn: (row) => row.status,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Status" />;
+    },
+    cell: ({ getValue }) => {
+      const names = getValue<string>();
+      return <TableBadges names={names} visibleCount={1} />;
+    },
+    meta: 'STATUS',
   },
 
   {

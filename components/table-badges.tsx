@@ -39,15 +39,37 @@ function pickKey(name: string): string {
   return PALETTE_KEYS[h];
 }
 
+// Specific mappings for known statuses (case-insensitive)
+const STATUS_COLORS: Record<string, string> = {
+  DRAFT:
+    'bg-gray-100 text-gray-800 border-gray-800 dark:bg-gray-200 dark:text-gray-900 dark:border-gray-800',
+  PENDING:
+    'bg-yellow-100 text-yellow-900 border-yellow-900 dark:bg-yellow-200 dark:text-yellow-900 dark:border-yellow-900',
+  APPROVED:
+    'bg-green-100 text-green-900 border-green-900 dark:bg-green-200 dark:text-green-900 dark:border-green-900',
+
+  'CONVERTED TO JOB':
+    'bg-blue-100 text-blue-900 border-blue-900 dark:bg-blue-200 dark:text-blue-900 dark:border-blue-900',
+
+  EXPIRED:
+    'bg-red-100 text-red-900 border-red-900 dark:bg-red-200 dark:text-red-900 dark:border-red-900',
+  DECLINED:
+    'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
+  ARCHIVED:
+    'bg-gray-100 text-gray-500 border-gray-500 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-500',
+  ACTIVE:
+    'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-900 dark:border-green-800',
+  INACTIVE:
+    'bg-gray-100 text-gray-600 border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600',
+};
+
 function getBadgeClassName(name: string): string {
-  if (name === 'ACTIVE') {
-    return 'bg-green-100 text-green-800 dark:bg-green-200 dark:text-green-900';
+  const key = name.trim().toUpperCase();
+  if (STATUS_COLORS[key]) {
+    return STATUS_COLORS[key];
   }
-  if (name === 'INACTIVE') {
-    return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
-  }
-  const key = pickKey(name);
-  return PALETTE[key];
+  const dynamicKey = pickKey(key);
+  return PALETTE[dynamicKey] || PALETTE.sky;
 }
 
 export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
@@ -61,7 +83,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
         <Badge
           key={n}
           className={cn(
-            'uppercase px-2 py-0.5 text-xs font-medium border border-current',
+            'uppercase px-2 py-0.5 text-xs font-medium border',
             getBadgeClassName(n),
           )}
         >
@@ -82,7 +104,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
                 <Badge
                   key={n}
                   className={cn(
-                    'uppercase px-2 py-0.5 text-xs font-medium border border-current',
+                    'uppercase px-2 py-0.5 text-xs font-medium border',
                     getBadgeClassName(n),
                   )}
                 >

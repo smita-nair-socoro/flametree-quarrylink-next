@@ -9,25 +9,49 @@ import { useQuery } from '@tanstack/react-query';
 import { ProductsListQueryOptions } from '@/lib/api/quaries';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { notifyError } from '@/lib/toast';
-import { productColumns } from '@/app/(protected)/inventory/products/(components)/(data-tables)/products/columns';
+import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from '../../inventory/products/(components)/product-form';
+import rawJson from '@/lib/tests/quotationResponseData.json';
+import {
+  QuotationDetails,
+  QUOTE_STATUS,
+  QUOTE_TYPE,
+} from '@/lib/types/quotation';
 
 export default function ProductsPage() {
-  const productQuery = useQuery(ProductsListQueryOptions());
+  //TODO: Fetch from server
+  const quotationQuery = useQuery(ProductsListQueryOptions());
 
-  if (productQuery.isLoading) {
-    return <LoadingSpinner message="Loading Products" />;
+  const { items: rawItems } = rawJson as unknown as {
+    items: Array<
+      Omit<QuotationDetails, 'quote_type' | 'status'> & {
+        quote_type: string;
+        status: string;
+      }
+    >;
+  };
+
+  const items: QuotationDetails[] = rawItems.map((item) => ({
+    ...item,
+    quote_type: item.quote_type as QUOTE_TYPE,
+    status: item.status as QUOTE_STATUS,
+  }));
+
+  if (quotationQuery.isLoading) {
+    return <LoadingSpinner message="Loading Quotations" />;
   }
 
-  if (productQuery.error) {
-    notifyError('Quotation', { description: 'Error loading products' });
+  if (quotationQuery.error) {
+    notifyError('Quotation', { description: 'Error loading Quotations' });
   }
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: Activity },
-    { column: 'category', title: 'Categories', icon: Tags },
-    { column: 'quarries', title: 'Quarry', icon: Factory },
+    { column: 'status', title: 'Status', icon: Factory },
+    { column: 'quote_type', title: 'Quote Type', icon: Tags },
+    { column: 'products', title: 'Products', icon: Factory },
+    { column: 'customer_name', title: 'Customer Name', icon: Activity },
+    { column: 'account_manager', title: 'Account Manager', icon: Factory },
   ];
 
   return (
@@ -49,8 +73,8 @@ export default function ProductsPage() {
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
-          data={productQuery.data?.items ?? []}
-          columns={productColumns}
+          data={items ?? []}
+          columns={quotationColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search quotes..."
         />

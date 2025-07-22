@@ -26,8 +26,8 @@ export interface Quotation {
   delivery_window_start: string;
   delivery_window_end: string;
   job_name: string;
-  total_cost_price: string;
-  total_sell_price: string;
+  total_cost_price: number;
+  total_sell_price: number;
   status: QUOTE_STATUS;
   account_manager: string;
   created_by: string;
@@ -40,6 +40,10 @@ export interface Quotation {
 export interface QuotationDetails extends Quotation {
   customer: Customer;
   quarryProducts: QuarriesWithPrice[];
+}
+
+interface QuotationDetailsResponse {
+  items: QuotationDetails[];
 }
 
 //TODO: This is temporary we need proper schema for customer, job and products (line items)...

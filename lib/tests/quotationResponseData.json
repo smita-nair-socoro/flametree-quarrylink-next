@@ -1,0 +1,1004 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "customer_id": 2,
+      "job_id": 1001,
+      "quote_number": "Q-2025-0001",
+      "quote_type": "Delivery",
+      "project_name": "Project 1",
+      "site_address": "10 Example St, City 2, State",
+      "delivery_date": "2025-08-23",
+      "expiry_date": "2025-08-16",
+      "delivery_window_start": "2025-08-23T08:00:00Z",
+      "delivery_window_end": "2025-08-23T17:00:00Z",
+      "job_name": "Job 1",
+      "total_cost_price": 10667,
+      "total_sell_price": 12318,
+      "status": "Declined",
+      "account_manager": "Evan Brown",
+      "created_by": "Helen Kim",
+      "created_at": "2025-07-14T09:21:00Z",
+      "updated_at": "2025-07-14T20:09:00Z",
+      "last_modified_by": "Nina Richards",
+      "converted_at": null,
+      "customer": {
+        "id": 2,
+        "name": "Globex Corporation"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 201,
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Northside Quarry",
+            "created_at": "2024-01-27T00:00:00Z",
+            "updated_at": "2024-02-16T00:00:00Z"
+          },
+          "price": {
+            "id": 301,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 4001,
+            "cost_price": 10667,
+            "sell_price": 12318,
+            "status": "active",
+            "created_at": "2025-07-14T09:21:00Z",
+            "updated_at": "2025-07-14T20:09:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "customer_id": 5,
+      "job_id": 1002,
+      "quote_number": "Q-2025-0002",
+      "quote_type": "Delivery",
+      "project_name": "Project 2",
+      "site_address": "20 Example St, City 3, State",
+      "delivery_date": "2025-08-14",
+      "expiry_date": "2025-08-07",
+      "delivery_window_start": "2025-08-14T08:00:00Z",
+      "delivery_window_end": "2025-08-14T17:00:00Z",
+      "job_name": "Job 2",
+      "total_cost_price": 9275,
+      "total_sell_price": 11412,
+      "status": "Approved",
+      "account_manager": "Alice Johnson",
+      "created_by": "Helen Kim",
+      "created_at": "2025-07-12T01:08:00Z",
+      "updated_at": "2025-07-12T03:12:00Z",
+      "last_modified_by": "Oscar Ellis",
+      "converted_at": null,
+      "customer": {
+        "id": 5,
+        "name": "Umbrella Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 202,
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Westside Quarry",
+            "created_at": "2024-07-30T00:00:00Z",
+            "updated_at": "2024-07-30T00:00:00Z"
+          },
+          "price": {
+            "id": 302,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4002,
+            "cost_price": 9275,
+            "sell_price": 11412,
+            "status": "active",
+            "created_at": "2025-07-12T01:08:00Z",
+            "updated_at": "2025-07-12T03:12:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "customer_id": 4,
+      "job_id": 1003,
+      "quote_number": "Q-2025-0003",
+      "quote_type": "Delivery",
+      "project_name": "Project 3",
+      "site_address": "30 Example St, City 4, State",
+      "delivery_date": "2025-08-18",
+      "expiry_date": "2025-08-11",
+      "delivery_window_start": "2025-08-18T08:00:00Z",
+      "delivery_window_end": "2025-08-18T17:00:00Z",
+      "job_name": "Job 3",
+      "total_cost_price": 6982,
+      "total_sell_price": 8709,
+      "status": "Pending",
+      "account_manager": "Bob Smith",
+      "created_by": "Frank Harris",
+      "created_at": "2025-07-12T13:50:00Z",
+      "updated_at": "2025-07-16T05:23:00Z",
+      "last_modified_by": "Kyle Young",
+      "converted_at": null,
+      "customer": {
+        "id": 4,
+        "name": "Initech"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 203,
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Westside Quarry",
+            "created_at": "2024-07-30T00:00:00Z",
+            "updated_at": "2024-07-30T00:00:00Z"
+          },
+          "price": {
+            "id": 303,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4003,
+            "cost_price": 6982,
+            "sell_price": 8709,
+            "status": "active",
+            "created_at": "2025-07-12T13:50:00Z",
+            "updated_at": "2025-07-16T05:23:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "customer_id": 4,
+      "job_id": 1004,
+      "quote_number": "Q-2025-0004",
+      "quote_type": "Delivery",
+      "project_name": "Project 4",
+      "site_address": "40 Example St, City 5, State",
+      "delivery_date": "2025-08-25",
+      "expiry_date": "2025-08-18",
+      "delivery_window_start": "2025-08-25T08:00:00Z",
+      "delivery_window_end": "2025-08-25T17:00:00Z",
+      "job_name": "Job 4",
+      "total_cost_price": 6055,
+      "total_sell_price": 7458,
+      "status": "Archived",
+      "account_manager": "Alice Johnson",
+      "created_by": "Jasmine Patel",
+      "created_at": "2025-07-20T21:59:00Z",
+      "updated_at": "2025-07-21T20:07:00Z",
+      "last_modified_by": "Nina Richards",
+      "converted_at": null,
+      "customer": {
+        "id": 4,
+        "name": "Initech"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 204,
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Westside Quarry",
+            "created_at": "2024-07-30T00:00:00Z",
+            "updated_at": "2024-07-30T00:00:00Z"
+          },
+          "price": {
+            "id": 304,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4004,
+            "cost_price": 6055,
+            "sell_price": 7458,
+            "status": "active",
+            "created_at": "2025-07-20T21:59:00Z",
+            "updated_at": "2025-07-21T20:07:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "customer_id": 5,
+      "job_id": 1005,
+      "quote_number": "Q-2025-0005",
+      "quote_type": "Delivery",
+      "project_name": "Project 5",
+      "site_address": "50 Example St, City 1, State",
+      "delivery_date": "2025-08-15",
+      "expiry_date": "2025-08-08",
+      "delivery_window_start": "2025-08-15T08:00:00Z",
+      "delivery_window_end": "2025-08-15T17:00:00Z",
+      "job_name": "Job 5",
+      "total_cost_price": 10786,
+      "total_sell_price": 11871,
+      "status": "Archived",
+      "account_manager": "Bob Smith",
+      "created_by": "Gina Martinez",
+      "created_at": "2025-07-05T05:27:00Z",
+      "updated_at": "2025-07-09T10:44:00Z",
+      "last_modified_by": "Nina Richards",
+      "converted_at": null,
+      "customer": {
+        "id": 5,
+        "name": "Umbrella Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 205,
+          "quarry": {
+            "id": 1,
+            "organisation_id": 1,
+            "name": "Northside Quarry",
+            "created_at": "2024-01-27T00:00:00Z",
+            "updated_at": "2024-02-16T00:00:00Z"
+          },
+          "price": {
+            "id": 305,
+            "organisation_id": 1,
+            "quarries_id": 1,
+            "product_id": 4005,
+            "cost_price": 10786,
+            "sell_price": 11871,
+            "status": "active",
+            "created_at": "2025-07-05T05:27:00Z",
+            "updated_at": "2025-07-09T10:44:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "customer_id": 5,
+      "job_id": 1006,
+      "quote_number": "Q-2025-0006",
+      "quote_type": "Delivery",
+      "project_name": "Project 6",
+      "site_address": "60 Example St, City 2, State",
+      "delivery_date": "2025-08-08",
+      "expiry_date": "2025-08-01",
+      "delivery_window_start": "2025-08-08T08:00:00Z",
+      "delivery_window_end": "2025-08-08T17:00:00Z",
+      "job_name": "Job 6",
+      "total_cost_price": 12806,
+      "total_sell_price": 17982,
+      "status": "Pending",
+      "account_manager": "Bob Smith",
+      "created_by": "Gina Martinez",
+      "created_at": "2025-07-16T02:28:00Z",
+      "updated_at": "2025-07-17T05:19:00Z",
+      "last_modified_by": "Kyle Young",
+      "converted_at": null,
+      "customer": {
+        "id": 5,
+        "name": "Umbrella Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 206,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 306,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4006,
+            "cost_price": 12806,
+            "sell_price": 17982,
+            "status": "active",
+            "created_at": "2025-07-16T02:28:00Z",
+            "updated_at": "2025-07-17T05:19:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "customer_id": 5,
+      "job_id": 1007,
+      "quote_number": "Q-2025-0007",
+      "quote_type": "Delivery",
+      "project_name": "Project 7",
+      "site_address": "70 Example St, City 3, State",
+      "delivery_date": "2025-08-22",
+      "expiry_date": "2025-08-15",
+      "delivery_window_start": "2025-08-22T08:00:00Z",
+      "delivery_window_end": "2025-08-22T17:00:00Z",
+      "job_name": "Job 7",
+      "total_cost_price": 13247,
+      "total_sell_price": 17367,
+      "status": "Archived",
+      "account_manager": "Alice Johnson",
+      "created_by": "Ian Walker",
+      "created_at": "2025-07-08T08:35:00Z",
+      "updated_at": "2025-07-13T11:37:00Z",
+      "last_modified_by": "Oscar Ellis",
+      "converted_at": null,
+      "customer": {
+        "id": 5,
+        "name": "Umbrella Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 207,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 307,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4007,
+            "cost_price": 13247,
+            "sell_price": 17367,
+            "status": "active",
+            "created_at": "2025-07-08T08:35:00Z",
+            "updated_at": "2025-07-13T11:37:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "customer_id": 3,
+      "job_id": 1008,
+      "quote_number": "Q-2025-0008",
+      "quote_type": "Collection",
+      "project_name": "Project 8",
+      "site_address": "80 Example St, City 4, State",
+      "delivery_date": "2025-08-10",
+      "expiry_date": "2025-08-03",
+      "delivery_window_start": "2025-08-10T08:00:00Z",
+      "delivery_window_end": "2025-08-10T17:00:00Z",
+      "job_name": "Job 8",
+      "total_cost_price": 7815,
+      "total_sell_price": 10206,
+      "status": "Pending",
+      "account_manager": "Bob Smith",
+      "created_by": "Gina Martinez",
+      "created_at": "2025-07-06T12:11:00Z",
+      "updated_at": "2025-07-11T05:30:00Z",
+      "last_modified_by": "Laura Adams",
+      "converted_at": null,
+      "customer": {
+        "id": 3,
+        "name": "Soylent Co"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 208,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 308,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4008,
+            "cost_price": 7815,
+            "sell_price": 10206,
+            "status": "active",
+            "created_at": "2025-07-06T12:11:00Z",
+            "updated_at": "2025-07-11T05:30:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "customer_id": 1,
+      "job_id": 1009,
+      "quote_number": "Q-2025-0009",
+      "quote_type": "Delivery",
+      "project_name": "Project 9",
+      "site_address": "90 Example St, City 5, State",
+      "delivery_date": "2025-08-25",
+      "expiry_date": "2025-08-18",
+      "delivery_window_start": "2025-08-25T08:00:00Z",
+      "delivery_window_end": "2025-08-25T17:00:00Z",
+      "job_name": "Job 9",
+      "total_cost_price": 8611,
+      "total_sell_price": 11647,
+      "status": "Converted to Job",
+      "account_manager": "Dana White",
+      "created_by": "Ian Walker",
+      "created_at": "2025-07-09T06:17:00Z",
+      "updated_at": "2025-07-10T16:50:00Z",
+      "last_modified_by": "Oscar Ellis",
+      "converted_at": "2025-07-11T16:50:00Z",
+      "customer": {
+        "id": 1,
+        "name": "Acme Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 209,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 309,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4009,
+            "cost_price": 8611,
+            "sell_price": 11647,
+            "status": "active",
+            "created_at": "2025-07-09T06:17:00Z",
+            "updated_at": "2025-07-10T16:50:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "customer_id": 3,
+      "job_id": 1010,
+      "quote_number": "Q-2025-0010",
+      "quote_type": "Collection",
+      "project_name": "Project 10",
+      "site_address": "100 Example St, City 1, State",
+      "delivery_date": "2025-08-22",
+      "expiry_date": "2025-08-15",
+      "delivery_window_start": "2025-08-22T08:00:00Z",
+      "delivery_window_end": "2025-08-22T17:00:00Z",
+      "job_name": "Job 10",
+      "total_cost_price": 12095,
+      "total_sell_price": 14098,
+      "status": "Pending",
+      "account_manager": "Bob Smith",
+      "created_by": "Jasmine Patel",
+      "created_at": "2025-07-16T11:06:00Z",
+      "updated_at": "2025-07-17T05:59:00Z",
+      "last_modified_by": "Michael Scott",
+      "converted_at": null,
+      "customer": {
+        "id": 3,
+        "name": "Soylent Co"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 210,
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Westside Quarry",
+            "created_at": "2024-07-30T00:00:00Z",
+            "updated_at": "2024-07-30T00:00:00Z"
+          },
+          "price": {
+            "id": 310,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4010,
+            "cost_price": 12095,
+            "sell_price": 14098,
+            "status": "active",
+            "created_at": "2025-07-16T11:06:00Z",
+            "updated_at": "2025-07-17T05:59:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "customer_id": 3,
+      "job_id": 1011,
+      "quote_number": "Q-2025-0011",
+      "quote_type": "Delivery",
+      "project_name": "Project 11",
+      "site_address": "110 Example St, City 2, State",
+      "delivery_date": "2025-08-26",
+      "expiry_date": "2025-08-19",
+      "delivery_window_start": "2025-08-26T08:00:00Z",
+      "delivery_window_end": "2025-08-26T17:00:00Z",
+      "job_name": "Job 11",
+      "total_cost_price": 7486,
+      "total_sell_price": 9102,
+      "status": "Converted to Job",
+      "account_manager": "Evan Brown",
+      "created_by": "Helen Kim",
+      "created_at": "2025-07-17T08:33:00Z",
+      "updated_at": "2025-07-18T20:01:00Z",
+      "last_modified_by": "Oscar Ellis",
+      "converted_at": "2025-07-19T20:01:00Z",
+      "customer": {
+        "id": 3,
+        "name": "Soylent Co"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 211,
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Southside Quarry",
+            "created_at": "2024-12-27T00:00:00Z",
+            "updated_at": "2024-12-29T00:00:00Z"
+          },
+          "price": {
+            "id": 311,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 4011,
+            "cost_price": 7486,
+            "sell_price": 9102,
+            "status": "active",
+            "created_at": "2025-07-17T08:33:00Z",
+            "updated_at": "2025-07-18T20:01:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "customer_id": 1,
+      "job_id": 1012,
+      "quote_number": "Q-2025-0012",
+      "quote_type": "Collection",
+      "project_name": "Project 12",
+      "site_address": "120 Example St, City 3, State",
+      "delivery_date": "2025-08-04",
+      "expiry_date": "2025-07-28",
+      "delivery_window_start": "2025-08-04T08:00:00Z",
+      "delivery_window_end": "2025-08-04T17:00:00Z",
+      "job_name": "Job 12",
+      "total_cost_price": 4520,
+      "total_sell_price": 5724,
+      "status": "Pending",
+      "account_manager": "Evan Brown",
+      "created_by": "Ian Walker",
+      "created_at": "2025-07-15T20:00:00Z",
+      "updated_at": "2025-07-18T09:49:00Z",
+      "last_modified_by": "Laura Adams",
+      "converted_at": null,
+      "customer": {
+        "id": 1,
+        "name": "Acme Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 212,
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Southside Quarry",
+            "created_at": "2024-12-27T00:00:00Z",
+            "updated_at": "2024-12-29T00:00:00Z"
+          },
+          "price": {
+            "id": 312,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 4012,
+            "cost_price": 4520,
+            "sell_price": 5724,
+            "status": "active",
+            "created_at": "2025-07-15T20:00:00Z",
+            "updated_at": "2025-07-18T09:49:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "customer_id": 3,
+      "job_id": 1013,
+      "quote_number": "Q-2025-0013",
+      "quote_type": "Delivery",
+      "project_name": "Project 13",
+      "site_address": "130 Example St, City 4, State",
+      "delivery_date": "2025-08-20",
+      "expiry_date": "2025-08-13",
+      "delivery_window_start": "2025-08-20T08:00:00Z",
+      "delivery_window_end": "2025-08-20T17:00:00Z",
+      "job_name": "Job 13",
+      "total_cost_price": 14613,
+      "total_sell_price": 16519,
+      "status": "Expired",
+      "account_manager": "Evan Brown",
+      "created_by": "Jasmine Patel",
+      "created_at": "2025-07-20T17:33:00Z",
+      "updated_at": "2025-07-21T14:26:00Z",
+      "last_modified_by": "Oscar Ellis",
+      "converted_at": null,
+      "customer": {
+        "id": 3,
+        "name": "Soylent Co"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 213,
+          "quarry": {
+            "id": 2,
+            "organisation_id": 3,
+            "name": "Eastside Quarry",
+            "created_at": "2024-06-13T00:00:00Z",
+            "updated_at": "2024-06-13T00:00:00Z"
+          },
+          "price": {
+            "id": 313,
+            "organisation_id": 3,
+            "quarries_id": 2,
+            "product_id": 4013,
+            "cost_price": 14613,
+            "sell_price": 16519,
+            "status": "active",
+            "created_at": "2025-07-20T17:33:00Z",
+            "updated_at": "2025-07-21T14:26:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "customer_id": 3,
+      "job_id": 1014,
+      "quote_number": "Q-2025-0014",
+      "quote_type": "Delivery",
+      "project_name": "Project 14",
+      "site_address": "140 Example St, City 5, State",
+      "delivery_date": "2025-08-07",
+      "expiry_date": "2025-07-31",
+      "delivery_window_start": "2025-08-07T08:00:00Z",
+      "delivery_window_end": "2025-08-07T17:00:00Z",
+      "job_name": "Job 14",
+      "total_cost_price": 12487,
+      "total_sell_price": 15607,
+      "status": "Declined",
+      "account_manager": "Charlie Lee",
+      "created_by": "Helen Kim",
+      "created_at": "2025-07-01T16:10:00Z",
+      "updated_at": "2025-07-04T05:22:00Z",
+      "last_modified_by": "Nina Richards",
+      "converted_at": null,
+      "customer": {
+        "id": 3,
+        "name": "Soylent Co"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 214,
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Westside Quarry",
+            "created_at": "2024-07-30T00:00:00Z",
+            "updated_at": "2024-07-30T00:00:00Z"
+          },
+          "price": {
+            "id": 314,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4014,
+            "cost_price": 12487,
+            "sell_price": 15607,
+            "status": "active",
+            "created_at": "2025-07-01T16:10:00Z",
+            "updated_at": "2025-07-04T05:22:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "customer_id": 1,
+      "job_id": 1015,
+      "quote_number": "Q-2025-0015",
+      "quote_type": "Collection",
+      "project_name": "Project 15",
+      "site_address": "150 Example St, City 1, State",
+      "delivery_date": "2025-08-23",
+      "expiry_date": "2025-08-16",
+      "delivery_window_start": "2025-08-23T08:00:00Z",
+      "delivery_window_end": "2025-08-23T17:00:00Z",
+      "job_name": "Job 15",
+      "total_cost_price": 2893,
+      "total_sell_price": 3371,
+      "status": "Pending",
+      "account_manager": "Evan Brown",
+      "created_by": "Gina Martinez",
+      "created_at": "2025-07-18T13:11:00Z",
+      "updated_at": "2025-07-21T09:45:00Z",
+      "last_modified_by": "Kyle Young",
+      "converted_at": null,
+      "customer": {
+        "id": 1,
+        "name": "Acme Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 215,
+          "quarry": {
+            "id": 4,
+            "organisation_id": 1,
+            "name": "Westside Quarry",
+            "created_at": "2024-07-30T00:00:00Z",
+            "updated_at": "2024-07-30T00:00:00Z"
+          },
+          "price": {
+            "id": 315,
+            "organisation_id": 1,
+            "quarries_id": 4,
+            "product_id": 4015,
+            "cost_price": 2893,
+            "sell_price": 3371,
+            "status": "active",
+            "created_at": "2025-07-18T13:11:00Z",
+            "updated_at": "2025-07-21T09:45:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "customer_id": 1,
+      "job_id": 1016,
+      "quote_number": "Q-2025-0016",
+      "quote_type": "Delivery",
+      "project_name": "Project 16",
+      "site_address": "160 Example St, City 2, State",
+      "delivery_date": "2025-08-18",
+      "expiry_date": "2025-08-11",
+      "delivery_window_start": "2025-08-18T08:00:00Z",
+      "delivery_window_end": "2025-08-18T17:00:00Z",
+      "job_name": "Job 16",
+      "total_cost_price": 3455,
+      "total_sell_price": 4867,
+      "status": "Converted to Job",
+      "account_manager": "Bob Smith",
+      "created_by": "Jasmine Patel",
+      "created_at": "2025-07-05T06:23:00Z",
+      "updated_at": "2025-07-05T09:54:00Z",
+      "last_modified_by": "Nina Richards",
+      "converted_at": "2025-07-08T09:54:00Z",
+      "customer": {
+        "id": 1,
+        "name": "Acme Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 216,
+          "quarry": {
+            "id": 3,
+            "organisation_id": 1,
+            "name": "Southside Quarry",
+            "created_at": "2024-12-27T00:00:00Z",
+            "updated_at": "2024-12-29T00:00:00Z"
+          },
+          "price": {
+            "id": 316,
+            "organisation_id": 1,
+            "quarries_id": 3,
+            "product_id": 4016,
+            "cost_price": 3455,
+            "sell_price": 4867,
+            "status": "active",
+            "created_at": "2025-07-05T06:23:00Z",
+            "updated_at": "2025-07-05T09:54:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "customer_id": 4,
+      "job_id": 1017,
+      "quote_number": "Q-2025-0017",
+      "quote_type": "Delivery",
+      "project_name": "Project 17",
+      "site_address": "170 Example St, City 3, State",
+      "delivery_date": "2025-08-09",
+      "expiry_date": "2025-08-02",
+      "delivery_window_start": "2025-08-09T08:00:00Z",
+      "delivery_window_end": "2025-08-09T17:00:00Z",
+      "job_name": "Job 17",
+      "total_cost_price": 14422,
+      "total_sell_price": 16146,
+      "status": "Declined",
+      "account_manager": "Charlie Lee",
+      "created_by": "Helen Kim",
+      "created_at": "2025-07-19T20:16:00Z",
+      "updated_at": "2025-07-24T08:36:00Z",
+      "last_modified_by": "Michael Scott",
+      "converted_at": null,
+      "customer": {
+        "id": 4,
+        "name": "Initech"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 217,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 317,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4017,
+            "cost_price": 14422,
+            "sell_price": 16146,
+            "status": "active",
+            "created_at": "2025-07-19T20:16:00Z",
+            "updated_at": "2025-07-24T08:36:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "customer_id": 5,
+      "job_id": 1018,
+      "quote_number": "Q-2025-0018",
+      "quote_type": "Collection",
+      "project_name": "Project 18",
+      "site_address": "180 Example St, City 4, State",
+      "delivery_date": "2025-08-12",
+      "expiry_date": "2025-08-05",
+      "delivery_window_start": "2025-08-12T08:00:00Z",
+      "delivery_window_end": "2025-08-12T17:00:00Z",
+      "job_name": "Job 18",
+      "total_cost_price": 10186,
+      "total_sell_price": 11307,
+      "status": "Pending",
+      "account_manager": "Alice Johnson",
+      "created_by": "Ian Walker",
+      "created_at": "2025-07-15T22:18:00Z",
+      "updated_at": "2025-07-17T10:28:00Z",
+      "last_modified_by": "Laura Adams",
+      "converted_at": null,
+      "customer": {
+        "id": 5,
+        "name": "Umbrella Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 218,
+          "quarry": {
+            "id": 2,
+            "organisation_id": 3,
+            "name": "Eastside Quarry",
+            "created_at": "2024-06-13T00:00:00Z",
+            "updated_at": "2024-06-13T00:00:00Z"
+          },
+          "price": {
+            "id": 318,
+            "organisation_id": 3,
+            "quarries_id": 2,
+            "product_id": 4018,
+            "cost_price": 10186,
+            "sell_price": 11307,
+            "status": "active",
+            "created_at": "2025-07-15T22:18:00Z",
+            "updated_at": "2025-07-17T10:28:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "customer_id": 2,
+      "job_id": 1019,
+      "quote_number": "Q-2025-0019",
+      "quote_type": "Collection",
+      "project_name": "Project 19",
+      "site_address": "190 Example St, City 5, State",
+      "delivery_date": "2025-08-13",
+      "expiry_date": "2025-08-06",
+      "delivery_window_start": "2025-08-13T08:00:00Z",
+      "delivery_window_end": "2025-08-13T17:00:00Z",
+      "job_name": "Job 19",
+      "total_cost_price": 2717,
+      "total_sell_price": 3882,
+      "status": "Draft",
+      "account_manager": "Bob Smith",
+      "created_by": "Gina Martinez",
+      "created_at": "2025-07-03T05:51:00Z",
+      "updated_at": "2025-07-09T01:27:00Z",
+      "last_modified_by": "Nina Richards",
+      "converted_at": null,
+      "customer": {
+        "id": 2,
+        "name": "Globex Corporation"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 219,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 319,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4019,
+            "cost_price": 2717,
+            "sell_price": 3882,
+            "status": "active",
+            "created_at": "2025-07-03T05:51:00Z",
+            "updated_at": "2025-07-09T01:27:00Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "customer_id": 5,
+      "job_id": 1020,
+      "quote_number": "Q-2025-0020",
+      "quote_type": "Delivery",
+      "project_name": "Project 20",
+      "site_address": "200 Example St, City 1, State",
+      "delivery_date": "2025-08-15",
+      "expiry_date": "2025-08-08",
+      "delivery_window_start": "2025-08-15T08:00:00Z",
+      "delivery_window_end": "2025-08-15T17:00:00Z",
+      "job_name": "Job 20",
+      "total_cost_price": 14792,
+      "total_sell_price": 17982,
+      "status": "Declined",
+      "account_manager": "Alice Johnson",
+      "created_by": "Helen Kim",
+      "created_at": "2025-07-01T14:29:00Z",
+      "updated_at": "2025-07-02T02:02:00Z",
+      "last_modified_by": "Laura Adams",
+      "converted_at": null,
+      "customer": {
+        "id": 5,
+        "name": "Umbrella Corp"
+      },
+      "quarryProducts": [
+        {
+          "quarry_product_id": 220,
+          "quarry": {
+            "id": 5,
+            "organisation_id": 1,
+            "name": "Central Quarry",
+            "created_at": "2024-01-07T00:00:00Z",
+            "updated_at": "2024-01-22T00:00:00Z"
+          },
+          "price": {
+            "id": 320,
+            "organisation_id": 1,
+            "quarries_id": 5,
+            "product_id": 4020,
+            "cost_price": 14792,
+            "sell_price": 17982,
+            "status": "active",
+            "created_at": "2025-07-01T14:29:00Z",
+            "updated_at": "2025-07-02T02:02:00Z"
+          }
+        }
+      ]
+    }
+  ]
+}
