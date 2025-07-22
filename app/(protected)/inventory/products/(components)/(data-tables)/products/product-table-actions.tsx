@@ -12,14 +12,14 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu';
-import { FormDialog } from './form-dialog';
-import ProductForm from '@/app/(protected)/inventory/products/(components)/product-form';
+import ProductForm from '@/app/(protected)/inventory/products/(components)/forms/product-form';
+import { FormDialog } from '@/components/form-dialog';
 
-interface TableActionsProps {
+interface ProductTableActionsProps {
   productId: number;
 }
 
-export function TableActions({ productId }: TableActionsProps) {
+export function ProductTableActions({ productId }: ProductTableActionsProps) {
   const [open, setOpen] = React.useState(false);
 
   return (

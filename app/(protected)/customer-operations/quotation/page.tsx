@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/loading-spinner';
 import { notifyError } from '@/lib/toast';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
-import ProductForm from '../../inventory/products/(components)/product-form';
+import ProductForm from '../../inventory/products/(components)/forms/product-form';
 import rawJson from '@/lib/tests/quotationResponseData.json';
 import {
   QuotationDetails,

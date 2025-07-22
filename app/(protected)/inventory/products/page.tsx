@@ -4,14 +4,14 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { productColumns } from './(components)/(data-tables)/products/columns';
+import { productColumns } from './(components)/(data-tables)/products/products-columns';
 import { Activity, Factory, Tags } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ProductsListQueryOptions } from '@/lib/api/quaries';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { notifyError } from '@/lib/toast';
 import { FormDialog } from '@/components/form-dialog';
-import ProductForm from './(components)/product-form';
+import ProductForm from './(components)/forms/product-form';
 
 export default function ProductsPage() {
   const productQuery = useQuery(ProductsListQueryOptions());

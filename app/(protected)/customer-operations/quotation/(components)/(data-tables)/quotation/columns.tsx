@@ -5,7 +5,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { dateSortingFn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { TableActions } from '@/components/table-actions';
+import { TableActions } from '@/components/product-table-actions';
 import { QuotationDetails } from '@/lib/types/quotation';
 
 export const quotationColumns: ColumnDef<QuotationDetails>[] = [

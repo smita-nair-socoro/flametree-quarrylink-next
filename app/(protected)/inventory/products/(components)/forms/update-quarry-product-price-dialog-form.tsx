@@ -27,7 +27,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   UpdatePriceSchema,
   UpdatePriceInput,
-} from './quarry-price-form-schema';
+} from './schemas/quarry-price-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
-import { UpdateQuarryProductPriceDialogForm } from '../update-quarry-product-price-dialog-form';
+import { UpdateQuarryProductPriceDialogForm } from '../../forms/update-quarry-product-price-dialog-form';
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';

@@ -31,7 +31,7 @@ import {
   NewCategoryFormSchema,
   NewProductFormSchema,
   NewQuarryFormSchema,
-} from './product-form-schemas';
+} from './schemas/product-form-schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CategoryListQueryOptions,
@@ -42,7 +42,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { InputIcon } from '@/components/ui/input-icon';
 import { DollarSign } from 'lucide-react';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { quarrySourcesColumns } from './(data-tables)/products/quarry-sources-columns';
+import { quarrySourcesColumns } from '../(data-tables)/quarry-sources/quarry-sources-columns';
 import { APIClient } from '@/lib/api/APIClient';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { CategoryKeys } from '@/lib/api/query_keys';

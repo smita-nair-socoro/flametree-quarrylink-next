@@ -6,7 +6,7 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { ProductWithCategoriesAndQuarry } from '@/lib/types/product';
 import { dateSortingFn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { TableActions } from '@/components/table-actions';
+import { ProductTableActions } from './product-table-actions';
 
 export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
   {
@@ -136,7 +136,7 @@ export const productColumns: ColumnDef<ProductWithCategoriesAndQuarry>[] = [
     cell: ({ row }) => {
       const productId = row.original.product.id;
 
-      return <TableActions productId={productId} />;
+      return <ProductTableActions productId={productId} />;
     },
   },
 ];
