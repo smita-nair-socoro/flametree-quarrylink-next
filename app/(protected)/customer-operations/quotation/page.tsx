@@ -11,13 +11,13 @@ import { LoadingSpinner } from '@/components/loading-spinner';
 import { notifyError } from '@/lib/toast';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
-import ProductForm from '../../inventory/products/(components)/forms/product-form';
 import rawJson from '@/lib/tests/quotationResponseData.json';
 import {
   QuotationDetails,
   QUOTE_STATUS,
   QUOTE_TYPE,
 } from '@/lib/types/quotation';
+import QuotationForm from './(components)/forms/quotation-form';
 
 export default function ProductsPage() {
   //TODO: Fetch from server
@@ -62,11 +62,8 @@ export default function ProductsPage() {
           <p className="text-sm text-muted-foreground">Manage your quotation</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-          <FormDialog
-            dialogTitle="Add New Product"
-            buttonTitle="Add New Product"
-          >
-            <ProductForm />
+          <FormDialog dialogTitle="Add Quote" buttonTitle="Add Quote">
+            <QuotationForm />
           </FormDialog>
         </div>
       </div>

@@ -36,6 +36,7 @@ import { APIClient } from '@/lib/api/APIClient';
 import { ProductKeys } from '@/lib/api/query_keys';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { dollarsToCents } from '@/lib/utils/currency';
+import { GetTomorrowDate } from '@/lib/utils/date';
 
 interface UpdateQuarryProductPriceDialogFormProps {
   quarryPriceId: number;
@@ -72,9 +73,7 @@ export function UpdateQuarryProductPriceDialogForm({
   });
 
   const tomorrow = React.useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(0, 0, 0, 0);
+    const d = GetTomorrowDate();
     return d;
   }, []);
 
