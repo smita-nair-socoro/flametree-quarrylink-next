@@ -17,14 +17,14 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
-// import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
-import { InputIcon } from '@/components/ui/input-icon';
-import { SearchIcon } from 'lucide-react';
+import AddressAutoComplete, {
+  AddressType,
+} from '@/components/ui/address-autocomplete';
 
 interface FormProps {
   id?: number;
@@ -34,9 +34,21 @@ interface FormProps {
 }
 
 export default function QuotationForm({ id, onCancel, className }: FormProps) {
-  // const queryClient = useQueryClient();
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
+
+  const [address, setAddress] = React.useState<AddressType>({
+    address1: '',
+    address2: '',
+    formattedAddress: '',
+    city: '',
+    region: '',
+    postalCode: '',
+    country: '',
+    lat: 0,
+    lng: 0,
+  });
+  const [searchInput, setSearchInput] = React.useState('');
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
@@ -52,6 +64,19 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
       site_address: '',
     },
   });
+
+  React.useEffect(() => {
+    if (address.formattedAddress) {
+      quotationForm.setValue('site_address', address.formattedAddress);
+    }
+  }, [address.formattedAddress, quotationForm]);
+
+  const handleAddressChange = React.useCallback((newAddress: AddressType) => {
+    setAddress(newAddress);
+    if (newAddress.formattedAddress) {
+      setSearchInput('');
+    }
+  }, []);
 
   const quarryOptions: FormSelectOption[] = [
     {
@@ -69,11 +94,11 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
   ];
 
   function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    // Add some debugging
     console.log('onSubmit function called!');
     console.log('Form is valid:', quotationForm.formState.isValid);
     console.log('Form errors:', quotationForm.formState.errors);
     console.log('Quotation Form Values:', values);
+    console.log('Selected Address Details:', address);
   }
 
   const tomorrow = React.useMemo(() => {
@@ -259,14 +284,28 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               <FormItem className="col-span-2">
                 <FormLabel>Address</FormLabel>
                 <FormControl>
-                  <InputIcon
-                    className="w-full"
-                    placeholder="Search For Address"
-                    startIcon={<SearchIcon size={18} />}
+                  <AddressAutoComplete
+                    address={address}
+                    setAddress={handleAddressChange}
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
+                    dialogTitle="Enter Address"
+                    placeholder="Enter site address..."
                     {...field}
                   />
                 </FormControl>
                 <FormMessage />
+
+                {/* TODO: Debug info - remove this in production */}
+                {process.env.NODE_ENV === 'development' &&
+                  address.formattedAddress && (
+                    <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                      <strong>Debug - Selected Address:</strong>
+                      <pre className="mt-1 overflow-auto">
+                        {JSON.stringify(address, null, 2)}
+                      </pre>
+                    </div>
+                  )}
               </FormItem>
             )}
           />
