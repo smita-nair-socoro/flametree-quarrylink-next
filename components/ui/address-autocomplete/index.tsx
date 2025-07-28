@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
-import { Delete, Loader2, Pencil } from 'lucide-react';
+import { Delete, Loader2, Pencil, Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
@@ -46,6 +46,44 @@ interface AutocompleteSuggestion {
   };
 }
 
+// Helper function to format address from components
+export const formatAddressFromComponents = (address: AddressType): string => {
+  const parts = [];
+
+  // Add address1 (street address)
+  if (address.address1?.trim()) {
+    parts.push(address.address1.trim());
+  }
+
+  // Add address2 if present
+  if (address.address2?.trim()) {
+    parts.push(address.address2.trim());
+  }
+
+  // Add city, region, postal code
+  const locationParts = [];
+  if (address.city?.trim()) {
+    locationParts.push(address.city.trim());
+  }
+  if (address.region?.trim()) {
+    locationParts.push(address.region.trim());
+  }
+  if (address.postalCode?.trim()) {
+    locationParts.push(address.postalCode.trim());
+  }
+
+  if (locationParts.length > 0) {
+    parts.push(locationParts.join(' '));
+  }
+
+  // Add country
+  if (address.country?.trim()) {
+    parts.push(address.country.trim());
+  }
+
+  return parts.join(', ');
+};
+
 export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const {
     address,
@@ -61,6 +99,33 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
+
+  useEffect(() => {
+    if (
+      address.address1 ||
+      address.city ||
+      address.region ||
+      address.postalCode ||
+      address.country
+    ) {
+      const formatted = formatAddressFromComponents(address);
+      if (formatted !== address.formattedAddress) {
+        setAddress({
+          ...address,
+          formattedAddress: formatted,
+        });
+      }
+    }
+  }, [
+    address.address1,
+    address.address2,
+    address.city,
+    address.region,
+    address.postalCode,
+    address.country,
+    address,
+    setAddress,
+  ]);
 
   useEffect(() => {
     const fetchPlaceDetails = async () => {
@@ -140,6 +205,36 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     fetchPlaceDetails();
   }, [selectedPlaceId, setAddress]);
 
+  const handleManualEntry = () => {
+    // Pre-populate with search input if available
+    if (searchInput.trim()) {
+      setAddress({
+        ...address,
+        address1: searchInput.trim(),
+        formattedAddress: searchInput.trim(),
+      });
+    }
+    setSearchInput('');
+    setIsOpen(true);
+  };
+
+  const handleReset = () => {
+    setSelectedPlaceId('');
+    setAdrAddress('');
+    setSearchInput('');
+    setAddress({
+      address1: '',
+      address2: '',
+      formattedAddress: '',
+      city: '',
+      region: '',
+      postalCode: '',
+      country: '',
+      lat: 0,
+      lng: 0,
+    });
+  };
+
   return (
     <>
       {selectedPlaceId !== '' || address.formattedAddress ? (
@@ -165,21 +260,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           </AddressDialog>
           <Button
             type="reset"
-            onClick={() => {
-              setSelectedPlaceId('');
-              setAdrAddress('');
-              setAddress({
-                address1: '',
-                address2: '',
-                formattedAddress: '',
-                city: '',
-                region: '',
-                postalCode: '',
-                country: '',
-                lat: 0,
-                lng: 0,
-              });
-            }}
+            onClick={handleReset}
             size="icon"
             variant="outline"
             className="shrink-0"
@@ -196,6 +277,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           setIsOpenDialog={setIsOpen}
           showInlineError={showInlineError}
           placeholder={placeholder}
+          onManualEntry={handleManualEntry}
         />
       )}
     </>
@@ -210,6 +292,7 @@ interface CommonProps {
   searchInput: string;
   setSearchInput: (searchInput: string) => void;
   placeholder?: string;
+  onManualEntry: () => void;
 }
 
 function AddressAutoCompleteInput(props: CommonProps) {
@@ -221,6 +304,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     searchInput,
     setSearchInput,
     placeholder,
+    onManualEntry,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -252,6 +336,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
         const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
           console.error('Missing API Key');
+          setSuggestions([]);
           return;
         }
 
@@ -285,6 +370,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           );
           const errorText = await response.text();
           console.error('Error response:', errorText);
+          setSuggestions([]);
           return;
         }
 
@@ -300,6 +386,10 @@ function AddressAutoCompleteInput(props: CommonProps) {
 
     fetchSuggestions();
   }, [debouncedSearchInput]);
+
+  const hasSearched = debouncedSearchInput.trim().length > 0;
+  const hasNoResults =
+    hasSearched && !autocompleteLoading && suggestions.length === 0;
 
   return (
     <Command
@@ -350,14 +440,31 @@ function AddressAutoCompleteInput(props: CommonProps) {
                         {prediction.placePrediction.text.text}
                       </CommandPrimitive.Item>
                     ))}
+
+                    {/* Manual entry option when no results found */}
+                    {hasNoResults && (
+                      <CommandPrimitive.Item
+                        value="manual-entry"
+                        onSelect={onManualEntry}
+                        className="flex select-text flex-col cursor-pointer gap-0.5 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-start border-t"
+                        onMouseDown={(e) => e.preventDefault()}
+                      >
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Plus className="size-4" />
+                          <span>Enter address manually</span>
+                        </div>
+                      </CommandPrimitive.Item>
+                    )}
                   </>
                 )}
                 <CommandEmpty>
-                  {!autocompleteLoading && suggestions.length === 0 && (
+                  {!autocompleteLoading && (
                     <div className="py-4 flex items-center justify-center">
                       {searchInput === ''
                         ? 'Please enter an address'
-                        : 'No address found'}
+                        : hasNoResults
+                          ? null
+                          : 'No address found'}
                     </div>
                   )}
                 </CommandEmpty>

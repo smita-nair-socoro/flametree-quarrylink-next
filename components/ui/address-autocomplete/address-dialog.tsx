@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import type React from 'react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { type ZodError, z } from 'zod';
-import type { AddressType } from '.';
+import { formatAddressFromComponents, type AddressType } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
 
@@ -131,6 +131,21 @@ export default function AddressDialog(
       'postal-code': string;
     },
   ) {
+    // If no adrAddress (manual entry), use the formatAddressFromComponents function
+    if (!addressString || addressString.trim() === '') {
+      return formatAddressFromComponents({
+        address1: addressComponents['street-address'],
+        address2: addressComponents.address2,
+        city: addressComponents.locality,
+        region: addressComponents.region,
+        postalCode: addressComponents['postal-code'],
+        country: address.country || 'Australia',
+        formattedAddress: '',
+        lat: address.lat || 0,
+        lng: address.lng || 0,
+      });
+    }
+
     let updatedAddressString = addressString;
 
     // Replace each class content with its corresponding value
@@ -261,7 +276,7 @@ export default function AddressDialog(
                 <Input
                   value={address1}
                   onChange={(e) => setAddress1(e.currentTarget.value)}
-                  disabled={address?.address1 === ''}
+                  disabled={isLoading}
                   id="address1"
                   name="address1"
                   placeholder="Address line 1"
@@ -285,7 +300,7 @@ export default function AddressDialog(
                 <Input
                   value={address2}
                   onChange={(e) => setAddress2(e.currentTarget.value)}
-                  disabled={address?.address1 === ''}
+                  disabled={isLoading}
                   id="address2"
                   name="address2"
                   placeholder="Address line 2"
@@ -298,7 +313,7 @@ export default function AddressDialog(
                   <Input
                     value={city}
                     onChange={(e) => setCity(e.currentTarget.value)}
-                    disabled={address?.city === ''}
+                    disabled={isLoading}
                     id="city"
                     name="city"
                     placeholder="City"
@@ -316,7 +331,7 @@ export default function AddressDialog(
                   <Input
                     value={region}
                     onChange={(e) => setRegion(e.currentTarget.value)}
-                    disabled={address?.region === ''}
+                    disabled={isLoading}
                     id="region"
                     name="region"
                     placeholder="Region"
@@ -337,7 +352,7 @@ export default function AddressDialog(
                   <Input
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.currentTarget.value)}
-                    disabled={address?.postalCode === ''}
+                    disabled={isLoading}
                     id="postalCode"
                     name="postalCode"
                     placeholder="Postal Code"
@@ -353,7 +368,10 @@ export default function AddressDialog(
                 <div className="flex-1 space-y-0.5">
                   <Label htmlFor="country">Country</Label>
                   <Input
-                    value={address?.country}
+                    value={address?.country || 'Australia'}
+                    onChange={(e) =>
+                      setAddress({ ...address, country: e.currentTarget.value })
+                    }
                     id="country"
                     disabled
                     name="country"
