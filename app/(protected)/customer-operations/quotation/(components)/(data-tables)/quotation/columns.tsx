@@ -114,7 +114,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.quote_status,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
