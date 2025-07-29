@@ -1,16 +1,26 @@
 export enum QUOTE_TYPE {
-  COLLECTION = 'Collection',
-  DELIVERY = 'Delivery',
+  COLLECTION = 'COLLECTION',
+  DELIVERY = 'DELIVERY',
 }
 
 export enum QUOTE_STATUS {
-  DRAFT = 'Draft',
-  PENDING = 'Pending',
-  APPROVED = 'Approved',
-  CONVERTED_TO_JOB = 'Converted to Job',
-  EXPIRED = 'Expired',
-  DECLINED = 'Declined',
-  ARCHIVED = 'Archived',
+  DRAFT = 'DRAFT',
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  CONVERTED_TO_JOB = 'CONVERTED TO JOB',
+  EXPIRED = 'EXPIRED',
+  DECLINED = 'DECLINED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum CUSTOMER_TYPE {
+  BUSINESS = 'BUSINESS',
+  INDIVIDUAL = 'INDIVIDUAL',
+}
+
+export enum CUSTOMER_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
 }
 
 export interface Quotation {
@@ -28,7 +38,7 @@ export interface Quotation {
   job_name: string;
   total_cost_price: number;
   total_sell_price: number;
-  status: QUOTE_STATUS;
+  quote_status: QUOTE_STATUS;
   account_manager: string;
   created_by: string;
   created_at: string;
@@ -39,7 +49,7 @@ export interface Quotation {
 
 export interface QuotationDetails extends Quotation {
   customer: Customer;
-  quarryProducts: QuarriesWithPrice[];
+  quarry_products: QuarriesWithPrice[];
 }
 
 interface QuotationDetailsResponse {
@@ -51,5 +61,20 @@ interface QuotationDetailsResponse {
 // dummy customer schema
 export interface Customer {
   id: number;
-  name: string;
+  customer_type: CUSTOMER_TYPE;
+  business_name: string;
+  contact_name: string;
+  phone: string;
+  email: string;
+  billing_address: string;
+  credit_limit: number;
+  payment_terms: string;
+  account_manager: string;
+  customer_status: CUSTOMER_STATUS;
+  jobs_count: number;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  last_modified_by: string;
 }

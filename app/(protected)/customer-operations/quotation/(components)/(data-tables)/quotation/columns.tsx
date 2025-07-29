@@ -23,7 +23,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
 
   {
     id: 'customer_name',
-    accessorFn: (row) => row.customer.name,
+    accessorFn: (row) => row.customer.contact_name,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Customer Name" />
@@ -46,16 +46,16 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     meta: 'Quote Type',
   },
 
-  {
-    id: 'products',
-    accessorFn: (row) => row.quarryProducts.map((qp) => qp.quarry.name),
-    header: 'Products',
-    cell: ({ getValue }) => {
-      const names = getValue<string[]>();
-      return <TableBadges names={names} visibleCount={1} />;
-    },
-    meta: 'Products',
-  },
+  // {
+  //   id: 'products',
+  //   accessorFn: (row) => row.quarry_products.map((qp) => qp.quarry.name),
+  //   header: 'Products',
+  //   cell: ({ getValue }) => {
+  //     const names = getValue<string[]>();
+  //     return <TableBadges names={names} visibleCount={1} />;
+  //   },
+  //   meta: 'Products',
+  // },
 
   {
     id: 'created_at',
@@ -118,7 +118,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
 
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.quote_status,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },

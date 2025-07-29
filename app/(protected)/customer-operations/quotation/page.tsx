@@ -18,16 +18,19 @@ import {
   QUOTE_TYPE,
 } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
-export default function ProductsPage() {
+export default function QuotationsPage() {
   //TODO: Fetch from server
   const quotationQuery = useQuery(ProductsListQueryOptions());
 
-  const { items: rawItems } = rawJson as unknown as {
+  const convertedJson = convertKeysToSnakeCase(rawJson);
+
+  const { items: rawItems } = convertedJson as unknown as {
     items: Array<
-      Omit<QuotationDetails, 'quote_type' | 'status'> & {
+      Omit<QuotationDetails, 'quote_type' | 'quote_status'> & {
         quote_type: string;
-        status: string;
+        quote_status: string;
       }
     >;
   };
@@ -35,7 +38,7 @@ export default function ProductsPage() {
   const items: QuotationDetails[] = rawItems.map((item) => ({
     ...item,
     quote_type: item.quote_type as QUOTE_TYPE,
-    status: item.status as QUOTE_STATUS,
+    quote_status: item.quote_status as QUOTE_STATUS,
   }));
 
   if (quotationQuery.isLoading) {
@@ -49,7 +52,7 @@ export default function ProductsPage() {
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
     { column: 'quote_type', title: 'Quote Type', icon: Tags },
-    { column: 'products', title: 'Products', icon: Factory },
+    // { column: 'products', title: 'Products', icon: Factory },
     { column: 'customer_name', title: 'Customer Name', icon: Activity },
     { column: 'account_manager', title: 'Account Manager', icon: Factory },
   ];
