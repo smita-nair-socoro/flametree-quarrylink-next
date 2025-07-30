@@ -23,4 +23,8 @@ export const NewQuotationFormSchema = z.object({
     }),
   expiry_date: z.date({ message: 'Required' }),
   site_address: z.string().nonempty({ message: 'Required' }),
+  created_at: z.date(),
+  updated_at: z.date(),
+  created_by: z.string(),
+  last_modified_by: z.string(),
 });

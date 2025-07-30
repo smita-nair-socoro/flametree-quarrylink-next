@@ -22,9 +22,9 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
-import AddressAutoComplete, {
-  AddressType,
-} from '@/components/ui/address-autocomplete';
+import AddressAutoComplete from '@/components/ui/address-autocomplete';
+import { AddressType } from '@/lib/types/address';
+import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
   id?: number;
@@ -35,6 +35,7 @@ interface FormProps {
 
 export default function QuotationForm({ id, onCancel, className }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  id = 1;
   const [isEditing] = React.useState(Boolean(id));
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -62,6 +63,10 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
       delivery_window_end: '17:00:00',
       expiry_date: new Date(),
       site_address: '',
+      created_at: new Date(),
+      updated_at: new Date(),
+      created_by: 'Jay Woo Choi',
+      last_modified_by: 'Armin Menhaji',
     },
   });
 
@@ -111,39 +116,50 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
       <Form {...quotationForm}>
         <form
           id="add-new-quote-form"
-          className={cn('grid grid-cols-1 gap-6 p-1 ', className)}
+          className={cn(
+            'gap-6 p-1',
+            isEditing && isDesktop
+              ? 'grid grid-cols-2 gap-x-8'
+              : 'grid grid-cols-1',
+            className,
+          )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
-          <FormField
-            control={quotationForm.control}
-            name="quote_type"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Quote Type</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="grid grid-flow-col auto-cols-max gap-4"
-                  >
-                    <FormItem className="flex items-center gap-3">
-                      <FormControl>
-                        <RadioGroupItem value="Collection" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Collection</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center gap-3">
-                      <FormControl>
-                        <RadioGroupItem value="Delivery" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Delivery</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Quote Type - Only show when creating new quote */}
+          {!isEditing && (
+            <FormField
+              control={quotationForm.control}
+              name="quote_type"
+              render={({ field }) => (
+                <FormItem className="space-y-3 col-span-full">
+                  <FormLabel>Quote Type</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="grid grid-flow-col auto-cols-max gap-4"
+                    >
+                      <FormItem className="flex items-center gap-3">
+                        <FormControl>
+                          <RadioGroupItem value="Collection" />
+                        </FormControl>
+                        <FormLabel className="font-normal">
+                          Collection
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center gap-3">
+                        <FormControl>
+                          <RadioGroupItem value="Delivery" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Delivery</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormSelect
             control={quotationForm.control}
@@ -151,14 +167,18 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             label="Customer*"
             options={quarryOptions}
             placeholder="Customer"
-            formItemClassName="col-span-2"
+            formItemClassName={
+              isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
+            }
           />
 
           <FormField
             control={quotationForm.control}
             name="account_manager"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem
+                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+              >
                 <FormLabel>Account Manager</FormLabel>
                 <FormControl>
                   <Input
@@ -177,7 +197,9 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             control={quotationForm.control}
             name="project_name"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem
+                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+              >
                 <FormLabel>Project Name</FormLabel>
                 <FormControl>
                   <Input
@@ -195,7 +217,9 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             control={quotationForm.control}
             name="delivery_date"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem
+                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+              >
                 <FormLabel>Delivery Date</FormLabel>
                 <FormControl>
                   <DatePicker
@@ -210,7 +234,12 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             )}
           />
 
-          <div className="grid grid-cols-2 gap-3 col-span-2">
+          <div
+            className={cn(
+              'grid grid-cols-2 gap-3',
+              isEditing && isDesktop ? 'col-span-1' : 'col-span-2',
+            )}
+          >
             <FormField
               control={quotationForm.control}
               name="delivery_window_start"
@@ -258,7 +287,9 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             control={quotationForm.control}
             name="expiry_date"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem
+                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+              >
                 <FormLabel>Expiry Date</FormLabel>
                 <FormControl>
                   <DatePicker
@@ -281,7 +312,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             control={quotationForm.control}
             name="site_address"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
                 <FormLabel>Address</FormLabel>
                 <FormControl>
                   <AddressAutoComplete
@@ -295,34 +326,133 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   />
                 </FormControl>
                 <FormMessage />
-
-                {/* TODO: Debug info - remove this in production */}
-                {process.env.NODE_ENV === 'development' &&
-                  address.formattedAddress && (
-                    <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
-                      <strong>Debug - Selected Address:</strong>
-                      <pre className="mt-1 overflow-auto">
-                        {JSON.stringify(address, null, 2)}
-                      </pre>
-                    </div>
-                  )}
               </FormItem>
             )}
           />
 
-          <div className="col-span-2 flex justify-end space-x-2">
+          {isEditing && (
+            <div
+              className={cn(
+                'flex justify-between',
+                isEditing ? 'col-span-2' : 'col-span-2',
+              )}
+            >
+              <h2 className="text-2xl bold">Line Items</h2>
+
+              {/* TODO: This will open the add product dialog?? */}
+              <Button variant="default" type="button" onClick={onCancel}>
+                + Add New Product
+              </Button>
+            </div>
+          )}
+
+          {/* TODO: Add the table for line itmes here come back to this! */}
+
+          {isEditing && (
+            <div
+              className={cn(
+                'grid grid-cols-2 gap-6',
+                isEditing ? 'col-span-2' : 'col-span-2',
+              )}
+            >
+              <Separator className="col-span-2" />
+
+              <h2 className="text-2xl bold col-span-2">Audit Information</h2>
+
+              <FormField
+                control={quotationForm.control}
+                name="created_by"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Created By</FormLabel>
+                    <FormControl>
+                      <Input className="w-full" readOnly={true} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={quotationForm.control}
+                name="created_at"
+                render={({ field }) => (
+                  <FormItem className={isDesktop ? 'col-span-1' : 'col-span-2'}>
+                    <FormLabel>Created At</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        readOnly={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={quotationForm.control}
+                name="last_modified_by"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Last Modified By</FormLabel>
+                    <FormControl>
+                      <Input className="w-full" readOnly={true} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={quotationForm.control}
+                name="updated_at"
+                render={({ field }) => (
+                  <FormItem className={isDesktop ? 'col-span-1' : 'col-span-2'}>
+                    <FormLabel>Last Modified At</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        readOnly={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          <div
+            className={cn(
+              'flex justify-end space-x-2',
+              isEditing ? 'col-span-2' : 'col-span-2',
+            )}
+          >
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
-                Cancel
+                {isEditing ? 'Close' : 'Cancel'}
               </Button>
             )}
-            <Button
-              form="add-new-quote-form"
-              className={!isDesktop ? 'w-full' : 'cursor-pointer'}
-              type="submit"
-            >
-              {isEditing ? 'Save Changes' : 'Add Quote'}
-            </Button>
+            {!isEditing && (
+              <Button
+                form="add-new-quote-form"
+                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
+                type="submit"
+              >
+                Add Quote
+              </Button>
+            )}
           </div>
         </form>
       </Form>

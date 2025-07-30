@@ -1,5 +1,5 @@
+import type { AddressType } from '@/lib/types/address';
 import { z } from 'zod';
-import type { AddressType } from '.';
 
 /**
  * Checks if the autocomplete address is valid.

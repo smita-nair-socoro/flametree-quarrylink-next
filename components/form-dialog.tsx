@@ -27,7 +27,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import clsx from 'clsx';
 
 interface AddProductDrawerDialogProps {
-  /** If set, we’re editing; otherwise we’re creating new */
+  /** If set, we're editing; otherwise we're creating new */
   id?: number;
 
   /** Override the header title */
@@ -42,18 +42,21 @@ interface AddProductDrawerDialogProps {
    */
   trigger?: React.ReactElement<{ onClick?: () => void }>;
 
-  /** Controlled open state (otherwise it’s internal) */
+  /** Controlled open state (otherwise it's internal) */
   open?: boolean;
   onOpenChangeAction?: (open: boolean) => void;
 
   /** Hides the trigger entirely */
   hideTrigger?: boolean;
 
+  /** Optional header buttons to display inline with the title */
+  headerButtons?: React.ReactNode;
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
    *
-   * When it’s a valid ReactElement, we’ll auto‐inject:
+   * When it's a valid ReactElement, we'll auto‐inject:
    *  • `productId={id}`
    *  • `onCancel={close}`
    *  • `onSuccess={close}`
@@ -77,6 +80,7 @@ export function FormDialog({
   open: openProp,
   onOpenChangeAction: onOpenChangeProp,
   hideTrigger,
+  headerButtons,
   children,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
@@ -115,11 +119,16 @@ export function FormDialog({
       })
     : children;
 
-  const inner = (
+  const dialogInner = (
     <>
-      <DialogHeader>
-        <DialogTitle>{headerTitle}</DialogTitle>
-        <DialogDescription />
+      <DialogHeader className="flex flex-row items-center justify-between pr-5">
+        <div>
+          <DialogTitle>{headerTitle}</DialogTitle>
+          <DialogDescription />
+        </div>
+        {headerButtons && (
+          <div className="flex items-center gap-2">{headerButtons}</div>
+        )}
       </DialogHeader>
       <ScrollArea className={clsx(id ? 'h-[calc(70vh-5rem)]' : 'h-auto')}>
         {contentNode}
@@ -131,7 +140,7 @@ export function FormDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
-        <DialogContent className="min-w-[700px]">{inner}</DialogContent>
+        <DialogContent className="min-w-[850px]">{dialogInner}</DialogContent>
       </Dialog>
     );
   }
@@ -140,9 +149,14 @@ export function FormDialog({
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>{headerTitle}</DrawerTitle>
-          <DrawerDescription />
+        <DrawerHeader className="flex flex-row items-center justify-between">
+          <div>
+            <DrawerTitle>{headerTitle}</DrawerTitle>
+            <DrawerDescription />
+          </div>
+          {headerButtons && (
+            <div className="flex items-center">{headerButtons}</div>
+          )}
         </DrawerHeader>
         <ScrollArea className="h-[calc(80vh-5rem)]">{contentNode}</ScrollArea>
         <DrawerFooter>

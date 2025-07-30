@@ -24,6 +24,8 @@ export interface DatePickerProps {
   placeholder?: string;
   /** whether selection is required (forces `required: true` on the picker) */
   required?: boolean;
+  /** readonly for input button basically it's disabled if true default to false */
+  readOnly?: boolean;
   /** extra styling for the trigger button */
   className?: string;
 }
@@ -34,6 +36,7 @@ export function DatePicker({
   disabled,
   placeholder = 'Pick a date',
   required = false,
+  readOnly = false,
   className,
 }: DatePickerProps) {
   return (
@@ -41,6 +44,7 @@ export function DatePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          disabled={readOnly}
           className={cn(
             'w-full  sm:w-auto pl-3 text-left font-normal',
             !value && 'text-muted-foreground',

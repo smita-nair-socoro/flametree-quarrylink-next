@@ -19,6 +19,7 @@ import {
 } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { QuotationActionButtons } from './(components)/forms/quotation-action-buttons';
 
 export default function QuotationsPage() {
   //TODO: Fetch from server
@@ -65,7 +66,11 @@ export default function QuotationsPage() {
           <p className="text-sm text-muted-foreground">Manage your quotation</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-          <FormDialog dialogTitle="Add Quote" buttonTitle="Add Quote">
+          <FormDialog
+            dialogTitle="Add Quote"
+            buttonTitle="Add Quote"
+            headerButtons={<QuotationActionButtons quotationId={0} />}
+          >
             <QuotationForm />
           </FormDialog>
         </div>

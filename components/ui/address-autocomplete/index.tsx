@@ -13,18 +13,7 @@ import { Delete, Loader2, Pencil, Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
-
-export interface AddressType {
-  address1: string;
-  address2: string;
-  formattedAddress: string;
-  city: string;
-  region: string;
-  postalCode: string;
-  country: string;
-  lat: number;
-  lng: number;
-}
+import { AddressType } from '@/lib/types/address';
 
 interface AddressAutoCompleteProps {
   address: AddressType;
@@ -190,8 +179,6 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           lat,
           lng,
         };
-
-        console.log('Formatted address data:', formattedData);
 
         setAddress(formattedData);
         setAdrAddress(data.adrFormatAddress || '');

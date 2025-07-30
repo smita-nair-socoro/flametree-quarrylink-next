@@ -1,3 +1,6 @@
+import { AddressType } from './address';
+import { QuarriesWithPrice } from './quarry';
+
 export enum QUOTE_TYPE {
   COLLECTION = 'COLLECTION',
   DELIVERY = 'DELIVERY',
@@ -30,7 +33,7 @@ export interface Quotation {
   quote_number: string;
   quote_type: QUOTE_TYPE;
   project_name: string;
-  site_address: string;
+  site_address: AddressType;
   delivery_date: string;
   expiry_date: string;
   delivery_window_start: string;
@@ -54,27 +57,4 @@ export interface QuotationDetails extends Quotation {
 
 interface QuotationDetailsResponse {
   items: QuotationDetails[];
-}
-
-//TODO: This is temporary we need proper schema for customer, job and products (line items)...
-//
-// dummy customer schema
-export interface Customer {
-  id: number;
-  customer_type: CUSTOMER_TYPE;
-  business_name: string;
-  contact_name: string;
-  phone: string;
-  email: string;
-  billing_address: string;
-  credit_limit: number;
-  payment_terms: string;
-  account_manager: string;
-  customer_status: CUSTOMER_STATUS;
-  jobs_count: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
 }
