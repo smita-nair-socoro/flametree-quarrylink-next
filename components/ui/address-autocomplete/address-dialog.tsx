@@ -15,9 +15,10 @@ import { Label } from '@/components/ui/label';
 import type React from 'react';
 import { type FormEvent, useEffect, useState } from 'react';
 import { type ZodError, z } from 'zod';
-import { formatAddressFromComponents, type AddressType } from '.';
+import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
+import { AddressType } from '@/lib/types/address';
 
 interface AddressDialogProps {
   open: boolean;
