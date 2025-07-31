@@ -132,9 +132,8 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   {
     id: 'actions',
     cell: ({ row }) => {
-      const id = row.original.id;
-
-      return <QuotationTableActions id={id} />;
+      const quotation = row.original;
+      return <QuotationTableActions quotation={quotation} />;
     },
   },
 ];
