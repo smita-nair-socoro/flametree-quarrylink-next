@@ -16,16 +16,6 @@ export enum QUOTE_STATUS {
   ARCHIVED = 'ARCHIVED',
 }
 
-export enum CUSTOMER_TYPE {
-  BUSINESS = 'BUSINESS',
-  INDIVIDUAL = 'INDIVIDUAL',
-}
-
-export enum CUSTOMER_STATUS {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
-
 export interface Quotation {
   id: number;
   customer_id: number;

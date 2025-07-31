@@ -1,9 +1,20 @@
 'use client';
-
 import * as React from 'react';
-import { MoreHorizontal, Eye, Send, Printer, Copy, Trash2 } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Eye,
+  Send,
+  Printer,
+  Copy,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Briefcase,
+  Calendar,
+  Download,
+  Share2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -11,52 +22,35 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { FormDialog } from '@/components/form-dialog';
-import ProductForm from '@/app/(protected)/inventory/products/(components)/forms/product-form';
+import { useQuotationActions } from '@/hooks/use-quotations-actions';
+import { QuotationDetails } from '@/lib/types/quotation';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface QuotationTableActionsProps {
-  id: number;
+  quotation: QuotationDetails;
 }
 
-export function QuotationTableActions({ id }: QuotationTableActionsProps) {
-  const [open, setOpen] = React.useState(false);
+export function QuotationTableActions({
+  quotation,
+}: QuotationTableActionsProps) {
+  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
+    quotation.id,
+    quotation,
+  );
 
-  const viewDetails = () => {
-    // Open view/edit dialog
-    setOpen(true);
-  };
+  const setSelectedQuotation = useQuotationStore(
+    (state) => state.setSelectedQuotation,
+  );
 
-  const sendToCustomer = () => {
-    // TODO: implement send to customer logic
-    console.log('Send to customer', id);
-  };
-
-  const printQuote = () => {
-    // TODO: implement print logic
-    console.log('Print quote', id);
-  };
-
-  const duplicateQuote = () => {
-    // TODO: implement duplicate logic
-    console.log('Duplicate quote', id);
-  };
-
-  const deleteQuote = () => {
-    // TODO: implement delete logic
-    console.log('Delete quote', id);
+  const handleView = () => {
+    setSelectedQuotation(quotation);
+    actions.view();
   };
 
   return (
     <div>
-      <FormDialog
-        id={id}
-        dialogTitle="View / Edit product"
-        open={open}
-        onOpenChangeAction={setOpen}
-        hideTrigger
-      >
-        <ProductForm />
-      </FormDialog>
+      {confirmDialogs}
+      {viewDialog}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -64,33 +58,79 @@ export function QuotationTableActions({ id }: QuotationTableActionsProps) {
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={viewDetails}>
+          <DropdownMenuItem onClick={handleView}>
             <Eye className="mr-2 h-4 w-4" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={sendToCustomer}>
-            <Send className="mr-2 h-4 w-4" />
-            Send to Customer
-          </DropdownMenuItem>
+
+          {/* Status-specific actions */}
+          {quotation.quote_status === 'DRAFT' && (
+            <DropdownMenuItem onClick={actions.sendToCustomer}>
+              <Send className="mr-2 h-4 w-4" />
+              Send to Customer
+            </DropdownMenuItem>
+          )}
+
+          {quotation.quote_status === 'PENDING' && (
+            <>
+              <DropdownMenuItem onClick={actions.approve}>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Approve Quote
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={actions.decline}>
+                <XCircle className="mr-2 h-4 w-4" />
+                Decline Quote
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {quotation.quote_status === 'APPROVED' && (
+            <DropdownMenuItem onClick={actions.convertToJob}>
+              <Briefcase className="mr-2 h-4 w-4" />
+              Convert to Job
+            </DropdownMenuItem>
+          )}
+
+          {quotation.quote_status === 'EXPIRED' && (
+            <DropdownMenuItem onClick={actions.extendExpiry}>
+              <Calendar className="mr-2 h-4 w-4" />
+              Extend Expiry
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem onClick={printQuote}>
+          {/* Secondary actions */}
+          <DropdownMenuItem onClick={actions.download}>
+            <Download className="mr-2 h-4 w-4" />
+            Download PDF
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={actions.print}>
             <Printer className="mr-2 h-4 w-4" />
             Print Quote
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={duplicateQuote}>
+
+          <DropdownMenuItem onClick={actions.share}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Share Link
+          </DropdownMenuItem>
+
+          <DropdownMenuItem onClick={actions.duplicate}>
             <Copy className="mr-2 h-4 w-4" />
             Duplicate Quote
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem onClick={deleteQuote} className="text-red-600">
+          {/* Destructive actions */}
+          <DropdownMenuItem
+            onClick={actions.delete}
+            className="text-destructive focus:text-destructive"
+          >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete
+            Delete Quote
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

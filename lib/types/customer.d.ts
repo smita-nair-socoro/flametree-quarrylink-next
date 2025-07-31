@@ -1,3 +1,13 @@
+export enum CUSTOMER_TYPE {
+  BUSINESS = 'BUSINESS',
+  INDIVIDUAL = 'INDIVIDUAL',
+}
+
+export enum CUSTOMER_STATUS {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
+
 export interface Customer {
   id: number;
   customer_type: CUSTOMER_TYPE;

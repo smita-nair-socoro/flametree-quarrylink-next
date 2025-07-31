@@ -35,7 +35,6 @@ interface FormProps {
 
 export default function QuotationForm({ id, onCancel, className }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  id = 1;
   const [isEditing] = React.useState(Boolean(id));
 
   const [address, setAddress] = React.useState<AddressType>({

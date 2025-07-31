@@ -84,36 +84,58 @@ export function FormDialog({
   children,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
+  const [effectiveId, setEffectiveId] = React.useState(id);
+
   const open = openProp ?? uncontrolledOpen;
   const setOpen = onOpenChangeProp ?? setUncontrolledOpen;
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  const defaultTitle = id ? 'View / Edit' : 'Add New Data';
+  const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = dialogTitle ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
+
+  const handleOpen = (isDefaultButton: boolean = false) => {
+    if (isDefaultButton) {
+      setEffectiveId(0);
+    } else {
+      setEffectiveId(id);
+    }
+    setOpen(true);
+  };
+
+  // Update effectiveId when id prop changes (for controlled usage)
+  React.useEffect(() => {
+    if (!open) {
+      setEffectiveId(id);
+    }
+  }, [id, open]);
 
   // Build the trigger node
   const triggerNode = trigger ? (
     React.isValidElement(trigger) ? (
-      React.cloneElement(trigger, { onClick: () => setOpen(true) })
+      React.cloneElement(trigger, { onClick: () => handleOpen(false) })
     ) : (
-      <span onClick={() => setOpen(true)}>{trigger}</span>
+      <span onClick={() => handleOpen(false)}>{trigger}</span>
     )
   ) : (
     !hideTrigger && (
-      <Button onClick={() => setOpen(true)} variant="default">
+      <Button onClick={() => handleOpen(true)} variant="default">
         <Plus className="h-4 w-4" /> {triggerTitle}
       </Button>
     )
   );
 
-  const close = () => setOpen(false);
+  const close = () => {
+    setOpen(false);
+    // Reset effectiveId when closing
+    setEffectiveId(id);
+  };
 
   // If children is a single ReactElement, auto-inject id/onCancel/onSuccess
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-        id: id,
+        id: effectiveId,
         onCancel: close,
         onSuccess: close,
       })
@@ -130,7 +152,7 @@ export function FormDialog({
           <div className="flex items-center gap-2">{headerButtons}</div>
         )}
       </DialogHeader>
-      <ScrollArea className={clsx(id ? 'h-[calc(70vh-5rem)]' : 'h-auto')}>
+      <ScrollArea className={clsx(effectiveId ? 'h-calc(75-5rem)]' : 'h-auto')}>
         {contentNode}
       </ScrollArea>
     </>
@@ -158,7 +180,7 @@ export function FormDialog({
             <div className="flex items-center">{headerButtons}</div>
           )}
         </DrawerHeader>
-        <ScrollArea className="h-[calc(80vh-5rem)]">{contentNode}</ScrollArea>
+        <ScrollArea className="h-auto">{contentNode}</ScrollArea>
         <DrawerFooter>
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
