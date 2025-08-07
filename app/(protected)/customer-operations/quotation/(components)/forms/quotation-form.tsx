@@ -25,6 +25,8 @@ import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { Separator } from '@/components/ui/separator';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { quoteItemColumns } from '../(data-tables)/quotation/quote-items-columns';
 
 interface FormProps {
   id?: number;
@@ -159,7 +161,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               )}
             />
           )}
-
           <FormSelect
             control={quotationForm.control}
             name="customer_id"
@@ -170,7 +171,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
             }
           />
-
           <FormField
             control={quotationForm.control}
             name="account_manager"
@@ -191,7 +191,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-
           <FormField
             control={quotationForm.control}
             name="project_name"
@@ -211,7 +210,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-
           <FormField
             control={quotationForm.control}
             name="delivery_date"
@@ -232,7 +230,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-
           <div
             className={cn(
               'grid grid-cols-2 gap-3',
@@ -281,7 +278,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               )}
             />
           </div>
-
           <FormField
             control={quotationForm.control}
             name="expiry_date"
@@ -306,7 +302,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-
           <FormField
             control={quotationForm.control}
             name="site_address"
@@ -328,7 +323,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-
           {isEditing && (
             <div
               className={cn(
@@ -342,9 +336,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </Button>
             </div>
           )}
-
-          {/* TODO: Add the table for line items here come back to this! */}
-
           {isEditing && (
             <div
               className={cn(
@@ -352,6 +343,16 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                 isEditing ? 'col-span-2' : 'col-span-2',
               )}
             >
+              {/* TODO: Add the table for line items here come back to this! */}
+              {/* TODO: Add the data when we have proper quotation and when we are calling the api endpoint */}
+              <div className="col-span-2">
+                <DataTableClient
+                  columns={quoteItemColumns}
+                  data={[]}
+                  simpleTable={true}
+                />
+              </div>
+
               <Separator />
 
               <h2 className="text-2xl font-bold">Audit Information</h2>
@@ -423,7 +424,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </div>
             </div>
           )}
-
           <div
             className={cn(
               'flex justify-end space-x-2',
