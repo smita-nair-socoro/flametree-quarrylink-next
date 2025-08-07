@@ -111,12 +111,12 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
   }, []);
 
   return (
-    <div className="overflow-auto">
+    <div className="w-full">
       <Form {...quotationForm}>
         <form
           id="add-new-quote-form"
           className={cn(
-            'gap-6 p-1',
+            'gap-6 p-1 w-full',
             isEditing && isDesktop
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
@@ -332,103 +332,95 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
           {isEditing && (
             <div
               className={cn(
-                'flex justify-between',
+                'flex justify-between items-center',
                 isEditing ? 'col-span-2' : 'col-span-2',
               )}
             >
-              <h2 className="text-2xl bold">Line Items</h2>
-
-              {/* TODO: This will open the add product dialog?? */}
+              <h2 className="text-2xl font-bold">Line Items</h2>
               <Button variant="default" type="button" onClick={onCancel}>
                 + Add New Product
               </Button>
             </div>
           )}
 
-          {/* TODO: Add the table for line itmes here come back to this! */}
+          {/* TODO: Add the table for line items here come back to this! */}
 
           {isEditing && (
             <div
               className={cn(
-                'grid grid-cols-2 gap-6',
+                'space-y-6',
                 isEditing ? 'col-span-2' : 'col-span-2',
               )}
             >
-              <Separator className="col-span-2" />
+              <Separator />
 
-              <h2 className="text-2xl bold col-span-2">Audit Information</h2>
+              <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <FormField
-                control={quotationForm.control}
-                name="created_by"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Created By</FormLabel>
-                    <FormControl>
-                      <Input className="w-full" readOnly={true} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={quotationForm.control}
+                  name="created_by"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Created By</FormLabel>
+                      <FormControl>
+                        <Input className="w-full" readOnly={true} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={quotationForm.control}
-                name="created_at"
-                render={({ field }) => (
-                  <FormItem className={isDesktop ? 'col-span-1' : 'col-span-2'}>
-                    <FormLabel>Created At</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChangeAction={field.onChange}
-                        readOnly={true}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={quotationForm.control}
+                  name="created_at"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Created At</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value}
+                          onChangeAction={field.onChange}
+                          readOnly={true}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={quotationForm.control}
-                name="last_modified_by"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Last Modified By</FormLabel>
-                    <FormControl>
-                      <Input className="w-full" readOnly={true} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={quotationForm.control}
+                  name="last_modified_by"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Modified By</FormLabel>
+                      <FormControl>
+                        <Input className="w-full" readOnly={true} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={quotationForm.control}
-                name="updated_at"
-                render={({ field }) => (
-                  <FormItem className={isDesktop ? 'col-span-1' : 'col-span-2'}>
-                    <FormLabel>Last Modified At</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChangeAction={field.onChange}
-                        readOnly={true}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={quotationForm.control}
+                  name="updated_at"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Modified At</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value}
+                          onChangeAction={field.onChange}
+                          readOnly={true}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           )}
 

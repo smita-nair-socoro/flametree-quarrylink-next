@@ -202,13 +202,10 @@ export function useQuotationActions(
     }
 
     // Line Items count for convert to job
-    if (
-      quotationData.quarry_products?.length &&
-      dialogType === 'convertToJob'
-    ) {
+    if (quotationData.quote_items?.length && dialogType === 'convertToJob') {
       info.push({
         label: 'Line Items',
-        value: `${quotationData.quarry_products.length} products`,
+        value: `${quotationData.quote_items.length} products`,
       });
     }
 

@@ -1,6 +1,5 @@
 import { AddressType } from './address';
 import { Job } from './job';
-import { QuarriesWithPrice } from './quarry';
 
 export enum QUOTE_TYPE {
   COLLECTION = 'COLLECTION',
@@ -98,7 +97,6 @@ export interface Quotation {
 export interface QuotationDetails extends Quotation {
   customer: Customer;
   job: Job;
-  quarry_products: QuarriesWithPrice[];
   quote_items: QuoteItem[];
 }
 

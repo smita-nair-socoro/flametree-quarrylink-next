@@ -153,9 +153,9 @@ export function FormDialog({
         )}
       </DialogHeader>
       <ScrollArea
-        className={clsx(effectiveId ? 'h-calc(75vh-5rem)]' : 'h-auto')}
+        className={clsx(effectiveId ? 'h-[calc(65vh-5rem)]' : 'h-auto')}
       >
-        {contentNode}
+        <div className="pr-4">{contentNode}</div>
       </ScrollArea>
     </>
   );
@@ -172,8 +172,8 @@ export function FormDialog({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="flex flex-row items-center justify-between">
+      <DrawerContent className="flex flex-col max-h-[90vh]">
+        <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
             <DrawerTitle>{headerTitle}</DrawerTitle>
             <DrawerDescription />
@@ -182,8 +182,11 @@ export function FormDialog({
             <div className="flex items-center">{headerButtons}</div>
           )}
         </DrawerHeader>
-        <ScrollArea className="h-auto">{contentNode}</ScrollArea>
-        <DrawerFooter>
+
+        {/* Mobile content with native overflow scrolling */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4">{contentNode}</div>
+
+        <DrawerFooter className="flex-shrink-0 pt-4">
           <DrawerClose asChild>
             <Button variant="outline">Cancel</Button>
           </DrawerClose>
