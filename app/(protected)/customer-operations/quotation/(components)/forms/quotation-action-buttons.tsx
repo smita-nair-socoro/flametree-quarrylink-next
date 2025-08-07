@@ -111,10 +111,6 @@ export function QuotationActionButtons({
             <DropdownMenuSeparator />
 
             {/* Secondary actions */}
-            <DropdownMenuItem onClick={actions.view}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Details
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={actions.download}>
               <Download className="h-4 w-4 mr-2" />
               Download PDF

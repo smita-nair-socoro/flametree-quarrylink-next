@@ -152,7 +152,9 @@ export function FormDialog({
           <div className="flex items-center gap-2">{headerButtons}</div>
         )}
       </DialogHeader>
-      <ScrollArea className={clsx(effectiveId ? 'h-calc(75-5rem)]' : 'h-auto')}>
+      <ScrollArea
+        className={clsx(effectiveId ? 'h-calc(75vh-5rem)]' : 'h-auto')}
+      >
         {contentNode}
       </ScrollArea>
     </>
