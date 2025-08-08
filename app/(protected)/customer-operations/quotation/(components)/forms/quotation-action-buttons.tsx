@@ -15,7 +15,6 @@ import {
   MoreHorizontal,
   Trash2,
   Download,
-  Eye,
   Share2,
   Printer,
   XCircle,
@@ -128,7 +127,7 @@ export function QuotationActionButtons({
 
             {/* Destructive actions */}
             <DropdownMenuItem
-              onClick={actions.delete}
+              onClick={actions.archieve}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
@@ -279,11 +278,11 @@ export function QuotationActionButtons({
 
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={actions.delete}
+              onClick={actions.archieve}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Quote
+              Archieve Quote
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

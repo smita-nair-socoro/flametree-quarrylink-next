@@ -24,7 +24,21 @@ import {
 } from '@/components/ui/drawer';
 import { Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
+
+interface HeaderInfo {
+  /** Custom ID to display as title (replaces dialogTitle when provided) */
+  customId?: string;
+  /** Array of primary badges to show under the title (e.g., status badges) */
+  primaryBadges?: string[];
+  /** Array of secondary badges to show next to primary badges (e.g., type, category badges) */
+  secondaryBadges?: string[];
+  /** Use selected quotation data automatically */
+  useSelectedQuotation?: boolean;
+}
 
 interface AddProductDrawerDialogProps {
   /** If set, we're editing; otherwise we're creating new */
@@ -51,6 +65,9 @@ interface AddProductDrawerDialogProps {
 
   /** Optional header buttons to display inline with the title */
   headerButtons?: React.ReactNode;
+
+  /** Optional header info for custom ID and badges */
+  headerInfo?: HeaderInfo;
 
   /**
    * **THIS** is our form (or any other content) to render inside
@@ -81,6 +98,7 @@ export function FormDialog({
   onOpenChangeAction: onOpenChangeProp,
   hideTrigger,
   headerButtons,
+  headerInfo,
   children,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
@@ -91,8 +109,21 @@ export function FormDialog({
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
+  // Always call the hook, but only use the result when needed
+  const selectedQuotation = useSelectedQuotation();
+
+  let finalCustomId = headerInfo?.customId;
+  let finalPrimaryBadges = headerInfo?.primaryBadges;
+  let finalSecondaryBadges = headerInfo?.secondaryBadges;
+
+  if (headerInfo?.useSelectedQuotation && selectedQuotation) {
+    finalCustomId = selectedQuotation.quote_number;
+    finalPrimaryBadges = [selectedQuotation.quote_status];
+    finalSecondaryBadges = [selectedQuotation.quote_type];
+  }
+
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
-  const headerTitle = dialogTitle ?? defaultTitle;
+  const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
 
   const handleOpen = (isDefaultButton: boolean = false) => {
@@ -111,7 +142,6 @@ export function FormDialog({
     }
   }, [id, open]);
 
-  // Build the trigger node
   const triggerNode = trigger ? (
     React.isValidElement(trigger) ? (
       React.cloneElement(trigger, { onClick: () => handleOpen(false) })
@@ -141,12 +171,50 @@ export function FormDialog({
       })
     : children;
 
+  const renderBadges = () => {
+    const hasBadges =
+      (finalPrimaryBadges && finalPrimaryBadges.length > 0) ||
+      (finalSecondaryBadges && finalSecondaryBadges.length > 0);
+
+    if (!hasBadges) return null;
+
+    return (
+      <div className="flex flex-wrap gap-2 mt-2">
+        {/* Render status badges */}
+        {finalPrimaryBadges?.map((status, index) => (
+          <Badge
+            key={`status-${index}`}
+            variant="outline"
+            className={STATUS_COLORS[status] || STATUS_COLORS.DRAFT}
+          >
+            {status}
+          </Badge>
+        ))}
+
+        {/* Render quote type badges */}
+        {finalSecondaryBadges?.map((quoteType, index) => (
+          <Badge
+            key={`quote-type-${index}`}
+            variant="outline"
+            className={
+              QUOTE_TYPE_COLORS[quoteType as keyof typeof QUOTE_TYPE_COLORS] ||
+              'bg-gray-100 text-gray-800 border-gray-300'
+            }
+          >
+            {quoteType}
+          </Badge>
+        ))}
+      </div>
+    );
+  };
+
   const dialogInner = (
     <>
       <DialogHeader className="flex flex-row items-center justify-between pr-5">
         <div>
           <DialogTitle>{headerTitle}</DialogTitle>
           <DialogDescription />
+          {renderBadges()}
         </div>
         {headerButtons && (
           <div className="flex items-center gap-2">{headerButtons}</div>
@@ -177,6 +245,7 @@ export function FormDialog({
           <div>
             <DrawerTitle>{headerTitle}</DrawerTitle>
             <DrawerDescription />
+            {renderBadges()}
           </div>
           {headerButtons && (
             <div className="flex items-center">{headerButtons}</div>

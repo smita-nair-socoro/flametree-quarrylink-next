@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import ProductForm from '@/app/(protected)/inventory/products/(components)/forms/product-form';
 import { QuotationDetails } from '@/lib/types/quotation';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
@@ -70,7 +69,7 @@ const dialogConfigs = {
     title: 'Confirm Extending Expiry Date',
     description: 'Extend the expiry date for this quote?',
     details: [
-      'Change quote status from Expired to Draft',
+      'Change quote status from Expired to Pending',
       'Set new expiry date (14 days from today)',
       'Allow quote editing and modifications',
       'Enable sending to customer for approval again',
@@ -80,14 +79,13 @@ const dialogConfigs = {
   },
 
   delete: {
-    title: 'Confirm Deletion',
+    title: 'Confirm Quote To Be Archieved?',
     description: 'Are you sure you want to delete this quotation?',
     details: [
       'This action cannot be undone',
-      'All quote data will be permanently removed',
-      'Related documents will also be deleted',
+      'All quote data will be archieved',
     ],
-    confirmText: 'Delete Quote',
+    confirmText: 'Archieve Quote',
     confirmVariant: 'destructive' as const,
   },
 };
@@ -158,8 +156,8 @@ export function useQuotationActions(
       // TODO: implement share logic
     },
 
-    delete: createDialogAction('delete', () => {
-      console.log('Delete quotation:', quotationId);
+    archieve: createDialogAction('delete', () => {
+      console.log('Archieve quotation:', quotationId);
       // TODO: implement delete logic
     }),
   };
@@ -278,6 +276,9 @@ export function useQuotationActions(
       onOpenChangeAction={setViewOpen}
       headerButtons={<QuotationActionButtons quotation={quotationData} />}
       hideTrigger
+      headerInfo={{
+        useSelectedQuotation: true,
+      }}
     >
       <QuotationForm />
     </FormDialog>
