@@ -78,7 +78,7 @@ const dialogConfigs = {
     confirmVariant: 'default' as const,
   },
 
-  delete: {
+  archieve: {
     title: 'Confirm Quote To Be Archieved?',
     description: 'Are you sure you want to delete this quotation?',
     details: [
@@ -156,7 +156,7 @@ export function useQuotationActions(
       // TODO: implement share logic
     },
 
-    archieve: createDialogAction('delete', () => {
+    archieve: createDialogAction('archieve', () => {
       console.log('Archieve quotation:', quotationId);
       // TODO: implement delete logic
     }),
