@@ -46,16 +46,16 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     meta: 'Quote Type',
   },
 
-  // {
-  //   id: 'products',
-  //   accessorFn: (row) => row.quarry_products.map((qp) => qp.quarry.name),
-  //   header: 'Products',
-  //   cell: ({ getValue }) => {
-  //     const names = getValue<string[]>();
-  //     return <TableBadges names={names} visibleCount={1} />;
-  //   },
-  //   meta: 'Products',
-  // },
+  {
+    id: 'products',
+    accessorFn: (row) => row.quote_items.map((qp) => qp.product_id.toString()),
+    header: 'Products',
+    cell: ({ getValue }) => {
+      const names = getValue<string[]>();
+      return <TableBadges names={names} visibleCount={1} />;
+    },
+    meta: 'Products',
+  },
 
   {
     id: 'created_at',

@@ -73,18 +73,22 @@ export const STATUS_COLORS: Record<string, string> = {
   EXPIRED:
     'bg-red-100 text-red-900 border-red-900 dark:bg-red-200 dark:text-red-900 dark:border-red-900',
   DECLINED:
-    'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
+    'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
   ARCHIVED:
     'bg-gray-100 text-gray-500 border-gray-500 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-500',
   ACTIVE:
     'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-900 dark:border-green-800',
   INACTIVE:
     'bg-gray-100 text-gray-600 border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600',
+  COLLECTION:
+    'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-900 dark:border-orange-900',
+  DELIVERY:
+    'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
 };
 
 export const QUOTE_TYPE_COLORS = {
   COLLECTION:
     'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-900 dark:border-orange-900',
   DELIVERY:
-    'bg-blue-100 text-blue-900 border-blue-900 dark:bg-blue-200 dark:text-blue-900 dark:border-blue-900',
+    'bg-blue-100 text-blue-800 border-blue-800 dark:text-blue-800 dark:border-blue-800',
 };
