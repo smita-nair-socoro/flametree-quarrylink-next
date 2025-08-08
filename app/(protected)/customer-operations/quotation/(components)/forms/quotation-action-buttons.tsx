@@ -243,10 +243,6 @@ export function QuotationActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={actions.view}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Details
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={actions.download}>
               <Download className="h-4 w-4 mr-2" />
               Download PDF
