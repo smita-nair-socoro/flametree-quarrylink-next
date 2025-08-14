@@ -272,7 +272,7 @@ export function FormDialog({
           'rounded-md overflow-auto px-5 pb-10'
         )}
       >
-        <div className="pr-4">{contentNode}</div>
+        <div>{contentNode}</div>
       </ScrollArea>
     </>
   );
