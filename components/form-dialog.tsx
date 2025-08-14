@@ -50,6 +50,9 @@ interface AddProductDrawerDialogProps {
   /** Override the trigger button text */
   buttonTitle?: string;
 
+  /** Override the dialog description */
+  dialogDescription?: string;
+
   /**
    * Optional custom trigger element; must accept an `onClick`.
    * If omitted, we render our default <Plus> button.
@@ -92,6 +95,7 @@ interface ChildFormProps {
 export function FormDialog({
   id,
   dialogTitle,
+  dialogDescription,
   buttonTitle,
   trigger,
   open: openProp,
@@ -210,10 +214,12 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between pr-5">
+      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5">
         <div>
           <DialogTitle>{headerTitle}</DialogTitle>
-          <DialogDescription />
+          <DialogDescription className="mt-2">
+            {dialogDescription}
+          </DialogDescription>
           {renderBadges()}
         </div>
         {headerButtons && (
@@ -244,7 +250,7 @@ export function FormDialog({
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
             <DrawerTitle>{headerTitle}</DrawerTitle>
-            <DrawerDescription />
+            <DrawerDescription className="mt-2"></DrawerDescription>
             {renderBadges()}
           </div>
           {headerButtons && (

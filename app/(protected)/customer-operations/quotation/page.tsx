@@ -66,7 +66,11 @@ export default function QuotationsPage() {
           <p className="text-sm text-muted-foreground">Manage your quotation</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-          <FormDialog dialogTitle="Add Quote" buttonTitle="Add Quote">
+          <FormDialog
+            dialogTitle="Add Quote"
+            dialogDescription="This is a card description."
+            buttonTitle="Add Quote"
+          >
             <QuotationForm />
           </FormDialog>
         </div>

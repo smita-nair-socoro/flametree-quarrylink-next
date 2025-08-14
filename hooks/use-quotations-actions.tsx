@@ -151,11 +151,6 @@ export function useQuotationActions(
       // TODO: implement print logic
     },
 
-    share: () => {
-      console.log('Share quotation:', quotationId);
-      // TODO: implement share logic
-    },
-
     archieve: createDialogAction('archieve', () => {
       console.log('Archieve quotation:', quotationId);
       // TODO: implement delete logic

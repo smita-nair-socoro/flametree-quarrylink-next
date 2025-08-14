@@ -112,11 +112,6 @@ export function QuotationTableActions({
             Print Quote
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={actions.share}>
-            <Share2 className="mr-2 h-4 w-4" />
-            Share Link
-          </DropdownMenuItem>
-
           <DropdownMenuItem onClick={actions.duplicate}>
             <Copy className="mr-2 h-4 w-4" />
             Duplicate Quote

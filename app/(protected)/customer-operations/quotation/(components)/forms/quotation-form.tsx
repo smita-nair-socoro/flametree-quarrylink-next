@@ -55,21 +55,43 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
     defaultValues: {
-      quote_type: '',
+      quote_type: 'Delivery',
       customer_id: '',
       account_manager: '',
+      phone: '',
+      email: '',
       project_name: '',
-      delivery_date: new Date(),
+      delivery_date: undefined,
       delivery_window_start: '10:30:00',
       delivery_window_end: '17:00:00',
-      expiry_date: new Date(),
+      expiry_date: undefined,
       site_address: '',
-      created_at: new Date(),
-      updated_at: new Date(),
+      created_at: undefined,
+      updated_at: undefined,
       created_by: 'Jay Woo Choi',
       last_modified_by: 'Armin Menhaji',
     },
   });
+
+  // Watch the quote_type field to make labels dynamic
+  const quoteType = quotationForm.watch('quote_type');
+
+  const addressLabel = React.useMemo(() => {
+    if (!quoteType) return 'Address';
+    return quoteType === 'Delivery' ? 'Delivery Address' : 'Collection Address';
+  }, [quoteType]);
+
+  const dateLabel = React.useMemo(() => {
+    if (!quoteType) return 'Delivery Date';
+    return quoteType === 'Delivery' ? 'Delivery Date' : 'Collection Date';
+  }, [quoteType]);
+
+  const timeWindowLabel = React.useMemo(() => {
+    if (!quoteType) return 'Delivery Time Window';
+    return quoteType === 'Delivery'
+      ? 'Delivery Time Window'
+      : 'Collection Time Window';
+  }, [quoteType]);
 
   React.useEffect(() => {
     if (address.formattedAddress) {
@@ -107,7 +129,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
     console.log('Selected Address Details:', address);
   }
 
-  const tomorrow = React.useMemo(() => {
+  const today = React.useMemo(() => {
     const d = GetTodaysDate();
     return d;
   }, []);
@@ -142,17 +164,18 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
+                          <RadioGroupItem value="Delivery" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Delivery</FormLabel>
+                      </FormItem>
+
+                      <FormItem className="flex items-center gap-3">
+                        <FormControl>
                           <RadioGroupItem value="Collection" />
                         </FormControl>
                         <FormLabel className="font-normal">
                           Collection
                         </FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="Delivery" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Delivery</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -161,22 +184,51 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               )}
             />
           )}
+
           <FormSelect
             control={quotationForm.control}
             name="customer_id"
             label="Customer*"
             options={quarryOptions}
-            placeholder="Customer"
+            placeholder="Select Customer"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1' : 'col-span-2'
+              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
             }
           />
+          <FormField
+            control={quotationForm.control}
+            name="project_name"
+            render={({ field }) => (
+              <FormItem
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2'
+                    : 'col-span-2'
+                }
+              >
+                <FormLabel>Project Name</FormLabel>
+                <FormControl>
+                  <Input
+                    className="w-full"
+                    placeholder="Enter Project Name"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={quotationForm.control}
             name="account_manager"
             render={({ field }) => (
               <FormItem
-                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-1'
+                    : 'col-span-2'
+                }
               >
                 <FormLabel>Account Manager</FormLabel>
                 <FormControl>
@@ -191,51 +243,121 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={quotationForm.control}
-            name="project_name"
-            render={({ field }) => (
-              <FormItem
-                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
-              >
-                <FormLabel>Project Name</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Project Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
+          {isEditing && (
+            <FormField
+              control={quotationForm.control}
+              name="site_address"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing ? 'col-span-1 col-start-2' : 'col-span-2'
+                  }
+                >
+                  <FormLabel>{addressLabel}</FormLabel>
+                  <FormControl>
+                    <AddressAutoComplete
+                      address={address}
+                      setAddress={handleAddressChange}
+                      searchInput={searchInput}
+                      setSearchInput={setSearchInput}
+                      dialogTitle="Enter Address"
+                      placeholder="Enter site address..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {isEditing && (
+            <FormField
+              control={quotationForm.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="+61 2 9876 5432"
+                      readOnly={true}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={quotationForm.control}
             name="delivery_date"
             render={({ field }) => (
               <FormItem
-                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2'
+                    : 'col-span-2'
+                }
               >
-                <FormLabel>Delivery Date</FormLabel>
+                <FormLabel>{dateLabel}</FormLabel>
                 <FormControl>
                   <DatePicker
                     value={field.value}
                     onChangeAction={field.onChange}
                     placeholder="Pick a date"
-                    disabled={{ before: tomorrow }}
+                    disabled={{ before: today }}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {isEditing && (
+            <FormField
+              control={quotationForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="orders@buildcorp.com.au"
+                      readOnly={true}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <div
             className={cn(
               'grid grid-cols-2 gap-3',
-              isEditing && isDesktop ? 'col-span-1' : 'col-span-2',
+              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2',
             )}
           >
+            <h3 className="font-bold col-span-2">{timeWindowLabel}</h3>
             <FormField
               control={quotationForm.control}
               name="delivery_window_start"
@@ -247,7 +369,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       {...field}
                       type="time"
                       id="time-picker-start"
-                      step="1"
+                      step="60"
                       className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                       value={field.value}
                     />
@@ -268,7 +390,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       {...field}
                       type="time"
                       id="time-picker-end"
-                      step="1"
+                      step="60"
                       className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                       value={field.value}
                     />
@@ -283,7 +405,11 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             name="expiry_date"
             render={({ field }) => (
               <FormItem
-                className={isEditing && isDesktop ? 'col-span-1' : 'col-span-2'}
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2'
+                    : 'col-span-2'
+                }
               >
                 <FormLabel>Expiry Date</FormLabel>
                 <FormControl>
@@ -291,7 +417,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                     value={field.value}
                     onChangeAction={field.onChange}
                     placeholder="Pick a date"
-                    disabled={{ before: tomorrow }}
+                    disabled={{ before: today }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -302,27 +428,32 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={quotationForm.control}
-            name="site_address"
-            render={({ field }) => (
-              <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <AddressAutoComplete
-                    address={address}
-                    setAddress={handleAddressChange}
-                    searchInput={searchInput}
-                    setSearchInput={setSearchInput}
-                    dialogTitle="Enter Address"
-                    placeholder="Enter site address..."
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
+          {/* if it's not editing then show delivery address at the bottom */}
+          {!isEditing && (
+            <FormField
+              control={quotationForm.control}
+              name="site_address"
+              render={({ field }) => (
+                <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
+                  <FormLabel>{addressLabel}</FormLabel>
+                  <FormControl>
+                    <AddressAutoComplete
+                      address={address}
+                      setAddress={handleAddressChange}
+                      searchInput={searchInput}
+                      setSearchInput={setSearchInput}
+                      dialogTitle="Enter Address"
+                      placeholder="Enter site address..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           {isEditing && (
             <div
               className={cn(

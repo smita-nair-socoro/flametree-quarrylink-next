@@ -7,6 +7,8 @@ export const NewQuotationFormSchema = z.object({
   quote_type: z.string().nonempty({ message: 'Required' }),
   customer_id: z.string().nonempty({ message: 'Required' }),
   account_manager: z.string().readonly(),
+  phone: z.string().readonly(),
+  email: z.string().readonly(),
   project_name: z.string().min(2, { message: 'At least 2 characters' }),
   delivery_date: z.date({ message: 'Required' }),
   delivery_window_start: z

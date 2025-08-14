@@ -118,10 +118,6 @@ export function QuotationActionButtons({
               <Printer className="h-4 w-4 mr-2" />
               Print Quote
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={actions.share}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Share Link
-            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
@@ -249,10 +245,6 @@ export function QuotationActionButtons({
             <DropdownMenuItem onClick={actions.print}>
               <Printer className="h-4 w-4 mr-2" />
               Print Quote
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={actions.share}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Share Link
             </DropdownMenuItem>
 
             {/* Show other status actions in dropdown if not in main buttons */}
