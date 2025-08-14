@@ -496,13 +496,17 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                     <FormItem>
                       <FormLabel>Created By</FormLabel>
                       <FormControl>
-                        <Input className="w-full" readOnly={true} {...field} />
+                        <Input
+                          className="w-full text-muted-foreground cursor-not-allowed"
+                          readOnly={true}
+                          disabled
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={quotationForm.control}
                   name="created_at"
@@ -514,6 +518,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                           value={field.value}
                           onChangeAction={field.onChange}
                           readOnly={true}
+                          disabled
                         />
                       </FormControl>
                       <FormMessage />
@@ -528,13 +533,17 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                     <FormItem>
                       <FormLabel>Last Modified By</FormLabel>
                       <FormControl>
-                        <Input className="w-full" readOnly={true} {...field} />
+                        <Input
+                          className="w-full text-muted-foreground cursor-not-allowed"
+                          readOnly={true}
+                          disabled
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={quotationForm.control}
                   name="updated_at"
@@ -546,6 +555,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                           value={field.value}
                           onChangeAction={field.onChange}
                           readOnly={true}
+                          disabled
                         />
                       </FormControl>
                       <FormMessage />
@@ -555,6 +565,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </div>
             </div>
           )}
+
           <div
             className={cn(
               'flex justify-end space-x-2',

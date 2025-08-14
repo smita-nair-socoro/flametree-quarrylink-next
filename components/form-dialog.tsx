@@ -227,9 +227,13 @@ export function FormDialog({
         )}
       </DialogHeader>
       <ScrollArea
-        className={clsx(effectiveId ? 'h-[calc(65vh-5rem)]' : 'h-auto')}
+        className={clsx(
+          effectiveId
+            ? 'h-[calc(65vh-5rem)] rounded-md p-0'
+            : 'h-auto rounded-md p-0',
+        )}
       >
-        <div className="pr-4">{contentNode}</div>
+        <div>{contentNode}</div>
       </ScrollArea>
     </>
   );
