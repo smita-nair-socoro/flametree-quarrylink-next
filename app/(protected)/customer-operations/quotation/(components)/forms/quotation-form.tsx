@@ -184,6 +184,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               )}
             />
           )}
+
           <FormSelect
             control={quotationForm.control}
             name="customer_id"
