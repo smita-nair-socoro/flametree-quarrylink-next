@@ -15,7 +15,6 @@ import {
   MoreHorizontal,
   Trash2,
   Download,
-  Share2,
   Printer,
   XCircle,
   Briefcase,
