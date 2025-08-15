@@ -1,5 +1,8 @@
 'use client';
 
+import { FormDialog } from '@/components/form-dialog';
+import CustomerForm from './(components)/forms/customer-form';
+
 export default function CustomersPage() {
   //TODO: Fetch from server
   return (
@@ -9,7 +12,13 @@ export default function CustomersPage() {
           <h1 className="text-2xl">Customers</h1>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-          {/* TODO: Form Goes here */}
+          <FormDialog
+            dialogTitle="Add Customer"
+            dialogDescription="Fill in the required fields to add a new customer."
+            buttonTitle="Add Customer"
+          >
+            <CustomerForm />
+          </FormDialog>
         </div>
       </div>
 
