@@ -254,8 +254,8 @@ export function FormDialog({
     <>
       <DialogHeader className="flex flex-row items-center justify-between px-5 pt-10 pb-2 flex-shrink-0">
         <div>
-          <DialogTitle>{headerTitle}</DialogTitle>
-          <DialogDescription className="mt-2">
+          <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
+          <DialogDescription className="my-2">
             {dialogDescription}
           </DialogDescription>
           {renderBadges()}

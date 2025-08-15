@@ -11,9 +11,9 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-2xl">Customers</h1>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
-            dialogTitle="Add Customer"
+            dialogTitle="Add New Customer"
             dialogDescription="Fill in the required fields to add a new customer."
             buttonTitle="Add Customer"
           >
