@@ -4,13 +4,14 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { AddProductDrawerDialog } from './(components)/add-product-dialog';
-import { productColumns } from './(components)/(data-tables)/products/columns';
+import { productColumns } from './(components)/(data-tables)/products/products-columns';
 import { Activity, Factory, Tags } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ProductsListQueryOptions } from '@/lib/api/quaries';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { notifyError } from '@/lib/toast';
+import { FormDialog } from '@/components/form-dialog';
+import ProductForm from './(components)/forms/product-form';
 
 export default function ProductsPage() {
   const productQuery = useQuery(ProductsListQueryOptions());
@@ -39,11 +40,16 @@ export default function ProductsPage() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-          <AddProductDrawerDialog />
+          <FormDialog
+            dialogTitle="Add New Product"
+            buttonTitle="Add New Product"
+          >
+            <ProductForm />
+          </FormDialog>
         </div>
       </div>
 
-      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min p-2">
+      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           data={productQuery.data?.items ?? []}
           columns={productColumns}

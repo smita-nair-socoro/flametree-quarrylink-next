@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from './select';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -54,6 +55,7 @@ import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
 import { InputIcon } from './input-icon';
+import { Separator } from './separator';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -198,6 +200,7 @@ export function DataTableClient<TData, TValue>({
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
                   Show/Hide Columns
+                  <ChevronDown />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -278,8 +281,20 @@ export function DataTableClient<TData, TValue>({
         <div className="overflow-x-auto">
           <div className="min-w-full py-2">
             <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-              <div className="mb-4 flex items-center space-x-2 sm:mb-0">
-                <p className="whitespace-nowrap text-sm font-medium">
+              <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
+                <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                  Total Records:
+                  <span className="text-accent-foreground ml-2">
+                    {data.length}
+                  </span>
+                </p>
+
+                <Separator
+                  orientation="vertical"
+                  className="text-accent-foreground"
+                />
+
+                <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                   Rows per page
                 </p>
                 <Select

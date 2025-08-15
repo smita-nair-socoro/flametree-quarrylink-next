@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
-import { UpdateQuarryProductPriceDialogForm } from '../update-quarry-product-price-dialog-form';
-import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
+import { UpdateQuarryProductPriceDialogForm } from '../../forms/update-quarry-product-price-dialog-form';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';
 import { ProductKeys } from '@/lib/api/query_keys';
@@ -74,12 +74,13 @@ export function QuarrySourcesActionCell({
         current_cost_price={cost}
       />
 
-      <ConfirmDeleteDialog
+      <ConfirmDialog
         open={isDeleteOpen}
         onOpenChangeAction={setDeleteOpen}
         title="Confirm Deletion"
         description="Are you sure you want to remove this site address?"
         note="Note: Removing this site address will not affect existing records in quotes, jobs, and dockets."
+        btnVariant="destructive"
         onConfirmAction={handleDeleteConfirm}
       />
     </div>

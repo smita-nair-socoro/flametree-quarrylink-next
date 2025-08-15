@@ -86,6 +86,11 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
   className?: string;
 
   /**
+   * Any additional Tailwind class names to apply to the form item.
+   */
+  formItemClassName?: string;
+
+  /**
    * Optional callback to render a bottom-row button.
    * If provided, a "add" item will appear which calls this on select.
    */
@@ -116,6 +121,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
   placeholder = 'Select...',
   popoverWidthClass = 'w-[200px]',
   className,
+  formItemClassName,
   onAddClick,
   addButtonLabel = '+ New Item',
   addButtonClassName,
@@ -125,7 +131,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className="flex flex-col">
+        <FormItem className={formItemClassName}>
           <FormLabel>{label}</FormLabel>
           <Popover modal={true}>
             <PopoverTrigger asChild>

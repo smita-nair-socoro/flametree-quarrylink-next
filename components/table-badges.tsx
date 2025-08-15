@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn, STATUS_COLORS } from '@/lib/utils';
 
 interface TableBadgesProps {
   names: string | string[];
@@ -40,14 +40,12 @@ function pickKey(name: string): string {
 }
 
 function getBadgeClassName(name: string): string {
-  if (name === 'ACTIVE') {
-    return 'bg-green-100 text-green-800 dark:bg-green-200 dark:text-green-900';
+  const key = name.trim().toUpperCase();
+  if (STATUS_COLORS[key]) {
+    return STATUS_COLORS[key];
   }
-  if (name === 'INACTIVE') {
-    return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
-  }
-  const key = pickKey(name);
-  return PALETTE[key];
+  const dynamicKey = pickKey(key);
+  return PALETTE[dynamicKey] || PALETTE.sky;
 }
 
 export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
@@ -61,7 +59,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
         <Badge
           key={n}
           className={cn(
-            'uppercase px-2 py-0.5 text-xs font-medium border border-current',
+            'uppercase px-2 py-0.5 text-xs font-medium border',
             getBadgeClassName(n),
           )}
         >
@@ -82,7 +80,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
                 <Badge
                   key={n}
                   className={cn(
-                    'uppercase px-2 py-0.5 text-xs font-medium border border-current',
+                    'uppercase px-2 py-0.5 text-xs font-medium border',
                     getBadgeClassName(n),
                   )}
                 >

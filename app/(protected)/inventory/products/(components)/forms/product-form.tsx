@@ -31,7 +31,7 @@ import {
   NewCategoryFormSchema,
   NewProductFormSchema,
   NewQuarryFormSchema,
-} from './product-form-schemas';
+} from './schemas/product-form-schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CategoryListQueryOptions,
@@ -42,20 +42,20 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { InputIcon } from '@/components/ui/input-icon';
 import { DollarSign } from 'lucide-react';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { quarrySourcesColumns } from './(data-tables)/products/quarry-sources-columns';
+import { quarrySourcesColumns } from '../(data-tables)/quarry-sources/quarry-sources-columns';
 import { APIClient } from '@/lib/api/APIClient';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { CategoryKeys } from '@/lib/api/query_keys';
 
 interface ProductFormProps {
-  productId?: number;
+  id?: number;
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
 }
 
 export default function ProductForm({
-  productId,
+  id,
   onCancel,
   className,
 }: ProductFormProps) {
@@ -68,7 +68,7 @@ export default function ProductForm({
   const [isNewQuarryDialogOpen, setIsNewQuarryDialogOpen] =
     React.useState(false);
 
-  const [isEditing] = React.useState(Boolean(productId));
+  const [isEditing] = React.useState(Boolean(id));
 
   const form = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
@@ -99,8 +99,8 @@ export default function ProductForm({
 
   // Queries
   const productQuery = useQuery({
-    ...ProductQueryOptions(productId!),
-    enabled: Boolean(productId), // skips if it's creating a new product instead of editing.
+    ...ProductQueryOptions(id!),
+    enabled: Boolean(id), // skips if it's creating a new product instead of editing.
   });
 
   const productQuarriesWithPrice = productQuery.data?.quarries ?? [];

@@ -27,7 +27,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   UpdatePriceSchema,
   UpdatePriceInput,
-} from './quarry-price-form-schema';
+} from './schemas/quarry-price-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,7 @@ import { APIClient } from '@/lib/api/APIClient';
 import { ProductKeys } from '@/lib/api/query_keys';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { dollarsToCents } from '@/lib/utils/currency';
+import { GetTomorrowDate } from '@/lib/utils/date';
 
 interface UpdateQuarryProductPriceDialogFormProps {
   quarryPriceId: number;
@@ -72,9 +73,7 @@ export function UpdateQuarryProductPriceDialogForm({
   });
 
   const tomorrow = React.useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(0, 0, 0, 0);
+    const d = GetTomorrowDate();
     return d;
   }, []);
 

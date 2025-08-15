@@ -3,9 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { QuarriesWithPrice } from '@/lib/types/quarry';
 import React from 'react';
-import { QuarrySourcesActionCell } from '../quarry-sources-action-cell';
+import { QuarrySourcesActionCell } from './quarry-sources-action-cell';
 import { Badge } from '@/components/ui/badge';
-import { StatusToggle } from '../../quarry-sources-status-toggle';
+import { StatusToggle } from './quarry-sources-status-toggle';
 
 export const quarrySourcesColumns: ColumnDef<QuarriesWithPrice>[] = [
   {

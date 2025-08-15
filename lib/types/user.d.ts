@@ -1,9 +1,28 @@
-interface User {
-  id: string;
-  organisation_id: string;
-  username: string;
+export interface User {
+  id: number;
+  organisation_id: number;
+  username?: string;
   email: string;
-  roles: string[];
-  updated_at: string;
   created_at: string;
+  updated_at: string;
+}
+
+export interface Organisation {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserWithRelations {
+  user: User;
+  organisation: Organisation;
+  groups: Group[];
 }

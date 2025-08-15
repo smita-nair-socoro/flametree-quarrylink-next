@@ -10,23 +10,25 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-interface ConfirmDeleteDialogProps {
+interface ConfirmDialogProps {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
   title?: string;
   description?: string;
   note?: string;
+  btnVariant: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
   onConfirmAction: () => void;
 }
 
-export function ConfirmDeleteDialog({
+export function ConfirmDialog({
   open,
   onOpenChangeAction,
   title = 'Confirm Deletion',
   description = 'Are you sure you want to remove this item?',
+  btnVariant = 'default',
   note,
   onConfirmAction,
-}: ConfirmDeleteDialogProps) {
+}: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-w-md">
@@ -46,7 +48,7 @@ export function ConfirmDeleteDialog({
             Cancel
           </Button>
           <Button
-            variant="destructive"
+            variant={btnVariant}
             onClick={() => {
               onConfirmAction();
               onOpenChangeAction(false);

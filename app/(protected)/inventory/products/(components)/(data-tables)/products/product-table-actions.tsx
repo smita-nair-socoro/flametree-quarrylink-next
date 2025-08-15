@@ -11,24 +11,28 @@ import {
   DropdownMenuLabel,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { AddProductDrawerDialog } from '@/app/(protected)/inventory/products/(components)/add-product-dialog';
 import { DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu';
+import ProductForm from '@/app/(protected)/inventory/products/(components)/forms/product-form';
+import { FormDialog } from '@/components/form-dialog';
 
-interface TableActionsProps {
+interface ProductTableActionsProps {
   productId: number;
 }
 
-export function TableActions({ productId }: TableActionsProps) {
+export function ProductTableActions({ productId }: ProductTableActionsProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <div>
-      <AddProductDrawerDialog
-        productId={productId}
+      <FormDialog
+        id={productId}
+        dialogTitle="View / Edit product"
         open={open}
         onOpenChangeAction={setOpen}
         hideTrigger={true}
-      />
+      >
+        <ProductForm />
+      </FormDialog>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

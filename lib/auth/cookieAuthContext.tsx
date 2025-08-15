@@ -6,9 +6,10 @@ import React, {
   ReactNode,
 } from 'react';
 import { APIClient } from '../api/APIClient';
+import { UserWithRelations } from '../types/user';
 
 interface CookieAuthContext {
-  user: User | null;
+  user: UserWithRelations | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -17,7 +18,7 @@ interface CookieAuthContext {
 const CookieAuth = createContext<CookieAuthContext | undefined>(undefined);
 
 export function CookieAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
 
   // On mount, see if the session cookie is already valid:
