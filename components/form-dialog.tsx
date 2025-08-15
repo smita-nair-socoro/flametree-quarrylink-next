@@ -26,7 +26,7 @@ import { Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
-import { useSelectedQuotation } from '@/app/stores/quotation-store';
+// import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
 
 interface HeaderInfo {
@@ -114,17 +114,17 @@ export function FormDialog({
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Always call the hook, but only use the result when needed
-  const selectedQuotation = useSelectedQuotation();
+  // const selectedQuotation = useSelectedQuotation();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
   let finalSecondaryBadges = headerInfo?.secondaryBadges;
 
-  if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-    finalCustomId = selectedQuotation.quote_number;
-    finalPrimaryBadges = [selectedQuotation.quote_status];
-    finalSecondaryBadges = [selectedQuotation.quote_type];
-  }
+  // if (headerInfo?.useSelectedQuotation && selectedQuotation) {
+  //   finalCustomId = selectedQuotation.quote_number;
+  //   finalPrimaryBadges = [selectedQuotation.quote_status];
+  //   finalSecondaryBadges = [selectedQuotation.quote_type];
+  // }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
