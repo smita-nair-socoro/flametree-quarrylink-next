@@ -8,6 +8,7 @@ import {
 } from '../types/product';
 import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
+import { UserWithRelations } from '../types/user';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -332,11 +333,12 @@ const appClient = {
 export const APIClient = {
   auth: {
     login: (email: string, password: string, username?: string) =>
-      appClient.Post<User>('/api/v1/users/login', {
+      appClient.Post<UserWithRelations>('/api/v1/users/login', {
         body: { email, username, password },
       }),
     logout: () => appClient.Post(`/api/v1/users/logout`),
-    validate: () => appClient.Get<User>(`/api/v1/users/get-auth-user`),
+    validate: () =>
+      appClient.Get<UserWithRelations>(`/api/v1/users/get-auth-user`),
   },
   products: {
     findQuery: (params: ProductQueryParams) =>
