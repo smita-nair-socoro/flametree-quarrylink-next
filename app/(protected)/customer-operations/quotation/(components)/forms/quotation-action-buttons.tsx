@@ -122,11 +122,11 @@ export function QuotationActionButtons({
 
             {/* Destructive actions */}
             <DropdownMenuItem
-              onClick={actions.archieve}
+              onClick={actions.archive}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Quote
+              Archive Quote
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -269,11 +269,11 @@ export function QuotationActionButtons({
 
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={actions.archieve}
+              onClick={actions.archive}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Archieve Quote
+              Archive Quote
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

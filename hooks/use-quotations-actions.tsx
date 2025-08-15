@@ -78,9 +78,9 @@ const dialogConfigs = {
     confirmVariant: 'default' as const,
   },
 
-  archieve: {
-    title: 'Confirm Quote To Be Archieved?',
-    description: 'Are you sure you want to delete this quotation?',
+  archive: {
+    title: 'Confirm Quote To Be Archived?',
+    description: 'Are you sure you want to archive this quotation?',
     details: [
       'This action cannot be undone',
       'All quote data will be archieved',
@@ -151,7 +151,7 @@ export function useQuotationActions(
       // TODO: implement print logic
     },
 
-    archieve: createDialogAction('archieve', () => {
+    archive: createDialogAction('archive', () => {
       console.log('Archieve quotation:', quotationId);
       // TODO: implement delete logic
     }),
