@@ -27,6 +27,7 @@ import { DollarSignIcon } from 'lucide-react';
 import { InputIcon } from '@/components/ui/input-icon';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
+import { PhoneInput, ABNInput } from '@/components/ui/input-mask';
 
 interface FormProps {
   id?: number;
@@ -63,11 +64,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       customer_type: 'Business',
       payment_type: 'Credit',
       business_name: '',
+      business_email: '',
+      business_phone: '',
       abn: '',
       contact_person_name: '',
-      email: '',
-      phone: '',
-      credit_limit: '',
+      contact_person_email: '',
+      contact_person_phone: '',
+      credit_limit: 0,
       payment_terms: '',
       created_at: undefined,
       updated_at: undefined,
@@ -139,10 +142,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               name="customer_type"
               render={({ field }) => (
                 <FormItem className="space-y-3 col-span-full">
-                  <FormLabel>Customer Type</FormLabel>
+                  <FormLabel>Customer Type*</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleFormFieldChange('customer_type', value);
+                      }}
                       defaultValue={field.value}
                       className="grid grid-flow-col auto-cols-max gap-4"
                     >
@@ -174,10 +180,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             name="payment_type"
             render={({ field }) => (
               <FormItem className="space-y-3 col-span-full">
-                <FormLabel>Payment Type</FormLabel>
+                <FormLabel>Payment Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      handleFormFieldChange('payment_type', value);
+                    }}
                     defaultValue={field.value}
                     className="grid grid-flow-col auto-cols-max gap-4"
                   >
@@ -192,7 +201,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                       <FormControl>
                         <RadioGroupItem value="Prepaid" />
                       </FormControl>
-                      <FormLabel className="font-normal">Prepaid</FormLabel>
+                      <FormLabel className="font-normal">Pre-Paid</FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
@@ -200,53 +209,102 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-          <FormField
-            control={customerForm.control}
-            name="business_name"
-            render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
-                }
-              >
-                <FormLabel>Business Name</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Business Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
-          <FormField
-            control={customerForm.control}
-            name="abn"
-            render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
-                }
-              >
-                <FormLabel>ABN</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="XX XXX XXX XXX"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {selectedCustomerType === 'Business' && (
+            <FormField
+              control={customerForm.control}
+              name="business_name"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Business Name*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Business Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {selectedCustomerType === 'Business' && (
+            <FormField
+              control={customerForm.control}
+              name="business_email"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Business Email*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="email@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {selectedCustomerType === 'Business' && (
+            <FormField
+              control={customerForm.control}
+              name="business_phone"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Business Phone*</FormLabel>
+                  <FormControl>
+                    <PhoneInput className="w-full" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {selectedCustomerType === 'Business' && (
+            <FormField
+              control={customerForm.control}
+              name="abn"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>ABN*</FormLabel>
+                  <FormControl>
+                    <ABNInput className="w-full" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={customerForm.control}
@@ -259,7 +317,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                     : 'col-span-2'
                 }
               >
-                <FormLabel>Contact Person Name</FormLabel>
+                <FormLabel>Contact Person Name*</FormLabel>
                 <FormControl>
                   <Input
                     className="w-full"
@@ -274,7 +332,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
 
           <FormField
             control={customerForm.control}
-            name="email"
+            name="contact_person_email"
             render={({ field }) => (
               <FormItem
                 className={
@@ -283,7 +341,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                     : 'col-span-2'
                 }
               >
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Contact Person Email*</FormLabel>
                 <FormControl>
                   <Input
                     className="w-full"
@@ -298,7 +356,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
 
           <FormField
             control={customerForm.control}
-            name="phone"
+            name="contact_person_phone"
             render={({ field }) => (
               <FormItem
                 className={
@@ -307,13 +365,9 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                     : 'col-span-2'
                 }
               >
-                <FormLabel>Phone</FormLabel>
+                <FormLabel>Contact Person Phone*</FormLabel>
                 <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="+61 XXX XXX XXX"
-                    {...field}
-                  />
+                  <PhoneInput className="w-full" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -331,9 +385,11 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                     : 'col-span-2'
                 }
               >
-                <FormLabel>Credit Limit</FormLabel>
+                <FormLabel>Credit Limit*</FormLabel>
                 <FormControl>
                   <InputIcon
+                    type="number"
+                    min={0}
                     className="w-full"
                     startIcon={<DollarSignIcon className="w-4 h-4" />}
                     placeholder="Enter Credit Limit"
@@ -373,7 +429,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               name="billing_address"
               render={({ field }) => (
                 <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
-                  <FormLabel>Billing Address</FormLabel>
+                  <FormLabel>Billing Address*</FormLabel>
                   <FormControl>
                     <AddressAutoComplete
                       address={address}
@@ -391,19 +447,6 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
-          {isEditing && (
-            <div
-              className={cn(
-                'flex justify-between items-center',
-                isEditing ? 'col-span-2' : 'col-span-2'
-              )}
-            >
-              <h2 className="text-2xl font-bold">Line Items</h2>
-              <Button variant="default" type="button" onClick={onCancel}>
-                + Add New Product
-              </Button>
-            </div>
-          )}
           {isEditing && (
             <div
               className={cn(
@@ -491,12 +534,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             </div>
           )}
 
-          <div
-            className={cn(
-              'flex justify-end space-x-2',
-              isEditing ? 'col-span-2' : 'col-span-2'
-            )}
-          >
+          <div className={cn('flex justify-end space-x-2 col-span-2')}>
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
@@ -504,11 +542,11 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             )}
             {!isEditing && (
               <Button
-                form="add-new-quote-form"
+                form="add-new-customer-form"
                 className={!isDesktop ? 'w-full' : 'cursor-pointer'}
                 type="submit"
               >
-                Add Quote
+                Add Customer
               </Button>
             )}
           </div>

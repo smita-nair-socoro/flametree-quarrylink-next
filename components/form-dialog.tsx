@@ -216,8 +216,8 @@ export function FormDialog({
     <>
       <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5">
         <div>
-          <DialogTitle>{headerTitle}</DialogTitle>
-          <DialogDescription className="mt-2">
+          <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
+          <DialogDescription className="my-2">
             {dialogDescription}
           </DialogDescription>
           {renderBadges()}
@@ -230,7 +230,7 @@ export function FormDialog({
         className={clsx(
           effectiveId
             ? 'h-[calc(65vh-5rem)] rounded-md p-0'
-            : 'h-auto rounded-md p-0'
+            : 'h-[calc(85vh-5rem)] rounded-md p-0'
         )}
       >
         <div>{contentNode}</div>
@@ -253,8 +253,12 @@ export function FormDialog({
       <DrawerContent className="flex flex-col max-h-[90vh]">
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
-            <DrawerTitle>{headerTitle}</DrawerTitle>
-            <DrawerDescription className="mt-2"></DrawerDescription>
+            <DrawerTitle className="text-left text-2xl">
+              {headerTitle}
+            </DrawerTitle>
+            <DrawerDescription className="my-2">
+              {dialogDescription}
+            </DrawerDescription>
             {renderBadges()}
           </div>
           {headerButtons && (
