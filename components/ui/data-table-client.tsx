@@ -208,16 +208,24 @@ export function DataTableClient<TData, TValue>({
                 {table
                   .getAllColumns()
                   .filter((col) => col.getCanHide())
-                  .map((col) => (
-                    <DropdownMenuCheckboxItem
-                      key={col.id}
-                      className="capitalize"
-                      checked={col.getIsVisible()}
-                      onCheckedChange={(val) => col.toggleVisibility(!!val)}
-                    >
-                      {col.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
+                  .map((col) => {
+                    // Use meta property if available, otherwise format the column ID
+                    const displayName =
+                      (col.columnDef.meta as string) ||
+                      col.id
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, (char) => char.toUpperCase());
+
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={col.id}
+                        checked={col.getIsVisible()}
+                        onCheckedChange={(val) => col.toggleVisibility(!!val)}
+                      >
+                        {displayName}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -283,7 +291,7 @@ export function DataTableClient<TData, TValue>({
                     colSpan={columns.length}
                     className={cn('border-b-0 p-0')}
                   >
-                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center mt-2">
+                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center">
                       {/* Empty state icon */}
                       <div className="flex justify-center mb-4">
                         <img
@@ -295,7 +303,7 @@ export function DataTableClient<TData, TValue>({
 
                       {/* Empty state text */}
                       <h3 className="text-gray-700 font-medium mb-1">
-                        No items are available
+                        No Line Items are available
                       </h3>
                     </div>
                   </TableCell>
