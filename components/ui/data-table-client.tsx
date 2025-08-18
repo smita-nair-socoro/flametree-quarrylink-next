@@ -407,7 +407,10 @@ export function DataTableClient<TData, TValue>({
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className={cn(simpleTable && 'border-b-0', 'bg-gray-100')}
+                  className={cn(
+                    simpleTable && 'border-b-0',
+                    'bg-gray-100 dark:bg-background',
+                  )}
                 >
                   {hg.headers.map((header, headerIndex) => (
                     <TableHead
