@@ -83,6 +83,7 @@ export default function QuotationsPage() {
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
+          tableId="quotation_main_data_table"
           data={items ?? []}
           columns={quotationColumns}
           facetDefination={facetDefs}

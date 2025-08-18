@@ -12,7 +12,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  GlobalFilterTableState,
   PaginationState,
   SortingState,
   useReactTable,
@@ -28,7 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './button';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -56,7 +55,8 @@ import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
 import { InputIcon } from './input-icon';
 import { Separator } from './separator';
-import { cn } from '@/lib/utils'; // Make sure you have this utility
+import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -64,6 +64,7 @@ interface DataTableProps<TData, TValue> {
   facetDefination?: FacetDefinition[];
   searchPlaceHolder?: string;
   simpleTable?: boolean;
+  tableId?: string; // Unique identifier for localStorage
 }
 
 export type FacetDefinition = {
@@ -80,23 +81,167 @@ const paginationSizeSelect = [
   { value: '200', label: '200' },
 ];
 
+// Default state values
+const defaultPagination: PaginationState = {
+  pageIndex: 0,
+  pageSize: 10,
+};
+const defaultSorting: SortingState = [];
+const defaultColumnFilters: ColumnFiltersState = [];
+const defaultGlobalFilter = '';
+const defaultColumnVisibility: VisibilityState = {};
+const defaultPaginationSize = '10';
+
 export function DataTableClient<TData, TValue>({
   columns,
   data = [],
   facetDefination = [],
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
+  tableId = 'default-table', // Default tableId if not provided
 }: DataTableProps<TData, TValue>) {
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState<GlobalFilterTableState>();
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const isMobile = useIsMobile();
 
-  const [paginationSize, setPaginationSize] = useState('10');
+  const getStorageKey = (key: string) => `${tableId}_${key}`;
+
+  const loadFromStorage = <T,>(key: string, fallback: T): T => {
+    try {
+      const stored = getLocalStorage(getStorageKey(key), fallback);
+      return stored;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const saveToStorage = (key: string, value: any) => {
+    try {
+      setLocalStorage(getStorageKey(key), value);
+    } catch (error) {
+      console.warn(`Failed to save ${key} to localStorage:`, error);
+    }
+  };
+
+  // Initialize state with localStorage values or defaults
+  const [pagination, setPagination] = useState<PaginationState>(() => {
+    if (isMobile) return defaultPagination;
+    return loadFromStorage('pagination', defaultPagination);
+  });
+
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    if (isMobile) return defaultSorting;
+    return loadFromStorage('sorting', defaultSorting);
+  });
+
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
+    if (isMobile) return defaultColumnFilters;
+    return loadFromStorage('columnFilters', defaultColumnFilters);
+  });
+
+  const [globalFilter, setGlobalFilter] = useState<string>(() => {
+    if (isMobile) return defaultGlobalFilter;
+    return loadFromStorage('globalFilter', defaultGlobalFilter);
+  });
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    () => {
+      if (isMobile) return defaultColumnVisibility;
+      return loadFromStorage('columnVisibility', defaultColumnVisibility);
+    },
+  );
+
+  const [paginationSize, setPaginationSize] = useState(() => {
+    if (isMobile) return defaultPaginationSize;
+    return loadFromStorage('paginationSize', defaultPaginationSize);
+  });
+
+  // Clear localStorage when switching to mobile or reset everything for mobile
+  useEffect(() => {
+    if (isMobile) {
+      // Clear all localStorage for this table when on mobile
+      const keys = [
+        'pagination',
+        'sorting',
+        'columnFilters',
+        'globalFilter',
+        'columnVisibility',
+        'paginationSize',
+      ];
+      keys.forEach((key) => {
+        try {
+          localStorage.removeItem(getStorageKey(key));
+        } catch (error) {
+          console.warn(`Failed to remove ${key} from localStorage:`, error);
+        }
+      });
+
+      // Reset all state to defaults
+      setPagination(defaultPagination);
+      setSorting(defaultSorting);
+      setColumnFilters(defaultColumnFilters);
+      setGlobalFilter(defaultGlobalFilter);
+      setColumnVisibility(defaultColumnVisibility);
+      setPaginationSize(defaultPaginationSize);
+    }
+  }, [isMobile, tableId]);
+
+  // Enhanced state setters that save to localStorage (only when not mobile)
+  const handlePaginationChange = (updater: any) => {
+    setPagination((old) => {
+      const newValue = typeof updater === 'function' ? updater(old) : updater;
+      if (!isMobile) {
+        saveToStorage('pagination', newValue);
+      }
+      return newValue;
+    });
+  };
+
+  const handleSortingChange = (updater: any) => {
+    setSorting((old) => {
+      const newValue = typeof updater === 'function' ? updater(old) : updater;
+      if (!isMobile) {
+        saveToStorage('sorting', newValue);
+      }
+      return newValue;
+    });
+  };
+
+  const handleColumnFiltersChange = (updater: any) => {
+    setColumnFilters((old) => {
+      const newValue = typeof updater === 'function' ? updater(old) : updater;
+      if (!isMobile) {
+        saveToStorage('columnFilters', newValue);
+      }
+      return newValue;
+    });
+  };
+
+  const handleGlobalFilterChange = (updater: any) => {
+    setGlobalFilter((old) => {
+      const newValue = typeof updater === 'function' ? updater(old) : updater;
+      if (!isMobile) {
+        saveToStorage('globalFilter', newValue);
+      }
+      return newValue;
+    });
+  };
+
+  const handleColumnVisibilityChange = (updater: any) => {
+    setColumnVisibility((old) => {
+      const newValue = typeof updater === 'function' ? updater(old) : updater;
+      if (!isMobile) {
+        saveToStorage('columnVisibility', newValue);
+      }
+      return newValue;
+    });
+  };
+
+  const handlePaginationSizeChange = (value: string) => {
+    setPaginationSize(value);
+    if (!isMobile) {
+      saveToStorage('paginationSize', value);
+    }
+    table.setPageSize(Number(value));
+  };
 
   const pageSizeTriggerContent = useMemo(() => {
     const found = paginationSizeSelect.find((f) => f.value === paginationSize);
@@ -137,11 +282,11 @@ export function DataTableClient<TData, TValue>({
     filterFns: { arrIncludesSome },
     defaultColumn: { filterFn: arrIncludesSome },
 
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    onColumnVisibilityChange: setColumnVisibility,
+    onSortingChange: handleSortingChange,
+    onPaginationChange: handlePaginationChange,
+    onColumnFiltersChange: handleColumnFiltersChange,
+    onGlobalFilterChange: handleGlobalFilterChange,
+    onColumnVisibilityChange: handleColumnVisibilityChange,
 
     state: {
       sorting,
@@ -157,9 +302,14 @@ export function DataTableClient<TData, TValue>({
   function handleFilterChange(columnId: string, values: string[]) {
     setColumnFilters((old) => {
       const others = old.filter((f) => f.id !== columnId);
-      return values.length
+      const newFilters = values.length
         ? [...others, { id: columnId, value: values }]
         : others;
+
+      if (!isMobile) {
+        saveToStorage('columnFilters', newFilters);
+      }
+      return newFilters;
     });
   }
 
@@ -291,7 +441,7 @@ export function DataTableClient<TData, TValue>({
                     colSpan={columns.length}
                     className={cn('border-b-0 p-0')}
                   >
-                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center">
+                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center mt-2">
                       {/* Empty state icon */}
                       <div className="flex justify-center mb-4">
                         <img
@@ -303,7 +453,7 @@ export function DataTableClient<TData, TValue>({
 
                       {/* Empty state text */}
                       <h3 className="text-gray-700 font-medium mb-1">
-                        No Line Items are available
+                        No items are available
                       </h3>
                     </div>
                   </TableCell>
@@ -337,10 +487,7 @@ export function DataTableClient<TData, TValue>({
                 </p>
                 <Select
                   value={paginationSize}
-                  onValueChange={(val) => {
-                    setPaginationSize(val);
-                    table.setPageSize(Number(val));
-                  }}
+                  onValueChange={handlePaginationSizeChange}
                 >
                   <SelectTrigger className="h-8 w-[80px]">
                     <SelectValue placeholder={pageSizeTriggerContent} />
