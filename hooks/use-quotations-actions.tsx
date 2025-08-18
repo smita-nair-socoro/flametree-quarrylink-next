@@ -11,7 +11,22 @@ interface DialogAdditionalInfo {
   value: string;
 }
 
-const dialogConfigs = {
+interface DialogConfig {
+  title: string;
+  description: string;
+  details: string[];
+  confirmText: string;
+  confirmVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
+  confirmCustomColor?: string;
+  confirmCustomClass?: string;
+}
+
+const dialogConfigs: Record<string, DialogConfig> = {
   sendToCustomer: {
     title: 'Confirm Sending Quote To Customer',
     description: 'Are you sure you want to send this quote to the customer?',
@@ -22,7 +37,7 @@ const dialogConfigs = {
       'The quote can no longer be edited',
     ],
     confirmText: 'Send Quote',
-    confirmVariant: 'default' as const,
+    confirmVariant: 'default',
   },
 
   approve: {
@@ -35,7 +50,8 @@ const dialogConfigs = {
       'Notify relevant team members',
     ],
     confirmText: 'Approve Quote',
-    confirmVariant: 'default' as const,
+    confirmCustomClass:
+      'bg-green-600 hover:bg-green-700 text-white border-green-600',
   },
 
   decline: {
@@ -49,7 +65,7 @@ const dialogConfigs = {
       'Quote can be reactivated later if needed',
     ],
     confirmText: 'Decline Quote',
-    confirmVariant: 'destructive' as const,
+    confirmVariant: 'destructive',
   },
 
   convertToJob: {
@@ -62,7 +78,8 @@ const dialogConfigs = {
       'This action cannot be undone',
     ],
     confirmText: 'Create Job',
-    confirmVariant: 'default' as const,
+    confirmCustomClass:
+      'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
   },
 
   extendExpiry: {
@@ -75,7 +92,8 @@ const dialogConfigs = {
       'Enable sending to customer for approval again',
     ],
     confirmText: 'Extend Expiry Date',
-    confirmVariant: 'default' as const,
+    confirmCustomClass:
+      'bg-green-600 hover:bg-green-700 text-white border-green-600',
   },
 
   archive: {
@@ -83,10 +101,10 @@ const dialogConfigs = {
     description: 'Are you sure you want to archive this quotation?',
     details: [
       'This action cannot be undone',
-      'All quote data will be archieved',
+      'All quote data will be archived',
     ],
-    confirmText: 'Archieve Quote',
-    confirmVariant: 'destructive' as const,
+    confirmText: 'Archive Quote',
+    confirmVariant: 'destructive',
   },
 };
 
@@ -231,6 +249,8 @@ export function useQuotationActions(
         additionalInfo={getAdditionalInfo(key)}
         confirmText={config.confirmText}
         confirmVariant={config.confirmVariant}
+        confirmCustomColor={config.confirmCustomColor}
+        confirmCustomClass={config.confirmCustomClass}
         onConfirmAction={() => {
           switch (key) {
             case 'sendToCustomer':
