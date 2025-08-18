@@ -19,7 +19,7 @@ export function useFacets<TData>(
       const counts: Record<string, number> = {};
 
       for (const row of table.getPreFilteredRowModel().rows) {
-        const raw = row.getValue<any>(def.column);
+        const raw = row.getValue(def.column);
 
         // if it’s already an array, iterate it
         if (Array.isArray(raw)) {
