@@ -22,11 +22,9 @@ import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 
-import { DollarSignIcon } from 'lucide-react';
-import { InputIcon } from '@/components/ui/input-icon';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
-import { ABNInput } from '@/components/ui/input-mask';
+import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -88,71 +86,25 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
+      customerForm.setValue('customer_type', value);
       if (value === 'Individual') {
         customerForm.setValue('abn', 'N/A');
-        customerForm.setValue(
-          'business_name',
-          customerForm.getValues('contact_person_name')
-        );
-        customerForm.setValue(
-          'business_email',
-          customerForm.getValues('contact_person_email')
-        );
-        customerForm.setValue(
-          'business_phone',
-          customerForm.getValues('contact_person_phone')
-        );
+        // Clear business fields for Individual customers
+        customerForm.setValue('business_name', '');
+        customerForm.setValue('business_email', '');
+        customerForm.setValue('business_phone', '');
+      } else if (value === 'Business') {
+        // Reset ABN for Business customers (remove N/A)
+        customerForm.setValue('abn', '');
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
+      customerForm.setValue('payment_type', value);
       if (value === 'Prepaid') {
         customerForm.setValue('credit_limit', 0);
       }
     }
   };
-
-  React.useEffect(() => {
-    if (selectedCustomerType === 'Individual') {
-      customerForm.setValue('abn', 'N/A');
-      customerForm.setValue(
-        'business_name',
-        customerForm.getValues('contact_person_name')
-      );
-      customerForm.setValue(
-        'business_email',
-        customerForm.getValues('contact_person_email')
-      );
-      customerForm.setValue(
-        'business_phone',
-        customerForm.getValues('contact_person_phone')
-      );
-    }
-  }, [selectedCustomerType, customerForm]);
-
-  React.useEffect(() => {
-    if (selectedPaymentType === 'Prepaid') {
-      customerForm.setValue('credit_limit', 0);
-    }
-  }, [selectedPaymentType, customerForm]);
-
-  // Effect to sync contact person data to business fields for Individual customers when contact data changes
-  React.useEffect(() => {
-    if (selectedCustomerType === 'Individual') {
-      const contactName = customerForm.watch('contact_person_name');
-      const contactEmail = customerForm.watch('contact_person_email');
-      const contactPhone = customerForm.watch('contact_person_phone');
-
-      if (contactName) {
-        customerForm.setValue('business_name', contactName);
-      }
-      if (contactEmail) {
-        customerForm.setValue('business_email', contactEmail);
-      }
-      if (contactPhone) {
-        customerForm.setValue('business_phone', contactPhone);
-      }
-    }
-  }, [selectedCustomerType, customerForm]);
 
   React.useEffect(() => {
     if (address.formattedAddress) {
@@ -180,26 +132,41 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
 
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
     console.log('onSubmit function called!');
-    // Debugging form state
-    // const hasErrors = Object.keys(customerForm.formState.errors).length > 0;
-    // console.log('Form has errors:', hasErrors);
-    // console.log('Form is valid:', !hasErrors);
-    // console.log('Form errors:', customerForm.formState.errors);
     console.log('Customer Form Values:', values);
 
     setIsSubmitting(true);
+
+    // Handle business field population for Individual customers
+    let businessName = values.business_name;
+    let businessEmail = values.business_email;
+    let businessPhone = values.business_phone;
+    let creditLimit = values.credit_limit;
+
+    if (values.customer_type === 'Individual') {
+      // For Individual customers, populate business fields with contact data
+      businessName = values.contact_person_name || values.business_name;
+      businessEmail = values.contact_person_email || values.business_email;
+      businessPhone = values.contact_person_phone || values.business_phone;
+    }
+
+    // Handle credit limit for Prepaid customers
+    if (values.payment_type === 'Prepaid') {
+      creditLimit = 0;
+    }
 
     const currentTimestamp = new Date().toISOString();
     const customerData = {
       id: 0, // Will be generated by backend
       customerType: values.customer_type?.toUpperCase() || 'BUSINESS',
-      businessName: values.business_name,
+      businessName: businessName,
+      businessEmail: businessEmail,
+      businessPhone: businessPhone,
       abn: values.abn,
       contactName: values.contact_person_name,
       phone: values.contact_person_phone,
       email: values.contact_person_email,
       billingAddressId: 0,
-      creditLimit: Math.round(Number(values.credit_limit || 0) * 100),
+      creditLimit: Math.round(Number(creditLimit || 0) * 100),
       paymentTerms: values.payment_terms,
       accountManager: values.account_manager,
       customerStatus: 'ACTIVE',
@@ -224,9 +191,14 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     <div className="w-full relative">
       {/* Loading Overlay */}
       {isSubmitting && (
-        <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-lg">
-          <div className="flex flex-col items-center space-y-4">
-            <Spinner className="h-8 w-8 animate-spin" />
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10'
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
               Adding Customer...
             </p>
@@ -415,11 +387,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 >
                   <FormLabel>ABN*</FormLabel>
                   <FormControl>
-                    <ABNInput
-                      isBusiness={selectedCustomerType === 'Business'}
-                      className="w-full"
-                      {...field}
-                    />
+                    <ABNInput className="w-full" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -514,22 +482,16 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 >
                   <FormLabel>Credit Limit*</FormLabel>
                   <FormControl>
-                    <InputIcon
-                      type="number"
-                      min="0"
-                      step="0.01"
+                    <CurrencyInput
+                      id="credit_limit"
                       className="w-full"
-                      startIcon={<DollarSignIcon className="w-4 h-4" />}
                       placeholder="Enter Credit Limit"
-                      {...field}
-                      value={field.value === 0 ? '' : field.value}
-                      onChange={(e) => {
-                        const value =
-                          e.target.value === ''
-                            ? 0
-                            : parseFloat(e.target.value);
-                        field.onChange(value);
-                      }}
+                      value={field.value}
+                      onValueChange={(value) =>
+                        field.onChange(value === '' ? 0 : value)
+                      }
+                      decimalPlaces={2}
+                      allowNegative={false}
                     />
                   </FormControl>
                   <FormMessage />
