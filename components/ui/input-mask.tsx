@@ -5,424 +5,189 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { DollarSignIcon } from 'lucide-react';
 
-/*
- * Notes:
- * - For currency/number: `onChange` receives the native event where `event.target.value`
- *   is the *formatted string* (e.g., "1,234.50"). Use `onValueChange` to get the clean numeric value.
- * - For ABN: `onChange` receives the native/synthesized event whose value is the *formatted ABN*
- *   (e.g., "12 345 678 901"). Use `onRawChange` to get the 11 raw digits.
- */
-
 interface InputMaskProps
-  extends Omit<React.ComponentProps<typeof Input>, 'prefix' | 'type'> {
-  type: 'currency' | 'number' | 'abn'; // Add more types here
-  value?: string | number;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  thousandSeparator?: boolean;
-  decimalPlaces?: false | 2 | 3;
-  allowNegative?: boolean;
-  prefix?: React.ReactNode | string;
-  suffix?: React.ReactNode | string;
-  // For ABN: callback to get raw digits for validation
-  onRawChange?: (rawValue: string) => void;
-  // For currency/number: callback to get clean numeric value
+  extends Omit<React.ComponentProps<typeof Input>, 'type' | 'prefix'> {
+  type: 'currency' | 'number' | 'abn';
   onValueChange?: (value: number | '') => void;
+  onRawChange?: (rawValue: string) => void;
+  thousandSeparator?: boolean;
+  decimalPlaces?: number | false;
+  allowNegative?: boolean;
+  prefix?: React.ReactNode;
+  suffix?: React.ReactNode;
 }
 
-/*
- * InputMask Component
- *
- * A production-ready input component with type-based formatting and validation.
- * Supports currency, number, and ABN input types with customizable formatting.
- *
- * Features:
- * - Type-safe with value?: string | number support
- * - Clean onValueChange callback (no synthetic events)
- * - Modern event.key instead of deprecated keyCode
- * - Proper zero value handling (doesn't hide zeros)
- * - Right-anchored caret positioning for comma handling
- * - Live decimal place clamping while typing
- * - Paste protection with length limits for ABN
- * - Raw value extraction for ABN validation
- * - Smart inputMode (numeric for integers, decimal for floats)
- * - Normalized formatting on blur
- * - Cross-browser compatible
- *
- * Example usage:
- * - Currency: type="currency" onValueChange={(num) => setAmount(num)}
- * - Number: type="number" thousandSeparator={false} decimalPlaces={false}
- * - ABN: type="abn" onRawChange={(raw) => validateABN(raw)}
- * - With prefix: prefix={<DollarSignIcon />} → shows icon on left
- * - With suffix: suffix="%" → shows "%" on right
- */
+const formatNumber = (
+  value: string,
+  thousandSeparator: boolean = true
+): string => {
+  if (!value) {
+    return '';
+  }
+  const parts = value.split('.');
+  parts[0] = thousandSeparator
+    ? parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    : parts[0];
+  return parts.join('.');
+};
+
+const formatABN = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+
+  // Format the ABN as user types
+  if (digits.length <= 2) {
+    return digits;
+  }
+  if (digits.length <= 5) {
+    return `${digits.slice(0, 2)} ${digits.slice(2)}`;
+  }
+  if (digits.length <= 8) {
+    return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`;
+  }
+  return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(
+    5,
+    8
+  )} ${digits.slice(8)}`;
+};
+
 const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
   (
     {
       type,
       value = '',
       onChange,
-      className,
-      placeholder,
+      onValueChange,
+      onRawChange,
       thousandSeparator = true,
       decimalPlaces = 2,
       allowNegative = false,
       prefix,
       suffix,
-      onRawChange,
-      onValueChange,
+      className,
       ...props
     },
     ref
   ) => {
     const [displayValue, setDisplayValue] = React.useState('');
-    const [isFocused, setIsFocused] = React.useState(false);
-    const inputRef = React.useRef<HTMLInputElement>(null);
 
-    // Determine behavior based on type
-    const isCurrency = type === 'currency' || type === 'number';
-    const isABN = type === 'abn';
-    const useThousandSeparator = thousandSeparator && isCurrency;
-
-    // format number with thousand separators for currency display
-    const formatCurrency = React.useCallback(
-      (numValue: number): string => {
-        if (isNaN(numValue)) return '';
-        const actualDecimalPlaces = decimalPlaces === false ? 0 : decimalPlaces;
-
-        if (useThousandSeparator) {
-          return numValue.toLocaleString('en-US', {
-            minimumFractionDigits: actualDecimalPlaces,
-            maximumFractionDigits: actualDecimalPlaces,
-          });
-        } else {
-          return numValue.toFixed(actualDecimalPlaces);
-        }
-      },
-      [decimalPlaces, useThousandSeparator]
-    );
-
-    // format currency input with thousand separators while typing
-    const formatCurrencyInput = React.useCallback(
-      (inputValue: string): string => {
-        if (!inputValue) return '';
-
-        // Remove existing thousand separators and non-numeric chars except decimal and minus
-        const cleanValue = inputValue.replace(/[^\d.-]/g, '');
-
-        // Handle negative sign
-        const isNegative = cleanValue.startsWith('-');
-        const absoluteValue = isNegative ? cleanValue.substring(1) : cleanValue;
-
-        // Split by decimal point
-        const parts = absoluteValue.split('.');
-        const integerPart = parts[0];
-        let decimalPart = parts[1];
-
-        // Restrict decimal digits while typing
-        if (decimalPart !== undefined && decimalPlaces !== false) {
-          decimalPart = decimalPart.slice(0, decimalPlaces);
-        }
-
-        // Add thousand separators to integer part if enabled
-        const formattedInteger = useThousandSeparator
-          ? integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-          : integerPart;
-
-        // Reconstruct the value
-        let formatted = formattedInteger;
-        if (decimalPart !== undefined && decimalPlaces !== false) {
-          formatted += '.' + decimalPart;
-        }
-
-        return isNegative ? '-' + formatted : formatted;
-      },
-      [useThousandSeparator, decimalPlaces]
-    );
-
-    // Parse a formatted currency string into a number.
-    // Strips commas, currency symbols, etc.
-    // Returns NaN if the value cannot be parsed (instead of coercing to 0).
-    const parseCurrency = React.useCallback((value: string): number => {
-      const cleanValue = value.replace(/[^\d.-]/g, '');
-      const parsed = parseFloat(cleanValue);
-      return Number.isFinite(parsed) ? parsed : NaN;
-    }, []);
-
-    // Simple helpers for ABN formatting
-    const unmaskDigits = React.useCallback(
-      (s: string) => s.replace(/\D/g, ''),
-      []
-    );
-
-    const formatABN = React.useCallback(
-      (digits: string) => {
-        // Strip all non-digits and limit to 11 characters (ABN max length)
-        const clean = unmaskDigits(digits).slice(0, 11);
-
-        // Regex breakdown: ^(\d{2})(\d{3})(\d{3})(\d{0,3})?$
-        // - (\d{2})   → first 2 digits
-        // - (\d{3})   → next 3 digits
-        // - (\d{3})   → next 3 digits
-        // - (\d{0,3}) → optional last 0–3 digits (makes total up to 11)
-        //
-        // Replace callback: insert spaces between groups
-        // → "12 345 678 901" when all 11 digits entered
-        // → "12 345 678" if fewer than 11 digits
-        return clean.replace(
-          /^(\d{2})(\d{3})(\d{3})(\d{0,3})?$/,
-          (_, a, b, c, d = '') => (d ? `${a} ${b} ${c} ${d}` : `${a} ${b} ${c}`)
-        );
-      },
-      [unmaskDigits]
-    );
-
-    // Update display value when the external value prop changes
+    // Initialize display value
     React.useEffect(() => {
-      if (value !== undefined) {
-        if (isCurrency) {
-          // Handle empty values properly
-          if (value === '' || value === null || value === undefined) {
-            setDisplayValue('');
-          } else {
-            const numValue =
-              typeof value === 'string' ? parseCurrency(value) : Number(value);
+      const stringValue = String(value || '');
 
-            // Don't hide zero values - format them properly
-            if (!isNaN(numValue)) {
-              setDisplayValue(formatCurrencyInput(String(numValue)));
-            } else {
-              setDisplayValue('');
-            }
-          }
-        } else if (isABN) {
-          const formatted = formatABN(String(value));
-          setDisplayValue(formatted);
-        }
+      if (type === 'abn') {
+        setDisplayValue(formatABN(stringValue));
+      } else {
+        // Remove non-numeric characters
+        // " $1,234.50 abc " -> "1234.50"
+        const cleanValue = stringValue.replace(/[^\d.-]/g, '');
+        setDisplayValue(formatNumber(cleanValue, thousandSeparator));
       }
-    }, [
-      value,
-      isCurrency,
-      isABN,
-      formatCurrencyInput,
-      parseCurrency,
-      formatABN,
-    ]);
+    }, [value, type, thousandSeparator]);
 
-    // Handle input changes and apply formatting
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = event.target.value;
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
 
-      if (isCurrency) {
-        // Handle currency/number input with optional thousand separator formatting
-        let cleanValue = inputValue;
+      if (type === 'abn') {
+        const rawDigits = inputValue.replace(/\D/g, '').slice(0, 11);
+        const formatted = formatABN(rawDigits);
+        setDisplayValue(formatted);
+        onRawChange?.(rawDigits);
+      } else {
+        // Handle currency/number
+        let cleanValue = inputValue.replace(/[^\d.-]/g, '');
 
-        // Handle negative values
-        if (!allowNegative && cleanValue.startsWith('-')) {
-          cleanValue = cleanValue.substring(1);
+        // Handle negative
+        if (!allowNegative) {
+          cleanValue = cleanValue.replace(/-/g, '');
         }
 
-        // Remove existing formatting to get raw input and strip extra minus signs
-        const rawValue = cleanValue
-          .replace(/[^\d.-]/g, '')
-          .replace(/(?!^)-/g, ''); // remove any '-' not at start
-
-        // Build regex based on decimal settings
-        let regex: RegExp;
-        if (decimalPlaces === false) {
-          regex = allowNegative ? /^-?\d*$/ : /^\d*$/;
-        } else {
-          regex = allowNegative ? /^-?\d*\.?\d*$/ : /^\d*\.?\d*$/;
+        // Handle decimal places
+        if (decimalPlaces !== false && cleanValue.includes('.')) {
+          const parts = cleanValue.split('.');
+          if (parts[1] && parts[1].length > decimalPlaces) {
+            parts[1] = parts[1].slice(0, decimalPlaces);
+            cleanValue = parts.join('.');
+          }
+        } else if (decimalPlaces === false) {
+          cleanValue = cleanValue.replace(/\./g, '');
         }
 
-        if (rawValue === '' || regex.test(rawValue)) {
-          // Store cursor position before formatting (anchor from right for better comma handling)
-          const start = event.target.selectionStart ?? inputValue.length;
-          const rightOffset = inputValue.length - start;
-
-          // Format the input based on settings
-          const formattedValue = formatCurrencyInput(rawValue);
-          setDisplayValue(formattedValue);
-
-          // Calculate and set cursor position after formatting (right-anchored)
-          setTimeout(() => {
-            if (inputRef.current && isFocused) {
-              const newPos = Math.max(0, formattedValue.length - rightOffset);
-              inputRef.current.setSelectionRange(newPos, newPos);
-            }
-          }, 0);
-
-          // Clean numeric value for callback (handle in-progress states)
-          const numValue: number | '' =
-            rawValue === '' || rawValue === '-' || rawValue === '.'
-              ? ''
-              : Number(rawValue);
-
-          // Call clean value callback and pass through original event unchanged
-          onValueChange?.(numValue);
-          onChange?.(event);
-        }
-      } else if (isABN) {
-        // Handle ABN input - extract digits and format
-        const rawValue = unmaskDigits(inputValue).slice(0, 11);
-        const formatted = formatABN(rawValue);
+        // Format the number
+        const formatted = formatNumber(cleanValue, thousandSeparator);
         setDisplayValue(formatted);
 
-        // Create event with formatted value and call callbacks
-        const formattedEvent = {
-          ...event,
-          target: {
-            ...event.target,
-            value: formatted,
-          },
-        };
-
-        onRawChange?.(rawValue);
-        onChange?.(formattedEvent);
+        // Get the numeric value
+        const numericValue =
+          cleanValue === '' ? '' : parseFloat(cleanValue) || 0;
+        onValueChange?.(numericValue);
       }
+
+      onChange?.(e);
     };
 
-    // Handle focus for currency inputs - maintain formatting
-    const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-      if (isCurrency) {
-        setIsFocused(true);
-      }
-      props.onFocus?.(event);
-    };
-
-    // Handle blur for currency inputs - normalise formatting with proper decimal places
-    const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-      if (isCurrency) {
-        setIsFocused(false);
-
-        // Normalize decimal places on blur (e.g., "0" becomes "0.00", "2" becomes "2.00" if decimalPlaces=2)
-        const trimmed = displayValue.trim();
-        if (trimmed !== '') {
-          const numValue = parseCurrency(displayValue);
-          if (!isNaN(numValue)) {
-            const normalizedValue = formatCurrency(numValue);
-            setDisplayValue(normalizedValue);
-          }
+    // Set appropriate inputMode for mobile keyboards
+    const getInputMode =
+      (): React.HTMLAttributes<HTMLInputElement>['inputMode'] => {
+        if (type === 'abn') return 'numeric';
+        if (type === 'currency' || type === 'number') {
+          return decimalPlaces === false ? 'numeric' : 'decimal';
         }
-      }
-      props.onBlur?.(event);
+        return 'text';
+      };
+
+    const inputProps = {
+      ...props,
+      ref,
+      value: displayValue,
+      onChange: handleChange,
+      inputMode: getInputMode(),
+      className: cn(prefix || suffix ? 'px-3' : '', className),
     };
 
-    // Combine refs
-    const combinedRef = React.useCallback(
-      (node: HTMLInputElement) => {
-        inputRef.current = node;
-        if (typeof ref === 'function') {
-          ref(node);
-        } else if (ref) {
-          ref.current = node;
-        }
-      },
-      [ref]
-    );
+    // If prefix or suffix is provided, we need to wrap the input in a div with a relative position
+    if (prefix || suffix) {
+      return (
+        <div className="relative">
+          {prefix && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              {prefix}
+            </div>
+          )}
+          <Input
+            {...inputProps}
+            className={cn(
+              prefix ? 'pl-10' : '',
+              suffix ? 'pr-10' : '',
+              className
+            )}
+          />
+          {suffix && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              {suffix}
+            </div>
+          )}
+        </div>
+      );
+    }
 
-    // Always render with wrapper for consistent behavior
-    return (
-      <div className={cn('relative w-full', className)}>
-        <Input
-          {...props}
-          ref={combinedRef}
-          type="text"
-          inputMode={
-            isCurrency
-              ? decimalPlaces === false
-                ? 'numeric'
-                : 'decimal'
-              : props.inputMode
-          }
-          value={displayValue}
-          onChange={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          placeholder={
-            placeholder ||
-            (isCurrency
-              ? decimalPlaces === false
-                ? '0'
-                : '0.00'
-              : 'XX XXX XXX XXX')
-          }
-          className={cn(prefix && 'pl-10', suffix && 'pr-10')}
-        />
-        {prefix && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-            {prefix}
-          </div>
-        )}
-        {suffix && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground pointer-events-none">
-            {suffix}
-          </div>
-        )}
-      </div>
-    );
+    return <Input {...inputProps} />;
   }
 );
 
 InputMask.displayName = 'InputMask';
 
-// ============================================================================
-// SPECIALIZED INPUT COMPONENTS
-// ============================================================================
-
-// Note: PhoneInput has been moved to /components/ui/phone-input.tsx
-// This uses the Shadcn Phone Input implementation with international support
-
-/*
- * ABNInput Component
- *
- * A specialized input component for Australian Business Numbers (ABN).
- * Features:
- * - Automatic formatting: XX XXX XXX XXX (11 digits with spaces)
- * - Only accepts numeric digits (max 11 digits)
- * - Paste protection with automatic truncation
- * - Raw digit extraction for validation
- * - Real-time validation and formatting
- * - Integrates with existing ABN validation (is-valid-abn library)
- *
- * Example: User types "12345678901" → displays "12 345 678 901"
- * Usage: <ABNInput onRawChange={(raw) => validateABN(raw)} />
- */
-interface ABNInputProps extends Omit<InputMaskProps, 'type'> {
-  // No additional props needed
-}
+// Specialized Components
+interface ABNInputProps extends Omit<InputMaskProps, 'type'> {}
 
 const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
-  ({ placeholder, ...props }, ref) => {
-    return (
-      <InputMask
-        {...props}
-        ref={ref}
-        type="abn"
-        placeholder={placeholder || 'XX XXX XXX XXX'}
-      />
-    );
-  }
+  ({ placeholder = 'XX XXX XXX XXX', ...props }, ref) => (
+    <InputMask {...props} ref={ref} type="abn" placeholder={placeholder} />
+  )
 );
 
 ABNInput.displayName = 'ABNInput';
 
-/*
- * CurrencyInput Component
- *
- * A specialized input component for currency amounts with thousand separators and dollar icon.
- * Features:
- * - Dollar sign icon on the left (using prefix)
- * - Real-time thousand separator formatting while typing
- * - Maintains cursor position during formatting
- * - Configurable decimal places (default: 2)
- * - Optional negative values support
- *
- * Example: User types "1234.56" → displays "$ 1,234.56" with icon
- */
-interface CurrencyInputProps extends Omit<InputMaskProps, 'type' | 'prefix'> {
-  // All other props inherited from InputMaskProps
-}
+interface CurrencyInputProps extends Omit<InputMaskProps, 'type' | 'prefix'> {}
 
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
@@ -430,46 +195,27 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       thousandSeparator = true,
       decimalPlaces = 2,
       allowNegative = false,
-      placeholder,
-      className,
+      placeholder = '0.00',
       ...props
     },
     ref
-  ) => {
-    return (
-      <InputMask
-        {...props}
-        ref={ref}
-        type="currency"
-        thousandSeparator={thousandSeparator}
-        decimalPlaces={decimalPlaces}
-        allowNegative={allowNegative}
-        placeholder={placeholder || (decimalPlaces === false ? '0' : '0.00')}
-        prefix={<DollarSignIcon size={19} />}
-        className={className}
-      />
-    );
-  }
+  ) => (
+    <InputMask
+      {...props}
+      ref={ref}
+      type="currency"
+      thousandSeparator={thousandSeparator}
+      decimalPlaces={decimalPlaces}
+      allowNegative={allowNegative}
+      placeholder={placeholder}
+      prefix={<DollarSignIcon size={19} />}
+    />
+  )
 );
 
 CurrencyInput.displayName = 'CurrencyInput';
 
-/*
- * NumberInput Component
- *
- * A specialized input component for numbers with optional thousand separators (no currency symbol).
- * Features:
- * - Optional thousand separator formatting while typing
- * - Maintains cursor position during formatting
- * - Configurable decimal places (default: 2, false for integers)
- * - Optional negative values support
- * - No currency symbol or icon
- *
- * Example: User types "1234.56" → displays "1,234.56" (with thousandSeparator=true)
- */
-interface NumberInputProps extends Omit<InputMaskProps, 'type'> {
-  // All other props inherited from InputMaskProps
-}
+interface NumberInputProps extends Omit<InputMaskProps, 'type'> {}
 
 const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
   (
@@ -477,25 +223,26 @@ const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
       thousandSeparator = true,
       decimalPlaces = 2,
       allowNegative = false,
-      placeholder,
+      placeholder = '0',
       ...props
     },
     ref
-  ) => {
-    return (
-      <InputMask
-        {...props}
-        ref={ref}
-        type="number"
-        thousandSeparator={thousandSeparator}
-        decimalPlaces={decimalPlaces}
-        allowNegative={allowNegative}
-        placeholder={placeholder || (decimalPlaces === false ? '0' : '0.00')}
-      />
-    );
-  }
+  ) => (
+    <InputMask
+      {...props}
+      ref={ref}
+      type="number"
+      thousandSeparator={thousandSeparator}
+      decimalPlaces={decimalPlaces}
+      allowNegative={allowNegative}
+      placeholder={placeholder}
+    />
+  )
 );
 
 NumberInput.displayName = 'NumberInput';
 
-export { ABNInput, CurrencyInput, NumberInput };
+// Add more compoenets here
+// eg. Quatnity like 5 TN, 2 kg and so on
+
+export { InputMask, ABNInput, CurrencyInput, NumberInput };
