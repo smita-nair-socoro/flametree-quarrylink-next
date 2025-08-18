@@ -680,7 +680,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             {!isEditing && (
               <Button
                 form="add-new-customer-form"
-                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
+                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
                 type="submit"
                 disabled={isSubmitting}
               >
