@@ -122,7 +122,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       const names = getValue<string>();
       return <TableBadges names={names} visibleCount={1} />;
     },
-    meta: 'STATUS',
+    meta: 'Status',
   },
 
   {
