@@ -128,10 +128,15 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
     // Set appropriate inputMode for mobile keyboards
     const getInputMode =
       (): React.HTMLAttributes<HTMLInputElement>['inputMode'] => {
-        if (type === 'abn') return 'numeric';
+        if (type === 'abn') {
+          // Number pad for ABN
+          return 'numeric';
+        }
         if (type === 'currency' || type === 'number') {
+          // Number pad for currency and number
           return decimalPlaces === false ? 'numeric' : 'decimal';
         }
+        // Default to text for other types
         return 'text';
       };
 
@@ -176,8 +181,8 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
 
 InputMask.displayName = 'InputMask';
 
-// Specialized Components
-interface ABNInputProps extends Omit<InputMaskProps, 'type'> {}
+// Specialised Components
+type ABNInputProps = Omit<InputMaskProps, 'type'>;
 
 const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
   ({ placeholder = 'XX XXX XXX XXX', ...props }, ref) => (
@@ -187,7 +192,7 @@ const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
 
 ABNInput.displayName = 'ABNInput';
 
-interface CurrencyInputProps extends Omit<InputMaskProps, 'type' | 'prefix'> {}
+type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix'>;
 
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
@@ -215,7 +220,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
 
 CurrencyInput.displayName = 'CurrencyInput';
 
-interface NumberInputProps extends Omit<InputMaskProps, 'type'> {}
+type NumberInputProps = Omit<InputMaskProps, 'type'>;
 
 const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
   (

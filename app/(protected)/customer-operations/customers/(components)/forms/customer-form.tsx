@@ -505,7 +505,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             name="payment_terms"
             label="Payment Terms*"
             options={paymentTermsOptions}
-            placeholder="Select Customer"
+            placeholder="Select Payment Terms"
             formItemClassName={
               isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
             }
