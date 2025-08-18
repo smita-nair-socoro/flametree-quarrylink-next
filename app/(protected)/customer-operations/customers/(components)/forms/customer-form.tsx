@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
-import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
+import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -27,7 +26,9 @@ import { DollarSignIcon } from 'lucide-react';
 import { InputIcon } from '@/components/ui/input-icon';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
-import { PhoneInput, ABNInput } from '@/components/ui/input-mask';
+import { ABNInput } from '@/components/ui/input-mask';
+import { PhoneInput } from '@/components/ui/phone-input';
+import { Spinner } from '@/components/ui/spinner';
 
 interface FormProps {
   id?: number;
@@ -43,8 +44,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     React.useState<string>('Business');
   const [selectedPaymentType, setSelectedPaymentType] =
     React.useState<string>('Credit');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // TODO: Once Address Type is added, do this
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
     address2: '',
@@ -72,10 +73,12 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       contact_person_phone: '',
       credit_limit: 0,
       payment_terms: '',
-      created_at: undefined,
-      updated_at: undefined,
-      created_by: '',
-      last_modified_by: '',
+      account_manager: '',
+      billing_address: '',
+      created_at: new Date(),
+      updated_at: new Date(),
+      created_by: 'current_user',
+      last_modified_by: 'current_user',
     },
   });
 
@@ -85,10 +88,77 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
+      if (value === 'Individual') {
+        customerForm.setValue('abn', 'N/A');
+        customerForm.setValue(
+          'business_name',
+          customerForm.getValues('contact_person_name')
+        );
+        customerForm.setValue(
+          'business_email',
+          customerForm.getValues('contact_person_email')
+        );
+        customerForm.setValue(
+          'business_phone',
+          customerForm.getValues('contact_person_phone')
+        );
+      }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
+      if (value === 'Prepaid') {
+        customerForm.setValue('credit_limit', 0);
+      }
     }
   };
+
+  React.useEffect(() => {
+    if (selectedCustomerType === 'Individual') {
+      customerForm.setValue('abn', 'N/A');
+      customerForm.setValue(
+        'business_name',
+        customerForm.getValues('contact_person_name')
+      );
+      customerForm.setValue(
+        'business_email',
+        customerForm.getValues('contact_person_email')
+      );
+      customerForm.setValue(
+        'business_phone',
+        customerForm.getValues('contact_person_phone')
+      );
+    }
+  }, [selectedCustomerType]);
+
+  React.useEffect(() => {
+    if (selectedPaymentType === 'Prepaid') {
+      customerForm.setValue('credit_limit', 0);
+    }
+  }, [selectedPaymentType]);
+
+  // Effect to sync contact person data to business fields for Individual customers when contact data changes
+  React.useEffect(() => {
+    if (selectedCustomerType === 'Individual') {
+      const contactName = customerForm.watch('contact_person_name');
+      const contactEmail = customerForm.watch('contact_person_email');
+      const contactPhone = customerForm.watch('contact_person_phone');
+
+      if (contactName) {
+        customerForm.setValue('business_name', contactName);
+      }
+      if (contactEmail) {
+        customerForm.setValue('business_email', contactEmail);
+      }
+      if (contactPhone) {
+        customerForm.setValue('business_phone', contactPhone);
+      }
+    }
+  }, [
+    customerForm.watch('contact_person_name'),
+    customerForm.watch('contact_person_email'),
+    customerForm.watch('contact_person_phone'),
+    selectedCustomerType,
+    customerForm,
+  ]);
 
   React.useEffect(() => {
     if (address.formattedAddress) {
@@ -112,17 +182,64 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   const accountManagerOptions = [
     { label: 'Reza', value: 'Reza' },
     { label: 'Armin', value: 'Armin' },
-  ];
+  ]; // TODO: get account manager
 
-  function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
+  async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
     console.log('onSubmit function called!');
-    console.log('Form is valid:', customerForm.formState.isValid);
-    console.log('Form errors:', customerForm.formState.errors);
+    // Debugging form state
+    // const hasErrors = Object.keys(customerForm.formState.errors).length > 0;
+    // console.log('Form has errors:', hasErrors);
+    // console.log('Form is valid:', !hasErrors);
+    // console.log('Form errors:', customerForm.formState.errors);
     console.log('Customer Form Values:', values);
+
+    setIsSubmitting(true);
+
+    const currentTimestamp = new Date().toISOString();
+    const customerData = {
+      id: 0, // Will be generated by backend
+      customerType: values.customer_type?.toUpperCase() || 'BUSINESS',
+      businessName: values.business_name,
+      abn: values.abn,
+      contactName: values.contact_person_name,
+      phone: values.contact_person_phone,
+      email: values.contact_person_email,
+      billingAddressId: 0,
+      creditLimit: Math.round(Number(values.credit_limit || 0) * 100),
+      paymentTerms: values.payment_terms,
+      accountManager: values.account_manager,
+      customerStatus: 'ACTIVE',
+      jobsCount: 0,
+      version: 0, // TODO: get version
+      isDeleted: false,
+      createdBy: 'current_user', // TODO: get current user
+      createdAt: currentTimestamp,
+      updatedAt: currentTimestamp,
+      lastModifiedBy: 'current_user', // TODO: get current user
+    };
+
+    console.log('Customer Data:', customerData);
+
+    // Simulate API call delay (remove this in production)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setIsSubmitting(false);
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] z-50 flex items-center justify-center rounded-lg">
+          <div className="flex flex-col items-center space-y-4">
+            <Spinner className="h-8 w-8 animate-spin" />
+            <p className="text-lg text-muted-foreground font-bold">
+              Adding Customer...
+            </p>
+          </div>
+        </div>
+      )}
+
       <Form {...customerForm}>
         <form
           id="add-new-customer-form"
@@ -131,7 +248,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             isEditing && isDesktop
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
-            className
+            className,
+            isSubmitting && 'pointer-events-none'
           )}
           onSubmit={customerForm.handleSubmit(onSubmit)}
         >
@@ -276,7 +394,12 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 >
                   <FormLabel>Business Phone*</FormLabel>
                   <FormControl>
-                    <PhoneInput className="w-full" {...field} />
+                    <PhoneInput
+                      className="w-full"
+                      defaultCountry="AU"
+                      placeholder="Enter phone number"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -298,7 +421,11 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 >
                   <FormLabel>ABN*</FormLabel>
                   <FormControl>
-                    <ABNInput className="w-full" {...field} />
+                    <ABNInput
+                      isBusiness={selectedCustomerType === 'Business'}
+                      className="w-full"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -367,32 +494,10 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               >
                 <FormLabel>Contact Person Phone*</FormLabel>
                 <FormControl>
-                  <PhoneInput className="w-full" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={customerForm.control}
-            name="credit_limit"
-            render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
-                }
-              >
-                <FormLabel>Credit Limit*</FormLabel>
-                <FormControl>
-                  <InputIcon
-                    type="number"
-                    min={0}
+                  <PhoneInput
                     className="w-full"
-                    startIcon={<DollarSignIcon className="w-4 h-4" />}
-                    placeholder="Enter Credit Limit"
+                    defaultCountry="AU"
+                    placeholder="Enter phone number"
                     {...field}
                   />
                 </FormControl>
@@ -400,6 +505,44 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
+
+          {selectedPaymentType === 'Credit' && (
+            <FormField
+              control={customerForm.control}
+              name="credit_limit"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Credit Limit*</FormLabel>
+                  <FormControl>
+                    <InputIcon
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="w-full"
+                      startIcon={<DollarSignIcon className="w-4 h-4" />}
+                      placeholder="Enter Credit Limit"
+                      {...field}
+                      value={field.value === 0 ? '' : field.value}
+                      onChange={(e) => {
+                        const value =
+                          e.target.value === ''
+                            ? 0
+                            : parseFloat(e.target.value);
+                        field.onChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormSelect
             control={customerForm.control}
@@ -545,8 +688,9 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 form="add-new-customer-form"
                 className={!isDesktop ? 'w-full' : 'cursor-pointer'}
                 type="submit"
+                disabled={isSubmitting}
               >
-                Add Customer
+                {isSubmitting ? 'Adding Customer...' : 'Add Customer'}
               </Button>
             )}
           </div>
