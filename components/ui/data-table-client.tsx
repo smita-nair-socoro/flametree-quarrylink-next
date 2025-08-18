@@ -389,22 +389,32 @@ export function DataTableClient<TData, TValue>({
 
       {/** Table Wrapper **/}
       <div
-        className={cn(simpleTable ? '' : 'rounded-md border p-2', 'bg-gray-50')}
+        className={cn(
+          simpleTable ? '' : 'rounded-md border p-2',
+          'bg-gray-50 dark:bg-background',
+        )}
       >
         <div className="overflow-auto">
-          <Table className="bg-gray-50">
+          <Table className="bg-gray-50 dark:bg-background">
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className={cn(simpleTable && 'border-b-0', 'bg-gray-100')}
+                  className={cn(
+                    simpleTable && 'border-b-0',
+                    'bg-gray-100 dark:bg-background',
+                  )}
                 >
-                  {hg.headers.map((header) => (
+                  {hg.headers.map((header, headerIndex) => (
                     <TableHead
                       key={header.id}
                       className={cn(
                         simpleTable &&
                           'border-b-0 font-medium text-muted-foreground',
+                        !simpleTable && headerIndex === 0 && 'rounded-tl-md',
+                        !simpleTable &&
+                          headerIndex === hg.headers.length - 1 &&
+                          'rounded-tr-md',
                       )}
                     >
                       {header.isPlaceholder
@@ -426,7 +436,8 @@ export function DataTableClient<TData, TValue>({
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
                       simpleTable && 'border-b-0 hover:bg-transparent',
-                      'bg-gray-50 hover:bg-gray-100',
+                      !simpleTable &&
+                        'bg-gray-50 hover:bg-gray-100 dark:bg-background dark:hover:bg-muted/50',
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -446,14 +457,14 @@ export function DataTableClient<TData, TValue>({
                 <TableRow
                   className={cn(
                     simpleTable && 'border-b-0',
-                    'bg-gray-50', // Added grey background to empty state row
+                    'bg-gray-50 dark:bg-background',
                   )}
                 >
                   <TableCell
                     colSpan={columns.length}
                     className={cn('border-b-0 p-0')}
                   >
-                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center mt-2">
+                    <div className="relative bg-purple-50 dark:bg-purple-900/20 border-2 border-dashed border-purple-200 dark:border-purple-700 rounded-lg p-12 text-center mt-2">
                       {/* Empty state icon */}
                       <div className="flex justify-center mb-4">
                         <Image
@@ -466,7 +477,7 @@ export function DataTableClient<TData, TValue>({
                       </div>
 
                       {/* Empty state text */}
-                      <h3 className="text-gray-700 font-medium mb-1">
+                      <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-1">
                         No items are available
                       </h3>
                     </div>
