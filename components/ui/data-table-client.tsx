@@ -16,6 +16,7 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  Updater,
 } from '@tanstack/react-table';
 
 import {
@@ -27,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './button';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -57,6 +58,7 @@ import { InputIcon } from './input-icon';
 import { Separator } from './separator';
 import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import Image from 'next/image';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -102,7 +104,10 @@ export function DataTableClient<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
-  const getStorageKey = (key: string) => `${tableId}_${key}`;
+  const getStorageKey = useCallback(
+    (key: string) => `${tableId}_${key}`,
+    [tableId],
+  );
 
   const loadFromStorage = <T,>(key: string, fallback: T): T => {
     try {
@@ -113,7 +118,7 @@ export function DataTableClient<TData, TValue>({
     }
   };
 
-  const saveToStorage = (key: string, value: any) => {
+  const saveToStorage = (key: string, value: unknown) => {
     try {
       setLocalStorage(getStorageKey(key), value);
     } catch (error) {
@@ -182,10 +187,10 @@ export function DataTableClient<TData, TValue>({
       setColumnVisibility(defaultColumnVisibility);
       setPaginationSize(defaultPaginationSize);
     }
-  }, [isMobile, tableId]);
+  }, [isMobile, tableId, getStorageKey]);
 
   // Enhanced state setters that save to localStorage (only when not mobile)
-  const handlePaginationChange = (updater: any) => {
+  const handlePaginationChange = (updater: Updater<PaginationState>) => {
     setPagination((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
       if (!isMobile) {
@@ -195,7 +200,7 @@ export function DataTableClient<TData, TValue>({
     });
   };
 
-  const handleSortingChange = (updater: any) => {
+  const handleSortingChange = (updater: Updater<SortingState>) => {
     setSorting((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
       if (!isMobile) {
@@ -205,7 +210,7 @@ export function DataTableClient<TData, TValue>({
     });
   };
 
-  const handleColumnFiltersChange = (updater: any) => {
+  const handleColumnFiltersChange = (updater: Updater<ColumnFiltersState>) => {
     setColumnFilters((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
       if (!isMobile) {
@@ -215,7 +220,7 @@ export function DataTableClient<TData, TValue>({
     });
   };
 
-  const handleGlobalFilterChange = (updater: any) => {
+  const handleGlobalFilterChange = (updater: Updater<string>) => {
     setGlobalFilter((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
       if (!isMobile) {
@@ -225,7 +230,7 @@ export function DataTableClient<TData, TValue>({
     });
   };
 
-  const handleColumnVisibilityChange = (updater: any) => {
+  const handleColumnVisibilityChange = (updater: Updater<VisibilityState>) => {
     setColumnVisibility((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
       if (!isMobile) {
@@ -383,14 +388,16 @@ export function DataTableClient<TData, TValue>({
       )}
 
       {/** Table Wrapper **/}
-      <div className={cn(simpleTable ? '' : 'rounded-md border p-2')}>
+      <div
+        className={cn(simpleTable ? '' : 'rounded-md border p-2', 'bg-gray-50')}
+      >
         <div className="overflow-auto">
-          <Table>
+          <Table className="bg-gray-50">
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className={cn(simpleTable && 'border-b-0')}
+                  className={cn(simpleTable && 'border-b-0', 'bg-gray-100')}
                 >
                   {hg.headers.map((header) => (
                     <TableHead
@@ -411,7 +418,6 @@ export function DataTableClient<TData, TValue>({
                 </TableRow>
               ))}
             </TableHeader>
-
             <TableBody>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
@@ -420,6 +426,7 @@ export function DataTableClient<TData, TValue>({
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
                       simpleTable && 'border-b-0 hover:bg-transparent',
+                      'bg-gray-50 hover:bg-gray-100',
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -436,7 +443,12 @@ export function DataTableClient<TData, TValue>({
                   </TableRow>
                 ))
               ) : (
-                <TableRow className={cn(simpleTable && 'border-b-0')}>
+                <TableRow
+                  className={cn(
+                    simpleTable && 'border-b-0',
+                    'bg-gray-50', // Added grey background to empty state row
+                  )}
+                >
                   <TableCell
                     colSpan={columns.length}
                     className={cn('border-b-0 p-0')}
@@ -444,9 +456,11 @@ export function DataTableClient<TData, TValue>({
                     <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center mt-2">
                       {/* Empty state icon */}
                       <div className="flex justify-center mb-4">
-                        <img
+                        <Image
                           src="/empty-table.svg"
                           alt="No data available"
+                          width={128}
+                          height={128}
                           className="w-32 h-auto"
                         />
                       </div>
