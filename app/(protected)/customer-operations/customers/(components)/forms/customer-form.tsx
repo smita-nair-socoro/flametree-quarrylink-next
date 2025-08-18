@@ -127,13 +127,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
         customerForm.getValues('contact_person_phone')
       );
     }
-  }, [selectedCustomerType]);
+  }, [selectedCustomerType, customerForm]);
 
   React.useEffect(() => {
     if (selectedPaymentType === 'Prepaid') {
       customerForm.setValue('credit_limit', 0);
     }
-  }, [selectedPaymentType]);
+  }, [selectedPaymentType, customerForm]);
 
   // Effect to sync contact person data to business fields for Individual customers when contact data changes
   React.useEffect(() => {
@@ -152,13 +152,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
         customerForm.setValue('business_phone', contactPhone);
       }
     }
-  }, [
-    customerForm.watch('contact_person_name'),
-    customerForm.watch('contact_person_email'),
-    customerForm.watch('contact_person_phone'),
-    selectedCustomerType,
-    customerForm,
-  ]);
+  }, [selectedCustomerType, customerForm]);
 
   React.useEffect(() => {
     if (address.formattedAddress) {
