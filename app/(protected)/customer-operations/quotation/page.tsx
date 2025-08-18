@@ -64,7 +64,6 @@ export default function QuotationsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Quotations</h1>
-          <p className="text-sm text-muted-foreground">Manage your quotation</p>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
