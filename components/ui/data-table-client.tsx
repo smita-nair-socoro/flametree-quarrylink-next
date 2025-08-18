@@ -56,6 +56,7 @@ import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
 import { InputIcon } from './input-icon';
 import { Separator } from './separator';
+import { cn } from '@/lib/utils'; // Make sure you have this utility
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -224,14 +225,23 @@ export function DataTableClient<TData, TValue>({
       )}
 
       {/** Table Wrapper **/}
-      <div className="rounded-md border p-2">
+      <div className={cn(simpleTable ? '' : 'rounded-md border p-2')}>
         <div className="overflow-auto">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
-                <TableRow key={hg.id}>
+                <TableRow
+                  key={hg.id}
+                  className={cn(simpleTable && 'border-b-0')}
+                >
                   {hg.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        simpleTable &&
+                          'border-b-0 font-medium text-muted-foreground',
+                      )}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -250,9 +260,15 @@ export function DataTableClient<TData, TValue>({
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
+                    className={cn(
+                      simpleTable && 'border-b-0 hover:bg-transparent',
+                    )}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell
+                        key={cell.id}
+                        className={cn(simpleTable && 'border-b-0')}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -262,12 +278,26 @@ export function DataTableClient<TData, TValue>({
                   </TableRow>
                 ))
               ) : (
-                <TableRow>
+                <TableRow className={cn(simpleTable && 'border-b-0')}>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className={cn('border-b-0 p-0')}
                   >
-                    No results.
+                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 rounded-lg p-12 text-center mt-2">
+                      {/* Empty state icon */}
+                      <div className="flex justify-center mb-4">
+                        <img
+                          src="/empty-table.svg"
+                          alt="No data available"
+                          className="w-32 h-auto"
+                        />
+                      </div>
+
+                      {/* Empty state text */}
+                      <h3 className="text-gray-700 font-medium mb-1">
+                        No items are available
+                      </h3>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
