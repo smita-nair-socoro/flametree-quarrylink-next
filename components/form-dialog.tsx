@@ -230,7 +230,7 @@ export function FormDialog({
         className={clsx(
           effectiveId
             ? 'h-[calc(65vh-5rem)] rounded-md p-0'
-            : 'h-auto rounded-md p-0',
+            : 'h-[calc(85vh-5rem)] rounded-md p-0',
         )}
       >
         <div>{contentNode}</div>
