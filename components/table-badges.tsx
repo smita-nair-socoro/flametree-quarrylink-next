@@ -42,6 +42,7 @@ function getBadgeClassName(name: string): string {
   if (STATUS_COLORS[key]) {
     return STATUS_COLORS[key];
   }
+
   const dynamicKey = pickKey(key);
   return PALETTE[dynamicKey] || PALETTE.sky;
 }

@@ -119,7 +119,8 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ getValue }) => {
-      const names = getValue<string>();
+      const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
+
       return <TableBadges names={names} visibleCount={1} />;
     },
     meta: 'Status',
