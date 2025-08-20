@@ -633,7 +633,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             </div>
           )}
 
-          <div className={cn('flex justify-end space-x-2 col-span-2')}>
+          <div className={cn('flex justify-end space-x-2 col-span-2 mb-6')}>
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
