@@ -7,12 +7,10 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip';
 import { cn, STATUS_COLORS } from '@/lib/utils';
-
 interface TableBadgesProps {
   names: string | string[];
   visibleCount?: number;
 }
-
 const PALETTE: Record<string, string> = {
   red: 'bg-red-100 text-red-800 dark:bg-red-200 dark:text-red-900',
   yellow:
@@ -27,9 +25,7 @@ const PALETTE: Record<string, string> = {
     'bg-violet-100 text-violet-800 dark:bg-violet-200 dark:text-violet-900',
   pink: 'bg-pink-100 text-pink-800 dark:bg-pink-200 dark:text-pink-900',
 };
-
 const PALETTE_KEYS = Object.keys(PALETTE);
-
 function pickKey(name: string): string {
   let h = 0;
   for (const ch of name) {
@@ -37,7 +33,6 @@ function pickKey(name: string): string {
   }
   return PALETTE_KEYS[h];
 }
-
 function getBadgeClassName(name: string): string {
   if (!name || typeof name !== 'string') {
     console.log('Invalid name:', name);
@@ -50,12 +45,10 @@ function getBadgeClassName(name: string): string {
   const dynamicKey = pickKey(key);
   return PALETTE[dynamicKey] || PALETTE.sky;
 }
-
 export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
   const all = Array.isArray(names) ? names : [names];
   const visible = all.slice(0, visibleCount);
   const hidden = all.slice(visibleCount);
-
   return (
     <div className="flex items-center gap-1">
       {visible.map((n) => (
@@ -72,7 +65,10 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
       {hidden.length > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge variant="outline" className="cursor-pointer border">
+            <Badge
+              variant="outline"
+              className="cursor-pointer border-gray-400 bg-gray-100 text-gray-800 dark:bg-gray-200 dark:text-gray-900"
+            >
               +{hidden.length}
             </Badge>
           </TooltipTrigger>
