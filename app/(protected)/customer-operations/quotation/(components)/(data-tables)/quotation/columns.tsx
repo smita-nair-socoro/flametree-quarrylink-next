@@ -89,7 +89,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     id: 'total_cost_price',
     accessorFn: (row) => row.total_cost_price,
     header: ({}) => {
-      return <div>Total Price (Ex-GST)</div>;
+      return <div className="text-right">Total Price (Ex-GST)</div>;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.total_cost_price.toString());
@@ -98,7 +98,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
         style: 'currency',
         currency: 'USD',
       }).format(dollars);
-
       return <div className="text-center font-medium">{formatted}</div>;
     },
     meta: 'Total Price',
