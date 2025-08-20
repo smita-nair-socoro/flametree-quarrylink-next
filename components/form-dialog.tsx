@@ -130,6 +130,9 @@ export function FormDialog({
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
 
+  // Determine if we're in editing mode - true when we have a valid ID (> 0)
+  const isEditing = Boolean(effectiveId && effectiveId > 0);
+
   const handleOpen = (isDefaultButton: boolean = false) => {
     if (isDefaultButton) {
       setEffectiveId(0);
@@ -219,6 +222,33 @@ export function FormDialog({
     );
   };
 
+  // Calculate dialog dimensions based on editing state
+  const getDialogDimensions = () => {
+    if (isEditing) {
+      // Editing mode: 95% width and height
+      return {
+        width: '95vw',
+        height: '95vh',
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+      };
+    }
+    // Adding mode: 50% width, 95% height
+    return {
+      width: '50vw',
+      height: '95vh',
+      maxWidth: '50vw',
+      maxHeight: '95vh',
+    };
+  };
+
+  const dimensions = getDialogDimensions();
+
+  // Calculate ScrollArea height based on dialog size
+  const getScrollAreaHeight = (): string => {
+    return 'h-[calc(95vh-8rem)]';
+  };
+
   const dialogInner = (
     <>
       <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5">
@@ -233,13 +263,7 @@ export function FormDialog({
           <div className="flex items-center gap-2">{headerButtons}</div>
         )}
       </DialogHeader>
-      <ScrollArea
-        className={clsx(
-          effectiveId
-            ? 'h-[calc(65vh-5rem)] rounded-md p-0'
-            : 'h-[calc(85vh-5rem)] rounded-md p-0',
-        )}
-      >
+      <ScrollArea className={clsx(getScrollAreaHeight(), 'rounded-md p-0')}>
         <div>{contentNode}</div>
       </ScrollArea>
     </>
@@ -249,15 +273,28 @@ export function FormDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
-        <DialogContent className="min-w-[850px]">{dialogInner}</DialogContent>
+        <DialogContent
+          style={{
+            width: dimensions.width,
+            height: dimensions.height,
+            maxWidth: dimensions.maxWidth,
+            maxHeight: dimensions.maxHeight,
+          }}
+        >
+          {dialogInner}
+        </DialogContent>
       </Dialog>
     );
   }
 
+  // For mobile, also apply viewport-based sizing to the drawer
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
-      <DrawerContent className="flex flex-col max-h-[90vh]">
+      <DrawerContent
+        className="flex flex-col"
+        style={{ maxHeight: dimensions.maxHeight }}
+      >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
             <DrawerTitle>{headerTitle}</DrawerTitle>
