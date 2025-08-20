@@ -12,6 +12,8 @@ export interface Customer {
   id: number;
   customer_type: CUSTOMER_TYPE;
   business_name: string;
+  business_email: string;
+  business_phone: string;
   contact_name: string;
   phone: string;
   email: string;
