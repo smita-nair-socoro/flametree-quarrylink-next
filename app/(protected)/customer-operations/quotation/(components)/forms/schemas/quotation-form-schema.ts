@@ -1,0 +1,32 @@
+import z from 'zod';
+
+const timeWithoutZoneRegex =
+  /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
+
+export const NewQuotationFormSchema = z.object({
+  quote_type: z.string().nonempty({ message: 'Required' }),
+  customer_id: z.string().nonempty({ message: 'Required' }),
+  account_manager: z.string().readonly(),
+  phone: z.string().readonly(),
+  email: z.string().readonly(),
+  project_name: z.string().min(2, { message: 'At least 2 characters' }),
+  delivery_date: z.date({ message: 'Required' }),
+  delivery_window_start: z
+    .string()
+    .nonempty({ message: 'Required' })
+    .regex(timeWithoutZoneRegex, {
+      message: 'Invalid time‑of‑day with timezone',
+    }),
+  delivery_window_end: z
+    .string()
+    .nonempty({ message: 'Required' })
+    .regex(timeWithoutZoneRegex, {
+      message: 'Invalid time‑of‑day with timezone',
+    }),
+  expiry_date: z.date({ message: 'Required' }),
+  site_address: z.string().nonempty({ message: 'Required' }),
+  created_at: z.date(),
+  updated_at: z.date(),
+  created_by: z.string(),
+  last_modified_by: z.string(),
+});
