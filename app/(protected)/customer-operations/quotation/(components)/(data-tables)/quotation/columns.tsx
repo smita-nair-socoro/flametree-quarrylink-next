@@ -120,12 +120,10 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     },
     cell: ({ getValue }) => {
       const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
-
       return <TableBadges names={names} visibleCount={1} />;
     },
     meta: 'Status',
   },
-
   {
     id: 'actions',
     header: () => {
