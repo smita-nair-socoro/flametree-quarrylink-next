@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -44,12 +43,10 @@ function getBadgeClassName(name: string): string {
     console.log('Invalid name:', name);
     return PALETTE.sky;
   }
-
   const key = name.trim().toUpperCase();
   if (STATUS_COLORS[key]) {
     return STATUS_COLORS[key];
   }
-
   const dynamicKey = pickKey(key);
   return PALETTE[dynamicKey] || PALETTE.sky;
 }
@@ -72,7 +69,6 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
           {n}
         </Badge>
       ))}
-
       {hidden.length > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -80,7 +76,12 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
               +{hidden.length}
             </Badge>
           </TooltipTrigger>
-          <TooltipContent side="top" align="start" className="p-2">
+          <TooltipContent
+            side="top"
+            align="start"
+            variant="table"
+            className="p-2"
+          >
             <div className="grid grid-cols-2 gap-1">
               {hidden.sort().map((n) => (
                 <Badge

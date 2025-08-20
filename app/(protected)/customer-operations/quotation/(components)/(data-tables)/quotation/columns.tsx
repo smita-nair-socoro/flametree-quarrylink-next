@@ -49,17 +49,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   },
 
   {
-    id: 'products',
-    accessorFn: (row) => row.quote_items.map((qp) => qp.product_id.toString()),
-    header: 'Products',
-    cell: ({ getValue }) => {
-      const names = getValue<string[]>();
-      return <TableBadges names={names} visibleCount={1} />;
-    },
-    meta: 'Products',
-  },
-
-  {
     id: 'created_at',
     accessorFn: (row) => row.created_at,
     header: ({ column }) => {

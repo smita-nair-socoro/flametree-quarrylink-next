@@ -397,18 +397,18 @@ export function DataTableClient<TData, TValue>({
       <div
         className={cn(
           simpleTable ? '' : 'rounded-md border p-2',
-          'bg-gray-50 dark:bg-background',
+          'bg-gray-50 dark:bg-gray-900',
         )}
       >
         <div className="overflow-auto">
-          <Table className="bg-gray-50 dark:bg-background">
+          <Table className="bg-gray-50 dark:bg-gray-900">
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
                   className={cn(
                     simpleTable && 'border-b-0',
-                    'bg-gray-100 dark:bg-background',
+                    'bg-gray-100 dark:bg-gray-900',
                   )}
                 >
                   {hg.headers.map((header, headerIndex) => (
@@ -443,7 +443,7 @@ export function DataTableClient<TData, TValue>({
                     className={cn(
                       simpleTable && 'border-b-0 hover:bg-transparent',
                       !simpleTable &&
-                        'bg-gray-50 hover:bg-gray-100 dark:bg-background dark:hover:bg-muted/50',
+                        'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800',
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -463,7 +463,7 @@ export function DataTableClient<TData, TValue>({
                 <TableRow
                   className={cn(
                     simpleTable && 'border-b-0',
-                    'bg-gray-50 dark:bg-background',
+                    'bg-gray-50 dark:bg-gray-900',
                   )}
                 >
                   <TableCell
