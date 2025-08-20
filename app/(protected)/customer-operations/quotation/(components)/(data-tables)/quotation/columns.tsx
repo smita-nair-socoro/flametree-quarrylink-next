@@ -1,5 +1,4 @@
 'use client';
-
 import { DateCell } from '@/components/date-cell';
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
@@ -22,7 +21,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     cell: (info) => info.getValue(),
     meta: 'Quotation Number',
   },
-
   {
     id: 'customer_name',
     accessorFn: (row) => row.customer.contact_name,
@@ -34,7 +32,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     cell: (info) => info.getValue(),
     meta: 'Customer Name',
   },
-
   {
     id: 'quote_type',
     accessorFn: (row) => row.quote_type,
@@ -47,7 +44,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     },
     meta: 'Quote Type',
   },
-
   {
     id: 'created_at',
     accessorFn: (row) => row.created_at,
@@ -58,10 +54,8 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       return <DateCell dateString={getValue<string>()} side="top" />;
     },
     sortingFn: dateSortingFn,
-
     meta: 'Date Issued',
   },
-
   {
     id: 'expiry_date',
     accessorFn: (row) => row.expiry_date,
@@ -72,15 +66,13 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       return <DateCell dateString={getValue<string>()} side="top" />;
     },
     sortingFn: dateSortingFn,
-
     meta: 'Expiry Date',
   },
-
   {
     id: 'total_cost_price',
     accessorFn: (row) => row.total_cost_price,
     header: ({}) => {
-      return <div className="text-right">Total Price (Ex-GST)</div>;
+      return <div className="text-right max-w-36">Total Price (Ex-GST)</div>;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.total_cost_price.toString());
@@ -89,11 +81,14 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
         style: 'currency',
         currency: 'USD',
       }).format(dollars);
-      return <div className="text-center font-medium">{formatted}</div>;
+      return (
+        <div className="text-right font-medium w-36 max-w-36 truncate">
+          {formatted}
+        </div>
+      );
     },
     meta: 'Total Price',
   },
-
   {
     id: 'account_manager',
     accessorFn: (row) => row.account_manager,
@@ -105,7 +100,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     cell: (info) => info.getValue(),
     meta: 'Account Manager',
   },
-
   {
     id: 'status',
     accessorFn: (row) => row.quote_status,
@@ -114,17 +108,22 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     },
     cell: ({ getValue }) => {
       const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
-
       return <TableBadges names={names} visibleCount={1} />;
     },
     meta: 'Status',
   },
-
   {
     id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
     cell: ({ row }) => {
       const quotation = row.original;
-      return <QuotationTableActions quotation={quotation} />;
+      return (
+        <div>
+          <QuotationTableActions quotation={quotation} />
+        </div>
+      );
     },
   },
 ];
