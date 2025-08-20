@@ -409,7 +409,7 @@ export function DataTableClient<TData, TValue>({
                   key={hg.id}
                   className={cn(
                     simpleTable && 'border-b-0',
-                    'bg-gray-100 dark:bg-background',
+                    'bg-gray-100 dark:bg-gray-900',
                   )}
                 >
                   {hg.headers.map((header, headerIndex) => (
