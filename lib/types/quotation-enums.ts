@@ -1,0 +1,34 @@
+export enum QUOTE_TYPE {
+  COLLECTION = 'COLLECTION',
+  DELIVERY = 'DELIVERY',
+}
+
+export enum QUOTE_STATUS {
+  DRAFT = 'DRAFT',
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  CONVERTED_TO_JOB = 'CONVERTED TO JOB',
+  EXPIRED = 'EXPIRED',
+  DECLINED = 'DECLINED',
+  ARCHIVED = 'ARCHIVED',
+}
+
+export enum QUOTE_ITEM_STATUS {
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum COST_UNIT {
+  TN = 'TN',
+  M3 = 'M3',
+  KG_20 = 'KG_20',
+  BULKA = 'BULKA',
+}
+
+export enum TRUCK_RATE_TYPE {
+  TN = 'TN',
+  HOURLY = 'HOURLY',
+  M3 = 'M3',
+  LOAD = 'LOAD',
+}

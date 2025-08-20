@@ -7,6 +7,8 @@ import { dateSortingFn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { QuotationDetails } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
+import { formatQuoteStatus } from '@/lib/utils/quote-helpers';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
 export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   {
@@ -122,7 +124,8 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ getValue }) => {
-      const names = getValue<string>();
+      const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
+
       return <TableBadges names={names} visibleCount={1} />;
     },
     meta: 'Status',

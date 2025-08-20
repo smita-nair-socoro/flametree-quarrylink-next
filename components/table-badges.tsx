@@ -40,10 +40,16 @@ function pickKey(name: string): string {
 }
 
 function getBadgeClassName(name: string): string {
+  if (!name || typeof name !== 'string') {
+    console.log('Invalid name:', name);
+    return PALETTE.sky;
+  }
+
   const key = name.trim().toUpperCase();
   if (STATUS_COLORS[key]) {
     return STATUS_COLORS[key];
   }
+
   const dynamicKey = pickKey(key);
   return PALETTE[dynamicKey] || PALETTE.sky;
 }

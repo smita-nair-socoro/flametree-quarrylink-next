@@ -11,7 +11,6 @@ import {
   XCircle,
   Briefcase,
   Calendar,
-  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -77,9 +76,15 @@ export function QuotationTableActions({
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Approve Quote
               </DropdownMenuItem>
+
               <DropdownMenuItem onClick={actions.decline}>
                 <XCircle className="mr-2 h-4 w-4" />
                 Decline Quote
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={actions.sendToCustomer}>
+                <Send className="mr-2 h-4 w-4" />
+                Re-Send to Customer
               </DropdownMenuItem>
             </>
           )}
@@ -101,11 +106,6 @@ export function QuotationTableActions({
           <DropdownMenuSeparator />
 
           {/* Secondary actions */}
-          <DropdownMenuItem onClick={actions.download}>
-            <Download className="mr-2 h-4 w-4" />
-            Download PDF
-          </DropdownMenuItem>
-
           <DropdownMenuItem onClick={actions.print}>
             <Printer className="mr-2 h-4 w-4" />
             Print Quote
@@ -124,7 +124,7 @@ export function QuotationTableActions({
             className="text-destructive focus:text-destructive"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Archieve Quote
+            Archive Quote
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
