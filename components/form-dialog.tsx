@@ -130,6 +130,9 @@ export function FormDialog({
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
 
+  // Determine if we're in editing mode - true when we have a valid ID (> 0)
+  const isEditing = Boolean(effectiveId && effectiveId > 0);
+
   const handleOpen = (isDefaultButton: boolean = false) => {
     if (isDefaultButton) {
       setEffectiveId(0);
@@ -175,6 +178,10 @@ export function FormDialog({
       })
     : children;
 
+  const formatBadgeText = (text: string): string => {
+    return text.replace(/_/g, ' ');
+  };
+
   const renderBadges = () => {
     const hasBadges =
       (finalPrimaryBadges && finalPrimaryBadges.length > 0) ||
@@ -184,32 +191,62 @@ export function FormDialog({
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">
-        {/* Render status badges */}
-        {finalPrimaryBadges?.map((status, index) => (
+        {/* Render primary badges */}
+        {finalPrimaryBadges?.map((badge, index) => (
           <Badge
-            key={`status-${index}`}
+            key={`primary-${index}`}
             variant="outline"
-            className={STATUS_COLORS[status] || STATUS_COLORS.DRAFT}
+            className={
+              STATUS_COLORS[badge] ||
+              'bg-blue-100 text-blue-800 border-blue-300'
+            }
           >
-            {status}
+            {formatBadgeText(badge)}
           </Badge>
         ))}
 
-        {/* Render quote type badges */}
-        {finalSecondaryBadges?.map((quoteType, index) => (
+        {/* Render secondary badges */}
+        {finalSecondaryBadges?.map((badge, index) => (
           <Badge
-            key={`quote-type-${index}`}
+            key={`secondary-${index}`}
             variant="outline"
             className={
-              QUOTE_TYPE_COLORS[quoteType as keyof typeof QUOTE_TYPE_COLORS] ||
+              QUOTE_TYPE_COLORS[badge as keyof typeof QUOTE_TYPE_COLORS] ||
               'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
-            {quoteType}
+            {formatBadgeText(badge)}
           </Badge>
         ))}
       </div>
     );
+  };
+
+  // Calculate dialog dimensions based on editing state
+  const getDialogDimensions = () => {
+    if (isEditing) {
+      // Editing mode: 95% width and height
+      return {
+        width: '95vw',
+        height: '95vh',
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+      };
+    }
+    // Adding mode: 50% width, 95% height
+    return {
+      width: '50vw',
+      height: '95vh',
+      maxWidth: '50vw',
+      maxHeight: '95vh',
+    };
+  };
+
+  const dimensions = getDialogDimensions();
+
+  // Calculate ScrollArea height based on dialog size
+  const getScrollAreaHeight = (): string => {
+    return 'h-[calc(95vh-8rem)]';
   };
 
   const dialogInner = (
@@ -226,13 +263,7 @@ export function FormDialog({
           <div className="flex items-center gap-2">{headerButtons}</div>
         )}
       </DialogHeader>
-      <ScrollArea
-        className={clsx(
-          effectiveId
-            ? 'h-[calc(65vh-5rem)] rounded-md p-0'
-            : 'h-[calc(85vh-5rem)] rounded-md p-0'
-        )}
-      >
+      <ScrollArea className={clsx(getScrollAreaHeight(), 'rounded-md p-0')}>
         <div>{contentNode}</div>
       </ScrollArea>
     </>
@@ -242,15 +273,28 @@ export function FormDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
-        <DialogContent className="min-w-[850px]">{dialogInner}</DialogContent>
+        <DialogContent
+          style={{
+            width: dimensions.width,
+            height: dimensions.height,
+            maxWidth: dimensions.maxWidth,
+            maxHeight: dimensions.maxHeight,
+          }}
+        >
+          {dialogInner}
+        </DialogContent>
       </Dialog>
     );
   }
 
+  // For mobile, also apply viewport-based sizing to the drawer
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
-      <DrawerContent className="flex flex-col max-h-[90vh]">
+      <DrawerContent
+        className="flex flex-col"
+        style={{ maxHeight: dimensions.maxHeight }}
+      >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
             <DrawerTitle className="text-left text-2xl">

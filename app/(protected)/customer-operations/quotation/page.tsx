@@ -4,7 +4,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { Activity, Factory, Tags } from 'lucide-react';
+import { Activity, Factory, Share, Tags } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ProductsListQueryOptions } from '@/lib/api/quaries';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -19,6 +19,7 @@ import {
 } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { Button } from '@/components/ui/button';
 
 export default function QuotationsPage() {
   //TODO: Fetch from server
@@ -63,9 +64,13 @@ export default function QuotationsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Quotations</h1>
-          <p className="text-sm text-muted-foreground">Manage your quotation</p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <Button variant="secondary">
+            <Share className="w-10 h-20" />
+            Export
+          </Button>
           <FormDialog
             dialogTitle="Add Quote"
             dialogDescription="This is a card description."
@@ -78,6 +83,7 @@ export default function QuotationsPage() {
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
+          tableId="quotation_main_data_table"
           data={items ?? []}
           columns={quotationColumns}
           facetDefination={facetDefs}

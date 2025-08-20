@@ -7,6 +7,8 @@ import { dateSortingFn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { QuotationDetails } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
+import { formatQuoteStatus } from '@/lib/utils/quote-helpers';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
 export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   {
@@ -68,7 +70,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     },
     sortingFn: dateSortingFn,
 
-    meta: 'Created Date',
+    meta: 'Date Issued',
   },
 
   {
@@ -89,7 +91,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     id: 'total_cost_price',
     accessorFn: (row) => row.total_cost_price,
     header: ({}) => {
-      return <div>Total Price (Ex-GST)</div>;
+      return <div className="text-right">Total Price (Ex-GST)</div>;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.total_cost_price.toString());
@@ -98,7 +100,6 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
         style: 'currency',
         currency: 'USD',
       }).format(dollars);
-
       return <div className="text-center font-medium">{formatted}</div>;
     },
     meta: 'Total Price',
@@ -123,10 +124,11 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ getValue }) => {
-      const names = getValue<string>();
+      const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
+
       return <TableBadges names={names} visibleCount={1} />;
     },
-    meta: 'STATUS',
+    meta: 'Status',
   },
 
   {
