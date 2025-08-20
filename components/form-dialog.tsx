@@ -296,6 +296,7 @@ export function FormDialog({
     );
   }
 
+  // For mobile, also apply viewport-based sizing to the drawer
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
