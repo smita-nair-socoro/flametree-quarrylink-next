@@ -170,7 +170,7 @@ export function useQuotationActions(
     },
 
     archive: createDialogAction('archive', () => {
-      console.log('Archieve quotation:', quotationId);
+      console.log('Archive quotation:', quotationId);
       // TODO: implement delete logic
     }),
   };

@@ -175,6 +175,10 @@ export function FormDialog({
       })
     : children;
 
+  const formatBadgeText = (text: string): string => {
+    return text.replace(/_/g, ' ');
+  };
+
   const renderBadges = () => {
     const hasBadges =
       (finalPrimaryBadges && finalPrimaryBadges.length > 0) ||
@@ -184,28 +188,31 @@ export function FormDialog({
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">
-        {/* Render status badges */}
-        {finalPrimaryBadges?.map((status, index) => (
+        {/* Render primary badges */}
+        {finalPrimaryBadges?.map((badge, index) => (
           <Badge
-            key={`status-${index}`}
+            key={`primary-${index}`}
             variant="outline"
-            className={STATUS_COLORS[status] || STATUS_COLORS.DRAFT}
+            className={
+              STATUS_COLORS[badge] ||
+              'bg-blue-100 text-blue-800 border-blue-300'
+            }
           >
-            {status}
+            {formatBadgeText(badge)}
           </Badge>
         ))}
 
-        {/* Render quote type badges */}
-        {finalSecondaryBadges?.map((quoteType, index) => (
+        {/* Render secondary badges */}
+        {finalSecondaryBadges?.map((badge, index) => (
           <Badge
-            key={`quote-type-${index}`}
+            key={`secondary-${index}`}
             variant="outline"
             className={
-              QUOTE_TYPE_COLORS[quoteType as keyof typeof QUOTE_TYPE_COLORS] ||
+              QUOTE_TYPE_COLORS[badge as keyof typeof QUOTE_TYPE_COLORS] ||
               'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
-            {quoteType}
+            {formatBadgeText(badge)}
           </Badge>
         ))}
       </div>
