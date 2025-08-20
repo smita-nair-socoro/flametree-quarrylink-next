@@ -12,14 +12,11 @@ import { notifyError } from '@/lib/toast';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import rawJson from '@/lib/tests/quotationResponseData.json';
-import {
-  QuotationDetails,
-  QUOTE_STATUS,
-  QUOTE_TYPE,
-} from '@/lib/types/quotation';
+import { QuotationDetails } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { Button } from '@/components/ui/button';
+import { QUOTE_STATUS, QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 export default function QuotationsPage() {
   //TODO: Fetch from server
