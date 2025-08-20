@@ -1,5 +1,4 @@
 'use client';
-
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth as useOidc } from 'react-oidc-context';
@@ -17,9 +16,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const oidc = useOidc();
   const cookie = useCookieAuth();
   const router = useRouter();
-
   const isLoading = oidc.isLoading || cookie.loading;
-
   const isAuthenticated = oidc.isAuthenticated || Boolean(cookie.user);
 
   useEffect(() => {
@@ -39,33 +36,22 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="flex flex-col min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
-          {/* TODO: BreadCrumb in the future? */}
-          {/* <Breadcrumb> */}
-          {/*   <BreadcrumbList> */}
-          {/*     <BreadcrumbItem className="hidden md:block"> */}
-          {/*       <BreadcrumbLink href="#"> */}
-          {/*         Building Your Application */}
-          {/*       </BreadcrumbLink> */}
-          {/*     </BreadcrumbItem> */}
-          {/*     <BreadcrumbSeparator className="hidden md:block" /> */}
-          {/*     <BreadcrumbItem> */}
-          {/*       <BreadcrumbPage>Data Fetching</BreadcrumbPage> */}
-          {/*     </BreadcrumbItem> */}
-          {/*   </BreadcrumbList> */}
-          {/* </Breadcrumb> */}
-
           <div className="absolute top-4 right-4 z-50">
             <ModeToggle />
           </div>
         </header>
-        <div className="mt-1">{children}</div>
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto overflow-x-hidden p-4">
+            {children}
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

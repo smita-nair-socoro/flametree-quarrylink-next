@@ -321,18 +321,23 @@ export function DataTableClient<TData, TValue>({
   return (
     <div className="space-y-4">
       {!simpleTable && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2 flex-grow md:flex-grow-0">
+        <div className="space-y-3">
+          {/* Search Bar - Full width on all screens */}
+          <div className="w-full">
             <InputIcon
               placeholder={searchPlaceHolder}
               type="search"
               value={table.getState().globalFilter ?? ''}
               onChange={(e) => table.setGlobalFilter(String(e.target.value))}
               startIcon={<Search size={18} />}
-              className="h-8 w-full md:w-[250px] lg:w-[350px]"
+              className="h-8 w-full md:w-[350px] lg:w-[450px]"
             />
+          </div>
 
-            <div className="hidden md:flex space-x-2">
+          {/* Controls Row - Hidden on mobile, responsive layout on larger screens */}
+          <div className="hidden md:flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            {/* Faceted Filters - Row on larger screens */}
+            <div className="flex flex-wrap gap-2">
               {facetedWithCounts.map((filter) => (
                 <DataTableFacetedFilter
                   key={filter.column}
@@ -349,45 +354,46 @@ export function DataTableClient<TData, TValue>({
                 />
               ))}
             </div>
-          </div>
 
-          <div className="hidden md:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
-                  Show/Hide Columns
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((col) => col.getCanHide())
-                  .map((col) => {
-                    // Use meta property if available, otherwise format the column ID
-                    const displayName =
-                      (col.columnDef.meta as string) ||
-                      col.id
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (char) => char.toUpperCase());
+            {/* Show/Hide Columns - Hidden on mobile */}
+            <div className="flex-shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8">
+                    Show/Hide Columns
+                    <ChevronDown size={16} className="ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {table
+                    .getAllColumns()
+                    .filter((col) => col.getCanHide())
+                    .map((col) => {
+                      // Use meta property if available, otherwise format the column ID
+                      const displayName =
+                        (col.columnDef.meta as string) ||
+                        col.id
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, (char) => char.toUpperCase());
 
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={col.id}
-                        checked={col.getIsVisible()}
-                        onCheckedChange={(val) => col.toggleVisibility(!!val)}
-                      >
-                        {displayName}
-                      </DropdownMenuCheckboxItem>
-                    );
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={col.id}
+                          checked={col.getIsVisible()}
+                          onCheckedChange={(val) => col.toggleVisibility(!!val)}
+                        >
+                          {displayName}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       )}
 
-      {/** Table Wrapper **/}
+      {/* Table Wrapper */}
       <div
         className={cn(
           simpleTable ? '' : 'rounded-md border p-2',
@@ -489,7 +495,7 @@ export function DataTableClient<TData, TValue>({
         </div>
       </div>
 
-      {/** Pagination Controls **/}
+      {/* Pagination Controls */}
       {!simpleTable && (
         <div className="overflow-x-auto">
           <div className="min-w-full py-2">
@@ -529,7 +535,7 @@ export function DataTableClient<TData, TValue>({
                 </Select>
               </div>
 
-              {/** Page nav **/}
+              {/* Page nav */}
               <div className="flex items-center space-x-4">
                 <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
                   Page {pagination.pageIndex + 1} of {table.getPageCount()}
