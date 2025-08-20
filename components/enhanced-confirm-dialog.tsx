@@ -27,6 +27,8 @@ interface EnhancedConfirmDialogProps {
     | 'outline'
     | 'secondary'
     | 'ghost';
+  confirmCustomColor?: string;
+  confirmCustomClass?: string;
   onConfirmAction: () => void;
 }
 
@@ -40,8 +42,19 @@ export function EnhancedConfirmDialog({
   cancelText = 'Cancel',
   confirmText,
   confirmVariant = 'default',
+  confirmCustomColor,
+  confirmCustomClass,
   onConfirmAction,
 }: EnhancedConfirmDialogProps) {
+  // Create custom styles if color is provided
+  const customButtonStyle = confirmCustomColor
+    ? {
+        backgroundColor: confirmCustomColor,
+        borderColor: confirmCustomColor,
+        color: 'white',
+      }
+    : undefined;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-w-md">
@@ -81,7 +94,9 @@ export function EnhancedConfirmDialog({
             {cancelText}
           </Button>
           <Button
-            variant={confirmVariant}
+            variant={confirmCustomColor ? undefined : confirmVariant}
+            className={confirmCustomClass}
+            style={customButtonStyle}
             onClick={() => {
               onConfirmAction();
               onOpenChangeAction(false);

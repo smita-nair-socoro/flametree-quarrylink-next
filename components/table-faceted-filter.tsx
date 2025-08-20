@@ -29,6 +29,11 @@ export interface DataTableFacetedFilterProps {
   onFilterChange: (values: string[]) => void;
 }
 
+// Helper function to format labels by removing underscores and keeping uppercase
+const formatLabel = (label: string): string => {
+  return label.replace(/_/g, ' ');
+};
+
 export function DataTableFacetedFilter({
   title,
   options,
@@ -77,7 +82,10 @@ export function DataTableFacetedFilter({
                 ) : (
                   filterValues.map((val) => {
                     const opt = options.find((o) => o.value === val);
-                    const label = opt?.label ?? val;
+                    // Use formatted label if original label contains underscores, otherwise use original
+                    const label = opt?.label.includes('_')
+                      ? formatLabel(opt.label)
+                      : (opt?.label ?? val);
                     return (
                       <Badge
                         key={val}
@@ -108,6 +116,10 @@ export function DataTableFacetedFilter({
               {options.map((opt) => {
                 const Icon = opt.icon;
                 const checked = filterValues.includes(opt.value);
+                const displayLabel = opt.label.includes('_')
+                  ? formatLabel(opt.label)
+                  : opt.label;
+
                 return (
                   <CommandItem
                     key={opt.value}
@@ -128,7 +140,7 @@ export function DataTableFacetedFilter({
                     {Icon && (
                       <Icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="flex-1">{opt.label}</span>
+                    <span className="flex-1">{displayLabel}</span>
                     {counts[opt.value] != null && (
                       <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
                         {counts[opt.value]}

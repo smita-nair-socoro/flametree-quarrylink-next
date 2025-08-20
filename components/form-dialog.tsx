@@ -130,6 +130,9 @@ export function FormDialog({
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
 
+  // Determine if we're in editing mode - true when we have a valid ID (> 0)
+  const isEditing = Boolean(effectiveId && effectiveId > 0);
+
   const handleOpen = (isDefaultButton: boolean = false) => {
     if (isDefaultButton) {
       setEffectiveId(0);
@@ -175,6 +178,10 @@ export function FormDialog({
       })
     : children;
 
+  const formatBadgeText = (text: string): string => {
+    return text.replace(/_/g, ' ');
+  };
+
   const renderBadges = () => {
     const hasBadges =
       (finalPrimaryBadges && finalPrimaryBadges.length > 0) ||
@@ -184,37 +191,68 @@ export function FormDialog({
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">
-        {/* Render status badges */}
-        {finalPrimaryBadges?.map((status, index) => (
+        {/* Render primary badges */}
+        {finalPrimaryBadges?.map((badge, index) => (
           <Badge
-            key={`status-${index}`}
+            key={`primary-${index}`}
             variant="outline"
-            className={STATUS_COLORS[status] || STATUS_COLORS.DRAFT}
+            className={
+              STATUS_COLORS[badge] ||
+              'bg-blue-100 text-blue-800 border-blue-300'
+            }
           >
-            {status}
+            {formatBadgeText(badge)}
           </Badge>
         ))}
 
-        {/* Render quote type badges */}
-        {finalSecondaryBadges?.map((quoteType, index) => (
+        {/* Render secondary badges */}
+        {finalSecondaryBadges?.map((badge, index) => (
           <Badge
-            key={`quote-type-${index}`}
+            key={`secondary-${index}`}
             variant="outline"
             className={
-              QUOTE_TYPE_COLORS[quoteType as keyof typeof QUOTE_TYPE_COLORS] ||
+              QUOTE_TYPE_COLORS[badge as keyof typeof QUOTE_TYPE_COLORS] ||
               'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
-            {quoteType}
+            {formatBadgeText(badge)}
           </Badge>
         ))}
       </div>
     );
   };
 
+  // Calculate dialog dimensions based on editing state
+  const getDialogDimensions = () => {
+    if (isEditing) {
+      // Editing mode: 95% width with max height constraint
+      return {
+        width: '95vw',
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        height: 'auto',
+      };
+    }
+    // Adding mode: 50% width with max height constraint
+    return {
+      width: '50vw',
+      maxWidth: '50vw',
+      maxHeight: '95vh',
+      height: 'auto',
+    };
+  };
+
+  const dimensions = getDialogDimensions();
+
+  // For ScrollArea, use max-height instead of fixed height
+  const getScrollAreaMaxHeight = (): string => {
+    // Calculate available space: viewport height minus header space (approx 8rem)
+    return 'max-h-[calc(95vh-8rem)]';
+  };
+
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5">
+      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5 flex-shrink-0">
         <div>
           <DialogTitle>{headerTitle}</DialogTitle>
           <DialogDescription className="mt-2">
@@ -228,12 +266,11 @@ export function FormDialog({
       </DialogHeader>
       <ScrollArea
         className={clsx(
-          effectiveId
-            ? 'h-[calc(65vh-5rem)] rounded-md p-0'
-            : 'h-auto rounded-md p-0',
+          getScrollAreaMaxHeight(),
+          'rounded-md p-0 overflow-auto',
         )}
       >
-        <div>{contentNode}</div>
+        <div className="p-4">{contentNode}</div>
       </ScrollArea>
     </>
   );
@@ -242,19 +279,38 @@ export function FormDialog({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
-        <DialogContent className="min-w-[850px]">{dialogInner}</DialogContent>
+        <DialogContent
+          className="flex flex-col"
+          style={{
+            width: dimensions.width,
+            height: dimensions.height,
+            maxWidth: dimensions.maxWidth,
+            maxHeight: dimensions.maxHeight,
+          }}
+        >
+          {dialogInner}
+        </DialogContent>
       </Dialog>
     );
   }
 
+  // For mobile drawer - use auto height with max constraints
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
-      <DrawerContent className="flex flex-col max-h-[90vh]">
+      <DrawerContent
+        className="flex flex-col"
+        style={{
+          maxHeight: '95vh',
+          height: 'auto', // Let content determine height
+        }}
+      >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
             <DrawerTitle>{headerTitle}</DrawerTitle>
-            <DrawerDescription className="mt-2"></DrawerDescription>
+            <DrawerDescription className="mt-2">
+              {dialogDescription}
+            </DrawerDescription>
             {renderBadges()}
           </div>
           {headerButtons && (
@@ -262,8 +318,13 @@ export function FormDialog({
           )}
         </DrawerHeader>
 
-        {/* Mobile content with native overflow scrolling */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4">{contentNode}</div>
+        {/* Mobile content with auto height and max height constraint */}
+        <div
+          className="flex-1 overflow-y-auto px-4 pb-4"
+          style={{ maxHeight: 'calc(95vh - 12rem)' }}
+        >
+          {contentNode}
+        </div>
 
         <DrawerFooter className="flex-shrink-0 pt-4">
           <DrawerClose asChild>
