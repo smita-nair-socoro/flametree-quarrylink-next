@@ -267,7 +267,7 @@ export function FormDialog({
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5',
+          'rounded-md overflow-auto px-5 pb-6',
         )}
       >
         {contentNode}
@@ -318,9 +318,9 @@ export function FormDialog({
           )}
         </DrawerHeader>
 
-        {/* Mobile content aligned with header padding */}
+        {/* Mobile content aligned with header padding - added bottom padding */}
         <div
-          className="flex-1 overflow-y-auto px-4"
+          className="flex-1 overflow-y-auto px-4 pb-6"
           style={{ maxHeight: 'calc(95vh - 12rem)' }}
         >
           {contentNode}
