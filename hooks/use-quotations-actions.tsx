@@ -15,6 +15,7 @@ interface DialogConfig {
   title: string;
   description: string;
   details: string[];
+  content?: string;
   confirmText: string;
   confirmVariant?:
     | 'default'
@@ -51,12 +52,12 @@ const dialogConfigs: Record<string, DialogConfig> = {
     ],
     confirmText: 'Approve Quote',
     confirmCustomClass:
-      'bg-green-600 hover:bg-green-700 text-white border-green-600',
+      'bg-green-900 hover:bg-green-800 text-white border-green-700',
   },
 
   decline: {
-    title: 'Confirm Declining Quote',
-    description: 'Are you sure you want to decline this quote?',
+    title: 'Are you sure you want to decline this quote?',
+    description: '',
     details: [
       'Change quote status from Pending to Declined',
       'Lock the quote from further edits',
@@ -65,12 +66,13 @@ const dialogConfigs: Record<string, DialogConfig> = {
       'Quote can be reactivated later if needed',
     ],
     confirmText: 'Decline Quote',
-    confirmVariant: 'destructive',
+    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
   },
 
   convertToJob: {
     title: 'Convert Quote to Job',
-    description: 'Are you sure you want to convert this quote to a job?',
+    description: '',
+    content: 'Are you sure you want to convert this quote to a job?',
     details: [
       'Create a new job (JOB###) from this quote',
       'Copy all line items to the new job',
@@ -79,7 +81,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
     ],
     confirmText: 'Create Job',
     confirmCustomClass:
-      'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
+      'bg-blue-900 hover:bg-blue-800 text-white border-blue-700',
   },
 
   extendExpiry: {
@@ -93,7 +95,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
     ],
     confirmText: 'Extend Expiry Date',
     confirmCustomClass:
-      'bg-green-600 hover:bg-green-700 text-white border-green-600',
+      'bg-green-900 hover:bg-green-800 text-white border-green-700',
   },
 
   archive: {
@@ -104,7 +106,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
       'All quote data will be archived',
     ],
     confirmText: 'Archive Quote',
-    confirmVariant: 'destructive',
+    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
   },
 };
 
@@ -226,11 +228,6 @@ export function useQuotationActions(
       info.push({ label: 'Current Expiry', value: quotationData.expiry_date });
     }
 
-    // Quote Number for reference
-    if (quotationData.quote_number) {
-      info.push({ label: 'Quote Number', value: quotationData.quote_number });
-    }
-
     return info;
   };
 
@@ -245,6 +242,7 @@ export function useQuotationActions(
         onOpenChangeAction={() => setActiveDialog(null)}
         title={config.title}
         description={config.description}
+        content={config.content}
         details={config.details}
         additionalInfo={getAdditionalInfo(key)}
         confirmText={config.confirmText}

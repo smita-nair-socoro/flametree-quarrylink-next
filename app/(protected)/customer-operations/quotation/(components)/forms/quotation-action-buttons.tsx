@@ -12,14 +12,15 @@ import {
   Plus,
   Send,
   MoreHorizontal,
-  Trash2,
-  Download,
   Printer,
   Briefcase,
   Calendar,
   ThumbsDown,
   BadgeCheck,
   Eye,
+  GitPullRequestCreateArrow,
+  Timer,
+  Archive,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
@@ -104,7 +105,7 @@ export function QuotationActionButtons({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={actions.decline}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
-                  Decline Quote
+                  Decline
                 </DropdownMenuItem>
               </>
             )}
@@ -113,7 +114,7 @@ export function QuotationActionButtons({
               <>
                 <DropdownMenuItem onClick={actions.decline}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
-                  Decline Quote
+                  Decline
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={actions.convertToJob}>
                   <Briefcase className="h-4 w-4 mr-2" />
@@ -133,13 +134,13 @@ export function QuotationActionButtons({
               <>
                 <DropdownMenuItem onClick={actions.extendExpiry}>
                   <Calendar className="h-4 w-4 mr-2" />
-                  Extend Expiry
+                  Extend Expiry Date
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Archive className="h-4 w-4 mr-2" />
                   Archive Quote
                 </DropdownMenuItem>
               </>
@@ -150,7 +151,7 @@ export function QuotationActionButtons({
                 onClick={actions.archive}
                 className="text-destructive focus:text-destructive"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Archive className="h-4 w-4 mr-2" />
                 Archive Quote
               </DropdownMenuItem>
             )}
@@ -158,10 +159,6 @@ export function QuotationActionButtons({
             {/* Secondary actions for non-archived statuses */}
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={actions.download}>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={actions.print}>
                 <Printer className="h-4 w-4 mr-2" />
                 Print Quote
@@ -177,7 +174,7 @@ export function QuotationActionButtons({
                     onClick={actions.archive}
                     className="text-destructive focus:text-destructive"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Archive className="h-4 w-4 mr-2" />
                     Archive Quote
                   </DropdownMenuItem>
                 </>
@@ -212,20 +209,20 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.sendToCustomer}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800"
+              onClick={actions.approve}
+              className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
             >
-              <Send className="h-4 w-4 mr-2" />
-              Send to Customer
+              <BadgeCheck className="h-4 w-4 mr-2" />
+              Approve Quote
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.approve}
-              className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
+              onClick={actions.sendToCustomer}
+              className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
             >
-              <BadgeCheck className="h-4 w-4 mr-2" />
-              Approve Quote
+              <Send className="h-4 w-4 mr-2" />
+              Send to Customer
             </Button>
           </>
         )}
@@ -236,10 +233,19 @@ export function QuotationActionButtons({
               variant="ghost"
               size="sm"
               onClick={actions.sendToCustomer}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800"
+              className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
             >
               <Send className="h-4 w-4 mr-2" />
               Re-Send To Customer
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={actions.decline}
+              className="rounded-none border-r border-gray-200 bg-red-100 hover:bg-red-150 text-red-900 hover:text-red-800"
+            >
+              <ThumbsDown className="h-4 w-4 mr-2" />
+              Decline
             </Button>
             <Button
               variant="ghost"
@@ -250,15 +256,6 @@ export function QuotationActionButtons({
               <BadgeCheck className="h-4 w-4 mr-2" />
               Approve Quote
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.decline}
-              className="rounded-none border-r border-gray-200 bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800"
-            >
-              <ThumbsDown className="h-4 w-4 mr-2" />
-              Decline Quote
-            </Button>
           </>
         )}
 
@@ -268,10 +265,10 @@ export function QuotationActionButtons({
               variant="ghost"
               size="sm"
               onClick={actions.decline}
-              className="rounded-none border-r border-gray-200 bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800"
+              className="rounded-none border-r border-gray-200 bg-red-100 hover:bg-red-150 text-red-900 hover:text-red-800"
             >
               <ThumbsDown className="h-4 w-4 mr-2" />
-              Decline Quote
+              Decline
             </Button>
             <Button
               variant="ghost"
@@ -279,7 +276,7 @@ export function QuotationActionButtons({
               onClick={actions.convertToJob}
               className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800"
             >
-              <Briefcase className="h-4 w-4 mr-2" />
+              <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
               Create Job
             </Button>
           </>
@@ -290,7 +287,7 @@ export function QuotationActionButtons({
             variant="ghost"
             size="sm"
             onClick={actions.duplicate}
-            className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800"
+            className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
           >
             <Eye className="h-4 w-4 mr-2" />
             View Job
@@ -303,18 +300,18 @@ export function QuotationActionButtons({
               variant="ghost"
               size="sm"
               onClick={actions.extendExpiry}
-              className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
+              className="rounded-none border-r border-gray-200 bg-green-100 hover:bg-green-150 text-green-900 hover:text-green-800"
             >
-              <Calendar className="h-4 w-4 mr-2" />
-              Extend Expiry
+              <Timer className="h-4 w-4 mr-2" />
+              Extend Expiry Date
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={actions.archive}
-              className="rounded-none border-r border-gray-200 bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800"
+              className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 hover:text-gray-800"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Archive className="h-4 w-4 mr-2" />
               Archive Quote
             </Button>
           </>
@@ -325,9 +322,9 @@ export function QuotationActionButtons({
             variant="ghost"
             size="sm"
             onClick={actions.archive}
-            className="rounded-none border-r border-gray-200 bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-800"
+            className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 hover:text-gray-800"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Archive className="h-4 w-4 mr-2" />
             Archive Quote
           </Button>
         )}
@@ -343,10 +340,6 @@ export function QuotationActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={actions.download}>
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={actions.print}>
               <Printer className="h-4 w-4 mr-2" />
               Print Quote
@@ -362,7 +355,7 @@ export function QuotationActionButtons({
                     onClick={actions.archive}
                     className="text-destructive focus:text-destructive"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Archive className="h-4 w-4 mr-2" />
                     Archive Quote
                   </DropdownMenuItem>
                 </div>

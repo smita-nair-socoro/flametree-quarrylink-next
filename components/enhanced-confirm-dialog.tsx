@@ -15,6 +15,7 @@ interface EnhancedConfirmDialogProps {
   title: string;
   description?: string;
   details?: string[];
+  content?: string;
   additionalInfo?: {
     label: string;
     value: string;
@@ -37,6 +38,7 @@ export function EnhancedConfirmDialog({
   onOpenChangeAction,
   title,
   description,
+  content,
   details = [],
   additionalInfo = [],
   cancelText = 'Cancel',
@@ -60,12 +62,10 @@ export function EnhancedConfirmDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription className="mt-1">
-              {description}
-            </DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
+
+        {content && <div className="mt-3 text-sm text-gray-600">{content}</div>}
 
         {details.length > 0 && (
           <div className="mt-4">
@@ -77,7 +77,6 @@ export function EnhancedConfirmDialog({
             </ul>
           </div>
         )}
-
         {additionalInfo.length > 0 && (
           <div className="mt-4 space-y-1">
             {additionalInfo.map((info, index) => (
@@ -88,7 +87,6 @@ export function EnhancedConfirmDialog({
             ))}
           </div>
         )}
-
         <div className="flex justify-end space-x-2 mt-6">
           <Button variant="outline" onClick={() => onOpenChangeAction(false)}>
             {cancelText}

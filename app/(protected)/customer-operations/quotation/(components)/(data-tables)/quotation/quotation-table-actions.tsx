@@ -5,12 +5,12 @@ import {
   Eye,
   Send,
   Printer,
-  Copy,
-  Trash2,
-  CheckCircle,
-  XCircle,
+  Plus,
+  BadgeCheck,
+  ThumbsDown,
   Briefcase,
-  Calendar,
+  Archive,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +35,6 @@ export function QuotationTableActions({
     quotation.id,
     quotation
   );
-
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
@@ -49,82 +48,106 @@ export function QuotationTableActions({
     <div>
       {confirmDialogs}
       {viewDialog}
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-48">
+          {/* Always available: View Details */}
           <DropdownMenuItem onClick={handleView}>
-            <Eye className="mr-2 h-4 w-4" />
+            <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
 
-          {/* Status-specific actions */}
-          {quotation.quote_status === 'DRAFT' && (
-            <DropdownMenuItem onClick={actions.sendToCustomer}>
-              <Send className="mr-2 h-4 w-4" />
-              Send to Customer
-            </DropdownMenuItem>
-          )}
-
-          {quotation.quote_status === 'PENDING' && (
-            <>
-              <DropdownMenuItem onClick={actions.approve}>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Approve Quote
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.decline}>
-                <XCircle className="mr-2 h-4 w-4" />
-                Decline Quote
-              </DropdownMenuItem>
-
-              <DropdownMenuItem onClick={actions.sendToCustomer}>
-                <Send className="mr-2 h-4 w-4" />
-                Re-Send to Customer
-              </DropdownMenuItem>
-            </>
-          )}
-
-          {quotation.quote_status === 'APPROVED' && (
-            <DropdownMenuItem onClick={actions.convertToJob}>
-              <Briefcase className="mr-2 h-4 w-4" />
-              Convert to Job
-            </DropdownMenuItem>
-          )}
-
-          {quotation.quote_status === 'EXPIRED' && (
-            <DropdownMenuItem onClick={actions.extendExpiry}>
-              <Calendar className="mr-2 h-4 w-4" />
-              Extend Expiry
-            </DropdownMenuItem>
-          )}
-
           <DropdownMenuSeparator />
 
-          {/* Secondary actions */}
-          <DropdownMenuItem onClick={actions.print}>
-            <Printer className="mr-2 h-4 w-4" />
-            Print Quote
-          </DropdownMenuItem>
-
+          {/* Always available: Duplicate */}
           <DropdownMenuItem onClick={actions.duplicate}>
-            <Copy className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4 mr-2" />
             Duplicate Quote
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 
-          {/* Destructive actions */}
-          <DropdownMenuItem
-            onClick={actions.archive}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Archive Quote
+          {/* Status-specific actions */}
+          {quotation.quote_status === 'DRAFT' && (
+            <>
+              <DropdownMenuItem onClick={actions.sendToCustomer}>
+                <Send className="h-4 w-4 mr-2" />
+                Send to Customer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={actions.approve}>
+                <BadgeCheck className="h-4 w-4 mr-2" />
+                Approve Quote
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {quotation.quote_status === 'PENDING' && (
+            <>
+              <DropdownMenuItem onClick={actions.sendToCustomer}>
+                <Send className="h-4 w-4 mr-2" />
+                Re-Send To Customer
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={actions.approve}>
+                <BadgeCheck className="h-4 w-4 mr-2" />
+                Approve Quote
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={actions.decline}>
+                <ThumbsDown className="h-4 w-4 mr-2" />
+                Decline
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {quotation.quote_status === 'APPROVED' && (
+            <>
+              <DropdownMenuItem onClick={actions.decline}>
+                <ThumbsDown className="h-4 w-4 mr-2" />
+                Decline
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={actions.convertToJob}>
+                <Briefcase className="h-4 w-4 mr-2" />
+                Create Job
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {quotation.quote_status === 'CONVERTED_TO_JOB' && (
+            <DropdownMenuItem onClick={actions.duplicate}>
+              <Eye className="h-4 w-4 mr-2" />
+              View Job
+            </DropdownMenuItem>
+          )}
+
+          {quotation.quote_status === 'EXPIRED' && (
+            <DropdownMenuItem onClick={actions.extendExpiry}>
+              <Timer className="h-4 w-4 mr-2" />
+              Extend Expiry Date
+            </DropdownMenuItem>
+          )}
+
+          {/* Print action - always available for non-archived */}
+          <DropdownMenuItem onClick={actions.print}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print Quote
           </DropdownMenuItem>
+
+          {/* Archive - always at the bottom for applicable statuses */}
+          {quotation.quote_status !== 'ARCHIVED' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={actions.archive}
+                className="text-destructive focus:text-destructive"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive Quote
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
