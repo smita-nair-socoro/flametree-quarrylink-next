@@ -130,7 +130,6 @@ export function QuotationTableActions({
           )}
 
           {/* Print action - always available for non-archived */}
-          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={actions.print}>
             <Printer className="h-4 w-4 mr-2" />
             Print Quote
