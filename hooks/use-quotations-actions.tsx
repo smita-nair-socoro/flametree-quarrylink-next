@@ -66,7 +66,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
       'Quote can be reactivated later if needed',
     ],
     confirmText: 'Decline Quote',
-    confirmVariant: 'destructive',
+    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
   },
 
   convertToJob: {
@@ -106,7 +106,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
       'All quote data will be archived',
     ],
     confirmText: 'Archive Quote',
-    confirmVariant: 'destructive',
+    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
   },
 };
 
