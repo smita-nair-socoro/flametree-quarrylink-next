@@ -471,7 +471,7 @@ export function DataTableClient<TData, TValue>({
                     colSpan={columns.length}
                     className={cn('border-b-0 p-0')}
                   >
-                    <div className="relative bg-purple-50 dark:bg-purple-900/20 border-2 border-dashed border-purple-200 dark:border-purple-700 rounded-lg p-12 text-center mt-2">
+                    <div className="relative bg-purple-50 dark:bg-purple-900/20 border-2 border-dashed border-purple-200 dark:border-purple-700 p-12 text-center mt-2">
                       {/* Empty state icon */}
                       <div className="flex justify-center mb-4">
                         <Image
