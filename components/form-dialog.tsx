@@ -261,7 +261,9 @@ export function FormDialog({
           {renderBadges()}
         </div>
         {headerButtons && (
-          <div className="flex items-center gap-2 pr-5">{headerButtons}</div>
+          <div className="flex items-center gap-2 pr-1 text-end">
+            {headerButtons}
+          </div>
         )}
       </DialogHeader>
       <ScrollArea
