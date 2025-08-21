@@ -252,7 +252,7 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5 flex-shrink-0">
+      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-10 pb-2 flex-shrink-0">
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           <DialogDescription className="my-2">
@@ -261,16 +261,16 @@ export function FormDialog({
           {renderBadges()}
         </div>
         {headerButtons && (
-          <div className="flex items-center gap-2">{headerButtons}</div>
+          <div className="flex items-center gap-2 mr-4">{headerButtons}</div>
         )}
       </DialogHeader>
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md p-0 overflow-auto'
+          'rounded-md overflow-auto px-5 pb-6'
         )}
       >
-        <div className="p-4">{contentNode}</div>
+        {contentNode}
       </ScrollArea>
     </>
   );
@@ -280,7 +280,7 @@ export function FormDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
         <DialogContent
-          className="flex flex-col"
+          className="flex flex-col p-0"
           style={{
             width: dimensions.width,
             height: dimensions.height,
@@ -318,9 +318,9 @@ export function FormDialog({
           )}
         </DrawerHeader>
 
-        {/* Mobile content with auto height and max height constraint */}
+        {/* Mobile content aligned with header padding - added bottom padding */}
         <div
-          className="flex-1 overflow-y-auto px-4 pb-4"
+          className="flex-1 overflow-y-auto px-4 pb-6"
           style={{ maxHeight: 'calc(95vh - 12rem)' }}
         >
           {contentNode}

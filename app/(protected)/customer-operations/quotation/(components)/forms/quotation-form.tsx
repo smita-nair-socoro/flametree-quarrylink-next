@@ -140,7 +140,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-quote-form"
           className={cn(
-            'gap-6 p-1 w-full',
+            'gap-5 p-1 w-full',
             isEditing && isDesktop
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
