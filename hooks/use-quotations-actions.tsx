@@ -43,7 +43,8 @@ const dialogConfigs: Record<string, DialogConfig> = {
 
   approve: {
     title: 'Approve Quote',
-    description: 'Are you sure you want to approve this quote?',
+    description: '',
+    content: 'Are you sure you want to approve this quote?',
     details: [
       'Change quote status from Pending to Approved',
       'Lock the quote from further edits',
