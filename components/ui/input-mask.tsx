@@ -50,6 +50,19 @@ const formatABN = (value: string): string => {
   )} ${digits.slice(8)}`;
 };
 
+const handleNegative = (value: string): string => {
+  return value.replace(/-/g, '');
+};
+
+const handleDecimalPlaces = (value: string, decimalPlaces: number): string => {
+  const parts = value.split('.');
+  if (parts[1] && parts[1].length > decimalPlaces) {
+    parts[1] = parts[1].slice(0, decimalPlaces);
+    return parts.join('.');
+  }
+  return value;
+};
+
 const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
   (
     {
@@ -98,16 +111,12 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
 
         // Handle negative
         if (!allowNegative) {
-          cleanValue = cleanValue.replace(/-/g, '');
+          cleanValue = handleNegative(cleanValue);
         }
 
         // Handle decimal places
         if (decimalPlaces !== false && cleanValue.includes('.')) {
-          const parts = cleanValue.split('.');
-          if (parts[1] && parts[1].length > decimalPlaces) {
-            parts[1] = parts[1].slice(0, decimalPlaces);
-            cleanValue = parts.join('.');
-          }
+          cleanValue = handleDecimalPlaces(cleanValue, decimalPlaces);
         } else if (decimalPlaces === false) {
           cleanValue = cleanValue.replace(/\./g, '');
         }
