@@ -296,7 +296,6 @@ export function FormDialog({
     );
   }
 
-  // For mobile drawer - use auto height with max constraints
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
@@ -304,12 +303,12 @@ export function FormDialog({
         className="flex flex-col"
         style={{
           maxHeight: '95vh',
-          height: 'auto', // Let content determine height
+          height: 'auto',
         }}
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
-            <DrawerTitle>{headerTitle}</DrawerTitle>
+            <DrawerTitle className="text-start">{headerTitle}</DrawerTitle>
             <DrawerDescription className="mt-2">
               {dialogDescription}
             </DrawerDescription>
@@ -320,17 +319,19 @@ export function FormDialog({
           )}
         </DrawerHeader>
 
-        {/* Mobile content aligned with header padding - added bottom padding */}
         <div
-          className="flex-1 overflow-y-auto px-4 pb-6"
+          className="flex-1 overflow-y-auto px-4 pb-2"
           style={{ maxHeight: 'calc(95vh - 12rem)' }}
         >
           {contentNode}
         </div>
 
-        <DrawerFooter className="flex-shrink-0 pt-4">
+        {/* Reduced padding DrawerFooter */}
+        <DrawerFooter className="flex-shrink-0 pt-2 pb-2 px-4">
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" className="w-full">
+              Cancel
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
