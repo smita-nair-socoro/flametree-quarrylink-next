@@ -273,9 +273,9 @@ export function useQuotationActions(
               console.log('Extend expiry:', quotationId, quotationData);
               // TODO: implement extend expiry logic
               break;
-            case 'delete':
-              console.log('Delete quotation:', quotationId, quotationData);
-              // TODO: implement delete logic
+            case 'archive':
+              console.log('Archive quotation:', quotationId, quotationData);
+              // TODO: implement archive logic
               break;
           }
         }}
