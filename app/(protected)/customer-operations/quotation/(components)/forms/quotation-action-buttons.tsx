@@ -274,7 +274,7 @@ export function QuotationActionButtons({
               variant="ghost"
               size="sm"
               onClick={actions.convertToJob}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800"
+              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
             >
               <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
               Create Job

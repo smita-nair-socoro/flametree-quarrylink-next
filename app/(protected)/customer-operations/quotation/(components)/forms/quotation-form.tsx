@@ -251,7 +251,9 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               render={({ field }) => (
                 <FormItem
                   className={
-                    isEditing ? 'col-span-1 col-start-2' : 'col-span-2'
+                    isEditing
+                      ? 'col-span-1 col-start-1 md:col-start-2'
+                      : 'col-span-2'
                   }
                 >
                   <FormLabel>{addressLabel}</FormLabel>
@@ -435,7 +437,11 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               control={quotationForm.control}
               name="site_address"
               render={({ field }) => (
-                <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
+                <FormItem
+                  className={
+                    isEditing ? 'col-span-1 col-start-2' : 'col-span-2'
+                  }
+                >
                   <FormLabel>{addressLabel}</FormLabel>
                   <FormControl>
                     <AddressAutoComplete
@@ -457,19 +463,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
           {isEditing && (
             <div
               className={cn(
-                'flex justify-between items-center',
-                isEditing ? 'col-span-2' : 'col-span-2',
-              )}
-            >
-              <h2 className="text-2xl font-bold">Line Items</h2>
-              <Button variant="default" type="button" onClick={onCancel}>
-                + Add New Product
-              </Button>
-            </div>
-          )}
-          {isEditing && (
-            <div
-              className={cn(
                 'space-y-6',
                 isEditing ? 'col-span-2' : 'col-span-2',
               )}
@@ -488,80 +481,58 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
 
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={quotationForm.control}
-                  name="created_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created By</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full text-muted-foreground cursor-not-allowed"
-                          readOnly={true}
-                          disabled
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={quotationForm.control}
-                  name="created_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created At</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChangeAction={field.onChange}
-                          readOnly={true}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {quotationForm.watch('created_by') || 'Jay Woo Choi'}
+                  </p>
+                </div>
 
-                <FormField
-                  control={quotationForm.control}
-                  name="last_modified_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Modified By</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full text-muted-foreground cursor-not-allowed"
-                          readOnly={true}
-                          disabled
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={quotationForm.control}
-                  name="updated_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Modified At</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChangeAction={field.onChange}
-                          readOnly={true}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {quotationForm.watch('last_modified_by') || 'Jaywoo Choi'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {quotationForm.watch('created_at')
+                      ? new Date(
+                          quotationForm.watch('created_at'),
+                        ).toLocaleDateString('en-AU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                        })
+                      : '10/02/25'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {quotationForm.watch('updated_at')
+                      ? new Date(
+                          quotationForm.watch('updated_at'),
+                        ).toLocaleDateString('en-AU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                        })
+                      : '21/04/25'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
