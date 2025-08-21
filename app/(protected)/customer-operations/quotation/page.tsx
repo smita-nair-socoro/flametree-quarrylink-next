@@ -60,7 +60,7 @@ export default function QuotationsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h1 className="text-2xl">Quotations</h1>
+          <h3 className="text-2xl font-bold">Quotations</h3>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -78,7 +78,7 @@ export default function QuotationsPage() {
         </div>
       </div>
 
-      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min mt-2">
+      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min mt-3">
         <DataTableClient
           tableId="quotation_main_data_table"
           data={items ?? []}

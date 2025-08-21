@@ -225,33 +225,34 @@ export function FormDialog({
   // Calculate dialog dimensions based on editing state
   const getDialogDimensions = () => {
     if (isEditing) {
-      // Editing mode: 95% width and height
+      // Editing mode: 95% width with max height constraint
       return {
         width: '95vw',
-        height: '95vh',
         maxWidth: '95vw',
         maxHeight: '95vh',
+        height: 'auto',
       };
     }
-    // Adding mode: 50% width, 95% height
+    // Adding mode: 50% width with max height constraint
     return {
       width: '50vw',
-      height: '95vh',
       maxWidth: '50vw',
       maxHeight: '95vh',
+      height: 'auto',
     };
   };
 
   const dimensions = getDialogDimensions();
 
-  // Calculate ScrollArea height based on dialog size
-  const getScrollAreaHeight = (): string => {
-    return 'h-[calc(95vh-8rem)]';
+  // For ScrollArea, use max-height instead of fixed height
+  const getScrollAreaMaxHeight = (): string => {
+    // Calculate available space: viewport height minus header space (approx 8rem)
+    return 'max-h-[calc(95vh-8rem)]';
   };
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5">
+      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5 flex-shrink-0">
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           <DialogDescription className="my-2">
@@ -263,8 +264,13 @@ export function FormDialog({
           <div className="flex items-center gap-2">{headerButtons}</div>
         )}
       </DialogHeader>
-      <ScrollArea className={clsx(getScrollAreaHeight(), 'rounded-md p-0')}>
-        <div>{contentNode}</div>
+      <ScrollArea
+        className={clsx(
+          getScrollAreaMaxHeight(),
+          'rounded-md p-0 overflow-auto'
+        )}
+      >
+        <div className="p-4">{contentNode}</div>
       </ScrollArea>
     </>
   );
@@ -274,6 +280,7 @@ export function FormDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
         <DialogContent
+          className="flex flex-col"
           style={{
             width: dimensions.width,
             height: dimensions.height,
@@ -287,20 +294,21 @@ export function FormDialog({
     );
   }
 
-  // For mobile, also apply viewport-based sizing to the drawer
+  // For mobile drawer - use auto height with max constraints
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent
         className="flex flex-col"
-        style={{ maxHeight: dimensions.maxHeight }}
+        style={{
+          maxHeight: '95vh',
+          height: 'auto', // Let content determine height
+        }}
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
-            <DrawerTitle className="text-left text-2xl">
-              {headerTitle}
-            </DrawerTitle>
-            <DrawerDescription className="my-2">
+            <DrawerTitle>{headerTitle}</DrawerTitle>
+            <DrawerDescription className="mt-2">
               {dialogDescription}
             </DrawerDescription>
             {renderBadges()}
@@ -310,8 +318,13 @@ export function FormDialog({
           )}
         </DrawerHeader>
 
-        {/* Mobile content with native overflow scrolling */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4">{contentNode}</div>
+        {/* Mobile content with auto height and max height constraint */}
+        <div
+          className="flex-1 overflow-y-auto px-4 pb-4"
+          style={{ maxHeight: 'calc(95vh - 12rem)' }}
+        >
+          {contentNode}
+        </div>
 
         <DrawerFooter className="flex-shrink-0 pt-4">
           <DrawerClose asChild>
