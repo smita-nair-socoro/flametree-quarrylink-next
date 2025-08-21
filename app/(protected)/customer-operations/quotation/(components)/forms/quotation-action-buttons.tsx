@@ -134,7 +134,7 @@ export function QuotationActionButtons({
               <>
                 <DropdownMenuItem onClick={actions.extendExpiry}>
                   <Calendar className="h-4 w-4 mr-2" />
-                  Extend Expiry
+                  Extend Expiry Date
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={actions.archive}
@@ -303,7 +303,7 @@ export function QuotationActionButtons({
               className="rounded-none border-r border-gray-200 bg-green-100 hover:bg-green-150 text-green-900 hover:text-green-800"
             >
               <Timer className="h-4 w-4 mr-2" />
-              Extend Expiry
+              Extend Expiry Date
             </Button>
             <Button
               variant="ghost"

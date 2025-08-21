@@ -125,7 +125,7 @@ export function QuotationTableActions({
           {quotation.quote_status === 'EXPIRED' && (
             <DropdownMenuItem onClick={actions.extendExpiry}>
               <Timer className="h-4 w-4 mr-2" />
-              Extend Expiry
+              Extend Expiry Date
             </DropdownMenuItem>
           )}
 
