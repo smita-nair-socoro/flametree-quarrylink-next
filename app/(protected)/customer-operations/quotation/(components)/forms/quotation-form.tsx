@@ -463,20 +463,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
           {isEditing && (
             <div
               className={cn(
-                'flex justify-between items-center',
-                isEditing ? 'col-span-2' : 'col-span-2',
-              )}
-            >
-              <h2 className="text-2xl font-bold">Line Items</h2>
-              <Button variant="default" type="button" onClick={onCancel}>
-                + Add New Product
-              </Button>
-            </div>
-          )}
-
-          {isEditing && (
-            <div
-              className={cn(
                 'space-y-6',
                 isEditing ? 'col-span-2' : 'col-span-2',
               )}
@@ -495,7 +481,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
 
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium text-foreground">
                     Created By:
