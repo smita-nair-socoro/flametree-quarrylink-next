@@ -55,8 +55,8 @@ const dialogConfigs: Record<string, DialogConfig> = {
   },
 
   decline: {
-    title: 'Confirm Declining Quote',
-    description: 'Are you sure you want to decline this quote?',
+    title: 'Are you sure you want to decline this quote?',
+    description: '',
     details: [
       'Change quote status from Pending to Declined',
       'Lock the quote from further edits',
@@ -224,11 +224,6 @@ export function useQuotationActions(
     if (quotationData.expiry_date && dialogType === 'extendExpiry') {
       // TODO: Format date properly
       info.push({ label: 'Current Expiry', value: quotationData.expiry_date });
-    }
-
-    // Quote Number for reference
-    if (quotationData.quote_number) {
-      info.push({ label: 'Quote Number', value: quotationData.quote_number });
     }
 
     return info;
