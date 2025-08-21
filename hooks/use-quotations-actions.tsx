@@ -51,7 +51,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
     ],
     confirmText: 'Approve Quote',
     confirmCustomClass:
-      'bg-green-600 hover:bg-green-700 text-white border-green-600',
+      'bg-green-900 hover:bg-green-800 text-white border-green-700',
   },
 
   decline: {
@@ -79,7 +79,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
     ],
     confirmText: 'Create Job',
     confirmCustomClass:
-      'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
+      'bg-blue-900 hover:bg-blue-800 text-white border-blue-700',
   },
 
   extendExpiry: {
@@ -93,7 +93,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
     ],
     confirmText: 'Extend Expiry Date',
     confirmCustomClass:
-      'bg-green-600 hover:bg-green-700 text-white border-green-600',
+      'bg-green-900 hover:bg-green-800 text-white border-green-700',
   },
 
   archive: {

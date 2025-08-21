@@ -261,13 +261,13 @@ export function FormDialog({
           {renderBadges()}
         </div>
         {headerButtons && (
-          <div className="flex items-center gap-2 mr-4">{headerButtons}</div>
+          <div className="flex items-center gap-2 pr-5">{headerButtons}</div>
         )}
       </DialogHeader>
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5 pb-6',
+          'rounded-md overflow-auto px-5 pb-10',
         )}
       >
         {contentNode}
