@@ -15,6 +15,7 @@ interface DialogConfig {
   title: string;
   description: string;
   details: string[];
+  content?: string;
   confirmText: string;
   confirmVariant?:
     | 'default'
@@ -70,7 +71,8 @@ const dialogConfigs: Record<string, DialogConfig> = {
 
   convertToJob: {
     title: 'Convert Quote to Job',
-    description: 'Are you sure you want to convert this quote to a job?',
+    description: '',
+    content: 'Are you sure you want to convert this quote to a job?',
     details: [
       'Create a new job (JOB###) from this quote',
       'Copy all line items to the new job',
@@ -240,6 +242,7 @@ export function useQuotationActions(
         onOpenChangeAction={() => setActiveDialog(null)}
         title={config.title}
         description={config.description}
+        content={config.content}
         details={config.details}
         additionalInfo={getAdditionalInfo(key)}
         confirmText={config.confirmText}
