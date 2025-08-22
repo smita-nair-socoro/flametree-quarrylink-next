@@ -88,8 +88,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       setSelectedCustomerType(value);
       customerForm.setValue('customer_type', value);
       if (value === 'Individual') {
-        customerForm.setValue('abn', 'N/A');
         // Clear business fields for Individual customers
+        customerForm.setValue('abn', 'N/A');
         customerForm.setValue('business_name', '');
         customerForm.setValue('business_email', '');
         customerForm.setValue('business_phone', '');
@@ -101,6 +101,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       setSelectedPaymentType(value);
       customerForm.setValue('payment_type', value);
       if (value === 'Prepaid') {
+        // Set credit limit to 0 for Prepaid customers
         customerForm.setValue('credit_limit', 0);
       }
     }
@@ -171,12 +172,12 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       accountManager: values.account_manager,
       customerStatus: 'ACTIVE',
       jobsCount: 0,
-      version: 0, // TODO: get version
+      version: 0,
       isDeleted: false,
-      createdBy: 'current_user', // TODO: get current user
-      createdAt: currentTimestamp,
-      updatedAt: currentTimestamp,
-      lastModifiedBy: 'current_user', // TODO: get current user
+      createdBy: 'current_user', // Backend will set this
+      createdAt: currentTimestamp, // Backend will set this
+      updatedAt: currentTimestamp, // Backend will set this
+      lastModifiedBy: 'current_user', // Backend will set this
     };
 
     console.log('Customer Data:', customerData);
@@ -219,7 +220,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
           onSubmit={customerForm.handleSubmit(onSubmit)}
         >
-          {/* Quote Type - Only show when creating new quote */}
+          {/* Customer Type */}
           {!isEditing && (
             <FormField
               control={customerForm.control}
@@ -259,6 +260,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
+          {/* Payment Type */}
           <FormField
             control={customerForm.control}
             name="payment_type"
@@ -294,6 +296,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             )}
           />
 
+          {/* Business Name */}
           {selectedCustomerType === 'Business' && (
             <FormField
               control={customerForm.control}
@@ -320,6 +323,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
+          {/* Business Email */}
           {selectedCustomerType === 'Business' && (
             <FormField
               control={customerForm.control}
@@ -346,6 +350,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
+          {/* Business Phone */}
           {selectedCustomerType === 'Business' && (
             <FormField
               control={customerForm.control}
@@ -373,6 +378,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
+          {/* ABN */}
           {selectedCustomerType === 'Business' && (
             <FormField
               control={customerForm.control}
@@ -395,6 +401,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
+          {/* Contact Person Name */}
           <FormField
             control={customerForm.control}
             name="contact_person_name"
@@ -419,6 +426,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             )}
           />
 
+          {/* Contact Person Email */}
           <FormField
             control={customerForm.control}
             name="contact_person_email"
@@ -443,6 +451,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             )}
           />
 
+          {/* Contact Person Phone */}
           <FormField
             control={customerForm.control}
             name="contact_person_phone"
@@ -468,6 +477,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             )}
           />
 
+          {/* Credit Limit */}
           {selectedPaymentType === 'Credit' && (
             <FormField
               control={customerForm.control}
@@ -500,6 +510,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
+          {/* Payment Terms */}
           <FormSelect
             control={customerForm.control}
             name="payment_terms"
@@ -511,6 +522,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             }
           />
 
+          {/* Account Manager */}
           <FormSelect
             control={customerForm.control}
             name="account_manager"
@@ -522,6 +534,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             }
           />
 
+          {/* Billing Address */}
           {!isEditing && (
             <FormField
               control={customerForm.control}
@@ -535,8 +548,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                       setAddress={handleAddressChange}
                       searchInput={searchInput}
                       setSearchInput={setSearchInput}
-                      dialogTitle="Enter Address"
-                      placeholder="Enter site address..."
+                      dialogTitle="Search for Billing Address"
+                      placeholder="Search for Billing Address..."
                       {...field}
                     />
                   </FormControl>
@@ -546,7 +559,9 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             />
           )}
 
-          {isEditing && (
+          {/* Audit Information */}
+          {/* TODO: QLINK-257 Edit Customer Functionality */}
+          {/* {isEditing && (
             <div
               className={cn(
                 'space-y-6',
@@ -631,8 +646,9 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 />
               </div>
             </div>
-          )}
+          )} */}
 
+          {/* Form Actions */}
           <div className={cn('flex justify-end space-x-2 col-span-2 mb-6')}>
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
