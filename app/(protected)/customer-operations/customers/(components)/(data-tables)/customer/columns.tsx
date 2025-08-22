@@ -15,7 +15,7 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
         <TableClientSortableHeader column={column} title="Customer Name" />
       );
     },
-    cell: (info) => info.getValue(),
+    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Customer Name',
   },
   {
@@ -28,7 +28,11 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     },
     cell: ({ row }) => {
       const customer_type = row.original.customer_type;
-      return <TableBadges names={customer_type} visibleCount={1} />;
+      return (
+        <div className="py-2">
+          <TableBadges names={[customer_type]} visibleCount={1} />
+        </div>
+      );
     },
     meta: 'Customer Type',
   },
@@ -38,7 +42,7 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Contact Name" />;
     },
-    cell: (info) => info.getValue(),
+    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Contact Name',
   },
   {
@@ -47,7 +51,7 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Email" />;
     },
-    cell: (info) => info.getValue(),
+    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Email',
   },
   {
@@ -60,15 +64,19 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     },
     cell: ({ row }) => {
       const payment_terms = row.original.payment_terms;
-      return <TableBadges names={payment_terms} visibleCount={1} />;
+      return (
+        <div className="py-2">
+          <TableBadges names={payment_terms} visibleCount={1} />
+        </div>
+      );
     },
     meta: 'Payment Terms',
   },
   {
     id: 'credit_limit',
     accessorFn: (row) => row.credit_limit,
-    header: ({}) => {
-      return <div className="text-right max-w-36">Credit Limit</div>;
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Credit Limit" />;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.credit_limit.toString());
@@ -78,7 +86,7 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
         currency: 'USD',
       }).format(dollars);
       return (
-        <div className="text-right font-medium w-36 max-w-36 truncate">
+        <div className="py-2 font-medium w-36 max-w-36 truncate">
           {formatted}
         </div>
       );
@@ -86,14 +94,16 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     meta: 'Credit Limit',
   },
   {
-    id: 'credit_limit',
-    accessorFn: (row) => row.credit_limit,
-    header: ({}) => {
-      return <div className="text-right max-w-36">Remaining Credit</div>;
+    id: 'remaining_credit',
+    accessorFn: (row) => row.remaining_credit,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Remaining Credit" />
+      );
     },
     cell: ({ row }) => {
       const cents = parseFloat(
-        (row.original.credit_limit - row.original.credit_limit).toString()
+        (row.original.credit_limit - row.original.remaining_credit).toString()
       );
       const dollars = cents / 100;
       const formatted = new Intl.NumberFormat('en-US', {
@@ -101,12 +111,12 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
         currency: 'USD',
       }).format(dollars);
       return (
-        <div className="text-right font-medium w-36 max-w-36 truncate">
+        <div className="py-2 font-medium w-36 max-w-36 truncate">
           {formatted}
         </div>
       );
     },
-    meta: 'Remaining Credit Limit',
+    meta: 'Remaining Credit',
   },
   {
     id: 'status',
@@ -116,7 +126,11 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     },
     cell: ({ getValue }) => {
       const names = formatCustomerStatus(getValue<string>() as CUSTOMER_STATUS);
-      return <TableBadges names={names} visibleCount={1} />;
+      return (
+        <div className="py-2">
+          <TableBadges names={names} visibleCount={1} />
+        </div>
+      );
     },
     meta: 'Status',
   },
@@ -128,7 +142,7 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
         <TableClientSortableHeader column={column} title="Account Manager" />
       );
     },
-    cell: (info) => info.getValue(),
+    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Account Manager',
   },
 

@@ -56,7 +56,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
           key={n}
           className={cn(
             'uppercase px-2 py-0.5 text-xs font-medium border',
-            getBadgeClassName(n),
+            getBadgeClassName(n)
           )}
         >
           {n}
@@ -84,7 +84,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
                   key={n}
                   className={cn(
                     'uppercase px-2 py-0.5 text-xs font-medium border',
-                    getBadgeClassName(n),
+                    getBadgeClassName(n)
                   )}
                 >
                   {n}
