@@ -272,7 +272,7 @@ export default function AddressDialog(
         ) : (
           <form onSubmit={handleSave}>
             <div className="flex flex-col gap-6 py-4">
-              <div className="space-y-0.5">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="address1">Address line 1</Label>
                 <Input
                   value={address1}
@@ -291,7 +291,7 @@ export default function AddressDialog(
                 )}
               </div>
 
-              <div className="space-y-0.5">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="address2">
                   Address line 2{' '}
                   <span className="text-xs text-secondary-foreground">
@@ -309,7 +309,7 @@ export default function AddressDialog(
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-1 space-y-0.5">
+                <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="city">City</Label>
                   <Input
                     value={city}
@@ -327,7 +327,7 @@ export default function AddressDialog(
                     />
                   )}
                 </div>
-                <div className="flex-1 space-y-0.5">
+                <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="region">State / Province / Region</Label>
                   <Input
                     value={region}
@@ -348,7 +348,7 @@ export default function AddressDialog(
               </div>
 
               <div className="flex gap-4">
-                <div className="flex-1 space-y-0.5">
+                <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="postalCode">Postal Code</Label>
                   <Input
                     value={postalCode}
@@ -366,7 +366,7 @@ export default function AddressDialog(
                     />
                   )}
                 </div>
-                <div className="flex-1 space-y-0.5">
+                <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="country">Country</Label>
                   <Input
                     value={address?.country || 'Australia'}
