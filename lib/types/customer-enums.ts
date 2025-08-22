@@ -5,6 +5,5 @@ export enum CUSTOMER_TYPE {
 
 export enum CUSTOMER_STATUS {
   ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
   ARCHIVED = 'ARCHIVED',
 }
