@@ -144,7 +144,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             isEditing && isDesktop
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
-            className,
+            className
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -192,7 +192,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             options={quarryOptions}
             placeholder="Select Customer"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'w-full'
             }
           />
           <FormField
@@ -201,9 +201,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             render={({ field }) => (
               <FormItem
                 className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
+                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'w-full'
                 }
               >
                 <FormLabel>Project Name</FormLabel>
@@ -225,9 +223,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             render={({ field }) => (
               <FormItem
                 className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-1'
-                    : 'col-span-2'
+                  isEditing && isDesktop ? 'col-span-1 col-start-1' : 'w-full'
                 }
               >
                 <FormLabel>Account Manager</FormLabel>
@@ -251,9 +247,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               render={({ field }) => (
                 <FormItem
                   className={
-                    isEditing
-                      ? 'col-span-1 col-start-1 md:col-start-2'
-                      : 'col-span-2'
+                    isEditing && isDesktop ? 'col-span-1 col-start-2' : 'w-full'
                   }
                 >
                   <FormLabel>{addressLabel}</FormLabel>
@@ -281,9 +275,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               render={({ field }) => (
                 <FormItem
                   className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
-                      : 'col-span-2'
+                    isEditing && isDesktop ? 'col-span-1 col-start-1' : 'w-full'
                   }
                 >
                   <FormLabel>Phone</FormLabel>
@@ -307,9 +299,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             render={({ field }) => (
               <FormItem
                 className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
+                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'w-full'
                 }
               >
                 <FormLabel>{dateLabel}</FormLabel>
@@ -333,9 +323,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               render={({ field }) => (
                 <FormItem
                   className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
-                      : 'col-span-2'
+                    isEditing && isDesktop ? 'col-span-1 col-start-1' : 'w-full'
                   }
                 >
                   <FormLabel>Email</FormLabel>
@@ -355,8 +343,8 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
 
           <div
             className={cn(
-              'grid grid-cols-2 gap-3',
-              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2',
+              'grid grid-cols-2 gap-3 w-full',
+              isEditing && isDesktop ? 'col-span-1 col-start-2' : ''
             )}
           >
             <h3 className="font-bold col-span-2">{timeWindowLabel}</h3>
@@ -408,9 +396,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             render={({ field }) => (
               <FormItem
                 className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
+                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'w-full'
                 }
               >
                 <FormLabel>Expiry Date</FormLabel>
@@ -437,11 +423,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               control={quotationForm.control}
               name="site_address"
               render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing ? 'col-span-1 col-start-2' : 'col-span-2'
-                  }
-                >
+                <FormItem className="w-full">
                   <FormLabel>{addressLabel}</FormLabel>
                   <FormControl>
                     <AddressAutoComplete
@@ -461,15 +443,10 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
           )}
 
           {isEditing && (
-            <div
-              className={cn(
-                'space-y-6',
-                isEditing ? 'col-span-2' : 'col-span-2',
-              )}
-            >
+            <div className="col-span-full space-y-6">
               {/* TODO: Add the table for line items here come back to this! */}
               {/* TODO: Add the data when we have proper quotation and when we are calling the api endpoint */}
-              <div className="col-span-2">
+              <div className="w-full">
                 <DataTableClient
                   columns={quoteItemColumns}
                   data={[]}
@@ -507,7 +484,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   <p className="text-sm text-muted-foreground">
                     {quotationForm.watch('created_at')
                       ? new Date(
-                          quotationForm.watch('created_at'),
+                          quotationForm.watch('created_at')
                         ).toLocaleDateString('en-AU', {
                           day: '2-digit',
                           month: '2-digit',
@@ -524,7 +501,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   <p className="text-sm text-muted-foreground">
                     {quotationForm.watch('updated_at')
                       ? new Date(
-                          quotationForm.watch('updated_at'),
+                          quotationForm.watch('updated_at')
                         ).toLocaleDateString('en-AU', {
                           day: '2-digit',
                           month: '2-digit',
@@ -537,12 +514,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             </div>
           )}
 
-          <div
-            className={cn(
-              'flex justify-end space-x-2',
-              isEditing ? 'col-span-2' : 'col-span-2',
-            )}
-          >
+          <div className="col-span-full flex justify-end space-x-2">
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
