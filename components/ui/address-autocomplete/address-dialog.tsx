@@ -91,7 +91,7 @@ export function createAddressSchema(address: AddressFields) {
 }
 
 export default function AddressDialog(
-  props: React.PropsWithChildren<AddressDialogProps>,
+  props: React.PropsWithChildren<AddressDialogProps>
 ) {
   const {
     children,
@@ -130,7 +130,7 @@ export default function AddressDialog(
       locality: string;
       region: string;
       'postal-code': string;
-    },
+    }
   ) {
     // If no adrAddress (manual entry), use the formatAddressFromComponents function
     if (!addressString || addressString.trim() === '') {
@@ -155,7 +155,7 @@ export default function AddressDialog(
         const regex = new RegExp(`(<span class="${key}">)[^<]*(</span>)`, 'g');
         updatedAddressString = updatedAddressString.replace(
           regex,
-          `$1${value}$2`,
+          `$1${value}$2`
         );
       }
     });
@@ -166,11 +166,11 @@ export default function AddressDialog(
     // Add address2 just after address1 if provided
     if (addressComponents.address2) {
       const address1Regex = new RegExp(
-        `${addressComponents['street-address']}`,
+        `${addressComponents['street-address']}`
       );
       updatedAddressString = updatedAddressString.replace(
         address1Regex,
-        `${addressComponents['street-address']}, ${addressComponents.address2}`,
+        `${addressComponents['street-address']}, ${addressComponents.address2}`
       );
     }
 
@@ -271,7 +271,7 @@ export default function AddressDialog(
           </div>
         ) : (
           <form onSubmit={handleSave}>
-            <div className="space-y-4 py-4">
+            <div className="flex flex-col gap-6 py-4">
               <div className="space-y-0.5">
                 <Label htmlFor="address1">Address line 1</Label>
                 <Input
