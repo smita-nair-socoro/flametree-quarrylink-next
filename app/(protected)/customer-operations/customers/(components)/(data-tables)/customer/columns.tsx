@@ -5,6 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { CustomerDetails } from '@/lib/types/customer';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
+import { CustomerTableActions } from './customer-table-actions';
 
 export const customerColumns: ColumnDef<CustomerDetails>[] = [
   {
@@ -132,15 +133,14 @@ export const customerColumns: ColumnDef<CustomerDetails>[] = [
     meta: 'Account Manager',
   },
 
-  // TODO: QLINK-637 Add actions
-  //   {
-  //     id: 'actions',
-  //     header: () => {
-  //       return <div></div>;
-  //     },
-  //     cell: ({ row }) => {
-  //         const customer = row.original;
-  //       return <div></div>;
-  //     },
-  //   },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const customer = row.original;
+      return <CustomerTableActions customer={customer} />;
+    },
+  },
 ];
