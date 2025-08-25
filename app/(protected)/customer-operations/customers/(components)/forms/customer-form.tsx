@@ -26,6 +26,7 @@ import { AddressType } from '@/lib/types/address';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
+import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
   id?: number;
@@ -72,8 +73,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       payment_terms: '',
       account_manager: '',
       billing_address: '',
-      created_at: new Date(),
-      updated_at: new Date(),
+      created_at: undefined,
+      updated_at: undefined,
       created_by: 'current_user',
       last_modified_by: 'current_user',
     },
@@ -220,51 +221,53 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           onSubmit={customerForm.handleSubmit(onSubmit)}
         >
           {/* Customer Type */}
-          {!isEditing && (
-            <FormField
-              control={customerForm.control}
-              name="customer_type"
-              render={({ field }) => (
-                <FormItem className="space-y-3 col-span-full">
-                  <FormLabel>Customer Type*</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleFormFieldChange('customer_type', value);
-                      }}
-                      defaultValue={field.value}
-                      className="grid grid-flow-col auto-cols-max gap-4"
-                    >
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="Business" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Business</FormLabel>
-                      </FormItem>
+          <FormField
+            control={customerForm.control}
+            name="customer_type"
+            render={({ field }) => (
+              <FormItem className="col-span-1 col-start-1">
+                <FormLabel>Customer Type*</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      handleFormFieldChange('customer_type', value);
+                    }}
+                    defaultValue={field.value}
+                    className="grid grid-flow-col auto-cols-max gap-4"
+                  >
+                    <FormItem className="flex items-center gap-3">
+                      <FormControl>
+                        <RadioGroupItem value="Business" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Business</FormLabel>
+                    </FormItem>
 
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="Individual" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Individual
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+                    <FormItem className="flex items-center gap-3">
+                      <FormControl>
+                        <RadioGroupItem value="Individual" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Individual</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Payment Type */}
           <FormField
             control={customerForm.control}
             name="payment_type"
             render={({ field }) => (
-              <FormItem className="space-y-3 col-span-full">
+              <FormItem
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2'
+                    : 'col-span-1 col-start-1'
+                }
+              >
                 <FormLabel>Payment Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
@@ -304,7 +307,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
+                      ? 'col-span-1 col-start-1'
                       : 'col-span-2'
                   }
                 >
@@ -358,7 +361,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
+                      ? 'col-span-1 col-start-1'
                       : 'col-span-2'
                   }
                 >
@@ -408,7 +411,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               <FormItem
                 className={
                   isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
+                    ? 'col-span-1 col-start-1'
                     : 'col-span-2'
                 }
               >
@@ -458,7 +461,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               <FormItem
                 className={
                   isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
+                    ? 'col-span-1 col-start-1'
                     : 'col-span-2'
                 }
               >
@@ -530,123 +533,69 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             options={accountManagerOptions}
             placeholder="Select Account Manager"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
             }
           />
 
           {/* Billing Address */}
-          {!isEditing && (
-            <FormField
-              control={customerForm.control}
-              name="billing_address"
-              render={({ field }) => (
-                <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
-                  <FormLabel>Billing Address*</FormLabel>
-                  <FormControl>
-                    <AddressAutoComplete
-                      address={address}
-                      setAddress={handleAddressChange}
-                      searchInput={searchInput}
-                      setSearchInput={setSearchInput}
-                      dialogTitle="Search for Billing Address"
-                      placeholder="Search for Billing Address..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={customerForm.control}
+            name="billing_address"
+            render={({ field }) => (
+              <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
+                <FormLabel>Billing Address*</FormLabel>
+                <FormControl>
+                  <AddressAutoComplete
+                    address={address}
+                    setAddress={handleAddressChange}
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
+                    dialogTitle="Search for Billing Address"
+                    placeholder="Search for Billing Address..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Audit Information */}
-          {/* TODO: QLINK-257 Edit Customer Functionality */}
-          {/* {isEditing && (
-            <div
-              className={cn(
-                'space-y-6',
-                isEditing ? 'col-span-2' : 'col-span-2'
-              )}
-            >
+          {isEditing && (
+            <div className="col-span-full space-y-6 mt-16">
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={customerForm.control}
-                  name="created_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created By</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full text-muted-foreground cursor-not-allowed"
-                          readOnly={true}
-                          disabled
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={customerForm.control}
-                  name="created_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created At</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChangeAction={field.onChange}
-                          readOnly={true}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">Jaywoo Choi</p>
+                </div>
 
-                <FormField
-                  control={customerForm.control}
-                  name="last_modified_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Modified By</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full text-muted-foreground cursor-not-allowed"
-                          readOnly={true}
-                          disabled
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={customerForm.control}
-                  name="updated_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Modified At</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChangeAction={field.onChange}
-                          readOnly={true}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">Jaywoo Choi</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">20/08/25</p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">25/08/25</p>
+                </div>
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Form Actions */}
           <div className={cn('flex justify-end space-x-2 col-span-2 mb-6')}>
@@ -663,6 +612,16 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Adding Customer...' : 'Add Customer'}
+              </Button>
+            )}
+            {isEditing && (
+              <Button
+                // TODO: QLINK-257 Edit Customer Functionality
+                // form="add-new-customer-form"
+                type="submit"
+                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
+              >
+                Save Changes
               </Button>
             )}
           </div>
