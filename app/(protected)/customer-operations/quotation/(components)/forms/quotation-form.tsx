@@ -216,7 +216,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
-
           <FormField
             control={quotationForm.control}
             name="account_manager"
