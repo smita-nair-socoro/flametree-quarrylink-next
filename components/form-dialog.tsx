@@ -116,9 +116,12 @@ export function FormDialog({
   // Always call the hook, but only use the result when needed
   // const selectedQuotation = useSelectedQuotation();
 
-  let finalCustomId = headerInfo?.customId;
-  let finalPrimaryBadges = headerInfo?.primaryBadges;
-  let finalSecondaryBadges = headerInfo?.secondaryBadges;
+  // Using const here to satisfy ESLint (prefer-const).
+  // If we ever re-enable the selectedQuotation logic below,
+  // these may need to switch back to let.
+  const finalCustomId = headerInfo?.customId;
+  const finalPrimaryBadges = headerInfo?.primaryBadges;
+  const finalSecondaryBadges = headerInfo?.secondaryBadges;
 
   // if (headerInfo?.useSelectedQuotation && selectedQuotation) {
   //   finalCustomId = selectedQuotation.quote_number;
