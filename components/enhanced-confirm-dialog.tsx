@@ -30,6 +30,7 @@ interface EnhancedConfirmDialogProps {
     | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
+  confirmIcon?: React.ReactNode;
   onConfirmAction: () => void;
 }
 
@@ -46,6 +47,7 @@ export function EnhancedConfirmDialog({
   confirmVariant = 'default',
   confirmCustomColor,
   confirmCustomClass,
+  confirmIcon,
   onConfirmAction,
 }: EnhancedConfirmDialogProps) {
   // Create custom styles if color is provided
@@ -100,6 +102,11 @@ export function EnhancedConfirmDialog({
               onOpenChangeAction(false);
             }}
           >
+            {confirmIcon && (
+              <span className="pr-[7px] h-4 w-4 flex items-center justify-center">
+                {confirmIcon}
+              </span>
+            )}
             {confirmText}
           </Button>
         </div>
