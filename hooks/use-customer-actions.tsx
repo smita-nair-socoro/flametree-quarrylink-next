@@ -5,6 +5,7 @@ import { CustomerDetails } from '@/lib/types/customer';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
+import { Archive } from 'lucide-react';
 
 interface DialogConfig {
   title: string;
@@ -22,18 +23,24 @@ interface DialogConfig {
   confirmCustomClass?: string;
 }
 
-const dialogConfigs: Record<string, DialogConfig> = {
-  archive: {
-    title: 'Confirm Customer To Be Archived?',
-    description: 'Are you sure you want to archive this customer?',
-    details: [
-      'Hide customer from active lists',
-      'Prevent new quotes/ jobs creation',
-      'Preserve all historical data',
-    ],
-    confirmText: 'Archive Customer',
-    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
-  },
+const getDialogConfigs = (
+  customerData?: CustomerDetails | null
+): Record<string, DialogConfig> => {
+  const customerName = customerData?.business_name;
+
+  return {
+    archive: {
+      title: `Are you sure you want to archive ${customerName}?`,
+      description: '',
+      details: [
+        'Hide customer from active lists',
+        'Prevent new quotes/ jobs creation',
+        'Preserve all historical data',
+      ],
+      confirmText: 'Archive Customer',
+      confirmCustomClass: 'bg-[#475569] hover:bg-[#64748b] text-white',
+    },
+  };
 };
 
 export function useCustomerActions(
@@ -42,6 +49,8 @@ export function useCustomerActions(
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+
+  const dialogConfigs = getDialogConfigs(customerData);
 
   const createDialogAction = (
     dialogType: keyof typeof dialogConfigs,
@@ -97,6 +106,7 @@ export function useCustomerActions(
         confirmVariant={config.confirmVariant}
         confirmCustomColor={config.confirmCustomColor}
         confirmCustomClass={config.confirmCustomClass}
+        confirmIcon={<Archive className="h-4 w-4" />}
         onConfirmAction={() => {
           switch (key) {
             case 'archive':
@@ -127,9 +137,12 @@ export function useCustomerActions(
       }}
       headerButtons={<CustomerActionButtons customer={customerData} />}
       hideTrigger
+<<<<<<< HEAD
       headerInfo={{
         useSelectedCustomer: true,
       }}
+=======
+>>>>>>> origin/QLINK-637-Customer-Table-Elipsis-And-Modal
     >
       <CustomerForm />
     </FormDialog>

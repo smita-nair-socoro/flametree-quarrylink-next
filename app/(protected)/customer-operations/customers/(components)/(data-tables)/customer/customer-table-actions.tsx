@@ -61,7 +61,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
                 onClick={handleArchive}
                 className="text-destructive focus:text-destructive"
               >
-                <Archive className="h-4 w-4 mr-2" />
+                <Archive className="h-4 w-4 mr-2 text-red-600" />
                 Archive
               </DropdownMenuItem>
             </>
