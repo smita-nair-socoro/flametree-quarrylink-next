@@ -137,12 +137,9 @@ export function useCustomerActions(
       }}
       headerButtons={<CustomerActionButtons customer={customerData} />}
       hideTrigger
-<<<<<<< HEAD
       headerInfo={{
         useSelectedCustomer: true,
       }}
-=======
->>>>>>> origin/QLINK-637-Customer-Table-Elipsis-And-Modal
     >
       <CustomerForm />
     </FormDialog>
