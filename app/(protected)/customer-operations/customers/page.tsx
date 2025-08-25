@@ -51,7 +51,11 @@ export default function CustomersPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+=======
+      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min mt-3">
+>>>>>>> QLINK-248-Customer-Table
         <DataTableClient
           tableId="customer_main_data_table"
           data={items ?? []}

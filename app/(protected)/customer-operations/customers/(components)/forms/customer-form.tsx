@@ -519,6 +519,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             formItemClassName={
               isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
             }
+            showSearch={false}
           />
 
           {/* Account Manager */}

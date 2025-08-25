@@ -113,6 +113,18 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     meta: 'Status',
   },
   {
+    id: 'status',
+    accessorFn: (row) => row.quote_status,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Status" />;
+    },
+    cell: ({ getValue }) => {
+      const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
+      return <TableBadges names={names} visibleCount={1} />;
+    },
+    meta: 'Status',
+  },
+  {
     id: 'actions',
     header: () => {
       return <div></div>;
