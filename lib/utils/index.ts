@@ -19,7 +19,7 @@ export function getUser() {
   const authority = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
   const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
   const oidcStorage = localStorage.getItem(
-    `oidc.user:${authority}:${clientId}`,
+    `oidc.user:${authority}:${clientId}`
   );
   if (!oidcStorage) {
     return null;
@@ -54,7 +54,7 @@ export function setLocalStorage<T>(key: string, value: T) {
 export function dateSortingFn(
   a: { getValue: (colId: string) => string },
   b: { getValue: (colId: string) => string },
-  columnId: string,
+  columnId: string
 ) {
   const da = parseISO(a.getValue(columnId));
   const db = parseISO(b.getValue(columnId));
@@ -86,6 +86,15 @@ export const STATUS_COLORS: Record<string, string> = {
     'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-900 dark:border-orange-900',
   DELIVERY:
     'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
+  BUSINESS:
+    'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
+  INDIVIDUAL:
+    'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
+  NET7: 'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-800 dark:border-green-800',
+  NET14:
+    'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
+  NET30:
+    'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
 };
 
 export const QUOTE_TYPE_COLORS = {

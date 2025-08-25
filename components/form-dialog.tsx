@@ -26,7 +26,7 @@ import { Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
-import { useSelectedQuotation } from '@/app/stores/quotation-store';
+// import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
 
 interface HeaderInfo {
@@ -114,17 +114,20 @@ export function FormDialog({
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Always call the hook, but only use the result when needed
-  const selectedQuotation = useSelectedQuotation();
+  // const selectedQuotation = useSelectedQuotation();
 
-  let finalCustomId = headerInfo?.customId;
-  let finalPrimaryBadges = headerInfo?.primaryBadges;
-  let finalSecondaryBadges = headerInfo?.secondaryBadges;
+  // Using const here to satisfy ESLint (prefer-const).
+  // If we ever re-enable the selectedQuotation logic below,
+  // these may need to switch back to let.
+  const finalCustomId = headerInfo?.customId;
+  const finalPrimaryBadges = headerInfo?.primaryBadges;
+  const finalSecondaryBadges = headerInfo?.secondaryBadges;
 
-  if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-    finalCustomId = selectedQuotation.quote_number;
-    finalPrimaryBadges = [selectedQuotation.quote_status];
-    finalSecondaryBadges = [selectedQuotation.quote_type];
-  }
+  // if (headerInfo?.useSelectedQuotation && selectedQuotation) {
+  //   finalCustomId = selectedQuotation.quote_number;
+  //   finalPrimaryBadges = [selectedQuotation.quote_status];
+  //   finalSecondaryBadges = [selectedQuotation.quote_type];
+  // }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
@@ -272,7 +275,7 @@ export function FormDialog({
           'rounded-md overflow-auto px-5 pb-10'
         )}
       >
-        {contentNode}
+        <div>{contentNode}</div>
       </ScrollArea>
     </>
   );
@@ -296,6 +299,7 @@ export function FormDialog({
     );
   }
 
+  // For mobile, also apply viewport-based sizing to the drawer
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>

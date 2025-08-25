@@ -104,6 +104,12 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
    * Additional classes to apply to the add-button row.
    */
   addButtonClassName?: string;
+
+  /**
+   * Whether to show the search input field in the dropdown.
+   * @default true
+   */
+  showSearch?: boolean;
 }
 
 /**
@@ -125,6 +131,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
   onAddClick,
   addButtonLabel = '+ New Item',
   addButtonClassName,
+  showSearch = true,
 }: FormSelectProps<TFieldValues>) {
   return (
     <FormField
@@ -142,7 +149,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                   className={cn(
                     'w-full flex items-center justify-between overflow-hidden whitespace-nowrap',
                     !field.value && 'text-muted-foreground',
-                    className,
+                    className
                   )}
                 >
                   <span className="flex-1 text-left truncate">
@@ -159,10 +166,12 @@ export function FormSelect<TFieldValues extends FieldValues>({
               align="start"
             >
               <Command>
-                <CommandInput
-                  placeholder={`Search ${label}...`}
-                  className="h-9"
-                />
+                {showSearch && (
+                  <CommandInput
+                    placeholder={`Search ${label}...`}
+                    className="h-9"
+                  />
+                )}
                 <CommandList>
                   <CommandEmpty>No {label} found.</CommandEmpty>
                   <CommandGroup>
@@ -178,7 +187,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                             'ml-auto h-4 w-4',
                             field.value === opt.value
                               ? 'opacity-100'
-                              : 'opacity-0',
+                              : 'opacity-0'
                           )}
                         />
                       </CommandItem>
@@ -191,7 +200,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                           onSelect={() => onAddClick()}
                           className={cn(
                             'text-primary cursor-pointer',
-                            addButtonClassName,
+                            addButtonClassName
                           )}
                         >
                           {addButtonLabel}
