@@ -25,32 +25,64 @@ interface DialogConfig {
   confirmIcon?: React.ReactNode;
 }
 
+interface SelectedAction {
+  key: string;
+}
+
 const getDialogConfigs = (
-  customerData?: CustomerDetails | null
+  customerData?: CustomerDetails | null,
+  selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
   const customerName = customerData?.business_name;
 
-  return {
-    archive: {
-      title: `Archive ${customerName}?`,
-      description: '',
-      details: [
-        'Hide customer from active lists',
-        'Prevent new quotes/jobs creation',
-        'Preserve all historical data',
-      ],
-      confirmText: 'Archive Customer',
-      confirmCustomClass: 'bg-[#475569] hover:bg-[#64748b] text-white',
-      titleIcon: (
-        <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
-          <span className="flex items-center justify-center">
-            <TriangleAlert className="h-5 w-5 text-[#F54900]" />
-          </span>
-        </div>
-      ),
-      confirmIcon: <Archive className="h-4 w-4" />,
-    },
-  };
+  if (selectedAction?.key === 'archive') {
+    return {
+      archive: {
+        title: `Archive ${customerName}?`,
+        description: '',
+        details: [
+          'Hide customer from active lists',
+          'Prevent new quotes/jobs creation',
+          'Preserve all historical data',
+        ],
+        confirmText: 'Archive Customer',
+        confirmCustomClass: 'bg-[#475569] hover:bg-[#64748b] text-white',
+        titleIcon: (
+          <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
+            <span className="flex items-center justify-center">
+              <TriangleAlert className="h-5 w-5 text-[#F54900]" />
+            </span>
+          </div>
+        ),
+        confirmIcon: <Archive className="h-4 w-4" />,
+      },
+    };
+  } else if (selectedAction?.key === 'unarchive') {
+    return {
+      unarchive: {
+        title: `Unarchive ${customerName}?`,
+        description: '',
+        details: [
+          'Restore customer to active lists',
+          'Allow new quotes/jobs creation',
+          'Make customer visible in searches',
+        ],
+        confirmText: 'Unarchive Customer',
+        confirmCustomClass: 'bg-blue-600 hover:bg-blue-700 text-white',
+        titleIcon: (
+          <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-blue-100 rounded-full">
+            <span className="flex items-center justify-center">
+              <Archive className="h-5 w-5 text-blue-600" />
+            </span>
+          </div>
+        ),
+        confirmIcon: <Archive className="h-4 w-4" />,
+      },
+    };
+  }
+
+  // Return empty object if no action selected
+  return {};
 };
 
 export function useCustomerActions(
@@ -59,15 +91,18 @@ export function useCustomerActions(
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [selectedAction, setSelectedAction] =
+    React.useState<SelectedAction | null>(null);
 
-  const dialogConfigs = getDialogConfigs(customerData);
+  const dialogConfigs = getDialogConfigs(
+    customerData,
+    selectedAction || undefined
+  );
 
-  const createDialogAction = (
-    dialogType: keyof typeof dialogConfigs,
-    action: () => void
-  ) => {
+  const createDialogAction = (actionKey: string, action: () => void) => {
     return () => {
-      setActiveDialog(dialogType);
+      setSelectedAction({ key: actionKey });
+      setActiveDialog(actionKey);
     };
   };
 
@@ -91,7 +126,12 @@ export function useCustomerActions(
 
     archive: createDialogAction('archive', () => {
       console.log('Archive customer:', customerId);
-      // TODO: implement delete logic
+      // TODO: implement archive logic
+    }),
+
+    unarchive: createDialogAction('unarchive', () => {
+      console.log('Unarchive customer:', customerId);
+      // TODO: implement unarchive logic
     }),
   };
 
@@ -106,6 +146,7 @@ export function useCustomerActions(
         onOpenChangeAction={(open) => {
           if (!open) {
             setActiveDialog(null);
+            setSelectedAction(null);
           }
         }}
         title={config.title}
@@ -124,8 +165,13 @@ export function useCustomerActions(
               console.log('Archive customer:', customerId, customerData);
               // TODO: implement archive logic
               break;
+            case 'unarchive':
+              console.log('Unarchive customer:', customerId, customerData);
+              // TODO: implement unarchive logic
+              break;
           }
           setActiveDialog(null);
+          setSelectedAction(null);
         }}
       />
     );
