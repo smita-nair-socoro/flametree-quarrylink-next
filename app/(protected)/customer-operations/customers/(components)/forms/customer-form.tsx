@@ -26,7 +26,6 @@ import { AddressType } from '@/lib/types/address';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
-import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
   id?: number;
