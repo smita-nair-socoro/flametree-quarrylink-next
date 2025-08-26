@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Archive, Eye } from 'lucide-react';
+import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDetails } from '@/lib/types/customer';
@@ -23,6 +23,7 @@ export function CustomerActionButtons({
   layout = 'expanded',
 }: CustomerActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isArchived = customer?.customer_status === 'ARCHIVED' ? true : false;
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
     customer?.id,
@@ -34,12 +35,8 @@ export function CustomerActionButtons({
     return null;
   }
 
-  // Don't render anything if quotationId is invalid
+  // Don't render anything if customerId is invalid
   if (!customer.id || customer.id === 0) {
-    return null;
-  }
-
-  if (customer.customer_status === 'ARCHIVED') {
     return null;
   }
 
@@ -57,7 +54,7 @@ export function CustomerActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {customer.customer_status !== 'ARCHIVED' && (
+            {!isArchived && (
               <>
                 <DropdownMenuItem onClick={actions.viewJobs}>
                   <Eye className="h-4 w-4 mr-2" />
@@ -81,6 +78,15 @@ export function CustomerActionButtons({
                 </DropdownMenuItem>
               </>
             )}
+            {isArchived && (
+              <DropdownMenuItem
+                onClick={actions.unarchive}
+                className="text-blue-600 focus:text-blue-600"
+              >
+                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+                Unarchive
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -94,35 +100,32 @@ export function CustomerActionButtons({
       {viewDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={actions.viewDockets}
-            className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200 "
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            View Dockets
-          </Button>
-        </>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        {!isArchived && (
+          <>
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+              onClick={actions.viewDockets}
+              className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200 "
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <Eye className="h-4 w-4 mr-2" />
+              View Dockets
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {customer.customer_status !== 'ARCHIVED' && (
-              <div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={actions.viewJobs}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Jobs
                 </DropdownMenuItem>
-
                 <DropdownMenuItem onClick={actions.viewQuotations}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
@@ -135,10 +138,32 @@ export function CustomerActionButtons({
                   <Archive className="h-4 w-4 mr-2 text-red-600" />
                   Archive
                 </DropdownMenuItem>
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
+        {isArchived && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={actions.unarchive}
+                className="text-blue-600 focus:text-blue-600"
+              >
+                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+                Unarchive
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );
