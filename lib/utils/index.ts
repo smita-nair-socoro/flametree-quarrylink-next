@@ -90,10 +90,11 @@ export const STATUS_COLORS: Record<string, string> = {
     'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
   INDIVIDUAL:
     'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
-  NET7: 'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-800 dark:border-green-800',
-  NET14:
+  'NET 7':
+    'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-800 dark:border-green-800',
+  'NET 14':
     'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
-  NET30:
+  'NET 30':
     'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
 };
 
