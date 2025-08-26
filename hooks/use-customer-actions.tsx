@@ -5,7 +5,7 @@ import { CustomerDetails } from '@/lib/types/customer';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
-import { Archive } from 'lucide-react';
+import { Archive, TriangleAlert } from 'lucide-react';
 
 interface DialogConfig {
   title: string;
@@ -21,6 +21,8 @@ interface DialogConfig {
     | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
+  titleIcon?: React.ReactNode;
+  confirmIcon?: React.ReactNode;
 }
 
 const getDialogConfigs = (
@@ -34,11 +36,19 @@ const getDialogConfigs = (
       description: '',
       details: [
         'Hide customer from active lists',
-        'Prevent new quotes/ jobs creation',
+        'Prevent new quotes/jobs creation',
         'Preserve all historical data',
       ],
       confirmText: 'Archive Customer',
       confirmCustomClass: 'bg-[#475569] hover:bg-[#64748b] text-white',
+      titleIcon: (
+        <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
+          <span className="flex items-center justify-center">
+            <TriangleAlert className="h-5 w-5 text-[#F54900]" />
+          </span>
+        </div>
+      ),
+      confirmIcon: <Archive className="h-4 w-4" />,
     },
   };
 };
@@ -106,7 +116,8 @@ export function useCustomerActions(
         confirmVariant={config.confirmVariant}
         confirmCustomColor={config.confirmCustomColor}
         confirmCustomClass={config.confirmCustomClass}
-        confirmIcon={<Archive className="h-4 w-4" />}
+        confirmIcon={config.confirmIcon}
+        titleIcon={config.titleIcon}
         onConfirmAction={() => {
           switch (key) {
             case 'archive':
