@@ -30,7 +30,7 @@ const getDialogConfigs = (
 
   return {
     archive: {
-      title: `Are you sure you want to archive ${customerName}?`,
+      title: `Archive ${customerName}?`,
       description: '',
       details: [
         'Hide customer from active lists',

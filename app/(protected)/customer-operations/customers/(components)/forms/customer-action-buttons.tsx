@@ -94,6 +94,17 @@ export function CustomerActionButtons({
       {viewDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={actions.viewDockets}
+            className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200 "
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View Dockets
+          </Button>
+        </>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -111,10 +122,7 @@ export function CustomerActionButtons({
                   <Eye className="h-4 w-4 mr-2" />
                   View Jobs
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.viewDockets}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Dockets
-                </DropdownMenuItem>
+
                 <DropdownMenuItem onClick={actions.viewQuotations}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
