@@ -7,6 +7,8 @@ import rawJson from '@/lib/tests/customerResponseData.json';
 import { CustomerDetails } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { customerColumns } from './(components)/(data-tables)/customer/columns';
+import { Plus } from 'lucide-react';
+
 import {
   DataTableClient,
   FacetDefinition,
@@ -31,7 +33,10 @@ export default function CustomersPage() {
   }));
 
   const facetDefs: FacetDefinition[] = [
-    // TODO: Add facets QLINK-636
+    { column: 'status', title: 'Status', icon: Plus },
+    { column: 'payment_terms', title: 'Payment Terms', icon: Plus },
+    { column: 'customer_type', title: 'Customer Type', icon: Plus },
+    { column: 'account_manager', title: 'Account Manager', icon: Plus },
   ];
 
   return (
