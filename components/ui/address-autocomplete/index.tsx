@@ -143,7 +143,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           console.error(
             'Place details fetch failed:',
             response.status,
-            response.statusText,
+            response.statusText
           );
           return;
         }
@@ -353,7 +353,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           console.error(
             'Autocomplete fetch failed:',
             response.status,
-            response.statusText,
+            response.statusText
           );
           const errorText = await response.text();
           console.error('Error response:', errorText);
@@ -384,14 +384,14 @@ function AddressAutoCompleteInput(props: CommonProps) {
       onKeyDown={handleKeyDown}
       className="overflow-visible"
     >
-      <div className="flex w-full items-center justify-between rounded-lg border bg-background ring-offset-background text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+      <div className="flex h-9 w-full items-center rounded-md border border-input px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring md:text-sm">
         <CommandPrimitive.Input
           value={searchInput}
           onValueChange={setSearchInput}
           onBlur={close}
           onFocus={open}
           placeholder={placeholder || 'Enter address'}
-          className="w-full p-3 rounded-lg outline-none"
+          className="w-full outline-none"
         />
       </div>
       {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
@@ -450,8 +450,8 @@ function AddressAutoCompleteInput(props: CommonProps) {
                       {searchInput === ''
                         ? 'Please enter an address'
                         : hasNoResults
-                          ? null
-                          : 'No address found'}
+                        ? null
+                        : 'No address found'}
                     </div>
                   )}
                 </CommandEmpty>
