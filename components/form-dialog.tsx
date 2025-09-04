@@ -26,7 +26,8 @@ import { Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
-// import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
 
 interface HeaderInfo {
@@ -38,6 +39,8 @@ interface HeaderInfo {
   secondaryBadges?: string[];
   /** Use selected quotation data automatically */
   useSelectedQuotation?: boolean;
+  /** Use selected customer data automatically */
+  useSelectedCustomer?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -113,21 +116,24 @@ export function FormDialog({
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  // Always call the hook, but only use the result when needed
-  // const selectedQuotation = useSelectedQuotation();
+  const selectedQuotation = useSelectedQuotation();
+  const selectedCustomer = useSelectedCustomer();
 
-  // Using const here to satisfy ESLint (prefer-const).
-  // If we ever re-enable the selectedQuotation logic below,
-  // these may need to switch back to let.
-  const finalCustomId = headerInfo?.customId;
-  const finalPrimaryBadges = headerInfo?.primaryBadges;
-  const finalSecondaryBadges = headerInfo?.secondaryBadges;
+  let finalCustomId = headerInfo?.customId;
+  let finalPrimaryBadges = headerInfo?.primaryBadges;
+  let finalSecondaryBadges = headerInfo?.secondaryBadges;
 
-  // if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-  //   finalCustomId = selectedQuotation.quote_number;
-  //   finalPrimaryBadges = [selectedQuotation.quote_status];
-  //   finalSecondaryBadges = [selectedQuotation.quote_type];
-  // }
+  if (headerInfo?.useSelectedQuotation && selectedQuotation) {
+    finalCustomId = selectedQuotation.quote_number;
+    finalPrimaryBadges = [selectedQuotation.quote_status];
+    finalSecondaryBadges = [selectedQuotation.quote_type];
+  }
+
+  if (headerInfo?.useSelectedCustomer && selectedCustomer) {
+    finalCustomId = selectedCustomer.business_name;
+    finalPrimaryBadges = [selectedCustomer.customer_status];
+    finalSecondaryBadges = [selectedCustomer.customer_type];
+  }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;

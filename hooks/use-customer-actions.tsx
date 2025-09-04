@@ -194,6 +194,9 @@ export function useCustomerActions(
       }}
       headerButtons={<CustomerActionButtons customer={customerData} />}
       hideTrigger
+      headerInfo={{
+        useSelectedCustomer: true,
+      }}
     >
       <CustomerForm />
     </FormDialog>
