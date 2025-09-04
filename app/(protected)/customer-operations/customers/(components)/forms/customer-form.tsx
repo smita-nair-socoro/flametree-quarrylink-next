@@ -26,6 +26,7 @@ import { AddressType } from '@/lib/types/address';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
+import { useSelectedCustomer } from '@/app/stores/customer-store';
 
 interface FormProps {
   id?: number;
@@ -37,10 +38,18 @@ interface FormProps {
 export default function CustomerForm({ id, onCancel, className }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
+  const selectedCustomer = useSelectedCustomer();
+
+  // Initialize states with selected customer data only when editing, defaults otherwise
   const [selectedCustomerType, setSelectedCustomerType] =
-    React.useState<string>('Business');
-  const [selectedPaymentType, setSelectedPaymentType] =
-    React.useState<string>('Credit');
+    React.useState<string>(
+      isEditing && selectedCustomer?.customer_type
+        ? selectedCustomer.customer_type
+        : 'BUSINESS'
+    );
+  const [selectedPaymentType, setSelectedPaymentType] = React.useState<string>(
+    isEditing && selectedCustomer?.credit_limit === 0 ? 'PREPAID' : 'CREDIT'
+  );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -59,21 +68,30 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
     defaultValues: {
-      customer_type: 'Business',
-      payment_type: 'Credit',
-      business_name: '',
-      business_email: '',
-      business_phone: '',
-      abn: '',
-      contact_person_name: '',
-      contact_person_email: '',
-      contact_person_phone: '',
-      credit_limit: 0,
-      payment_terms: '',
-      account_manager: '',
-      billing_address: '',
-      created_at: new Date(),
-      updated_at: new Date(),
+      customer_type:
+        isEditing && selectedCustomer?.customer_type
+          ? selectedCustomer.customer_type
+          : 'BUSINESS',
+      payment_type:
+        isEditing && selectedCustomer?.payment_type
+          ? selectedCustomer.payment_type
+          : 'Credit',
+      business_name: isEditing ? selectedCustomer?.business_name || '' : '',
+      business_email: isEditing ? selectedCustomer?.business_email || '' : '',
+      business_phone: isEditing ? selectedCustomer?.business_phone || '' : '',
+      abn: isEditing ? selectedCustomer?.abn || '' : '',
+      contact_person_name: isEditing
+        ? selectedCustomer?.contact_name || ''
+        : '',
+      contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
+      contact_person_phone: isEditing ? selectedCustomer?.phone || '' : '',
+      credit_limit:
+        isEditing && selectedCustomer ? selectedCustomer.credit_limit / 100 : 0, // Convert from cents to dollars
+      payment_terms: isEditing ? selectedCustomer?.payment_terms || '' : '',
+      account_manager: isEditing ? selectedCustomer?.account_manager || '' : '',
+      billing_address: '', // Will be handled separately for address autocomplete
+      created_at: undefined,
+      updated_at: undefined,
       created_by: 'current_user',
       last_modified_by: 'current_user',
     },
@@ -86,25 +104,45 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
       customerForm.setValue('customer_type', value);
-      if (value === 'Individual') {
-        // Clear business fields for Individual customers
-        customerForm.setValue('abn', 'N/A');
-        customerForm.setValue('business_name', '');
-        customerForm.setValue('business_email', '');
-        customerForm.setValue('business_phone', '');
-      } else if (value === 'Business') {
-        // Reset ABN for Business customers (remove N/A)
-        customerForm.setValue('abn', '');
-      }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
       customerForm.setValue('payment_type', value);
-      if (value === 'Prepaid') {
-        // Set credit limit to 0 for Prepaid customers
-        customerForm.setValue('credit_limit', 0);
-      }
     }
   };
+
+  // Effect to reset form when selected customer changes
+  React.useEffect(() => {
+    if (selectedCustomer && isEditing) {
+      const paymentType =
+        selectedCustomer.credit_limit === 0 ? 'PREPAID' : 'CREDIT';
+      setSelectedCustomerType(selectedCustomer.customer_type);
+      setSelectedPaymentType(paymentType);
+
+      customerForm.reset({
+        customer_type: selectedCustomer.customer_type,
+        payment_type: paymentType,
+        business_name: selectedCustomer.business_name,
+        business_email: selectedCustomer.business_email,
+        business_phone: selectedCustomer.business_phone,
+        abn: selectedCustomer.abn,
+        contact_person_name: selectedCustomer.contact_name,
+        contact_person_email: selectedCustomer.email,
+        contact_person_phone: selectedCustomer.phone,
+        credit_limit: selectedCustomer.credit_limit / 100, // Convert from cents to dollars
+        payment_terms: selectedCustomer.payment_terms,
+        account_manager: selectedCustomer.account_manager,
+        billing_address: '', // Will be handled separately
+        created_at: selectedCustomer.created_at
+          ? new Date(selectedCustomer.created_at)
+          : undefined,
+        updated_at: selectedCustomer.updated_at
+          ? new Date(selectedCustomer.updated_at)
+          : undefined,
+        created_by: selectedCustomer.created_by,
+        last_modified_by: selectedCustomer.last_modified_by,
+      });
+    }
+  }, [selectedCustomer, isEditing, customerForm]);
 
   React.useEffect(() => {
     if (address.formattedAddress) {
@@ -128,6 +166,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   const accountManagerOptions = [
     { label: 'Reza', value: 'Reza' },
     { label: 'Armin', value: 'Armin' },
+    { label: 'Jaywoo', value: 'Jaywoo' },
   ]; // TODO: get account manager
 
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
@@ -142,7 +181,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     let businessPhone = values.business_phone;
     let creditLimit = values.credit_limit;
 
-    if (values.customer_type === 'Individual') {
+    if (values.customer_type === 'INDIVIDUAL') {
       // For Individual customers, populate business fields with contact data
       businessName = values.contact_person_name || values.business_name;
       businessEmail = values.contact_person_email || values.business_email;
@@ -150,14 +189,14 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     }
 
     // Handle credit limit for Prepaid customers
-    if (values.payment_type === 'Prepaid') {
+    if (values.payment_type === 'PREPAID') {
       creditLimit = 0;
     }
 
     const currentTimestamp = new Date().toISOString();
     const customerData = {
       id: 0, // Will be generated by backend
-      customerType: values.customer_type?.toUpperCase() || 'BUSINESS',
+      customerType: values.customer_type || 'BUSINESS',
       businessName: businessName,
       businessEmail: businessEmail,
       businessPhone: businessPhone,
@@ -220,51 +259,53 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           onSubmit={customerForm.handleSubmit(onSubmit)}
         >
           {/* Customer Type */}
-          {!isEditing && (
-            <FormField
-              control={customerForm.control}
-              name="customer_type"
-              render={({ field }) => (
-                <FormItem className="space-y-3 col-span-full">
-                  <FormLabel>Customer Type*</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleFormFieldChange('customer_type', value);
-                      }}
-                      defaultValue={field.value}
-                      className="grid grid-flow-col auto-cols-max gap-4"
-                    >
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="Business" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Business</FormLabel>
-                      </FormItem>
+          <FormField
+            control={customerForm.control}
+            name="customer_type"
+            render={({ field }) => (
+              <FormItem className="col-span-1 col-start-1">
+                <FormLabel>Customer Type*</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      handleFormFieldChange('customer_type', value);
+                    }}
+                    defaultValue={field.value}
+                    className="grid grid-flow-col auto-cols-max gap-4"
+                  >
+                    <FormItem className="flex items-center gap-3">
+                      <FormControl>
+                        <RadioGroupItem value="BUSINESS" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Business</FormLabel>
+                    </FormItem>
 
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="Individual" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Individual
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+                    <FormItem className="flex items-center gap-3">
+                      <FormControl>
+                        <RadioGroupItem value="INDIVIDUAL" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Individual</FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Payment Type */}
           <FormField
             control={customerForm.control}
             name="payment_type"
             render={({ field }) => (
-              <FormItem className="space-y-3 col-span-full">
+              <FormItem
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2'
+                    : 'col-span-1 col-start-1'
+                }
+              >
                 <FormLabel>Payment Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
@@ -277,14 +318,14 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                   >
                     <FormItem className="flex items-center gap-3">
                       <FormControl>
-                        <RadioGroupItem value="Credit" />
+                        <RadioGroupItem value="CREDIT" />
                       </FormControl>
                       <FormLabel className="font-normal">Credit</FormLabel>
                     </FormItem>
 
                     <FormItem className="flex items-center gap-3">
                       <FormControl>
-                        <RadioGroupItem value="Prepaid" />
+                        <RadioGroupItem value="PREPAID" />
                       </FormControl>
                       <FormLabel className="font-normal">Pre-Paid</FormLabel>
                     </FormItem>
@@ -296,7 +337,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           />
 
           {/* Business Name */}
-          {selectedCustomerType === 'Business' && (
+          {selectedCustomerType === 'BUSINESS' && (
             <FormField
               control={customerForm.control}
               name="business_name"
@@ -304,7 +345,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
+                      ? 'col-span-1 col-start-1'
                       : 'col-span-2'
                   }
                 >
@@ -323,7 +364,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Business Email */}
-          {selectedCustomerType === 'Business' && (
+          {selectedCustomerType === 'BUSINESS' && (
             <FormField
               control={customerForm.control}
               name="business_email"
@@ -350,7 +391,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Business Phone */}
-          {selectedCustomerType === 'Business' && (
+          {selectedCustomerType === 'BUSINESS' && (
             <FormField
               control={customerForm.control}
               name="business_phone"
@@ -358,7 +399,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
+                      ? 'col-span-1 col-start-1'
                       : 'col-span-2'
                   }
                 >
@@ -378,7 +419,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* ABN */}
-          {selectedCustomerType === 'Business' && (
+          {selectedCustomerType === 'BUSINESS' && (
             <FormField
               control={customerForm.control}
               name="abn"
@@ -408,7 +449,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               <FormItem
                 className={
                   isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
+                    ? 'col-span-1 col-start-1'
                     : 'col-span-2'
                 }
               >
@@ -458,7 +499,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
               <FormItem
                 className={
                   isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
+                    ? 'col-span-1 col-start-1'
                     : 'col-span-2'
                 }
               >
@@ -477,7 +518,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           />
 
           {/* Credit Limit */}
-          {selectedPaymentType === 'Credit' && (
+          {selectedPaymentType === 'CREDIT' && (
             <FormField
               control={customerForm.control}
               name="credit_limit"
@@ -510,17 +551,19 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Payment Terms */}
-          <FormSelect
-            control={customerForm.control}
-            name="payment_terms"
-            label="Payment Terms*"
-            options={paymentTermsOptions}
-            placeholder="Select Payment Terms"
-            formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-            }
-            showSearch={false}
-          />
+          {selectedPaymentType === 'CREDIT' && (
+            <FormSelect
+              control={customerForm.control}
+              name="payment_terms"
+              label="Payment Terms*"
+              options={paymentTermsOptions}
+              placeholder="Select Payment Terms"
+              formItemClassName={
+                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              }
+              showSearch={false}
+            />
+          )}
 
           {/* Account Manager */}
           <FormSelect
@@ -530,123 +573,93 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             options={accountManagerOptions}
             placeholder="Select Account Manager"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
             }
           />
 
           {/* Billing Address */}
-          {!isEditing && (
-            <FormField
-              control={customerForm.control}
-              name="billing_address"
-              render={({ field }) => (
-                <FormItem className={isEditing ? 'col-span-2' : 'col-span-2'}>
-                  <FormLabel>Billing Address*</FormLabel>
-                  <FormControl>
-                    <AddressAutoComplete
-                      address={address}
-                      setAddress={handleAddressChange}
-                      searchInput={searchInput}
-                      setSearchInput={setSearchInput}
-                      dialogTitle="Search for Billing Address"
-                      placeholder="Search for Billing Address..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
+          <FormField
+            control={customerForm.control}
+            name="billing_address"
+            render={({ field }) => (
+              <FormItem className={isEditing ? 'col-span-1' : 'col-span-2'}>
+                <FormLabel>Billing Address*</FormLabel>
+                <FormControl>
+                  <AddressAutoComplete
+                    address={address}
+                    setAddress={handleAddressChange}
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
+                    dialogTitle="Search for Billing Address"
+                    placeholder="Search for Billing Address..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Audit Information */}
-          {/* TODO: QLINK-257 Edit Customer Functionality */}
-          {/* {isEditing && (
-            <div
-              className={cn(
-                'space-y-6',
-                isEditing ? 'col-span-2' : 'col-span-2'
-              )}
-            >
+          {isEditing && (
+            <div className="col-span-full space-y-6 mt-16">
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={customerForm.control}
-                  name="created_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created By</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full text-muted-foreground cursor-not-allowed"
-                          readOnly={true}
-                          disabled
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={customerForm.control}
-                  name="created_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Created At</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChangeAction={field.onChange}
-                          readOnly={true}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedCustomer?.created_by || 'N/A'}
+                  </p>
+                </div>
 
-                <FormField
-                  control={customerForm.control}
-                  name="last_modified_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Modified By</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full text-muted-foreground cursor-not-allowed"
-                          readOnly={true}
-                          disabled
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={customerForm.control}
-                  name="updated_at"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Modified At</FormLabel>
-                      <FormControl>
-                        <DatePicker
-                          value={field.value}
-                          onChangeAction={field.onChange}
-                          readOnly={true}
-                          disabled
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedCustomer?.last_modified_by || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedCustomer?.created_at
+                      ? new Date(
+                          selectedCustomer.created_at
+                        ).toLocaleDateString('en-AU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                        })
+                      : 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedCustomer?.updated_at
+                      ? new Date(
+                          selectedCustomer.updated_at
+                        ).toLocaleDateString('en-AU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                        })
+                      : 'N/A'}
+                  </p>
+                </div>
               </div>
             </div>
-          )} */}
+          )}
 
           {/* Form Actions */}
           <div className={cn('flex justify-end space-x-2 col-span-2 mb-6')}>
@@ -663,6 +676,16 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Adding Customer...' : 'Add Customer'}
+              </Button>
+            )}
+            {isEditing && (
+              <Button
+                // TODO: QLINK-257 Edit Customer Functionality
+                // form="add-new-customer-form"
+                type="submit"
+                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
+              >
+                Save Changes
               </Button>
             )}
           </div>
