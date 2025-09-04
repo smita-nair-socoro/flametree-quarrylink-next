@@ -1,11 +1,6 @@
 import { baseUrl, getUser, isDevEnv } from '../utils';
 import { userManager } from '../auth/authManager';
-import {
-  AllProductWithCategoriesAndQuarryResponse,
-  PaginatedProductsResponse,
-  ProductQueryParams,
-  ProductWithCategoriesAndQuarry,
-} from '../types/product';
+import { ProductDetails } from '../types/product';
 import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
@@ -342,34 +337,7 @@ export const APIClient = {
       appClient.Get<UserWithRelations>(`/api/v1/users/get-auth-user`),
   },
   products: {
-    findQuery: (params: ProductQueryParams) =>
-      appClient.Get<PaginatedProductsResponse>('/api/v1/products', {
-        queryString: {
-          // page + per_page are required
-          page: params.page,
-          per_page: params.per_page,
-          // optional
-          ...(params.search ? { search: params.search } : {}),
-          ...(params.sort_by ? { sort_by: params.sort_by } : {}),
-          ...(params.sort_desc !== undefined
-            ? { sort_desc: String(params.sort_desc) }
-            : {}),
-          // multi-value filters
-          ...(params.categories?.length
-            ? { categories: params.categories }
-            : {}),
-          ...(params.quarries?.length ? { quarries: params.quarries } : {}),
-        },
-      }),
-    detail: (productId: number) =>
-      appClient.Get<ProductWithCategoriesAndQuarry>(
-        `/api/v1/products/${productId}`
-      ),
-
-    list: () =>
-      appClient.Get<AllProductWithCategoriesAndQuarryResponse>(
-        '/api/v1/products/all'
-      ),
+    list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },
   quarries: {
     getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
