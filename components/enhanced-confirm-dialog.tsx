@@ -30,6 +30,8 @@ interface EnhancedConfirmDialogProps {
     | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
+  confirmIcon?: React.ReactNode;
+  titleIcon?: React.ReactNode;
   onConfirmAction: () => void;
 }
 
@@ -46,6 +48,8 @@ export function EnhancedConfirmDialog({
   confirmVariant = 'default',
   confirmCustomColor,
   confirmCustomClass,
+  confirmIcon,
+  titleIcon,
   onConfirmAction,
 }: EnhancedConfirmDialogProps) {
   // Create custom styles if color is provided
@@ -61,33 +65,50 @@ export function EnhancedConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>
+            <div className="flex items-center gap-2">
+              {titleIcon && titleIcon}
+              {title}
+            </div>
+          </DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        {content && <div className="mt-3 text-sm text-gray-600">{content}</div>}
+        {content && (
+          <>
+            <div className="border-t border-gray-200 -mx-6"></div>
+            <div className="text-sm text-gray-600">{content}</div>
+          </>
+        )}
 
         {details.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm text-gray-600 mb-2">This will:</p>
-            <ul className="text-sm text-gray-700 space-y-1">
-              {details.map((detail, index) => (
-                <li key={index}>- {detail}</li>
-              ))}
-            </ul>
-          </div>
+          <>
+            <div className="border-t border-gray-200 -mx-6"></div>
+            <div>
+              <p className="text-md font-semibold mb-2">Warnings:</p>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-4">
+                {details.map((detail, index) => (
+                  <li key={index}>{detail}</li>
+                ))}
+              </ul>
+            </div>
+          </>
         )}
         {additionalInfo.length > 0 && (
-          <div className="mt-4 space-y-1">
-            {additionalInfo.map((info, index) => (
-              <div key={index} className="text-sm">
-                <span className="text-gray-600">{info.label}: </span>
-                <span className="text-gray-900">{info.value}</span>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="border-t border-gray-200 -mx-6"></div>
+            <div className="space-y-1">
+              {additionalInfo.map((info, index) => (
+                <div key={index} className="text-sm">
+                  <span className="text-gray-600">{info.label}: </span>
+                  <span className="text-gray-900">{info.value}</span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
-        <div className="flex justify-end space-x-2 mt-6">
+        <div className="border-t border-gray-200 -mx-6"></div>
+        <div className="flex justify-end space-x-2">
           <Button variant="outline" onClick={() => onOpenChangeAction(false)}>
             {cancelText}
           </Button>
@@ -100,6 +121,11 @@ export function EnhancedConfirmDialog({
               onOpenChangeAction(false);
             }}
           >
+            {confirmIcon && (
+              <span className="pr-[7px] h-4 w-4 flex items-center justify-center">
+                {confirmIcon}
+              </span>
+            )}
             {confirmText}
           </Button>
         </div>
