@@ -4,6 +4,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ProductDetails } from '@/lib/types/product';
 import { ColumnDef } from '@tanstack/react-table';
+import { ProductTableActions } from './product-table-actions';
 
 export const productColumns: ColumnDef<ProductDetails>[] = [
   {
@@ -59,5 +60,16 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
       );
     },
     meta: 'Status',
+  },
+
+  {
+    id: 'actions',
+    header: () => {
+      return <div>Actions</div>;
+    },
+    cell: ({ row }) => {
+      const product = row.original;
+      return <ProductTableActions product={product} />;
+    },
   },
 ];

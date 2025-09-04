@@ -28,6 +28,7 @@ import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { QUOTE_TYPE_COLORS, BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useSelectedProduct } from '@/app/stores/product-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -36,10 +37,15 @@ interface HeaderInfo {
   primaryBadges?: string[];
   /** Array of secondary badges to show next to primary badges (e.g., type, category badges) */
   secondaryBadges?: string[];
+  /** Array of third badges to show next to secondary badges (e.g., category badges) */
+  thirdBadges?: string[];
+
   /** Use selected quotation data automatically */
   useSelectedQuotation?: boolean;
   /** Use selected customer data automatically */
   useSelectedCustomer?: boolean;
+  /** Use selected product data automatically */
+  useSelectedProduct?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -121,10 +127,12 @@ export function FormDialog({
 
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
+  const selectedProduct = useSelectedProduct();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
   let finalSecondaryBadges = headerInfo?.secondaryBadges;
+  let finalThirdBadges = headerInfo?.thirdBadges;
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quote_number;
@@ -137,6 +145,15 @@ export function FormDialog({
     finalPrimaryBadges = [selectedCustomer.customer_status];
     finalSecondaryBadges = [selectedCustomer.customer_type];
   }
+
+  if (headerInfo?.useSelectedProduct && selectedProduct) {
+    finalCustomId = selectedProduct.product_name;
+    finalPrimaryBadges = [selectedProduct.material_type];
+    finalSecondaryBadges = [selectedProduct.status];
+    finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+  }
+
+  console.log(finalThirdBadges);
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
@@ -197,7 +214,8 @@ export function FormDialog({
   const renderBadges = () => {
     const hasBadges =
       (finalPrimaryBadges && finalPrimaryBadges.length > 0) ||
-      (finalSecondaryBadges && finalSecondaryBadges.length > 0);
+      (finalSecondaryBadges && finalSecondaryBadges.length > 0) ||
+      (finalThirdBadges && finalThirdBadges.length > 0);
 
     if (!hasBadges) return null;
 
@@ -226,6 +244,13 @@ export function FormDialog({
               'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
+            {formatBadgeText(badge)}
+          </Badge>
+        ))}
+
+        {/* Render third badges */}
+        {finalThirdBadges?.map((badge, index) => (
+          <Badge key={`third-${index}`} variant="outline">
             {formatBadgeText(badge)}
           </Badge>
         ))}
