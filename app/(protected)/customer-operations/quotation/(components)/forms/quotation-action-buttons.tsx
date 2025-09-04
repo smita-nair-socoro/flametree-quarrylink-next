@@ -39,7 +39,7 @@ export function QuotationActionButtons({
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     quotation?.id,
-    quotation,
+    quotation
   );
 
   // Early returns for null quotation or new quotation

@@ -106,7 +106,7 @@ export function DataTableClient<TData, TValue>({
 
   const getStorageKey = useCallback(
     (key: string) => `${tableId}_${key}`,
-    [tableId],
+    [tableId]
   );
 
   const loadFromStorage = <T,>(key: string, fallback: T): T => {
@@ -151,7 +151,7 @@ export function DataTableClient<TData, TValue>({
     () => {
       if (isMobile) return defaultColumnVisibility;
       return loadFromStorage('columnVisibility', defaultColumnVisibility);
-    },
+    }
   );
 
   const [paginationSize, setPaginationSize] = useState(() => {
@@ -399,7 +399,7 @@ export function DataTableClient<TData, TValue>({
           className={cn(
             simpleTable ? '' : 'rounded-md border p-2',
             'bg-gray-50 dark:bg-gray-900',
-            'min-w-fit',
+            'min-w-fit'
           )}
         >
           <Table className="bg-gray-50 dark:bg-gray-900">
@@ -418,14 +418,14 @@ export function DataTableClient<TData, TValue>({
                         !simpleTable && headerIndex === 0 && 'rounded-tl-md',
                         !simpleTable &&
                           headerIndex === hg.headers.length - 1 &&
-                          'rounded-tr-md',
+                          'rounded-tr-md'
                       )}
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                     </TableHead>
                   ))}
@@ -441,7 +441,7 @@ export function DataTableClient<TData, TValue>({
                     className={cn(
                       simpleTable && 'border-b-0 hover:bg-transparent',
                       !simpleTable &&
-                        'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800',
+                        'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800'
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -449,12 +449,12 @@ export function DataTableClient<TData, TValue>({
                         key={cell.id}
                         className={cn(
                           simpleTable && 'border-b-0',
-                          'whitespace-nowrap',
+                          'whitespace-nowrap'
                         )}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext(),
+                          cell.getContext()
                         )}
                       </TableCell>
                     ))}
@@ -464,7 +464,7 @@ export function DataTableClient<TData, TValue>({
                 <TableRow
                   className={cn(
                     simpleTable && 'border-b-0',
-                    'bg-gray-50 dark:bg-gray-900',
+                    'bg-gray-50 dark:bg-gray-900'
                   )}
                 >
                   <TableCell

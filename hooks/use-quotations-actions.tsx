@@ -113,14 +113,14 @@ const dialogConfigs: Record<string, DialogConfig> = {
 
 export function useQuotationActions(
   quotationId: number | undefined,
-  quotationData?: QuotationDetails | null,
+  quotationData?: QuotationDetails | null
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
 
   const createDialogAction = (
     dialogType: keyof typeof dialogConfigs,
-    action: () => void,
+    action: () => void
   ) => {
     return () => {
       setActiveDialog(dialogType);

@@ -33,10 +33,10 @@ export function QuotationTableActions({
 }: QuotationTableActionsProps) {
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     quotation.id,
-    quotation,
+    quotation
   );
   const setSelectedQuotation = useQuotationStore(
-    (state) => state.setSelectedQuotation,
+    (state) => state.setSelectedQuotation
   );
 
   const handleView = () => {
