@@ -8,6 +8,7 @@ import {
 } from '../types/product';
 import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
+import { Customer } from '../types/customer';
 import { UserWithRelations } from '../types/user';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
@@ -86,7 +87,7 @@ export interface HttpConfig {
 function encodeRFC3986URIComponent(str: string): string {
   return encodeURIComponent(str).replace(
     /[!'()*]/g,
-    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
   );
 }
 
@@ -115,7 +116,7 @@ function encodeRFC3986URIComponent(str: string): string {
  */
 export async function HttpClient<T = unknown>(
   endpoint: string,
-  config: HttpConfig = {},
+  config: HttpConfig = {}
 ): Promise<T> {
   const fetcher =
     config.fetch ??
@@ -246,7 +247,7 @@ export async function HttpClient<T = unknown>(
 
         if (!health.ok) {
           return Promise.reject(
-            new Error(`[500] Offline (Internal server error): "${endpoint}"`),
+            new Error(`[500] Offline (Internal server error): "${endpoint}"`)
           );
         }
         break;
@@ -254,7 +255,7 @@ export async function HttpClient<T = unknown>(
       case 503: {
         // Show an error toast to notify the user what occurred
         return Promise.reject(
-          new Error(`[503] Service unavailable: "${endpoint}"`),
+          new Error(`[503] Service unavailable: "${endpoint}"`)
         );
       }
       default:
@@ -362,12 +363,12 @@ export const APIClient = {
       }),
     detail: (productId: number) =>
       appClient.Get<ProductWithCategoriesAndQuarry>(
-        `/api/v1/products/${productId}`,
+        `/api/v1/products/${productId}`
       ),
 
     list: () =>
       appClient.Get<AllProductWithCategoriesAndQuarryResponse>(
-        '/api/v1/products/all',
+        '/api/v1/products/all'
       ),
   },
   quarries: {
@@ -378,7 +379,7 @@ export const APIClient = {
       }),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
-        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`,
+        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
       ),
     deletePrice: (priceId: number) =>
       appClient.Delete(`/api/v1/quarries/quarry-product-prices/${priceId}`),
@@ -392,5 +393,11 @@ export const APIClient = {
           name,
         },
       }),
+  },
+
+  customers: {
+    getAll: () => appClient.Get<Customer[]>(`/socoro/quarrylink/api/customer`),
+    getById: (customerId: number) =>
+      appClient.Get<Customer>(`/socoro/quarrylink/api/customer/${customerId}`),
   },
 };

@@ -26,7 +26,7 @@ import { Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
-import { useSelectedQuotation } from '@/app/stores/quotation-store';
+// import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
 
 interface HeaderInfo {
@@ -114,17 +114,20 @@ export function FormDialog({
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Always call the hook, but only use the result when needed
-  const selectedQuotation = useSelectedQuotation();
+  // const selectedQuotation = useSelectedQuotation();
 
-  let finalCustomId = headerInfo?.customId;
-  let finalPrimaryBadges = headerInfo?.primaryBadges;
-  let finalSecondaryBadges = headerInfo?.secondaryBadges;
+  // Using const here to satisfy ESLint (prefer-const).
+  // If we ever re-enable the selectedQuotation logic below,
+  // these may need to switch back to let.
+  const finalCustomId = headerInfo?.customId;
+  const finalPrimaryBadges = headerInfo?.primaryBadges;
+  const finalSecondaryBadges = headerInfo?.secondaryBadges;
 
-  if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-    finalCustomId = selectedQuotation.quote_number;
-    finalPrimaryBadges = [selectedQuotation.quote_status];
-    finalSecondaryBadges = [selectedQuotation.quote_type];
-  }
+  // if (headerInfo?.useSelectedQuotation && selectedQuotation) {
+  //   finalCustomId = selectedQuotation.quote_number;
+  //   finalPrimaryBadges = [selectedQuotation.quote_status];
+  //   finalSecondaryBadges = [selectedQuotation.quote_type];
+  // }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
@@ -252,25 +255,27 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between pr-5 pt-5 flex-shrink-0">
+      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-10 pb-2 flex-shrink-0">
         <div>
-          <DialogTitle>{headerTitle}</DialogTitle>
-          <DialogDescription className="mt-2">
+          <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
+          <DialogDescription className="my-2">
             {dialogDescription}
           </DialogDescription>
           {renderBadges()}
         </div>
         {headerButtons && (
-          <div className="flex items-center gap-2">{headerButtons}</div>
+          <div className="flex items-center gap-2 pr-1 text-end">
+            {headerButtons}
+          </div>
         )}
       </DialogHeader>
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md p-0 overflow-auto',
+          'rounded-md overflow-auto px-5 pb-10'
         )}
       >
-        <div className="p-4">{contentNode}</div>
+        <div>{contentNode}</div>
       </ScrollArea>
     </>
   );
@@ -280,7 +285,7 @@ export function FormDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
         <DialogContent
-          className="flex flex-col"
+          className="flex flex-col p-0"
           style={{
             width: dimensions.width,
             height: dimensions.height,
@@ -294,7 +299,7 @@ export function FormDialog({
     );
   }
 
-  // For mobile drawer - use auto height with max constraints
+  // For mobile, also apply viewport-based sizing to the drawer
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
@@ -302,12 +307,12 @@ export function FormDialog({
         className="flex flex-col"
         style={{
           maxHeight: '95vh',
-          height: 'auto', // Let content determine height
+          height: 'auto',
         }}
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
-            <DrawerTitle>{headerTitle}</DrawerTitle>
+            <DrawerTitle className="text-start">{headerTitle}</DrawerTitle>
             <DrawerDescription className="mt-2">
               {dialogDescription}
             </DrawerDescription>
@@ -318,17 +323,19 @@ export function FormDialog({
           )}
         </DrawerHeader>
 
-        {/* Mobile content with auto height and max height constraint */}
         <div
-          className="flex-1 overflow-y-auto px-4 pb-4"
+          className="flex-1 overflow-y-auto px-4 pb-2"
           style={{ maxHeight: 'calc(95vh - 12rem)' }}
         >
           {contentNode}
         </div>
 
-        <DrawerFooter className="flex-shrink-0 pt-4">
+        {/* Reduced padding DrawerFooter */}
+        <DrawerFooter className="flex-shrink-0 pt-2 pb-2 px-4">
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" className="w-full">
+              Cancel
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
