@@ -1,44 +1,31 @@
-import { Category } from './category';
-import { QuarriesWithPrice } from './quarry';
+import { Quarry } from './quarry';
+import { BASE_UNIT, MEASURE_UNIT, PRODUCT_STATUS } from './product-enums';
+import { QuotationDetails } from './quotation';
+import { JobDetails } from './job';
 
 export interface Product {
   id: number;
-  organisation_id: number;
-  name: string;
-  product_code?: string;
-  unit: string;
-  description: string | null;
+  product_name: string;
+  product_code: string;
+  material_type: string;
+  density_tonnage_per_m3: number;
+  product_description: string;
+  base_unit: BASE_UNIT;
+  measure_unit: MEASURE_UNIT[];
   cost_price: number;
   sell_price: number;
-  status: string;
+  margin: number;
+  status: PRODUCT_STATUS;
+  version: number;
+  is_deleted: boolean;
+  created_by: string;
   created_at: string;
   updated_at: string;
+  last_modified_by: string;
 }
 
-export interface ProductWithCategoriesAndQuarry {
-  product: Product;
-  categories: Category[];
-  quarries: QuarriesWithPrice[];
-}
-
-export interface AllProductWithCategoriesAndQuarryResponse {
-  items: ProductWithCategoriesAndQuarry[];
-}
-
-export interface PaginatedProductsResponse {
-  items: ProductWithCategoriesAndQuarry[];
-  total_pages: number;
-  category_counts: Record<string, number>;
-  quarry_counts: Record<string, number>;
-}
-
-export interface ProductQueryParams {
-  page: number; // 1-based
-  per_page: number;
-  search?: string;
-  sort_by?: string; // "name", "id", "status", etc.
-  sort_desc?: boolean;
-
-  categories?: string[]; // e.g. ["Fruit","Hardware"]
-  quarries?: string[]; // e.g. ["Main Quarry","Secondary"]
+export interface ProductDetails extends Product {
+  quarries: Quarry;
+  quotes: QuotationDetails[];
+  jobs: JobDetails[];
 }
