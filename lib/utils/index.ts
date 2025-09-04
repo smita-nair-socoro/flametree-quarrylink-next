@@ -41,7 +41,6 @@ export function getTenantId() {
 
   try {
     const decoded = jwtDecode<JWTPayload>(user.id_token);
-
     return decoded['custom:tenant_id'] || '';
   } catch (error) {
     console.error('Failed to decode JWT token:', error);
