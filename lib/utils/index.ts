@@ -2,6 +2,11 @@ import { clsx, type ClassValue } from 'clsx';
 import { compareAsc, parseISO } from 'date-fns';
 import { User } from 'oidc-client-ts';
 import { twMerge } from 'tailwind-merge';
+import { jwtDecode } from 'jwt-decode';
+
+interface JWTPayload {
+  'custom:tenant_id'?: string;
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,6 +31,22 @@ export function getUser() {
   }
 
   return User.fromStorageString(oidcStorage);
+}
+
+export function getTenantId() {
+  const user = getUser();
+  if (!user?.id_token) {
+    return null;
+  }
+
+  try {
+    const decoded = jwtDecode<JWTPayload>(user.id_token);
+
+    return decoded['custom:tenant_id'] || '';
+  } catch (error) {
+    console.error('Failed to decode JWT token:', error);
+    return null;
+  }
 }
 
 export function getLocalStorage<T>(key: string, defaultValue: T): T {

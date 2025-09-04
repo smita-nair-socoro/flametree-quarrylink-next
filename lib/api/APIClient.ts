@@ -1,4 +1,4 @@
-import { baseUrl, getUser, isDevEnv } from '../utils';
+import { baseUrl, getTenantId, getUser, isDevEnv } from '../utils';
 import { userManager } from '../auth/authManager';
 import {
   AllProductWithCategoriesAndQuarryResponse,
@@ -135,6 +135,7 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = getUser();
+  const tenantId = getTenantId();
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -142,11 +143,10 @@ export async function HttpClient<T = unknown>(
       Authorization: `Bearer ${authUser.access_token}`,
       'access-token': authUser.access_token,
       'id-token': authUser.id_token,
+      'tenant-id': tenantId || '',
     };
   } else {
-    if (authUser?.expired) {
-      return Promise.reject(new Error('Token expired or invalid.'));
-    }
+    return Promise.reject(new Error('Token expired or invalid.'));
   }
 
   if (config.body) {
