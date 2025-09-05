@@ -22,7 +22,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { useSelectedProduct } from '@/app/stores/product-store';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
   id?: number;
@@ -217,7 +216,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex flex flex-col gap-2">
+                <div className="flex  flex-col gap-2">
                   <p className="text-sm font-medium text-foreground">
                     Last Modified By:
                   </p>
@@ -226,7 +225,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex flex flex-col gap-2">
+                <div className="flex  flex-col gap-2">
                   <p className="text-sm font-medium text-foreground">
                     Created Date:
                   </p>
@@ -244,7 +243,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
                   <p className="text-sm font-medium text-foreground">
                     Modified Date:
                   </p>
@@ -264,8 +263,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               </div>
             </div>
           )}
-
-          <Separator className={cn(isDesktop ? 'col-span-2' : 'col-span-1')} />
 
           {/* Form Actions */}
           <div
