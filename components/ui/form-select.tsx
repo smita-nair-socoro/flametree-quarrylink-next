@@ -60,7 +60,7 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
   /**
    * The text label shown above the select control.
    */
-  label: string;
+  label?: string;
 
   /**
    * An array of options that the user can select from.

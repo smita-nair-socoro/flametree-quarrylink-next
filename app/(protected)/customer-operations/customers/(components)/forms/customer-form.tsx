@@ -75,7 +75,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       payment_type:
         isEditing && selectedCustomer?.payment_type
           ? selectedCustomer.payment_type
-          : 'Credit',
+          : 'CREDIT',
       business_name: isEditing ? selectedCustomer?.business_name || '' : '',
       business_email: isEditing ? selectedCustomer?.business_email || '' : '',
       business_phone: isEditing ? selectedCustomer?.business_phone || '' : '',
@@ -88,6 +88,9 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.credit_limit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing ? selectedCustomer?.payment_terms || '' : '',
+      payment_terms_day: isEditing
+        ? selectedCustomer?.payment_terms_day || 0
+        : 0,
       account_manager: isEditing ? selectedCustomer?.account_manager || '' : '',
       billing_address: '', // Will be handled separately for address autocomplete
       created_at: undefined,
@@ -129,6 +132,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
         contact_person_email: selectedCustomer.email,
         contact_person_phone: selectedCustomer.phone,
         credit_limit: selectedCustomer.credit_limit / 100, // Convert from cents to dollars
+        payment_terms_day: selectedCustomer.payment_terms_day,
         payment_terms: selectedCustomer.payment_terms,
         account_manager: selectedCustomer.account_manager,
         billing_address: '', // Will be handled separately
@@ -158,9 +162,16 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   }, []);
 
   const paymentTermsOptions = [
-    { label: 'Net 7', value: 'Net 7' },
-    { label: 'Net 14', value: 'Net 14' },
-    { label: 'Net 30', value: 'Net 30' },
+    { label: 'of the following month', value: 'of the following month' },
+    {
+      label: 'day(s) after the invoice date',
+      value: 'day(s) after the invoice date',
+    },
+    {
+      label: 'day(s) after the invoice month',
+      value: 'day(s) after the invoice month',
+    },
+    { label: 'of the current month', value: 'of the current month' },
   ];
 
   const accountManagerOptions = [
@@ -206,7 +217,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       email: values.contact_person_email,
       billingAddressId: 0,
       creditLimit: Math.round(Number(creditLimit || 0) * 100),
-      paymentTerms: values.payment_terms,
+      paymentTermsDay: values.payment_terms_day,
+      paymentTermsPeriod: values.payment_terms,
       accountManager: values.account_manager,
       customerStatus: 'ACTIVE',
       jobsCount: 0,
@@ -551,19 +563,45 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Payment Terms */}
-          {selectedPaymentType === 'CREDIT' && (
-            <FormSelect
-              control={customerForm.control}
-              name="payment_terms"
-              label="Payment Terms*"
-              options={paymentTermsOptions}
-              placeholder="Select Payment Terms"
-              formItemClassName={
-                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-              }
-              showSearch={false}
-            />
-          )}
+          <div
+            className={cn(
+              'space-y-2',
+              isEditing && isDesktop
+                ? selectedPaymentType === 'CREDIT'
+                  ? 'col-span-1 col-start-1'
+                  : 'col-span-1 col-start-2'
+                : 'col-span-2'
+            )}
+          >
+            <FormLabel>Invoice Due Date*</FormLabel>
+            <div className="grid grid-cols-[2fr_8fr] w-full">
+              <FormField
+                control={customerForm.control}
+                name="payment_terms_day"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
+                        placeholder="Days"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormSelect
+                control={customerForm.control}
+                name="payment_terms"
+                options={paymentTermsOptions}
+                placeholder="Select Payment Terms"
+                className="rounded-l-none w-full -mt-2"
+                showSearch={false}
+              />
+            </div>
+          </div>
 
           {/* Account Manager */}
           <FormSelect
@@ -573,7 +611,11 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             options={accountManagerOptions}
             placeholder="Select Account Manager"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+              isEditing && isDesktop
+                ? selectedPaymentType === 'CREDIT'
+                  ? 'col-span-1 col-start-2'
+                  : 'col-span-1 col-start-1'
+                : 'col-span-2'
             }
           />
 

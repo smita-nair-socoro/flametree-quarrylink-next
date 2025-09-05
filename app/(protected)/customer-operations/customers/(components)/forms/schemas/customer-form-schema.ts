@@ -36,6 +36,7 @@ const Base = z.object({
   abn: z.string().trim(),
 
   credit_limit: z.coerce.number().nonnegative('Credit limit must be ≥ 0'),
+  payment_terms_day: z.coerce.number().gt(1, 'Payment terms day must be ≥ 1'),
   payment_terms: z.string().trim().min(1, 'Required'),
   account_manager: z.string().trim().min(1, 'Required'),
   billing_address: z.string().trim().min(1, 'Required'),
