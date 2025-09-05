@@ -21,7 +21,10 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedProduct } from '@/app/stores/product-store';
 import { NewProductFormSchema } from './schemas/product-form-schema';
+import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { ChartColumn, Plus } from 'lucide-react';
 
 interface FormProps {
   id?: number;
@@ -36,6 +39,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const selectedProduct = useSelectedProduct();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [totalSupplier, setTotalSupplier] = React.useState(0);
 
   const materialTypeOptions = [
     { label: 'Aggregate', value: 'AGGREGATE' },
@@ -66,6 +70,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         : '',
     },
   });
+
+  React.useEffect(() => {
+    setTotalSupplier(selectedProduct?.quarries.length || 0);
+  }, [selectedProduct]);
 
   async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     console.log('onSubmit function called!');
@@ -194,6 +202,47 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
+
+          {/* Supplier Table */}
+          <div
+            className={cn(
+              isDesktop
+                ? 'flex justify-between items-center col-span-2'
+                : 'flex flex-col gap-4 col-span-1'
+            )}
+          >
+            <div className="flex flex-col gap-1">
+              <span className="text-lg font-semibold">
+                Supplier Information
+              </span>
+              <span className="text-sm text-gray-500">
+                {totalSupplier} suppliers configured with pricing and truck
+                rates
+              </span>
+            </div>
+
+            <div
+              className={cn('flex items-center gap-2', !isDesktop && 'mt-2')}
+            >
+              {isEditing && (
+                <Button variant="outline" className="flex items-center gap-1">
+                  <ChartColumn className="mr-3" />
+                  Compare All
+                </Button>
+              )}
+              <Button variant="default" className="flex items-center gap-1">
+                <Plus className="mr-3" />
+                Add Supplier
+              </Button>
+            </div>
+          </div>
+          <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+            <DataTableClient
+              columns={supplierColumns}
+              data={selectedProduct?.quarries || []}
+              simpleTable={true}
+            />
+          </div>
 
           {/* Audit Information */}
           {isEditing && (

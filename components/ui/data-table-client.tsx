@@ -439,7 +439,7 @@ export function DataTableClient<TData, TValue>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
-                      simpleTable && 'border-b-0 hover:bg-transparent',
+                      simpleTable && 'border-r hover:bg-transparent',
                       !simpleTable &&
                         'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800'
                     )}

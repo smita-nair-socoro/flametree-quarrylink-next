@@ -22,7 +22,10 @@
       "quarries": [
         {
           "id": 1,
-          "quarry_name": "Quarry 1",
+          "quarry_name": "Blackstone Quarry",
+          "supplier_product_name": "Premium BLue Metal 20mm",
+          "supplier_product_code": "BSQ-2O-PM",
+          "price": {},
           "version": 1,
           "is_deleted": false,
           "created_by": "system",
@@ -32,7 +35,10 @@
         },
         {
           "id": 1,
-          "quarry_name": "Quarry 2",
+          "quarry_name": "Riverside Materials",
+          "supplier_product_name": "Crushed Rock 20mm",
+          "supplier_product_code": "RM-CR20-1TE",
+          "price": {},
           "version": 1,
           "is_deleted": false,
           "created_by": "system",

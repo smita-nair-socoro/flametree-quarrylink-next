@@ -153,8 +153,6 @@ export function FormDialog({
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
   }
 
-  console.log(finalThirdBadges);
-
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
   const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
