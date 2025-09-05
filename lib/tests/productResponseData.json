@@ -1,0 +1,411 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "product_name": "20mm Aggregate",
+      "product_code": "AGG01",
+      "material_type": "AGGREGATE",
+      "densitytonnage_per_m3": 1,
+      "product_description": "Description 1",
+      "base_unit": "TN",
+      "measure_unit": ["TN", "M3", "KG_20", "BULKA"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "AVAILABLE",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 1,
+        "quarry_name": "Quarry 1",
+        "quote_status": "ACTIVE",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [
+        {
+          "id": 1,
+          "quote_number": "Quote 1",
+          "quote_status": "DRAFT",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        },
+        {
+          "id": 2,
+          "quote_number": "Quote 2",
+          "quote_status": "CONVERTED_TO_JOB",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 1,
+          "job_number": "Job 1",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 1,
+              "job_id": 1,
+              "product_id": 1,
+              "total_quantity_required": 100,
+              "allocated_quantity": 100,
+              "remaining_quantity": 0
+            }
+          ],
+          "dockets": [
+            {
+              "id": 1,
+              "job_id": 1,
+              "docket_number": "DOC-1",
+              "docket_status": "PENDING",
+              "product_id": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "product_name": "17mm Aggregate",
+      "product_code": "AGG02",
+      "material_type": "AGGREGATE",
+      "densitytonnage_per_m3": 1.3,
+      "product_description": "Description 2",
+      "base_unit": "TN",
+      "measure_unit": ["TN", "M3", "KG_20", "BULKA"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "AVAILABLE",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 2,
+        "quarry_name": "Quarry 2",
+        "status": "CONVERTED_TO_JOB",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [
+        {
+          "id": 2,
+          "quote_number": "Quote 2",
+          "quote_status": "CONVERTED_TO_JOB",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": []
+    },
+    {
+      "id": 3,
+      "product_name": "14mm Aggregate",
+      "product_code": "AGG04",
+      "material_type": "AGGREGATE",
+      "densitytonnage_per_m3": 1.3,
+      "product_description": "Description 3",
+      "base_unit": "TN",
+      "measure_unit": ["TN", "M3", "KG_20"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "AVAILABLE",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 3,
+        "quarry_name": "Quarry 3",
+        "status": "ACTIVE",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [
+        {
+          "id": 2,
+          "quote_number": "Quote 3",
+          "quote_status": "PENDING",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 5,
+          "job_number": "Job 5",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 5,
+              "job_id": 5,
+              "product_id": 3,
+              "total_quantity_required": 100,
+              "allocated_quantity": 80,
+              "remaining_quantity": 20
+            }
+          ],
+          "dockets": [
+            {
+              "id": 2,
+              "job_id": 5,
+              "docket_number": "DOC-2",
+              "docket_status": "PENDING",
+              "product_id": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "product_name": "Crushed Blue Metal",
+      "product_code": "CBM01",
+      "material_type": "CRUSHED ROCK",
+      "densitytonnage_per_m3": 1.3,
+      "product_description": "Description 4",
+      "base_unit": "M3",
+      "measure_unit": ["M3", "BULKA"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "AVAILABLE",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 4,
+        "quarry_name": "Quarry 4",
+        "status": "ACTIVE",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [
+        {
+          "id": 2,
+          "quote_number": "Quote 2",
+          "quote_status": "CONVERTED_TO_JOB",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 10,
+          "job_number": "Job 10",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 10,
+              "job_id": 10,
+              "product_id": 4,
+              "total_quantity_required": 100,
+              "allocated_quantity": 100,
+              "remaining_quantity": 0
+            }
+          ],
+          "dockets": [
+            {
+              "id": 3,
+              "job_id": 10,
+              "docket_number": "DOC-3",
+              "docket_status": "DELIVERED",
+              "product_id": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "product_name": "Fine Dust",
+      "product_code": "DST01",
+      "material_type": "DUST",
+      "densitytonnage_per_m3": 1.2,
+      "product_description": "Description 5",
+      "base_unit": "TN",
+      "measure_unit": ["TN", "M3", "KG_20", "BULKA"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "AVAILABLE",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 1,
+        "quarry_name": "Quarry 1",
+        "status": "ACTIVE",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [
+        {
+          "id": 2,
+          "quote_number": "Quote 10",
+          "quote_status": "ARCHIVED",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": []
+    },
+    {
+      "id": 6,
+      "product_name": "Garden Soil",
+      "product_code": "SOL01",
+      "material_type": "SOIL",
+      "densitytonnage_per_m3": 1.1,
+      "product_description": "Description 51",
+      "base_unit": "TN",
+      "measure_unit": ["TN", "M3", "BULKA"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "UNAVAILABLE",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 3,
+        "quarry_name": "Quarry 3",
+        "status": "ACTIVE",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [
+        {
+          "id": 2,
+          "quote_number": "Quote 10",
+          "quote_status": "PENDING",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": []
+    },
+    {
+      "id": 7,
+      "product_name": "Premium Soil",
+      "product_code": "SND01",
+      "material_type": "SAND",
+      "densitytonnage_per_m3": 1.4,
+      "product_description": "Description 10",
+      "base_unit": "TN",
+      "measure_unit": ["TN", "M3", "KG_20", "BULKA"],
+      "cost_price": 1000,
+      "sell_price": 1500,
+      "margin": 0.33,
+      "status": "ARCHIVED",
+      "version": 1,
+      "is_deleted": false,
+      "created_by": "system",
+      "created_at": "2025-06-02T03:55:14.626505",
+      "updated_at": "2025-06-02T03:55:14.626505",
+      "quarries": {
+        "id": 10,
+        "quarry_name": "Quarry 10",
+        "status": "ACTIVE",
+        "version": 1,
+        "is_deleted": false,
+        "created_by": "system",
+        "created_at": "2025-06-02T03:55:14.626505",
+        "updated_at": "2025-06-02T03:55:14.626505",
+        "last_modified_by": "system"
+      },
+      "quotes": [],
+      "jobs": [
+        {
+          "id": 7,
+          "job_number": "Job 7",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 7,
+              "job_id": 7,
+              "product_id": 7,
+              "total_quantity_required": 100,
+              "allocated_quantity": 90,
+              "remaining_quantity": 10
+            }
+          ],
+          "dockets": [
+            {
+              "id": 4,
+              "job_id": 7,
+              "docket_number": "DOC-4",
+              "docket_status": "DELIVERED",
+              "product_id": 7
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
