@@ -9,6 +9,7 @@ import { TriangleAlert, Ban, CircleAlert, CircleCheckBig } from 'lucide-react';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { QuotationDetails } from '@/lib/types/quotation';
+import { JobDetails } from '@/lib/types/job';
 
 interface DialogConfig {
   title?: string;
@@ -40,59 +41,46 @@ const getDialogConfigs = (
   const productStatus = productData?.status;
 
   const productQuotesStatus = () => {
-    if (!productData?.quotes) {
-      return true;
-    }
-
-    if (productData.quotes.length === 0) {
-      return true;
-    }
-
-    if (productData.quotes.length > 0) {
-      return !productData.quotes.some(
-        (quote: QuotationDetails) =>
-          quote.quote_status !== 'ARCHIVED' &&
-          quote.quote_status !== 'DRAFT' &&
-          quote.quote_status !== 'CONVERTED_TO_JOB'
-      );
-    }
+    if (!productData?.quotes?.length) return true;
+    return !productData.quotes.some(
+      (q: QuotationDetails) =>
+        q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+    );
   };
 
+  // Comma-separated quote numbers for active quotes
   const quoteName = () => {
-    if (!productQuotesStatus()) {
-      console.log(productData?.quotes);
-      return productData?.quotes
-        .filter(
-          (quote: QuotationDetails) =>
-            quote.quote_status == 'PENDING' ||
-            quote.quote_status == 'DRAFT' ||
-            quote.quote_status == 'CONVERTED_TO_JOB'
-        )
-        .map((quote: QuotationDetails) => quote.quote_number)
-        .join(', ');
-    }
+    if (productQuotesStatus()) return '';
+    return productData?.quotes
+      .filter(
+        (q: QuotationDetails) =>
+          q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+      )
+      .map((q: QuotationDetails) => q.quote_number)
+      .join(', ');
   };
-  console.log(
-    productData?.quotes.filter(
-      (quote: QuotationDetails) =>
-        quote.quote_status == 'PENDING' ||
-        quote.quote_status == 'DRAFT' ||
-        quote.quote_status == 'CONVERTED_TO_JOB'
-    )
-  );
+
+  // Count of active quotes
+  const activeQuoteNumber = () => {
+    if (productQuotesStatus()) return 0;
+    return productData?.quotes.filter(
+      (q: QuotationDetails) =>
+        q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+    ).length;
+  };
 
   const productJobsStatus = () => {
     if (!productData?.jobs) {
       return true;
     }
 
-    if (productData.jobs.length === 0) {
+    if (productData?.jobs.length === 0) {
       return true;
     }
 
-    if (productData.jobs.length > 0) {
-      return productData.jobs.some((j) =>
-        j.job_items.some((ji) => ji.remaining_quantity == 0)
+    if (productData?.jobs.length > 0) {
+      return productData.jobs.every((job: JobDetails) =>
+        job.job_items.every((ji) => ji.remaining_quantity === 0)
       );
     }
   };
@@ -100,18 +88,27 @@ const getDialogConfigs = (
   const jobNames = () => {
     if (!productJobsStatus()) {
       return productData?.jobs
-        .filter((job) => job.job_items.some((ji) => ji.remaining_quantity != 0))
+        .filter((job) =>
+          job.job_items.some((ji) => ji.remaining_quantity !== 0)
+        )
         .map((job) => job.job_number)
         .join(', ');
     }
+    return '';
+  };
+
+  const activeJobNumber = () => {
+    if (!productJobsStatus()) {
+      return productData?.jobs.filter((job) =>
+        job.job_items.some((ji) => ji.remaining_quantity !== 0)
+      ).length;
+    }
+    return 0;
   };
 
   const productDocketStatus = () => {
-    if (!productData?.jobs || productData.jobs.length === 0) {
-      return true;
-    }
-    // Check if any dockets in jobs have PENDING or DELIVERING status
-    return !productData.jobs.some((job) =>
+    if (!productData?.jobs?.length) return true;
+    return !productData?.jobs.some((job) =>
       job.dockets.some(
         (docket) =>
           docket.docket_status === 'PENDING' ||
@@ -120,19 +117,30 @@ const getDialogConfigs = (
     );
   };
 
+  // Collect all active dockets (pending/delivering)
+  const getActiveDockets = () =>
+    productData?.jobs?.flatMap((job) =>
+      job.dockets.filter(
+        (docket) =>
+          docket.docket_status === 'PENDING' ||
+          docket.docket_status === 'DELIVERING'
+      )
+    ) ?? [];
+
   const docketNames = () => {
-    if (!productDocketStatus()) {
-      return productData?.jobs
-        .filter((job) =>
-          job.dockets.some(
-            (docket) =>
-              docket.docket_status === 'PENDING' ||
-              docket.docket_status === 'DELIVERING'
-          )
-        )
-        .map((job) => job.dockets.map((docket) => docket.docket_number))
-        .join(', ');
+    if (productDocketStatus()) {
+      return '';
     }
+    return getActiveDockets()
+      .map((d) => d.docket_number)
+      .join(', ');
+  };
+
+  const activeDocketNumber = () => {
+    if (productDocketStatus()) {
+      return 0;
+    }
+    return getActiveDockets().length;
   };
 
   if (selectedAction?.key === 'unavailable') {
@@ -141,7 +149,7 @@ const getDialogConfigs = (
         title: `Mark as Unavailable`,
         description: (
           <div className="flex justfiy-start gap-2">
-            <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-red-100 rounded-full">
+            <div className="flex w-[40px] h-[40px] items-center justify-center bg-red-100 rounded-full">
               <span className="flex items-center justify-center">
                 <Ban className="h-5 w-5 text-red-600" />
               </span>
@@ -290,14 +298,14 @@ const getDialogConfigs = (
               activities:
             </span>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               <span className="font-medium">Active Usage:</span>
               <div className="flex flex-col gap-3">
                 {!productQuotesStatus() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
                       <span className="mx-auto">
-                        Active quotes: {quoteName()}
+                        {activeQuoteNumber()} Active quotes: {quoteName()}
                       </span>
                     </div>
                   </>
@@ -305,7 +313,9 @@ const getDialogConfigs = (
                 {!productJobsStatus() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
-                      <span className="mx-auto">Active jobs: {jobNames()}</span>
+                      <span className="mx-auto">
+                        {activeJobNumber()} Active jobs: {jobNames()}
+                      </span>
                     </div>
                   </>
                 )}
@@ -313,7 +323,7 @@ const getDialogConfigs = (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
                       <span className="mx-auto">
-                        Active dockets: {docketNames()}
+                        {activeDocketNumber()} Active dockets: {docketNames()}
                       </span>
                     </div>
                   </>
@@ -332,52 +342,56 @@ const getDialogConfigs = (
               <span className="text-[#6A7282]">
                 Complete these activities first:
               </span>
-              {!productQuotesStatus() && (
-                <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
-                      <span className="font-medium">
-                        Complete Active Quotes
+              <div className="flex flex-col gap-3">
+                {!productQuotesStatus() && (
+                  <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
+                        <span className="font-medium">
+                          Complete Active Quotes
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500 ml-7">
+                        Convert to jobs, archive quotes, or remove this product
+                        from active quotes
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500 ml-7">
-                      Convert to jobs, archive quotes, or remove this product
-                      from active quotes
-                    </span>
                   </div>
-                </div>
-              )}
-              {!productJobsStatus() && (
-                <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
-                      <span className="font-medium">Complete Active Jobs</span>
-                    </div>
-                    <span className="text-sm text-gray-500 ml-7">
-                      Fullfill remaining quantities or complete job deliveries
-                      for this product
-                    </span>
-                  </div>
-                </div>
-              )}
-              {!productDocketStatus() && (
-                <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
-                      <span className="font-medium">
-                        Fulfill Pending Delivery Dockets
+                )}
+                {!productJobsStatus() && (
+                  <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
+                        <span className="font-medium">
+                          Complete Active Jobs
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500 ml-7">
+                        Fullfill remaining quantities or complete job deliveries
+                        for this product
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500 ml-7">
-                      Complete or cancel delivery dockets containing this
-                      product
-                    </span>
                   </div>
-                </div>
-              )}
+                )}
+                {!productDocketStatus() && (
+                  <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
+                        <span className="font-medium">
+                          Fulfill Pending Delivery Dockets
+                        </span>
+                      </div>
+                      <span className="text-sm text-gray-500 ml-7">
+                        Complete or cancel delivery dockets containing this
+                        product
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ),
