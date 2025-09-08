@@ -139,7 +139,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem className={formItemClassName}>
-          <FormLabel>{label}</FormLabel>
+          {label && <FormLabel>{label}</FormLabel>}
           <Popover modal={true}>
             <PopoverTrigger asChild>
               <FormControl>

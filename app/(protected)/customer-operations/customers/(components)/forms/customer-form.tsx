@@ -127,13 +127,19 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
         business_name: selectedCustomer.business_name,
         business_email: selectedCustomer.business_email,
         business_phone: selectedCustomer.business_phone,
-        abn: selectedCustomer.abn,
+        abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
         contact_person_name: selectedCustomer.contact_name,
         contact_person_email: selectedCustomer.email,
         contact_person_phone: selectedCustomer.phone,
-        credit_limit: selectedCustomer.credit_limit / 100, // Convert from cents to dollars
+        credit_limit:
+          selectedCustomer.credit_limit === 0
+            ? 0
+            : selectedCustomer.credit_limit / 100, // Convert from cents to dollars
         payment_terms_day: selectedCustomer.payment_terms_day,
-        payment_terms: selectedCustomer.payment_terms,
+        payment_terms:
+          selectedCustomer.payment_terms === 'N/A'
+            ? ''
+            : selectedCustomer.payment_terms,
         account_manager: selectedCustomer.account_manager,
         billing_address: '', // Will be handled separately
         created_at: selectedCustomer.created_at
@@ -190,18 +196,25 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     let businessName = values.business_name;
     let businessEmail = values.business_email;
     let businessPhone = values.business_phone;
+    let abn = values.abn;
+
     let creditLimit = values.credit_limit;
+    let paymentTermsDay = values.payment_terms_day;
+    let paymentTermsPeriod = values.payment_terms;
 
     if (values.customer_type === 'INDIVIDUAL') {
       // For Individual customers, populate business fields with contact data
       businessName = values.contact_person_name || values.business_name;
       businessEmail = values.contact_person_email || values.business_email;
       businessPhone = values.contact_person_phone || values.business_phone;
+      abn = 'N/A';
     }
 
     // Handle credit limit for Prepaid customers
     if (values.payment_type === 'PREPAID') {
       creditLimit = 0;
+      paymentTermsDay = 0;
+      paymentTermsPeriod = 'N/A';
     }
 
     const currentTimestamp = new Date().toISOString();
@@ -211,23 +224,24 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       businessName: businessName,
       businessEmail: businessEmail,
       businessPhone: businessPhone,
-      abn: values.abn,
+      abn: abn,
       contactName: values.contact_person_name,
       phone: values.contact_person_phone,
       email: values.contact_person_email,
       billingAddressId: 0,
-      creditLimit: Math.round(Number(creditLimit || 0) * 100),
-      paymentTermsDay: values.payment_terms_day,
-      paymentTermsPeriod: values.payment_terms,
+      creditLimit:
+        creditLimit === 0 ? 0 : Math.round(Number(creditLimit || 0) * 100),
+      paymentTermsDay: paymentTermsDay,
+      paymentTermsPeriod: paymentTermsPeriod,
       accountManager: values.account_manager,
       customerStatus: 'ACTIVE',
       jobsCount: 0,
       version: 0,
       isDeleted: false,
-      createdBy: 'current_user', // Backend will set this
-      createdAt: currentTimestamp, // Backend will set this
-      updatedAt: currentTimestamp, // Backend will set this
-      lastModifiedBy: 'current_user', // Backend will set this
+      createdBy: 'current_user',
+      createdAt: currentTimestamp,
+      updatedAt: currentTimestamp,
+      lastModifiedBy: 'current_user',
     };
 
     console.log('Customer Data:', customerData);
@@ -563,45 +577,47 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Payment Terms */}
-          <div
-            className={cn(
-              'space-y-2',
-              isEditing && isDesktop
-                ? selectedPaymentType === 'CREDIT'
-                  ? 'col-span-1 col-start-1'
-                  : 'col-span-1 col-start-2'
-                : 'col-span-2'
-            )}
-          >
-            <FormLabel>Invoice Due Date*</FormLabel>
-            <div className="grid grid-cols-[2fr_8fr] w-full">
-              <FormField
-                control={customerForm.control}
-                name="payment_terms_day"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
-                        placeholder="Days"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormSelect
-                control={customerForm.control}
-                name="payment_terms"
-                options={paymentTermsOptions}
-                placeholder="Select Payment Terms"
-                className="rounded-l-none w-full -mt-2"
-                showSearch={false}
-              />
+          {selectedPaymentType === 'CREDIT' && (
+            <div
+              className={cn(
+                'space-y-2',
+                isEditing && isDesktop
+                  ? selectedPaymentType === 'CREDIT'
+                    ? 'col-span-1 col-start-1'
+                    : 'col-span-1 col-start-2'
+                  : 'col-span-2'
+              )}
+            >
+              <FormLabel>Invoice Due Date*</FormLabel>
+              <div className="grid grid-cols-[2fr_8fr] w-full">
+                <FormField
+                  control={customerForm.control}
+                  name="payment_terms_day"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
+                          placeholder="Days"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormSelect
+                  control={customerForm.control}
+                  name="payment_terms"
+                  options={paymentTermsOptions}
+                  placeholder="Select Payment Terms"
+                  className="rounded-l-none w-full"
+                  showSearch={false}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Account Manager */}
           <FormSelect
