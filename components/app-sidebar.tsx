@@ -2,9 +2,6 @@
 
 import * as React from 'react';
 import {
-  AudioWaveform,
-  Command,
-  GalleryVerticalEnd,
   LayoutDashboard,
   Package,
   Settings2,
@@ -111,10 +108,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="mb-4">
-      <div className="flex items-center justify-between mb-2 md:hidden">
-  <span className="text-sm font-medium text-muted-foreground">Menu</span>
-  <SidebarTrigger className="h-8 w-8" />
-</div>
+        <div className="flex items-center justify-between mb-3">
+          <SidebarTrigger className="h-8 w-8" />
+        </div>
+        <div className="mb-1">
+          <QuarryLinkBranding subscriptionType="Enterprise" />
+        </div>
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>

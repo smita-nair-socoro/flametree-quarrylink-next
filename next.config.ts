@@ -5,7 +5,6 @@ const isDev = process.env.NODE_ENV === 'development';
 const nextConfig: NextConfig = {
   /* config options here */
   output: 'export',
-
   // Only set up the proxy in DEV
   async rewrites() {
     return isDev

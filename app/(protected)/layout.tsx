@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth as useOidc } from 'react-oidc-context';
 import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 import { AppSidebar } from '@/components/app-sidebar';
-import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
   SidebarProvider,
@@ -40,10 +39,6 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           {/* Mobile trigger - only visible when sidebar is closed */}
           <SidebarTrigger className="md:hidden" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
           <div className="absolute top-4 right-4 z-50">
             <ModeToggle />
           </div>

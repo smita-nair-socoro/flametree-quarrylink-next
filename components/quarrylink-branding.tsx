@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -17,15 +18,24 @@ export function QuarryLinkBranding({
       <SidebarMenuItem>
         <SidebarMenuButton
           size="lg"
-          className="cursor-default hover:bg-transparent"
+          className="hover:bg-purple-50 cursor-pointer"
+          asChild
         >
-          <div className="bg-purple-100 text-purple-900 flex aspect-square size-8 items-center justify-center rounded-lg border-2 border-purple-200">
-            <span className="text-lg font-bold">Q</span>
-          </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">QuarryLink</span>
-            <span className="truncate text-xs text-muted-foreground">{subscriptionType}</span>
-          </div>
+          <Link href="/dashboard">
+            <div className="flex aspect-square size-8 items-center justify-center">
+              <img
+                src="/quarrylink-logo.png"
+                alt="QuarryLink Logo"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">QuarryLink</span>
+              <span className="truncate text-xs text-muted-foreground">{subscriptionType}</span>
+            </div>
+          </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

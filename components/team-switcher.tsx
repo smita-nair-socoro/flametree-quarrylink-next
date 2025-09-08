@@ -29,9 +29,9 @@ export function TeamSwitcher({
       <SidebarMenuItem>
         <SidebarMenuButton
           size="lg"
-          className="cursor-default bg-purple-100 hover:bg-purple-100"
+          className="cursor-default bg-purple-100 hover:bg-purple-100 pointer-events-none"
         >
-          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+          <div className="bg-white border border-purple-300 text-purple-500 flex aspect-square size-8 items-center justify-center rounded-lg">
             <span className="text-sm font-semibold">{activeClient.initials}</span>
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
