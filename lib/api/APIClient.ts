@@ -1,10 +1,9 @@
-import { baseUrl, getTenantId, getUser, isDevEnv } from '../utils';
+import { baseUrl, getTenantId, getUser } from '../utils';
 import { userManager } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
-import { UserWithRelations } from '../types/user';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -190,13 +189,9 @@ export async function HttpClient<T = unknown>(
     }
   }
 
-  const url =
-    process.env.NODE_ENV === 'development'
-      ? // in dev, leave it root-relative (so our dev proxy or built-in API routes work)
-        endpoint.startsWith('/')
-        ? endpoint
-        : `/${endpoint}`
-      : `${baseUrl()}${endpoint}`;
+  const url = `${baseUrl()}${endpoint}`;
+
+  console.log(`API Request: ${url}`);
 
   const response = await fetcher(url, init);
 
@@ -287,14 +282,7 @@ export async function HttpClient<T = unknown>(
       response.statusText ||
       `HTTP request failed with status ${response.status}`;
 
-    if (!isDevEnv()) {
-      // production: just show the API’s message
-      return Promise.reject(new Error(errorMessage));
-    } else {
-      // development: include endpoint & code for easier debugging
-      const detailed = `HTTP request to '${endpoint}' failed with code ${response.status} (${errorMessage})`;
-      return Promise.reject(new Error(detailed));
-    }
+    return Promise.reject(new Error(errorMessage));
   }
 }
 
@@ -327,15 +315,6 @@ const appClient = {
 };
 
 export const APIClient = {
-  auth: {
-    login: (email: string, password: string, username?: string) =>
-      appClient.Post<UserWithRelations>('/api/v1/users/login', {
-        body: { email, username, password },
-      }),
-    logout: () => appClient.Post(`/api/v1/users/logout`),
-    validate: () =>
-      appClient.Get<UserWithRelations>(`/api/v1/users/get-auth-user`),
-  },
   products: {
     list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },

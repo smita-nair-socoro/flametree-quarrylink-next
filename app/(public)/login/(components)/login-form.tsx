@@ -23,32 +23,23 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from 'react-oidc-context';
 import React from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { notifyError, notifySuccess } from '@/lib/toast';
-import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 import { useRouter } from 'next/navigation';
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<'div'>) {
-  const showCredentials = process.env.NEXT_PUBLIC_BACKEND === 'rust';
-  const cookie = useCookieAuth();
-  const router = useRouter();
-
   const loginFormSchema = z.object({
     email: z
       .string()
       .nonempty({ message: 'Email is required' })
       .email({ message: 'Please enter a valid email address' }),
-    password: z.string().nonempty({ message: 'Password is required' }),
   });
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: '',
-      password: '',
     },
     mode: 'onBlur',
   });
@@ -69,25 +60,9 @@ export function LoginForm({
     );
   }
 
-  const loginMutation = useMutation({
-    mutationFn: (data: z.infer<typeof loginFormSchema>) => {
-      return cookie.login(data.email, data.password);
-    },
-    onSuccess: (_, variables: z.infer<typeof loginFormSchema>) => {
-      notifySuccess(`Successfully logged in ${variables.email}`, {
-        dismissible: true,
-      });
-
-      router.replace('/dashboard');
-    },
-    onError: (error) => {
-      notifyError('Login failed', { description: error.message });
-      console.error(error);
-    },
-  });
-
   function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    loginMutation.mutate(values);
+    // Form submission is handled by the AWS Cognito button
+    console.log('Email for AWS login:', values.email);
   }
 
   return (
@@ -181,31 +156,6 @@ export function LoginForm({
                     )}
                   />
                 </div>
-
-                {showCredentials && (
-                  <div className="grid gap-6">
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="••••••••"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" className="w-full ">
-                      Sign In
-                    </Button>
-                  </div>
-                )}
 
                 {<LoginWithAWSButton email={email} />}
               </div>
