@@ -10,11 +10,11 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { CustomerDetails } from '@/lib/types/customer';
+import { Customer } from '@/lib/types/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 
 interface CustomerTableActionsProps {
-  customer: CustomerDetails;
+  customer: Customer;
 }
 
 export function CustomerTableActions({ customer }: CustomerTableActionsProps) {

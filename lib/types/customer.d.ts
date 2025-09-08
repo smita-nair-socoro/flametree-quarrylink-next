@@ -5,6 +5,7 @@ export interface Customer {
   business_email: string;
   business_phone: string;
   abn: string;
+  acn: string;
   contact_name: string;
   phone: string;
   email: string;
