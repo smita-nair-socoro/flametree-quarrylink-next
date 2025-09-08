@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from 'react-oidc-context';
 import React from 'react';
-import { useRouter } from 'next/navigation';
 
 export function LoginForm({
   className,
