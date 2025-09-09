@@ -24,7 +24,9 @@ import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { ChartColumn, Plus } from 'lucide-react';
+import { ChartColumn } from 'lucide-react';
+import { FormDialog } from '@/components/form-dialog';
+import SupplierForm from './supplier-form';
 
 interface FormProps {
   id?: number;
@@ -230,10 +232,13 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   Compare All
                 </Button>
               )}
-              <Button variant="default" className="flex items-center gap-1">
-                <Plus className="mr-3" />
-                Add Supplier
-              </Button>
+              <FormDialog
+                dialogTitle="Add New Supplier"
+                buttonTitle="Add Supplier"
+                dialogWidth="700px"
+              >
+                <SupplierForm />
+              </FormDialog>
             </div>
           </div>
           <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

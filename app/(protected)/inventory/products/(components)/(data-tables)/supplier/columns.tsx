@@ -48,7 +48,7 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'margin',
-    accessorFn: (row) => row.price.margin,
+    accessorFn: (row) => row.price.margin_TN,
     header: ({}) => {
       return <div>Margin</div>;
     },

@@ -46,6 +46,8 @@ interface HeaderInfo {
   useSelectedCustomer?: boolean;
   /** Use selected product data automatically */
   useSelectedProduct?: boolean;
+  /** Use selected supplier data automatically */
+  useSelectedSupplier?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -70,6 +72,8 @@ interface AddProductDrawerDialogProps {
   /** Controlled open state (otherwise it's internal) */
   open?: boolean;
   onOpenChangeAction?: (open: boolean) => void;
+
+  dialogWidth?: string;
 
   /** Hides the trigger entirely */
   hideTrigger?: boolean;
@@ -111,6 +115,7 @@ export function FormDialog({
   trigger,
   open: openProp,
   onOpenChangeAction: onOpenChangeProp,
+  dialogWidth,
   hideTrigger,
   headerButtons,
   headerInfo,
@@ -319,7 +324,7 @@ export function FormDialog({
         <DialogContent
           className="flex flex-col p-0"
           style={{
-            width: dimensions.width,
+            width: dialogWidth ?? dimensions.width,
             height: dimensions.height,
             maxWidth: dimensions.maxWidth,
             maxHeight: dimensions.maxHeight,

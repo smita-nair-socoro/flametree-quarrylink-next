@@ -23,7 +23,22 @@ export interface QuarryProductPrice {
   KG_20_sell_price: number;
   BULKA_cost_price: number;
   BULKA_sell_price: number;
-  margin: number;
+  margin_TN: number;
+  margin_M3: number;
+  margin_KG: number;
+  margin_BULK: number;
+  available_for_sale_TN: boolean;
+  available_for_sale_M3: boolean;
+  available_for_sale_KG: boolean;
+  available_for_sale_Bulk: boolean;
+  truck_TN_rate: number;
+  truck_M3_rate: number;
+  truck_hourly_rate: number;
+  truck_load_rate: number;
+  available_truck_TN_rate: boolean;
+  available_truck_M3_rate: boolean;
+  available_truck_hourly_rate: boolean;
+  available_truck_load_rate: boolean;
 }
 
 export interface QuarriesWithProduct {
