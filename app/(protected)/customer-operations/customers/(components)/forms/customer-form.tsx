@@ -67,6 +67,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
+    mode: 'onChange',
     defaultValues: {
       customer_type:
         isEditing && selectedCustomer?.customer_type
@@ -87,7 +88,9 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       contact_person_phone: isEditing ? selectedCustomer?.phone || '' : '',
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.credit_limit / 100 : 0, // Convert from cents to dollars
-      payment_terms: isEditing ? selectedCustomer?.payment_terms || '' : '',
+      payment_terms: isEditing
+        ? selectedCustomer?.payment_terms || 'of the following month'
+        : 'of the following month',
       payment_terms_day: isEditing
         ? selectedCustomer?.payment_terms_day || 0
         : 0,
@@ -594,16 +597,24 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                   control={customerForm.control}
                   name="payment_terms_day"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="relative">
                       <FormControl>
                         <Input
-                          type="text"
+                          type="number"
                           className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
                           placeholder="Days"
                           {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            // Trigger validation for both payment_terms_day and payment_terms fields
+                            customerForm.trigger([
+                              'payment_terms_day',
+                              'payment_terms',
+                            ]);
+                          }}
                         />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="absolute top-full left-0 whitespace-nowrap z-10" />
                     </FormItem>
                   )}
                 />
@@ -614,6 +625,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                   placeholder="Select Payment Terms"
                   className="rounded-l-none w-full"
                   showSearch={false}
+                  onChange={() => {
+                    // Trigger validation for payment_terms_day when payment_terms changes
+                    customerForm.trigger([
+                      'payment_terms_day',
+                      'payment_terms',
+                    ]);
+                  }}
                 />
               </div>
             </div>

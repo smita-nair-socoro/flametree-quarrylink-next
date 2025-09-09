@@ -104,17 +104,24 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       });
     }
 
-    // Payment terms are required for Business customers
+    // Additional validation for Xero payment terms
     if (
-      data.payment_terms_day === undefined ||
-      data.payment_terms_day === null ||
-      data.payment_terms_day < 1
+      data.payment_terms &&
+      data.payment_terms_day !== undefined &&
+      data.payment_terms_day !== null
     ) {
-      ctx.addIssue({
-        path: ['payment_terms_day'],
-        code: z.ZodIssueCode.custom,
-        message: 'Must be ≥ 1',
-      });
+      if (
+        data.payment_terms === 'of the following month' ||
+        data.payment_terms === 'of the current month'
+      ) {
+        if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
+          ctx.addIssue({
+            path: ['payment_terms_day'],
+            code: z.ZodIssueCode.custom,
+            message: 'Enter a value between 1 and 31',
+          });
+        }
+      }
     }
 
     if (!data.payment_terms || data.payment_terms.trim().length === 0) {
@@ -173,17 +180,24 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       });
     }
 
-    // Optional validation: if payment terms are provided, they should be valid
+    // Additional validation for Xero payment terms (Individual customers)
     if (
+      data.payment_terms &&
       data.payment_terms_day !== undefined &&
-      data.payment_terms_day !== null &&
-      data.payment_terms_day < 1
+      data.payment_terms_day !== null
     ) {
-      ctx.addIssue({
-        path: ['payment_terms_day'],
-        code: z.ZodIssueCode.custom,
-        message: 'Must be ≥ 1',
-      });
+      if (
+        data.payment_terms === 'of the following month' ||
+        data.payment_terms === 'of the current month'
+      ) {
+        if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
+          ctx.addIssue({
+            path: ['payment_terms_day'],
+            code: z.ZodIssueCode.custom,
+            message: 'Enter a value between 1 and 31',
+          });
+        }
+      }
     }
 
     // Optional validation: if credit limit is provided, it should be valid

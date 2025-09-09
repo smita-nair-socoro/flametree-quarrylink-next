@@ -110,6 +110,12 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
    * @default true
    */
   showSearch?: boolean;
+
+  /**
+   * Optional callback called when the value changes.
+   * Receives the new value as a parameter.
+   */
+  onChange?: (value: string) => void;
 }
 
 /**
@@ -132,6 +138,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
   addButtonLabel = '+ New Item',
   addButtonClassName,
   showSearch = true,
+  onChange,
 }: FormSelectProps<TFieldValues>) {
   return (
     <FormField
@@ -178,7 +185,10 @@ export function FormSelect<TFieldValues extends FieldValues>({
                     {options.map((opt) => (
                       <CommandItem
                         key={opt.value}
-                        onSelect={() => field.onChange(opt.value)}
+                        onSelect={() => {
+                          field.onChange(opt.value);
+                          onChange?.(opt.value);
+                        }}
                         className="cursor-pointer"
                       >
                         <span className="flex-1">{opt.label}</span>
