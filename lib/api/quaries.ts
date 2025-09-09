@@ -10,14 +10,6 @@ export const ProductsListQueryOptions = () =>
     staleTime: 5_000,
   });
 
-export const ProductQueryOptions = (productId: number) =>
-  queryOptions({
-    queryKey: ProductKeys.detail(productId),
-    queryFn: () => APIClient.products.detail(productId),
-    placeholderData: keepPreviousData,
-    staleTime: 5_000,
-  });
-
 export const QuarryListQueryOptions = () =>
   queryOptions({
     queryKey: QuarryKeys.list(),

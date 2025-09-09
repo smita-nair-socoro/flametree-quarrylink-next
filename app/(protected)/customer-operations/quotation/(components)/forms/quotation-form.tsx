@@ -25,8 +25,6 @@ import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { Separator } from '@/components/ui/separator';
-import { DataTableClient } from '@/components/ui/data-table-client';
-import { quoteItemColumns } from '../(data-tables)/quotation/quote-items-columns';
 
 interface FormProps {
   id?: number;
@@ -443,15 +441,14 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
 
           {isEditing && (
             <div className="col-span-full space-y-6">
-              {/* TODO: Add the table for line items here come back to this! */}
-              {/* TODO: Add the data when we have proper quotation and when we are calling the api endpoint */}
-              <div className="w-full">
+              {/* TODO: Come back to this once Product is done! */}
+              {/* <div className="w-full">
                 <DataTableClient
                   columns={quoteItemColumns}
                   data={[]}
                   simpleTable={true}
                 />
-              </div>
+              </div> */}
 
               <Separator />
 

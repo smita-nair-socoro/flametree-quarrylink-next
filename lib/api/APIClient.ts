@@ -1,11 +1,6 @@
-import { baseUrl, getUser, isDevEnv } from '../utils';
+import { baseUrl, getTenantId, getUser, isDevEnv } from '../utils';
 import { userManager } from '../auth/authManager';
-import {
-  AllProductWithCategoriesAndQuarryResponse,
-  PaginatedProductsResponse,
-  ProductQueryParams,
-  ProductWithCategoriesAndQuarry,
-} from '../types/product';
+import { ProductDetails } from '../types/product';
 import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
@@ -135,6 +130,7 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = getUser();
+  const tenantId = getTenantId();
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -142,11 +138,10 @@ export async function HttpClient<T = unknown>(
       Authorization: `Bearer ${authUser.access_token}`,
       'access-token': authUser.access_token,
       'id-token': authUser.id_token,
+      'tenant-id': tenantId || '',
     };
   } else {
-    if (authUser?.expired) {
-      return Promise.reject(new Error('Token expired or invalid.'));
-    }
+    return Promise.reject(new Error('Token expired or invalid.'));
   }
 
   if (config.body) {
@@ -342,34 +337,7 @@ export const APIClient = {
       appClient.Get<UserWithRelations>(`/api/v1/users/get-auth-user`),
   },
   products: {
-    findQuery: (params: ProductQueryParams) =>
-      appClient.Get<PaginatedProductsResponse>('/api/v1/products', {
-        queryString: {
-          // page + per_page are required
-          page: params.page,
-          per_page: params.per_page,
-          // optional
-          ...(params.search ? { search: params.search } : {}),
-          ...(params.sort_by ? { sort_by: params.sort_by } : {}),
-          ...(params.sort_desc !== undefined
-            ? { sort_desc: String(params.sort_desc) }
-            : {}),
-          // multi-value filters
-          ...(params.categories?.length
-            ? { categories: params.categories }
-            : {}),
-          ...(params.quarries?.length ? { quarries: params.quarries } : {}),
-        },
-      }),
-    detail: (productId: number) =>
-      appClient.Get<ProductWithCategoriesAndQuarry>(
-        `/api/v1/products/${productId}`
-      ),
-
-    list: () =>
-      appClient.Get<AllProductWithCategoriesAndQuarryResponse>(
-        '/api/v1/products/all'
-      ),
+    list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },
   quarries: {
     getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
