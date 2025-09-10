@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { CustomerDetails } from '@/lib/types/customer';
+import { Customer } from '@/lib/types/customer';
 
 interface CustomerStore {
-  customers: CustomerDetails[];
-  selectedCustomer: CustomerDetails | null;
+  customers: Customer[];
+  selectedCustomer: Customer | null;
   isLoading: boolean;
 
   // Actions
-  setCustomers: (customers: CustomerDetails[]) => void;
-  setSelectedCustomer: (customer: CustomerDetails | null) => void;
+  setCustomers: (customers: Customer[]) => void;
+  setSelectedCustomer: (customer: Customer | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getCustomerById: (id: number) => CustomerDetails | undefined;
-  getCustomersByStatus: (status: string) => CustomerDetails[];
+  getCustomerById: (id: number) => Customer | undefined;
+  getCustomersByStatus: (status: string) => Customer[];
 
   getCustomerStats: () => {
     total: number;
