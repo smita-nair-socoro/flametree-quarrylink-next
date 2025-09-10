@@ -52,6 +52,26 @@ const Base = z.object({
 
 // Export the schema with conditional validation using superRefine
 export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
+  // Payment terms day validation
+  if (
+    data.payment_terms &&
+    data.payment_terms_day !== undefined &&
+    data.payment_terms_day !== null
+  ) {
+    if (
+      data.payment_terms === 'of the following month' ||
+      data.payment_terms === 'of the current month'
+    ) {
+      if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
+        ctx.addIssue({
+          path: ['payment_terms_day'],
+          code: z.ZodIssueCode.custom,
+          message: 'Enter a value between 1 and 31',
+        });
+      }
+    }
+  }
+
   // Customer type specific validations
   if (data.customer_type === 'BUSINESS') {
     // ABN must be valid for Business customers
