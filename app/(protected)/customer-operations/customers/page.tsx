@@ -19,22 +19,21 @@ export default function CustomersPage() {
 
   const { items: rawItems } = convertedJson as unknown as {
     items: Array<
-      Omit<CustomerDetails, 'customer_type' | 'customer_status'> & {
-        customer_type: string;
-        customer_status: string;
+      Omit<CustomerDetails, 'customerType' | 'customerStatus'> & {
+        customerType: string;
+        customerStatus: string;
       }
     >;
   };
 
   const items: CustomerDetails[] = rawItems.map((item) => ({
     ...item,
-    customer_type: item.customer_type as CUSTOMER_TYPE,
-    customer_status: item.customer_status as CUSTOMER_STATUS,
+    customerType: item.customerType as CUSTOMER_TYPE,
+    customerStatus: item.customerStatus as CUSTOMER_STATUS,
   }));
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
-    { column: 'payment_terms', title: 'Payment Terms', icon: Plus },
     { column: 'customer_type', title: 'Customer Type', icon: Plus },
     { column: 'account_manager', title: 'Account Manager', icon: Plus },
   ];
