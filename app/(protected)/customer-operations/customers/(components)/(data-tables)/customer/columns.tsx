@@ -55,24 +55,7 @@ export const customerColumns: ColumnDef<Customer>[] = [
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Email',
   },
-  {
-    id: 'payment_terms',
-    accessorFn: (row) => row.payment_terms,
-    header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Payment Terms" />
-      );
-    },
-    cell: ({ row }) => {
-      const payment_terms = row.original.payment_terms;
-      return (
-        <div className="py-2">
-          <TableBadges names={payment_terms} visibleCount={1} />
-        </div>
-      );
-    },
-    meta: 'Payment Terms',
-  },
+
   {
     id: 'credit_limit',
     accessorFn: (row) => row.credit_limit,

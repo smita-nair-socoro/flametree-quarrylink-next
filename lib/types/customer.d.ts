@@ -13,6 +13,7 @@ export interface Customer {
   credit_limit: number;
   remaining_credit: number;
   payment_type: string;
+  payment_terms_day: number;
   payment_terms: string;
   account_manager: string;
   customer_status: CUSTOMER_STATUS;

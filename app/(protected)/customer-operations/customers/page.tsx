@@ -46,7 +46,6 @@ export default function CustomersPage() {
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
-    { column: 'payment_terms', title: 'Payment Terms', icon: Plus },
     { column: 'customer_type', title: 'Customer Type', icon: Plus },
     { column: 'account_manager', title: 'Account Manager', icon: Plus },
   ];
