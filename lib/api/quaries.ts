@@ -1,6 +1,6 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { CategoryKeys, ProductKeys, QuarryKeys } from './query_keys';
+import { CategoryKeys, ProductKeys, QuarryKeys } from './keys';
 
 export const ProductsListQueryOptions = () =>
   queryOptions({

@@ -22,7 +22,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useAuth } from 'react-oidc-context';
-import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 
 const data = {
   navMain: [
@@ -90,19 +89,11 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: oidcUser } = useAuth();
-  const { user: cookieUser } = useCookieAuth();
 
   const user = {
-    name:
-      oidcUser?.profile.name ??
-      (cookieUser
-        ? `${cookieUser.user.username} ${cookieUser.user.username}`
-        : 'Unknown Name'),
-    email: oidcUser?.profile.email ?? cookieUser?.user.email ?? 'Unknown Email',
-    avatar:
-      oidcUser?.profile.picture ??
-      cookieUser?.user.username ??
-      '/avatars/default.png',
+    name: oidcUser?.profile.name ?? 'Unknown Name',
+    email: oidcUser?.profile.email ?? 'Unknown Email',
+    avatar: oidcUser?.profile.picture ?? '/default-user.png',
   };
 
   return (
