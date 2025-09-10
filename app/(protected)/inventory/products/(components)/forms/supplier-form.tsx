@@ -38,6 +38,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const selectedSupplier = useSelectedSupplier();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [supplierProductName, setSupplierProductName] = React.useState('');
+  const [supplierProductCode, setSupplierProductCode] = React.useState('');
 
   const supplierOptions = [
     { label: 'Supplier 1', value: 'SUPPLIER_1' },
@@ -111,6 +113,23 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     },
   });
 
+  const watchedProductName = supplierForm.watch('supplier_product_name');
+  const watchedProductCode = supplierForm.watch('supplier_product_code');
+
+  React.useEffect(() => {
+    if (watchedProductName) {
+      setSupplierProductName(watchedProductName);
+    } else {
+      setSupplierProductName('New Product');
+    }
+
+    if (watchedProductCode) {
+      setSupplierProductCode(watchedProductCode);
+    } else {
+      setSupplierProductCode('CODE');
+    }
+  }, [watchedProductName, watchedProductCode]);
+
   const tabs = [
     {
       name: 'Supplier Details',
@@ -168,7 +187,21 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     },
     {
       name: 'Price Configuration',
-      content: <div>Price Configuration</div>,
+      content: (
+        <div className="flex flex-col gap-4">
+          <span className="text-lg font-medium">Price Configuration</span>
+          <span className="text-sm text-muted-foreground">
+            Product : {supplierProductName} ({supplierProductCode})
+          </span>
+          <div className="grid grid-cols-[10fr_20fr_20fr_15fr_35fr] gap-10">
+            <span className="">Unit</span>
+            <span className="">Cost Price</span>
+            <span className="">Sell Price</span>
+            <span className="">Margin %</span>
+            <span className="">Avaialable for Sale</span>
+          </div>
+        </div>
+      ),
     },
     {
       name: 'Truck Rates',
