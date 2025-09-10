@@ -2,7 +2,6 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth as useOidc } from 'react-oidc-context';
-import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   SidebarInset,
@@ -13,10 +12,9 @@ import { ModeToggle } from '@/components/toggle';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const oidc = useOidc();
-  const cookie = useCookieAuth();
   const router = useRouter();
-  const isLoading = oidc.isLoading || cookie.loading;
-  const isAuthenticated = oidc.isAuthenticated || Boolean(cookie.user);
+  const isLoading = oidc.isLoading;
+  const isAuthenticated = oidc.isAuthenticated;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

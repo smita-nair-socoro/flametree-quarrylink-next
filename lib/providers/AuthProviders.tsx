@@ -3,7 +3,6 @@
 import React, { ReactNode } from 'react';
 import { AuthProvider as OidcProvider } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
-import { CookieAuthProvider } from '../auth/cookieAuthContext';
 import { SCOPE } from '../auth/authManager';
 
 const redirectUri =
@@ -35,15 +34,6 @@ export function OidcAuthProvider({ children }: { children: ReactNode }) {
   return <OidcProvider {...oidcConfig}>{children}</OidcProvider>;
 }
 
-// standalone cookie-based provide
-export function SessionAuthProvider({ children }: { children: ReactNode }) {
-  return <CookieAuthProvider>{children}</CookieAuthProvider>;
-}
-
 export function AppAuthProviders({ children }: { children: ReactNode }) {
-  return (
-    <SessionAuthProvider>
-      <OidcAuthProvider>{children}</OidcAuthProvider>
-    </SessionAuthProvider>
-  );
+  return <OidcAuthProvider>{children}</OidcAuthProvider>;
 }

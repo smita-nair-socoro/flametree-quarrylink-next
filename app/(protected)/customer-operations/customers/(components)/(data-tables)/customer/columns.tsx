@@ -2,12 +2,12 @@
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { CustomerDetails } from '@/lib/types/customer';
+import { Customer } from '@/lib/types/customer';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { CustomerTableActions } from './customer-table-actions';
 
-export const customerColumns: ColumnDef<CustomerDetails>[] = [
+export const customerColumns: ColumnDef<Customer>[] = [
   {
     id: 'customer_name',
     accessorFn: (row) => row.business_name,
