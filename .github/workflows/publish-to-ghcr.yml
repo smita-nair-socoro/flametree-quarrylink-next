@@ -1,4 +1,4 @@
-# .github/workflows/publish.yml
+# .github/workflows/publish-to-ghcr.yml
 name: Publish Web Build to GHCR
 on:
   push:
