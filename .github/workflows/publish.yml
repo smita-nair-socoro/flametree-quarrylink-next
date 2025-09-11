@@ -1,0 +1,51 @@
+# .github/workflows/publish.yml
+name: Publish Web Build to GHCR
+on:
+  push:
+    tags: [ 'v*.*.*' ]   # release by semver tags
+permissions:
+  contents: read
+  packages: write    # needed to push to GHCR
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: '.nvmrc', cache: 'npm' }
+      - run: npm ci
+      - run: npm run build
+
+      # Package build/ into a tarball
+      - name: Tar build
+        run: |
+          tar -czf site.tar.gz -C build .
+
+      # Install ORAS (OCI registry client)
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+
+      # Login to GHCR
+      - name: Login GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Push tarball as an OCI artifact, tag == git tag
+      - name: Push OCI artifact
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+          TAG: ${{ github.ref_name }}
+        run: |
+          # media type is arbitrary but consistent
+          oras push "$IMAGE:$TAG" \
+            --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --artifact-type application/vnd.react.static+tar \
+            site.tar.gz:application/gzip
+
+      # (Optional) also push :latest
+      - name: Tag latest
+        if: startsWith(github.ref_name, 'v')
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+          TAG: ${{ github.ref_name }}
+        run: |
+          oras copy "$IMAGE:$TAG" "$IMAGE:latest"
