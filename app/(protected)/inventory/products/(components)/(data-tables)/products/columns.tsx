@@ -65,11 +65,15 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
   {
     id: 'actions',
     header: () => {
-      return <div>Actions</div>;
+      return <div className="text-right pr-4"></div>;
     },
     cell: ({ row }) => {
       const product = row.original;
-      return <ProductTableActions product={product} />;
+      return (
+        <div className="flex justify-end pr-4">
+          <ProductTableActions product={product} />
+        </div>
+      );
     },
   },
 ];

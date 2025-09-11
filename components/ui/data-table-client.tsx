@@ -402,7 +402,7 @@ export function DataTableClient<TData, TValue>({
             'min-w-fit'
           )}
         >
-          <Table className="bg-gray-50 dark:bg-gray-900">
+          <Table className="bg-gray-50 dark:bg-gray-900 w-full">
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
@@ -418,7 +418,9 @@ export function DataTableClient<TData, TValue>({
                         !simpleTable && headerIndex === 0 && 'rounded-tl-md',
                         !simpleTable &&
                           headerIndex === hg.headers.length - 1 &&
-                          'rounded-tr-md'
+                          'rounded-tr-md',
+                        headerIndex === hg.headers.length - 1 &&
+                          'w-auto text-right'
                       )}
                     >
                       {header.isPlaceholder
@@ -444,12 +446,14 @@ export function DataTableClient<TData, TValue>({
                         'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800'
                     )}
                   >
-                    {row.getVisibleCells().map((cell) => (
+                    {row.getVisibleCells().map((cell, cellIndex) => (
                       <TableCell
                         key={cell.id}
                         className={cn(
                           simpleTable && 'border-b-0',
-                          'whitespace-nowrap'
+                          'whitespace-nowrap',
+                          cellIndex === row.getVisibleCells().length - 1 &&
+                            'w-auto text-right'
                         )}
                       >
                         {flexRender(
