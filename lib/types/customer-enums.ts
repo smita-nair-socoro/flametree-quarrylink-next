@@ -1,0 +1,9 @@
+export enum CUSTOMER_TYPE {
+  INDIVIDUAL = 'INDIVIDUAL',
+  BUSINESS = 'BUSINESS',
+}
+
+export enum CUSTOMER_STATUS {
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
+}
