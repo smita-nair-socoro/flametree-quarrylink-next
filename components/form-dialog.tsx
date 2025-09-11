@@ -28,7 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
-import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
+import { QUOTE_TYPE_COLORS, BADGE_COLORS } from '@/lib/utils';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -206,8 +206,7 @@ export function FormDialog({
             key={`primary-${index}`}
             variant="outline"
             className={
-              STATUS_COLORS[badge] ||
-              'bg-blue-100 text-blue-800 border-blue-300'
+              BADGE_COLORS[badge] || 'bg-blue-100 text-blue-800 border-blue-300'
             }
           >
             {formatBadgeText(badge)}

@@ -1,0 +1,63 @@
+'use client';
+
+import { TableBadges } from '@/components/table-badges';
+import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
+import { ProductDetails } from '@/lib/types/product';
+import { ColumnDef } from '@tanstack/react-table';
+
+export const productColumns: ColumnDef<ProductDetails>[] = [
+  {
+    id: 'product_code',
+    accessorFn: (row) => row.product_code,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Product Code" />;
+    },
+    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    meta: 'Product Code',
+  },
+  {
+    id: 'product_name',
+    accessorFn: (row) => row.product_name,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Product Name" />;
+    },
+    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    meta: 'Product Name',
+  },
+
+  {
+    id: 'material_type',
+    accessorFn: (row) => row.material_type,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Material Type" />
+      );
+    },
+    cell: ({ row }) => {
+      const material_type = row.original.material_type;
+      return (
+        <div className="py-2">
+          <TableBadges names={[material_type]} visibleCount={1} />
+        </div>
+      );
+    },
+    meta: 'Material Type',
+  },
+
+  {
+    id: 'status',
+    accessorFn: (row) => row.status,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Status" />;
+    },
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return (
+        <div className="py-2">
+          <TableBadges names={[status]} visibleCount={1} />
+        </div>
+      );
+    },
+    meta: 'Status',
+  },
+];

@@ -77,7 +77,7 @@ export function dateSortingFn(
   return compareAsc(da, db);
 }
 
-export const STATUS_COLORS: Record<string, string> = {
+export const BADGE_COLORS: Record<string, string> = {
   DRAFT:
     'bg-gray-100 text-gray-800 border-gray-800 dark:bg-gray-200 dark:text-gray-900 dark:border-gray-800',
   PENDING:
@@ -98,6 +98,10 @@ export const STATUS_COLORS: Record<string, string> = {
     'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-900 dark:border-green-800',
   INACTIVE:
     'bg-gray-100 text-gray-600 border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600',
+  AVAILABLE:
+    'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-900 dark:border-green-800',
+  UNAVAILABLE:
+    'bg-red-100 text-red-800 border-red-800 dark:bg-red-200 dark:text-red-900 dark:border-red-800',
   COLLECTION:
     'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-900 dark:border-orange-900',
   DELIVERY:
@@ -106,6 +110,19 @@ export const STATUS_COLORS: Record<string, string> = {
     'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
   INDIVIDUAL:
     'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
+  'NET 7':
+    'bg-green-100 text-green-800 border-green-800 dark:bg-green-200 dark:text-green-800 dark:border-green-800',
+  'NET 14':
+    'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-800 dark:border-blue-800',
+  'NET 30':
+    'bg-orange-100 text-orange-800 border-orange-800 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
+  AGGREGATE:
+    'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-800 dark:border-orange-800',
+  'CRUSHED ROCK':
+    'bg-gray-100 text-gray-900 border-gray-900 dark:bg-gray-200 dark:text-gray-800 dark:border-gray-800',
+  DUST: 'bg-yellow-100 text-yellow-900 border-yellow-900 dark:bg-yellow-200 dark:text-yellow-900 dark:border-yellow-800',
+  SOIL: 'bg-green-100 text-green-900 border-green-900 dark:bg-green-200 dark:text-green-900 dark:border-green-800',
+  SAND: 'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-900 dark:border-blue-800',
 };
 
 export const QUOTE_TYPE_COLORS = {

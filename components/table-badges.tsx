@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { cn, STATUS_COLORS } from '@/lib/utils';
+import { cn, BADGE_COLORS } from '@/lib/utils';
 interface TableBadgesProps {
   names: string | string[];
   visibleCount?: number;
@@ -39,8 +39,8 @@ function getBadgeClassName(name: string): string {
     return PALETTE.sky;
   }
   const key = name.trim().toUpperCase();
-  if (STATUS_COLORS[key]) {
-    return STATUS_COLORS[key];
+  if (BADGE_COLORS[key]) {
+    return BADGE_COLORS[key];
   }
   const dynamicKey = pickKey(key);
   return PALETTE[dynamicKey] || PALETTE.sky;
@@ -55,7 +55,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
         <Badge
           key={n}
           className={cn(
-            'uppercase px-2 py-0.5 text-xs font-medium border',
+            'px-2 py-0.5 text-xs font-medium border',
             getBadgeClassName(n)
           )}
         >
