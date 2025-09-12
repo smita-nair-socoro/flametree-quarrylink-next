@@ -193,7 +193,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           <span className="text-sm text-muted-foreground">
             Product : {supplierProductName} ({supplierProductCode})
           </span>
-          <div className="grid grid-cols-[10fr_20fr_20fr_15fr_35fr] gap-10">
+          <div className="grid grid-cols-[15fr_25fr_25fr_25fr_35fr]">
             <span className="">Unit</span>
             <span className="">Cost Price</span>
             <span className="">Sell Price</span>
