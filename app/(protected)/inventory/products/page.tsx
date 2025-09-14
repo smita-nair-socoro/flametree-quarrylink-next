@@ -5,6 +5,8 @@ import rawJson from '@/lib/tests/productResponseData.json';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import { Plus } from 'lucide-react';
+import { FormDialog } from '@/components/form-dialog';
+import ProductForm from './(components)/forms/product-form';
 
 import {
   DataTableClient,
@@ -39,7 +41,13 @@ export default function ProductsPage() {
           <h1 className="text-2xl">Products</h1>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {/* TODO: QLINK-659 Add New Product Form And View / Edit */}
+          <FormDialog
+            dialogTitle="Add New Product"
+            buttonTitle="Add Product"
+            headerSeparator={true}
+          >
+            <ProductForm />
+          </FormDialog>
         </div>
       </div>
 
