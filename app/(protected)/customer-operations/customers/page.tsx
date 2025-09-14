@@ -1,13 +1,15 @@
 'use client';
 
+import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import CustomerForm from './(components)/forms/customer-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import rawJson from '@/lib/tests/customerResponseData.json';
-import { CustomerDetails } from '@/lib/types/customer';
+import { Customer } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { customerColumns } from './(components)/(data-tables)/customer/columns';
 import { Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { CustomersListQueryOptions } from '@/lib/api/customer';
 
 import {
   DataTableClient,
@@ -15,22 +17,32 @@ import {
 } from '@/components/ui/data-table-client';
 
 export default function CustomersPage() {
-  const convertedJson = convertKeysToSnakeCase(rawJson);
+  // Use React Query to fetch customers data
+  const {
+    data: customersData,
+    isLoading,
+    error,
+    isError,
+  } = useQuery(CustomersListQueryOptions());
 
-  const { items: rawItems } = convertedJson as unknown as {
-    items: Array<
-      Omit<CustomerDetails, 'customerType' | 'customerStatus'> & {
-        customerType: string;
-        customerStatus: string;
-      }
-    >;
-  };
+  React.useEffect(() => {
+    if (isError && error) {
+      console.error('Customer API Error:', error);
+    }
+  }, [isError, error]);
 
-  const items: CustomerDetails[] = rawItems.map((item) => ({
-    ...item,
-    customerType: item.customerType as CUSTOMER_TYPE,
-    customerStatus: item.customerStatus as CUSTOMER_STATUS,
-  }));
+  // Transform the API data to match our component expectations
+  const items: Customer[] =
+    customersData?.map((customer) => {
+      // Convert API response to snake_case if needed
+      const convertedCustomer = convertKeysToSnakeCase(customer);
+
+      return {
+        ...convertedCustomer,
+        customer_type: convertedCustomer.customer_type as CUSTOMER_TYPE,
+        customer_status: convertedCustomer.customer_status as CUSTOMER_STATUS,
+      };
+    }) || [];
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -56,13 +68,26 @@ export default function CustomersPage() {
       </div>
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        <DataTableClient
-          tableId="customer_main_data_table"
-          data={items ?? []}
-          columns={customerColumns}
-          facetDefination={facetDefs}
-          searchPlaceHolder="Search customers..."
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p>Loading customers...</p>
+            </div>
+          </div>
+        ) : isError ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">Error loading customers</div>
+          </div>
+        ) : (
+          <DataTableClient
+            tableId="customer_main_data_table"
+            data={items ?? []}
+            columns={customerColumns}
+            facetDefination={facetDefs}
+            searchPlaceHolder="Search customers..."
+          />
+        )}
       </div>
     </div>
   );

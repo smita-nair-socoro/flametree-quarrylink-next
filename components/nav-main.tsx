@@ -16,11 +16,18 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { useLocalStorageState } from '@/hooks/use-localstorage';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { setLocalStorage } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 
 export function NavMain({
@@ -38,9 +45,12 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const { state, open, openMobile, isMobile } = useSidebar();
+  const isMobileDevice = useIsMobile();
   const [openStates, setOpenStates] = useLocalStorageState<
     Record<string, boolean>
   >('nav-open-states', {});
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   useEffect(() => {
     if (pathname) {
@@ -48,8 +58,16 @@ export function NavMain({
     }
   }, [pathname]);
 
+  // Reset hover state when sidebar state changes and force re-render
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [state, open, openMobile, isMobile, isMobileDevice]);
+
+  // Determine if sidebar is truly collapsed
+  const isCollapsed = isMobileDevice ? !openMobile : state === 'collapsed';
+
   return (
-    <SidebarGroup>
+    <SidebarGroup key={forceUpdate}>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
@@ -57,6 +75,49 @@ export function NavMain({
             pathname === item.url ||
             item.items?.some((sub) => pathname === sub.url);
           const isOpen = openStates[item.url] ?? isActive;
+
+          if (isCollapsed && item.items && item.items.length > 0) {
+            return (
+              <HoverCard 
+                key={`${item.url}-${forceUpdate}`}
+                openDelay={200} 
+                closeDelay={100}
+              >
+                <HoverCardTrigger asChild>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={isActive} className="hover:bg-purple-50 data-[active=true]:bg-purple-50">
+                      {item.icon && <item.icon />}
+                      <span className="truncate whitespace-nowrap">{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </HoverCardTrigger>
+                <HoverCardContent 
+                  side="right" 
+                  align="start"
+                  className="w-64 p-2"
+                  sideOffset={8}
+                >
+                  <div className="space-y-1">
+                    <div className="font-medium text-sm mb-2">{item.title}</div>
+                    {item.items.map((sub) => {
+                      const subActive = pathname === sub.url;
+                      return (
+                        <Link
+                          key={sub.url}
+                          href={sub.url}
+                          className={`block px-3 py-2 text-sm rounded-md hover:bg-purple-50 transition-colors ${
+                            subActive ? 'bg-purple-50' : ''
+                          }`}
+                        >
+                          {sub.title}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            );
+          }
 
           return (
             <Collapsible
@@ -73,9 +134,9 @@ export function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title} isActive={isActive}>
+                  <SidebarMenuButton isActive={isActive} className="hover:bg-purple-50 data-[active=true]:bg-purple-50">
                     {item.icon && <item.icon />}
-                    <span>{item.title}</span>
+                    <span className="truncate whitespace-nowrap">{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
@@ -85,7 +146,7 @@ export function NavMain({
                       const subActive = pathname === sub.url;
                       return (
                         <SidebarMenuSubItem key={sub.url}>
-                          <SidebarMenuSubButton asChild isActive={subActive}>
+                          <SidebarMenuSubButton asChild isActive={subActive} className="hover:bg-purple-50 data-[active=true]:bg-purple-50">
                             <Link href={sub.url}>
                               <span>{sub.title}</span>
                             </Link>

@@ -2,9 +2,6 @@
 
 import * as React from 'react';
 import {
-  AudioWaveform,
-  Command,
-  GalleryVerticalEnd,
   LayoutDashboard,
   Package,
   Settings2,
@@ -14,6 +11,7 @@ import {
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { QuarryLinkBranding } from '@/components/quarrylink-branding';
 import { TeamSwitcher } from '@/components/team-switcher';
 import {
   Sidebar,
@@ -21,31 +19,11 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useAuth } from 'react-oidc-context';
-import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 
 const data = {
-  teams: [
-    {
-      name: 'Acme Inc',
-      id: '351356-12415-634',
-      logo: GalleryVerticalEnd,
-      plan: 'Enterprise',
-    },
-    {
-      name: 'Acme Corp.',
-      id: '5320521-2151-35135',
-      logo: AudioWaveform,
-      plan: 'Startup',
-    },
-    {
-      name: 'Evil Corp.',
-      id: '1356973-153-68353',
-      logo: Command,
-      plan: 'Free',
-    },
-  ],
   navMain: [
     {
       title: 'Dashboard',
@@ -111,25 +89,23 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: oidcUser } = useAuth();
-  const { user: cookieUser } = useCookieAuth();
 
   const user = {
-    name:
-      oidcUser?.profile.name ??
-      (cookieUser
-        ? `${cookieUser.user.username} ${cookieUser.user.username}`
-        : 'Unknown Name'),
-    email: oidcUser?.profile.email ?? cookieUser?.user.email ?? 'Unknown Email',
-    avatar:
-      oidcUser?.profile.picture ??
-      cookieUser?.user.username ??
-      '/avatars/default.png',
+    name: oidcUser?.profile.name ?? 'Unknown Name',
+    email: oidcUser?.profile.email ?? 'Unknown Email',
+    avatar: oidcUser?.profile.picture ?? '/default-user.png',
   };
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+      <SidebarHeader className="mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <SidebarTrigger className="h-8 w-8" />
+        </div>
+        <div className="mb-1">
+          <QuarryLinkBranding subscriptionType="Enterprise" />
+        </div>
+        <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
