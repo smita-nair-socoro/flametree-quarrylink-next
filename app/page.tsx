@@ -24,9 +24,5 @@ export default function HomePage() {
     }
   }, [auth.isLoading, auth.isAuthenticated, router, pathname]);
 
-  if (auth.isLoading) {
-    return <p>Loading…</p>;
-  }
-
-  return null;
+  return <div>Loading...</div>;
 }
