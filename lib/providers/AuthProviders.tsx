@@ -5,11 +5,6 @@ import { AuthProvider as OidcProvider } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
 import { SCOPE } from '../auth/authManager';
 
-const redirectUri =
-  typeof window !== 'undefined'
-    ? `${window.location.origin}/callback`
-    : undefined;
-
 const webStorageStore =
   typeof window !== 'undefined'
     ? new WebStorageStateStore({ store: window.localStorage })
@@ -18,7 +13,7 @@ const webStorageStore =
 const oidcConfig = {
   authority: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
   client_id: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
-  redirect_uri: redirectUri || process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
+  redirect_uri: process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!,
   response_type: 'code',
   scope: SCOPE,
   stateStore: webStorageStore,
