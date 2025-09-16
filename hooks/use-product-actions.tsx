@@ -175,10 +175,10 @@ const getDialogConfigs = (
             <span className="text-sm text-gray-500">
               Are you sure you want to mark this product as unavailable?
             </span>
-            <div className="border-1 border-[#FFD6A7] rounded-md p-2 bg-[#FFF7ED]">
+            <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
               <div className="flex items-start gap-2 self-stretch">
                 <TriangleAlert className="h-5 w-6 text-[#F54900]" />
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                   <span className="text-sm text-[#9F2D00] font-medium">
                     Impact on New Business
                   </span>
@@ -245,10 +245,10 @@ const getDialogConfigs = (
           </div>
         ),
         content: (
-          <div className="border-1 border-[#FEE685] rounded-md p-2 bg-[#FFF7ED]">
+          <div className="border-1 border-[#FEE685] rounded-md p-3 bg-[#FFF7ED]">
             <div className="flex items-start gap-2 self-stretch">
               <TriangleAlert className="h-5 w-6 text-[#E17100]" />
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-1">
                 <span className="text-sm text-[#973C00] font-medium">
                   Historical Data Preserved
                 </span>
@@ -410,10 +410,78 @@ const getDialogConfigs = (
   } else if (selectedAction?.key === 'available') {
     return {
       available: {
-        title: `Mark as Available`,
-        description: `Mark this product as available`,
+        title: `Mark as avaialble`,
+        description: (
+          <div className="flex justfiy-start gap-2">
+            <div className="flex w-[40px] h-[40px] items-center justify-center bg-[#F0FDF4] rounded-full">
+              <span className="flex items-center justify-center">
+                <CircleCheckBig className="h-5 w-5 text-[#008236]" />
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium">Mark as Available</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-gray-500">
+                  {productCode} ({productName})
+                </span>
+                <Badge
+                  className={BADGE_COLORS[productStatus ?? '']}
+                  variant="outline"
+                >
+                  {productStatus}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-sm text-gray-500">
+              Are you sure you want to mark this product as unavailable?
+            </span>
+            <div className="border-1 border-[#B9F8CF] rounded-md p-3 bg-[#F0FDF4]">
+              <div className="flex items-start gap-2 self-stretch">
+                <CircleCheckBig className="h-5 w-6 text-[#008236]" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-[#008236] font-medium">
+                    Impact on New Business
+                  </span>
+                  <span className="text-sm text-[#008236]">
+                    This product will be visible in new quotes and orders,
+                    expanding your aviable product catalog for customers
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">
+                What happens when marked as unavailable:
+              </span>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
+                <li> Visible in new quote creation</li>
+                <li> Added to product selection lists</li>
+                <li> Available for new orders and quotes</li>
+                <li>
+                  {' '}
+                  All existing supplier pricing and configurations remain intact
+                </li>
+                <li> Can be marked unavailable again if needed</li>
+              </ul>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">What continues to work:</span>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
+                <li>Existing quotes and orders continue normally</li>
+                <li>Historical sales data remains accessible</li>
+                <li>Product specifications and details preserved</li>
+                <li>Product management and editing capabilities</li>
+              </ul>
+            </div>
+          </div>
+        ),
         confirmText: 'Mark as Available',
         confirmVariant: 'default',
+        confirmCustomColor: '#008236',
       },
     };
   }
