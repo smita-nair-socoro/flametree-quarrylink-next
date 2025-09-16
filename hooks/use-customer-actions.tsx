@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { CustomerDetails } from '@/lib/types/customer';
+import { Customer } from '@/lib/types/customer';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
@@ -30,7 +30,7 @@ interface SelectedAction {
 }
 
 const getDialogConfigs = (
-  customerData?: CustomerDetails | null,
+  customerData?: Customer | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
   const customerName = customerData?.business_name;
@@ -87,7 +87,7 @@ const getDialogConfigs = (
 
 export function useCustomerActions(
   customerId: number | undefined,
-  customerData?: CustomerDetails | null
+  customerData?: Customer | null
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);

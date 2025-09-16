@@ -1,9 +1,8 @@
-import { baseUrl, getTenantId, getUser, isDevEnv } from '../utils';
+import { baseUrl, getTenantId, getUser } from '../utils';
 import { userManager } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
-import { UserWithRelations } from '../types/user';
 import { Quarry } from '../types/quarry';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
@@ -121,7 +120,6 @@ export async function HttpClient<T = unknown>(
 
   const init: RequestInit = {
     method: config.method,
-    credentials: 'include',
     headers: {
       Accept: '*/*',
       'x-requested-with': 'XMLHttpRequest',
@@ -190,15 +188,49 @@ export async function HttpClient<T = unknown>(
     }
   }
 
-  const url =
-    process.env.NODE_ENV === 'development'
-      ? // in dev, leave it root-relative (so our dev proxy or built-in API routes work)
-        endpoint.startsWith('/')
-        ? endpoint
-        : `/${endpoint}`
-      : `${baseUrl()}${endpoint}`;
+  const url = `${baseUrl()}${endpoint}`;
+
+  console.log(`API Request: ${url}`);
 
   const response = await fetcher(url, init);
+
+  // Enhanced logging for debugging
+  if (response.status >= 400) {
+    console.log(
+      `API Request Failed: ${response.status} ${response.statusText}`
+    );
+    console.log(`URL: ${url}`);
+    console.log(`Method: ${init.method || 'GET'}`);
+    console.log(`Headers:`, init.headers);
+
+    // Try to get the response body for debugging
+    const responseClone = response.clone();
+    try {
+      const responseText = await responseClone.text();
+      console.log(`Response Body:`, responseText);
+
+      // Try to parse as JSON if it looks like JSON
+      if (
+        responseText.trim().startsWith('{') ||
+        responseText.trim().startsWith('[')
+      ) {
+        try {
+          const responseJson = JSON.parse(responseText);
+          console.log(`Parsed Response JSON:`, responseJson);
+        } catch (e) {
+          console.log(`Could not parse response as JSON:`, e);
+        }
+      }
+    } catch (e) {
+      console.log(`Could not read response body:`, e);
+    }
+
+    // Log response headers
+    console.log(`Response Headers:`);
+    response.headers.forEach((value, key) => {
+      console.log(`  ${key}: ${value}`);
+    });
+  }
 
   const isJson = response.headers
     .get('Content-Type')
@@ -233,19 +265,7 @@ export async function HttpClient<T = unknown>(
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 500: {
-        const healthUrl =
-          process.env.NODE_ENV === 'development'
-            ? '/api/healthz/liveness'
-            : `${baseUrl()}/api/healthz/liveness`;
-
-        const health = await fetcher(healthUrl);
-
-        if (!health.ok) {
-          return Promise.reject(
-            new Error(`[500] Offline (Internal server error): "${endpoint}"`)
-          );
-        }
-        break;
+        return Promise.reject(new Error(`Internal server error`));
       }
       case 503: {
         // Show an error toast to notify the user what occurred
@@ -287,14 +307,7 @@ export async function HttpClient<T = unknown>(
       response.statusText ||
       `HTTP request failed with status ${response.status}`;
 
-    if (!isDevEnv()) {
-      // production: just show the API’s message
-      return Promise.reject(new Error(errorMessage));
-    } else {
-      // development: include endpoint & code for easier debugging
-      const detailed = `HTTP request to '${endpoint}' failed with code ${response.status} (${errorMessage})`;
-      return Promise.reject(new Error(detailed));
-    }
+    return Promise.reject(new Error(errorMessage));
   }
 }
 
@@ -327,15 +340,6 @@ const appClient = {
 };
 
 export const APIClient = {
-  auth: {
-    login: (email: string, password: string, username?: string) =>
-      appClient.Post<UserWithRelations>('/api/v1/users/login', {
-        body: { email, username, password },
-      }),
-    logout: () => appClient.Post(`/api/v1/users/logout`),
-    validate: () =>
-      appClient.Get<UserWithRelations>(`/api/v1/users/get-auth-user`),
-  },
   products: {
     list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },

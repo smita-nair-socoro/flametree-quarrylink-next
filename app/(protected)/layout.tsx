@@ -2,9 +2,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth as useOidc } from 'react-oidc-context';
-import { useCookieAuth } from '@/lib/auth/cookieAuthContext';
 import { AppSidebar } from '@/components/app-sidebar';
-import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
   SidebarProvider,
@@ -14,10 +12,9 @@ import { ModeToggle } from '@/components/toggle';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const oidc = useOidc();
-  const cookie = useCookieAuth();
   const router = useRouter();
-  const isLoading = oidc.isLoading || cookie.loading;
-  const isAuthenticated = oidc.isAuthenticated || Boolean(cookie.user);
+  const isLoading = oidc.isLoading;
+  const isAuthenticated = oidc.isAuthenticated;
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -26,7 +23,14 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   }, [isLoading, isAuthenticated, router]);
 
   if (isLoading) {
-    return null;
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -38,11 +42,8 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       <AppSidebar />
       <SidebarInset className="flex flex-col min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
+          {/* Mobile trigger - only visible when sidebar is closed */}
+          <SidebarTrigger className="md:hidden" />
           <div className="absolute top-4 right-4 z-50">
             <ModeToggle />
           </div>

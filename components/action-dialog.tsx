@@ -67,19 +67,19 @@ export function ActionDialog({
 
         {content && <>{content}</>}
 
-        <div className="border-t border-gray-200 -mx-6"></div>
+        <div className="border-t border-gray-200"></div>
         <div className="grid grid-cols-2 space-x-2">
           <Button
             variant="outline"
             onClick={() => onOpenChangeAction(false)}
-            className={cn(confirmActionNeeded ? '' : 'col-span-2')}
+            className={cn(confirmActionNeeded ? 'h-10' : 'col-span-2 h-11')}
           >
             {cancelText}
           </Button>
           {confirmActionNeeded && (
             <Button
               variant={confirmCustomColor ? undefined : confirmVariant}
-              className={confirmCustomClass}
+              className={cn('h-10', confirmCustomClass)}
               style={customButtonStyle}
               onClick={() => {
                 onConfirmAction();

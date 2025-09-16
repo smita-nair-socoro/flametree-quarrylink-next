@@ -24,6 +24,8 @@ import { NewSupplierFormSchema } from './schemas/supplier-form-schema';
 import { Tab } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { PricingConfigurationTable } from './(form-tables)/pricing-configuration-table';
+import { TruckRatesTable } from './(form-tables)/truck-rates-table';
 
 interface FormProps {
   id?: number;
@@ -189,23 +191,34 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
       name: 'Price Configuration',
       content: (
         <div className="flex flex-col gap-4">
-          <span className="text-lg font-medium">Price Configuration</span>
-          <span className="text-sm text-muted-foreground">
-            Product : {supplierProductName} ({supplierProductCode})
-          </span>
-          <div className="grid grid-cols-[15fr_25fr_25fr_25fr_35fr]">
-            <span className="">Unit</span>
-            <span className="">Cost Price</span>
-            <span className="">Sell Price</span>
-            <span className="">Margin %</span>
-            <span className="">Avaialable for Sale</span>
+          <div>
+            <span className="text-lg font-medium">Pricing Configuration</span>
+            <p className="text-sm text-muted-foreground mt-1">
+              Product: {supplierProductName} ({supplierProductCode})
+            </p>
           </div>
+          <PricingConfigurationTable
+            control={supplierForm.control}
+            watch={supplierForm.watch}
+          />
         </div>
       ),
     },
     {
       name: 'Truck Rates',
-      content: <div>Truck Rates</div>,
+      content: (
+        <div className="flex flex-col gap-4">
+          <div>
+            <span className="text-lg font-medium">
+              Truck Rates - New Supplier
+            </span>
+            <p className="text-sm text-muted-foreground mt-1">
+              Optional - can be overridden in quotes
+            </p>
+          </div>
+          <TruckRatesTable control={supplierForm.control} />
+        </div>
+      ),
     },
   ];
 

@@ -11,10 +11,10 @@ import {
 import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { CustomerDetails } from '@/lib/types/customer';
+import { Customer } from '@/lib/types/customer';
 
 interface CustomerActionButtonsProps {
-  customer: CustomerDetails | null | undefined;
+  customer: Customer | null | undefined;
   layout?: 'compact' | 'expanded';
 }
 
