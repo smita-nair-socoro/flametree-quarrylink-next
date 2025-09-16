@@ -36,10 +36,20 @@ const Base = z.object({
 });
 
 export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
-  // Supplier type specific validations
+  // TN is always required to be available for sale
+  if (data.available_for_sale_TN !== true) {
+    ctx.addIssue({
+      path: ['available_for_sale_TN'],
+      code: z.ZodIssueCode.custom,
+      message: 'TN must always be available',
+    });
+  }
+
+  // Pricing configuration validations
   const units = ['TN', 'M3', 'KG', 'Bulk'] as const;
   for (const unit of units) {
     if (data[`available_for_sale_${unit}`] === true) {
+      // When switch is on, cost price and sell price should not be empty
       if (
         data[`cost_price_${unit}`] === undefined ||
         data[`cost_price_${unit}`] === null ||
@@ -48,7 +58,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
         ctx.addIssue({
           path: [`cost_price_${unit}`],
           code: z.ZodIssueCode.custom,
-          message: 'Cost price is required',
+          message: 'required',
         });
       }
       if (
@@ -59,42 +69,35 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
         ctx.addIssue({
           path: [`sell_price_${unit}`],
           code: z.ZodIssueCode.custom,
-          message: 'Sell price is required',
-        });
-      }
-      if (
-        data[`cost_price_${unit}`] !== undefined &&
-        data[`cost_price_${unit}`] !== null &&
-        (data[`cost_price_${unit}`] as number) <= 0
-      ) {
-        ctx.addIssue({
-          path: [`cost_price_${unit}`],
-          code: z.ZodIssueCode.custom,
-          message: 'Cost price must be greater than 0',
-        });
-      }
-      if (
-        data[`sell_price_${unit}`] !== undefined &&
-        data[`sell_price_${unit}`] !== null &&
-        (data[`sell_price_${unit}`] as number) <= 0
-      ) {
-        ctx.addIssue({
-          path: [`sell_price_${unit}`],
-          code: z.ZodIssueCode.custom,
-          message: 'Sell price must be greater than 0',
+          message: 'required',
         });
       }
     }
   }
 
+  // Truck rates validation - at least one rate type must be available
   const truckUnits = [
     'TN_rate',
     'M3_rate',
     'hourly_rate',
     'load_rate',
   ] as const;
+
+  const hasAnyTruckRateAvailable = truckUnits.some(
+    (unit) => data[`available_truck_${unit}`] === true
+  );
+
+  if (!hasAnyTruckRateAvailable) {
+    ctx.addIssue({
+      path: ['available_truck_TN_rate'],
+      code: z.ZodIssueCode.custom,
+      message: 'At least one must be available',
+    });
+  }
+
   for (const unit of truckUnits) {
     if (data[`available_truck_${unit}`] === true) {
+      // When switch is on, rate should not be empty
       if (
         data[`truck_${unit}`] === undefined ||
         data[`truck_${unit}`] === null ||
@@ -103,18 +106,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
         ctx.addIssue({
           path: [`truck_${unit}`],
           code: z.ZodIssueCode.custom,
-          message: 'Truck rate is required',
-        });
-      }
-      if (
-        data[`truck_${unit}`] !== undefined &&
-        data[`truck_${unit}`] !== null &&
-        (data[`truck_${unit}`] as number) <= 0
-      ) {
-        ctx.addIssue({
-          path: [`truck_${unit}`],
-          code: z.ZodIssueCode.custom,
-          message: 'Truck rate must be greater than 0',
+          message: 'required',
         });
       }
     }

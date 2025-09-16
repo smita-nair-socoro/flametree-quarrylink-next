@@ -47,7 +47,7 @@ export function PricingConfigurationTable({
   ];
 
   // Cells configuration
-  const cells: CellConfig[] = [
+  const cells: CellConfig<z.infer<typeof NewSupplierFormSchema>>[] = [
     {
       key: 'unit',
       type: 'display',
@@ -75,21 +75,29 @@ export function PricingConfigurationTable({
       type: 'calculated',
       className: 'w-25',
       calculate: (row, watch) => {
-        const costPrice = (watch(`cost_price_${row.id}`) as number) || 0;
-        const sellPrice = (watch(`sell_price_${row.id}`) as number) || 0;
-        const margin = calculateMargin(costPrice, sellPrice);
+        const costPrice =
+          (watch(
+            `cost_price_${row.id}` as keyof z.infer<
+              typeof NewSupplierFormSchema
+            >
+          ) as number) || 0;
+        const sellPrice =
+          (watch(
+            `sell_price_${row.id}` as keyof z.infer<
+              typeof NewSupplierFormSchema
+            >
+          ) as number) || 0;
 
-        if (margin > 0) {
-          return (
-            <span className="font-normal text-green-600">
-              {margin.toFixed(1)}%
-            </span>
-          );
-        }
+        // Always calculate and display margin regardless of availability switch
+        const marginValue = calculateMargin(costPrice, sellPrice);
+
+        const displayValue = `${marginValue.toFixed(2)}%`;
+
+        // Determine text color based on margin value
+        const textColor = marginValue < 0 ? 'text-red-600' : 'text-green-600';
+
         return (
-          <span className="text-muted-foreground">
-            <span className="font-normal text-green-600">0.00%</span>
-          </span>
+          <span className={`font-normal ${textColor}`}>{displayValue}</span>
         );
       },
     },
@@ -98,11 +106,12 @@ export function PricingConfigurationTable({
       type: 'switch',
       showLabel: true,
       className: 'w-36',
+      disabled: (row) => row.id === 'TN', // TN is always available for sale
     },
   ];
 
   return (
-    <FormTable
+    <FormTable<z.infer<typeof NewSupplierFormSchema>>
       headers={headers}
       rows={rows}
       cells={cells}

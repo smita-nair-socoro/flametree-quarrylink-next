@@ -25,14 +25,9 @@ export const userManager = new UserManager({
 function getRedirectUri() {
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
-
-    if (origin.includes('app.dev.quarrylink.com.au')) {
-      return `${origin}/callback/`; // dev with trailing slash
-    }
-
-    return `${origin}/callback`; // local or other environments
+    return `${origin}/callback/`; // always trailing slash
   }
 
-  // Fallback to env (useful for SSR/build time)
+  // Fallback to env (SSR/build time)
   return process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI!;
 }

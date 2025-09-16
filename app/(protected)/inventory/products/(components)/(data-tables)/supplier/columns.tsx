@@ -3,6 +3,7 @@
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
+import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
 
 export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -30,38 +31,61 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'cost_price',
-    accessorFn: (row) => row.price.TN_cost_price,
+    accessorFn: (row) => row.price.tn_cost_price,
     header: ({}) => {
-      return <div>Cost Price</div>;
+      return <div>Cost Price (TN)</div>;
     },
-    cell: () => <div>Cost Price</div>,
-    meta: 'Cost Price',
+    cell: ({ row }) => {
+      return (
+        <div>
+          $
+          {(row.original.price.tn_cost_price / 100)
+            ?.toFixed(2)
+            .toLocaleString() || '0'}
+        </div>
+      );
+    },
+    meta: 'cost price',
   },
   {
     id: 'sell_price',
-    accessorFn: (row) => row.price.TN_sell_price,
+    accessorFn: (row) => row.price.tn_sell_price,
     header: ({}) => {
-      return <div>Sell Price</div>;
+      return <div>Sell Price (TN)</div>;
     },
-    cell: () => <div>Sell Price</div>,
-    meta: 'Sell Price',
+    cell: ({ row }) => (
+      <div>
+        $
+        {(row.original.price.tn_sell_price / 100)
+          ?.toFixed(2)
+          .toLocaleString() || '0'}
+      </div>
+    ),
+    meta: 'sell price',
   },
   {
     id: 'margin',
-    accessorFn: (row) => row.price.margin_TN,
+    accessorFn: (row) => row.price.margin_tn,
     header: ({}) => {
       return <div>Margin</div>;
     },
-    cell: () => <div>Margin</div>,
+    cell: ({ row }) => {
+      const margin = row.original.price.margin_tn || 0;
+      return (
+        <div className={margin < 0 ? 'text-red-600' : 'text-green-600'}>
+          {((margin || 0) * 100).toFixed(2)}%
+        </div>
+      );
+    },
     meta: 'Margin',
   },
   {
     id: 'action',
     accessorFn: (row) => row.id,
     header: ({}) => {
-      return <div>Action</div>;
+      return <div></div>;
     },
-    cell: () => <div>Action</div>,
+    cell: ({ row }) => <SupplierTableActions quarry={row.original} />,
     meta: 'Action',
   },
 ];

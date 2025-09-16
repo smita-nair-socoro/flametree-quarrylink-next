@@ -48,7 +48,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
   ];
 
   // Cells configuration
-  const cells: CellConfig[] = [
+  const cells: CellConfig<z.infer<typeof NewSupplierFormSchema>>[] = [
     {
       key: 'rate_type',
       type: 'display',
@@ -82,6 +82,11 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
   ];
 
   return (
-    <FormTable headers={headers} rows={rows} cells={cells} control={control} />
+    <FormTable<z.infer<typeof NewSupplierFormSchema>>
+      headers={headers}
+      rows={rows}
+      cells={cells}
+      control={control}
+    />
   );
 }

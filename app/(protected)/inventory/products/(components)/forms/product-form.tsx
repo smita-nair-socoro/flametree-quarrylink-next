@@ -27,6 +27,7 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { ChartColumn } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
 interface FormProps {
   id?: number;
@@ -42,6 +43,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [totalSupplier, setTotalSupplier] = React.useState(0);
+
+  const convertedProduct = convertKeysToSnakeCase(selectedProduct);
 
   const materialTypeOptions = [
     { label: 'Aggregate', value: 'AGGREGATE' },
@@ -236,6 +239,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 dialogTitle="Add New Supplier"
                 buttonTitle="Add Supplier"
                 dialogWidth="700px"
+                contentClass="-mt-5"
               >
                 <SupplierForm />
               </FormDialog>
@@ -244,7 +248,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
             <DataTableClient
               columns={supplierColumns}
-              data={selectedProduct?.quarries || []}
+              data={convertedProduct?.quarries || []}
               simpleTable={true}
             />
           </div>

@@ -9,7 +9,7 @@ interface SupplierStore {
 
   // Actions
   setSuppliers: (suppliers: QuarriesWithProduct[]) => void;
-  setSelectedProduct: (product: QuarriesWithProduct | null) => void;
+  setSelectedSupplier: (supplier: QuarriesWithProduct | null) => void;
   setLoading: (loading: boolean) => void;
 
   getSupplierById: (id: number) => QuarriesWithProduct | undefined;
@@ -33,7 +33,7 @@ export const useSupplierStore = create<SupplierStore>()(
       // Actions
       setSuppliers: (suppliers) => set({ suppliers }),
 
-      setSelectedProduct: (supplier) => set({ selectedSupplier: supplier }),
+      setSelectedSupplier: (supplier) => set({ selectedSupplier: supplier }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 

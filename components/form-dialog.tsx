@@ -87,6 +87,9 @@ interface AddProductDrawerDialogProps {
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
 
+  /** Optional content class to add to the content */
+  contentClass?: string;
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
@@ -120,6 +123,7 @@ export function FormDialog({
   headerButtons,
   headerInfo,
   headerSeparator,
+  contentClass,
   children,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
@@ -309,7 +313,8 @@ export function FormDialog({
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5 pt-4'
+          'rounded-md overflow-auto px-5 pt-4',
+          contentClass
         )}
       >
         <div>{contentNode}</div>
@@ -346,9 +351,11 @@ export function FormDialog({
             <DrawerTitle className="text-start text-2xl">
               {headerTitle}
             </DrawerTitle>
-            <DrawerDescription className="mt-2">
-              {dialogDescription}
-            </DrawerDescription>
+            {dialogDescription && (
+              <DrawerDescription className="mt-2">
+                {dialogDescription}
+              </DrawerDescription>
+            )}
             {renderBadges()}
           </div>
           {headerButtons && (

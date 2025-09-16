@@ -13,6 +13,7 @@ interface ActionDialogProps {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
   title: string;
+  titleIcon?: React.ReactNode;
   description?: React.ReactNode;
   content?: React.ReactNode;
   cancelText?: string;
@@ -34,6 +35,7 @@ export function ActionDialog({
   open,
   onOpenChangeAction,
   title,
+  titleIcon,
   description,
   content,
   cancelText = 'Cancel',
@@ -59,7 +61,10 @@ export function ActionDialog({
       <DialogContent className="w-[512px] max-w-full gap-6 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            <div className="flex items-center gap-2">{title}</div>
+            <div className="flex items-center gap-2">
+              {titleIcon && titleIcon}
+              {title}
+            </div>
           </DialogTitle>
         </DialogHeader>
 

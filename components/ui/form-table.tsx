@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import {
@@ -57,37 +58,45 @@ export interface NumberCellConfig extends BaseCellConfig {
 export interface SwitchCellConfig extends BaseCellConfig {
   type: 'switch';
   showLabel?: boolean;
+  disabled?: (row: FormTableRow) => boolean;
 }
 
 export interface DisplayCellConfig extends BaseCellConfig {
   type: 'display';
-  render: (rowData: any) => React.ReactNode;
+  render: (row: FormTableRow) => React.ReactNode;
 }
 
-export interface CalculatedCellConfig extends BaseCellConfig {
+export interface CalculatedCellConfig<T extends FieldValues = FieldValues>
+  extends BaseCellConfig {
   type: 'calculated';
-  calculate: (rowData: any, watch: UseFormWatch<any>) => React.ReactNode;
+  calculate: (row: FormTableRow, watch: UseFormWatch<T>) => React.ReactNode;
 }
 
-export type CellConfig =
+export type CellConfig<T extends FieldValues = FieldValues> =
   | TextCellConfig
   | CurrencyCellConfig
   | NumberCellConfig
   | SwitchCellConfig
   | DisplayCellConfig
-  | CalculatedCellConfig;
+  | CalculatedCellConfig<T>;
+
+// Row data types
+export interface FormTableRowData {
+  unit?: string;
+  [key: string]: unknown;
+}
 
 // Row configuration
 export interface FormTableRow {
   id: string;
   label?: string;
-  data?: Record<string, any>;
+  data?: FormTableRowData;
 }
 
-export interface FormTableProps<T extends FieldValues> {
+export interface FormTableProps<T extends FieldValues = FieldValues> {
   headers: FormTableHeader[];
   rows: FormTableRow[];
-  cells: CellConfig[];
+  cells: CellConfig<T>[];
   control: Control<T>;
   watch?: UseFormWatch<T>;
   className?: string;
@@ -95,7 +104,7 @@ export interface FormTableProps<T extends FieldValues> {
   description?: string;
 }
 
-export function FormTable<T extends FieldValues>({
+export function FormTable<T extends FieldValues = FieldValues>({
   headers,
   rows,
   cells,
@@ -105,7 +114,7 @@ export function FormTable<T extends FieldValues>({
   title,
   description,
 }: FormTableProps<T>) {
-  const renderCell = (cell: CellConfig, row: FormTableRow) => {
+  const renderCell = (cell: CellConfig<T>, row: FormTableRow) => {
     const fieldName = `${cell.key}_${row.id}` as FieldPath<T>;
 
     switch (cell.type) {
@@ -179,6 +188,7 @@ export function FormTable<T extends FieldValues>({
         );
 
       case 'switch':
+        const isDisabled = cell.disabled ? cell.disabled(row) : false;
         return (
           <FormField
             control={control}
@@ -190,6 +200,7 @@ export function FormTable<T extends FieldValues>({
                     <Switch
                       checked={field.value as boolean}
                       onCheckedChange={field.onChange}
+                      disabled={isDisabled}
                     />
                   </div>
                 </FormControl>
