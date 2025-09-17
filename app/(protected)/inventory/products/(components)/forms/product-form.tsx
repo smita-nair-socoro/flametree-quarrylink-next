@@ -28,6 +28,12 @@ import { ChartColumn } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { ActionDialog } from '@/components/action-dialog';
+import { tnPricingColumn } from '../(data-tables)/supplier-comparison/tn-pricing-column';
+import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing-column';
+import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing-column';
+import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
+import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
 
 interface FormProps {
   id?: number;
@@ -43,6 +49,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [totalSupplier, setTotalSupplier] = React.useState(0);
+  const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
 
   const convertedProduct = convertKeysToSnakeCase(selectedProduct);
 
@@ -220,17 +227,28 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               <span className="text-lg font-semibold">
                 Supplier Information
               </span>
-              <span className="text-sm text-gray-500">
-                {totalSupplier} suppliers configured with pricing and truck
-                rates
-              </span>
+              {isEditing && (
+                <span className="text-sm text-gray-500">
+                  {totalSupplier} suppliers configured with pricing and truck
+                  rates
+                </span>
+              )}
+              {!isEditing && (
+                <span className="text-sm text-gray-500">
+                  Add suppliers after creaeting the product
+                </span>
+              )}
             </div>
 
             <div
               className={cn('flex items-center gap-2', !isDesktop && 'mt-2')}
             >
               {isEditing && (
-                <Button variant="outline" className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-1"
+                  onClick={() => setIsCompareDialogOpen(true)}
+                >
                   <ChartColumn className="mr-3" />
                   Compare All
                 </Button>
@@ -245,13 +263,86 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               </FormDialog>
             </div>
           </div>
-          <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-            <DataTableClient
-              columns={supplierColumns}
-              data={convertedProduct?.quarries || []}
-              simpleTable={true}
+
+          {/* Compare All Dialog */}
+          <div className="flex flex-col gap-3">
+            <ActionDialog
+              open={isCompareDialogOpen}
+              onOpenChangeAction={setIsCompareDialogOpen}
+              customWidth="!max-w-[60vw]"
+              title={`Compare All - ${totalSupplier} suppliers`}
+              content={
+                <div className="flex flex-col space-y-4">
+                  <span className="text-lg font-semibold text-[#101828]">
+                    Pricing Comparison
+                  </span>
+                  <span className="font-normal text-[#364153]">TN Pricing</span>
+                  <DataTableClient
+                    columns={tnPricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                  <span className="font-normal text-[#364153]">m³ Pricing</span>
+                  <DataTableClient
+                    columns={m3PricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                  <span className="font-normal text-[#364153]">
+                    25kg Pricing
+                  </span>
+                  <DataTableClient
+                    columns={kgPricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                  <span className="font-normal text-[#364153]">
+                    Bulka Pricing
+                  </span>
+                  <DataTableClient
+                    columns={bulkaPricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                  <span className="text-lg font-semibold text-[#101828]">
+                    Truck Rates Comparison
+                  </span>
+                  <DataTableClient
+                    columns={truckRateComparisonColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                </div>
+              }
+              confirmActionNeeded={false}
             />
           </div>
+
+          {/* Supplier Table */}
+          {isEditing && (
+            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+              <DataTableClient
+                columns={supplierColumns}
+                data={convertedProduct?.quarries ?? []}
+                simpleTable={true}
+              />
+            </div>
+          )}
+
+          {!isEditing && (
+            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+              <DataTableClient
+                columns={supplierColumns}
+                data={[]}
+                simpleTable={true}
+              />
+            </div>
+          )}
 
           {/* Audit Information */}
           {isEditing && (

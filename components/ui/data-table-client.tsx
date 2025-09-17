@@ -67,6 +67,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceHolder?: string;
   simpleTable?: boolean;
   tableId?: string; // Unique identifier for localStorage
+  useColumnSizing?: boolean; // Optional prop to enable column sizing
 }
 
 export type FacetDefinition = {
@@ -101,6 +102,7 @@ export function DataTableClient<TData, TValue>({
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
   tableId = 'default-table', // Default tableId if not provided
+  useColumnSizing = false, // Default to false to maintain existing behavior
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -422,6 +424,21 @@ export function DataTableClient<TData, TValue>({
                         headerIndex === hg.headers.length - 1 &&
                           'w-auto text-right'
                       )}
+                      style={
+                        useColumnSizing
+                          ? {
+                              width: header.column.columnDef.size
+                                ? `${header.column.columnDef.size}px`
+                                : undefined,
+                              minWidth: header.column.columnDef.size
+                                ? `${header.column.columnDef.size}px`
+                                : undefined,
+                              maxWidth: header.column.columnDef.size
+                                ? `${header.column.columnDef.size}px`
+                                : undefined,
+                            }
+                          : undefined
+                      }
                     >
                       {header.isPlaceholder
                         ? null
@@ -456,6 +473,21 @@ export function DataTableClient<TData, TValue>({
                           cellIndex === row.getVisibleCells().length - 1 &&
                             'w-auto text-right'
                         )}
+                        style={
+                          useColumnSizing
+                            ? {
+                                width: cell.column.columnDef.size
+                                  ? `${cell.column.columnDef.size}px`
+                                  : undefined,
+                                minWidth: cell.column.columnDef.size
+                                  ? `${cell.column.columnDef.size}px`
+                                  : undefined,
+                                maxWidth: cell.column.columnDef.size
+                                  ? `${cell.column.columnDef.size}px`
+                                  : undefined,
+                              }
+                            : undefined
+                        }
                       >
                         {flexRender(
                           cell.column.columnDef.cell,

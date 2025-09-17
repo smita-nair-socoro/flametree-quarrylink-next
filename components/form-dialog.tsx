@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
-import { QUOTE_TYPE_COLORS, BADGE_COLORS } from '@/lib/utils';
+import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
 
@@ -247,8 +247,7 @@ export function FormDialog({
             key={`secondary-${index}`}
             variant="outline"
             className={
-              QUOTE_TYPE_COLORS[badge as keyof typeof QUOTE_TYPE_COLORS] ||
-              'bg-gray-100 text-gray-800 border-gray-300'
+              BADGE_COLORS[badge] || 'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
             {formatBadgeText(badge)}

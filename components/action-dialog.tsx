@@ -12,12 +12,14 @@ import { cn } from '@/lib/utils';
 interface ActionDialogProps {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
+  customWidth?: string;
   title: string;
   titleIcon?: React.ReactNode;
   description?: React.ReactNode;
   content?: React.ReactNode;
   cancelText?: string;
-  confirmText: string;
+  cancelButtonClass?: string;
+  confirmText?: string;
   confirmVariant?:
     | 'default'
     | 'destructive'
@@ -27,18 +29,20 @@ interface ActionDialogProps {
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
-  onConfirmAction: () => void;
+  onConfirmAction?: () => void;
   confirmActionNeeded?: boolean;
 }
 
 export function ActionDialog({
   open,
   onOpenChangeAction,
+  customWidth,
   title,
   titleIcon,
   description,
   content,
   cancelText = 'Cancel',
+  cancelButtonClass,
   confirmText,
   confirmVariant = 'default',
   confirmCustomColor,
@@ -58,7 +62,12 @@ export function ActionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent className="w-[512px] max-w-full gap-6 max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={cn(
+          customWidth ? customWidth : 'w-[512px]',
+          'max-w-full gap-6 max-h-[90vh] overflow-y-auto'
+        )}
+      >
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-2">
@@ -77,7 +86,13 @@ export function ActionDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChangeAction(false)}
-            className={cn(confirmActionNeeded ? 'h-10' : 'col-span-2 h-11')}
+            className={cn(
+              confirmActionNeeded
+                ? 'h-10'
+                : cancelButtonClass
+                ? cancelButtonClass
+                : 'col-span-2 h-11'
+            )}
           >
             {cancelText}
           </Button>
@@ -87,7 +102,7 @@ export function ActionDialog({
               className={cn('h-10', confirmCustomClass)}
               style={customButtonStyle}
               onClick={() => {
-                onConfirmAction();
+                onConfirmAction?.();
                 onOpenChangeAction(false);
               }}
             >

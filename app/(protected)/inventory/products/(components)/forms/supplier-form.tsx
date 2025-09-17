@@ -65,21 +65,29 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
       supplier_product_code: isEditing
         ? selectedSupplier?.supplier_product_code || ''
         : '',
-      cost_price_TN: isEditing ? selectedSupplier?.price.tn_cost_price || 0 : 0,
-      sell_price_TN: isEditing ? selectedSupplier?.price.tn_sell_price || 0 : 0,
-      cost_price_M3: isEditing ? selectedSupplier?.price.m3_cost_price || 0 : 0,
-      sell_price_M3: isEditing ? selectedSupplier?.price.m3_sell_price || 0 : 0,
+      cost_price_TN: isEditing
+        ? (selectedSupplier?.price.tn_cost_price || 0) / 100
+        : 0,
+      sell_price_TN: isEditing
+        ? (selectedSupplier?.price.tn_sell_price || 0) / 100
+        : 0,
+      cost_price_M3: isEditing
+        ? (selectedSupplier?.price.m3_cost_price || 0) / 100
+        : 0,
+      sell_price_M3: isEditing
+        ? (selectedSupplier?.price.m3_sell_price || 0) / 100
+        : 0,
       cost_price_KG: isEditing
-        ? selectedSupplier?.price.kg_20_cost_price || 0
+        ? (selectedSupplier?.price.kg_20_cost_price || 0) / 100
         : 0,
       sell_price_KG: isEditing
-        ? selectedSupplier?.price.kg_20_sell_price || 0
+        ? (selectedSupplier?.price.kg_20_sell_price || 0) / 100
         : 0,
       cost_price_Bulk: isEditing
-        ? selectedSupplier?.price.bulka_cost_price || 0
+        ? (selectedSupplier?.price.bulka_cost_price || 0) / 100
         : 0,
       sell_price_Bulk: isEditing
-        ? selectedSupplier?.price.bulka_sell_price || 0
+        ? (selectedSupplier?.price.bulka_sell_price || 0) / 100
         : 0,
       margin_TN: isEditing ? selectedSupplier?.price.margin_tn || 0 : 0,
       margin_M3: isEditing ? selectedSupplier?.price.margin_m3 || 0 : 0,
@@ -97,13 +105,17 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
       available_for_sale_Bulk: isEditing
         ? selectedSupplier?.price.available_for_sale_bulk || false
         : false,
-      truck_TN_rate: isEditing ? selectedSupplier?.price.truck_tn_rate || 0 : 0,
-      truck_M3_rate: isEditing ? selectedSupplier?.price.truck_m3_rate || 0 : 0,
+      truck_TN_rate: isEditing
+        ? (selectedSupplier?.price.truck_tn_rate || 0) / 100
+        : 0,
+      truck_M3_rate: isEditing
+        ? (selectedSupplier?.price.truck_m3_rate || 0) / 100
+        : 0,
       truck_hourly_rate: isEditing
-        ? selectedSupplier?.price.truck_hourly_rate || 0
+        ? (selectedSupplier?.price.truck_hourly_rate || 0) / 100
         : 0,
       truck_load_rate: isEditing
-        ? selectedSupplier?.price.truck_load_rate || 0
+        ? (selectedSupplier?.price.truck_load_rate || 0) / 100
         : 0,
       available_truck_TN_rate: isEditing
         ? selectedSupplier?.price.available_truck_tn_rate || false
@@ -346,7 +358,32 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
       processedValues.truck_load_rate = 0;
     }
 
-    console.log('Form Values for submission:', processedValues);
+    // Convert prices from dollars to cents for database storage
+    const priceFieldsToConvert = [
+      'cost_price_TN',
+      'sell_price_TN',
+      'cost_price_M3',
+      'sell_price_M3',
+      'cost_price_KG',
+      'sell_price_KG',
+      'cost_price_Bulk',
+      'sell_price_Bulk',
+      'truck_TN_rate',
+      'truck_M3_rate',
+      'truck_hourly_rate',
+      'truck_load_rate',
+    ] as const;
+
+    priceFieldsToConvert.forEach((field) => {
+      if (
+        processedValues[field] &&
+        typeof processedValues[field] === 'number'
+      ) {
+        processedValues[field] = Math.round(
+          (processedValues[field] as number) * 100
+        );
+      }
+    });
 
     setIsSubmitting(true);
     // Simulate API call delay (remove this in production)
