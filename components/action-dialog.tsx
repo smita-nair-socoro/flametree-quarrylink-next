@@ -46,13 +46,17 @@ export function ActionDialog({
   confirmActionNeeded = true,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
-  const customButtonStyle = confirmCustomColor
-    ? {
-        backgroundColor: confirmCustomColor,
-        borderColor: confirmCustomColor,
-        color: 'white',
-      }
-    : undefined;
+  const customButtonStyle = React.useMemo(
+    () =>
+      confirmCustomColor
+        ? {
+            backgroundColor: confirmCustomColor,
+            borderColor: confirmCustomColor,
+            color: 'white',
+          }
+        : undefined,
+    [confirmCustomColor]
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>

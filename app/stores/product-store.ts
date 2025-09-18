@@ -14,7 +14,7 @@ interface ProductStore {
   setLoading: (loading: boolean) => void;
 
   getProductById: (id: number) => ProductDetails | undefined;
-  getProductsByStatus: (status: boolean) => ProductDetails[];
+  getProductsByStatus: (status: PRODUCT_STATUS) => ProductDetails[];
 
   getProductStats: () => {
     total: number;
@@ -88,7 +88,7 @@ export const useProductsByStatus = (status: PRODUCT_STATUS) => {
   );
 };
 
-// Get customer stats
+// Get product stats
 export const useProductStats = () => {
   return useProductStore((state) => {
     const products = state.products;
@@ -103,22 +103,4 @@ export const useProductStats = () => {
         .length,
     };
   });
-};
-
-import { useMemo } from 'react';
-
-export const useProductByIdOptimized = (id: number) => {
-  const products = useProducts();
-
-  return useMemo(() => {
-    return products.find((p) => p.id === id);
-  }, [products, id]);
-};
-
-export const useProductsByStatusOptimized = (status: PRODUCT_STATUS) => {
-  const products = useProducts();
-
-  return useMemo(() => {
-    return products.filter((p) => p.status === status);
-  }, [products, status]);
 };

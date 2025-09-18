@@ -25,8 +25,7 @@ export function ProductActionButtons({
   layout = 'expanded',
 }: ProductActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isUnavailable =
-    product?.status === PRODUCT_STATUS.UNAVAILABLE ? true : false;
+  const isUnavailable = product?.status === PRODUCT_STATUS.UNAVAILABLE;
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     product?.id,
     product
@@ -51,14 +50,10 @@ export function ProductActionButtons({
         quote.quote_status !== 'CONVERTED_TO_JOB'
     );
 
-    console.log(hasActiveQuotes);
-
     // Check if there are jobs with remaining quantities
     const hasActiveJobs = product.jobs?.some((job: JobDetails) =>
       job.job_items.some((jobItem) => jobItem.remaining_quantity > 0)
     );
-
-    console.log(hasActiveJobs);
 
     // Check if there are pending or delivering dockets
     const hasPendingDockets = product.jobs?.some((job: JobDetails) =>
@@ -68,8 +63,6 @@ export function ProductActionButtons({
           docket.docket_status == 'DELIVERING'
       )
     );
-
-    console.log(hasPendingDockets);
 
     // Product CAN be archived if none of the blocking conditions are true
     return !hasActiveQuotes && !hasActiveJobs && !hasPendingDockets;

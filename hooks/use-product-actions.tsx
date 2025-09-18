@@ -148,7 +148,7 @@ const getDialogConfigs = (
       unavailable: {
         title: `Mark as Unavailable`,
         description: (
-          <div className="flex justfiy-start gap-2">
+          <div className="flex justify-start gap-2">
             <div className="flex w-[40px] h-[40px] items-center justify-center bg-red-100 rounded-full">
               <span className="flex items-center justify-center">
                 <Ban className="h-5 w-5 text-red-600" />
@@ -222,14 +222,14 @@ const getDialogConfigs = (
       archive: {
         title: `Archive`,
         description: (
-          <div className="flex justfiy-start gap-2">
+          <div className="flex justify-start gap-2">
             <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#DBEAFE] rounded-full">
               <span className="flex items-center justify-center">
                 <CircleAlert className="h-5 w-5 text-[#155DFC]" />
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="font-medium">Archive Produc with History</span>
+              <span className="font-medium">Archive Product with History</span>
               <div className="flex justify-start gap-2">
                 <span className="text-sm text-gray-500">
                   {productCode} ({productName})
@@ -269,7 +269,7 @@ const getDialogConfigs = (
       cannotArchive: {
         title: `Archive`,
         description: (
-          <div className="flex justfiy-start gap-2">
+          <div className="flex justify-start gap-2">
             <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
               <span className="flex items-center justify-center">
                 <TriangleAlert className="h-5 w-5 text-[#F54900]" />
@@ -412,7 +412,7 @@ const getDialogConfigs = (
       available: {
         title: `Mark as avaialble`,
         description: (
-          <div className="flex justfiy-start gap-2">
+          <div className="flex justify-start gap-2">
             <div className="flex w-[40px] h-[40px] items-center justify-center bg-[#F0FDF4] rounded-full">
               <span className="flex items-center justify-center">
                 <CircleCheckBig className="h-5 w-5 text-[#008236]" />
@@ -448,7 +448,7 @@ const getDialogConfigs = (
                   </span>
                   <span className="text-sm text-[#008236]">
                     This product will be visible in new quotes and orders,
-                    expanding your aviable product catalog for customers
+                    expanding your available product catalog for customers
                   </span>
                 </div>
               </div>

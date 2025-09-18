@@ -68,7 +68,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
-    console.log('onSubmit function called!');
     console.log('Product Form Values:', values);
 
     setIsSubmitting(true);
