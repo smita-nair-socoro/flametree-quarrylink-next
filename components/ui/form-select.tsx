@@ -140,6 +140,8 @@ export function FormSelect<TFieldValues extends FieldValues>({
   showSearch = true,
   onChange,
 }: FormSelectProps<TFieldValues>) {
+  const [open, setOpen] = React.useState(false);
+
   return (
     <FormField
       control={control}
@@ -147,7 +149,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
       render={({ field }) => (
         <FormItem className={formItemClassName}>
           {label && <FormLabel>{label}</FormLabel>}
-          <Popover modal={true}>
+          <Popover open={open} onOpenChange={setOpen} modal={true}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
@@ -188,6 +190,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         onSelect={() => {
                           field.onChange(opt.value);
                           onChange?.(opt.value);
+                          setOpen(false);
                         }}
                         className="cursor-pointer"
                       >
@@ -207,7 +210,10 @@ export function FormSelect<TFieldValues extends FieldValues>({
                       <>
                         <CommandSeparator className="mb-1" />
                         <CommandItem
-                          onSelect={() => onAddClick()}
+                          onSelect={() => {
+                            onAddClick();
+                            setOpen(false);
+                          }}
                           className={cn(
                             'text-primary cursor-pointer',
                             addButtonClassName
