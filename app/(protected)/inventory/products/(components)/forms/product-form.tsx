@@ -38,14 +38,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const materialTypeOptions = [
-    { label: 'Steel', value: 'Steel' },
-    { label: 'Aluminum', value: 'Aluminum' },
-    { label: 'Green Waste', value: 'Green Waste' },
-    { label: 'Concrete', value: 'Concrete' },
-    { label: 'Sand', value: 'Sand' },
-    { label: 'Gravel', value: 'Gravel' },
-    { label: 'Limestone', value: 'Limestone' },
-    { label: 'Brick', value: 'Brick' },
+    { label: 'Aggregate', value: 'AGGREGATE' },
+    { label: 'Crushed Rock', value: 'CRUSHED ROCK' },
+    { label: 'Dust', value: 'DUST' },
+    { label: 'Soil', value: 'SOIL' },
+    { label: 'Sand', value: 'SAND' },
   ];
 
   // TODO: Zod Validation
@@ -63,13 +60,14 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         : 0,
       created_at: undefined,
       updated_at: undefined,
-      created_by: 'current_user',
-      last_modified_by: 'current_user',
+      created_by: isEditing ? selectedProduct?.created_by || '' : '',
+      last_modified_by: isEditing
+        ? selectedProduct?.last_modified_by || ''
+        : '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
-    console.log('onSubmit function called!');
     console.log('Product Form Values:', values);
 
     setIsSubmitting(true);
