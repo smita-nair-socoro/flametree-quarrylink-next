@@ -13,6 +13,7 @@ const EmailRequired = z
   .string()
   .trim()
   .nonempty({ message: 'Email is required' })
+  .max(256, 'Maximum 256 characters')
   .refine((v) => !v || z.string().email().safeParse(v).success, {
     message: 'Invalid email format',
   });
@@ -25,8 +26,9 @@ const Base = z.object({
     .string()
     .trim()
     .nonempty({ message: 'Contact Person Name is required' })
-    .max(255, 'Maximum 255 characters')
-    .min(2, 'At least 2 characters'),
+    .max(256, 'Maximum 256 characters')
+    .min(2, 'At least 2 characters')
+    .regex(/^[a-zA-Z0-9\s,.&-]+$/, 'Invalid characters'),
   contact_person_email: EmailRequired,
   contact_person_phone: PhoneRequired,
 
@@ -34,7 +36,7 @@ const Base = z.object({
   business_name: z
     .string()
     .trim()
-    .max(255, 'Maximum 255 characters')
+    .max(256, 'Maximum 256 characters')
     .optional(),
   business_email: z.string().trim().optional(),
   business_phone: z.string().trim().optional(),
@@ -54,7 +56,6 @@ const Base = z.object({
   account_manager: z.string().trim().min(1, 'Required'),
   billing_address: z.string().trim().min(1, 'Required'),
 
-  // TODO: check if these are done in frontend or backend
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
   created_by: z.string().optional(),
@@ -142,6 +143,12 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
           ? 'Business name is required'
           : 'At least 2 characters',
       });
+    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.business_name)) {
+      ctx.addIssue({
+        path: ['business_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid characters',
+      });
     }
 
     // Business email is required for Business customers
@@ -156,6 +163,12 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         path: ['business_email'],
         code: z.ZodIssueCode.custom,
         message: 'Invalid business email format',
+      });
+    } else if (data.business_email.trim().length > 256) {
+      ctx.addIssue({
+        path: ['business_email'],
+        code: z.ZodIssueCode.custom,
+        message: 'Maximum 256 characters',
       });
     }
 

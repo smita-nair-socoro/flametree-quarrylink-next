@@ -23,6 +23,11 @@ interface AddressAutoCompleteProps {
   dialogTitle: string;
   showInlineError?: boolean;
   placeholder?: string;
+  // React Hook Form props
+  value?: string;
+  onChange?: (value: string) => void;
+  onBlur?: () => void;
+  name?: string;
 }
 
 interface AutocompleteSuggestion {
@@ -82,6 +87,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     searchInput,
     setSearchInput,
     placeholder,
+    onChange,
+    onBlur,
   } = props;
 
   const [selectedPlaceId, setSelectedPlaceId] = useState('');
@@ -99,10 +106,15 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     ) {
       const formatted = formatAddressFromComponents(address);
       if (formatted !== address.formattedAddress) {
-        setAddress({
+        const updatedAddress = {
           ...address,
           formattedAddress: formatted,
-        });
+        };
+        setAddress(updatedAddress);
+        // Notify react-hook-form of the change
+        if (onChange && formatted) {
+          onChange(formatted);
+        }
       }
     }
   }, [
@@ -114,6 +126,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     address.country,
     address,
     setAddress,
+    onChange,
   ]);
 
   useEffect(() => {
@@ -182,6 +195,10 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
 
         setAddress(formattedData);
         setAdrAddress(data.adrFormatAddress || '');
+        // Notify react-hook-form of the change
+        if (onChange && formattedAddress) {
+          onChange(formattedAddress);
+        }
       } catch (error) {
         console.error('Error fetching place details:', error);
       } finally {
@@ -190,16 +207,21 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     };
 
     fetchPlaceDetails();
-  }, [selectedPlaceId, setAddress]);
+  }, [selectedPlaceId, setAddress, onChange]);
 
   const handleManualEntry = () => {
     // Pre-populate with search input if available
     if (searchInput.trim()) {
-      setAddress({
+      const updatedAddress = {
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
-      });
+      };
+      setAddress(updatedAddress);
+      // Notify react-hook-form of the change
+      if (onChange) {
+        onChange(searchInput.trim());
+      }
     }
     setSearchInput('');
     setIsOpen(true);
@@ -209,7 +231,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSelectedPlaceId('');
     setAdrAddress('');
     setSearchInput('');
-    setAddress({
+    const resetAddress = {
       address1: '',
       address2: '',
       formattedAddress: '',
@@ -219,7 +241,12 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       country: '',
       lat: 0,
       lng: 0,
-    });
+    };
+    setAddress(resetAddress);
+    // Notify react-hook-form of the change
+    if (onChange) {
+      onChange('');
+    }
   };
 
   return (
@@ -235,6 +262,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             setAddress={setAddress}
             open={isOpen}
             setOpen={setIsOpen}
+            onChange={onChange}
           >
             <Button
               disabled={detailsLoading}
@@ -265,6 +293,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           showInlineError={showInlineError}
           placeholder={placeholder}
           onManualEntry={handleManualEntry}
+          onBlur={onBlur}
         />
       )}
     </>
@@ -280,6 +309,7 @@ interface CommonProps {
   setSearchInput: (searchInput: string) => void;
   placeholder?: string;
   onManualEntry: () => void;
+  onBlur?: () => void;
 }
 
 function AddressAutoCompleteInput(props: CommonProps) {
@@ -292,6 +322,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     setSearchInput,
     placeholder,
     onManualEntry,
+    onBlur,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -388,7 +419,12 @@ function AddressAutoCompleteInput(props: CommonProps) {
         <CommandPrimitive.Input
           value={searchInput}
           onValueChange={setSearchInput}
-          onBlur={close}
+          onBlur={() => {
+            close();
+            if (onBlur) {
+              onBlur();
+            }
+          }}
           onFocus={open}
           placeholder={placeholder || 'Enter address'}
           className="w-full outline-none"

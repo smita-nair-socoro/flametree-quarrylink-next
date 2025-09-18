@@ -6,18 +6,26 @@ import { z } from 'zod';
  */
 export const isValidAutocomplete = (
   address: AddressType,
-  searchInput: string,
+  searchInput: string
 ): boolean => {
   if (searchInput.trim() === '') {
     return true;
   }
   const AddressSchema = z.object({
-    address1: z.string().min(1, 'Address line 1 is required'),
+    address1: z
+      .string()
+      .min(1, 'Address line 1 is required')
+      .max(100, 'Address line 1 must be less than 100 characters')
+      .regex(/^[a-zA-Z0-9\s,.&]+$/, 'Invalid address'),
     address2: z.string().optional(),
     formattedAddress: z.string().min(1, 'Formatted address is required'),
     city: z.string().min(1, 'City is required'),
     region: z.string().min(1, 'Region is required'),
-    postalCode: z.string().min(1, 'Postal code is required'),
+    postalCode: z
+      .string()
+      .min(1, 'Postal code is required')
+      .regex(/^\d{4}$/, 'Invalid postal code'),
+
     country: z.string().min(1, 'Country is required'),
     lat: z.number().nonnegative(),
     lng: z.number().nonnegative(),

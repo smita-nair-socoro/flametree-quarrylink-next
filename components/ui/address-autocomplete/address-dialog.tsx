@@ -28,6 +28,7 @@ interface AddressDialogProps {
   adrAddress: string;
   dialogTitle: string;
   isLoading: boolean;
+  onChange?: (value: string) => void;
 }
 
 interface AddressFields {
@@ -49,9 +50,13 @@ export function createAddressSchema(address: AddressFields) {
   if (address.address1 !== '') {
     schema = {
       ...schema,
-      address1: z.string().min(1, {
-        message: 'Address line 1 is required',
-      }),
+      address1: z
+        .string()
+        .min(1, {
+          message: 'Address line 1 is required',
+        })
+        .max(100, 'Address line 1 must be less than 100 characters')
+        .regex(/^[a-zA-Z0-9\s,.&-]+$/, 'Address contains invalid characters'),
     };
   }
 
@@ -81,9 +86,12 @@ export function createAddressSchema(address: AddressFields) {
   if (address.postalCode !== '') {
     schema = {
       ...schema,
-      postalCode: z.string().min(1, {
-        message: 'Postal code is required',
-      }),
+      postalCode: z
+        .string()
+        .min(1, {
+          message: 'Postal code is required',
+        })
+        .regex(/^\d{4}$/, 'Invalid postal code'),
     };
   }
 
@@ -102,6 +110,7 @@ export default function AddressDialog(
     setAddress,
     adrAddress,
     isLoading,
+    onChange,
   } = props;
 
   const [address1, setAddress1] = useState('');
@@ -237,6 +246,10 @@ export default function AddressDialog(
         postalCode,
         formattedAddress: newFormattedAddress,
       });
+      // Notify react-hook-form of the change
+      if (onChange) {
+        onChange(newFormattedAddress);
+      }
     }
     setOpen(false);
   };
