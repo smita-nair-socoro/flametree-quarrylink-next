@@ -3,6 +3,7 @@ import { compareAsc, parseISO } from 'date-fns';
 import { User } from 'oidc-client-ts';
 import { twMerge } from 'tailwind-merge';
 import { jwtDecode } from 'jwt-decode';
+import { getRuntimeConfig } from "@/app/providers/runtimeConfigStore";
 
 interface JWTPayload {
   'custom:tenant_id'?: string;
@@ -13,12 +14,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function baseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL || '';
+  return getRuntimeConfig().API_URL || '';
 }
 
 export function getUser() {
-  const authority = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
-  const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID;
+  const authority = getRuntimeConfig().COGNITO_DOMAIN;
+  const clientId = getRuntimeConfig().COGNITO_CLIENT_ID;
   const oidcStorage = localStorage.getItem(
     `oidc.user:${authority}:${clientId}`
   );

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
+import {getRuntimeConfig} from "@/app/providers/runtimeConfigStore";
 
 export function useGoogleMaps() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -7,7 +8,7 @@ export function useGoogleMaps() {
 
   useEffect(() => {
     const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+      apiKey: getRuntimeConfig().GOOGLE_MAPS_API_KEY!,
       version: 'weekly',
       libraries: ['places'],
     });
