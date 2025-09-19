@@ -8,7 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { Toaster } from '@/components/ui/sonner';
 import { AppAuthProviders } from '@/lib/providers/AuthProviders';
-import {ConfigProvider} from "@/app/providers/ConfigProvider";
+import {ConfigProvider} from "@/lib/providers/ConfigProvider";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

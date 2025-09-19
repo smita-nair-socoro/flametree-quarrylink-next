@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { RuntimeConfig, setRuntimeConfig } from './runtimeConfigStore';
+import { RuntimeConfig, setRuntimeConfig } from '../../app/stores/runtimeConfigStore';
 
 const ConfigCtx = createContext<RuntimeConfig | null>(null);
 

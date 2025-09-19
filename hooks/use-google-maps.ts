@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
-import {getRuntimeConfig} from "@/app/providers/runtimeConfigStore";
+import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 export function useGoogleMaps() {
   const [isLoaded, setIsLoaded] = useState(false);

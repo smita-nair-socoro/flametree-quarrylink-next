@@ -3,7 +3,7 @@ import { compareAsc, parseISO } from 'date-fns';
 import { User } from 'oidc-client-ts';
 import { twMerge } from 'tailwind-merge';
 import { jwtDecode } from 'jwt-decode';
-import { getRuntimeConfig } from "@/app/providers/runtimeConfigStore";
+import { getRuntimeConfig } from "@/app/stores/runtimeConfigStore";
 
 interface JWTPayload {
   'custom:tenant_id'?: string;

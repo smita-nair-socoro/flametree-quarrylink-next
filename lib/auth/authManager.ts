@@ -1,7 +1,7 @@
 'use client';
 
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
-import {RuntimeConfig} from "@/app/providers/runtimeConfigStore";
+import {RuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 export const SCOPE = 'email openid phone profile';
 

@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import { AuthProvider as OidcProvider, AuthProviderProps } from 'react-oidc-context';
 import { WebStorageStateStore } from 'oidc-client-ts';
 import { SCOPE } from '../auth/authManager';
-import {getRuntimeConfig, RuntimeConfig} from "@/app/providers/runtimeConfigStore";
+import {getRuntimeConfig, RuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 const webStorageStore =
   typeof window !== 'undefined'

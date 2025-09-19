@@ -4,7 +4,7 @@ import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
-import {getRuntimeConfig} from "@/app/providers/runtimeConfigStore";
+import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;

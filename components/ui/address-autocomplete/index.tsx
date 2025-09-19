@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
-import {getRuntimeConfig} from "@/app/providers/runtimeConfigStore";
+import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 interface AddressAutoCompleteProps {
   address: AddressType;
