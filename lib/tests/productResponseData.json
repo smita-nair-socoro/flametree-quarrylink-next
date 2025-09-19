@@ -18,17 +18,29 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 1,
-        "quarry_name": "Quarry 1",
-        "quote_status": "ACTIVE",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
+      "last_modified_by": "system",
+      "quarries": [
+        {
+          "id": 1,
+          "quarry_name": "Quarry 1",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "createdAt": "2025-08-21T06:00:59.955Z",
+          "updatedAt": "2025-08-21T06:00:59.955Z",
+          "last_modified_by": "system"
+        },
+        {
+          "id": 1,
+          "quarry_name": "Quarry 2",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "createdAt": "2025-08-21T06:00:59.955Z",
+          "updatedAt": "2025-08-21T06:00:59.955Z",
+          "last_modified_by": "system"
+        }
+      ],
       "quotes": [
         {
           "id": 1,
@@ -98,17 +110,19 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 2,
-        "quarry_name": "Quarry 2",
-        "status": "CONVERTED_TO_JOB",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
+      "last_modified_by": "system",
+      "quarries": [
+        {
+          "id": 2,
+          "quarry_name": "Quarry 2",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
       "quotes": [
         {
           "id": 2,
@@ -142,22 +156,55 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 3,
-        "quarry_name": "Quarry 3",
-        "status": "ACTIVE",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
+      "last_modified_by": "system",
+      "quarries": [
+        {
+          "id": 3,
+          "quarry_name": "Quarry 3",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        },
+        {
+          "id": 4,
+          "quarry_name": "Quarry 4",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        },
+        {
+          "id": 5,
+          "quarry_name": "Quarry 5",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
       "quotes": [
         {
           "id": 2,
           "quote_number": "Quote 3",
           "quote_status": "PENDING",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        },
+        {
+          "id": 3,
+          "quote_number": "Quote 4",
+          "quote_status": "DRAFT",
           "version": 1,
           "is_deleted": false,
           "created_by": "system",
@@ -188,8 +235,31 @@
               "docket_number": "DOC-2",
               "docket_status": "PENDING",
               "product_id": 3
+            },
+            {
+              "id": 20,
+              "job_id": 20,
+              "docket_number": "DOC-20",
+              "docket_status": "PENDING",
+              "product_id": 3
             }
           ]
+        },
+        {
+          "id": 6,
+          "job_number": "Job 6",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 6,
+              "job_id": 6,
+              "product_id": 3,
+              "total_quantity_required": 100,
+              "allocated_quantity": 100,
+              "remaining_quantity": 10
+            }
+          ],
+          "dockets": []
         }
       ]
     },
@@ -211,17 +281,19 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 4,
-        "quarry_name": "Quarry 4",
-        "status": "ACTIVE",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
+      "last_modified_by": "system",
+      "quarries": [
+        {
+          "id": 4,
+          "quarry_name": "Quarry 4",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
       "quotes": [
         {
           "id": 2,
@@ -280,17 +352,29 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 1,
-        "quarry_name": "Quarry 1",
-        "status": "ACTIVE",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
+      "last_modified_by": "system",
+      "quarries": [
+        {
+          "id": 1,
+          "quarry_name": "Quarry 1",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        },
+        {
+          "id": 2,
+          "quarry_name": "Quarry 2",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
       "quotes": [
         {
           "id": 2,
@@ -304,7 +388,24 @@
           "last_modified_by": "system"
         }
       ],
-      "jobs": []
+      "jobs": [
+        {
+          "id": 7,
+          "job_number": "Job 7",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 7,
+              "job_id": 7,
+              "product_id": 7,
+              "total_quantity_required": 100,
+              "allocated_quantity": 0,
+              "remaining_quantity": 100
+            }
+          ],
+          "dockets": []
+        }
+      ]
     },
     {
       "id": 6,
@@ -324,22 +425,11 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 3,
-        "quarry_name": "Quarry 3",
-        "status": "ACTIVE",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
-      "quotes": [
+      "last_modified_by": "system",
+      "quarries": [
         {
-          "id": 2,
-          "quote_number": "Quote 10",
-          "quote_status": "PENDING",
+          "id": 3,
+          "quarry_name": "Quarry 3",
           "version": 1,
           "is_deleted": false,
           "created_by": "system",
@@ -348,7 +438,45 @@
           "last_modified_by": "system"
         }
       ],
-      "jobs": []
+      "quotes": [
+        {
+          "id": 2,
+          "quote_number": "Quote 10",
+          "quote_status": "CONVERTED_TO_JOB",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
+      "jobs": [
+        {
+          "id": 7,
+          "job_number": "Job 7",
+          "job_status": "ACTIVE",
+          "job_items": [
+            {
+              "id": 7,
+              "job_id": 7,
+              "product_id": 7,
+              "total_quantity_required": 100,
+              "allocated_quantity": 100,
+              "remaining_quantity": 0
+            }
+          ],
+          "dockets": [
+            {
+              "id": 4,
+              "job_id": 7,
+              "docket_number": "DOC-4",
+              "docket_status": "DELIVERING",
+              "product_id": 7
+            }
+          ]
+        }
+      ]
     },
     {
       "id": 7,
@@ -368,17 +496,19 @@
       "created_by": "system",
       "created_at": "2025-06-02T03:55:14.626505",
       "updated_at": "2025-06-02T03:55:14.626505",
-      "quarries": {
-        "id": 10,
-        "quarry_name": "Quarry 10",
-        "status": "ACTIVE",
-        "version": 1,
-        "is_deleted": false,
-        "created_by": "system",
-        "created_at": "2025-06-02T03:55:14.626505",
-        "updated_at": "2025-06-02T03:55:14.626505",
-        "last_modified_by": "system"
-      },
+      "last_modified_by": "system",
+      "quarries": [
+        {
+          "id": 10,
+          "quarry_name": "Quarry 10",
+          "version": 1,
+          "is_deleted": false,
+          "created_by": "system",
+          "created_at": "2025-06-02T03:55:14.626505",
+          "updated_at": "2025-06-02T03:55:14.626505",
+          "last_modified_by": "system"
+        }
+      ],
       "quotes": [],
       "jobs": [
         {

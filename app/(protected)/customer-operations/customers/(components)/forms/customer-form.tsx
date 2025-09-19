@@ -48,8 +48,11 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
         : 'BUSINESS'
     );
   const [selectedPaymentType, setSelectedPaymentType] = React.useState<string>(
-    isEditing && selectedCustomer?.credit_limit === 0 ? 'PREPAID' : 'CREDIT'
+    isEditing && selectedCustomer?.payment_type
+      ? selectedCustomer.payment_type
+      : 'CREDIT'
   );
+  console.log('selectedCustomer', selectedCustomer);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -120,7 +123,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   React.useEffect(() => {
     if (selectedCustomer && isEditing) {
       const paymentType =
-        selectedCustomer.credit_limit === 0 ? 'PREPAID' : 'CREDIT';
+        selectedCustomer.payment_type === 'PREPAID' ? 'PREPAID' : 'CREDIT';
       setSelectedCustomerType(selectedCustomer.customer_type);
       setSelectedPaymentType(paymentType);
 
@@ -160,15 +163,22 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   React.useEffect(() => {
     if (address.formattedAddress) {
       customerForm.setValue('billing_address', address.formattedAddress);
+      // Trigger validation when address is set
+      customerForm.trigger('billing_address');
     }
   }, [address.formattedAddress, customerForm]);
 
-  const handleAddressChange = React.useCallback((newAddress: AddressType) => {
-    setAddress(newAddress);
-    if (newAddress.formattedAddress) {
-      setSearchInput('');
-    }
-  }, []);
+  const handleAddressChange = React.useCallback(
+    (newAddress: AddressType) => {
+      setAddress(newAddress);
+      if (newAddress.formattedAddress) {
+        setSearchInput('');
+        // Trigger validation for the billing_address field
+        customerForm.trigger('billing_address');
+      }
+    },
+    [customerForm]
+  );
 
   const paymentTermsOptions = [
     { label: 'of the following month', value: 'of the following month' },
@@ -231,7 +241,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       contactName: values.contact_person_name,
       phone: values.contact_person_phone,
       email: values.contact_person_email,
-      billingAddressId: 0,
+      billingAddress: values.billing_address,
       creditLimit:
         creditLimit === 0 ? 0 : Math.round(Number(creditLimit || 0) * 100),
       paymentTermsDay: paymentTermsDay,
@@ -645,11 +655,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             options={accountManagerOptions}
             placeholder="Select Account Manager"
             formItemClassName={
-              isEditing && isDesktop
-                ? selectedPaymentType === 'CREDIT'
-                  ? 'col-span-1 col-start-2'
-                  : 'col-span-1 col-start-1'
-                : 'col-span-2'
+              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
             }
           />
 
@@ -658,7 +664,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             control={customerForm.control}
             name="billing_address"
             render={({ field }) => (
-              <FormItem className={isEditing ? 'col-span-1' : 'col-span-2'}>
+              <FormItem
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-1'
+                    : 'col-span-2'
+                }
+              >
                 <FormLabel>Billing Address*</FormLabel>
                 <FormControl>
                   <AddressAutoComplete
@@ -738,33 +750,37 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Form Actions */}
-          <div className={cn('flex justify-end space-x-2 col-span-2 mb-6')}>
-            {isDesktop && (
+          {isDesktop && (
+            <div className="flex justify-end space-x-2 col-span-2 mb-6">
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
               </Button>
-            )}
-            {!isEditing && (
               <Button
                 form="add-new-customer-form"
-                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
+                className="cursor-pointer"
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Adding Customer...' : 'Add Customer'}
+                {isEditing ? 'Save Changes' : 'Add Customer'}
               </Button>
-            )}
-            {isEditing && (
+            </div>
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 mb-6">
               <Button
                 // TODO: QLINK-257 Edit Customer Functionality
                 // form="add-new-customer-form"
                 type="submit"
-                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
+                className="cursor-pointer"
               >
-                Save Changes
+                {isEditing ? 'Save Changes' : 'Add Customer'}
               </Button>
-            )}
-          </div>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

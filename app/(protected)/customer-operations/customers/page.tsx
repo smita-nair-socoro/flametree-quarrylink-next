@@ -10,6 +10,8 @@ import { customerColumns } from './(components)/(data-tables)/customer/columns';
 import { Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { useCustomerStore } from '@/app/stores/customer-store';
+import { useCustomerActions } from '@/hooks/use-customer-actions';
 
 import {
   DataTableClient,
@@ -17,6 +19,17 @@ import {
 } from '@/components/ui/data-table-client';
 
 export default function CustomersPage() {
+  const setSelectedCustomer = useCustomerStore(
+    (state) => state.setSelectedCustomer
+  );
+  const [selectedCustomerForActions, setSelectedCustomerForActions] =
+    React.useState<Customer | null>(null);
+
+  const { actions, confirmDialogs, viewDialog } = useCustomerActions(
+    selectedCustomerForActions?.id,
+    selectedCustomerForActions
+  );
+
   // Use React Query to fetch customers data
   const {
     data: customersData,
@@ -30,6 +43,13 @@ export default function CustomersPage() {
       console.error('Customer API Error:', error);
     }
   }, [isError, error]);
+
+  // Handle row click to open customer details
+  const handleRowClick = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setSelectedCustomerForActions(customer);
+    actions.view();
+  };
 
   // Transform the API data to match our component expectations
   const items: Customer[] =
@@ -52,6 +72,9 @@ export default function CustomersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Customers</h1>
@@ -86,6 +109,7 @@ export default function CustomersPage() {
             columns={customerColumns}
             facetDefination={facetDefs}
             searchPlaceHolder="Search customers..."
+            onRowClick={handleRowClick}
           />
         )}
       </div>
