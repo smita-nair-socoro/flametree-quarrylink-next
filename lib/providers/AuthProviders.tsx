@@ -35,7 +35,7 @@ export function AppAuthProviders({ children }: { children: ReactNode }) {
   return <OidcAuthProvider>{children}</OidcAuthProvider>;
 }
 
-function getRedirectUri(cognitoRedirectUri: String) {
+function getRedirectUri(cognitoRedirectUri: string) {
   if (typeof window !== 'undefined') {
     const origin = window.location.origin;
     return `${origin}/callback/`; // always trailing slash
