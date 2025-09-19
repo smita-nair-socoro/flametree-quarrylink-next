@@ -2,18 +2,18 @@ import z from 'zod';
 import isValidABN from 'is-valid-abn';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
-const PhoneOptional = z
+const PhoneRequired = z
   .string()
   .trim()
-  .optional()
+  .nonempty({ message: 'Phone number is required' })
   .refine((v) => !v || isValidPhoneNumber(v), {
     message: 'Invalid phone number',
   });
-
-const EmailOptional = z
+const EmailRequired = z
   .string()
   .trim()
-  .optional()
+  .nonempty({ message: 'Email is required' })
+  .max(256, 'Maximum 256 characters')
   .refine((v) => !v || z.string().email().safeParse(v).success, {
     message: 'Invalid email format',
   });
@@ -22,12 +22,22 @@ const EmailOptional = z
 const Base = z.object({
   customer_type: z.string(),
   payment_type: z.string(),
-  contact_person_name: z.string().trim().min(2, 'At least 2 characters'),
-  contact_person_email: EmailOptional,
-  contact_person_phone: PhoneOptional,
+  contact_person_name: z
+    .string()
+    .trim()
+    .nonempty({ message: 'Contact Person Name is required' })
+    .max(256, 'Maximum 256 characters')
+    .min(2, 'At least 2 characters')
+    .regex(/^[a-zA-Z0-9\s,.&-]+$/, 'Invalid characters'),
+  contact_person_email: EmailRequired,
+  contact_person_phone: PhoneRequired,
 
   // Business fields are optional in base schema but conditionally validated
-  business_name: z.string().trim().optional(),
+  business_name: z
+    .string()
+    .trim()
+    .max(256, 'Maximum 256 characters')
+    .optional(),
   business_email: z.string().trim().optional(),
   business_phone: z.string().trim().optional(),
 
@@ -38,12 +48,14 @@ const Base = z.object({
     .number()
     .nonnegative('Credit limit must be ≥ 0')
     .optional(),
-  payment_terms_day: z.coerce.number().optional(),
+  payment_terms_day: z.coerce
+    .number()
+    .int('Decimal numbers are not allowed')
+    .optional(),
   payment_terms: z.string().trim().optional(),
   account_manager: z.string().trim().min(1, 'Required'),
   billing_address: z.string().trim().min(1, 'Required'),
 
-  // TODO: check if these are done in frontend or backend
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
   created_by: z.string().optional(),
@@ -52,22 +64,61 @@ const Base = z.object({
 
 // Export the schema with conditional validation using superRefine
 export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
-  // Payment terms day validation
-  if (
-    data.payment_terms &&
-    data.payment_terms_day !== undefined &&
-    data.payment_terms_day !== null
-  ) {
+  // Payment type specific validations
+  if (data.payment_type === 'CREDIT') {
+    // Credit limit is mandatory for credit payment type
     if (
-      data.payment_terms === 'of the following month' ||
-      data.payment_terms === 'of the current month'
+      data.credit_limit === undefined ||
+      data.credit_limit === null ||
+      data.credit_limit === 0
     ) {
-      if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
-        ctx.addIssue({
-          path: ['payment_terms_day'],
-          code: z.ZodIssueCode.custom,
-          message: 'Enter a value between 1 and 31',
-        });
+      ctx.addIssue({
+        path: ['credit_limit'],
+        code: z.ZodIssueCode.custom,
+        message: 'Credit limit is required for credit payment type',
+      });
+    } else if (data.credit_limit < 0) {
+      ctx.addIssue({
+        path: ['credit_limit'],
+        code: z.ZodIssueCode.custom,
+        message: 'Credit limit must be ≥ 0',
+      });
+    } else if (data.credit_limit > 1000000) {
+      ctx.addIssue({
+        path: ['credit_limit'],
+        code: z.ZodIssueCode.custom,
+        message: 'Maximum is $1,000,000',
+      });
+    }
+
+    // Payment terms day validation
+    if (
+      data.payment_terms &&
+      data.payment_terms_day !== undefined &&
+      data.payment_terms_day !== null
+    ) {
+      if (
+        data.payment_terms === 'of the following month' ||
+        data.payment_terms === 'of the current month'
+      ) {
+        if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
+          ctx.addIssue({
+            path: ['payment_terms_day'],
+            code: z.ZodIssueCode.custom,
+            message: 'Enter a value between 1 and 31',
+          });
+        }
+      } else if (
+        data.payment_terms === 'day(s) after the invoice date' ||
+        data.payment_terms === 'day(s) after the invoice month'
+      ) {
+        if (data.payment_terms_day > 99) {
+          ctx.addIssue({
+            path: ['payment_terms_day'],
+            code: z.ZodIssueCode.custom,
+            message: 'Enter a value between 0 and 99',
+          });
+        }
       }
     }
   }
@@ -92,6 +143,12 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
           ? 'Business name is required'
           : 'At least 2 characters',
       });
+    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.business_name)) {
+      ctx.addIssue({
+        path: ['business_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid characters',
+      });
     }
 
     // Business email is required for Business customers
@@ -106,6 +163,12 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         path: ['business_email'],
         code: z.ZodIssueCode.custom,
         message: 'Invalid business email format',
+      });
+    } else if (data.business_email.trim().length > 256) {
+      ctx.addIssue({
+        path: ['business_email'],
+        code: z.ZodIssueCode.custom,
+        message: 'Maximum 256 characters',
       });
     }
 
@@ -132,17 +195,19 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       });
     }
 
-    // Credit limit validation for Business customers
-    if (
-      data.credit_limit === undefined ||
-      data.credit_limit === null ||
-      data.credit_limit < 0
-    ) {
-      ctx.addIssue({
-        path: ['credit_limit'],
-        code: z.ZodIssueCode.custom,
-        message: 'Credit limit must be ≥ 0',
-      });
+    // Credit limit validation for Business customers (only if not already validated by payment type)
+    if (data.payment_type !== 'credit') {
+      if (
+        data.credit_limit === undefined ||
+        data.credit_limit === null ||
+        data.credit_limit < 0
+      ) {
+        ctx.addIssue({
+          path: ['credit_limit'],
+          code: z.ZodIssueCode.custom,
+          message: 'Credit limit must be ≥ 0',
+        });
+      }
     }
   } else if (data.customer_type === 'INDIVIDUAL') {
     // For Individual customers, ABN should be "N/A" or empty
@@ -180,17 +245,19 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       });
     }
 
-    // Optional validation: if credit limit is provided, it should be valid
-    if (
-      data.credit_limit !== undefined &&
-      data.credit_limit !== null &&
-      data.credit_limit < 0
-    ) {
-      ctx.addIssue({
-        path: ['credit_limit'],
-        code: z.ZodIssueCode.custom,
-        message: 'Credit limit must be ≥ 0',
-      });
+    // Optional validation: if credit limit is provided, it should be valid (only if not already validated by payment type)
+    if (data.payment_type !== 'credit') {
+      if (
+        data.credit_limit !== undefined &&
+        data.credit_limit !== null &&
+        data.credit_limit < 0
+      ) {
+        ctx.addIssue({
+          path: ['credit_limit'],
+          code: z.ZodIssueCode.custom,
+          message: 'Credit limit must be ≥ 0',
+        });
+      }
     }
   }
 });
