@@ -67,6 +67,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceHolder?: string;
   simpleTable?: boolean;
   tableId?: string; // Unique identifier for localStorage
+  onRowClick?: (row: TData) => void; // Optional row click handler
 }
 
 export type FacetDefinition = {
@@ -101,6 +102,7 @@ export function DataTableClient<TData, TValue>({
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
   tableId = 'default-table', // Default tableId if not provided
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -402,7 +404,7 @@ export function DataTableClient<TData, TValue>({
             'min-w-fit'
           )}
         >
-          <Table className="bg-gray-50 dark:bg-gray-900">
+          <Table className="bg-gray-50 dark:bg-gray-900 w-full">
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
@@ -418,7 +420,9 @@ export function DataTableClient<TData, TValue>({
                         !simpleTable && headerIndex === 0 && 'rounded-tl-md',
                         !simpleTable &&
                           headerIndex === hg.headers.length - 1 &&
-                          'rounded-tr-md'
+                          'rounded-tr-md',
+                        headerIndex === hg.headers.length - 1 &&
+                          'w-auto text-right'
                       )}
                     >
                       {header.isPlaceholder
@@ -441,15 +445,29 @@ export function DataTableClient<TData, TValue>({
                     className={cn(
                       simpleTable && 'border-b-0 hover:bg-transparent',
                       !simpleTable &&
-                        'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800'
+                        'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800',
+                      onRowClick && !simpleTable && 'cursor-pointer'
                     )}
+                    onClick={(e) => {
+                      // Prevent row click if clicking on buttons or interactive elements
+                      const target = e.target as HTMLElement;
+                      const isInteractiveElement = target.closest(
+                        'button, a, [role="button"], [data-radix-collection-item]'
+                      );
+
+                      if (!isInteractiveElement && onRowClick) {
+                        onRowClick(row.original);
+                      }
+                    }}
                   >
-                    {row.getVisibleCells().map((cell) => (
+                    {row.getVisibleCells().map((cell, cellIndex) => (
                       <TableCell
                         key={cell.id}
                         className={cn(
                           simpleTable && 'border-b-0',
-                          'whitespace-nowrap'
+                          'whitespace-nowrap',
+                          cellIndex === row.getVisibleCells().length - 1 &&
+                            'w-auto text-right'
                         )}
                       >
                         {flexRender(

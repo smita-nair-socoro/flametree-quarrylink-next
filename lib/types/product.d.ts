@@ -25,7 +25,7 @@ export interface Product {
 }
 
 export interface ProductDetails extends Product {
-  quarries: Quarry;
+  quarries: Quarry[];
   quotes: QuotationDetails[];
   jobs: JobDetails[];
 }

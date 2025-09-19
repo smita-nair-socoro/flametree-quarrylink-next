@@ -14,10 +14,8 @@ import {
 } from '@/components/ui/dialog';
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -28,7 +26,9 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
-import { QUOTE_TYPE_COLORS, STATUS_COLORS } from '@/lib/utils';
+import { QUOTE_TYPE_COLORS, BADGE_COLORS } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { useSelectedProduct } from '@/app/stores/product-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -37,10 +37,15 @@ interface HeaderInfo {
   primaryBadges?: string[];
   /** Array of secondary badges to show next to primary badges (e.g., type, category badges) */
   secondaryBadges?: string[];
+  /** Array of third badges to show next to secondary badges (e.g., category badges) */
+  thirdBadges?: string[];
+
   /** Use selected quotation data automatically */
   useSelectedQuotation?: boolean;
   /** Use selected customer data automatically */
   useSelectedCustomer?: boolean;
+  /** Use selected product data automatically */
+  useSelectedProduct?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -75,6 +80,9 @@ interface AddProductDrawerDialogProps {
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
+  /** Optional header separator to display between the title and the content  */
+  headerSeparator?: boolean;
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
@@ -106,6 +114,7 @@ export function FormDialog({
   hideTrigger,
   headerButtons,
   headerInfo,
+  headerSeparator,
   children,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
@@ -118,10 +127,12 @@ export function FormDialog({
 
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
+  const selectedProduct = useSelectedProduct();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
   let finalSecondaryBadges = headerInfo?.secondaryBadges;
+  let finalThirdBadges = headerInfo?.thirdBadges;
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quote_number;
@@ -133,6 +144,13 @@ export function FormDialog({
     finalCustomId = selectedCustomer.business_name;
     finalPrimaryBadges = [selectedCustomer.customer_status];
     finalSecondaryBadges = [selectedCustomer.customer_type];
+  }
+
+  if (headerInfo?.useSelectedProduct && selectedProduct) {
+    finalCustomId = selectedProduct.product_name;
+    finalPrimaryBadges = [selectedProduct.material_type];
+    finalSecondaryBadges = [selectedProduct.status];
+    finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -194,7 +212,8 @@ export function FormDialog({
   const renderBadges = () => {
     const hasBadges =
       (finalPrimaryBadges && finalPrimaryBadges.length > 0) ||
-      (finalSecondaryBadges && finalSecondaryBadges.length > 0);
+      (finalSecondaryBadges && finalSecondaryBadges.length > 0) ||
+      (finalThirdBadges && finalThirdBadges.length > 0);
 
     if (!hasBadges) return null;
 
@@ -206,8 +225,7 @@ export function FormDialog({
             key={`primary-${index}`}
             variant="outline"
             className={
-              STATUS_COLORS[badge] ||
-              'bg-blue-100 text-blue-800 border-blue-300'
+              BADGE_COLORS[badge] || 'bg-blue-100 text-blue-800 border-blue-300'
             }
           >
             {formatBadgeText(badge)}
@@ -224,6 +242,13 @@ export function FormDialog({
               'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
+            {formatBadgeText(badge)}
+          </Badge>
+        ))}
+
+        {/* Render third badges */}
+        {finalThirdBadges?.map((badge, index) => (
+          <Badge key={`third-${index}`} variant="outline">
             {formatBadgeText(badge)}
           </Badge>
         ))}
@@ -261,7 +286,7 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-10 pb-2 flex-shrink-0">
+      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-6 pb-2 flex-shrink-0">
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           <DialogDescription className="my-2">
@@ -275,10 +300,11 @@ export function FormDialog({
           </div>
         )}
       </DialogHeader>
+      {headerSeparator && <Separator className="-mt-3" />}
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5 pb-10'
+          'rounded-md overflow-auto px-5 pt-4'
         )}
       >
         <div>{contentNode}</div>
@@ -309,16 +335,12 @@ export function FormDialog({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
-      <DrawerContent
-        className="flex flex-col"
-        style={{
-          maxHeight: '95vh',
-          height: 'auto',
-        }}
-      >
+      <DrawerContent className="flex flex-col max-w-[95vh] h-auto">
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
-            <DrawerTitle className="text-start">{headerTitle}</DrawerTitle>
+            <DrawerTitle className="text-start text-2xl">
+              {headerTitle}
+            </DrawerTitle>
             <DrawerDescription className="mt-2">
               {dialogDescription}
             </DrawerDescription>
@@ -328,22 +350,14 @@ export function FormDialog({
             <div className="flex items-center">{headerButtons}</div>
           )}
         </DrawerHeader>
+        {headerSeparator && <Separator className="" />}
 
         <div
-          className="flex-1 overflow-y-auto px-4 pb-2"
+          className="flex-1 overflow-y-auto px-4 pt-5"
           style={{ maxHeight: 'calc(95vh - 12rem)' }}
         >
           {contentNode}
         </div>
-
-        {/* Reduced padding DrawerFooter */}
-        <DrawerFooter className="flex-shrink-0 pt-2 pb-2 px-4">
-          <DrawerClose asChild>
-            <Button variant="outline" className="w-full">
-              Cancel
-            </Button>
-          </DrawerClose>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

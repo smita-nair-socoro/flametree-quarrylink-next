@@ -1,9 +1,10 @@
 import { baseUrl, getTenantId, getUser } from '../utils';
 import { userManager } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
-import { Quarry, QuarryProductPricePatch } from '../types/quarry';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
+import { Quarry } from '../types/quarry';
+import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -256,9 +257,10 @@ export async function HttpClient<T = unknown>(
     // It is most likely an error.
     switch (response.status) {
       case 403: {
-        await userManager.removeUser();
+        const userManagerInstance = userManager(getRuntimeConfig());
+        await userManagerInstance.removeUser();
 
-        userManager.signoutRedirect({
+        await userManagerInstance.signoutRedirect({
           post_logout_redirect_uri: window.location.origin,
         });
 
@@ -345,10 +347,7 @@ export const APIClient = {
   },
   quarries: {
     getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
-    patchQuarryProductPrice: (priceId: number, data: QuarryProductPricePatch) =>
-      appClient.Patch(`/api/v1/quarries/quarry-product-prices/${priceId}`, {
-        body: data,
-      }),
+
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`

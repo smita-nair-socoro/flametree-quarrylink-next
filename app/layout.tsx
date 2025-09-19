@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { Toaster } from '@/components/ui/sonner';
 import { AppAuthProviders } from '@/lib/providers/AuthProviders';
+import {ConfigProvider} from "@/lib/providers/ConfigProvider";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+      <ConfigProvider>
         <AppAuthProviders>
           <ThemeProvider
             attribute="class"
@@ -54,6 +56,7 @@ export default function RootLayout({
             </div>
           </ThemeProvider>
         </AppAuthProviders>
+      </ConfigProvider>
       </body>
     </html>
   );
