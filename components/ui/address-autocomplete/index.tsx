@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
+import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 interface AddressAutoCompleteProps {
   address: AddressType;
@@ -123,7 +124,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       setDetailsLoading(true);
 
       try {
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        const apiKey = getRuntimeConfig().GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
           console.error('Missing API Key');
           return;
@@ -320,7 +321,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
       setAutocompleteLoading(true);
 
       try {
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        const apiKey = getRuntimeConfig().GOOGLE_MAPS_API_KEY;
         if (!apiKey) {
           console.error('Missing API Key');
           setSuggestions([]);

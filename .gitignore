@@ -30,7 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# environment configuration files
+.env
+config.*.json
 
 # vercel
 .vercel
@@ -38,3 +40,26 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IntelliJ project files #
+##########################
+*.iml
+*.iws
+*.ipr
+.idea/
+
+# eclipse project file #
+########################
+.settings/
+.classpath
+.project
+
+# NetBeans specific #
+#####################
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
