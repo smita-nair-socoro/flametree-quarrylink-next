@@ -4,6 +4,7 @@ import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -26,10 +27,9 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_kg === false) {
         return <div>N/A</div>;
       } else {
-        const costPrice =
-          (row.original.price.kg_20_cost_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const costPrice = row.original.price.kg_20_cost_price
+          ? centsToDollars(row.original.price.kg_20_cost_price)
+          : '0';
         return <div>${costPrice}</div>;
       }
     },
@@ -46,10 +46,9 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_kg === false) {
         return <div>N/A</div>;
       } else {
-        const sellPrice =
-          (row.original.price.kg_20_sell_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const sellPrice = row.original.price.kg_20_sell_price
+          ? centsToDollars(row.original.price.kg_20_sell_price)
+          : '0';
         return <div>${sellPrice}</div>;
       }
     },

@@ -4,6 +4,7 @@ import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -26,10 +27,9 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_bulk === false) {
         return <div>N/A</div>;
       } else {
-        const costPrice =
-          (row.original.price.bulka_cost_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const costPrice = row.original.price.bulka_cost_price
+          ? centsToDollars(row.original.price.bulka_cost_price)
+          : '0';
         return <div>${costPrice}</div>;
       }
     },
@@ -46,10 +46,9 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_bulk === false) {
         return <div>N/A</div>;
       } else {
-        const sellPrice =
-          (row.original.price.bulka_sell_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const sellPrice = row.original.price.bulka_sell_price
+          ? centsToDollars(row.original.price.bulka_sell_price)
+          : '0';
         return <div>${sellPrice}</div>;
       }
     },

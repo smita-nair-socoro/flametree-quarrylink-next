@@ -1,6 +1,7 @@
 'use client';
 
 import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { centsToDollars } from '@/lib/utils/currency';
 import { ColumnDef } from '@tanstack/react-table';
 
 export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
@@ -24,10 +25,9 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_truck_tn_rate === false) {
         return <div>N/A</div>;
       } else {
-        const tnRate =
-          (row.original.price.truck_tn_rate / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const tnRate = row.original.price.truck_tn_rate
+          ? centsToDollars(row.original.price.truck_tn_rate)
+          : '0';
         return <div>${tnRate}</div>;
       }
     },
@@ -44,10 +44,9 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_truck_m3_rate === false) {
         return <div>N/A</div>;
       } else {
-        const m3Rate =
-          (row.original.price.truck_m3_rate / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const m3Rate = row.original.price.truck_m3_rate
+          ? centsToDollars(row.original.price.truck_m3_rate)
+          : '0';
         return <div>${m3Rate}</div>;
       }
     },
@@ -64,10 +63,9 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_truck_hourly_rate === false) {
         return <div>N/A</div>;
       } else {
-        const hourlyRate =
-          (row.original.price.truck_hourly_rate / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const hourlyRate = row.original.price.truck_hourly_rate
+          ? centsToDollars(row.original.price.truck_hourly_rate)
+          : '0';
         return <div>${hourlyRate}</div>;
       }
     },
@@ -84,10 +82,9 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_truck_load_rate === false) {
         return <div className="text-left">N/A</div>;
       } else {
-        const loadRate =
-          (row.original.price.truck_load_rate / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const loadRate = row.original.price.truck_load_rate
+          ? centsToDollars(row.original.price.truck_load_rate)
+          : '0';
         return <div className="text-left">${loadRate}</div>;
       }
     },

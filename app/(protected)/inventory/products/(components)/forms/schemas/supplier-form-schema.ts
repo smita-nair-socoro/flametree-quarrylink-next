@@ -4,7 +4,8 @@ const Base = z.object({
   supplier_name: z.string().trim().min(1, { message: 'Required' }),
   supplier_product_name: z
     .string()
-    .min(2, { message: 'Product Name must be at least 2 characters.' })
+    .nonempty({ message: 'Required' })
+    .min(1, { message: 'Product Name must be at least 1 character' })
     .max(100, { message: "Product Name can't be more than 100 characters" }),
   supplier_product_code: z.string().nonempty({ message: 'Required' }),
 

@@ -4,6 +4,7 @@ import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -39,9 +40,9 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
       return (
         <div>
           $
-          {(row.original.price.tn_cost_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0'}
+          {row.original.price.tn_cost_price
+            ? centsToDollars(row.original.price.tn_cost_price)
+            : '0'}
         </div>
       );
     },
@@ -56,9 +57,9 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     cell: ({ row }) => (
       <div>
         $
-        {(row.original.price.tn_sell_price / 100)
-          ?.toFixed(2)
-          .toLocaleString() || '0'}
+        {row.original.price.tn_sell_price
+          ? centsToDollars(row.original.price.tn_sell_price)
+          : '0'}
       </div>
     ),
     meta: 'sell price',

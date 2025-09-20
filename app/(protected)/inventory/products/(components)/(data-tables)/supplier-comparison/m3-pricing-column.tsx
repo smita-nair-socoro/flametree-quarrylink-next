@@ -4,6 +4,7 @@ import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -26,10 +27,9 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_m3 === false) {
         return <div>N/A</div>;
       } else {
-        const costPrice =
-          (row.original.price.m3_cost_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const costPrice = row.original.price.m3_cost_price
+          ? centsToDollars(row.original.price.m3_cost_price)
+          : '0';
         return <div>${costPrice}</div>;
       }
     },
@@ -46,10 +46,9 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_m3 === false) {
         return <div>N/A</div>;
       } else {
-        const sellPrice =
-          (row.original.price.m3_sell_price / 100)
-            ?.toFixed(2)
-            .toLocaleString() || '0';
+        const sellPrice = row.original.price.m3_sell_price
+          ? centsToDollars(row.original.price.m3_sell_price)
+          : '0';
         return <div>${sellPrice}</div>;
       }
     },
