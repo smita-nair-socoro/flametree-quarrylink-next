@@ -67,6 +67,7 @@ interface DataTableProps<TData, TValue> {
   searchPlaceHolder?: string;
   simpleTable?: boolean;
   tableId?: string; // Unique identifier for localStorage
+  useColumnSizing?: boolean; // Optional prop to enable column sizing
   onRowClick?: (row: TData) => void; // Optional row click handler
 }
 
@@ -102,6 +103,7 @@ export function DataTableClient<TData, TValue>({
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
   tableId = 'default-table', // Default tableId if not provided
+  useColumnSizing = false, // Default to false to maintain existing behavior
   onRowClick,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
@@ -409,7 +411,7 @@ export function DataTableClient<TData, TValue>({
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
                   key={hg.id}
-                  className={cn(simpleTable && 'border-b-0')}
+                  className={cn(simpleTable ? 'border-b border-border' : '')}
                 >
                   {hg.headers.map((header, headerIndex) => (
                     <TableHead
@@ -424,6 +426,21 @@ export function DataTableClient<TData, TValue>({
                         headerIndex === hg.headers.length - 1 &&
                           'w-auto text-right'
                       )}
+                      style={
+                        useColumnSizing
+                          ? {
+                              width: header.column.columnDef.size
+                                ? `${header.column.columnDef.size}px`
+                                : undefined,
+                              minWidth: header.column.columnDef.size
+                                ? `${header.column.columnDef.size}px`
+                                : undefined,
+                              maxWidth: header.column.columnDef.size
+                                ? `${header.column.columnDef.size}px`
+                                : undefined,
+                            }
+                          : undefined
+                      }
                     >
                       {header.isPlaceholder
                         ? null
@@ -443,7 +460,8 @@ export function DataTableClient<TData, TValue>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
-                      simpleTable && 'border-b-0 hover:bg-transparent',
+                      simpleTable &&
+                        'border-b border-border hover:bg-transparent',
                       !simpleTable &&
                         'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800',
                       onRowClick && !simpleTable && 'cursor-pointer'
@@ -469,6 +487,21 @@ export function DataTableClient<TData, TValue>({
                           cellIndex === row.getVisibleCells().length - 1 &&
                             'w-auto text-right'
                         )}
+                        style={
+                          useColumnSizing
+                            ? {
+                                width: cell.column.columnDef.size
+                                  ? `${cell.column.columnDef.size}px`
+                                  : undefined,
+                                minWidth: cell.column.columnDef.size
+                                  ? `${cell.column.columnDef.size}px`
+                                  : undefined,
+                                maxWidth: cell.column.columnDef.size
+                                  ? `${cell.column.columnDef.size}px`
+                                  : undefined,
+                              }
+                            : undefined
+                        }
                       >
                         {flexRender(
                           cell.column.columnDef.cell,

@@ -13,4 +13,11 @@ export const NewProductFormSchema = z.object({
   updated_at: z.date().optional(),
   created_by: z.string(),
   last_modified_by: z.string(),
+  supplier_products: z.array(
+    z.object({
+      quarry_name: z.string().nonempty({ message: 'Required' }),
+      supplier_product_name: z.string().nonempty({ message: 'Required' }),
+      supplier_product_code: z.string().nonempty({ message: 'Required' }),
+    })
+  ),
 });

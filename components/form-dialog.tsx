@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
-import { QUOTE_TYPE_COLORS, BADGE_COLORS } from '@/lib/utils';
+import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
 
@@ -46,6 +46,8 @@ interface HeaderInfo {
   useSelectedCustomer?: boolean;
   /** Use selected product data automatically */
   useSelectedProduct?: boolean;
+  /** Use selected supplier data automatically */
+  useSelectedSupplier?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -71,6 +73,8 @@ interface AddProductDrawerDialogProps {
   open?: boolean;
   onOpenChangeAction?: (open: boolean) => void;
 
+  dialogWidth?: string;
+
   /** Hides the trigger entirely */
   hideTrigger?: boolean;
 
@@ -82,6 +86,9 @@ interface AddProductDrawerDialogProps {
 
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
+
+  /** Optional content class to add to the content */
+  contentClass?: string;
 
   /**
    * **THIS** is our form (or any other content) to render inside
@@ -111,10 +118,12 @@ export function FormDialog({
   trigger,
   open: openProp,
   onOpenChangeAction: onOpenChangeProp,
+  dialogWidth,
   hideTrigger,
   headerButtons,
   headerInfo,
   headerSeparator,
+  contentClass,
   children,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
@@ -238,8 +247,7 @@ export function FormDialog({
             key={`secondary-${index}`}
             variant="outline"
             className={
-              QUOTE_TYPE_COLORS[badge as keyof typeof QUOTE_TYPE_COLORS] ||
-              'bg-gray-100 text-gray-800 border-gray-300'
+              BADGE_COLORS[badge] || 'bg-gray-100 text-gray-800 border-gray-300'
             }
           >
             {formatBadgeText(badge)}
@@ -304,7 +312,8 @@ export function FormDialog({
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5 pt-4'
+          'rounded-md overflow-auto px-5 pt-4',
+          contentClass
         )}
       >
         <div>{contentNode}</div>
@@ -319,7 +328,7 @@ export function FormDialog({
         <DialogContent
           className="flex flex-col p-0"
           style={{
-            width: dimensions.width,
+            width: dialogWidth ?? dimensions.width,
             height: dimensions.height,
             maxWidth: dimensions.maxWidth,
             maxHeight: dimensions.maxHeight,
@@ -341,9 +350,11 @@ export function FormDialog({
             <DrawerTitle className="text-start text-2xl">
               {headerTitle}
             </DrawerTitle>
-            <DrawerDescription className="mt-2">
-              {dialogDescription}
-            </DrawerDescription>
+            {dialogDescription && (
+              <DrawerDescription className="mt-2">
+                {dialogDescription}
+              </DrawerDescription>
+            )}
             {renderBadges()}
           </div>
           {headerButtons && (
