@@ -9,7 +9,7 @@ on:
         required: true
         default: latest
       suffix:
-        description: "Image name suffix (e.g., -oras-web)"
+        description: "Image name suffix (e.g., oras-web)"
         required: true
         default: "oras-web"
       s3_bucket:
