@@ -116,7 +116,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
           ctx.addIssue({
             path: ['payment_terms_day'],
             code: z.ZodIssueCode.custom,
-            message: 'Enter a value between 0 and 99',
+            message: 'Enter a value between 1 and 99',
           });
         }
       }
