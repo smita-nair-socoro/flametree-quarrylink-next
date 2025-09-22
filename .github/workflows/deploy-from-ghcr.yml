@@ -1,5 +1,5 @@
 # .github/workflows/deploy-from-ghcr.yml
-name: Deploy Static Site from GHCR to S3 with CloudFront
+name: Deploy Static Site from GHCR to S3 + CloudFront
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
         required: true
         default: latest
       suffix:
-        description: "Image name suffix (e.g., -web)"
+        description: "Image name suffix (e.g., -oras-web)"
         required: true
         default: "oras-web"
       s3_bucket:
@@ -34,7 +34,7 @@ env:
 permissions:
   contents: read
   packages: read      # needed to pull from GHCR
-#  id-token: write     # for AWS OIDC
+  id-token: write     # needed for AWS OIDC
 
 jobs:
   deploy:
@@ -43,6 +43,7 @@ jobs:
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
       TAG: ${{ inputs.tag }}
       SUFFIX: ${{ inputs.suffix }}
+      REF: ${{ inputs.ref }}
       S3_BUCKET: ${{ inputs.s3_bucket }}
       CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
@@ -88,12 +89,6 @@ jobs:
           mkdir -p site
           tar -xzf _pkg/site.tar.gz -C site
 
-      - name: Configure AWS (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
-
       # Build config.json directly with jq
       - name: Generate config.json with jq
         env:
@@ -113,7 +108,7 @@ jobs:
                env: $env
              }' > site/config.json
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (OIDC)
         # Prefer OIDC + role assumption (no long-lived keys). Set your role ARN in secrets.AWS_ROLE_TO_ASSUME.
         uses: aws-actions/configure-aws-credentials@v4
         with:
