@@ -3,7 +3,7 @@ name: Publish Web Build to GHCR
 on:
   push:
     tags: ['v*.*.*']  # release by semver tags
-  workflow_dispatch:   # allows manual run from GitHub UI
+#  workflow_dispatch:   # allows manual run from GitHub UI
 
 permissions:
   contents: read
@@ -42,7 +42,7 @@ jobs:
       # Push tarball as an OCI artifact, tag == git tag
       - name: Push OCI artifact
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-oras-web
           TAG: ${{ github.ref_name }}
         run: |
           oras push "$IMAGE:$TAG" \
