@@ -66,7 +66,11 @@ jobs:
           set -euo pipefail
           mkdir -p _pkg
           cd _pkg
-
+# Pull the single artifact file "site.tar.gz" (as pushed by oras)
+#          oras pull "$IMAGE:${TAG}"
+          oras pull "$IMAGE:$REF" -o .
+          test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
+          ls -lah
 
       - name: Extract site build
         run: |
