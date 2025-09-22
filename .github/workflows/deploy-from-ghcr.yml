@@ -57,20 +57,7 @@ jobs:
       - name: Login GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # Pull the tarball we previously pushed as "site.tar.gz"
-      - name: Pull artifact from GHCR
-        env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
-          REF: ${{ env.VERSION }}
-        run: |
-          set -euo pipefail
-          mkdir -p _pkg
-          cd _pkg
-          # Pull the single artifact file "site.tar.gz" (as pushed by oras)
-#          oras pull "$IMAGE:${TAG}"
-          oras pull "$IMAGE:$REF" -o .
-          test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
-          ls -lah
+
 
       - name: Extract site build
         run: |
