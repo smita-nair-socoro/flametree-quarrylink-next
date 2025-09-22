@@ -107,26 +107,24 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Render config.json from a template using envsubst Linux command.
-      # Prepare your environment variables via repository/environment secrets.
-      # Example secrets to set: NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_COGNITO_DOMAIN, APP_ENV, etc.
-      - name: Generate config.json from template (envsubst)
-        if: ${{ hashFiles(env.CONFIG_TEMPLATE) != '' }}
+      # Build config.json directly with jq
+      - name: Generate config.json with jq
         env:
-          # Add whatever you need here (or use org/repo/environment secrets)
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
           NEXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.NEXT_PUBLIC_COGNITO_DOMAIN }}
           APP_ENV: ${{ secrets.APP_ENV }}
         run: |
           set -euo pipefail
-          # Ensure envsubst is available
-          sudo apt-get update -y && sudo apt-get install -y gettext-base jq
-          # Validate template exists
-          test -f "${CONFIG_TEMPLATE}"
-          # Render config.json into the extracted site
-          envsubst < "${CONFIG_TEMPLATE}" > site/config.json
-          # Optional: sanity check JSON
-          jq . < site/config.json > /dev/null
+          sudo apt-get update -y && sudo apt-get install -y jq
+          jq -n \
+            --arg api "$NEXT_PUBLIC_API_BASE_URL" \
+            --arg cognito "$NEXT_PUBLIC_COGNITO_DOMAIN" \
+            --arg env "$APP_ENV" \
+            '{
+               apiBaseUrl: $api,
+               cognitoDomain: $cognito,
+               env: $env
+             }' > site/config.json
 
       - name: Configure AWS credentials
         # Prefer OIDC + role assumption (no long-lived keys). Set your role ARN in secrets.AWS_ROLE_TO_ASSUME.
