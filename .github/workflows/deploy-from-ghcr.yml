@@ -1,5 +1,5 @@
 # .github/workflows/deploy-from-ghcr.yml
-name: Deploy Static Site from GHCR to S3 + CloudFront
+name: Deploy Static Site from GHCR to S3 with CloudFront
 
 on:
   workflow_dispatch:
