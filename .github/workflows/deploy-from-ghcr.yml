@@ -69,18 +69,6 @@ jobs:
       # Pull the tarball we previously pushed as `site.tar.gz`
       - name: Pull artifact from GHCR
         env:
-          IMAGE: ${{ env.IMAGE_NAME }}${{ env.SUFFIX }}
-        run: |
-          set -euo pipefail
-          mkdir -p _pkg
-          cd _pkg
-          # Pull the single artifact file "site.tar.gz" (as pushed by oras)
-          oras pull "$IMAGE:${TAG}"
-          test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
-
-      # Pull the tarball we previously pushed as `site.tar.gz`
-      - name: Pull artifact from GHCR
-        env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
 #          IMAGE: ${{ env.IMAGE_NAME }}-${{ env.SUFFIX }}
           REF: ${{ github.event.inputs.version }}
