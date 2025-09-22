@@ -12,6 +12,8 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_POSTFIX: oras-web
     steps:
       - uses: actions/checkout@v4
 
@@ -45,7 +47,7 @@ jobs:
       # Push tarball as an OCI artifact, tag == git tag
       - name: Push OCI artifact
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-oras-web
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
           TAG: ${{ github.ref_name }}
         run: |
           oras push "$IMAGE:$TAG" \
@@ -57,7 +59,7 @@ jobs:
       - name: Tag latest
         if: startsWith(github.ref_name, 'v')
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
           TAG: ${{ github.ref_name }}
         run: |
           oras copy "$IMAGE:$TAG" "$IMAGE:latest"
