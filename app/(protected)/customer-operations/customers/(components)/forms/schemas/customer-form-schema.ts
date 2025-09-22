@@ -112,7 +112,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         data.payment_terms === 'day(s) after the invoice date' ||
         data.payment_terms === 'day(s) after the invoice month'
       ) {
-        if (data.payment_terms_day > 99) {
+        if (data.payment_terms_day < 1 || data.payment_terms_day > 99) {
           ctx.addIssue({
             path: ['payment_terms_day'],
             code: z.ZodIssueCode.custom,
