@@ -45,14 +45,6 @@ jobs:
       S3_BUCKET: ${{ inputs.s3_bucket }}
       CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
-
-      # OPTIONAL: point to your config template inside this repo
-      # Template should contain ${VAR} placeholders for envsubst, e.g.:
-      # {
-      #   "apiBaseUrl": "${NEXT_PUBLIC_API_BASE_URL}",
-      #   "env": "${APP_ENV}"
-      # }
-      CONFIG_TEMPLATE: deploy/config.template.json
     environment: prod
 
     steps:
