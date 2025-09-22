@@ -60,8 +60,8 @@ jobs:
       # Pull the tarball we previously pushed as "site.tar.gz"
       - name: Pull artifact from GHCR
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
-          REF: ${{ env.VERSION }}
+          IMAGE: "ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}"
+          REF: "${{ env.VERSION }}"
         run: |
           set -euo pipefail
           mkdir -p _pkg
