@@ -3,6 +3,7 @@ name: Publish Web Build to GHCR
 on:
   push:
     tags: ['v*.*.*']  # release by semver tags
+  workflow_dispatch:   # allows manual run from GitHub UI
 
 permissions:
   contents: read
