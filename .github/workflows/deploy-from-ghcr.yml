@@ -39,12 +39,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TAG: "${{ inputs.tag }}"
-      SUFFIX: "${{ inputs.suffix }}"
-      VERSION: "${{ inputs.version }}"
-      S3_BUCKET: "${{ inputs.s3_bucket }}"
-      CF_DIST_ID: "${{ inputs.cloudfront_dist_id }}"
-      INVALIDATE_ALL: "${{ inputs.invalidate_all }}"
+      TAG: ${{ inputs.tag }}
+      SUFFIX: ${{ inputs.suffix }}
+      VERSION: ${{ inputs.version }}
+      S3_BUCKET: ${{ inputs.s3_bucket }}
+      CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
+      INVALIDATE_ALL: ${{ inputs.invalidate_all }}
 
       # OPTIONAL: point to your config template inside this repo
       # Template should contain ${VAR} placeholders for envsubst, e.g.:
@@ -65,7 +65,7 @@ jobs:
       - name: Login GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # Pull the tarball we previously pushed as `site.tar.gz`
+      # Pull the tarball we previously pushed as "site.tar.gz"
       - name: Pull artifact from GHCR
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
@@ -112,15 +112,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Sync whole site to S3 (set a long cache for hashed assets by default)
+      # Sync whole site to S3 (Clean deploy: sync removes old files, set a long cache for hashed assets by default)
       - name: Upload static site to S3
         run: |
           set -euo pipefail
-          # Default cache policy for most assets (adjust max-age as you like)
           aws s3 sync site/ "s3://${S3_BUCKET}/" \
             --delete \
-            --exclude "config.json" \
-            --metadata-directive REPLACE \
             --cache-control "public,max-age=31536000,immutable"
 
       # Overwrite config.json with no-store to ensure instant refresh
