@@ -40,7 +40,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
       TAG: ${{ inputs.tag }}
       SUFFIX: ${{ inputs.suffix }}
       REF: ${{ inputs.ref }}
@@ -71,7 +70,6 @@ jobs:
       - name: Pull artifact from GHCR
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
-#          IMAGE: ${{ env.IMAGE_NAME }}-${{ env.SUFFIX }}
           REF: ${{ github.event.inputs.version }}
         run: |
           set -euo pipefail
