@@ -9,12 +9,11 @@ jobs:
   check-branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Check branch naming convention
+      - name: Check branch naming convention to be like Jira-style (feature/PROJ-123-something)
         run: |
           set -euo pipefail
           BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
           echo "🔎 Validating branch: $BRANCH_NAME"
-# Jira-style branch names (feature/PROJ-123-something)
           if [[ ! "$BRANCH_NAME" =~ ^(feature|hotfix|release)\/[A-Z]+-[0-9]+(-[a-z0-9._-]+)?$ ]]; then
             echo "::error file=.github/workflows/branch-name.yml::❌ Invalid branch name: $BRANCH_NAME"
             echo "✅ Must follow: feature/PROJ-123-description, hotfix/BUG-123-fix, or release/X.Y.Z"
