@@ -39,12 +39,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ inputs.tag }}
-      SUFFIX: ${{ inputs.suffix }}
-      VERSION: ${{ inputs.version }}
-      S3_BUCKET: ${{ inputs.s3_bucket }}
-      CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
-      INVALIDATE_ALL: ${{ inputs.invalidate_all }}
+      TAG: "${{ inputs.tag }}"
+      SUFFIX: "${{ inputs.suffix }}"
+      VERSION: "${{ inputs.version }}"
+      S3_BUCKET: "${{ inputs.s3_bucket }}"
+      CF_DIST_ID: "${{ inputs.cloudfront_dist_id }}"
+      INVALIDATE_ALL: "${{ inputs.invalidate_all }}"
 
       # OPTIONAL: point to your config template inside this repo
       # Template should contain ${VAR} placeholders for envsubst, e.g.:
@@ -119,6 +119,7 @@ jobs:
           # Default cache policy for most assets (adjust max-age as you like)
           aws s3 sync site/ "s3://${S3_BUCKET}/" \
             --delete \
+            --exclude "config.json" \
             --metadata-directive REPLACE \
             --cache-control "public,max-age=31536000,immutable"
 
