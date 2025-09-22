@@ -78,7 +78,6 @@ jobs:
           oras pull "$IMAGE:${TAG}"
           test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
 
-
       # Pull the tarball we previously pushed as `site.tar.gz`
       - name: Pull artifact from GHCR
         env:
