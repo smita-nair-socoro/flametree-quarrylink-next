@@ -1,5 +1,6 @@
 # .github/workflows/publish-to-ghcr.yml
 name: Publish Web Build to GHCR
+
 on:
   push:
     tags: ['v*.*.*']  # release by semver tags
