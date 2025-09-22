@@ -7,7 +7,11 @@ on:
       tag:
         description: "GHCR tag to deploy (e.g., v1.2.3 or latest)"
         required: true
-        default: latest
+        default: "latest"
+      version:
+        description: "GHCR OCI version to deploy (e.g., v1.2.3)"
+        required: true
+        default: "latest"
       suffix:
         description: "Image name suffix (e.g., oras-web)"
         required: true
@@ -23,11 +27,6 @@ on:
         required: true
         default: "false"
 
-      version:
-        description: 'OCI tag or digest (e.g., v1.3.0 or sha256:...)'
-        required: true
-        default: 'latest'
-
 env:
   AWS_REGION: ap-southeast-2
 
@@ -42,7 +41,7 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
       SUFFIX: ${{ inputs.suffix }}
-      REF: ${{ inputs.ref }}
+      VERSION: ${{ inputs.version }}
       S3_BUCKET: ${{ inputs.s3_bucket }}
       CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
@@ -70,7 +69,7 @@ jobs:
       - name: Pull artifact from GHCR
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
-          REF: ${{ github.event.inputs.version }}
+          REF: ${{ env.VERSION }}
         run: |
           set -euo pipefail
           mkdir -p _pkg
