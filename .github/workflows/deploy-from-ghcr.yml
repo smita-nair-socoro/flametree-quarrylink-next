@@ -1,42 +1,105 @@
 # .github/workflows/deploy-from-ghcr.yml
-name: Deploy from GHCR to S3+CloudFront
+name: Deploy Static Site from GHCR to S3 + CloudFront
+
 on:
   workflow_dispatch:
     inputs:
+      tag:
+        description: "GHCR tag to deploy (e.g., v1.2.3 or latest)"
+        required: true
+        default: latest
+      suffix:
+        description: "Image name suffix (e.g., -web)"
+        required: true
+        default: "oras-web"
+      s3_bucket:
+        description: "Target S3 bucket (e.g., my-site-prod)"
+        required: true
+      cloudfront_dist_id:
+        description: "CloudFront Distribution ID"
+        required: true
+      invalidate_all:
+        description: "Invalidate /* (true) or only critical paths (false)"
+        required: true
+        default: "false"
+
       version:
         description: 'OCI tag or digest (e.g., v1.3.0 or sha256:...)'
         required: true
         default: 'latest'
+
 env:
   AWS_REGION: ap-southeast-2
+
 permissions:
   contents: read
   packages: read      # needed to pull from GHCR
-  id-token: write     # for AWS OIDC
+#  id-token: write     # for AWS OIDC
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+      TAG: ${{ inputs.tag }}
+      SUFFIX: ${{ inputs.suffix }}
+      S3_BUCKET: ${{ inputs.s3_bucket }}
+      CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
+      INVALIDATE_ALL: ${{ inputs.invalidate_all }}
+
+      # OPTIONAL: point to your config template inside this repo
+      # Template should contain ${VAR} placeholders for envsubst, e.g.:
+      # {
+      #   "apiBaseUrl": "${NEXT_PUBLIC_API_BASE_URL}",
+      #   "env": "${APP_ENV}"
+      # }
+      CONFIG_TEMPLATE: deploy/config.template.json
     environment: prod
+
     steps:
+      - name: Checkout repo (for template or deploy scripts)
+        uses: actions/checkout@v4
+
       - name: Setup ORAS
         uses: oras-project/setup-oras@v1
 
       - name: Login GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Pull artifact
+      # Pull the tarball we previously pushed as `site.tar.gz`
+      - name: Pull artifact from GHCR
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-web
+          IMAGE: ${{ env.IMAGE_NAME }}${{ env.SUFFIX }}
+        run: |
+          set -euo pipefail
+          mkdir -p _pkg
+          cd _pkg
+          # Pull the single artifact file "site.tar.gz" (as pushed by oras)
+          oras pull "$IMAGE:${TAG}"
+          test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
+
+
+      # Pull the tarball we previously pushed as `site.tar.gz`
+      - name: Pull artifact from GHCR
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
+#          IMAGE: ${{ env.IMAGE_NAME }}-${{ env.SUFFIX }}
           REF: ${{ github.event.inputs.version }}
         run: |
-          mkdir -p pkg && cd pkg
+          set -euo pipefail
+          mkdir -p _pkg
+          cd _pkg
+          # Pull the single artifact file "site.tar.gz" (as pushed by oras)
+#          oras pull "$IMAGE:${TAG}"
           oras pull "$IMAGE:$REF" -o .
+          test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
           ls -lah
 
-      - name: Extract build
+      - name: Extract site build
         run: |
-          mkdir -p build
-          tar -xzf pkg/site.tar.gz -C build
+          set -euo pipefail
+          mkdir -p site
+          tar -xzf _pkg/site.tar.gz -C site
 
       - name: Configure AWS (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,25 +107,64 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Optional: deploy under a versioned prefix for easy rollbacks
-      - name: Define prefix
-        id: pref
+      # Render config.json from a template using envsubst Linux command.
+      # Prepare your environment variables via repository/environment secrets.
+      # Example secrets to set: NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_COGNITO_DOMAIN, APP_ENV, etc.
+      - name: Generate config.json from template (envsubst)
+        if: ${{ hashFiles(env.CONFIG_TEMPLATE) != '' }}
+        env:
+          # Add whatever you need here (or use org/repo/environment secrets)
+          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
+          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.NEXT_PUBLIC_COGNITO_DOMAIN }}
+          APP_ENV: ${{ secrets.APP_ENV }}
         run: |
-          V="${{ github.event.inputs.version }}"
-          # sanitize digest to file-system friendly
-          V="${V//:/-}"
-          echo "prefix=releases/${V}" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          # Ensure envsubst is available
+          sudo apt-get update -y && sudo apt-get install -y gettext-base jq
+          # Validate template exists
+          test -f "${CONFIG_TEMPLATE}"
+          # Render config.json into the extracted site
+          envsubst < "${CONFIG_TEMPLATE}" > site/config.json
+          # Optional: sanity check JSON
+          jq . < site/config.json > /dev/null
 
-      - name: Sync assets (immutable)
-        run: |
-          aws s3 sync build "s3://${{ secrets.S3_BUCKET }}/${{ steps.pref.outputs.prefix }}" \
-            --delete --cache-control "public,max-age=31536000,immutable"
-          # index.html must not be hard-cached
-          aws s3 cp build/index.html "s3://${{ secrets.S3_BUCKET }}/index.html" \
-            --cache-control "no-cache, no-store, must-revalidate" --content-type text/html
+      - name: Configure AWS credentials
+        # Prefer OIDC + role assumption (no long-lived keys). Set your role ARN in secrets.AWS_ROLE_TO_ASSUME.
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Invalidate CloudFront
+      # Sync whole site to S3 (set a long cache for hashed assets by default)
+      - name: Upload static site to S3
         run: |
+          set -euo pipefail
+          # Default cache policy for most assets (adjust max-age as you like)
+          aws s3 sync site/ "s3://${S3_BUCKET}/" \
+            --delete \
+            --metadata-directive REPLACE \
+            --cache-control "public,max-age=31536000,immutable"
+
+      # Overwrite config.json with no-store to ensure instant refresh
+      - name: Upload config.json with no-store
+        run: |
+          set -euo pipefail
+          aws s3 cp site/config.json "s3://${S3_BUCKET}/config.json" \
+            --metadata-directive REPLACE \
+            --cache-control "no-store, must-revalidate" \
+            --content-type "application/json"
+
+      # Invalidate CloudFront
+      - name: Create CloudFront invalidation
+        run: |
+          set -euo pipefail
+          if [ "${INVALIDATE_ALL}" = "true" ]; then
+            PATHS='/*'
+          else
+            # Only invalidate things likely to be cached aggressively but must update immediately
+            # Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
+            PATHS='/config.json /index.html'
+          fi
           aws cloudfront create-invalidation \
-            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths "/*"
+            --distribution-id "${CF_DIST_ID}" \
+            --paths ${PATHS}
