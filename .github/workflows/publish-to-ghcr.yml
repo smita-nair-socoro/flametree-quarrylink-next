@@ -23,6 +23,9 @@ jobs:
       # Install deps via Bun (uses bun.lockb if present)
       - run: bun install --frozen-lockfile
 
+      # Validate your web app with Lint check
+      - run: bun run lint
+
       # Build your web app with Bun runtime
       - run: bun run build
 
