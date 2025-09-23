@@ -69,7 +69,7 @@ export function ActionDialog({
       <DialogContent
         className={cn(
           customWidth ? customWidth : 'w-[512px]',
-          'max-w-full gap-6 max-h-[90vh] overflow-y-auto'
+          'max-w-full gap-6 max-h-[90vh] overflow-y-auto p-[24.62px]'
         )}
       >
         <DialogHeader>
