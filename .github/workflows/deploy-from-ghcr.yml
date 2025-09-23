@@ -8,10 +8,6 @@ on:
         description: "GHCR tag to deploy (e.g., v1.2.3 or latest)"
         required: true
         default: "latest"
-      version:
-        description: "GHCR OCI version to deploy (e.g., v1.2.3)"
-        required: true
-        default: "latest"
       suffix:
         description: "Image name suffix (e.g., oras-web)"
         required: true
@@ -41,7 +37,6 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
       SUFFIX: ${{ inputs.suffix }}
-      VERSION: ${{ inputs.version }}
       S3_BUCKET: ${{ inputs.s3_bucket }}
       CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
@@ -61,12 +56,12 @@ jobs:
       - name: Pull artifact from GHCR
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
-          REF: ${{ env.VERSION }}
+          VERSION: ${{ env.TAG }}
         run: |
           set -euo pipefail
           mkdir -p _pkg
           cd _pkg
-          oras pull "$IMAGE:$REF" -o .
+          oras pull "$IMAGE:$VERSION" -o .
           test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
           ls -lah
 
