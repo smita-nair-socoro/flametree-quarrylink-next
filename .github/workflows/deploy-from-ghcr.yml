@@ -100,11 +100,13 @@ jobs:
              }' > site/config.json
 
       - name: Configure AWS credentials (OIDC)
-        # Prefer OIDC + role assumption (no long-lived keys). Set your role ARN in secrets.AWS_ROLE_TO_ASSUME.
+        # Prefer OIDC + role assumption (no long-lived keys).
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}   # arn:aws:iam::<acct>:role/<role>
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gh-actions-${{ github.run_id }}  # unique STS session name
+          mask-aws-account-id: true                           # hide the account ID in logs.
 
       # Sync whole site to S3 (Clean deploy: sync removes old files, set a long cache for hashed assets by default)
       - name: Upload static site to S3
