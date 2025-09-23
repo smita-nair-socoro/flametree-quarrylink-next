@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { PricingConfigurationTable } from './(form-tables)/pricing-configuration-table';
 import { TruckRatesTable } from './(form-tables)/truck-rates-table';
+import { X } from 'lucide-react';
 
 interface FormProps {
   id?: number;
@@ -230,7 +231,7 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
     {
       name: 'Supplier Details',
       content: (
-        <Card>
+        <Card className="mb-8">
           <CardHeader>
             <CardTitle>Supplier Information</CardTitle>
           </CardHeader>
@@ -238,9 +239,10 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
             <FormSelect
               control={supplierForm.control}
               name="supplier_name"
-              label="Supplier*"
+              label="Supplier Name*"
+              searchLabel="Suppliers"
               options={supplierOptions}
-              placeholder="Select Supplier"
+              placeholder="Select a Supplier"
               formItemClassName="w-full"
             />
             <FormField
@@ -424,30 +426,48 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
 
           <Separator className="my-4" />
 
-          {/* Form Actions */}
-          <div className={cn('flex justify-end space-x-2 col-span-2 mb-6')}>
+          <div
+            className={cn(
+              'mb-6',
+              isDesktop
+                ? 'col-span-2 flex justify-end space-x-2'
+                : 'col-span-1 flex flex-col space-y-2 gap-3'
+            )}
+          >
             {isDesktop && (
               <Button variant="outline" type="button" onClick={onCancel}>
+                <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
             )}
             {!isEditing && (
               <Button
-                form="add-new-supplier-form"
-                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
+                form="add-new-product-form"
+                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Adding Supplier...' : 'Add Supplier'}
+                {isSubmitting ? 'Adding Product...' : 'Add Supplier'}
               </Button>
             )}
+
             {isEditing && (
               <Button
-                form="add-new-supplier-form"
+                form="add-new-product-form"
                 type="submit"
-                className={!isDesktop ? 'w-full -mb-4' : 'cursor-pointer'}
+                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
               >
                 Save Changes
+              </Button>
+            )}
+            {!isDesktop && (
+              <Button
+                variant="outline"
+                type="button"
+                onClick={onCancel}
+                className="w-full"
+              >
+                Cancel
               </Button>
             )}
           </div>

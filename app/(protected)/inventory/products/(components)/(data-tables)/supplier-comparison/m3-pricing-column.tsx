@@ -81,7 +81,7 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'Margin',
-    size: 140,
+    size: 160,
   },
   {
     id: 'available_for_sale_m3',

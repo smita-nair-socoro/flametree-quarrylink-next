@@ -9,6 +9,7 @@ import {
   CellConfig,
   FormTableRow,
 } from '@/components/ui/form-table';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 
 interface PricingConfigurationTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;
@@ -28,19 +29,20 @@ export function PricingConfigurationTable({
   // Headers configuration
   const headers: FormTableHeader[] = [
     { key: 'unit', label: 'Unit', className: 'w-15' },
-    { key: 'cost_price', label: 'Cost Price ($)', className: 'w-20' },
-    { key: 'sell_price', label: 'Sell Price ($)', className: 'w-20' },
-    { key: 'margin', label: 'Margin %', className: 'w-20' },
+    { key: 'cost_price', label: 'Cost Price*', className: 'w-20' },
+    { key: 'sell_price', label: 'Sell Price*', className: 'w-20' },
+    { key: 'margin', label: 'Margin %', className: 'w-25' },
     {
       key: 'available_for_sale',
       label: 'Available for Sale',
       className: 'w-20',
+      tooltip: 'TN is required as the base UoM',
     },
   ];
 
   // Rows configuration
   const rows: FormTableRow[] = [
-    { id: 'TN', label: 'TN' },
+    { id: 'TN', label: 'TN*' },
     { id: 'M3', label: 'm³' },
     { id: 'KG', label: '25Kg' },
     { id: 'Bulk', label: 'Bulk' },
@@ -73,7 +75,7 @@ export function PricingConfigurationTable({
     {
       key: 'margin',
       type: 'calculated',
-      className: 'w-25',
+      className: 'w-20',
       calculate: (row, watch) => {
         const costPrice =
           (watch(
@@ -91,13 +93,24 @@ export function PricingConfigurationTable({
         // Always calculate and display margin regardless of availability switch
         const marginValue = calculateMargin(costPrice, sellPrice);
 
+        const marginIcon =
+          marginValue > 0 ? (
+            <TrendingUp className="w-4 h-4 text-green-600" />
+          ) : (
+            <TrendingDown className="w-4 h-4 text-red-600" />
+          );
+
         const displayValue = `${marginValue.toFixed(2)}%`;
 
         // Determine text color based on margin value
         const textColor = marginValue < 0 ? 'text-red-600' : 'text-green-600';
 
         return (
-          <span className={`font-normal ${textColor}`}>{displayValue}</span>
+          <div className="flex justify-start gap-2">
+            {marginIcon}
+
+            <span className={`font-normal ${textColor}`}>{displayValue}</span>
+          </div>
         );
       },
     },

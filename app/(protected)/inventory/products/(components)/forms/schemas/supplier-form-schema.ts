@@ -53,8 +53,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
       // When switch is on, cost price and sell price should not be empty
       if (
         data[`cost_price_${unit}`] === undefined ||
-        data[`cost_price_${unit}`] === null ||
-        data[`cost_price_${unit}`] === 0
+        data[`cost_price_${unit}`] === null
       ) {
         ctx.addIssue({
           path: [`cost_price_${unit}`],
@@ -64,8 +63,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
       }
       if (
         data[`sell_price_${unit}`] === undefined ||
-        data[`sell_price_${unit}`] === null ||
-        data[`sell_price_${unit}`] === 0
+        data[`sell_price_${unit}`] === null
       ) {
         ctx.addIssue({
           path: [`sell_price_${unit}`],
@@ -101,8 +99,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
       // When switch is on, rate should not be empty
       if (
         data[`truck_${unit}`] === undefined ||
-        data[`truck_${unit}`] === null ||
-        data[`truck_${unit}`] === 0
+        data[`truck_${unit}`] === null
       ) {
         ctx.addIssue({
           path: [`truck_${unit}`],
