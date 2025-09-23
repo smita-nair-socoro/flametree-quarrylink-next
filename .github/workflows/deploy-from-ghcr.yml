@@ -74,20 +74,29 @@ jobs:
       # Build config.json directly with jq
       - name: Generate config.json with jq
         env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ secrets.NEXT_PUBLIC_COGNITO_DOMAIN }}
-          APP_ENV: ${{ secrets.APP_ENV }}
+          COGNITO_DOMAIN: ${{ secrets.COGNITO_DOMAIN }}
+          COGNITO_CLIENT_ID: ${{  }}
+          COGNITO_REDIRECT_URI: ${{  }}
+          GOOGLE_MAPS_API_KEY: ${{  }}
+          API_URL: ${{ secrets.API_URL }}
+          SENTRY_DSN: ${{  }}
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
           jq -n \
-            --arg api "$NEXT_PUBLIC_API_BASE_URL" \
-            --arg cognito "$NEXT_PUBLIC_COGNITO_DOMAIN" \
-            --arg env "$APP_ENV" \
+            --arg cognitoDomain "$COGNITO_DOMAIN" \
+            --arg cognitoClientId "$COGNITO_CLIENT_ID" \
+            --arg cognitoRedirectUri "$COGNITO_REDIRECT_URI" \
+            --arg googleMapsApiKey "$GOOGLE_MAPS_API_KEY" \
+            --arg apiUrl "$API_URL" \
+            --arg sentryDsn "$SENTRY_DSN" \
             '{
-               apiBaseUrl: $api,
-               cognitoDomain: $cognito,
-               env: $env
+               cognitoDomain: $cognitoDomain,
+               cognitoClientId: $cognitoClientId,
+               cognitoRedirectUri: $cognitoRedirectUri,
+               googleMapsApiKey: $googleMapsApiKey,
+               apiUrl: $apiUrl,
+               sentryDsn: $sentryDsn
              }' > site/config.json
 
       - name: Configure AWS credentials (OIDC)
