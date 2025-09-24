@@ -40,7 +40,7 @@ jobs:
       S3_BUCKET: ${{ inputs.s3_bucket }}
       CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
-    environment: prod
+    environment: dev
 
     steps:
       - name: Checkout repo (for template or deploy scripts)
