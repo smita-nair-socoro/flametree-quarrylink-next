@@ -91,12 +91,12 @@ jobs:
             --arg apiUrl "$API_URL" \
             --arg sentryDsn "$SENTRY_DSN" \
             '{
-               cognitoDomain: $cognitoDomain,
-               cognitoClientId: $cognitoClientId,
-               cognitoRedirectUri: $cognitoRedirectUri,
-               googleMapsApiKey: $googleMapsApiKey,
-               apiUrl: $apiUrl,
-               sentryDsn: $sentryDsn
+               COGNITO_DOMAIN: $cognitoDomain,
+               COGNITO_CLIENT_ID: $cognitoClientId,
+               COGNITO_REDIRECT_URI: $cognitoRedirectUri,
+               GOOGLE_MAPS_API_KEY: $googleMapsApiKey,
+               API_URL: $apiUrl,
+               SENTRY_DSN: $sentryDsn
              }' > site/config.json
 
       - name: Configure AWS credentials (OIDC)
