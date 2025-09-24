@@ -13,5 +13,9 @@ export function dollarsToCents(value: string | number): number {
 }
 
 export function centsToDollars(cents: number): string {
-  return (cents / 100).toFixed(2);
+  const dollars = cents / 100;
+  return dollars.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }

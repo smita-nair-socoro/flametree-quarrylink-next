@@ -113,9 +113,19 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
       customerForm.setValue('customer_type', value);
+      if (value === 'INDIVIDUAL') {
+        customerForm.setValue('business_name', '');
+        customerForm.setValue('business_email', '');
+        customerForm.setValue('business_phone', '');
+        customerForm.setValue('abn', '');
+      }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
       customerForm.setValue('payment_type', value);
+      if (value === 'PREPAID') {
+        customerForm.setValue('credit_limit', 0);
+        customerForm.setValue('payment_terms_day', 0);
+      }
     }
   };
 

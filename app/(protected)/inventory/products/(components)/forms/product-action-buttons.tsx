@@ -106,9 +106,9 @@ export function ProductActionButtons({
             {isUnavailable && (
               <DropdownMenuItem
                 onClick={actions.available}
-                className="text-blue-600 focus:text-blue-600"
+                className="text-green-600 focus:text-green-600"
               >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+                <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
                 Mark as Available
               </DropdownMenuItem>
             )}
@@ -139,10 +139,10 @@ export function ProductActionButtons({
             variant="ghost"
             size="sm"
             onClick={actions.available}
-            className="rounded-none border-r bg-blue-100 hover:bg-blue-50 text-gray-700 hover:text-gray-900 border-gray-200 "
+            className="rounded-none border-r bg-green-100 hover:bg-green-50 text-gray-700 hover:text-gray-900 border-gray-200 "
           >
-            <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-            <span className="text-blue-600">Mark as Available</span>
+            <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+            <span className="text-green-600">Mark as Available</span>
           </Button>
         )}
         <DropdownMenu>
