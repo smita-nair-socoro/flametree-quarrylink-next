@@ -21,7 +21,19 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedProduct } from '@/app/stores/product-store';
 import { NewProductFormSchema } from './schemas/product-form-schema';
+import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { ChartColumn } from 'lucide-react';
+import { FormDialog } from '@/components/form-dialog';
+import SupplierForm from './supplier-form';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { ActionDialog } from '@/components/action-dialog';
+import { tnPricingColumn } from '../(data-tables)/supplier-comparison/tn-pricing-column';
+import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing-column';
+import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing-column';
+import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
+import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
 
 interface FormProps {
   id?: number;
@@ -36,6 +48,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const selectedProduct = useSelectedProduct();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [totalSupplier, setTotalSupplier] = React.useState(0);
+  const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
+
+  const convertedProduct = convertKeysToSnakeCase(selectedProduct);
 
   const materialTypeOptions = [
     { label: 'Aggregate', value: 'AGGREGATE' },
@@ -66,6 +82,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         : '',
     },
   });
+
+  React.useEffect(() => {
+    setTotalSupplier(selectedProduct?.quarries.length || 0);
+  }, [selectedProduct]);
 
   async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     console.log('Product Form Values:', values);
@@ -101,105 +121,230 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-product-form"
           className={cn(
-            'gap-6 p-1 w-full mt-6',
-            isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
+            'gap-12 p-1 w-full mt-6 flex flex-col',
             className,
             isSubmitting && 'pointer-events-none'
           )}
           onSubmit={productForm.handleSubmit(onSubmit)}
         >
-          <FormField
-            control={productForm.control}
-            name="product_name"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Product Name*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Product Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          <div
+            className={cn(
+              'gap-6 p-1 w-full mt-6',
+              isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
+              className,
+              isSubmitting && 'pointer-events-none'
             )}
-          />
+          >
+            <FormField
+              control={productForm.control}
+              name="product_name"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Product Name*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Product Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Product Code */}
-          <FormField
-            control={productForm.control}
-            name="product_code"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Product Code*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Product Code"
-                    {...field}
+            {/* Product Code */}
+            <FormField
+              control={productForm.control}
+              name="product_code"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Product Code*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Product Code"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Material Type */}
+            <FormSelect
+              control={productForm.control}
+              name="material_type"
+              label="Material Type*"
+              options={materialTypeOptions}
+              placeholder="Select Material Type"
+              showSearch={true}
+              className="col-span-1"
+            />
+
+            {/* Density (TN/m³) */}
+            <FormField
+              control={productForm.control}
+              name="density_tonnage_per_m3"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Density (TN/m³)*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Density Tonnage per m3"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Product Description */}
+            <FormField
+              control={productForm.control}
+              name="product_description"
+              render={({ field }) => (
+                <FormItem className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                  <FormLabel>Product Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      className="w-full"
+                      placeholder="Enter Product Description"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Supplier Table */}
+          <div className="flex flex-col gap-4">
+            <div
+              className={cn(
+                isDesktop
+                  ? 'flex justify-between items-center'
+                  : 'flex flex-col gap-4'
+              )}
+            >
+              <div className="flex flex-col gap-0">
+                <span className="text-lg font-semibold">
+                  Supplier Information
+                </span>
+                {isEditing && (
+                  <span className="text-sm text-gray-500">
+                    {totalSupplier} suppliers configured with pricing and truck
+                    rates
+                  </span>
+                )}
+                {!isEditing && (
+                  <span className="text-sm text-gray-500">
+                    Add suppliers after creaeting the product
+                  </span>
+                )}
+              </div>
+
+              <div
+                className={cn('flex items-center gap-2', !isDesktop && 'mb-2')}
+              >
+                {isEditing && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setIsCompareDialogOpen(true)}
+                  >
+                    <ChartColumn className="mr-3" />
+                    Compare All
+                  </Button>
+                )}
+                <FormDialog
+                  dialogTitle="Add New Supplier"
+                  buttonTitle="Add Supplier"
+                  dialogWidth="700px"
+                  contentClass="-mt-5"
+                >
+                  <SupplierForm />
+                </FormDialog>
+              </div>
+            </div>
+
+            {/* Compare All Dialog */}
+            <ActionDialog
+              open={isCompareDialogOpen}
+              onOpenChangeAction={setIsCompareDialogOpen}
+              customWidth="!max-w-[60vw]"
+              title={`Compare All - ${totalSupplier} suppliers`}
+              content={
+                <div className="flex flex-col space-y-4">
+                  <span className="text-lg font-semibold text-[#101828]">
+                    Pricing Comparison
+                  </span>
+                  <span className="font-normal text-[#364153]">TN Pricing</span>
+                  <DataTableClient
+                    columns={tnPricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Material Type */}
-          <FormSelect
-            control={productForm.control}
-            name="material_type"
-            label="Material Type*"
-            options={materialTypeOptions}
-            placeholder="Select Material Type"
-            showSearch={true}
-            className="col-span-1"
-          />
-
-          {/* Density (TN/m³) */}
-          <FormField
-            control={productForm.control}
-            name="density_tonnage_per_m3"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Density (TN/m³)*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Density Tonnage per m3"
-                    {...field}
+                  <span className="font-normal text-[#364153]">m³ Pricing</span>
+                  <DataTableClient
+                    columns={m3PricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Product Description */}
-          <FormField
-            control={productForm.control}
-            name="product_description"
-            render={({ field }) => (
-              <FormItem className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                <FormLabel>Product Description*</FormLabel>
-                <FormControl>
-                  <Textarea
-                    className="w-full"
-                    placeholder="Enter Product Description"
-                    {...field}
+                  <span className="font-normal text-[#364153]">
+                    20kg Pricing
+                  </span>
+                  <DataTableClient
+                    columns={kgPricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <span className="font-normal text-[#364153]">
+                    Bulka Pricing
+                  </span>
+                  <DataTableClient
+                    columns={bulkaPricingColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                  <span className="text-lg font-semibold text-[#101828]">
+                    Truck Rates Comparison
+                  </span>
+                  <DataTableClient
+                    columns={truckRateComparisonColumn}
+                    data={convertedProduct?.quarries || []}
+                    simpleTable={true}
+                    useColumnSizing={true}
+                  />
+                </div>
+              }
+              confirmActionNeeded={false}
+            />
+
+            {/* Supplier Table */}
+            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+              <DataTableClient
+                columns={supplierColumns}
+                data={isEditing ? convertedProduct?.quarries ?? [] : []}
+                simpleTable={true}
+              />
+            </div>
+          </div>
 
           {/* Audit Information */}
           {isEditing && (
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6 mt-6'
+                'space-y-6'
               )}
             >
               <h2 className="text-lg font-semibold">Audit Information</h2>
@@ -271,6 +416,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 : 'col-span-1 flex flex-col space-y-2 gap-3'
             )}
           >
+            {isDesktop && (
+              <Button variant="outline" type="button" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
             {!isEditing && (
               <Button
                 form="add-new-product-form"
@@ -278,13 +428,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Adding Product...' : 'Add Product'}
-              </Button>
-            )}
-
-            {isDesktop && (
-              <Button variant="outline" type="button" onClick={onCancel}>
-                Cancel
+                {isSubmitting ? 'Adding Product...' : 'Create Product'}
               </Button>
             )}
 

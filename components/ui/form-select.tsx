@@ -27,8 +27,8 @@ import { ChevronsUpDown, Check } from 'lucide-react';
 
 export interface FormSelectOption {
   /**
-   * The visible text label for the option.
-   * This will be displayed in the dropdown menu and on the button when selected.
+   * Form Select Label.
+   * This will be displayed above the select control
    */
   label: string;
 
@@ -61,6 +61,11 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
    * The text label shown above the select control.
    */
   label?: string;
+
+  /**
+   * The text label shown above the search input field.
+   */
+  searchLabel?: string;
 
   /**
    * An array of options that the user can select from.
@@ -129,6 +134,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
   control,
   name,
   label,
+  searchLabel,
   options,
   placeholder = 'Select...',
   popoverWidthClass = 'w-[200px]',
@@ -177,7 +183,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
               <Command>
                 {showSearch && (
                   <CommandInput
-                    placeholder={`Search ${label}...`}
+                    placeholder={`Search ${searchLabel}...`}
                     className="h-9"
                   />
                 )}
