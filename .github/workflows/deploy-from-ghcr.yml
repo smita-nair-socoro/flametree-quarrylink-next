@@ -27,9 +27,9 @@ env:
   AWS_REGION: ap-southeast-2
 
 permissions:
-  contents: read
-  packages: read      # needed to pull from GHCR
-  id-token: write     # needed for AWS OIDC
+  contents: read      # to checkout code
+  packages: read      # to pull from GitHub Packages/GHCR
+  id-token: write     # for AWS OIDC federation
 
 jobs:
   deploy:
