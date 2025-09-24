@@ -318,6 +318,12 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
     },
   ];
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    supplierForm.handleSubmit(onSubmit)(e);
+  };
+
   async function onSubmit(values: z.infer<typeof NewSupplierFormSchema>) {
     console.log('onSubmit function called!');
     console.log('Supplier Form Values:', values);
@@ -420,7 +426,7 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
             className,
             isSubmitting && 'pointer-events-none'
           )}
-          onSubmit={supplierForm.handleSubmit(onSubmit)}
+          onSubmit={handleSubmit}
         >
           <Tab tabs={tabs} defaultTab={tabs[0].name} className="w-full" />
 
@@ -442,10 +448,13 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
             )}
             {!isEditing && (
               <Button
-                form="add-new-product-form"
+                form="add-new-supplier-form"
                 className={!isDesktop ? 'w-full' : 'cursor-pointer'}
                 type="submit"
                 disabled={isSubmitting}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
               >
                 {isSubmitting ? 'Adding Product...' : 'Add Supplier'}
               </Button>
@@ -453,9 +462,12 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
 
             {isEditing && (
               <Button
-                form="add-new-product-form"
+                form="add-new-supplier-form"
                 type="submit"
                 className={!isDesktop ? 'w-full' : 'cursor-pointer'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
               >
                 Save Changes
               </Button>
