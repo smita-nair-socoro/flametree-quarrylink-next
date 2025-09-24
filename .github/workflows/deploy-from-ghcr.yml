@@ -21,7 +21,7 @@ on:
       invalidate_all:
         description: "Invalidate /* (true) or only critical paths (false)"
         required: true
-        default: "false"
+        default: "true"
 
 env:
   AWS_REGION: ap-southeast-2
