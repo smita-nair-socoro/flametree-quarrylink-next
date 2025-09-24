@@ -42,10 +42,10 @@ export function PricingConfigurationTable({
 
   // Rows configuration
   const rows: FormTableRow[] = [
-    { id: 'TN', label: 'TN*' },
-    { id: 'M3', label: 'm³' },
-    { id: 'KG', label: '25Kg' },
-    { id: 'Bulk', label: 'Bulk' },
+    { id: 'tn', label: 'TN*' },
+    { id: 'm3', label: 'm³' },
+    { id: 'kg', label: '20kg' },
+    { id: 'bulka', label: 'Bulka' },
   ];
 
   // Cells configuration
@@ -119,7 +119,7 @@ export function PricingConfigurationTable({
       type: 'switch',
       showLabel: true,
       className: 'w-36',
-      disabled: (row) => row.id === 'TN', // TN is always available for sale
+      disabled: (row) => row.id === 'tn', // TN is always available for sale
     },
   ];
 

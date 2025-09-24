@@ -298,7 +298,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     useColumnSizing={true}
                   />
                   <span className="font-normal text-[#364153]">
-                    25kg Pricing
+                    20kg Pricing
                   </span>
                   <DataTableClient
                     columns={kgPricingColumn}

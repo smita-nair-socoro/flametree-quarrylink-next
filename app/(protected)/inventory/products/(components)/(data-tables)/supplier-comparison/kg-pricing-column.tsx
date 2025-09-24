@@ -19,7 +19,7 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'cost_price',
-    accessorFn: (row) => row.price.kg_20_cost_price,
+    accessorFn: (row) => row.price.kg_cost_price,
     header: ({}) => {
       return <div>Cost Price</div>;
     },
@@ -27,8 +27,8 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_kg === false) {
         return <div>N/A</div>;
       } else {
-        const costPrice = row.original.price.kg_20_cost_price
-          ? centsToDollars(row.original.price.kg_20_cost_price)
+        const costPrice = row.original.price.kg_cost_price
+          ? centsToDollars(row.original.price.kg_cost_price)
           : '0';
         return <div>${costPrice}</div>;
       }
@@ -38,7 +38,7 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'sell_price',
-    accessorFn: (row) => row.price.kg_20_sell_price,
+    accessorFn: (row) => row.price.kg_sell_price,
     header: ({}) => {
       return <div>Sell Price</div>;
     },
@@ -46,8 +46,8 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       if (row.original.price.available_for_sale_kg === false) {
         return <div>N/A</div>;
       } else {
-        const sellPrice = row.original.price.kg_20_sell_price
-          ? centsToDollars(row.original.price.kg_20_sell_price)
+        const sellPrice = row.original.price.kg_sell_price
+          ? centsToDollars(row.original.price.kg_sell_price)
           : '0';
         return <div>${sellPrice}</div>;
       }

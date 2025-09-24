@@ -66,50 +66,50 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
       supplier_product_code: isEditing
         ? selectedSupplier?.supplier_product_code || ''
         : '',
-      cost_price_TN: isEditing
+      cost_price_tn: isEditing
         ? (selectedSupplier?.price.tn_cost_price || 0) / 100
         : 0,
-      sell_price_TN: isEditing
+      sell_price_tn: isEditing
         ? (selectedSupplier?.price.tn_sell_price || 0) / 100
         : 0,
-      cost_price_M3: isEditing
+      cost_price_m3: isEditing
         ? (selectedSupplier?.price.m3_cost_price || 0) / 100
         : 0,
-      sell_price_M3: isEditing
+      sell_price_m3: isEditing
         ? (selectedSupplier?.price.m3_sell_price || 0) / 100
         : 0,
-      cost_price_KG: isEditing
-        ? (selectedSupplier?.price.kg_20_cost_price || 0) / 100
+      cost_price_kg: isEditing
+        ? (selectedSupplier?.price.kg_cost_price || 0) / 100
         : 0,
-      sell_price_KG: isEditing
-        ? (selectedSupplier?.price.kg_20_sell_price || 0) / 100
+      sell_price_kg: isEditing
+        ? (selectedSupplier?.price.kg_sell_price || 0) / 100
         : 0,
-      cost_price_Bulk: isEditing
+      cost_price_bulka: isEditing
         ? (selectedSupplier?.price.bulka_cost_price || 0) / 100
         : 0,
-      sell_price_Bulk: isEditing
+      sell_price_bulka: isEditing
         ? (selectedSupplier?.price.bulka_sell_price || 0) / 100
         : 0,
-      margin_TN: isEditing ? selectedSupplier?.price.margin_tn || 0 : 0,
-      margin_M3: isEditing ? selectedSupplier?.price.margin_m3 || 0 : 0,
-      margin_KG: isEditing ? selectedSupplier?.price.margin_kg || 0 : 0,
-      margin_BULK: isEditing ? selectedSupplier?.price.margin_bulk || 0 : 0,
-      available_for_sale_TN: isEditing
+      margin_tn: isEditing ? selectedSupplier?.price.margin_tn || 0 : 0,
+      margin_m3: isEditing ? selectedSupplier?.price.margin_m3 || 0 : 0,
+      margin_kg: isEditing ? selectedSupplier?.price.margin_kg || 0 : 0,
+      margin_bulka: isEditing ? selectedSupplier?.price.margin_bulka || 0 : 0,
+      available_for_sale_tn: isEditing
         ? selectedSupplier?.price.available_for_sale_tn || true
         : true,
-      available_for_sale_M3: isEditing
+      available_for_sale_m3: isEditing
         ? selectedSupplier?.price.available_for_sale_m3 || false
         : false,
-      available_for_sale_KG: isEditing
+      available_for_sale_kg: isEditing
         ? selectedSupplier?.price.available_for_sale_kg || false
         : false,
-      available_for_sale_Bulk: isEditing
-        ? selectedSupplier?.price.available_for_sale_bulk || false
+      available_for_sale_bulka: isEditing
+        ? selectedSupplier?.price.available_for_sale_bulka || false
         : false,
-      truck_TN_rate: isEditing
+      truck_tn_rate: isEditing
         ? (selectedSupplier?.price.truck_tn_rate || 0) / 100
         : 0,
-      truck_M3_rate: isEditing
+      truck_m3_rate: isEditing
         ? (selectedSupplier?.price.truck_m3_rate || 0) / 100
         : 0,
       truck_hourly_rate: isEditing
@@ -118,10 +118,10 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
       truck_load_rate: isEditing
         ? (selectedSupplier?.price.truck_load_rate || 0) / 100
         : 0,
-      available_truck_TN_rate: isEditing
+      available_truck_tn_rate: isEditing
         ? selectedSupplier?.price.available_truck_tn_rate || false
         : false,
-      available_truck_M3_rate: isEditing
+      available_truck_m3_rate: isEditing
         ? selectedSupplier?.price.available_truck_m3_rate || false
         : false,
       available_truck_hourly_rate: isEditing
@@ -137,20 +137,22 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
   const watchedProductCode = supplierForm.watch('supplier_product_code');
 
   // Watch availability switches for pricing
-  const watchedAvailabilityTN = supplierForm.watch('available_for_sale_TN');
-  const watchedAvailabilityM3 = supplierForm.watch('available_for_sale_M3');
-  const watchedAvailabilityKG = supplierForm.watch('available_for_sale_KG');
-  const watchedAvailabilityBulk = supplierForm.watch('available_for_sale_Bulk');
+  const watchedAvailabilityTN = supplierForm.watch('available_for_sale_tn');
+  const watchedAvailabilityM3 = supplierForm.watch('available_for_sale_m3');
+  const watchedAvailabilityKG = supplierForm.watch('available_for_sale_kg');
+  const watchedAvailabilityBulk = supplierForm.watch(
+    'available_for_sale_bulka'
+  );
 
   // Watch price changes for margin calculation
-  const watchedCostTN = supplierForm.watch('cost_price_TN');
-  const watchedSellTN = supplierForm.watch('sell_price_TN');
-  const watchedCostM3 = supplierForm.watch('cost_price_M3');
-  const watchedSellM3 = supplierForm.watch('sell_price_M3');
-  const watchedCostKG = supplierForm.watch('cost_price_KG');
-  const watchedSellKG = supplierForm.watch('sell_price_KG');
-  const watchedCostBulk = supplierForm.watch('cost_price_Bulk');
-  const watchedSellBulk = supplierForm.watch('sell_price_Bulk');
+  const watchedCostTN = supplierForm.watch('cost_price_tn');
+  const watchedSellTN = supplierForm.watch('sell_price_tn');
+  const watchedCostM3 = supplierForm.watch('cost_price_m3');
+  const watchedSellM3 = supplierForm.watch('sell_price_m3');
+  const watchedCostKG = supplierForm.watch('cost_price_kg');
+  const watchedSellKG = supplierForm.watch('sell_price_kg');
+  const watchedCostBulk = supplierForm.watch('cost_price_bulka');
+  const watchedSellBulk = supplierForm.watch('sell_price_bulka');
 
   // Calculate margin percentage
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
@@ -162,25 +164,25 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
   React.useEffect(() => {
     const units = [
       {
-        key: 'TN',
+        key: 'tn',
         cost: watchedCostTN,
         sell: watchedSellTN,
         available: watchedAvailabilityTN,
       },
       {
-        key: 'M3',
+        key: 'm3',
         cost: watchedCostM3,
         sell: watchedSellM3,
         available: watchedAvailabilityM3,
       },
       {
-        key: 'KG',
+        key: 'kg',
         cost: watchedCostKG,
         sell: watchedSellKG,
         available: watchedAvailabilityKG,
       },
       {
-        key: 'Bulk',
+        key: 'bulka',
         cost: watchedCostBulk,
         sell: watchedSellBulk,
         available: watchedAvailabilityBulk,
@@ -191,7 +193,7 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
       // Always calculate margin based on cost and sell prices, regardless of availability
       const marginValue = calculateMargin(cost || 0, sell || 0);
 
-      const fieldName = key === 'Bulk' ? 'margin_BULK' : `margin_${key}`;
+      const fieldName = key === 'bulka' ? 'margin_bulka' : `margin_${key}`;
       supplierForm.setValue(
         fieldName as keyof z.infer<typeof NewSupplierFormSchema>,
         marginValue
@@ -331,33 +333,33 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
     // Reset pricing values to 0 if availability switches are off
     const processedValues = { ...values };
 
-    if (!processedValues.available_for_sale_TN) {
-      processedValues.cost_price_TN = 0;
-      processedValues.sell_price_TN = 0;
-      processedValues.margin_TN = 0;
+    if (!processedValues.available_for_sale_tn) {
+      processedValues.cost_price_tn = 0;
+      processedValues.sell_price_tn = 0;
+      processedValues.margin_tn = 0;
     }
-    if (!processedValues.available_for_sale_M3) {
-      processedValues.cost_price_M3 = 0;
-      processedValues.sell_price_M3 = 0;
-      processedValues.margin_M3 = 0;
+    if (!processedValues.available_for_sale_m3) {
+      processedValues.cost_price_m3 = 0;
+      processedValues.sell_price_m3 = 0;
+      processedValues.margin_m3 = 0;
     }
-    if (!processedValues.available_for_sale_KG) {
-      processedValues.cost_price_KG = 0;
-      processedValues.sell_price_KG = 0;
-      processedValues.margin_KG = 0;
+    if (!processedValues.available_for_sale_kg) {
+      processedValues.cost_price_kg = 0;
+      processedValues.sell_price_kg = 0;
+      processedValues.margin_kg = 0;
     }
-    if (!processedValues.available_for_sale_Bulk) {
-      processedValues.cost_price_Bulk = 0;
-      processedValues.sell_price_Bulk = 0;
-      processedValues.margin_BULK = 0;
+    if (!processedValues.available_for_sale_bulka) {
+      processedValues.cost_price_bulka = 0;
+      processedValues.sell_price_bulka = 0;
+      processedValues.margin_bulka = 0;
     }
 
     // Reset truck rate values to 0 if availability switches are off
-    if (!processedValues.available_truck_TN_rate) {
-      processedValues.truck_TN_rate = 0;
+    if (!processedValues.available_truck_tn_rate) {
+      processedValues.truck_tn_rate = 0;
     }
-    if (!processedValues.available_truck_M3_rate) {
-      processedValues.truck_M3_rate = 0;
+    if (!processedValues.available_truck_m3_rate) {
+      processedValues.truck_m3_rate = 0;
     }
     if (!processedValues.available_truck_hourly_rate) {
       processedValues.truck_hourly_rate = 0;
@@ -368,16 +370,16 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
 
     // Convert prices from dollars to cents for database storage
     const priceFieldsToConvert = [
-      'cost_price_TN',
-      'sell_price_TN',
-      'cost_price_M3',
-      'sell_price_M3',
-      'cost_price_KG',
-      'sell_price_KG',
-      'cost_price_Bulk',
-      'sell_price_Bulk',
-      'truck_TN_rate',
-      'truck_M3_rate',
+      'cost_price_tn',
+      'sell_price_tn',
+      'cost_price_m3',
+      'sell_price_m3',
+      'cost_price_kg',
+      'sell_price_kg',
+      'cost_price_bulka',
+      'sell_price_bulka',
+      'truck_tn_rate',
+      'truck_m3_rate',
       'truck_hourly_rate',
       'truck_load_rate',
     ] as const;

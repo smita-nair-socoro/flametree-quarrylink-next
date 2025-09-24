@@ -9,45 +9,45 @@ const Base = z.object({
     .max(100, { message: "Product Name can't be more than 100 characters" }),
   supplier_product_code: z.string().nonempty({ message: 'Required' }),
 
-  cost_price_TN: z.coerce.number().optional(),
-  sell_price_TN: z.coerce.number().optional(),
-  cost_price_M3: z.coerce.number().optional(),
-  sell_price_M3: z.coerce.number().optional(),
-  cost_price_KG: z.coerce.number().optional(),
-  sell_price_KG: z.coerce.number().optional(),
-  cost_price_Bulk: z.coerce.number().optional(),
-  sell_price_Bulk: z.coerce.number().optional(),
-  margin_TN: z.coerce.number().optional(),
-  margin_M3: z.coerce.number().optional(),
-  margin_KG: z.coerce.number().optional(),
-  margin_BULK: z.coerce.number().optional(),
-  available_for_sale_TN: z.boolean(),
-  available_for_sale_M3: z.boolean(),
-  available_for_sale_KG: z.boolean(),
-  available_for_sale_Bulk: z.boolean(),
+  cost_price_tn: z.coerce.number().optional(),
+  sell_price_tn: z.coerce.number().optional(),
+  cost_price_m3: z.coerce.number().optional(),
+  sell_price_m3: z.coerce.number().optional(),
+  cost_price_kg: z.coerce.number().optional(),
+  sell_price_kg: z.coerce.number().optional(),
+  cost_price_bulka: z.coerce.number().optional(),
+  sell_price_bulka: z.coerce.number().optional(),
+  margin_tn: z.coerce.number().optional(),
+  margin_m3: z.coerce.number().optional(),
+  margin_kg: z.coerce.number().optional(),
+  margin_bulka: z.coerce.number().optional(),
+  available_for_sale_tn: z.boolean(),
+  available_for_sale_m3: z.boolean(),
+  available_for_sale_kg: z.boolean(),
+  available_for_sale_bulka: z.boolean(),
 
-  truck_TN_rate: z.coerce.number().optional(),
-  truck_M3_rate: z.coerce.number().optional(),
+  truck_tn_rate: z.coerce.number().optional(),
+  truck_m3_rate: z.coerce.number().optional(),
   truck_hourly_rate: z.coerce.number().optional(),
   truck_load_rate: z.coerce.number().optional(),
-  available_truck_TN_rate: z.boolean(),
-  available_truck_M3_rate: z.boolean(),
+  available_truck_tn_rate: z.boolean(),
+  available_truck_m3_rate: z.boolean(),
   available_truck_hourly_rate: z.boolean(),
   available_truck_load_rate: z.boolean(),
 });
 
 export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
   // TN is always required to be available for sale
-  if (data.available_for_sale_TN !== true) {
+  if (data.available_for_sale_tn !== true) {
     ctx.addIssue({
-      path: ['available_for_sale_TN'],
+      path: ['available_for_sale_tn'],
       code: z.ZodIssueCode.custom,
       message: 'TN must always be available',
     });
   }
 
   // Pricing configuration validations
-  const units = ['TN', 'M3', 'KG', 'Bulk'] as const;
+  const units = ['tn', 'm3', 'kg', 'bulka'] as const;
   for (const unit of units) {
     if (data[`available_for_sale_${unit}`] === true) {
       // When switch is on, cost price and sell price should not be empty
@@ -76,8 +76,8 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
 
   // Truck rates validation - at least one rate type must be available
   const truckUnits = [
-    'TN_rate',
-    'M3_rate',
+    'tn_rate',
+    'm3_rate',
     'hourly_rate',
     'load_rate',
   ] as const;
@@ -88,7 +88,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
 
   if (!hasAnyTruckRateAvailable) {
     ctx.addIssue({
-      path: ['available_truck_TN_rate'],
+      path: ['available_truck_tn_rate'],
       code: z.ZodIssueCode.custom,
       message: 'At least one must be available',
     });

@@ -70,7 +70,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'truck hourly rate',
-    size: 120,
+    size: 160,
   },
   {
     id: 'truck_load_rate',

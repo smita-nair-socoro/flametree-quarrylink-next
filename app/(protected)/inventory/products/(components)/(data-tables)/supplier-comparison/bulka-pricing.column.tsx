@@ -24,7 +24,7 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return <div>Cost Price</div>;
     },
     cell: ({ row }) => {
-      if (row.original.price.available_for_sale_bulk === false) {
+      if (row.original.price.available_for_sale_bulka === false) {
         return <div>N/A</div>;
       } else {
         const costPrice = row.original.price.bulka_cost_price
@@ -43,7 +43,7 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return <div>Sell Price</div>;
     },
     cell: ({ row }) => {
-      if (row.original.price.available_for_sale_bulk === false) {
+      if (row.original.price.available_for_sale_bulka === false) {
         return <div>N/A</div>;
       } else {
         const sellPrice = row.original.price.bulka_sell_price
@@ -57,15 +57,15 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'margin',
-    accessorFn: (row) => row.price.margin_bulk,
+    accessorFn: (row) => row.price.margin_bulka,
     header: ({}) => {
       return <div>Margin</div>;
     },
     cell: ({ row }) => {
-      if (row.original.price.available_for_sale_bulk === false) {
+      if (row.original.price.available_for_sale_bulka === false) {
         return <div>N/A</div>;
       } else {
-        const margin = row.original.price.margin_bulk || 0;
+        const margin = row.original.price.margin_bulka || 0;
         return (
           <div
             className={cn(
@@ -84,14 +84,14 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     size: 160,
   },
   {
-    id: 'available_for_sale_bulk',
-    accessorFn: (row) => row.price.available_for_sale_bulk,
+    id: 'available_for_sale_bulka',
+    accessorFn: (row) => row.price.available_for_sale_bulka,
     header: ({}) => {
       return <div className="text-left">Available</div>;
     },
     cell: ({ row }) => {
       const availableForSale =
-        row.original.price.available_for_sale_bulk === true ? 'true' : 'false';
+        row.original.price.available_for_sale_bulka === true ? 'true' : 'false';
       return <div className="text-left">{availableForSale}</div>;
     },
     meta: 'available for sale',
