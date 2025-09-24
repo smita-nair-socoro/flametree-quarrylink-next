@@ -126,14 +126,13 @@ jobs:
             --content-type "application/json"
 
       # Invalidate CloudFront
+      # For "${INVALIDATE_ALL}" = "false" - only invalidate things likely to be cached aggressively but must update immediately. Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
       - name: Create CloudFront invalidation
         run: |
           set -euo pipefail
           if [ "${INVALIDATE_ALL}" = "true" ]; then
             PATHS='/*'
           else
-            # Only invalidate things likely to be cached aggressively but must update immediately
-            # Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
             PATHS='/config.json /index.html'
           fi
           aws cloudfront create-invalidation \
