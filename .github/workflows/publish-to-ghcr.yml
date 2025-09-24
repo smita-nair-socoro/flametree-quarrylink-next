@@ -18,10 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Setup Node.js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+
       # Setup Bun (includes cache support)
       - uses: oven-sh/setup-bun@v1
         with:
-          bun-version: 'latest'
+          bun-version: '1.2.22'
 
       # Install deps via Bun (uses bun.lockb if present)
       - run: bun install --frozen-lockfile
