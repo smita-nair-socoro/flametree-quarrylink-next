@@ -26,12 +26,12 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
   // Rows configuration
   const rows: FormTableRow[] = [
     {
-      id: 'TN_rate',
+      id: 'tn_rate',
       label: 'TN Rate',
       data: { unit: 'per TN' },
     },
     {
-      id: 'M3_rate',
+      id: 'm3_rate',
       label: 'm³ Rate',
       data: { unit: 'per m³' },
     },

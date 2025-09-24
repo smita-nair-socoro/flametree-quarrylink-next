@@ -121,150 +121,158 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-product-form"
           className={cn(
-            'gap-6 p-1 w-full mt-6',
-            isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
+            'gap-12 p-1 w-full mt-6 flex flex-col',
             className,
             isSubmitting && 'pointer-events-none'
           )}
           onSubmit={productForm.handleSubmit(onSubmit)}
         >
-          <FormField
-            control={productForm.control}
-            name="product_name"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Product Name*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Product Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Product Code */}
-          <FormField
-            control={productForm.control}
-            name="product_code"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Product Code*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Product Code"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Material Type */}
-          <FormSelect
-            control={productForm.control}
-            name="material_type"
-            label="Material Type*"
-            options={materialTypeOptions}
-            placeholder="Select Material Type"
-            showSearch={true}
-            className="col-span-1"
-          />
-
-          {/* Density (TN/m³) */}
-          <FormField
-            control={productForm.control}
-            name="density_tonnage_per_m3"
-            render={({ field }) => (
-              <FormItem className="col-span-1">
-                <FormLabel>Density (TN/m³)*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Density Tonnage per m3"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Product Description */}
-          <FormField
-            control={productForm.control}
-            name="product_description"
-            render={({ field }) => (
-              <FormItem className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                <FormLabel>Product Description*</FormLabel>
-                <FormControl>
-                  <Textarea
-                    className="w-full"
-                    placeholder="Enter Product Description"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Supplier Table */}
           <div
             className={cn(
-              isDesktop
-                ? 'flex justify-between items-center col-span-2'
-                : 'flex flex-col gap-4 col-span-1'
+              'gap-6 p-1 w-full mt-6',
+              isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
+              className,
+              isSubmitting && 'pointer-events-none'
             )}
           >
-            <div className="flex flex-col gap-1">
-              <span className="text-lg font-semibold">
-                Supplier Information
-              </span>
-              {isEditing && (
-                <span className="text-sm text-gray-500">
-                  {totalSupplier} suppliers configured with pricing and truck
-                  rates
-                </span>
+            <FormField
+              control={productForm.control}
+              name="product_name"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Product Name*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Product Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              {!isEditing && (
-                <span className="text-sm text-gray-500">
-                  Add suppliers after creaeting the product
-                </span>
-              )}
-            </div>
+            />
 
-            <div
-              className={cn('flex items-center gap-2', !isDesktop && 'mt-2')}
-            >
-              {isEditing && (
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-1"
-                  onClick={() => setIsCompareDialogOpen(true)}
-                >
-                  <ChartColumn className="mr-3" />
-                  Compare All
-                </Button>
+            {/* Product Code */}
+            <FormField
+              control={productForm.control}
+              name="product_code"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Product Code*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Product Code"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              <FormDialog
-                dialogTitle="Add New Supplier"
-                buttonTitle="Add Supplier"
-                dialogWidth="700px"
-                contentClass="-mt-5"
-              >
-                <SupplierForm />
-              </FormDialog>
-            </div>
+            />
+
+            {/* Material Type */}
+            <FormSelect
+              control={productForm.control}
+              name="material_type"
+              label="Material Type*"
+              options={materialTypeOptions}
+              placeholder="Select Material Type"
+              showSearch={true}
+              className="col-span-1"
+            />
+
+            {/* Density (TN/m³) */}
+            <FormField
+              control={productForm.control}
+              name="density_tonnage_per_m3"
+              render={({ field }) => (
+                <FormItem className="col-span-1">
+                  <FormLabel>Density (TN/m³)*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Density Tonnage per m3"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Product Description */}
+            <FormField
+              control={productForm.control}
+              name="product_description"
+              render={({ field }) => (
+                <FormItem className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                  <FormLabel>Product Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      className="w-full"
+                      placeholder="Enter Product Description"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          {/* Compare All Dialog */}
-          <div className="flex flex-col gap-3">
+          {/* Supplier Table */}
+          <div className="flex flex-col gap-4">
+            <div
+              className={cn(
+                isDesktop
+                  ? 'flex justify-between items-center'
+                  : 'flex flex-col gap-4'
+              )}
+            >
+              <div className="flex flex-col gap-0">
+                <span className="text-lg font-semibold">
+                  Supplier Information
+                </span>
+                {isEditing && (
+                  <span className="text-sm text-gray-500">
+                    {totalSupplier} suppliers configured with pricing and truck
+                    rates
+                  </span>
+                )}
+                {!isEditing && (
+                  <span className="text-sm text-gray-500">
+                    Add suppliers after creaeting the product
+                  </span>
+                )}
+              </div>
+
+              <div
+                className={cn('flex items-center gap-2', !isDesktop && 'mb-2')}
+              >
+                {isEditing && (
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setIsCompareDialogOpen(true)}
+                  >
+                    <ChartColumn className="mr-3" />
+                    Compare All
+                  </Button>
+                )}
+                <FormDialog
+                  dialogTitle="Add New Supplier"
+                  buttonTitle="Add Supplier"
+                  dialogWidth="700px"
+                  contentClass="-mt-5"
+                >
+                  <SupplierForm />
+                </FormDialog>
+              </div>
+            </div>
+
+            {/* Compare All Dialog */}
             <ActionDialog
               open={isCompareDialogOpen}
               onOpenChangeAction={setIsCompareDialogOpen}
@@ -290,7 +298,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     useColumnSizing={true}
                   />
                   <span className="font-normal text-[#364153]">
-                    25kg Pricing
+                    20kg Pricing
                   </span>
                   <DataTableClient
                     columns={kgPricingColumn}
@@ -320,35 +328,23 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               }
               confirmActionNeeded={false}
             />
+
+            {/* Supplier Table */}
+            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+              <DataTableClient
+                columns={supplierColumns}
+                data={isEditing ? convertedProduct?.quarries ?? [] : []}
+                simpleTable={true}
+              />
+            </div>
           </div>
-
-          {/* Supplier Table */}
-          {isEditing && (
-            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-              <DataTableClient
-                columns={supplierColumns}
-                data={convertedProduct?.quarries ?? []}
-                simpleTable={true}
-              />
-            </div>
-          )}
-
-          {!isEditing && (
-            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-              <DataTableClient
-                columns={supplierColumns}
-                data={[]}
-                simpleTable={true}
-              />
-            </div>
-          )}
 
           {/* Audit Information */}
           {isEditing && (
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6 mt-6'
+                'space-y-6'
               )}
             >
               <h2 className="text-lg font-semibold">Audit Information</h2>
@@ -420,6 +416,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 : 'col-span-1 flex flex-col space-y-2 gap-3'
             )}
           >
+            {isDesktop && (
+              <Button variant="outline" type="button" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
             {!isEditing && (
               <Button
                 form="add-new-product-form"
@@ -427,13 +428,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Adding Product...' : 'Add Product'}
-              </Button>
-            )}
-
-            {isDesktop && (
-              <Button variant="outline" type="button" onClick={onCancel}>
-                Cancel
+                {isSubmitting ? 'Adding Product...' : 'Create Product'}
               </Button>
             )}
 
