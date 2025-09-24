@@ -1,10 +1,9 @@
 import { baseUrl, getTenantId, getUser } from '../utils';
-import { userManager } from '../auth/authManager';
+import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
-import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -128,8 +127,8 @@ export async function HttpClient<T = unknown>(
     },
   };
 
-  const authUser = getUser();
-  const tenantId = getTenantId();
+  const authUser = await getUser();        // ✅ Properly awaited
+const tenantId = await getTenantId();    // ✅ Properly awaited
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -257,13 +256,7 @@ export async function HttpClient<T = unknown>(
     // It is most likely an error.
     switch (response.status) {
       case 403: {
-        const userManagerInstance = userManager(getRuntimeConfig());
-        await userManagerInstance.removeUser();
-
-        await userManagerInstance.signoutRedirect({
-          post_logout_redirect_uri: window.location.origin,
-        });
-
+        await handleLogout();
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 500: {

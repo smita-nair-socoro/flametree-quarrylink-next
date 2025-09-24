@@ -3,6 +3,11 @@ export type RuntimeConfig = {
   COGNITO_DOMAIN: string;
   COGNITO_CLIENT_ID: string;
   COGNITO_REDIRECT_URI: string;
+  AMPLIFY_AUTH?: {
+    region: string;
+    userPoolId: string;
+    userPoolWebClientId: string;
+  };
   GOOGLE_MAPS_API_KEY: string;
   API_URL: string;
   SENTRY_DSN?: string | null;
