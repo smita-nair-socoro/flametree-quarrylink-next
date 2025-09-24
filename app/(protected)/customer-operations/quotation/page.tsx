@@ -1,52 +1,32 @@
 'use client';
 
+import React from 'react';
 import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { Activity, Factory, Share, Tags } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { ProductsListQueryOptions } from '@/lib/api/quaries';
-import { LoadingSpinner } from '@/components/loading-spinner';
-import { notifyError } from '@/lib/toast';
+import { Activity, Factory, Tags } from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import rawJson from '@/lib/tests/quotationResponseData.json';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import { Button } from '@/components/ui/button';
-import { QUOTE_STATUS, QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 export default function QuotationsPage() {
-  //TODO: Fetch from server
-
-  const quotationQuery = useQuery(ProductsListQueryOptions());
-
   const convertedJson = convertKeysToSnakeCase(rawJson);
-
   const { items: rawItems } = convertedJson as unknown as {
     items: Array<
-      Omit<QuotationDetails, 'quote_type' | 'quote_status'> & {
-        quote_type: string;
-        quote_status: string;
+      Omit<Quotation, 'quoteId'> & {
+        quoteId: number;
       }
     >;
   };
 
-  const items: QuotationDetails[] = rawItems.map((item) => ({
+  const items: Quotation[] = rawItems.map((item) => ({
     ...item,
-    quote_type: item.quote_type as QUOTE_TYPE,
-    quote_status: item.quote_status as QUOTE_STATUS,
+    quoteId: item.id,
   }));
-
-  if (quotationQuery.isLoading) {
-    return <LoadingSpinner message="Loading Quotations" />;
-  }
-
-  if (quotationQuery.error) {
-    notifyError('Quotation', { description: 'Error loading Quotations' });
-  }
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
@@ -64,14 +44,11 @@ export default function QuotationsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <Button variant="secondary">
-            <Share className="w-10 h-20" />
-            Export
-          </Button>
           <FormDialog
-            dialogTitle="Add Quote"
+            dialogTitle="Add New Quote"
             dialogDescription="This is a card description."
             buttonTitle="Add Quote"
+            headerSeparator={true}
           >
             <QuotationForm />
           </FormDialog>

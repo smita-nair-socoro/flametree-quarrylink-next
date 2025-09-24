@@ -1,22 +1,22 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 
 interface QuotationStore {
-  quotations: QuotationDetails[];
-  selectedQuotation: QuotationDetails | null;
+  quotations: Quotation[];
+  selectedQuotation: Quotation | null;
   isLoading: boolean;
 
   // Actions
-  setQuotations: (quotations: QuotationDetails[]) => void;
-  setSelectedQuotation: (quotation: QuotationDetails | null) => void;
+  setQuotations: (quotations: Quotation[]) => void;
+  setSelectedQuotation: (quotation: Quotation | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getQuotationById: (id: number) => QuotationDetails | undefined;
-  getQuotationsByStatus: (status: string) => QuotationDetails[];
-  getPendingQuotations: () => QuotationDetails[];
-  getApprovedQuotations: () => QuotationDetails[];
-  getDraftQuotations: () => QuotationDetails[];
+  getQuotationById: (id: number) => Quotation | undefined;
+  getQuotationsByStatus: (status: string) => Quotation[];
+  getPendingQuotations: () => Quotation[];
+  getApprovedQuotations: () => Quotation[];
+  getDraftQuotations: () => Quotation[];
   getQuotationStats: () => {
     total: number;
     pending: number;
@@ -49,22 +49,22 @@ export const useQuotationStore = create<QuotationStore>()(
 
       getQuotationsByStatus: (status) => {
         const state = get();
-        return state.quotations.filter((q) => q.quote_status === status);
+        return state.quotations.filter((q) => q.status === status);
       },
 
       getPendingQuotations: () => {
         const state = get();
-        return state.quotations.filter((q) => q.quote_status === 'PENDING');
+        return state.quotations.filter((q) => q.status === 'PENDING');
       },
 
       getApprovedQuotations: () => {
         const state = get();
-        return state.quotations.filter((q) => q.quote_status === 'APPROVED');
+        return state.quotations.filter((q) => q.status === 'APPROVED');
       },
 
       getDraftQuotations: () => {
         const state = get();
-        return state.quotations.filter((q) => q.quote_status === 'DRAFT');
+        return state.quotations.filter((q) => q.status === 'DRAFT');
       },
 
       getQuotationStats: () => {
@@ -73,20 +73,18 @@ export const useQuotationStore = create<QuotationStore>()(
 
         return {
           total: quotations.length,
-          pending: quotations.filter((q) => q.quote_status === 'PENDING')
-            .length,
-          approved: quotations.filter((q) => q.quote_status === 'APPROVED')
-            .length,
-          draft: quotations.filter((q) => q.quote_status === 'DRAFT').length,
+          pending: quotations.filter((q) => q.status === 'PENDING').length,
+          approved: quotations.filter((q) => q.status === 'APPROVED').length,
+          draft: quotations.filter((q) => q.status === 'DRAFT').length,
           totalValue: quotations.reduce(
             (sum, q) => sum + (q.total_sell_price || 0),
-            0,
+            0
           ),
         };
       },
     }),
-    { name: 'quotation-store' },
-  ),
+    { name: 'quotation-store' }
+  )
 );
 
 export const useSelectedQuotation = () =>
@@ -94,53 +92,3 @@ export const useSelectedQuotation = () =>
 
 export const useQuotations = () =>
   useQuotationStore((state) => state.quotations);
-
-export const useQuotationLoading = () =>
-  useQuotationStore((state) => state.isLoading);
-
-export const useQuotationById = (id: number) => {
-  return useQuotationStore((state) =>
-    state.quotations.find((q) => q.id === id),
-  );
-};
-
-export const useQuotationsByStatus = (status: string) => {
-  return useQuotationStore((state) =>
-    state.quotations.filter((q) => q.quote_status === status),
-  );
-};
-
-// Get quotation stats
-export const useQuotationStats = () => {
-  return useQuotationStore((state) => {
-    const quotations = state.quotations;
-    return {
-      total: quotations.length,
-      pending: quotations.filter((q) => q.quote_status === 'PENDING').length,
-      approved: quotations.filter((q) => q.quote_status === 'APPROVED').length,
-      draft: quotations.filter((q) => q.quote_status === 'DRAFT').length,
-      totalValue: quotations.reduce(
-        (sum, q) => sum + (q.total_sell_price || 0),
-        0,
-      ),
-    };
-  });
-};
-
-import { useMemo } from 'react';
-
-export const useQuotationByIdOptimized = (id: number) => {
-  const quotations = useQuotations();
-
-  return useMemo(() => {
-    return quotations.find((q) => q.id === id);
-  }, [quotations, id]);
-};
-
-export const useQuotationsByStatusOptimized = (status: string) => {
-  const quotations = useQuotations();
-
-  return useMemo(() => {
-    return quotations.filter((q) => q.quote_status === status);
-  }, [quotations, status]);
-};
