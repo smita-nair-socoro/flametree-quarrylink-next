@@ -62,8 +62,6 @@ jobs:
           set -euo pipefail
           mkdir -p site
           tar -xzf _pkg/site.tar.gz -C site
-          cd site
-          ls -lah
 
       # Build and overwrite config.json directly with jq
       - name: Generate config.json with jq
@@ -116,13 +114,13 @@ jobs:
             --delete \
 
       # Overwrite config.json with no-store to ensure instant refresh
-#      - name: Upload config.json with no-store
-#        run: |
-#          set -euo pipefail
-#          aws s3 cp site/config.json "s3://${{ secrets.S3_BUCKET_NAME }}/config.json" \
-#            --metadata-directive REPLACE \
-#            --cache-control "no-store, must-revalidate" \
-#            --content-type "application/json"
+      - name: Upload config.json with no-store
+        run: |
+          set -euo pipefail
+          aws s3 cp site/config.json "s3://${{ secrets.S3_BUCKET_NAME }}/config.json" \
+            --metadata-directive REPLACE \
+            --cache-control "no-store, must-revalidate" \
+            --content-type "application/json"
 
       # Invalidate CloudFront
       # For "${INVALIDATE_ALL}" = "false" - only invalidate things likely to be cached aggressively but must update immediately. Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
