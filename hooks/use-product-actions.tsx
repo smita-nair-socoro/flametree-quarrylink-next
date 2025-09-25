@@ -5,10 +5,16 @@ import { ProductDetails } from '@/lib/types/product';
 import { ActionDialog } from '@/components/action-dialog';
 import ProductForm from '@/app/(protected)/inventory/products/(components)/forms/product-form';
 import { ProductActionButtons } from '@/app/(protected)/inventory/products/(components)/forms/product-action-buttons';
-import { TriangleAlert, Ban, CircleAlert, CircleCheckBig } from 'lucide-react';
+import {
+  TriangleAlert,
+  Ban,
+  CircleAlert,
+  CircleCheckBig,
+  Truck,
+} from 'lucide-react';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { JobDetails } from '@/lib/types/job';
 
 interface DialogConfig {
@@ -43,8 +49,7 @@ const getDialogConfigs = (
   const productQuotesStatus = () => {
     if (!productData?.quotes?.length) return true;
     return !productData.quotes.some(
-      (q: QuotationDetails) =>
-        q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+      (q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT'
     );
   };
 
@@ -52,11 +57,8 @@ const getDialogConfigs = (
   const quoteName = () => {
     if (productQuotesStatus()) return '';
     return productData?.quotes
-      .filter(
-        (q: QuotationDetails) =>
-          q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
-      )
-      .map((q: QuotationDetails) => q.quote_number)
+      .filter((q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT')
+      .map((q: Quotation) => q.quote_number)
       .join(', ');
   };
 
@@ -64,8 +66,7 @@ const getDialogConfigs = (
   const activeQuoteNumber = () => {
     if (productQuotesStatus()) return 0;
     return productData?.quotes.filter(
-      (q: QuotationDetails) =>
-        q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+      (q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT'
     ).length;
   };
 
@@ -148,16 +149,16 @@ const getDialogConfigs = (
       unavailable: {
         title: `Mark as Unavailable`,
         description: (
-          <div className="flex justify-start gap-2">
-            <div className="flex w-[40px] h-[40px] items-center justify-center bg-red-100 rounded-full">
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFE2E2] rounded-full">
               <span className="flex items-center justify-center">
-                <Ban className="h-5 w-5 text-red-600" />
+                <Ban className="h-[20px] w-[20px] text-[#E7000B]" />
               </span>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
               <span className="font-medium">Mark as Unavailable</span>
               <div className="flex justify-start gap-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[#6A7282]">
                   {productCode} ({productName})
                 </span>
                 <Badge
@@ -172,17 +173,17 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <span className="text-sm text-gray-500">
+            <span className="text-[14px] text-[#364153] font-normal">
               Are you sure you want to mark this product as unavailable?
             </span>
-            <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
+            <div className="border-1 border-[#FFD6A7] rounded-md p-[16.625px] bg-[#FFF7ED]">
               <div className="flex items-start gap-2 self-stretch">
-                <TriangleAlert className="h-5 w-6 text-[#F54900]" />
+                <TriangleAlert className="h-[20px] w-[20px] text-[#F54900] flex-shrink-0" />
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm text-[#9F2D00] font-medium">
+                  <span className="text-[14px] text-[#9F2D00] font-medium">
                     Impact on New Business
                   </span>
-                  <span className="text-sm text-[#CA3500]">
+                  <span className="text-[14px] font-normal text-[#CA3500]">
                     This product will be hidden from new quotes and orders, but
                     existing commitments will continue normally.
                   </span>
@@ -190,10 +191,10 @@ const getDialogConfigs = (
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-semibold">
+              <span className="font-medium text-[14px] text-[#101828]">
                 What happens when marked as unavailable:
               </span>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
                 <li> Hidden from new quote creation</li>
                 <li> Removed from product selection lists</li>
                 <li> Existing quotes and orders continue normally</li>
@@ -202,8 +203,10 @@ const getDialogConfigs = (
               </ul>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-semibold">What continues to work:</span>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What continues to work:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
                 <li>Action quotes can still be converted to orders</li>
                 <li>Pending orders continue through delivery</li>
                 <li>Historical data remains accessible</li>
@@ -222,16 +225,16 @@ const getDialogConfigs = (
       archive: {
         title: `Archive`,
         description: (
-          <div className="flex justify-start gap-2">
-            <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#DBEAFE] rounded-full">
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#DBEAFE] rounded-full">
               <span className="flex items-center justify-center">
-                <CircleAlert className="h-5 w-5 text-[#155DFC]" />
+                <Ban className="h-[20px] w-[20px] text-[#155DFC]" />
               </span>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
               <span className="font-medium">Archive Product with History</span>
               <div className="flex justify-start gap-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[#6A7282]">
                   {productCode} ({productName})
                 </span>
                 <Badge
@@ -245,14 +248,14 @@ const getDialogConfigs = (
           </div>
         ),
         content: (
-          <div className="border-1 border-[#FEE685] rounded-md p-3 bg-[#FFF7ED]">
+          <div className="border-1 border-[#FEE685] rounded-md p-[16.625px] bg-[#FFFBEB]">
             <div className="flex items-start gap-2 self-stretch">
-              <TriangleAlert className="h-5 w-6 text-[#E17100]" />
+              <TriangleAlert className="h-[20px] w-[20px] text-[#E17100] flex-shrink-0" />
               <div className="flex flex-col gap-1">
-                <span className="text-sm text-[#973C00] font-medium">
+                <span className="text-[14px] text-[#973C00] font-medium">
                   Historical Data Preserved
                 </span>
-                <span className="text-sm text-[#BB4D00]">
+                <span className="text-[14px] font-normal text-[#BB4D00]">
                   All past jobs, dockets, quotes and reports will remain
                   accessible.
                 </span>
@@ -269,16 +272,16 @@ const getDialogConfigs = (
       cannotArchive: {
         title: `Archive`,
         description: (
-          <div className="flex justify-start gap-2">
-            <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
-              <span className="flex items-center justify-center">
-                <TriangleAlert className="h-5 w-5 text-[#F54900]" />
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFEDD4] rounded-full">
+              <span className="flex items-center justify-center h-[40px] w-[40px]">
+                <TriangleAlert className="h-[20px] w-[20px] text-[#F54900]" />
               </span>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
               <span className="font-medium">Cannot Archive Product</span>
               <div className="flex justify-start gap-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[#6A7282]">
                   {productName} ({productCode})
                 </span>
                 <Badge
@@ -293,66 +296,90 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <span className="text-sm text-gray-500 font-semibold">
+            <span className="text-[14px] text-[#364153] font-normal">
               This product cannot be archived because it has pending business
               activities:
             </span>
 
-            <div className="flex flex-col gap-5">
-              <span className="font-medium">Active Usage:</span>
-              <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
+              <span className="font-medium text-[#101828] text-[14px]">
+                Active Usage:
+              </span>
+              <div className="flex flex-col gap-1.5">
                 {!productQuotesStatus() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
-                      <span className="mx-auto">
-                        {activeQuoteNumber()} Active quotes: {quoteName()}
-                      </span>
+                      <div className="flex flex-row justify-start gap-1">
+                        <span className="text-[#364153] text-[14px] font-normal">
+                          {activeQuoteNumber()} Active quotes:
+                        </span>
+                        <span className="text-[#155DFC] font-medium text-[14px] underline">
+                          {' '}
+                          {quoteName()}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}
                 {!productJobsStatus() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
-                      <span className="mx-auto">
-                        {activeJobNumber()} Active jobs: {jobNames()}
-                      </span>
+                      <div className="flex flex-row justify-start gap-1">
+                        <span className="text-[#364153] text-[14px] font-normal">
+                          {activeJobNumber()} Active jobs:
+                        </span>
+                        <span className="text-[#155DFC] font-medium text-[14px] underline">
+                          {' '}
+                          {jobNames()}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}
                 {!productDocketStatus() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
-                      <span className="mx-auto">
-                        {activeDocketNumber()} Active dockets: {docketNames()}
-                      </span>
+                      <div className="flex flex-row justify-start gap-1">
+                        <span className="text-[#364153] text-[14px] font-normal">
+                          {activeDocketNumber()} Active dockets:
+                        </span>
+                        <span className="text-[#155DFC] font-medium text-[14px] underline">
+                          {' '}
+                          {docketNames()}
+                        </span>
+                      </div>
                     </div>
                   </>
                 )}
               </div>
-              <div className="border-1 border-[#BEDBFF] bg-[#EFF6FF] rounded-md p-3">
+              <div className="border-1 border-[#BEDBFF] bg-[#EFF6FF] rounded-md p-3 ">
                 <div className="flex justify-start gap-2">
-                  <CircleAlert className="h-5 w-6 text-[#155DFC]" />
-                  <span className="text-sm text-[#193CB8] font-medium">
+                  <CircleAlert className="h-[16px] w-[16px] flex-shrink-0 text-[#155DFC] mt-1" />
+                  <span className="text-[14px] text-[#193CB8] font-normal">
                     Archiving this product now would disrupt ongoing business
                     operations.
                   </span>
                 </div>
               </div>
-              <span className="font-medium">Recommended Action</span>
-              <span className="text-[#6A7282]">
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[#101828] text-[14px]">
+                Recommended Action
+              </span>
+              <span className="text-[#6A7282] text-[14px] font-normal">
                 Complete these activities first:
               </span>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5 mt-2">
                 {!productQuotesStatus() && (
                   <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
-                        <span className="font-medium">
+                        <CircleCheckBig className="h-[16px] w-[16px] flex-shrink-0 text-[#00A63E]" />
+                        <span className="font-medium text-[14px] text-[#101828]">
                           Complete Active Quotes
                         </span>
                       </div>
-                      <span className="text-sm text-gray-500 ml-7">
+                      <span className="font-normal ml-6 text-[12px] text-[#6A7282]">
                         Convert to jobs, archive quotes, or remove this product
                         from active quotes
                       </span>
@@ -363,12 +390,12 @@ const getDialogConfigs = (
                   <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
-                        <span className="font-medium">
+                        <CircleCheckBig className="h-[16px] w-[16px] flex-shrink-0 text-[#00A63E]" />
+                        <span className="font-medium text-[14px] text-[#101828]">
                           Complete Active Jobs
                         </span>
                       </div>
-                      <span className="text-sm text-gray-500 ml-7">
+                      <span className="font-normal ml-6 text-[12px] text-[#6A7282]">
                         Fullfill remaining quantities or complete job deliveries
                         for this product
                       </span>
@@ -379,12 +406,12 @@ const getDialogConfigs = (
                   <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <CircleCheckBig className="h-5 w-5 text-[#00A63E]" />
-                        <span className="font-medium">
+                        <Truck className="h-[16px] w-[16px] flex-shrink-0 text-[#00A63E]" />
+                        <span className="font-medium text-[14px] text-[#101828]">
                           Fulfill Pending Delivery Dockets
                         </span>
                       </div>
-                      <span className="text-sm text-gray-500 ml-7">
+                      <span className="font-normal ml-6 text-[12px] text-[#6A7282]">
                         Complete or cancel delivery dockets containing this
                         product
                       </span>
@@ -410,18 +437,18 @@ const getDialogConfigs = (
   } else if (selectedAction?.key === 'available') {
     return {
       available: {
-        title: `Mark as avaialble`,
+        title: `Mark as available`,
         description: (
-          <div className="flex justify-start gap-2">
-            <div className="flex w-[40px] h-[40px] items-center justify-center bg-[#F0FDF4] rounded-full">
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#F0FDF4] rounded-full">
               <span className="flex items-center justify-center">
-                <CircleCheckBig className="h-5 w-5 text-[#008236]" />
+                <CircleCheckBig className="h-[20px] w-[20px] text-[#008236]" />
               </span>
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-1">
               <span className="font-medium">Mark as Available</span>
               <div className="flex justify-start gap-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[#6A7282]">
                   {productCode} ({productName})
                 </span>
                 <Badge
@@ -436,41 +463,42 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <span className="text-sm text-gray-500">
+            <span className="text-[14px] text-[#364153] font-normal">
               Are you sure you want to mark this product as unavailable?
             </span>
-            <div className="border-1 border-[#B9F8CF] rounded-md p-3 bg-[#F0FDF4]">
+            <div className="border-1 border-[#B9F8CF] rounded-md p-[16.625px] bg-[#F0FDF4]">
               <div className="flex items-start gap-2 self-stretch">
-                <CircleCheckBig className="h-5 w-6 text-[#008236]" />
+                <TriangleAlert className="h-[20px] w-[20px] text-[#008236] flex-shrink-0" />
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm text-[#008236] font-medium">
+                  <span className="text-[14px] text-[#008236] font-medium">
                     Impact on New Business
                   </span>
-                  <span className="text-sm text-[#008236]">
+                  <span className="text-[14px] font-normal text-[#008236] pr-2">
                     This product will be visible in new quotes and orders,
-                    expanding your available product catalog for customers
+                    expanding your avaialble product catalog for customers.
                   </span>
                 </div>
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-semibold">
+              <span className="font-medium text-[14px] text-[#101828]">
                 What happens when marked as unavailable:
               </span>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
                 <li> Visible in new quote creation</li>
                 <li> Added to product selection lists</li>
                 <li> Available for new orders and quotes</li>
                 <li>
-                  {' '}
                   All existing supplier pricing and configurations remain intact
                 </li>
                 <li> Can be marked unavailable again if needed</li>
               </ul>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-semibold">What continues to work:</span>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What continues to work:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
                 <li>Existing quotes and orders continue normally</li>
                 <li>Historical sales data remains accessible</li>
                 <li>Product specifications and details preserved</li>

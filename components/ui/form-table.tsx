@@ -20,12 +20,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 // Header configuration
 export interface FormTableHeader {
   key: string;
   label: string;
   className?: string;
+  tooltip?: string;
 }
 
 // Cell configuration types
@@ -245,7 +252,19 @@ export function FormTable<T extends FieldValues = FieldValues>({
           <TableRow>
             {headers.map((header) => (
               <TableHead key={header.key} className={header.className}>
-                {header.label}
+                <div className="flex items-center gap-1">
+                  {header.label}
+                  {header.tooltip && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{header.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </TableHead>
             ))}
           </TableRow>

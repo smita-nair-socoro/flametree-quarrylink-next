@@ -5,13 +5,15 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
+import { TrendingDown, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   {
     id: 'quarry_name',
     accessorFn: (row) => row.quarry_name,
     header: ({}) => {
-      return <div>Quarry Name</div>;
+      return <div>Supplier Name</div>;
     },
     cell: (info) => <div>{info.getValue() as string}</div>,
     meta: 'Quarry Name',
@@ -20,7 +22,7 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     id: 'supplier_product_name',
     accessorFn: (row) => row.supplier_product_name,
     header: ({}) => {
-      return <div>Supplier Product</div>;
+      return <div>Supplier Product Name</div>;
     },
     cell: ({ row }) => (
       <TableTwoDataInOneCell
@@ -73,7 +75,14 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     cell: ({ row }) => {
       const margin = row.original.price.margin_tn || 0;
       return (
-        <div className={margin < 0 ? 'text-red-600' : 'text-green-600'}>
+        <div
+          className={cn(
+            margin < 0 ? 'text-red-600' : 'text-green-600',
+            'flex justify-start gap-1'
+          )}
+        >
+          {margin < 0 && <TrendingDown className="w-4 h-4 text-red-600" />}
+          {margin > 0 && <TrendingUp className="w-4 h-4 text-green-600" />}
           {((margin || 0) * 100).toFixed(2)}%
         </div>
       );
@@ -84,7 +93,7 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     id: 'action',
     accessorFn: (row) => row.id,
     header: ({}) => {
-      return <div></div>;
+      return <div>Actions</div>;
     },
     cell: ({ row }) => <SupplierTableActions quarry={row.original} />,
     meta: 'Action',

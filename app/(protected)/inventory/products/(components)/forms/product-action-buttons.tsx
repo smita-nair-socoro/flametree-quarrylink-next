@@ -12,7 +12,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { PRODUCT_STATUS } from '@/lib/types/product-enums';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { JobDetails } from '@/lib/types/job';
 
 interface ProductActionButtonsProps {
@@ -44,10 +44,10 @@ export function ProductActionButtons({
   const canProductBeArchived = () => {
     // Check if there are active quotes that would prevent archiving
     const hasActiveQuotes = product.quotes?.some(
-      (quote: QuotationDetails) =>
-        quote.quote_status !== 'ARCHIVED' &&
-        quote.quote_status !== 'DRAFT' &&
-        quote.quote_status !== 'CONVERTED_TO_JOB'
+      (quote: Quotation) =>
+        quote.status !== 'ARCHIVED' &&
+        quote.status !== 'DRAFT' &&
+        quote.status !== 'CONVERTED_TO_JOB'
     );
 
     // Check if there are jobs with remaining quantities
@@ -106,9 +106,9 @@ export function ProductActionButtons({
             {isUnavailable && (
               <DropdownMenuItem
                 onClick={actions.available}
-                className="text-blue-600 focus:text-blue-600"
+                className="text-green-600 focus:text-green-600"
               >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+                <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
                 Mark as Available
               </DropdownMenuItem>
             )}
@@ -139,10 +139,10 @@ export function ProductActionButtons({
             variant="ghost"
             size="sm"
             onClick={actions.available}
-            className="rounded-none border-r bg-blue-100 hover:bg-blue-50 text-gray-700 hover:text-gray-900 border-gray-200 "
+            className="rounded-none border-r bg-green-100 hover:bg-green-50 text-gray-700 hover:text-gray-900 border-gray-200 "
           >
-            <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-            <span className="text-blue-600">Mark as Available</span>
+            <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+            <span className="text-green-600">Mark as Available</span>
           </Button>
         )}
         <DropdownMenu>

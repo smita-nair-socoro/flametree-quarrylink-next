@@ -21,16 +21,17 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface QuotationTableActionsProps {
-  quotation: QuotationDetails;
+  quotation: Quotation;
 }
 
 export function QuotationTableActions({
   quotation,
 }: QuotationTableActionsProps) {
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     quotation.id,
     quotation
@@ -41,6 +42,7 @@ export function QuotationTableActions({
 
   const handleView = () => {
     setSelectedQuotation(quotation);
+    setDropdownOpen(false); // Close dropdown before opening modal
     actions.view();
   };
 
@@ -48,7 +50,7 @@ export function QuotationTableActions({
     <div>
       {confirmDialogs}
       {viewDialog}
-      <DropdownMenu>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
@@ -72,7 +74,7 @@ export function QuotationTableActions({
           <DropdownMenuSeparator />
 
           {/* Status-specific actions */}
-          {quotation.quote_status === 'DRAFT' && (
+          {quotation.status === 'DRAFT' && (
             <>
               <DropdownMenuItem onClick={actions.sendToCustomer}>
                 <Send className="h-4 w-4 mr-2" />
@@ -85,7 +87,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.quote_status === 'PENDING' && (
+          {quotation.status === 'PENDING' && (
             <>
               <DropdownMenuItem onClick={actions.sendToCustomer}>
                 <Send className="h-4 w-4 mr-2" />
@@ -102,7 +104,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.quote_status === 'APPROVED' && (
+          {quotation.status === 'APPROVED' && (
             <>
               <DropdownMenuItem onClick={actions.decline}>
                 <ThumbsDown className="h-4 w-4 mr-2" />
@@ -115,14 +117,14 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.quote_status === 'CONVERTED_TO_JOB' && (
+          {quotation.status === 'CONVERTED_TO_JOB' && (
             <DropdownMenuItem onClick={actions.duplicate}>
               <Eye className="h-4 w-4 mr-2" />
               View Job
             </DropdownMenuItem>
           )}
 
-          {quotation.quote_status === 'EXPIRED' && (
+          {quotation.status === 'EXPIRED' && (
             <DropdownMenuItem onClick={actions.extendExpiry}>
               <Timer className="h-4 w-4 mr-2" />
               Extend Expiry Date
@@ -136,7 +138,7 @@ export function QuotationTableActions({
           </DropdownMenuItem>
 
           {/* Archive - always at the bottom for applicable statuses */}
-          {quotation.quote_status !== 'ARCHIVED' && (
+          {quotation.status !== 'ARCHIVED' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem

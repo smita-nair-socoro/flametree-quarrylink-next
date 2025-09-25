@@ -70,27 +70,19 @@ interface CustomTabsProps {
 }
 
 function Tab({ tabs, defaultTab, className }: CustomTabsProps) {
-  const defaultValue =
-    defaultTab || tabs[0]?.name.toLowerCase().replace(/\s+/g, '-');
+  const defaultValue = defaultTab || tabs[0]?.name || '';
 
   return (
     <Tabs defaultValue={defaultValue} className={className}>
       <TabsList>
         {tabs.map((tab) => (
-          <TabsTrigger
-            key={tab.name}
-            value={tab.name.toLowerCase().replace(/\s+/g, '-')}
-            className="w-full"
-          >
+          <TabsTrigger key={tab.name} value={tab.name} className="w-full">
             {tab.name}
           </TabsTrigger>
         ))}
       </TabsList>
       {tabs.map((tab) => (
-        <TabsContent
-          key={tab.name}
-          value={tab.name.toLowerCase().replace(/\s+/g, '-')}
-        >
+        <TabsContent key={tab.name} value={tab.name}>
           {tab.content}
         </TabsContent>
       ))}
