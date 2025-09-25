@@ -12,9 +12,6 @@ on:
         description: "Image name suffix (e.g., oras-web)"
         required: true
         default: "oras-web"
-      cloudfront_dist_id:
-        description: "CloudFront Distribution ID"
-        required: true
       invalidate_all:
         description: "Invalidate /* (true) or only critical paths (false)"
         required: true
@@ -34,7 +31,6 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
       SUFFIX: ${{ inputs.suffix }}
-      CF_DIST_ID: ${{ inputs.cloudfront_dist_id }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
     environment: dev
 
@@ -145,5 +141,5 @@ jobs:
             PATHS='/config.json /index.html'
           fi
           aws cloudfront create-invalidation \
-            --distribution-id "${CF_DIST_ID}" \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
             --paths ${PATHS}
