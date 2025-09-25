@@ -145,7 +145,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quote_number;
-    finalPrimaryBadges = [selectedQuotation.quote_status];
+    finalPrimaryBadges = [selectedQuotation.status];
     finalSecondaryBadges = [selectedQuotation.quote_type];
   }
 
