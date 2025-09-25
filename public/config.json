@@ -5,5 +5,5 @@
 
   "GOOGLE_MAPS_API_KEY": "AIzaSyAnR9kF0-O2VzeOI5r-X3hZYrVO6lqXQrc",
   "API_URL": "http://localhost:8080",
-  "SENTRY_DSN": ""
+  "SENTRY_DSN": null
 }
