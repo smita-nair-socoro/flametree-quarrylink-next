@@ -1,13 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { compareAsc, parseISO } from 'date-fns';
-import { User } from 'oidc-client-ts';
 import { twMerge } from 'tailwind-merge';
-import { jwtDecode } from 'jwt-decode';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from "@/app/stores/runtimeConfigStore";
-
-interface JWTPayload {
-  'custom:tenant_id'?: string;
-}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,30 +12,32 @@ export function baseUrl(): string {
   return getRuntimeConfig().API_URL || '';
 }
 
-export function getUser() {
-  const authority = getRuntimeConfig().COGNITO_DOMAIN;
-  const clientId = getRuntimeConfig().COGNITO_CLIENT_ID;
-  const oidcStorage = localStorage.getItem(
-    `oidc.user:${authority}:${clientId}`
-  );
-  if (!oidcStorage) {
+export async function getUser() {
+  try {
+    const [user, session] = await Promise.all([
+      getCurrentUser(),
+      fetchAuthSession()
+    ]);
+    
+    // Return user info with tokens from session
+    return {
+      ...user,
+      access_token: session.tokens?.accessToken?.toString(),
+      id_token: session.tokens?.idToken?.toString(),
+    };
+  } catch (error) {
+    console.error('Failed to get user or session:', error);
     return null;
   }
-
-  return User.fromStorageString(oidcStorage);
 }
 
-export function getTenantId() {
-  const user = getUser();
-  if (!user?.id_token) {
-    return null;
-  }
-
+export async function getTenantId() {
   try {
-    const decoded = jwtDecode<JWTPayload>(user.id_token);
-    return decoded['custom:tenant_id'] || '';
+    const user = await getCurrentUser();
+    // Extract tenant ID from user attributes if available
+    return user.signInDetails?.loginId || user.username || '';
   } catch (error) {
-    console.error('Failed to decode JWT token:', error);
+    console.error('Failed to get user:', error);
     return null;
   }
 }

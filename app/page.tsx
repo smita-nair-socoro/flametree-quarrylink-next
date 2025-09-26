@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from 'react-oidc-context';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function HomePage() {
   const auth = useAuth();
