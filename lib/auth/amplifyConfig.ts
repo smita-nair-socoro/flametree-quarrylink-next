@@ -10,16 +10,20 @@ export function configureAmplify(config: RuntimeConfig) {
     return;
   }
 
-  if (!config.AMPLIFY_AUTH) {
+  if (
+    !config.AMPLIFY_AUTH_REGION ||
+    !config.AMPLIFY_AUTH_USER_POOL_ID ||
+    !config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID
+  ) {
     throw new Error('AMPLIFY_AUTH configuration is missing');
   }
 
   // Use the legacy configuration format for compatibility
   const amplifyConfig = {
-    aws_project_region: config.AMPLIFY_AUTH.region,
-    aws_cognito_region: config.AMPLIFY_AUTH.region,
-    aws_user_pools_id: config.AMPLIFY_AUTH.userPoolId,
-    aws_user_pools_web_client_id: config.AMPLIFY_AUTH.userPoolWebClientId,
+    aws_project_region: config.AMPLIFY_AUTH_REGION,
+    aws_cognito_region: config.AMPLIFY_AUTH_REGION,
+    aws_user_pools_id: config.AMPLIFY_AUTH_USER_POOL_ID,
+    aws_user_pools_web_client_id: config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID,
     aws_cognito_username_attributes: ['email'],
     aws_cognito_social_providers: [],
     aws_cognito_signup_attributes: ['email'],
