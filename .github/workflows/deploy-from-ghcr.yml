@@ -69,6 +69,9 @@ jobs:
           COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
           COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
           COGNITO_REDIRECT_URI: ${{ vars.COGNITO_REDIRECT_URI }}
+          AMPLIFY_AUTH_REGION: ${{ vars.AMPLIFY_AUTH_REGION }}
+          AMPLIFY_AUTH_USER_POOL_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_ID }}
+          AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID }}
           GOOGLE_MAPS_API_KEY: ${{ vars.GOOGLE_MAPS_API_KEY }}
           API_URL: ${{ vars.API_URL }}
           SENTRY_DSN: ${{ vars.SENTRY_DSN }}
@@ -79,6 +82,9 @@ jobs:
             --arg cognitoDomain "$COGNITO_DOMAIN" \
             --arg cognitoClientId "$COGNITO_CLIENT_ID" \
             --arg cognitoRedirectUri "$COGNITO_REDIRECT_URI" \
+            --arg amplifyAuthRegion "$AMPLIFY_AUTH_REGION" \
+            --arg amplifyAuthUserPoolId "$AMPLIFY_AUTH_USER_POOL_ID" \
+            --arg amplifyAuthUserPoolWebClientId "$AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID" \
             --arg googleMapsApiKey "$GOOGLE_MAPS_API_KEY" \
             --arg apiUrl "$API_URL" \
             --arg sentryDsn "$SENTRY_DSN" \
@@ -86,6 +92,9 @@ jobs:
                COGNITO_DOMAIN: $cognitoDomain,
                COGNITO_CLIENT_ID: $cognitoClientId,
                COGNITO_REDIRECT_URI: $cognitoRedirectUri,
+               AMPLIFY_AUTH_REGION: $amplifyAuthRegion,
+               AMPLIFY_AUTH_USER_POOL_ID: $amplifyAuthUserPoolId,
+               AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: $amplifyAuthUserPoolWebClientId,
                GOOGLE_MAPS_API_KEY: $googleMapsApiKey,
                API_URL: $apiUrl,
                SENTRY_DSN: $sentryDsn
