@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
@@ -113,7 +113,7 @@ const dialogConfigs: Record<string, DialogConfig> = {
 
 export function useQuotationActions(
   quotationId: number | undefined,
-  quotationData?: QuotationDetails | null
+  quotationData?: Quotation | null
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -178,60 +178,6 @@ export function useQuotationActions(
     }),
   };
 
-  // Generate additional info based on dialog type and quotation data
-  const getAdditionalInfo = (dialogType: string): DialogAdditionalInfo[] => {
-    const info: DialogAdditionalInfo[] = [];
-
-    if (!quotationData) return info;
-
-    // Customer Email for send to customer
-    if (quotationData.customer?.email && dialogType === 'sendToCustomer') {
-      info.push({
-        label: 'Customer Email',
-        value: quotationData.customer.email,
-      });
-    }
-
-    // Quote Total (using total_sell_price)
-    if (quotationData.total_sell_price) {
-      info.push({
-        label: 'Quote Total',
-        value: `$${quotationData.total_sell_price.toLocaleString()}`,
-      });
-    }
-
-    // Customer Name (business_name or contact_name)
-    if (quotationData.customer) {
-      const customerName =
-        quotationData.customer.business_name ||
-        quotationData.customer.contact_name;
-      if (customerName) {
-        info.push({ label: 'Customer', value: customerName });
-      }
-    }
-
-    // Project Name for convert to job
-    if (quotationData.project_name && dialogType === 'convertToJob') {
-      info.push({ label: 'Project', value: quotationData.project_name });
-    }
-
-    // Line Items count for convert to job
-    if (quotationData.quote_items?.length && dialogType === 'convertToJob') {
-      info.push({
-        label: 'Line Items',
-        value: `${quotationData.quote_items.length} products`,
-      });
-    }
-
-    // Current Expiry for extend expiry
-    if (quotationData.expiry_date && dialogType === 'extendExpiry') {
-      // TODO: Format date properly
-      info.push({ label: 'Current Expiry', value: quotationData.expiry_date });
-    }
-
-    return info;
-  };
-
   // Render active dialog
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
     if (activeDialog !== key) return null;
@@ -245,7 +191,6 @@ export function useQuotationActions(
         description={config.description}
         content={config.content}
         details={config.details}
-        additionalInfo={getAdditionalInfo(key)}
         confirmText={config.confirmText}
         confirmVariant={config.confirmVariant}
         confirmCustomColor={config.confirmCustomColor}

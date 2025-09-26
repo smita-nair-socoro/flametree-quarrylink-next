@@ -52,7 +52,6 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       ? selectedCustomer.payment_type
       : 'CREDIT'
   );
-  console.log('selectedCustomer', selectedCustomer);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [address, setAddress] = React.useState<AddressType>({

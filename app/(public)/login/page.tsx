@@ -2,9 +2,21 @@ import { LoginForm } from './(components)/login-form';
 
 export default function LoginPage() {
   return (
-    <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <LoginForm />
+    <div className="h-screen flex">
+      {/* Left side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-white lg:flex-1">
+        <div className="w-full max-w-sm">
+          <LoginForm />
+        </div>
+      </div>
+      
+      {/* Right side - QuarryLink Illustration (hidden on mobile) */}
+      <div className="hidden lg:flex flex-1 overflow-hidden">
+        <img
+          src="/quarrylink-login-side-image.png"
+          alt="QuarryLink - Quarry Operations Management"
+          className="w-full h-full object-cover"
+        />
       </div>
     </div>
   );

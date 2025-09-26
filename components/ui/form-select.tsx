@@ -36,7 +36,7 @@ export interface FormSelectOption {
    * The unique value associated with the option.
    * This is the value that will be written to the form state.
    */
-  value: string;
+  value: string | number;
 }
 
 /**
@@ -195,7 +195,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         key={opt.value}
                         onSelect={() => {
                           field.onChange(opt.value);
-                          onChange?.(opt.value);
+                          onChange?.(String(opt.value));
                           setOpen(false);
                         }}
                         className="cursor-pointer"
