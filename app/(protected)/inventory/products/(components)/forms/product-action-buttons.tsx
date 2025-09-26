@@ -12,7 +12,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { PRODUCT_STATUS } from '@/lib/types/product-enums';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { JobDetails } from '@/lib/types/job';
 
 interface ProductActionButtonsProps {
@@ -44,10 +44,10 @@ export function ProductActionButtons({
   const canProductBeArchived = () => {
     // Check if there are active quotes that would prevent archiving
     const hasActiveQuotes = product.quotes?.some(
-      (quote: QuotationDetails) =>
-        quote.quote_status !== 'ARCHIVED' &&
-        quote.quote_status !== 'DRAFT' &&
-        quote.quote_status !== 'CONVERTED_TO_JOB'
+      (quote: Quotation) =>
+        quote.status !== 'ARCHIVED' &&
+        quote.status !== 'DRAFT' &&
+        quote.status !== 'CONVERTED_TO_JOB'
     );
 
     // Check if there are jobs with remaining quantities

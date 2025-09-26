@@ -5,12 +5,10 @@ const timeWithoutZoneRegex =
 
 export const NewQuotationFormSchema = z.object({
   quote_type: z.string().nonempty({ message: 'Required' }),
-  customer_id: z.string().nonempty({ message: 'Required' }),
-  account_manager: z.string().readonly(),
-  phone: z.string().readonly(),
-  email: z.string().readonly(),
+  customer_id: z.coerce.number().min(1, { message: 'Required' }),
+  account_manager: z.coerce.number().min(1, { message: 'Required' }),
   project_name: z.string().min(2, { message: 'At least 2 characters' }),
-  delivery_date: z.date({ message: 'Required' }),
+  delivery_start_date: z.date({ message: 'Required' }),
   delivery_window_start: z
     .string()
     .nonempty({ message: 'Required' })
@@ -24,7 +22,7 @@ export const NewQuotationFormSchema = z.object({
       message: 'Invalid time‑of‑day with timezone',
     }),
   expiry_date: z.date({ message: 'Required' }),
-  site_address: z.string().nonempty({ message: 'Required' }),
+  delivery_address: z.string().nonempty({ message: 'Required' }),
   created_at: z.date(),
   updated_at: z.date(),
   created_by: z.string(),

@@ -1,5 +1,5 @@
 import { BASE_UNIT, MEASURE_UNIT, PRODUCT_STATUS } from './product-enums';
-import { QuotationDetails } from './quotation';
+import { Quotation } from './quotation';
 import { JobDetails } from './job';
 import { QuarriesWithProduct } from './quarry';
 
@@ -26,6 +26,6 @@ export interface Product {
 
 export interface ProductDetails extends Product {
   quarries: QuarriesWithProduct[];
-  quotes: QuotationDetails[];
+  quotes: Quotation[];
   jobs: JobDetails[];
 }

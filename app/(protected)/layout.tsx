@@ -1,7 +1,7 @@
 'use client';
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth as useOidc } from 'react-oidc-context';
+import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
   SidebarInset,
@@ -11,18 +11,16 @@ import {
 import { ModeToggle } from '@/components/toggle';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
-  const oidc = useOidc();
+  const auth = useAuth();
   const router = useRouter();
-  const isLoading = oidc.isLoading;
-  const isAuthenticated = oidc.isAuthenticated;
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!auth.isLoading && !auth.isAuthenticated) {
       router.replace('/login');
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [auth.isLoading, auth.isAuthenticated, router]);
 
-  if (isLoading) {
+  if (auth.isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
@@ -33,7 +31,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!auth.isAuthenticated) {
     return null;
   }
 

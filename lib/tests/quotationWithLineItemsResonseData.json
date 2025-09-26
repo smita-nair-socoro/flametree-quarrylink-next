@@ -1,0 +1,43 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "quoteNumber": "Q101",
+      "status": "DRAFT",
+      "quoteType": "DELIVERY",
+      "customerId": 1,
+      "accountManager": 1,
+      "projectName": "Socoro Project",
+      "deliveryDate": "2025-09-20T10:00:00Z",
+      "startTimeWindow": "2025-09-20T10:00:00Z",
+      "endTimeWindow": "2025-09-20T10:00:00Z",
+      "expiryDate": "2025-09-20T10:00:00Z",
+      "deliveryAddress": 1001,
+      "createdBy": "system",
+      "createdAt": "2025-09-20T10:00:00Z",
+      "updatedAt": "2025-09-20T10:00:00Z",
+      "lastModifiedBy": "system",
+      "lineItems": [
+        {
+          "id": 1,
+          "quoteId": 1,
+          "quarryProductId": 1,
+          "productName": "Rock",
+          "quarryName": "Socoro",
+          "supplierProductName": "ROCK",
+          "totalProductCostPrice": 1000,
+          "productSellUom": "BULKA",
+          "productSellQty": 1,
+          "totalProductSellPrice": 1500,
+          "truckType": "Truck",
+          "totalTruckSellPrice": 7000,
+          "grossProfit": 10,
+          "createdBy": "system",
+          "createdAt": "2025-09-20T10:00:00Z",
+          "updatedAt": "2025-09-20T10:00:00Z",
+          "lastModifiedBy": "system"
+        }
+      ]
+    }
+  ]
+}

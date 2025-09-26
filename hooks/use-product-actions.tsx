@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { JobDetails } from '@/lib/types/job';
 
 interface DialogConfig {
@@ -49,8 +49,7 @@ const getDialogConfigs = (
   const productQuotesStatus = () => {
     if (!productData?.quotes?.length) return true;
     return !productData.quotes.some(
-      (q: QuotationDetails) =>
-        q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+      (q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT'
     );
   };
 
@@ -58,11 +57,8 @@ const getDialogConfigs = (
   const quoteName = () => {
     if (productQuotesStatus()) return '';
     return productData?.quotes
-      .filter(
-        (q: QuotationDetails) =>
-          q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
-      )
-      .map((q: QuotationDetails) => q.quote_number)
+      .filter((q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT')
+      .map((q: Quotation) => q.quote_number)
       .join(', ');
   };
 
@@ -70,8 +66,7 @@ const getDialogConfigs = (
   const activeQuoteNumber = () => {
     if (productQuotesStatus()) return 0;
     return productData?.quotes.filter(
-      (q: QuotationDetails) =>
-        q.quote_status === 'PENDING' || q.quote_status === 'DRAFT'
+      (q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT'
     ).length;
   };
 

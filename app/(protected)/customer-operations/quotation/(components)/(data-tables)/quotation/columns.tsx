@@ -4,12 +4,27 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { dateSortingFn } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { QuotationDetails } from '@/lib/types/quotation';
+import { Quotation } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
-import { formatQuoteStatus } from '@/lib/utils/quote-helpers';
-import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
+import { centsToDollars } from '@/lib/utils/currency';
+import rawJson from '@/lib/tests/quotationWithLineItemsResonseData.json';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
-export const quotationColumns: ColumnDef<QuotationDetails>[] = [
+const convertedJson = convertKeysToSnakeCase(rawJson);
+const { items: rawItems } = convertedJson as unknown as {
+  items: Array<
+    Omit<Quotation, 'quoteId'> & {
+      quoteId: number;
+    }
+  >;
+};
+
+const items: Quotation[] = rawItems.map((item) => ({
+  ...item,
+  quoteId: item.id,
+}));
+
+export const quotationColumns: ColumnDef<Quotation>[] = [
   {
     id: 'quote_number',
     accessorFn: (row) => row.quote_number,
@@ -23,7 +38,7 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   },
   {
     id: 'customer_name',
-    accessorFn: (row) => row.customer.contact_name,
+    accessorFn: (row) => row.customer_name,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Customer Name" />
@@ -72,26 +87,19 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
     id: 'total_cost_price',
     accessorFn: (row) => row.total_cost_price,
     header: ({}) => {
-      return <div className="text-right max-w-36">Total Price (Ex-GST)</div>;
+      return <div>Total Price (Ex-GST)</div>;
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.original.total_cost_price.toString());
-      const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(dollars);
-      return (
-        <div className="text-right font-medium w-36 max-w-36 truncate">
-          {formatted}
-        </div>
-      );
+      const total_cost_price = row.original.total_cost_price
+        ? centsToDollars(row.original.total_cost_price)
+        : '0';
+      return <div>{total_cost_price}</div>;
     },
     meta: 'Total Price',
   },
   {
     id: 'account_manager',
-    accessorFn: (row) => row.account_manager,
+    accessorFn: (row) => row.account_manager_name,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Account Manager" />
@@ -102,25 +110,17 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.quote_status,
+    accessorFn: (row) => row.status,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
-    cell: ({ getValue }) => {
-      const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
-      return <TableBadges names={names} visibleCount={1} />;
-    },
-    meta: 'Status',
-  },
-  {
-    id: 'status',
-    accessorFn: (row) => row.quote_status,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
-    },
-    cell: ({ getValue }) => {
-      const names = formatQuoteStatus(getValue<string>() as QUOTE_STATUS);
-      return <TableBadges names={names} visibleCount={1} />;
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return (
+        <div className="py-2">
+          <TableBadges names={[status]} visibleCount={1} />
+        </div>
+      );
     },
     meta: 'Status',
   },
@@ -130,10 +130,11 @@ export const quotationColumns: ColumnDef<QuotationDetails>[] = [
       return <div></div>;
     },
     cell: ({ row }) => {
-      const quotation = row.original;
+      const quotationId = row.original.id;
+      const quotation = items.find((item) => item.id === quotationId);
       return (
         <div>
-          <QuotationTableActions quotation={quotation} />
+          <QuotationTableActions quotation={quotation as Quotation} />
         </div>
       );
     },

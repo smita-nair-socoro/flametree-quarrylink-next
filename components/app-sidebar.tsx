@@ -21,7 +21,7 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { useAuth } from 'react-oidc-context';
+import { useAuth } from '@/hooks/use-auth';
 
 const data = {
   navMain: [
@@ -88,12 +88,12 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user: oidcUser } = useAuth();
+  const { user: amplifyUser } = useAuth();
 
   const user = {
-    name: oidcUser?.profile.name ?? 'Unknown Name',
-    email: oidcUser?.profile.email ?? 'Unknown Email',
-    avatar: oidcUser?.profile.picture ?? '/default-user.png',
+    name: amplifyUser?.signInDetails?.loginId ?? amplifyUser?.username ?? 'Unknown Name',
+    email: amplifyUser?.signInDetails?.loginId ?? amplifyUser?.username ?? 'Unknown Email',
+    avatar: '/default-user.png',
   };
 
   return (
