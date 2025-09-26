@@ -1,7 +1,15 @@
 import { Amplify } from 'aws-amplify';
 import { RuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
+let isConfigured = false;
+
 export function configureAmplify(config: RuntimeConfig) {
+  // Prevent multiple configurations
+  if (isConfigured) {
+    console.log('Amplify already configured, skipping...');
+    return;
+  }
+
   if (!config.AMPLIFY_AUTH) {
     throw new Error('AMPLIFY_AUTH configuration is missing');
   }
@@ -19,10 +27,12 @@ export function configureAmplify(config: RuntimeConfig) {
     aws_cognito_mfa_types: ['SMS'],
     aws_cognito_password_protection_settings: {
       passwordPolicyMinLength: 8,
-      passwordPolicyCharacters: []
+      passwordPolicyCharacters: [],
     },
-    aws_cognito_verification_mechanisms: ['email']
+    aws_cognito_verification_mechanisms: ['email'],
   };
 
   Amplify.configure(amplifyConfig);
+  isConfigured = true;
+  console.log('Amplify configured successfully');
 }

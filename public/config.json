@@ -2,7 +2,7 @@
   "COGNITO_DOMAIN": "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_DxliDLvi2",
   "COGNITO_CLIENT_ID": "6emlq6b36lcon72f9a6nbl1fn5",
   "COGNITO_REDIRECT_URI": "http://localhost:3000/callback",
-  
+
   "AMPLIFY_AUTH": {
     "region": "ap-southeast-2",
     "userPoolId": "ap-southeast-2_DxliDLvi2",
@@ -10,6 +10,6 @@
   },
 
   "GOOGLE_MAPS_API_KEY": "AIzaSyAnR9kF0-O2VzeOI5r-X3hZYrVO6lqXQrc",
-  "API_URL": "http://localhost:8080",
+  "API_URL": "https://api.dev.quarrylink.com.au",
   "SENTRY_DSN": null
 }

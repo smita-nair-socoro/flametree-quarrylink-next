@@ -1,16 +1,36 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { configureAmplify } from '../auth/amplifyConfig';
-import { getRuntimeConfig } from "@/app/stores/runtimeConfigStore";
+import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { AuthProvider } from '@/hooks/use-auth';
 
 // Amplify Auth Provider
 export function AmplifyAuthProvider({ children }: { children: ReactNode }) {
+  const [isConfigured, setIsConfigured] = useState(false);
+
   useEffect(() => {
-    const config = getRuntimeConfig();
-    configureAmplify(config);
+    try {
+      const config = getRuntimeConfig();
+      configureAmplify(config);
+      setIsConfigured(true);
+    } catch (error) {
+      console.error('Failed to configure Amplify:', error);
+      // Don't set configured to true if config fails
+    }
   }, []);
+
+  // Don't render AuthProvider until Amplify is configured
+  if (!isConfigured) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Initializing authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return <AuthProvider>{children}</AuthProvider>;
 }
