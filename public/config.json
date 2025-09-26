@@ -3,11 +3,9 @@
   "COGNITO_CLIENT_ID": "6emlq6b36lcon72f9a6nbl1fn5",
   "COGNITO_REDIRECT_URI": "http://localhost:3000/callback",
 
-  "AMPLIFY_AUTH": {
-    "region": "ap-southeast-2",
-    "userPoolId": "ap-southeast-2_DxliDLvi2",
-    "userPoolWebClientId": "6emlq6b36lcon72f9a6nbl1fn5"
-  },
+  "AMPLIFY_AUTH_REGION": "ap-southeast-2",
+  "AMPLIFY_AUTH_USER_POOL_ID": "ap-southeast-2_DxliDLvi2",
+  "AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID": "6emlq6b36lcon72f9a6nbl1fn5",
 
   "GOOGLE_MAPS_API_KEY": "AIzaSyAnR9kF0-O2VzeOI5r-X3hZYrVO6lqXQrc",
   "API_URL": "https://api.dev.quarrylink.com.au",
