@@ -23,7 +23,7 @@ export const NewQuotationFormSchema = z.object({
       message: 'Invalid time‑of‑day with timezone',
     }),
   expiry_date: z.date({ message: 'Required' }),
-  delivery_address: z.string().nonempty({ message: 'Required' }),
+  delivery_address: z.string().trim().min(1, 'Required'),
   phone: z
     .string()
     .trim()

@@ -34,6 +34,7 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import rawJsonWithLineItems from '@/lib/tests/quotationWithLineItemsResonseData.json';
 import { Quotation } from '@/lib/types/quotation';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 interface FormProps {
   id?: number;
@@ -130,18 +131,17 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
         isEditing && currentQuotation?.expiry_date
           ? new Date(currentQuotation.expiry_date)
           : undefined,
-      delivery_address:
-        isEditing && currentQuotation?.delivery_address
-          ? currentQuotation.delivery_address
-          : '',
+      delivery_address: '',
+      phone: '',
+      email: '',
       created_at:
         isEditing && currentQuotation?.created_at
           ? new Date(currentQuotation.created_at)
-          : undefined,
+          : new Date(),
       updated_at:
         isEditing && currentQuotation?.updated_at
           ? new Date(currentQuotation.updated_at)
-          : undefined,
+          : new Date(),
       created_by:
         isEditing && currentQuotation?.created_by
           ? currentQuotation.created_by
@@ -208,6 +208,22 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
     { label: 'Armin', value: 2 },
     { label: 'Jaywoo', value: 3 },
   ]; // TODO: get account manager
+
+  React.useEffect(() => {
+    const customerId = quotationForm.watch('customer_id');
+    if (customerId && customerId > 0) {
+      // Only set values if they're empty to avoid controlled/uncontrolled warning
+      const currentPhone = quotationForm.getValues('phone');
+      const currentEmail = quotationForm.getValues('email');
+
+      if (!currentPhone) {
+        quotationForm.setValue('phone', '+61444555777');
+      }
+      if (!currentEmail) {
+        quotationForm.setValue('email', 'customer@email.com');
+      }
+    }
+  }, [quotationForm.watch('customer_id')]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     console.log('onSubmit function called!');
@@ -379,6 +395,33 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               )}
             />
 
+            {isEditing && (
+              <FormField
+                control={quotationForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Phone*</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        className="w-full"
+                        placeholder="Enter Phone"
+                        defaultCountry="AU"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={quotationForm.control}
               name="delivery_start_date"
@@ -404,9 +447,35 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               )}
             />
 
+            {isEditing && (
+              <FormField
+                control={quotationForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1 gap-0'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Email*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <div
               className={cn(
-                'grid grid-cols-2 gap-3',
+                'grid grid-cols-2 gap-2',
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               )}
             >
@@ -458,7 +527,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
+                      ? 'col-span-1 col-start-2'
                       : 'col-span-2'
                   }
                 >
