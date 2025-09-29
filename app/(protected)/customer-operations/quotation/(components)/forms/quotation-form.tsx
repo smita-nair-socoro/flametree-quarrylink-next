@@ -32,6 +32,8 @@ import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { DataTableClient } from '@/components/ui/data-table-client';
+import rawJsonWithLineItems from '@/lib/tests/quotationWithLineItemsResonseData.json';
+import { Quotation } from '@/lib/types/quotation';
 
 interface FormProps {
   id?: number;
@@ -45,8 +47,25 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
 
+  // When editing, fetch detailed quotation data with line items
+  // Change this with API call later
+  const getDetailedQuotation = React.useMemo(() => {
+    if (isEditing && selectedQuotation?.id) {
+      const convertedDetailedJson =
+        convertKeysToSnakeCase(rawJsonWithLineItems);
+      const { items: detailedItems } = convertedDetailedJson as unknown as {
+        items: Quotation[];
+      };
+      return detailedItems.find((item) => item.id === selectedQuotation.id);
+    }
+    return null;
+  }, [isEditing, selectedQuotation?.id]);
+
+  // Use detailed quotation for editing, or selected quotation for new
+  const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
+
   const convertedQuotationLineItem = convertKeysToSnakeCase(
-    selectedQuotation?.line_items
+    currentQuotation?.line_items
   );
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -66,56 +85,70 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
     resolver: zodResolver(NewQuotationFormSchema),
     defaultValues: {
       quote_type:
-        isEditing && selectedQuotation?.quote_type
-          ? selectedQuotation.quote_type
+        isEditing && currentQuotation?.quote_type
+          ? currentQuotation.quote_type
           : 'DELIVERY',
       customer_id:
-        isEditing && selectedQuotation?.customer_id
-          ? selectedQuotation.customer_id
+        isEditing && currentQuotation?.customer_id
+          ? currentQuotation.customer_id
           : 0,
       account_manager:
-        isEditing && selectedQuotation?.account_manager
-          ? selectedQuotation.account_manager
+        isEditing && currentQuotation?.account_manager
+          ? currentQuotation.account_manager
           : 0,
       project_name:
-        isEditing && selectedQuotation?.project_name
-          ? selectedQuotation.project_name
+        isEditing && currentQuotation?.project_name
+          ? currentQuotation.project_name
           : '',
       delivery_start_date:
-        isEditing && selectedQuotation?.delivery_start_date
-          ? new Date(selectedQuotation.delivery_start_date)
+        isEditing && currentQuotation?.delivery_start_date
+          ? new Date(currentQuotation.delivery_start_date)
           : undefined,
       delivery_window_start:
-        isEditing && selectedQuotation?.delivery_window_start
-          ? selectedQuotation.delivery_window_start
+        isEditing && currentQuotation?.delivery_window_start
+          ? new Date(currentQuotation.delivery_window_start).toLocaleTimeString(
+              'en-US',
+              {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+              }
+            )
           : '',
       delivery_window_end:
-        isEditing && selectedQuotation?.delivery_window_end
-          ? selectedQuotation.delivery_window_end
+        isEditing && currentQuotation?.delivery_window_end
+          ? new Date(currentQuotation.delivery_window_end).toLocaleTimeString(
+              'en-US',
+              {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+              }
+            )
           : '',
       expiry_date:
-        isEditing && selectedQuotation?.expiry_date
-          ? new Date(selectedQuotation.expiry_date)
+        isEditing && currentQuotation?.expiry_date
+          ? new Date(currentQuotation.expiry_date)
           : undefined,
       delivery_address:
-        isEditing && selectedQuotation?.delivery_address
-          ? selectedQuotation.delivery_address
+        isEditing && currentQuotation?.delivery_address
+          ? currentQuotation.delivery_address
           : '',
       created_at:
-        isEditing && selectedQuotation?.created_at
-          ? new Date(selectedQuotation.created_at)
+        isEditing && currentQuotation?.created_at
+          ? new Date(currentQuotation.created_at)
           : undefined,
       updated_at:
-        isEditing && selectedQuotation?.updated_at
-          ? new Date(selectedQuotation.updated_at)
+        isEditing && currentQuotation?.updated_at
+          ? new Date(currentQuotation.updated_at)
           : undefined,
       created_by:
-        isEditing && selectedQuotation?.created_by
-          ? selectedQuotation.created_by
+        isEditing && currentQuotation?.created_by
+          ? currentQuotation.created_by
           : 'Jay Woo Choi',
       last_modified_by:
-        isEditing && selectedQuotation?.last_modified_by
-          ? selectedQuotation.last_modified_by
+        isEditing && currentQuotation?.last_modified_by
+          ? currentQuotation.last_modified_by
           : 'Armin Menhaji',
     },
   });
@@ -240,8 +273,8 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               control={quotationForm.control}
               name="quote_type"
               render={({ field }) => (
-                <FormItem className="col-span-1 col-start-1">
-                  <FormLabel>Quote Type</FormLabel>
+                <FormItem className="col-span-1 col-start-1 gap-3">
+                  <FormLabel>Quote Type*</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -274,21 +307,23 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               control={quotationForm.control}
               name="customer_id"
               label="Customer*"
+              searchLabel="Customer"
               options={customerOptions}
               placeholder="Select Customer"
-              formItemClassName={'col-span-1 col-start-1'}
+              formItemClassName={
+                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              }
             />
 
             <FormSelect
               control={quotationForm.control}
               name="account_manager"
               label="Account Manager*"
+              searchLabel="Account Managers"
               options={accountManagerOptions}
               placeholder="Select Account Manager"
               formItemClassName={
-                isEditing && isDesktop
-                  ? 'col-span-1 col-start-2'
-                  : 'col-span-1 col-start-1'
+                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
             />
 
@@ -300,7 +335,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   className={
                     isEditing && isDesktop
                       ? 'col-span-1 col-start-1'
-                      : 'col-span-1 col-start-1'
+                      : 'col-span-2'
                   }
                 >
                   <FormLabel>Project Name*</FormLabel>
@@ -324,10 +359,10 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   className={
                     isEditing && isDesktop
                       ? 'col-span-1 col-start-2'
-                      : 'col-span-1 col-start-1'
+                      : 'col-span-2'
                   }
                 >
-                  <FormLabel>{addressLabel}</FormLabel>
+                  <FormLabel>{addressLabel}*</FormLabel>
                   <FormControl>
                     <AddressAutoComplete
                       address={address}
@@ -348,7 +383,13 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               control={quotationForm.control}
               name="delivery_start_date"
               render={({ field }) => (
-                <FormItem className={'col-span-1 col-start-1'}>
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
                   <FormLabel>{dateLabel}*</FormLabel>
                   <FormControl>
                     <DatePicker
@@ -365,10 +406,8 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
 
             <div
               className={cn(
-                'grid grid-cols-2 gap-3 w-full',
-                isEditing && isDesktop
-                  ? 'col-span-1 col-start-2'
-                  : 'col-span-1 col-start-1'
+                'grid grid-cols-2 gap-3',
+                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               )}
             >
               <h3 className="font-bold col-span-2">{timeWindowLabel}</h3>
@@ -383,7 +422,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         {...field}
                         type="time"
                         id="time-picker-start"
-                        step="60"
                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                         value={field.value}
                       />
@@ -404,7 +442,6 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         {...field}
                         type="time"
                         id="time-picker-end"
-                        step="60"
                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                         value={field.value}
                       />
@@ -421,8 +458,8 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-1 col-start-1'
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
                   }
                 >
                   <FormLabel>Expiry Date</FormLabel>
@@ -464,7 +501,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                 >
                   <FormDialog
                     dialogTitle="Add New Product"
-                    buttonTitle="Add Product"
+                    buttonTitle="Add New Product"
                     dialogWidth="700px"
                     contentClass="-mt-5"
                   >

@@ -29,9 +29,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     id: 'quote_number',
     accessorFn: (row) => row.quote_number,
     header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Quotation Number" />
-      );
+      return <TableClientSortableHeader column={column} title="Quotation" />;
     },
     cell: (info) => info.getValue(),
     meta: 'Quotation Number',
@@ -40,9 +38,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     id: 'customer_name',
     accessorFn: (row) => row.customer_name,
     header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Customer Name" />
-      );
+      return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: (info) => info.getValue(),
     meta: 'Customer Name',
@@ -84,16 +80,16 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     meta: 'Expiry Date',
   },
   {
-    id: 'total_cost_price',
-    accessorFn: (row) => row.total_cost_price,
+    id: 'total_sell_price',
+    accessorFn: (row) => row.total_sell_price,
     header: ({}) => {
-      return <div>Total Price (Ex-GST)</div>;
+      return <div>Total Sell Price (Ex-GST)</div>;
     },
     cell: ({ row }) => {
-      const total_cost_price = row.original.total_cost_price
-        ? centsToDollars(row.original.total_cost_price)
+      const total_sell_price = row.original.total_sell_price
+        ? centsToDollars(row.original.total_sell_price)
         : '0';
-      return <div>{total_cost_price}</div>;
+      return <div>${total_sell_price}</div>;
     },
     meta: 'Total Price',
   },

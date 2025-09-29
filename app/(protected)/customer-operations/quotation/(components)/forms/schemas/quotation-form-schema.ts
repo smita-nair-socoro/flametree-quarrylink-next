@@ -1,4 +1,5 @@
 import z from 'zod';
+import { isValidPhoneNumber } from 'react-phone-number-input';
 
 const timeWithoutZoneRegex =
   /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
@@ -23,6 +24,20 @@ export const NewQuotationFormSchema = z.object({
     }),
   expiry_date: z.date({ message: 'Required' }),
   delivery_address: z.string().nonempty({ message: 'Required' }),
+  phone: z
+    .string()
+    .trim()
+    .nonempty({ message: 'Required' })
+    .refine((v) => !v || isValidPhoneNumber(v), {
+      message: 'Invalid phone number',
+    }),
+  email: z
+    .string()
+    .trim()
+    .nonempty({ message: 'Required' })
+    .refine((v) => !v || z.string().email().safeParse(v).success, {
+      message: 'Invalid email format',
+    }),
   created_at: z.date(),
   updated_at: z.date(),
   created_by: z.string(),

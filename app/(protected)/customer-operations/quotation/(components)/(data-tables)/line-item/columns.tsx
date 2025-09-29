@@ -9,7 +9,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     id: 'product_name',
     accessorFn: (row) => row.product_name,
     header: () => {
-      return <div>Product Name</div>;
+      return <div>Product</div>;
     },
     cell: (info) => info.getValue(),
     meta: 'Product Name',
@@ -33,7 +33,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       const total_product_cost_price = row.original.total_product_cost_price
         ? centsToDollars(row.original.total_product_cost_price)
         : '0';
-      return <div>{total_product_cost_price}</div>;
+      return <div>${total_product_cost_price}</div>;
     },
     meta: 'Total Product Cost Price',
   },
@@ -47,7 +47,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       const total_product_sell_price = row.original.total_product_sell_price
         ? centsToDollars(row.original.total_product_sell_price)
         : '0';
-      return <div>{total_product_sell_price}</div>;
+      return <div>${total_product_sell_price}</div>;
     },
     meta: 'Total Product Sell Price',
   },
