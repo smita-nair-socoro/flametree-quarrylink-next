@@ -5,8 +5,6 @@ import {
   Eye,
   Send,
   Printer,
-  Plus,
-  BadgeCheck,
   ThumbsDown,
   Briefcase,
   Archive,

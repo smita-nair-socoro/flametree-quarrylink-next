@@ -46,6 +46,7 @@ export default function CustomersPage() {
 
   // Handle row click to open customer details
   const handleRowClick = (customer: Customer) => {
+    console.log('Customer row clicked:', customer);
     setSelectedCustomer(customer);
     setSelectedCustomerForActions(customer);
     actions.view();

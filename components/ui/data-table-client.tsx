@@ -470,10 +470,25 @@ export function DataTableClient<TData, TValue>({
                       // Prevent row click if clicking on buttons or interactive elements
                       const target = e.target as HTMLElement;
                       const isInteractiveElement = target.closest(
-                        'button, a, [role="button"], [data-radix-collection-item]'
+                        'button, a, [role="button"], [role="menuitem"], [data-radix-dropdown-menu-item], input, select, textarea'
                       );
 
-                      if (!isInteractiveElement && onRowClick) {
+                      // Check if any modal/dialog is currently open
+                      const hasOpenModal = document.querySelector(
+                        '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]'
+                      );
+
+                      // Also check if the click is happening inside a modal/dialog content
+                      const isInsideModal = target.closest(
+                        '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]'
+                      );
+
+                      if (
+                        !isInteractiveElement &&
+                        !hasOpenModal &&
+                        !isInsideModal &&
+                        onRowClick
+                      ) {
                         onRowClick(row.original);
                       }
                     }}
