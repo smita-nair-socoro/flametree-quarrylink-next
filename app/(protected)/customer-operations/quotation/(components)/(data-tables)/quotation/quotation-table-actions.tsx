@@ -11,6 +11,7 @@ import {
   Briefcase,
   Archive,
   Timer,
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,40 +64,29 @@ export function QuotationTableActions({
             View Details
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
-          {/* Always available: Duplicate */}
-          <DropdownMenuItem onClick={actions.duplicate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Duplicate Quote
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
           {/* Status-specific actions */}
           {quotation.status === 'DRAFT' && (
             <>
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={actions.sendToCustomer}>
                 <Send className="h-4 w-4 mr-2" />
                 Send to Customer
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.approve}>
-                <BadgeCheck className="h-4 w-4 mr-2" />
-                Approve Quote
               </DropdownMenuItem>
             </>
           )}
 
           {quotation.status === 'PENDING' && (
             <>
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={actions.sendToCustomer}>
                 <Send className="h-4 w-4 mr-2" />
                 Re-Send To Customer
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.approve}>
-                <BadgeCheck className="h-4 w-4 mr-2" />
-                Approve Quote
-              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={actions.decline}>
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
@@ -106,10 +96,14 @@ export function QuotationTableActions({
 
           {quotation.status === 'APPROVED' && (
             <>
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={actions.decline}>
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={actions.convertToJob}>
                 <Briefcase className="h-4 w-4 mr-2" />
                 Create Job
@@ -118,23 +112,39 @@ export function QuotationTableActions({
           )}
 
           {quotation.status === 'CONVERTED_TO_JOB' && (
-            <DropdownMenuItem onClick={actions.duplicate}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Job
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={actions.duplicate}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Job
+              </DropdownMenuItem>
+            </>
           )}
 
           {quotation.status === 'EXPIRED' && (
-            <DropdownMenuItem onClick={actions.extendExpiry}>
-              <Timer className="h-4 w-4 mr-2" />
-              Extend Expiry Date
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={actions.extendExpiry}>
+                <Timer className="h-4 w-4 mr-2" />
+                Extend Expiry Date
+              </DropdownMenuItem>
+            </>
           )}
 
           {/* Print action - always available for non-archived */}
+          <DropdownMenuSeparator />
+
           <DropdownMenuItem onClick={actions.print}>
             <Printer className="h-4 w-4 mr-2" />
             Print Quote
+          </DropdownMenuItem>
+
+          {/* Always available: Duplicate */}
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem onClick={actions.duplicate}>
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate Quote
           </DropdownMenuItem>
 
           {/* Archive - always at the bottom for applicable statuses */}
@@ -145,8 +155,8 @@ export function QuotationTableActions({
                 onClick={actions.archive}
                 className="text-destructive focus:text-destructive"
               >
-                <Archive className="h-4 w-4 mr-2" />
-                Archive Quote
+                <Archive className="h-4 w-4 mr-2 text-destructive" />
+                Archive
               </DropdownMenuItem>
             </>
           )}
