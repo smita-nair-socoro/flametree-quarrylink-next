@@ -10,12 +10,17 @@ permissions:
 
 jobs:
   publish:
-    # ✅ Run only when manually triggered for the 'develop' branch
-    if: github.ref_type == 'branch' && github.ref_name == 'develop'
     runs-on: ubuntu-latest
     env:
       IMAGE_POSTFIX: oras-web
     steps:
+      # ✅ Run only when manually triggered for the 'develop' branch
+      - name: Enforce develop only
+        if: github.ref_name != 'develop'
+        run: |
+          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
+          exit 1
+
       - uses: actions/checkout@v4
 
       # Setup Node.js
