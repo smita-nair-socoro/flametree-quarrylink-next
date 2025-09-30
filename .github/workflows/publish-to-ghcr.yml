@@ -46,11 +46,13 @@ jobs:
         uses: oras-project/setup-oras@v1
 
       # Get current version from package.json
-      - name: Install jq
+      - name: Install jq and read current app version
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
-          echo "current_version=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+          APP_VERSION=$(jq -r .version package.json)
+          echo "Current application version: APP_VERSION"
+          echo "current_version=APP_VERSION" >> "$GITHUB_OUTPUT"
 
       # Login to GHCR
       - name: Login GHCR
