@@ -51,8 +51,8 @@ jobs:
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
           APP_VERSION=$(jq -r .version package.json)
+          echo "CURRENT_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
           echo "Current application version: $APP_VERSION"
-          echo "current_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
 
       # Login to GHCR
       - name: Login GHCR
@@ -62,7 +62,7 @@ jobs:
       - name: Push OCI artifact
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
-          TAG: ${{ steps.readver.outputs.current_version }}
+          TAG: ${{ env.CURRENT_VERSION }}
         run: |
           oras push "$IMAGE:$TAG" \
             --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
@@ -73,6 +73,6 @@ jobs:
       - name: Tag latest
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
-          TAG: ${{ steps.readver.outputs.current_version }}
+          TAG: ${{ env.CURRENT_VERSION }}
         run: |
           oras copy "$IMAGE:$TAG" "$IMAGE:latest"
