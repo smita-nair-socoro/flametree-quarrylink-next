@@ -3,10 +3,26 @@ import { RuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
 let isConfigured = false;
 
+// Helper function to get the base URL dynamically
+function getBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    // Client-side: use window.location
+    return `${window.location.protocol}//${window.location.host}`;
+  }
+  
+  // Server-side: check environment variables or use defaults
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const host = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_APP_URL 
+    ? process.env.NEXT_PUBLIC_APP_URL
+    : `${protocol}://localhost:3000`;
+  
+  return host;
+}
+
 export function configureAmplify(config: RuntimeConfig) {
-  // Prevent multiple configurations
   if (isConfigured) {
-    console.log('Amplify already configured, skipping...');
     return;
   }
 
@@ -15,28 +31,46 @@ export function configureAmplify(config: RuntimeConfig) {
     !config.AMPLIFY_AUTH_USER_POOL_ID ||
     !config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID
   ) {
-    throw new Error('AMPLIFY_AUTH configuration is missing');
+    throw new Error('AMPLIFY_AUTH configuration is missing required fields');
   }
 
-  // Use the legacy configuration format for compatibility
+  const baseUrl = getBaseUrl();
+  const redirectSignIn = `${baseUrl}/callback`;
+  const redirectSignOut = `${baseUrl}/`;
+
   const amplifyConfig = {
-    aws_project_region: config.AMPLIFY_AUTH_REGION,
-    aws_cognito_region: config.AMPLIFY_AUTH_REGION,
-    aws_user_pools_id: config.AMPLIFY_AUTH_USER_POOL_ID,
-    aws_user_pools_web_client_id: config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID,
-    aws_cognito_username_attributes: ['email'],
-    aws_cognito_social_providers: [],
-    aws_cognito_signup_attributes: ['email'],
-    aws_cognito_mfa_configuration: 'OFF',
-    aws_cognito_mfa_types: ['SMS'],
-    aws_cognito_password_protection_settings: {
-      passwordPolicyMinLength: 8,
-      passwordPolicyCharacters: [],
+    Auth: {
+      Cognito: {
+        userPoolId: config.AMPLIFY_AUTH_USER_POOL_ID,
+        userPoolClientId: config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID,
+        loginWith: {
+          email: true,
+          oauth: {
+            domain: config.AMPLIFY_AUTH_USER_POOL_ID.replace('ap-southeast-2_', '') + '.auth.ap-southeast-2.amazoncognito.com',
+            scopes: ['openid', 'email', 'profile'],
+            redirectSignIn: [redirectSignIn],
+            redirectSignOut: [redirectSignOut],
+            responseType: 'code' as const,
+            providers: ['Google'],
+          },
+        },
+        signUpVerificationMethod: 'code' as const,
+        userAttributes: {
+          email: {
+            required: true,
+          },
+        },
+        passwordFormat: {
+          minLength: 8,
+          requireLowercase: false,
+          requireUppercase: false,
+          requireNumbers: false,
+          requireSpecialCharacters: false,
+        },
+      },
     },
-    aws_cognito_verification_mechanisms: ['email'],
   };
 
-  Amplify.configure(amplifyConfig);
+  Amplify.configure(amplifyConfig as Parameters<typeof Amplify.configure>[0]);
   isConfigured = true;
-  console.log('Amplify configured successfully');
 }
