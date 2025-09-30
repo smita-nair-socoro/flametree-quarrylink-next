@@ -3,7 +3,7 @@ name: Publish Web Build to GHCR
 
 on:
   push:
-    tags: ['v*.*.*']  # release by semver tags
+    workflow_dispatch: # manual trigger
 
 permissions:
   contents: read    # to checkout code
@@ -45,26 +45,32 @@ jobs:
       - name: Setup ORAS
         uses: oras-project/setup-oras@v1
 
+      # Get current version from package.json
+      - name: Install jq
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          echo "current_version=$(jq -r .version package.json)" >> $GITHUB_OUTPUT
+
       # Login to GHCR
       - name: Login GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # Push tarball as an OCI artifact, tag == git tag
+      # Push tarball as an OCI artifact, tag == app version field from package.json
       - name: Push OCI artifact
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.ctx.outputs.current_version }}
         run: |
           oras push "$IMAGE:$TAG" \
             --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
             --artifact-type application/vnd.react.static+tar \
             site.tar.gz:application/gzip
 
-      # (Optional) also push :latest
+      # Also push :latest tag for convenience
       - name: Tag latest
-        if: startsWith(github.ref_name, 'v')
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ steps.ctx.outputs.current_version }}
         run: |
           oras copy "$IMAGE:$TAG" "$IMAGE:latest"
