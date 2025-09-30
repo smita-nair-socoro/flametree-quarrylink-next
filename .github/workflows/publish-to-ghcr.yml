@@ -2,7 +2,7 @@
 name: Publish Web Build to GHCR
 
 on:
-  workflow_dispatch: # manual trigger
+  workflow_dispatch: {}   # manual trigger (user must choose 'develop' in the UI)
 
 permissions:
   contents: read    # to checkout code
@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   publish:
+    # ✅ Run only when manually triggered for the 'develop' branch
+    if: github.ref_type == 'branch' && github.ref_name == 'develop'
     runs-on: ubuntu-latest
     env:
       IMAGE_POSTFIX: oras-web
