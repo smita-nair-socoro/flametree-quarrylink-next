@@ -2,8 +2,7 @@
 name: Publish Web Build to GHCR
 
 on:
-  push:
-    workflow_dispatch: # manual trigger
+  workflow_dispatch: # manual trigger
 
 permissions:
   contents: read    # to checkout code
