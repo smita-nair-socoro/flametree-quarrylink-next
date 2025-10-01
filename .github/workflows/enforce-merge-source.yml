@@ -15,18 +15,18 @@ jobs:
           SOURCE="${{ github.head_ref }}"
           TARGET="${{ github.base_ref }}"
 
-          if [[ "$TARGET" == "develop" && "$SOURCE" != "feature/QLINK-*" ]]; then
-            echo "❌ Only merges from 'feature' are allowed into 'develop'. Found: $SOURCE -> $TARGET"
+          if [[ "$TARGET" == "develop" && ! "$SOURCE" =~ ^feature/QLINK-[0-9]+.*$ ]]; then
+            echo "❌ Only merges from 'feature/QLINK-*' branches are allowed into 'develop'. Found: $SOURCE -> $TARGET"
             exit 1
           fi
 
           if [[ "$TARGET" == "release" && ("$SOURCE" != "develop" || "$SOURCE" != "bugfix") ]]; then
-            echo "❌ Only merges from 'develop' or 'bugfix' are allowed into 'release'. Found: $SOURCE -> $TARGET"
+            echo "❌ Only merges from 'develop' or 'bugfix' branches are allowed into 'release'. Found: $SOURCE -> $TARGET"
             exit 1
           fi
 
           if [[ "$TARGET" == "main" && ("$SOURCE" != "release" || "$SOURCE" != "hotfix") ]]; then
-            echo "❌ Only merges from 'release' or 'hotfix' are allowed into 'main'. Found: $SOURCE -> $TARGET"
+            echo "❌ Only merges from 'release' or 'hotfix' branches are allowed into 'main'. Found: $SOURCE -> $TARGET"
             exit 1
           fi
 
