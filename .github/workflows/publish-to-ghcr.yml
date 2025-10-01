@@ -14,8 +14,7 @@ jobs:
     env:
       IMAGE_POSTFIX: oras-web
     steps:
-      # ✅ Run only when manually triggered for the 'develop' branch
-      - name: Enforce develop only
+      - name: Enforce develop branch only
         if: github.ref_name != 'develop'
         run: |
           echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
