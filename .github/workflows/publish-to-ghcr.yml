@@ -2,8 +2,7 @@
 name: Publish Web Build to GHCR
 
 on:
-  push:
-    tags: ['v*.*.*']  # release by semver tags
+  workflow_dispatch:
 
 permissions:
   contents: read    # to checkout code
@@ -15,6 +14,12 @@ jobs:
     env:
       IMAGE_POSTFIX: oras-web
     steps:
+      - name: Enforce develop branch only
+        if: github.ref_name != 'develop'
+        run: |
+          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
+          exit 1
+
       - uses: actions/checkout@v4
 
       # Setup Node.js
@@ -45,26 +50,34 @@ jobs:
       - name: Setup ORAS
         uses: oras-project/setup-oras@v1
 
+      # Get current version from package.json
+      - name: Install jq and read current app version
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          APP_VERSION=$(jq -r .version package.json)
+          echo "CURRENT_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
+          echo "Current application version: $APP_VERSION"
+
       # Login to GHCR
       - name: Login GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # Push tarball as an OCI artifact, tag == git tag
+      # Push tarball as an OCI artifact, tag == app version field from package.json
       - name: Push OCI artifact
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ env.CURRENT_VERSION }}
         run: |
           oras push "$IMAGE:$TAG" \
             --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
             --artifact-type application/vnd.react.static+tar \
             site.tar.gz:application/gzip
 
-      # (Optional) also push :latest
+      # Also push :latest tag for convenience
       - name: Tag latest
-        if: startsWith(github.ref_name, 'v')
         env:
           IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ env.CURRENT_VERSION }}
         run: |
           oras copy "$IMAGE:$TAG" "$IMAGE:latest"
