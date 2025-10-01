@@ -190,7 +190,7 @@ const getDialogConfigs = (
                   <span className="text-[14px] font-normal text-[#6A7282]">
                     Customer:
                   </span>
-                  <span className="text-[16px] font-medium text-[#101828]">
+                  <span className="text-[16px] font-normal text-[#364153]">
                     {customerName}
                   </span>
                 </div>

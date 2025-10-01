@@ -6,6 +6,8 @@
       "status": "DRAFT",
       "quoteType": "DELIVERY",
       "customerId": 1,
+      "customerName": "Jay",
+      "customerEmail": "Jay@socoro.com.au",
       "accountManager": 2,
       "projectName": "Mock Data - Draft",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -17,6 +19,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 1,
+      "totalSellPrice": 1500,
       "lineItems": [
         {
           "id": 1,
@@ -45,6 +49,8 @@
       "status": "PENDING",
       "quoteType": "COLLECTION",
       "customerId": 2,
+      "customerName": "Armin",
+      "customerEmail": "Armin@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Pending",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -56,6 +62,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 2,
+      "totalSellPrice": 15500,
       "lineItems": [
         {
           "id": 1,
@@ -103,6 +111,8 @@
       "status": "APPROVED",
       "quoteType": "DELIVERY",
       "customerId": 2,
+      "customerName": "Armin",
+      "customerEmail": "Armin@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Approved",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -114,6 +124,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 2,
+      "totalSellPrice": 1850,
       "lineItems": [
         {
           "id": 1,
@@ -161,6 +173,8 @@
       "status": "DECLINED",
       "quoteType": "DELIVERY",
       "customerId": 2,
+      "customerName": "Armin",
+      "customerEmail": "Armin@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Declined",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -172,6 +186,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 3,
+      "totalSellPrice": 16500,
       "lineItems": [
         {
           "id": 1,
@@ -237,7 +253,9 @@
       "quoteNumber": "Q105",
       "status": "EXPIRED",
       "quoteType": "COLLECTION",
-      "customerId": 2,
+      "customerId": 1,
+      "customerName": "Jay",
+      "customerEmail": "Jay@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Expired",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -249,6 +267,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 1,
+      "totalSellPrice": 26800,
       "lineItems": [
         {
           "id": 1,
@@ -277,6 +297,8 @@
       "status": "CONVERTED_TO_JOB",
       "quoteType": "DELIVERY",
       "customerId": 2,
+      "customerName": "Armin",
+      "customerEmail": "Armin@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Converted to Job",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -288,6 +310,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 2,
+      "totalSellPrice": 2400,
       "lineItems": [
         {
           "id": 1,
@@ -334,7 +358,9 @@
       "quoteNumber": "Q107",
       "status": "EXPIRED",
       "quoteType": "COLLECTION",
-      "customerId": 2,
+      "customerId": 1,
+      "customerName": "Jay",
+      "customerEmail": "Jay@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Expired",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -346,6 +372,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 0,
+      "totalSellPrice": 0,
       "lineItems": []
     },
     {
@@ -353,7 +381,9 @@
       "quoteNumber": "Q108",
       "status": "ARCHIVED",
       "quoteType": "COLLECTION",
-      "customerId": 2,
+      "customerId": 1,
+      "customerName": "Jay",
+      "customerEmail": "Jay@socoro.com.au",
       "accountManager": 3,
       "projectName": "Mock Data - Archived",
       "deliveryStartDate": "2025-09-20T10:00:00Z",
@@ -365,6 +395,8 @@
       "createdAt": "2025-09-20T10:00:00Z",
       "updatedAt": "2025-09-20T10:00:00Z",
       "lastModifiedBy": "system",
+      "lineItemsCount": 0,
+      "totalSellPrice": 0,
       "lineItems": []
     }
   ]
