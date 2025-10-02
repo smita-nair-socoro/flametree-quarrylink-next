@@ -38,6 +38,15 @@ export default function QuoteLineItemForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [pricingBreakdown, setPricingBreakdown] = React.useState({
+    totalProductCostPrice: 0,
+    totalTruckCostPrice: 0,
+    totalProductSellPrice: 0,
+    totalTruckSellPrice: 0,
+    totalInvoice: 0,
+    grossProfit: 0,
+    grossProfitPercentage: 0,
+  });
 
   const selectedLineItem = useSelectedLineItem();
 
@@ -161,6 +170,71 @@ export default function QuoteLineItemForm({
     quotationLineItemForm.setValue('truck_cost_uom', '');
     quotationLineItemForm.setValue('truck_sell_uom', '');
   }, [quotationLineItemForm.watch('truck_type')]);
+
+  // Calculate pricing breakdown whenever relevant form values change
+  React.useEffect(() => {
+    const formValues = quotationLineItemForm.getValues();
+
+    const totalProductCostPrice =
+      (formValues.product_cost_qty || 0) * (formValues.product_cost_price || 0);
+
+    const totalTruckCostPrice =
+      (formValues.truck_cost_qty || 0) * (formValues.truck_cost_price || 0);
+
+    const totalProductSellPrice =
+      (formValues.product_sell_qty || 0) * (formValues.product_sell_price || 0);
+
+    const totalTruckSellPrice =
+      (formValues.truck_sell_qty || 0) * (formValues.truck_sell_price || 0);
+
+    // Calculate total invoice (product sell + truck sell)
+    const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
+
+    // Calculate gross profit (total invoice - total costs)
+    const totalCosts = totalProductCostPrice + totalTruckCostPrice;
+    const grossProfit = totalInvoice - totalCosts;
+
+    const grossProfitPercentage =
+      totalInvoice > 0 ? (grossProfit / totalInvoice) * 100 : 0;
+
+    setPricingBreakdown({
+      totalProductCostPrice,
+      totalTruckCostPrice,
+      totalProductSellPrice,
+      totalTruckSellPrice,
+      totalInvoice,
+      grossProfit,
+      grossProfitPercentage,
+    });
+
+    // Update form values for the calculated totals
+    quotationLineItemForm.setValue(
+      'total_product_cost_price',
+      totalProductCostPrice
+    );
+    quotationLineItemForm.setValue(
+      'total_truck_cost_price',
+      totalTruckCostPrice
+    );
+    quotationLineItemForm.setValue(
+      'total_product_sell_price',
+      totalProductSellPrice
+    );
+    quotationLineItemForm.setValue(
+      'total_truck_sell_price',
+      totalTruckSellPrice
+    );
+    quotationLineItemForm.setValue('gross_profit', grossProfit);
+  }, [
+    quotationLineItemForm.watch('product_cost_qty'),
+    quotationLineItemForm.watch('product_cost_price'),
+    quotationLineItemForm.watch('truck_cost_qty'),
+    quotationLineItemForm.watch('truck_cost_price'),
+    quotationLineItemForm.watch('product_sell_qty'),
+    quotationLineItemForm.watch('product_sell_price'),
+    quotationLineItemForm.watch('truck_sell_qty'),
+    quotationLineItemForm.watch('truck_sell_price'),
+  ]);
 
   async function onSubmit(
     values: z.infer<typeof NewQuotationLineItemFormSchema>
@@ -535,36 +609,49 @@ export default function QuoteLineItemForm({
               <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Truck Cost Rate:
+                    Total Product Cost Price:
                   </span>
-                  <span className="text-sm font-normal">$100</span>
+                  <span className="text-sm font-normal">
+                    ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Truck Cost Rate:
+                    Total Truck Cost Price:
                   </span>
-                  <span className="text-sm font-normal">$100</span>
+                  <span className="text-sm font-normal">
+                    ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
                     Total Product Sell Price:
                   </span>
-                  <span className="text-sm font-normal">$100</span>
+                  <span className="text-sm font-normal">
+                    ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Truck Sell Rate:
+                    Total Truck Sell Price:
                   </span>
-                  <span className="text-sm font-normal">$100</span>
+                  <span className="text-sm font-normal">
+                    ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-semibold">Total Invoice:</span>
-                  <span className="text-sm font-normal">$100</span>
+                  <span className="text-sm font-normal">
+                    ${pricingBreakdown.totalInvoice.toFixed(2)}
+                  </span>
                 </div>
               </div>
               <div className="flex justify-between py-3 px-2 bg-slate-200">
                 <span className="text-sm font-semibold">Gross Profit:</span>
-                <span className="text-sm font-normal">$100 (10.00%)</span>
+                <span className="text-sm font-normal">
+                  ${pricingBreakdown.grossProfit.toFixed(2)} (
+                  {pricingBreakdown.grossProfitPercentage.toFixed(2)}%)
+                </span>
               </div>
             </div>
 
