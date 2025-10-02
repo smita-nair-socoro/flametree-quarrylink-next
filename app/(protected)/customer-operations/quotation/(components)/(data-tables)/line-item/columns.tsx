@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { centsToDollars } from '@/lib/utils/currency';
+import { QuotationLineItemTableActions } from './quotation-line-item-actions';
 
 export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
   {
@@ -97,8 +98,12 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div></div>;
+    cell: ({ row }) => {
+      return (
+        <div>
+          <QuotationLineItemTableActions quotationLineItem={row.original} />
+        </div>
+      );
     },
   },
 ];

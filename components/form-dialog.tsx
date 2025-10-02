@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
+import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
@@ -48,6 +49,8 @@ interface HeaderInfo {
   useSelectedProduct?: boolean;
   /** Use selected supplier data automatically */
   useSelectedSupplier?: boolean;
+  /** Use selected quotation line item data automatically */
+  useSelectedLineItem?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -137,6 +140,7 @@ export function FormDialog({
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
+  const selectedQuotationLineItem = useSelectedLineItem();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -160,6 +164,11 @@ export function FormDialog({
     finalPrimaryBadges = [selectedProduct.material_type];
     finalSecondaryBadges = [selectedProduct.status];
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+  }
+
+  if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
+    finalCustomId = selectedQuotationLineItem.product_name;
+    finalPrimaryBadges = [selectedQuotationLineItem.supplier_product_name];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
