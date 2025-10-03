@@ -4,6 +4,7 @@ import { LoginForm } from './(components)/login-form';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
+import { getSafeRedirectUrl } from '@/lib/utils/redirect-helpers';
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -12,21 +13,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      const redirectParam = searchParams.get('redirect') || searchParams.get('returnTo');
-      
-      if (redirectParam) {
-        try {
-          const url = new URL(redirectParam, window.location.origin);
-          if (url.origin === window.location.origin) {
-            router.replace(redirectParam);
-            return;
-          }
-        } catch (error) {
-          console.error('Invalid redirect URL:', redirectParam, error);
-        }
-      }
-      
-      router.replace('/dashboard');
+      const redirectUrl = getSafeRedirectUrl(searchParams);
+      router.replace(redirectUrl);
     }
   }, [isAuthenticated, isLoading, router, searchParams]);
 
@@ -59,7 +47,7 @@ export default function LoginPage() {
           <LoginForm />
         </div>
       </div>
-      
+
       {/* Right side - QuarryLink Illustration (hidden on mobile) */}
       <div className="hidden lg:flex flex-1 overflow-hidden">
         <img

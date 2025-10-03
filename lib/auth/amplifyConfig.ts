@@ -1,13 +1,7 @@
 import { Amplify } from 'aws-amplify';
 import { RuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
-let isConfigured = false;
-
 export function configureAmplify(config: RuntimeConfig) {
-  if (isConfigured) {
-    return;
-  }
-
   if (
     !config.AMPLIFY_AUTH_REGION ||
     !config.AMPLIFY_AUTH_USER_POOL_ID ||
@@ -17,11 +11,14 @@ export function configureAmplify(config: RuntimeConfig) {
   }
 
   // Build redirect URLs dynamically from window.location (client-side only)
-  const baseUrl = typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.host}`
-    : 'http://localhost:3000';
+  const baseUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.host}`
+      : 'http://localhost:3000';
   const redirectSignIn = `${baseUrl}/callback`;
-  const redirectSignOut = `${baseUrl}/`;
+
+  // User signs out -> Amplify handles logout (clears tokens, sessions, etc.) -> User lands on home page.
+  const redirectSignOut = `${baseUrl}`;
 
   const amplifyConfig = {
     Auth: {
@@ -31,7 +28,9 @@ export function configureAmplify(config: RuntimeConfig) {
         loginWith: {
           email: true,
           oauth: {
-            domain: config.AMPLIFY_AUTH_USER_POOL_ID.replace('ap-southeast-2_', '') + '.auth.ap-southeast-2.amazoncognito.com',
+            domain:
+              config.AMPLIFY_AUTH_USER_POOL_ID.replace('ap-southeast-2_', '') +
+              '.auth.ap-southeast-2.amazoncognito.com',
             scopes: ['openid', 'email', 'profile'],
             redirectSignIn: [redirectSignIn],
             redirectSignOut: [redirectSignOut],
@@ -57,5 +56,4 @@ export function configureAmplify(config: RuntimeConfig) {
   };
 
   Amplify.configure(amplifyConfig as Parameters<typeof Amplify.configure>[0]);
-  isConfigured = true;
 }

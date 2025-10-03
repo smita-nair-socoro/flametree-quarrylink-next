@@ -4,27 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { useAuth } from '@/hooks/use-auth';
+import { getSafeRedirectUrl } from '@/lib/utils/redirect-helpers';
 
 export default function CallbackPage() {
   const router = useRouter();
   const { refreshUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
-
-  function getDefaultRedirectUrl(): string {
-    const urlParams = new URLSearchParams(window.location.search);
-    const redirectParam = urlParams.get('redirect') || urlParams.get('returnTo');
-    
-    if (redirectParam) {
-      try {
-        const url = new URL(redirectParam, window.location.origin);
-        if (url.origin === window.location.origin) {
-          return redirectParam;
-        }
-      } catch (error) { console.error('Invalid redirect URL:', redirectParam, error); }
-    }
-    
-    return '/dashboard';
-  }
 
   useEffect(() => {
     const handleOAuthCallback = async () => {
@@ -46,11 +31,13 @@ export default function CallbackPage() {
         if (user) {
           // Refresh the auth context
           await refreshUser();
-          
+
           // Get redirect URL from sessionStorage (set before OAuth redirect) or use dynamic default
-          const redirectUrl = sessionStorage.getItem('oauth_redirect_url') || getDefaultRedirectUrl();
+          const redirectUrl =
+            sessionStorage.getItem('oauth_redirect_url') ||
+            getSafeRedirectUrl();
           sessionStorage.removeItem('oauth_redirect_url'); // Clean up
-          
+
           // Redirect to intended destination
           router.replace(redirectUrl);
         } else {
@@ -71,7 +58,9 @@ export default function CallbackPage() {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
-          <p className="text-lg font-medium text-red-600">Authentication Failed</p>
+          <p className="text-lg font-medium text-red-600">
+            Authentication Failed
+          </p>
           <p className="text-sm text-gray-600 mt-2">{error}</p>
           <p className="text-sm text-gray-500 mt-4">Redirecting to login...</p>
         </div>
@@ -83,7 +72,9 @@ export default function CallbackPage() {
     <div className="flex h-screen w-full items-center justify-center">
       <div className="text-center">
         <p className="text-lg font-medium">Processing authentication...</p>
-        <p className="text-sm text-gray-600 mt-2">Please wait while we complete your sign-in.</p>
+        <p className="text-sm text-gray-600 mt-2">
+          Please wait while we complete your sign-in.
+        </p>
       </div>
     </div>
   );
