@@ -13,13 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IMAGE_POSTFIX: oras-web
-    steps:
-      - name: Enforce develop branch only
-        if: github.ref_name != 'develop'
-        run: |
-          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
-          exit 1
+      GHCR_REGISTRY: ghcr.io
 
+    steps:
+#      - name: Enforce develop branch only
+#        if: github.ref_name != 'develop'
+#        run: |
+#          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
+#          exit 1
+
+      # Checkout code from repo
       - uses: actions/checkout@v4
 
       # Setup Node.js
@@ -59,14 +62,41 @@ jobs:
           echo "CURRENT_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
           echo "Current application version: $APP_VERSION"
 
-      # Login to GHCR
-      - name: Login GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+      # Normalize image repo path to lowercase (GHCR prefers lowercase)
+      # allow only [a-z0-9._-] in image postfix and lowercase it
+      - name: Compute image ref
+        run: |
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          REPO_LC=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_POSTFIX_LC=$(echo "${{ env.IMAGE_POSTFIX }}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')
+          if [ -n "$IMAGE_POSTFIX_LC" ]; then
+            echo "IMAGE_REF=${{ env.GHCR_REGISTRY }}/${OWNER_LC}/${REPO_LC}-${IMAGE_POSTFIX_LC}" >> "$GITHUB_ENV"
+          else
+            echo "IMAGE_REF=${{ env.GHCR_REGISTRY }}/${OWNER_LC}/${REPO_LC}" >> "$GITHUB_ENV"
+          fi
+
+      # Log in to GHCR using the provided GITHUB_TOKEN
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ${{ env.GHCR_REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      # Guard: prohibit reusing an existing version tag in GHCR
+      # Requires you already ran: Log in to GHCR
+      - name: Guard - version tag must be new
+        if: env.CURRENT_VERSION != ''
+        shell: bash
+        run: |
+          set -e
+          TAG="${IMAGE_REF}:${CURRENT_VERSION}"
+          if docker manifest inspect "$TAG" > /dev/null 2>&1; then
+            echo "::error ::Tag already exists: $TAG. Bump your app version."
+            exit 1
+          fi
+          echo "✅ Tag not found: $TAG"
 
       # Push tarball as an OCI artifact, tag == app version field from package.json
       - name: Push OCI artifact
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
+          IMAGE: ${{ env.IMAGE_REF }}
           TAG: ${{ env.CURRENT_VERSION }}
         run: |
           oras push "$IMAGE:$TAG" \
@@ -77,7 +107,7 @@ jobs:
       # Also push :latest tag for convenience
       - name: Tag latest
         env:
-          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.IMAGE_POSTFIX }}
+          IMAGE: ${{ env.IMAGE_REF }}
           TAG: ${{ env.CURRENT_VERSION }}
         run: |
           oras copy "$IMAGE:$TAG" "$IMAGE:latest"
