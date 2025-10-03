@@ -12,6 +12,8 @@ import rawJson from '@/lib/tests/quotationResponseData.json';
 import { Quotation } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { useQuotationStore } from '@/app/stores/quotation-store';
+import { useQuotationActions } from '@/hooks/use-quotations-actions';
 
 export default function QuotationsPage() {
   const convertedJson = convertKeysToSnakeCase(rawJson);
@@ -28,16 +30,35 @@ export default function QuotationsPage() {
     quoteId: item.id,
   }));
 
+  const setSelectedQuotation = useQuotationStore(
+    (state) => state.setSelectedQuotation
+  );
+
+  const [selectedQuotationForActions, setSelectedQuotationForActions] =
+    React.useState<Quotation | null>(null);
+
+  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
+    selectedQuotationForActions?.id,
+    selectedQuotationForActions
+  );
+
+  const handleRowClick = (quotation: Quotation) => {
+    setSelectedQuotation(quotation);
+    setSelectedQuotationForActions(quotation);
+    actions.view();
+  };
+
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
     { column: 'quote_type', title: 'Quote Type', icon: Tags },
-    // { column: 'products', title: 'Products', icon: Factory },
     { column: 'customer_name', title: 'Customer Name', icon: Activity },
     { column: 'account_manager', title: 'Account Manager', icon: Factory },
   ];
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h3 className="text-2xl font-bold">Quotations</h3>
@@ -46,9 +67,8 @@ export default function QuotationsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
             dialogTitle="Add New Quote"
-            dialogDescription="This is a card description."
+            dialogDescription="Create a new customer quotation"
             buttonTitle="Add Quote"
-            headerSeparator={true}
           >
             <QuotationForm />
           </FormDialog>
@@ -62,6 +82,7 @@ export default function QuotationsPage() {
           columns={quotationColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search quotes..."
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
