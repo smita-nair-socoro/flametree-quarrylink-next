@@ -13,12 +13,9 @@ export function useConfig() {
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
   const [cfg, setCfg] = useState<RuntimeConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-    
-    const loadConfig = async () => {
+    (async () => {
       try {
         const res = await fetch('/config.json', { cache: 'no-store' });
         if (!res.ok) {
@@ -31,14 +28,8 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         console.error('Failed to load configuration:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       }
-    };
-
-    loadConfig();
+    })();
   }, []);
-
-  if (!isClient) {
-    return null;
-  }
 
   if (error) {
     return (

@@ -3,24 +3,6 @@ import { RuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
 let isConfigured = false;
 
-// Helper function to get the base URL dynamically
-function getBaseUrl(): string {
-  if (typeof window !== 'undefined') {
-    // Client-side: use window.location
-    return `${window.location.protocol}//${window.location.host}`;
-  }
-  
-  // Server-side: check environment variables or use defaults
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const host = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_APP_URL 
-    ? process.env.NEXT_PUBLIC_APP_URL
-    : `${protocol}://localhost:3000`;
-  
-  return host;
-}
-
 export function configureAmplify(config: RuntimeConfig) {
   if (isConfigured) {
     return;
@@ -34,7 +16,10 @@ export function configureAmplify(config: RuntimeConfig) {
     throw new Error('AMPLIFY_AUTH configuration is missing required fields');
   }
 
-  const baseUrl = getBaseUrl();
+  // Build redirect URLs dynamically from window.location (client-side only)
+  const baseUrl = typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.host}`
+    : 'http://localhost:3000';
   const redirectSignIn = `${baseUrl}/callback`;
   const redirectSignOut = `${baseUrl}/`;
 

@@ -57,8 +57,8 @@ export function LoginForm({
         if (url.origin === window.location.origin) {
           return redirectParam;
         }
-      } catch {
-        // Invalid URL, fall back to default
+      } catch (error) {
+        console.error('Invalid redirect URL:', redirectParam, error);
       }
     }
     

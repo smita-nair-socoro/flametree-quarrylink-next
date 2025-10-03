@@ -20,9 +20,7 @@ export default function CallbackPage() {
         if (url.origin === window.location.origin) {
           return redirectParam;
         }
-      } catch {
-        // Invalid URL, fall back to default
-      }
+      } catch (error) { console.error('Invalid redirect URL:', redirectParam, error); }
     }
     
     return '/dashboard';
@@ -63,8 +61,6 @@ export default function CallbackPage() {
         console.error('Callback processing error:', error);
         // If there's an error getting the user, redirect to login
         router.replace('/login');
-      } finally {
-        // Callback processing complete
       }
     };
 

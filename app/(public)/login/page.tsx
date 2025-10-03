@@ -21,8 +21,8 @@ export default function LoginPage() {
             router.replace(redirectParam);
             return;
           }
-        } catch {
-          // Invalid URL, fall back to default
+        } catch (error) {
+          console.error('Invalid redirect URL:', redirectParam, error);
         }
       }
       
