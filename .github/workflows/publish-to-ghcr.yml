@@ -16,11 +16,11 @@ jobs:
       GHCR_REGISTRY: ghcr.io
 
     steps:
-#      - name: Enforce develop branch only
-#        if: github.ref_name != 'develop'
-#        run: |
-#          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
-#          exit 1
+      - name: Enforce develop branch only
+        if: github.ref_name != 'develop'
+        run: |
+          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
+          exit 1
 
       # Checkout code from repo
       - uses: actions/checkout@v4
