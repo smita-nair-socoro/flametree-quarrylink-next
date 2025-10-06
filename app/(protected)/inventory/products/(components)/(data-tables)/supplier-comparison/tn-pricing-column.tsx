@@ -91,7 +91,7 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     },
     cell: ({ row }) => {
       const availableForSale =
-        row.original.price.available_for_sale_tn === true ? 'true' : 'false';
+        row.original.price.available_for_sale_tn === true ? 'Yes' : 'No';
       return <div className="text-left">{availableForSale}</div>;
     },
     meta: 'available for sale',
