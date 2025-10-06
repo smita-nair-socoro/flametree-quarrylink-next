@@ -121,7 +121,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-product-form"
           className={cn(
-            'gap-12 p-1 w-full flex flex-col',
+            'gap-1 p-1 w-full flex flex-col',
             className,
             isSubmitting && 'pointer-events-none'
           )}
