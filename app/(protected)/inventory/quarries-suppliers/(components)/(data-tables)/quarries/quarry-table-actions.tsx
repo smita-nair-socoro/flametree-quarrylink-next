@@ -8,9 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-// import { useProductActions } from '@/hooks/use-product-actions';
 import { Quarry } from '@/lib/types/quarry';
-// import { useProductStore } from '@/app/stores/product-store';
 
 interface QuarryTableActionProps {
   quarry: Quarry;
@@ -18,25 +16,13 @@ interface QuarryTableActionProps {
 
 export function QuarryTableActions({ quarry }: QuarryTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  // const { actions, confirmDialogs, viewDialog } = useProductActions(
-  //   quarry.id,
-  //   product
-  // );
-
-  // const setSelectedQuarry = useQuarryStore(
-  //   (state) => state.setSelectedQuarry
-  // );
 
   const handleView = () => {
-    // setSelectedQuarry(quarry);
     setDropdownOpen(false); // Close dropdown before opening modal
-    // actions.view();
   };
 
   return (
     <div>
-      {/* {confirmDialogs}
-      {viewDialog} */}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
