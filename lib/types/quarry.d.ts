@@ -33,6 +33,7 @@ export interface Quarry {
   created_at: string;
   updated_at: string;
   last_modified_by: string;
+  suburb: string;
 }
 
 
