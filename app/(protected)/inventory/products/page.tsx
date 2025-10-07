@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJson from '@/lib/tests/productResponseData.json';
 import { ProductDetails } from '@/lib/types/product';
@@ -12,6 +13,8 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
+import { useProductStore } from '@/app/stores/product-store';
+import { useProductActions } from '@/hooks/use-product-actions';
 
 export default function ProductsPage() {
   const convertedJson = convertKeysToSnakeCase(rawJson);
@@ -29,6 +32,23 @@ export default function ProductsPage() {
     productId: item.id,
   }));
 
+  const setSelectedProduct = useProductStore(
+    (state) => state.setSelectedProduct
+  );
+  const [selectedProductForActions, setSelectedProductForActions] =
+    React.useState<ProductDetails | null>(null);
+
+  const { actions, confirmDialogs, viewDialog } = useProductActions(
+    selectedProductForActions?.id,
+    selectedProductForActions
+  );
+
+  const handleRowClick = (product: ProductDetails) => {
+    setSelectedProduct(product);
+    setSelectedProductForActions(product);
+    actions.view();
+  };
+
   const facetDefs: FacetDefinition[] = [
     { column: 'material_type', title: 'Material Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
@@ -36,6 +56,9 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Products</h1>
@@ -58,6 +81,7 @@ export default function ProductsPage() {
           columns={productColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search products..."
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
