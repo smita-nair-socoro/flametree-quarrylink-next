@@ -38,11 +38,13 @@ function getBadgeClassName(name: string): string {
     console.log('Invalid name:', name);
     return PALETTE.sky;
   }
-  const key = name.trim().toUpperCase();
+  const key = name.trim().toUpperCase().replace(/_/g, ' ');
   if (BADGE_COLORS[key]) {
     return BADGE_COLORS[key];
   }
+
   const dynamicKey = pickKey(key);
+
   return PALETTE[dynamicKey] || PALETTE.sky;
 }
 export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
@@ -59,7 +61,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
             getBadgeClassName(n)
           )}
         >
-          {n}
+          {n.replace(/_/g, ' ')}
         </Badge>
       ))}
       {hidden.length > 0 && (
@@ -87,7 +89,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
                     getBadgeClassName(n)
                   )}
                 >
-                  {n}
+                  {n.replace(/_/g, ' ')}
                 </Badge>
               ))}
             </div>
