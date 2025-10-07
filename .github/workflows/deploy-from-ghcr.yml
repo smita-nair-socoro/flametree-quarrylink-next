@@ -1,0 +1,137 @@
+# .github/workflows/deploy-from-ghcr.yml
+name: Deploy Static Site from GHCR to S3 + CloudFront
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "GHCR tag to deploy (e.g., 1.2.3 or latest)"
+        required: true
+        default: "latest"
+      suffix:
+        description: "Image name suffix (e.g., oras-web)"
+        required: true
+        default: "oras-web"
+      invalidate_all:
+        description: "Invalidate /* (true) or only critical paths (false)"
+        required: true
+        default: "true"
+
+env:
+  AWS_REGION: ap-southeast-2
+
+permissions:
+  contents: read      # to checkout code
+  packages: read      # to pull from GitHub Packages/GHCR
+  id-token: write     # for AWS OIDC federation
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag }}
+      SUFFIX: ${{ inputs.suffix }}
+      INVALIDATE_ALL: ${{ inputs.invalidate_all }}
+    environment: dev
+
+    steps:
+      - name: Checkout repo (for template or deploy scripts)
+        uses: actions/checkout@v4
+
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Login GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # Pull the tarball, that was previously pushed as oras "site.tar.gz" artifact
+      - name: Pull artifact from GHCR
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
+          VERSION: ${{ env.TAG }}
+        run: |
+          set -euo pipefail
+          mkdir -p _pkg
+          cd _pkg
+          oras pull "$IMAGE:$VERSION" -o .
+          test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
+          ls -lah
+
+      - name: Extract site build
+        run: |
+          set -euo pipefail
+          mkdir -p site
+          tar -xzf _pkg/site.tar.gz -C site
+
+      # Build and overwrite config.json directly with jq
+      - name: Generate config.json with jq
+        env:
+          COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
+          COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
+          COGNITO_REDIRECT_URI: ${{ vars.COGNITO_REDIRECT_URI }}
+          AMPLIFY_AUTH_REGION: ${{ vars.AMPLIFY_AUTH_REGION }}
+          AMPLIFY_AUTH_USER_POOL_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_ID }}
+          AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID }}
+          GOOGLE_MAPS_API_KEY: ${{ vars.GOOGLE_MAPS_API_KEY }}
+          API_URL: ${{ vars.API_URL }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          jq -n \
+            --arg cognitoDomain "$COGNITO_DOMAIN" \
+            --arg cognitoClientId "$COGNITO_CLIENT_ID" \
+            --arg cognitoRedirectUri "$COGNITO_REDIRECT_URI" \
+            --arg amplifyAuthRegion "$AMPLIFY_AUTH_REGION" \
+            --arg amplifyAuthUserPoolId "$AMPLIFY_AUTH_USER_POOL_ID" \
+            --arg amplifyAuthUserPoolWebClientId "$AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID" \
+            --arg googleMapsApiKey "$GOOGLE_MAPS_API_KEY" \
+            --arg apiUrl "$API_URL" \
+            --arg sentryDsn "$SENTRY_DSN" \
+            '{
+               COGNITO_DOMAIN: $cognitoDomain,
+               COGNITO_CLIENT_ID: $cognitoClientId,
+               COGNITO_REDIRECT_URI: $cognitoRedirectUri,
+               AMPLIFY_AUTH_REGION: $amplifyAuthRegion,
+               AMPLIFY_AUTH_USER_POOL_ID: $amplifyAuthUserPoolId,
+               AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: $amplifyAuthUserPoolWebClientId,
+               GOOGLE_MAPS_API_KEY: $googleMapsApiKey,
+               API_URL: $apiUrl,
+               SENTRY_DSN: $sentryDsn
+             }' > site/config.json
+
+      - name: Configure AWS credentials (OIDC)
+        # Prefer OIDC + role assumption (no long-lived keys).
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}   # arn:aws:iam::<acct>:role/<role>
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gh-actions-${{ github.run_id }}  # unique STS session name
+          mask-aws-account-id: true                           # hide the account ID in logs.
+
+      # Empty S3 bucket
+      - name: Empty S3 bucket
+        run: |
+          set -euo pipefail
+          aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive
+
+      # Sync whole site to S3
+      - name: Upload static site files
+        run: |
+          set -euo pipefail
+          aws s3 sync site/ "s3://${{ secrets.S3_BUCKET_NAME }}/" \
+            --delete \
+
+      # Invalidate CloudFront
+      # For "${INVALIDATE_ALL}" = "false" - only invalidate things likely to be cached aggressively but must update immediately. Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
+      - name: Create CloudFront invalidation
+        run: |
+          set -euo pipefail
+          if [ "${INVALIDATE_ALL}" = "true" ]; then
+            PATHS='/*'
+          else
+            PATHS='/config.json /index.html'
+          fi
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths ${PATHS}
