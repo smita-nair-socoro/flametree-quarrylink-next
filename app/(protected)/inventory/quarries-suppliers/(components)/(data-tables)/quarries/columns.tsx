@@ -4,7 +4,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Quarry } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
-import { QuarryTableAction } from './quarry-table-actions';
+// import { QuarryTableActions } from './quarry-table-actions';
 
 export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
   {
@@ -72,18 +72,18 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     meta: 'Status',
   },
 
-  {
-    id: 'actions',
-    header: () => {
-      return <div className="text-right pr-4"></div>;
-    },
-    cell: ({ row }) => {
-      const quarry = row.original;
-      return (
-        <div className="flex justify-end pr-4">
-          <QuarryTableAction quarry={quarry} />
-        </div>
-      );
-    },
-  },
+  // {
+  //   id: 'actions',
+  //   header: () => {
+  //     return <div className="text-right pr-4"></div>;
+  //   },
+  //   cell: ({ row }) => {
+  //     const quarry = row.original;
+  //     return (
+  //       <div className="flex justify-end pr-4">
+  //         <QuarryTableActions quarry={quarry} />
+  //       </div>
+  //     );
+  //   },
+  // },
 ];
