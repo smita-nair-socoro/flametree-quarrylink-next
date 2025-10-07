@@ -16,7 +16,8 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
-      router.replace('/login');
+      const currentPath = window.location.pathname + window.location.search;
+      router.replace(`/login?returnTo=${encodeURIComponent(currentPath)}`); 
     }
   }, [auth.isLoading, auth.isAuthenticated, router]);
 
