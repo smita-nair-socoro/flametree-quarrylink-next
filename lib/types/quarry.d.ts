@@ -21,18 +21,18 @@ export interface Quarry {
   email: string;
   phone: string;
   // address: number; // FK to Address.id - to be implemented
-  contactPersonName: string;
-  contactPersonEmail: string;
-  contactPersonPhone: string;
-  openingClosingTimes: string;
-  // weighbridgeInfo: string;
+  contact_person_name: string;
+  contact_person_email: string;
+  contact_person_phone: string;
+  opening_closing_times: string;
+  // weighbridge_info: string;
   notes: string;
   version: number;
-  isDeleted: boolean;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  last_modified_by: string;
 }
 
 
