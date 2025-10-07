@@ -74,7 +74,7 @@ export function QuotationActionButtons({
             {/* Always available: Duplicate */}
             <DropdownMenuItem onClick={actions.duplicate}>
               <Plus className="h-4 w-4 mr-2" />
-              Duplicate Quote
+              Duplicate
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -82,13 +82,13 @@ export function QuotationActionButtons({
             {/* Status-specific actions */}
             {quotation.status === 'DRAFT' && (
               <>
-                <DropdownMenuItem onClick={actions.sendToCustomer}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Send to Customer
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={actions.approve}>
                   <BadgeCheck className="h-4 w-4 mr-2" />
                   Approve Quote
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={actions.sendToCustomer}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send to Customer
                 </DropdownMenuItem>
               </>
             )}
@@ -200,7 +200,7 @@ export function QuotationActionButtons({
           className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Duplicate Quote
+          Duplicate
         </Button>
 
         {/* Status-specific primary actions */}
@@ -209,20 +209,20 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
+              onClick={actions.sendToCustomer}
+              className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Send to Customer
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={actions.approve}
               className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
             >
               <BadgeCheck className="h-4 w-4 mr-2" />
               Approve Quote
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.sendToCustomer}
-              className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Send to Customer
             </Button>
           </>
         )}
