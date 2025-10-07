@@ -54,8 +54,23 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Phone',
   },
-
-   {
+  {
+    id: 'suburb',
+    accessorFn: (row) => row.suburb,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Suburb" />;
+    },
+    cell: ({ row }) => {
+      const suburb = row.original.suburb;
+      return (
+        <div className="py-2">
+          <TableBadges names={[suburb]} visibleCount={1} />
+        </div>
+      );
+    },
+    meta: 'Suburb',
+  },
+  {
     id: 'status',
     accessorFn: (row) => row.status,
     header: ({ column }) => {
