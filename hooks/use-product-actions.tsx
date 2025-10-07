@@ -46,52 +46,65 @@ const getDialogConfigs = (
   const productCode = productData?.product_code;
   const productStatus = productData?.status;
 
-  const productQuotesStatus = () => {
-    if (!productData?.quotes?.length) return true;
-    return !productData.quotes.some(
-      (q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT'
+  const hasActiveQuotes = () => {
+    if (!productData?.quotes?.length) return false;
+    return productData.quotes.some(
+      (q: Quotation) =>
+        q.status !== 'ARCHIVED' &&
+        q.status !== 'DRAFT' &&
+        q.status !== 'CONVERTED_TO_JOB'
     );
   };
 
   // Comma-separated quote numbers for active quotes
   const quoteName = () => {
-    if (productQuotesStatus()) return '';
-    return productData?.quotes
-      .filter((q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT')
-      .map((q: Quotation) => q.quote_number)
-      .join(', ');
+    if (hasActiveQuotes()) {
+      return productData?.quotes
+        .filter(
+          (q: Quotation) =>
+            q.status !== 'ARCHIVED' &&
+            q.status !== 'DRAFT' &&
+            q.status !== 'CONVERTED_TO_JOB'
+        )
+        .map((q: Quotation) => q.quote_number)
+        .join(', ');
+    }
+    return '';
   };
 
   // Count of active quotes
   const activeQuoteNumber = () => {
-    if (productQuotesStatus()) return 0;
-    return productData?.quotes.filter(
-      (q: Quotation) => q.status === 'PENDING' || q.status === 'DRAFT'
-    ).length;
+    if (hasActiveQuotes()) {
+      return productData?.quotes.filter(
+        (q: Quotation) =>
+          q.status !== 'ARCHIVED' &&
+          q.status !== 'DRAFT' &&
+          q.status !== 'CONVERTED_TO_JOB'
+      ).length;
+    }
+    return 0;
   };
 
-  const productJobsStatus = () => {
+  const hasActiveJobs = () => {
     if (!productData?.jobs) {
-      return true;
+      return false;
     }
 
     if (productData?.jobs.length === 0) {
-      return true;
+      return false;
     }
 
     if (productData?.jobs.length > 0) {
-      return productData.jobs.every((job: JobDetails) =>
-        job.job_items.every((ji) => ji.remaining_quantity === 0)
+      return productData.jobs?.some((job: JobDetails) =>
+        job.job_items.some((jobItem) => jobItem.remaining_quantity > 0)
       );
     }
   };
 
   const jobNames = () => {
-    if (!productJobsStatus()) {
+    if (hasActiveJobs()) {
       return productData?.jobs
-        .filter((job) =>
-          job.job_items.some((ji) => ji.remaining_quantity !== 0)
-        )
+        .filter((job) => job.job_items.some((ji) => ji.remaining_quantity > 0))
         .map((job) => job.job_number)
         .join(', ');
     }
@@ -99,17 +112,17 @@ const getDialogConfigs = (
   };
 
   const activeJobNumber = () => {
-    if (!productJobsStatus()) {
+    if (hasActiveJobs()) {
       return productData?.jobs.filter((job) =>
-        job.job_items.some((ji) => ji.remaining_quantity !== 0)
+        job.job_items.some((ji) => ji.remaining_quantity > 0)
       ).length;
     }
     return 0;
   };
 
-  const productDocketStatus = () => {
-    if (!productData?.jobs?.length) return true;
-    return !productData?.jobs.some((job) =>
+  const hasActiveDockets = () => {
+    if (!productData?.jobs?.length) return false;
+    return productData?.jobs.some((job) =>
       job.dockets.some(
         (docket) =>
           docket.docket_status === 'PENDING' ||
@@ -129,7 +142,7 @@ const getDialogConfigs = (
     ) ?? [];
 
   const docketNames = () => {
-    if (productDocketStatus()) {
+    if (!hasActiveDockets()) {
       return '';
     }
     return getActiveDockets()
@@ -138,7 +151,7 @@ const getDialogConfigs = (
   };
 
   const activeDocketNumber = () => {
-    if (productDocketStatus()) {
+    if (!hasActiveDockets()) {
       return 0;
     }
     return getActiveDockets().length;
@@ -306,7 +319,7 @@ const getDialogConfigs = (
                 Active Usage:
               </span>
               <div className="flex flex-col gap-1.5">
-                {!productQuotesStatus() && (
+                {hasActiveQuotes() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
                       <div className="flex flex-row justify-start gap-1">
@@ -321,7 +334,7 @@ const getDialogConfigs = (
                     </div>
                   </>
                 )}
-                {!productJobsStatus() && (
+                {hasActiveJobs() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
                       <div className="flex flex-row justify-start gap-1">
@@ -336,7 +349,7 @@ const getDialogConfigs = (
                     </div>
                   </>
                 )}
-                {!productDocketStatus() && (
+                {hasActiveDockets() && (
                   <>
                     <div className="border-1 border-[#FFD6A7] rounded-md p-3 bg-[#FFF7ED]">
                       <div className="flex flex-row justify-start gap-1">
@@ -370,7 +383,7 @@ const getDialogConfigs = (
                 Complete these activities first:
               </span>
               <div className="flex flex-col gap-1.5 mt-2">
-                {!productQuotesStatus() && (
+                {hasActiveQuotes() && (
                   <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
@@ -386,7 +399,7 @@ const getDialogConfigs = (
                     </div>
                   </div>
                 )}
-                {!productJobsStatus() && (
+                {hasActiveJobs() && (
                   <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
@@ -402,7 +415,7 @@ const getDialogConfigs = (
                     </div>
                   </div>
                 )}
-                {!productDocketStatus() && (
+                {hasActiveDockets() && (
                   <div className="border-1 border-[#B9F8CF] p-3 bg-green-50 rounded-md">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
