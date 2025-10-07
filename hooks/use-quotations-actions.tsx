@@ -2,16 +2,24 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation } from '@/lib/types/quotation';
-import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
+import { ActionDialog } from '@/components/action-dialog';
+import {
+  ArrowRight,
+  Calendar,
+  CircleCheckBig,
+  CircleX,
+  Send,
+} from 'lucide-react';
+import { centsToDollars } from '@/lib/utils/currency';
+import { DatePicker } from '@/components/date-picker';
 
 interface DialogConfig {
-  title: string;
-  description: string;
-  details: string[];
-  content?: string;
-  confirmText: string;
+  title?: string;
+  description?: React.ReactNode;
+  content?: React.ReactNode;
+  confirmText?: string;
   confirmVariant?:
     | 'default'
     | 'destructive'
@@ -20,90 +28,441 @@ interface DialogConfig {
     | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
+  confirmIcon?: React.ReactNode;
+  confirmActionNeeded?: boolean;
 }
 
-const dialogConfigs: Record<string, DialogConfig> = {
-  sendToCustomer: {
-    title: 'Confirm Sending Quote To Customer',
-    description: 'Are you sure you want to send this quote to the customer?',
-    details: [
-      'Change quote status from Draft to Pending',
-      'Generate and email a PDF quote to the customer',
-      'Start the approval process',
-      'The quote can no longer be edited',
-    ],
-    confirmText: 'Send Quote',
-    confirmVariant: 'default',
-  },
+interface SelectedAction {
+  key: string;
+}
 
-  approve: {
-    title: 'Approve Quote',
-    description: '',
-    content: 'Are you sure you want to approve this quote?',
-    details: [
-      'Change quote status from Pending to Approved',
-      'Lock the quote from further edits',
-      'Make the quote ready for job conversion',
-      'Notify relevant team members',
-    ],
-    confirmText: 'Approve Quote',
-    confirmCustomClass:
-      'bg-green-900 hover:bg-green-800 text-white border-green-700',
-  },
+const getDialogConfigs = (
+  quotationData?: Quotation | null,
+  selectedAction?: SelectedAction,
+  newExpiryDate?: Date,
+  setNewExpiryDate?: (date: Date) => void
+): Record<string, DialogConfig> => {
+  const quotationNumber = quotationData?.quote_number;
+  const projectName = quotationData?.project_name;
+  const customerName = quotationData?.customer_name;
+  const customerEmail = quotationData?.customer_email;
+  const totalSellPrice = quotationData?.total_sell_price
+    ? centsToDollars(quotationData?.total_sell_price)
+    : '0';
+  const lineItemsCount = quotationData?.line_items_count;
+  const expiryDate = quotationData?.expiry_date;
 
-  decline: {
-    title: 'Are you sure you want to decline this quote?',
-    description: '',
-    details: [
-      'Change quote status from Pending to Declined',
-      'Lock the quote from further edits',
-      'Notify the customer of the declined status',
-      'Remove quote from active pending list',
-      'Quote can be reactivated later if needed',
-    ],
-    confirmText: 'Decline Quote',
-    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
-  },
+  if (selectedAction?.key === 'sendToCustomer') {
+    return {
+      sendToCustomer: {
+        title: 'Send Quote',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFF7ED] rounded-full">
+              <span className="flex items-center justify-center">
+                <Send className="h-[20px] w-[20px] text-[#F54900]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you wnat to send this quote to the customer?
+            </span>
+            <div className="border-1 border-[#FFD6A7] rounded-md p-[16.625px] bg-[#FFF7ED]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <Send className="h-[20px] w-[20px] text-[#F54900] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#F54900] font-medium">
+                    Quote Delivery
+                  </span>
+                  <span className="text-[14px] font-normal text-[#F54900]">
+                    This quote will be sent via email to {customerEmail} and the
+                    status will change to Pending
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when Quote is sent:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote status changes from Draft to Pending</li>
+                <li> Customer receives email with PDF quote</li>
+                <li> Approval process begins</li>
+                <li> Quote can no longer be edited</li>
+              </ul>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                Customer Email:
+              </span>
+              <div className="rounded-md p-1 bg-[#E5E5E5]">
+                <span className="text-[14px] font-normal text-[#6A7282] p-2">
+                  {customerEmail}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Send Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#F54900',
+      },
+    };
+  } else if (selectedAction?.key === 'approve') {
+    return {
+      approve: {
+        title: 'Approve Quote',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#F0FDF4] rounded-full">
+              <span className="flex items-center justify-center">
+                <CircleCheckBig className="h-[20px] w-[20px] text-[#008236]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to approve this quote?
+            </span>
+            <div className="border-1 border-[#B9F8CF] rounded-md p-[16.625px] bg-[#F0FDF4]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <CircleCheckBig className="h-[20px] w-[20px] text-[#008236] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#008236] font-medium">
+                    Quote Approval
+                  </span>
+                  <span className="text-[14px] font-normal text-[#008236]">
+                    This quote will be approved and can proceed to job
+                    conversion. Customer will be notified.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when Quote is approved:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote status changes from Pending to Approved</li>
+                <li> Customer is notified of approval</li>
+                <li> Quote becomes reqdy for job conversion</li>
+                <li> Pricing and terms are locked</li>
+              </ul>
+            </div>
 
-  convertToJob: {
-    title: 'Convert Quote to Job',
-    description: '',
-    content: 'Are you sure you want to convert this quote to a job?',
-    details: [
-      'Create a new job (JOB###) from this quote',
-      'Copy all line items to the new job',
-      'Change quote status to "Converted to Job"',
-      'This action cannot be undone',
-    ],
-    confirmText: 'Create Job',
-    confirmCustomClass:
-      'bg-blue-900 hover:bg-blue-800 text-white border-blue-700',
-  },
+            <div className="rounded-md p-1 bg-[#E5E5E5]">
+              <div className="flex flex-col gap-1 px-4 py-2">
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Quote Total:
+                  </span>
+                  <span className="text-[16px] font-medium text-[#101828]">
+                    ${totalSellPrice}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Customer:
+                  </span>
+                  <span className="text-[16px] font-normal text-[#364153]">
+                    {customerName}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Approve Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#008236',
+      },
+    };
+  } else if (selectedAction?.key === 'decline') {
+    return {
+      decline: {
+        title: 'Decline Quote',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFE2E2] rounded-full">
+              <span className="flex items-center justify-center">
+                <CircleX className="h-[20px] w-[20px] text-[#E7000B]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to decline this quote?
+            </span>
+            <div className="border-1 border-[#E7000B] rounded-md p-[16.625px] bg-[#FFE2E2]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <CircleX className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#E7000B] font-medium">
+                    Quote Declined
+                  </span>
+                  <span className="text-[14px] font-normal text-[#E7000B]">
+                    This quote will be declined and the customer will be
+                    notified. The quote cannot be converted to a job.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when Quote is declined:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote status changes from Pending to Declined</li>
+                <li> Customer is notified or declined status</li>
+                <li> Quote cannot be converted to a job</li>
+                <li> Quote can be reactivated later if needed</li>
+              </ul>
+            </div>
 
-  extendExpiry: {
-    title: 'Confirm Extending Expiry Date',
-    description: 'Extend the expiry date for this quote?',
-    details: [
-      'Change quote status from Expired to Pending',
-      'Set new expiry date (14 days from today)',
-      'Allow quote editing and modifications',
-      'Enable sending to customer for approval again',
-    ],
-    confirmText: 'Extend Expiry Date',
-    confirmCustomClass:
-      'bg-green-900 hover:bg-green-800 text-white border-green-700',
-  },
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What continues to work:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote remains accessible for reference</li>
+                <li> Historical data is preserved</li>
+                <li> Quote can be edited and resent</li>
+                <li> Customer relationship management continues</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Decline Quote',
+        confirmVariant: 'destructive',
+        confirmCustomColor: '#E7000B',
+      },
+    };
+  } else if (selectedAction?.key === 'convertToJob') {
+    return {
+      convertToJob: {
+        title: 'Convert Quote to Job',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-blue-900 rounded-full">
+              <span className="flex items-center justify-center">
+                <ArrowRight className="h-[20px] w-[20px] text-[#ffffff]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to approve this quote?
+            </span>
+            <div className="rounded-md p-[16.625px] bg-blue-900">
+              <div className="flex justify-start gap-2 self-stretch">
+                <ArrowRight className="h-[20px] w-[20px] text-[#ffffff] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#ffffff] font-medium">
+                    Job Creation
+                  </span>
+                  <span className="text-[14px] font-normal text-[#ffffff]">
+                    A new job will be created from this quote with all line
+                    items and pricing. This action cannot be undone.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when converted to job:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Creates a new job (JOB###) from this quote</li>
+                <li> Copies all line items to the new job</li>
+                <li> Changes quote status to "Converted to Job"</li>
+                <li> This action cannot be undone</li>
+              </ul>
+            </div>
 
-  archive: {
-    title: 'Confirm Quote To Be Archived?',
-    description: 'Are you sure you want to archive this quotation?',
-    details: [
-      'This action cannot be undone',
-      'All quote data will be archived',
-    ],
-    confirmText: 'Archive Quote',
-    confirmCustomClass: 'bg-red-600 hover:bg-red-800 text-white border-red-700',
-  },
+            <div className="rounded-md p-1 bg-[#E5E5E5]">
+              <div className="flex flex-col gap-1 px-4 py-2">
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Project Name
+                  </span>
+                  <span className="text-[16px] font-medium text-[#364153]">
+                    {projectName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Customer
+                  </span>
+                  <span className="text-[16px] font-medium text-[#364153]">
+                    {customerName}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Total Value
+                  </span>
+                  <span className="text-[16px] font-medium text-[#101828]">
+                    ${totalSellPrice}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Line Items
+                  </span>
+                  <span className="text-[16px] font-normal text-[#364153]">
+                    {lineItemsCount === 1
+                      ? '1 product'
+                      : `${lineItemsCount} products`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Approve Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#1E3A8A',
+      },
+    };
+  } else if (selectedAction?.key === 'extendExpiry') {
+    return {
+      extendExpiry: {
+        title: 'Extend Expiry Date',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFF7ED] rounded-full">
+              <span className="flex items-center justify-center">
+                <Calendar className="h-[20px] w-[20px] text-[#F54900]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to extend the expiry date for this quote?
+            </span>
+            <div className="border-1 border-[#FFD6A7] rounded-md p-[16.625px] bg-[#FFF7ED]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <Calendar className="h-[20px] w-[20px] text-[#F54900] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#F54900] font-medium">
+                    Expiry Extension
+                  </span>
+                  <span className="text-[14px] font-normal text-[#F54900]">
+                    The quote expiry date will be extended, changing status to
+                    Pending and allowing customer sending.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                Current Expiry Date
+              </span>
+              <div className="rounded-md p-1 bg-[#E5E5E5]">
+                <span className="text-[14px] font-normal text-[#6A7282] pl-2">
+                  {new Date(expiryDate ?? '').toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                New Expiry Date
+              </span>
+              <DatePicker
+                value={newExpiryDate}
+                onChangeAction={(date) => {
+                  if (date && setNewExpiryDate) {
+                    setNewExpiryDate(date);
+                  }
+                }}
+                disabled={{ before: new Date(expiryDate ?? '') }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when expiry is extended:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote status changes to Pending</li>
+                <li> New expiry date is set</li>
+                <li> Quote can be sent to customer again</li>
+                <li> Customer can approve / decline again</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Extend Expiry Date',
+        confirmVariant: 'default',
+        confirmCustomColor: '#F54900',
+      },
+    };
+  }
+  return {};
 };
 
 export function useQuotationActions(
@@ -112,13 +471,34 @@ export function useQuotationActions(
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [selectedAction, setSelectedAction] =
+    React.useState<SelectedAction | null>(null);
+  const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
+    const weekFromToday = new Date();
+    weekFromToday.setDate(weekFromToday.getDate() + 7);
+    return weekFromToday;
+  });
 
-  const createDialogAction = (
-    dialogType: keyof typeof dialogConfigs,
-    action: () => void
-  ) => {
+  // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
+  React.useEffect(() => {
+    if (selectedAction?.key === 'extendExpiry') {
+      const weekFromToday = new Date();
+      weekFromToday.setDate(weekFromToday.getDate() + 7);
+      setNewExpiryDate(weekFromToday);
+    }
+  }, [selectedAction?.key]);
+
+  const dialogConfigs = getDialogConfigs(
+    quotationData,
+    selectedAction || undefined,
+    newExpiryDate,
+    setNewExpiryDate
+  );
+
+  const createDialogAction = (actionKey: string, action: () => void) => {
     return () => {
-      setActiveDialog(dialogType);
+      setSelectedAction({ key: actionKey });
+      setActiveDialog(actionKey);
     };
   };
 
@@ -178,18 +558,24 @@ export function useQuotationActions(
     if (activeDialog !== key) return null;
 
     return (
-      <EnhancedConfirmDialog
+      <ActionDialog
         key={key}
-        open={true}
-        onOpenChangeAction={() => setActiveDialog(null)}
-        title={config.title}
+        open={activeDialog === key}
+        onOpenChangeAction={(open) => {
+          if (!open) {
+            setActiveDialog(null);
+            setSelectedAction(null);
+          }
+        }}
+        title={config.title ?? ''}
         description={config.description}
         content={config.content}
-        details={config.details}
-        confirmText={config.confirmText}
+        confirmText={config.confirmText ?? ''}
         confirmVariant={config.confirmVariant}
         confirmCustomColor={config.confirmCustomColor}
         confirmCustomClass={config.confirmCustomClass}
+        confirmIcon={config.confirmIcon}
+        confirmActionNeeded={config.confirmActionNeeded}
         onConfirmAction={() => {
           switch (key) {
             case 'sendToCustomer':
