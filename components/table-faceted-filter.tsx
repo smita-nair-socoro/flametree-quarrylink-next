@@ -27,6 +27,7 @@ export interface DataTableFacetedFilterProps {
   counts?: Record<string, number>;
   filterValues: string[];
   onFilterChange: (values: string[]) => void;
+  className?: string;
 }
 
 // Helper function to format labels by removing underscores and keeping uppercase
@@ -40,6 +41,7 @@ export function DataTableFacetedFilter({
   counts = {},
   filterValues,
   onFilterChange,
+  className,
 }: DataTableFacetedFilterProps) {
   const [open, setOpen] = useState(false);
 
@@ -56,7 +58,11 @@ export function DataTableFacetedFilter({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn('h-8 border-dashed', className)}
+        >
           <Plus className="mr-2 h-4 w-4" />
           <span>{title}</span>
 
@@ -85,7 +91,7 @@ export function DataTableFacetedFilter({
                     // Use formatted label if original label contains underscores, otherwise use original
                     const label = opt?.label.includes('_')
                       ? formatLabel(opt.label)
-                      : (opt?.label ?? val);
+                      : opt?.label ?? val;
                     return (
                       <Badge
                         key={val}
@@ -124,14 +130,17 @@ export function DataTableFacetedFilter({
                   <CommandItem
                     key={opt.value}
                     value={opt.value}
-                    onSelect={() => handleSelect(opt.value)}
+                    onSelect={() => {
+                      handleSelect(opt.value);
+                      setOpen(true);
+                    }}
                   >
                     <div
                       className={cn(
                         'mr-2 flex h-4 w-4 items-center justify-center border border-primary',
                         checked
                           ? 'bg-primary text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible',
+                          : 'opacity-50 [&_svg]:invisible'
                       )}
                     >
                       <Check className="h-4 w-4 text-primary-foreground" />
