@@ -6,11 +6,6 @@ import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 
-interface DialogAdditionalInfo {
-  label: string;
-  value: string;
-}
-
 interface DialogConfig {
   title: string;
   description: string;
@@ -227,12 +222,21 @@ export function useQuotationActions(
     );
   });
 
-  const viewDialog = (
+  const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
       dialogTitle="View / Edit Quotation"
       open={viewOpen}
-      onOpenChangeAction={setViewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+        // Ensure dropdown menu state is reset when dialog closes
+        if (!open) {
+          // Small delay to ensure proper cleanup
+          setTimeout(() => {
+            setViewOpen(false);
+          }, 100);
+        }
+      }}
       headerButtons={<QuotationActionButtons quotation={quotationData} />}
       hideTrigger
       headerInfo={{
@@ -241,7 +245,7 @@ export function useQuotationActions(
     >
       <QuotationForm />
     </FormDialog>
-  );
+  ) : null;
 
   return {
     actions,
