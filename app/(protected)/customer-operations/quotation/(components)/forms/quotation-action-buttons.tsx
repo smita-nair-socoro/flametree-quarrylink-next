@@ -165,20 +165,16 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             </>
 
-            {/* Archive for other statuses */}
-            {/* {quotation.status !== 'EXPIRED' &&
-              quotation.status !== 'DECLINED' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </>
-              )} */}
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={actions.archive}
+                className="text-destructive focus:text-destructive"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
+            </>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -345,21 +341,17 @@ export function QuotationActionButtons({
               Print Quote
             </DropdownMenuItem>
 
-            {/* only show if not EXPIRED or DECLINED */}
-            {/* {quotation.status !== 'EXPIRED' &&
-              quotation.status !== 'DECLINED' && (
-                <div>
-                  <DropdownMenuSeparator />
+            <div>
+              <DropdownMenuSeparator />
 
-                  <DropdownMenuItem
-                    onClick={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </div>
-              )} */}
+              <DropdownMenuItem
+                onClick={actions.archive}
+                className="text-destructive focus:text-destructive"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
