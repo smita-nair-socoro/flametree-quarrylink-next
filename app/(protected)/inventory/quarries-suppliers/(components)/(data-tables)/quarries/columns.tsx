@@ -11,7 +11,12 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     id: 'name',
     accessorFn: (row) => row.name,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Supplier / Quarry Name" />;
+      return (
+        <TableClientSortableHeader
+          column={column}
+          title="Supplier / Quarry Name"
+        />
+      );
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Supplier / Quarry Name',
@@ -37,9 +42,7 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     id: 'email',
     accessorFn: (row) => row.email,
     header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Email" />
-      );
+      return <TableClientSortableHeader column={column} title="Email" />;
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Email',
@@ -86,19 +89,4 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     },
     meta: 'Status',
   },
-
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div className="text-right pr-4"></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const quarry = row.original;
-  //     return (
-  //       <div className="flex justify-end pr-4">
-  //         <QuarryTableActions quarry={quarry} />
-  //       </div>
-  //     );
-  //   },
-  // },
 ];
