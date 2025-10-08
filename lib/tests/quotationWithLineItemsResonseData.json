@@ -25,7 +25,9 @@
         {
           "id": 1,
           "quoteId": 1,
+          "productId": 1,
           "quarryProductId": 1,
+          "quarryId": 1,
           "productName": "Rock",
           "quarryName": "Socoro",
           "supplierProductName": "ROCK",
@@ -68,7 +70,9 @@
         {
           "id": 1,
           "quoteId": 2,
+          "productId": 1,
           "quarryProductId": 1,
+          "quarryId": 1,
           "productName": "Rock",
           "quarryName": "Socoro",
           "supplierProductName": "ROCK",
@@ -87,7 +91,9 @@
         {
           "id": 2,
           "quoteId": 2,
+          "productId": 2,
           "quarryProductId": 2,
+          "quarryId": 2,
           "productName": "Onyx",
           "quarryName": "QuarryLink Internal Quarry",
           "supplierProductName": "ONYX",
@@ -130,7 +136,9 @@
         {
           "id": 1,
           "quoteId": 3,
+          "productId": 3,
           "quarryProductId": 1,
+          "quarryId": 1,
           "productName": "Sand",
           "quarryName": "Socoro",
           "supplierProductName": "SAND",
@@ -149,7 +157,9 @@
         {
           "id": 2,
           "quoteId": 3,
+          "productId": 1,
           "quarryProductId": 2,
+          "quarryId": 2,
           "productName": "Rock",
           "quarryName": "QuarryLink Internal Quarry",
           "supplierProductName": "ROCK",
@@ -192,7 +202,9 @@
         {
           "id": 1,
           "quoteId": 4,
+          "productId": 3,
           "quarryProductId": 1,
+          "quarryId": 1,
           "productName": "Sand",
           "quarryName": "Socoro",
           "supplierProductName": "SAND",
@@ -211,7 +223,9 @@
         {
           "id": 2,
           "quoteId": 4,
+          "productId": 1,
           "quarryProductId": 2,
+          "quarryId": 2,
           "productName": "Rock",
           "quarryName": "QuarryLink Internal Quarry",
           "supplierProductName": "ROCK",
@@ -230,7 +244,9 @@
         {
           "id": 2,
           "quoteId": 4,
+          "productId": 4,
           "quarryProductId": 2,
+          "quarryId": 2,
           "productName": "Soil",
           "quarryName": "QuarryLink Internal Quarry",
           "supplierProductName": "SOIL111",
@@ -273,7 +289,9 @@
         {
           "id": 1,
           "quoteId": 5,
+          "productId": 3,
           "quarryProductId": 1,
+          "quarryId": 1,
           "productName": "Sand",
           "quarryName": "Socoro",
           "supplierProductName": "SAND",
@@ -316,7 +334,9 @@
         {
           "id": 1,
           "quoteId": 6,
+          "productId": 3,
           "quarryProductId": 1,
+          "quarryId": 1,
           "productName": "Sand",
           "quarryName": "Socoro",
           "supplierProductName": "SAND",
@@ -335,7 +355,9 @@
         {
           "id": 2,
           "quoteId": 6,
+          "productId": 5,
           "quarryProductId": 2,
+          "quarryId": 3,
           "productName": "Diamond",
           "quarryName": "Quarry ABC",
           "supplierProductName": "DIAMOND",
