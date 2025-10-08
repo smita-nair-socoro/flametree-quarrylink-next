@@ -91,7 +91,7 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     },
     cell: ({ row }) => {
       const availableForSale =
-        row.original.price.available_for_sale_m3 === true ? 'true' : 'false';
+        row.original.price.available_for_sale_m3 === true ? 'Yes' : 'No';
       return <div className="text-left">{availableForSale}</div>;
     },
     meta: 'available for sale',

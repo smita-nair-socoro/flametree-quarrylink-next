@@ -19,6 +19,7 @@ export interface Quotation {
   quote_type: QuoteType;
   customer_id: number; // FK to Customer.id
   customer_name: string;
+  customer_email: string;
   account_manager: number; // FK to User.id
   account_manager_name: string;
   project_name: string;
@@ -31,6 +32,7 @@ export interface Quotation {
   delivery_window_end: string;
   total_cost_price: number;
   total_sell_price: number;
+  line_items_count: number;
   converted_at?: string;
   version: number;
   is_deleted: boolean;

@@ -294,12 +294,14 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-6 pb-2 flex-shrink-0">
+      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-6 flex-shrink-0">
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
-          <DialogDescription className="my-2">
-            {dialogDescription}
-          </DialogDescription>
+          {dialogDescription && (
+            <DialogDescription className="mt-2">
+              {dialogDescription}
+            </DialogDescription>
+          )}
           {renderBadges()}
         </div>
         {headerButtons && (
@@ -308,11 +310,11 @@ export function FormDialog({
           </div>
         )}
       </DialogHeader>
-      {headerSeparator && <Separator className="-mt-3" />}
+      {headerSeparator && <Separator />}
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5 pt-4',
+          'rounded-md overflow-auto px-5 pt-2',
           contentClass
         )}
       >
@@ -361,10 +363,10 @@ export function FormDialog({
             <div className="flex items-center">{headerButtons}</div>
           )}
         </DrawerHeader>
-        {headerSeparator && <Separator className="" />}
+        {headerSeparator && <Separator />}
 
         <div
-          className="flex-1 overflow-y-auto px-4 pt-5"
+          className="flex-1 overflow-y-auto px-4 pt-2"
           style={{ maxHeight: 'calc(95vh - 12rem)' }}
         >
           {contentNode}

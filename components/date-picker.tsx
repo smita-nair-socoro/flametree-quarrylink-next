@@ -48,11 +48,15 @@ export function DatePicker({
           className={cn(
             'w-full  sm:w-auto pl-3 text-left font-normal',
             !value && 'text-muted-foreground',
-            className,
+            className
           )}
         >
-          {value ? format(value, 'PPP') : <span>{placeholder}</span>}
-          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+          <CalendarIcon className="h-4 w-4 opacity-50" />
+          {value ? (
+            <span className="mr-auto">{format(value, 'PPP')}</span>
+          ) : (
+            <span className="mr-auto">{placeholder}</span>
+          )}
         </Button>
       </PopoverTrigger>
 
