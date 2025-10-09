@@ -4,7 +4,6 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Quarry } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
-// import { QuarryTableActions } from './quarry-table-actions';
 
 export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
   {
@@ -61,7 +60,7 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     id: 'suburb',
     accessorFn: (row) => row.suburb,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Suburb" />;
+      return <TableClientSortableHeader column={column} title="Suburbs" />;
     },
     cell: ({ row }) => {
       const suburb = row.original.suburb;
