@@ -1,4 +1,4 @@
-import { QUARRY_STATUS } from './quarry-enums';
+import { QuarryStatus, QuarryType } from './quarry-enums';
 
 export interface Quarry {
   id: number;
