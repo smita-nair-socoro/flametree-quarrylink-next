@@ -25,18 +25,15 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
-import { normalizePhoneE164 } from '@/lib/utils/phone-format-helper';
 import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
-  id?: number;
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
 }
 
 export default function QuarrySupplierForm({
-  id,
   onCancel,
   className,
 }: FormProps) {
