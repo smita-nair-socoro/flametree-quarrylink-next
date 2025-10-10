@@ -25,8 +25,8 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
-import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { normalizePhoneE164 } from '@/lib/utils/phone-format-helper';
+import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
   id?: number;
@@ -41,15 +41,9 @@ export default function QuarrySupplierForm({
   className,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id));
-  const selectedQuarrySupplier = useSelectedQuarrySupplier();
 
-  // Initialize states with selected quarry/supplier data only when editing, defaults otherwise
-  const [selectedType, setSelectedType] = React.useState<string>(
-    isEditing && selectedQuarrySupplier?.type
-      ? selectedQuarrySupplier.type
-      : 'QUARRY'
-  );
+  // Initialize states with default values
+  const [selectedType, setSelectedType] = React.useState<string>('QUARRY');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -65,45 +59,25 @@ export default function QuarrySupplierForm({
   });
   const [searchInput, setSearchInput] = React.useState('');
 
-  // Helper function to convert "N/A" to empty string
-  const convertNAtoEmpty = (value: string | undefined | null): string => {
-    if (!value || value === 'N/A') return '';
-    return value;
-  };
-
   const quarrySupplierForm = useForm<
     z.infer<typeof QuarrySupplierFormSchema>
   >({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
     defaultValues: {
-      type: isEditing && selectedQuarrySupplier?.type
-        ? selectedQuarrySupplier.type
-        : 'QUARRY',
-      quarry_name: isEditing && selectedQuarrySupplier?.type === 'QUARRY'
-        ? convertNAtoEmpty(selectedQuarrySupplier.name)
-        : '',
-      supplier_name: isEditing && selectedQuarrySupplier?.type === 'SUPPLIER'
-        ? convertNAtoEmpty(selectedQuarrySupplier.name)
-        : '',
-      website: isEditing ? convertNAtoEmpty(selectedQuarrySupplier?.website) : '',
-      email: isEditing ? convertNAtoEmpty(selectedQuarrySupplier?.email) : '',
-      phone: isEditing ? normalizePhoneE164(selectedQuarrySupplier?.phone) : '',
+      type: 'QUARRY',
+      quarry_name: '',
+      supplier_name: '',
+      website: '',
+      email: '',
+      phone: '',
       address: '', // Will be handled separately for address autocomplete
-      contact_person_name: isEditing
-        ? convertNAtoEmpty(selectedQuarrySupplier?.contact_person_name)
-        : '',
-      contact_person_phone: isEditing
-        ? normalizePhoneE164(selectedQuarrySupplier?.contact_person_phone)
-        : '',
-      contact_person_email: isEditing
-        ? convertNAtoEmpty(selectedQuarrySupplier?.contact_person_email)
-        : '',
-      opening_closing_times: isEditing
-        ? convertNAtoEmpty(selectedQuarrySupplier?.opening_closing_times)
-        : '',
-      weighbridge_info: '', // Not in current Quarry type, will be added
-      notes: isEditing ? convertNAtoEmpty(selectedQuarrySupplier?.notes) : '',
+      contact_person_name: '',
+      contact_person_phone: '',
+      contact_person_email: '',
+      opening_closing_times: '',
+      weighbridge_info: '',
+      notes: '',
       created_at: undefined,
       updated_at: undefined,
       created_by: 'current_user',
@@ -121,43 +95,6 @@ export default function QuarrySupplierForm({
       quarrySupplierForm.setValue('quarry_name', '');
     }
   };
-
-  // Effect to reset form when selected quarry/supplier changes
-  React.useEffect(() => {
-    if (selectedQuarrySupplier && isEditing) {
-      setSelectedType(selectedQuarrySupplier.type);
-
-      quarrySupplierForm.reset({
-        type: selectedQuarrySupplier.type,
-        quarry_name:
-          selectedQuarrySupplier.type === 'QUARRY'
-            ? convertNAtoEmpty(selectedQuarrySupplier.name)
-            : '',
-        supplier_name:
-          selectedQuarrySupplier.type === 'SUPPLIER'
-            ? convertNAtoEmpty(selectedQuarrySupplier.name)
-            : '',
-        website: convertNAtoEmpty(selectedQuarrySupplier.website),
-        email: convertNAtoEmpty(selectedQuarrySupplier.email),
-        phone: normalizePhoneE164(selectedQuarrySupplier.phone),
-        address: '', // Will be handled separately
-        contact_person_name: convertNAtoEmpty(selectedQuarrySupplier.contact_person_name),
-        contact_person_phone: normalizePhoneE164(selectedQuarrySupplier.contact_person_phone),
-        contact_person_email: convertNAtoEmpty(selectedQuarrySupplier.contact_person_email),
-        opening_closing_times: convertNAtoEmpty(selectedQuarrySupplier.opening_closing_times),
-        weighbridge_info: '', // Not in current type
-        notes: convertNAtoEmpty(selectedQuarrySupplier.notes),
-        created_at: selectedQuarrySupplier.created_at
-          ? new Date(selectedQuarrySupplier.created_at)
-          : undefined,
-        updated_at: selectedQuarrySupplier.updated_at
-          ? new Date(selectedQuarrySupplier.updated_at)
-          : undefined,
-        created_by: selectedQuarrySupplier.created_by,
-        last_modified_by: selectedQuarrySupplier.last_modified_by,
-      });
-    }
-  }, [selectedQuarrySupplier, isEditing, quarrySupplierForm]);
 
   // Effect to handle address changes
   React.useEffect(() => {
@@ -243,10 +180,7 @@ export default function QuarrySupplierForm({
         <form
           id="add-quarry-supplier-form"
           className={cn(
-            'gap-6 p-1 w-full',
-            isEditing && isDesktop
-              ? 'grid grid-cols-2 gap-x-8'
-              : 'grid grid-cols-1',
+            'gap-4 p-1 w-full grid grid-cols-1',
             className,
             isSubmitting && 'pointer-events-none'
           )}
@@ -288,9 +222,11 @@ export default function QuarrySupplierForm({
             )}
           />
 
+          <Separator className="col-span-full my-6" />
+
           {/* Section: Basic Information */}
-          <div className="col-span-full mt-4">
-            <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
+          <div className="col-span-full">
+            <h2 className="text-lg font-semibold">Basic Information</h2>
           </div>
 
           {/* Quarry/Supplier Name */}
@@ -299,11 +235,7 @@ export default function QuarrySupplierForm({
               control={quarrySupplierForm.control}
               name="quarry_name"
               render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                  }
-                >
+                <FormItem className="col-span-2">
                   <FormLabel>Quarry Name*</FormLabel>
                   <FormControl>
                     <Input
@@ -321,11 +253,7 @@ export default function QuarrySupplierForm({
               control={quarrySupplierForm.control}
               name="supplier_name"
               render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                  }
-                >
+                <FormItem className="col-span-2">
                   <FormLabel>Supplier Name*</FormLabel>
                   <FormControl>
                     <Input
@@ -345,11 +273,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="website"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Website</FormLabel>
                 <FormControl>
                   <Input
@@ -368,11 +292,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="email"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
@@ -391,11 +311,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="phone"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
                   <PhoneInput
@@ -409,10 +325,10 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-
+          <Separator className="col-span-full my-6" />
           {/* Section: Location Information */}
-          <div className="col-span-full mt-4">
-            <h2 className="text-lg font-semibold mb-4">Location Information</h2>
+          <div className="col-span-full">
+            <h2 className="text-lg font-semibold">Location Information</h2>
           </div>
 
           {/* Address */}
@@ -437,9 +353,9 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-
+          <Separator className="col-span-full my-6" />
           {/* Section: Contact Person */}
-          <div className="col-span-full mt-4">
+          <div className="col-span-full">
             <h2 className="text-lg font-semibold mb-4">Contact Person</h2>
           </div>
 
@@ -448,11 +364,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="contact_person_name"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Name</FormLabel>
                 <FormControl>
                   <Input
@@ -471,11 +383,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="contact_person_phone"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
                   <PhoneInput
@@ -495,11 +403,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="contact_person_email"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
@@ -512,9 +416,10 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
+          <Separator className="col-span-full my-6" />
 
           {/* Section: Operational Information */}
-          <div className="col-span-full mt-4">
+          <div className="col-span-full">
             <h2 className="text-lg font-semibold mb-4">
               Operational Information
             </h2>
@@ -525,11 +430,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="opening_closing_times"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Opening & Closing Times</FormLabel>
                 <FormControl>
                   <Textarea
@@ -548,11 +449,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="weighbridge_info"
             render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-                }
-              >
+              <FormItem className="col-span-2">
                 <FormLabel>Weightbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
@@ -585,67 +482,6 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          {/* Audit Information - Only shown when editing */}
-          {isEditing && (
-            <div className="col-span-full space-y-6 mt-16">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Create By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.created_by || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.last_modified_by || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Create Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.created_at
-                      ? new Date(
-                          selectedQuarrySupplier.created_at
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
-                      : 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.updated_at
-                      ? new Date(
-                          selectedQuarrySupplier.updated_at
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
-                      : 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Form Actions */}
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 mb-6 mt-6">
@@ -658,9 +494,7 @@ export default function QuarrySupplierForm({
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isEditing
-                  ? 'Save Changes'
-                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+                Add {selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}
               </Button>
             </div>
           )}
@@ -668,9 +502,7 @@ export default function QuarrySupplierForm({
           {!isDesktop && (
             <div className="flex flex-col col-span-2 gap-3 mb-6 mt-6">
               <Button type="submit" className="cursor-pointer">
-                {isEditing
-                  ? 'Save Changes'
-                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+                Add {selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 Cancel

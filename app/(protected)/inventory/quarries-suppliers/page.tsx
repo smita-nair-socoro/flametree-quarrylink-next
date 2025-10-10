@@ -1,5 +1,8 @@
 'use client';
 
+import React from 'react';
+import { FormDialog } from '@/components/form-dialog';
+import QuarrySupplierForm from './(components)/forms/quarry-supplier-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJson from '@/lib/tests/quarryResponseData.json';
 import { Quarry } from '@/lib/types/quarry';
@@ -28,6 +31,15 @@ export default function QuarriesSuppliersPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Quarries & Suppliers</h1>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <FormDialog
+            dialogTitle="Add New Quarry / Supplier"
+            dialogDescription="Fill in the details to add a new quarry or supplier to your system."
+            buttonTitle="Add Quarry / Supplier"
+          >
+            <QuarrySupplierForm />
+          </FormDialog>
         </div>
       </div>
 
