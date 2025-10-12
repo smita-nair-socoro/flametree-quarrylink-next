@@ -2,25 +2,22 @@
 
 import React, { ReactNode, useEffect, useState } from 'react';
 import { configureAmplify } from '../auth/amplifyConfig';
-import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { AuthProvider } from '@/hooks/use-auth';
+import { useConfig } from './ConfigProvider';
 
-// Amplify Auth Provider
 export function AmplifyAuthProvider({ children }: { children: ReactNode }) {
   const [isConfigured, setIsConfigured] = useState(false);
+  const config = useConfig();
 
   useEffect(() => {
     try {
-      const config = getRuntimeConfig();
       configureAmplify(config);
       setIsConfigured(true);
     } catch (error) {
       console.error('Failed to configure Amplify:', error);
-      // Don't set configured to true if config fails
     }
-  }, []);
+  }, [config]);
 
-  // Don't render AuthProvider until Amplify is configured
   if (!isConfigured) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
