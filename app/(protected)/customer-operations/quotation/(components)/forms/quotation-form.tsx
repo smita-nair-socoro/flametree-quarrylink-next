@@ -25,7 +25,6 @@ import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
-import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -35,15 +34,22 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import rawJsonWithLineItems from '@/lib/tests/quotationWithLineItemsResonseData.json';
 import { Quotation } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { centsToDollars } from '@/lib/utils/currency';
 
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  canEdit?: boolean;
 }
 
-export default function QuotationForm({ id, onCancel, className }: FormProps) {
+export default function QuotationForm({
+  id,
+  onCancel,
+  className,
+  canEdit,
+}: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
@@ -246,6 +252,30 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
     return d;
   }, []);
 
+  const [pricingBreakdown] = React.useState({
+    totalProductCostPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_cost_price || 0)
+      : 0,
+    totalTruckCostPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_truck_cost_price || 0)
+      : 0,
+    totalProductSellPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_sell_price || 0)
+      : 0,
+    totalTruckSellPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_truck_sell_price || 0)
+      : 0,
+    totalInvoice: isEditing
+      ? centsToDollars(currentQuotation?.total_sell_price || 0)
+      : 0,
+    grossProfit: isEditing
+      ? centsToDollars(currentQuotation?.gross_profit || 0)
+      : 0,
+    grossProfitPercentage: isEditing
+      ? currentQuotation?.gross_profit_percentage
+      : 0,
+  });
+
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
@@ -297,6 +327,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="grid grid-flow-col auto-cols-max gap-4"
+                      disabled={isEditing && !canEdit}
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
@@ -330,6 +361,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              disabled={isEditing && !canEdit}
             />
 
             <FormSelect
@@ -342,6 +374,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
+              disabled={isEditing && !canEdit}
             />
 
             <FormField
@@ -361,6 +394,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       className="w-full"
                       placeholder="Enter Project Name"
                       {...field}
+                      disabled={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -388,6 +422,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       setSearchInput={setSearchInput}
                       dialogTitle="Enter Address"
                       placeholder="Enter site address..."
+                      readOnly={isEditing && !canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -415,6 +450,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         placeholder="Enter Phone"
                         defaultCountry="AU"
                         {...field}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -441,6 +477,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       onChangeAction={field.onChange}
                       placeholder="Pick a date"
                       disabled={{ before: today }}
+                      readOnly={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -466,6 +503,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         className="w-full"
                         placeholder="Enter Email"
                         {...field}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -494,6 +532,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         id="time-picker-start"
                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                         value={field.value}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -514,6 +553,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         id="time-picker-end"
                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                         value={field.value}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -539,6 +579,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       onChangeAction={field.onChange}
                       placeholder="Pick a date"
                       disabled={{ before: today }}
+                      readOnly={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -563,26 +604,28 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                     Line Items
                   </span>
                 </div>
-                <div
-                  className={cn(
-                    'flex items-center gap-2',
-                    !isDesktop && 'mt-2'
-                  )}
-                >
-                  <FormDialog
-                    dialogTitle="Add Product"
-                    buttonTitle="Add New Product"
-                    dialogWidth="700px"
-                    contentClass="-mt-5"
+                {canEdit && (
+                  <div
+                    className={cn(
+                      'flex items-center gap-2',
+                      !isDesktop && 'mt-2'
+                    )}
                   >
-                    <QuotationLineItemForm />
-                  </FormDialog>
-                </div>
+                    <FormDialog
+                      dialogTitle="Add Product"
+                      buttonTitle="Add New Product"
+                      dialogWidth="700px"
+                      contentClass="-mt-5"
+                    >
+                      <QuotationLineItemForm />
+                    </FormDialog>
+                  </div>
+                )}
               </div>
             )}
 
             {isEditing && (
-              <div className="col-span-full space-y-6">
+              <div className="col-span-full gap-0">
                 {/* TODO: Come back to this once Product is done! */}
                 <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                   <DataTableClient
@@ -592,8 +635,62 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   />
                 </div>
 
-                <Separator />
+                <div className="flex flex-col gap-0">
+                  <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+                    <div className="flex justify-between py-3">
+                      <span className="text-sm font-normal">
+                        Product Cost (Total):
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.totalProductCostPrice}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3">
+                      <span className="text-sm font-normal">
+                        Truck Cost (Total):
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.totalTruckCostPrice}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3">
+                      <span className="text-sm font-normal">
+                        Product Sell (Total):
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.totalProductSellPrice}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3">
+                      <span className="text-sm font-normal">
+                        Truck Sell (Total):
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.totalTruckSellPrice}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-3">
+                      <span className="text-sm font-semibold">
+                        Total Invoice:
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.totalInvoice}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between py-3 px-2 bg-slate-200">
+                    <span className="text-sm font-semibold">Gross Profit:</span>
+                    <span className="text-sm font-normal">
+                      ${pricingBreakdown.grossProfit} (
+                      {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
+            {isEditing && (
+              <div className="col-span-full space-y-6">
                 <h2 className="text-2xl font-bold">Audit Information</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
@@ -661,7 +758,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>
@@ -674,6 +771,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>

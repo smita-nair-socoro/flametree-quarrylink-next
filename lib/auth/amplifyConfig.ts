@@ -1,42 +1,59 @@
 import { Amplify } from 'aws-amplify';
 import { RuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
-let isConfigured = false;
-
 export function configureAmplify(config: RuntimeConfig) {
-  // Prevent multiple configurations
-  if (isConfigured) {
-    console.log('Amplify already configured, skipping...');
-    return;
-  }
-
   if (
     !config.AMPLIFY_AUTH_REGION ||
     !config.AMPLIFY_AUTH_USER_POOL_ID ||
     !config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID
   ) {
-    throw new Error('AMPLIFY_AUTH configuration is missing');
+    throw new Error('AMPLIFY_AUTH configuration is missing required fields');
   }
 
-  // Use the legacy configuration format for compatibility
+  // Build redirect URLs dynamically from window.location (client-side only)
+  const baseUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.host}`
+      : 'http://localhost:3000';
+  const redirectSignIn = `${baseUrl}/callback`;
+
+  // User signs out -> Amplify handles logout (clears tokens, sessions, etc.) -> User lands on home page.
+  const redirectSignOut = `${baseUrl}`;
+
   const amplifyConfig = {
-    aws_project_region: config.AMPLIFY_AUTH_REGION,
-    aws_cognito_region: config.AMPLIFY_AUTH_REGION,
-    aws_user_pools_id: config.AMPLIFY_AUTH_USER_POOL_ID,
-    aws_user_pools_web_client_id: config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID,
-    aws_cognito_username_attributes: ['email'],
-    aws_cognito_social_providers: [],
-    aws_cognito_signup_attributes: ['email'],
-    aws_cognito_mfa_configuration: 'OFF',
-    aws_cognito_mfa_types: ['SMS'],
-    aws_cognito_password_protection_settings: {
-      passwordPolicyMinLength: 8,
-      passwordPolicyCharacters: [],
+    Auth: {
+      Cognito: {
+        userPoolId: config.AMPLIFY_AUTH_USER_POOL_ID,
+        userPoolClientId: config.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID,
+        loginWith: {
+          email: true,
+          oauth: {
+            domain:
+              config.AMPLIFY_AUTH_USER_POOL_ID.replace('ap-southeast-2_', '') +
+              '.auth.ap-southeast-2.amazoncognito.com',
+            scopes: ['openid', 'email', 'profile'],
+            redirectSignIn: [redirectSignIn],
+            redirectSignOut: [redirectSignOut],
+            responseType: 'code' as const,
+            providers: ['Google'],
+          },
+        },
+        signUpVerificationMethod: 'code' as const,
+        userAttributes: {
+          email: {
+            required: true,
+          },
+        },
+        passwordFormat: {
+          minLength: 8,
+          requireLowercase: false,
+          requireUppercase: false,
+          requireNumbers: false,
+          requireSpecialCharacters: false,
+        },
+      },
     },
-    aws_cognito_verification_mechanisms: ['email'],
   };
 
-  Amplify.configure(amplifyConfig);
-  isConfigured = true;
-  console.log('Amplify configured successfully');
+  Amplify.configure(amplifyConfig as Parameters<typeof Amplify.configure>[0]);
 }

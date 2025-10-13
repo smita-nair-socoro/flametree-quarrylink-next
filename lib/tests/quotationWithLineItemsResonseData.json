@@ -21,6 +21,12 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 1,
       "totalSellPrice": 1500,
+      "totalCostPrice": 1000,
+      "totalTruckCostPrice": 10000,
+      "totalProductSellPrice": 1500,
+      "totalTruckSellPrice": 7000,
+      "grossProfit": 18000,
+      "grossProfitPercentage": 10,
       "lineItems": [
         {
           "id": 1,
@@ -78,6 +84,11 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 2,
       "totalSellPrice": 15500,
+      "totalCostPrice": 1000,
+      "totalTruckCostPrice": 10000,
+      "totalTruckSellPrice": 7000,
+      "grossProfit": 18000,
+      "grossProfitPercentage": 10,
       "lineItems": [
         {
           "id": 1,
@@ -168,6 +179,10 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 2,
       "totalSellPrice": 1850,
+      "totalCostPrice": 1000,
+      "totalTruckCostPrice": 10000,
+      "grossProfit": 18000,
+      "grossProfitPercentage": 10,
       "lineItems": [
         {
           "id": 1,
@@ -258,6 +273,11 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 3,
       "totalSellPrice": 16500,
+      "totalCostPrice": 1000,
+      "totalTruckCostPrice": 10000,
+      "totalTruckSellPrice": 3000,
+      "grossProfit": 11000,
+      "grossProfitPercentage": 10,
       "lineItems": [
         {
           "id": 1,
@@ -363,7 +383,7 @@
     {
       "id": 5,
       "quoteNumber": "Q105",
-      "status": "EXPIRED",
+      "status": "APPROVED",
       "quoteType": "COLLECTION",
       "customerId": 1,
       "customerName": "Jay",
@@ -381,6 +401,11 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 1,
       "totalSellPrice": 26800,
+      "totalCostPrice": 1000,
+      "totalTruckCostPrice": 10000,
+      "totalTruckSellPrice": 8300,
+      "grossProfit": 10000,
+      "grossProfitPercentage": 20,
       "lineItems": [
         {
           "id": 1,
@@ -438,6 +463,11 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 2,
       "totalSellPrice": 2400,
+      "totalCostPrice": 1000,
+      "totalTruckCostPrice": 10000,
+      "totalTruckSellPrice": 20000,
+      "grossProfit": 18000,
+      "grossProfitPercentage": 15,
       "lineItems": [
         {
           "id": 1,
@@ -528,6 +558,11 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 0,
       "totalSellPrice": 0,
+      "totalCostPrice": 0,
+      "totalTruckCostPrice": 0,
+      "totalTruckSellPrice": 0,
+      "grossProfit": 0,
+      "grossProfitPercentage": 0,
       "lineItems": []
     },
     {
@@ -551,6 +586,11 @@
       "lastModifiedBy": "system",
       "lineItemsCount": 0,
       "totalSellPrice": 0,
+      "totalCostPrice": 0,
+      "totalTruckCostPrice": 0,
+      "totalTruckSellPrice": 0,
+      "grossProfit": 0,
+      "grossProfitPercentage": 0,
       "lineItems": []
     }
   ]

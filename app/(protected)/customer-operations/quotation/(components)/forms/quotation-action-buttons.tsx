@@ -21,6 +21,7 @@ import {
   GitPullRequestCreateArrow,
   Timer,
   Archive,
+  ArchiveRestore,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
@@ -52,10 +53,6 @@ export function QuotationActionButtons({
     return null;
   }
 
-  if (quotation.status === 'ARCHIVED') {
-    return null;
-  }
-
   // Mobile or compact version - everything in dropdown
   if (!isDesktop || layout === 'compact') {
     return (
@@ -76,8 +73,6 @@ export function QuotationActionButtons({
               <Plus className="h-4 w-4 mr-2" />
               Duplicate
             </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
 
             {/* Status-specific actions */}
             {quotation.status === 'DRAFT' && (
@@ -136,13 +131,6 @@ export function QuotationActionButtons({
                   <Calendar className="h-4 w-4 mr-2" />
                   Extend Expiry Date
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive
-                </DropdownMenuItem>
               </>
             )}
 
@@ -151,7 +139,7 @@ export function QuotationActionButtons({
                 onClick={actions.archive}
                 className="text-destructive focus:text-destructive"
               >
-                <Archive className="h-4 w-4 mr-2" />
+                <Archive className="h-4 w-4 mr-2 text-destructive" />
                 Archive
               </DropdownMenuItem>
             )}
@@ -165,20 +153,27 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             </>
 
-            {/* Archive for other statuses */}
-            {/* {quotation.status !== 'EXPIRED' &&
-              quotation.status !== 'DECLINED' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </>
-              )} */}
+            <>
+              <DropdownMenuSeparator />
+              {quotation.status !== 'ARCHIVED' && (
+                <DropdownMenuItem
+                  onClick={actions.archive}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Archive className="h-4 w-4 mr-2 text-destructive" />
+                  Archive
+                </DropdownMenuItem>
+              )}
+              {quotation.status === 'ARCHIVED' && (
+                <DropdownMenuItem
+                  onClick={actions.unarchive}
+                  className="text-blue-600"
+                >
+                  <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+                  Unarchive
+                </DropdownMenuItem>
+              )}
+            </>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -242,7 +237,7 @@ export function QuotationActionButtons({
               variant="ghost"
               size="sm"
               onClick={actions.decline}
-              className="rounded-none border-r border-gray-200 bg-red-100 hover:bg-red-150 text-red-900 hover:text-red-800"
+              className="rounded-none border-r border-gray-200 bg-red-100 hover:bg-red-200 text-red-900 hover:text-red-800"
             >
               <ThumbsDown className="h-4 w-4 mr-2" />
               Decline
@@ -305,28 +300,7 @@ export function QuotationActionButtons({
               <Timer className="h-4 w-4 mr-2" />
               Extend Expiry Date
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.archive}
-              className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 hover:text-gray-800"
-            >
-              <Archive className="h-4 w-4 mr-2" />
-              Archive
-            </Button>
           </>
-        )}
-
-        {quotation.status === 'DECLINED' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={actions.archive}
-            className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 hover:text-gray-800"
-          >
-            <Archive className="h-4 w-4 mr-2" />
-            Archive
-          </Button>
         )}
 
         <DropdownMenu>
@@ -345,21 +319,28 @@ export function QuotationActionButtons({
               Print Quote
             </DropdownMenuItem>
 
-            {/* only show if not EXPIRED or DECLINED */}
-            {/* {quotation.status !== 'EXPIRED' &&
-              quotation.status !== 'DECLINED' && (
-                <div>
-                  <DropdownMenuSeparator />
+            <div>
+              <DropdownMenuSeparator />
 
-                  <DropdownMenuItem
-                    onClick={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
-                </div>
-              )} */}
+              {quotation.status !== 'ARCHIVED' && (
+                <DropdownMenuItem
+                  onClick={actions.archive}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Archive className="h-4 w-4 mr-2 text-destructive" />
+                  Archive
+                </DropdownMenuItem>
+              )}
+              {quotation.status === 'ARCHIVED' && (
+                <DropdownMenuItem
+                  onClick={actions.unarchive}
+                  className="text-blue-600 focus:text-blue-600"
+                >
+                  <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+                  Unarchive
+                </DropdownMenuItem>
+              )}
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
