@@ -21,12 +21,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { signIn } from 'aws-amplify/auth';
+import { signIn, signInWithRedirect } from 'aws-amplify/auth';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { getSafeRedirectUrl } from '@/lib/utils/redirect-helpers';
 import { ForgotPasswordModal } from './forgot-password-modal';
 import { NewPasswordModal } from './new-password-modal';
 import { NewUserInfoModal } from './new-user-info-modal';
@@ -41,7 +42,10 @@ export function LoginForm({
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [showNewPasswordModal, setShowNewPasswordModal] = useState(false);
   const [showNewUserInfoModal, setShowNewUserInfoModal] = useState(false);
-  const [showResetPasswordConfirmationModal, setShowResetPasswordConfirmationModal] = useState(false);
+  const [
+    showResetPasswordConfirmationModal,
+    setShowResetPasswordConfirmationModal,
+  ] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [wrongPasswordAttempts, setWrongPasswordAttempts] = useState(0);
   const router = useRouter();
@@ -69,7 +73,7 @@ export function LoginForm({
 
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     setIsLoading(true);
-    
+
     try {
       const { isSignedIn, nextStep } = await signIn({
         username: values.email,
@@ -79,18 +83,20 @@ export function LoginForm({
       if (isSignedIn) {
         // Refresh the auth context to update the user state
         await refreshUser();
-        
+
         notifySuccess(`Welcome back!`, {
           dismissible: true,
         });
-        
-        // Redirect to dashboard
-        router.push('/dashboard');
+
+        // Redirect to the intended destination
+        router.push(getSafeRedirectUrl());
       } else {
         // Handle additional steps like MFA or NEW_PASSWORD_REQUIRED
         console.log('Additional authentication step required:', nextStep);
-        
-        if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
+
+        if (
+          nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
+        ) {
           setShowNewPasswordModal(true);
         } else {
           notifyError('Additional authentication step required');
@@ -98,23 +104,26 @@ export function LoginForm({
       }
     } catch (error: unknown) {
       console.error('Sign in error:', error);
-      
+
       const errorObj = error as { name?: string; message?: string };
-      
+
       // Handle specific Cognito errors
       if (errorObj.name === 'NotAuthorizedException') {
         const errorMessage = errorObj.message || '';
-        
+
         // Check for specific new user scenarios
-        if (errorMessage.includes('Password attempts exceeded') || 
-            errorMessage.includes('User account has expired')) {
+        if (
+          errorMessage.includes('Password attempts exceeded') ||
+          errorMessage.includes('User account has expired')
+        ) {
           // These are account-specific issues, show new user modal
           setShowNewUserInfoModal(true);
         } else if (errorMessage.includes('User is disabled')) {
           // Account is disabled - show specific error
           form.setError('email', {
             type: 'manual',
-            message: 'Your account has been disabled. Please contact your administrator for assistance.',
+            message:
+              'Your account has been disabled. Please contact your administrator for assistance.',
           });
         } else if (errorMessage.includes('Incorrect username or password')) {
           // AWS Cognito returns this for both wrong password AND non-existent email
@@ -122,18 +131,20 @@ export function LoginForm({
           // that covers both scenarios
           form.setError('email', {
             type: 'manual',
-            message: 'Invalid email or password. Please check your credentials.',
+            message:
+              'Invalid email or password. Please check your credentials.',
           });
-          
+
           // Track attempts for potential password issues
           const newAttempts = wrongPasswordAttempts + 1;
           setWrongPasswordAttempts(newAttempts);
-          
+
           // After multiple attempts, suggest forgot password which will help determine if email exists
           if (newAttempts >= 2) {
             form.setError('email', {
               type: 'manual',
-              message: 'Invalid email or password. Try "Forgot password?" if you need help.',
+              message:
+                'Invalid email or password. Try "Forgot password?" if you need help.',
             });
           }
         } else {
@@ -151,7 +162,10 @@ export function LoginForm({
       } else if (errorObj.name === 'InvalidParameterException') {
         // This often happens with new users who haven't set their permanent password
         const errorMessage = errorObj.message || '';
-        if (errorMessage.includes('password') || errorMessage.includes('temporary')) {
+        if (
+          errorMessage.includes('password') ||
+          errorMessage.includes('temporary')
+        ) {
           setShowNewUserInfoModal(true);
         } else {
           notifyError('Invalid input. Please check your details.');
@@ -174,13 +188,33 @@ export function LoginForm({
   async function handleNewPasswordSuccess() {
     // Refresh the auth context after successful password change
     await refreshUser();
-    
+
     notifySuccess('Welcome to QuarryLink!', {
       dismissible: true,
     });
-    
-    // Redirect to dashboard
-    router.push('/dashboard');
+
+    // Redirect to the intended destination
+    router.push(getSafeRedirectUrl());
+  }
+
+  async function handleGoogleSignIn() {
+    try {
+      sessionStorage.setItem('oauth_redirect_url', getSafeRedirectUrl());
+      await signInWithRedirect({ provider: 'Google' });
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      notifyError('Failed to sign in with Google. Please try again.');
+    }
+  }
+
+  async function handleMicrosoftSignIn() {
+    try {
+      sessionStorage.setItem('oauth_redirect_url', getSafeRedirectUrl());
+      await signInWithRedirect({ provider: { custom: 'Microsoft' } });
+    } catch (error) {
+      console.error('Microsoft sign-in error:', error);
+      notifyError('Failed to sign in with Microsoft. Please try again.');
+    }
   }
 
   return (
@@ -197,9 +231,7 @@ export function LoginForm({
             />
           </div>
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Sign in to your QuarryLink account
-          </CardDescription>
+          <CardDescription>Sign in to your QuarryLink account</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -223,7 +255,7 @@ export function LoginForm({
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="password"
@@ -261,7 +293,7 @@ export function LoginForm({
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Signing in...' : 'Sign in'}
                 </Button>
-                
+
                 <Button
                   type="button"
                   variant="link"
@@ -278,7 +310,12 @@ export function LoginForm({
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  <Button type="button" variant="outline" className="w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleGoogleSignIn}
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                       <path
                         d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
@@ -288,7 +325,12 @@ export function LoginForm({
                     Login with Google
                   </Button>
 
-                  <Button type="button" variant="outline" className="w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleMicrosoftSignIn}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -325,7 +367,7 @@ export function LoginForm({
           </Form>
         </CardContent>
       </Card>
-      
+
       <ForgotPasswordModal
         isOpen={showForgotPasswordModal}
         onClose={() => setShowForgotPasswordModal(false)}
@@ -334,7 +376,7 @@ export function LoginForm({
           setShowResetPasswordConfirmationModal(true);
         }}
       />
-      
+
       <ResetPasswordConfirmationModal
         isOpen={showResetPasswordConfirmationModal}
         onClose={() => setShowResetPasswordConfirmationModal(false)}
@@ -343,13 +385,13 @@ export function LoginForm({
           setShowResetPasswordConfirmationModal(false);
         }}
       />
-      
+
       <NewPasswordModal
         isOpen={showNewPasswordModal}
         onClose={() => setShowNewPasswordModal(false)}
         onSuccess={handleNewPasswordSuccess}
       />
-      
+
       <NewUserInfoModal
         isOpen={showNewUserInfoModal}
         onClose={() => setShowNewUserInfoModal(false)}

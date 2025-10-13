@@ -141,7 +141,7 @@ export function QuotationActionButtons({
                   className="text-destructive focus:text-destructive"
                 >
                   <Archive className="h-4 w-4 mr-2" />
-                  Archive Quote
+                  Archive
                 </DropdownMenuItem>
               </>
             )}
@@ -152,7 +152,7 @@ export function QuotationActionButtons({
                 className="text-destructive focus:text-destructive"
               >
                 <Archive className="h-4 w-4 mr-2" />
-                Archive Quote
+                Archive
               </DropdownMenuItem>
             )}
 
@@ -165,20 +165,16 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             </>
 
-            {/* Archive for other statuses */}
-            {quotation.status !== 'EXPIRED' &&
-              quotation.status !== 'DECLINED' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive Quote
-                  </DropdownMenuItem>
-                </>
-              )}
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={actions.archive}
+                className="text-destructive focus:text-destructive"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
+            </>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -312,7 +308,7 @@ export function QuotationActionButtons({
               className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 hover:text-gray-800"
             >
               <Archive className="h-4 w-4 mr-2" />
-              Archive Quote
+              Archive
             </Button>
           </>
         )}
@@ -325,7 +321,7 @@ export function QuotationActionButtons({
             className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 hover:text-gray-800"
           >
             <Archive className="h-4 w-4 mr-2" />
-            Archive Quote
+            Archive
           </Button>
         )}
 
@@ -345,21 +341,17 @@ export function QuotationActionButtons({
               Print Quote
             </DropdownMenuItem>
 
-            {/* only show if not EXPIRED or DECLINED */}
-            {quotation.status !== 'EXPIRED' &&
-              quotation.status !== 'DECLINED' && (
-                <div>
-                  <DropdownMenuSeparator />
+            <div>
+              <DropdownMenuSeparator />
 
-                  <DropdownMenuItem
-                    onClick={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive Quote
-                  </DropdownMenuItem>
-                </div>
-              )}
+              <DropdownMenuItem
+                onClick={actions.archive}
+                className="text-destructive focus:text-destructive"
+              >
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

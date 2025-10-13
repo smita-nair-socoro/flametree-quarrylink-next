@@ -121,6 +121,12 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
    * Receives the new value as a parameter.
    */
   onChange?: (value: string) => void;
+
+  /**
+   * Whether to disable the select control.
+   * @default false
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -145,6 +151,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
   addButtonClassName,
   showSearch = true,
   onChange,
+  disabled = false,
 }: FormSelectProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
 
@@ -166,6 +173,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                     !field.value && 'text-muted-foreground',
                     className
                   )}
+                  disabled={disabled}
                 >
                   <span className="flex-1 text-left truncate">
                     {field.value
