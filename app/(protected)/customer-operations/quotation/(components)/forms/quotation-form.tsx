@@ -41,9 +41,15 @@ interface FormProps {
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  canEdit?: boolean;
 }
 
-export default function QuotationForm({ id, onCancel, className }: FormProps) {
+export default function QuotationForm({
+  id,
+  onCancel,
+  className,
+  canEdit,
+}: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
@@ -296,6 +302,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="grid grid-flow-col auto-cols-max gap-4"
+                      disabled={isEditing && !canEdit}
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
@@ -329,6 +336,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              disabled={isEditing && !canEdit}
             />
 
             <FormSelect
@@ -341,6 +349,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
+              disabled={isEditing && !canEdit}
             />
 
             <FormField
@@ -360,6 +369,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       className="w-full"
                       placeholder="Enter Project Name"
                       {...field}
+                      disabled={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -387,6 +397,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       setSearchInput={setSearchInput}
                       dialogTitle="Enter Address"
                       placeholder="Enter site address..."
+                      readOnly={isEditing && !canEdit}
                       {...field}
                     />
                   </FormControl>
@@ -414,6 +425,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         placeholder="Enter Phone"
                         defaultCountry="AU"
                         {...field}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -440,6 +452,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       onChangeAction={field.onChange}
                       placeholder="Pick a date"
                       disabled={{ before: today }}
+                      readOnly={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -465,6 +478,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         className="w-full"
                         placeholder="Enter Email"
                         {...field}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -493,6 +507,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         id="time-picker-start"
                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                         value={field.value}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -513,6 +528,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                         id="time-picker-end"
                         className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
                         value={field.value}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -538,6 +554,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       onChangeAction={field.onChange}
                       placeholder="Pick a date"
                       disabled={{ before: today }}
+                      readOnly={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -562,21 +579,23 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                     Line Items
                   </span>
                 </div>
-                <div
-                  className={cn(
-                    'flex items-center gap-2',
-                    !isDesktop && 'mt-2'
-                  )}
-                >
-                  <FormDialog
-                    dialogTitle="Add New Product"
-                    buttonTitle="Add New Product"
-                    dialogWidth="700px"
-                    contentClass="-mt-5"
+                {canEdit && (
+                  <div
+                    className={cn(
+                      'flex items-center gap-2',
+                      !isDesktop && 'mt-2'
+                    )}
                   >
-                    <QuotationLineItemForm />
-                  </FormDialog>
-                </div>
+                    <FormDialog
+                      dialogTitle="Add Product"
+                      buttonTitle="Add New Product"
+                      dialogWidth="700px"
+                      contentClass="-mt-5"
+                    >
+                      <QuotationLineItemForm />
+                    </FormDialog>
+                  </div>
+                )}
               </div>
             )}
 
@@ -660,7 +679,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>
@@ -673,6 +692,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>

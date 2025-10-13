@@ -59,6 +59,21 @@ import { Separator } from './separator';
 import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Image from 'next/image';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from './drawer';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from './accordion';
+import { Filter, X, Check } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -337,6 +352,140 @@ export function DataTableClient<TData, TValue>({
               className="h-8 w-full md:w-[350px] lg:w-[450px]"
             />
           </div>
+
+          {/* Mobile Filter Button - Only visible on mobile */}
+          {facetedWithCounts.length > 0 && (
+            <div className="md:hidden flex justify-center">
+              <Drawer>
+                <DrawerTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full justify-center"
+                  >
+                    <Filter size={16} className="mr-2" />
+                    Filters
+                    {columnFilters.length > 0 && (
+                      <>
+                        <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                          {columnFilters.length}
+                        </div>
+                      </>
+                    )}
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle className="text-left font-medium text-[31.67px] ">
+                      Filters
+                    </DrawerTitle>
+                  </DrawerHeader>
+                  <div className="px-4 pb-4">
+                    <Accordion type="multiple" className="w-full">
+                      {facetedWithCounts.map((filter) => {
+                        const currentFilterValues =
+                          (columnFilters.find((f) => f.id === filter.column)
+                            ?.value as string[]) || [];
+
+                        return (
+                          <AccordionItem
+                            key={filter.column}
+                            value={filter.column}
+                          >
+                            <AccordionTrigger className="text-left">
+                              <div className="flex items-center justify-between w-full pr-4">
+                                <span className="text-lg">{filter.title}</span>
+                                {currentFilterValues.length > 0 && (
+                                  <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                                    {currentFilterValues.length}
+                                  </div>
+                                )}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2 pt-2">
+                                {filter.options.map((option) => {
+                                  const isSelected =
+                                    currentFilterValues.includes(option.value);
+                                  const displayLabel = option.label.includes(
+                                    '_'
+                                  )
+                                    ? option.label.replace(/_/g, ' ')
+                                    : option.label;
+
+                                  return (
+                                    <div
+                                      key={option.value}
+                                      className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                      onClick={() => {
+                                        const newValues = isSelected
+                                          ? currentFilterValues.filter(
+                                              (v) => v !== option.value
+                                            )
+                                          : [
+                                              ...currentFilterValues,
+                                              option.value,
+                                            ];
+                                        handleFilterChange(
+                                          filter.column,
+                                          newValues
+                                        );
+                                      }}
+                                    >
+                                      <div className="flex items-center space-x-3">
+                                        <div
+                                          className={cn(
+                                            'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
+                                            isSelected
+                                              ? 'bg-primary text-primary-foreground'
+                                              : 'opacity-50'
+                                          )}
+                                        >
+                                          {isSelected && (
+                                            <Check className="h-3 w-3" />
+                                          )}
+                                        </div>
+                                        <span className="text-sm">
+                                          {displayLabel}
+                                        </span>
+                                      </div>
+                                      {filter.counts &&
+                                        filter.counts[option.value] != null && (
+                                          <span className="text-xs text-muted-foreground bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                            {filter.counts[option.value]}
+                                          </span>
+                                        )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  </div>
+                  {columnFilters.length > 0 && (
+                    <DrawerFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setColumnFilters([]);
+                          if (!isMobile) {
+                            saveToStorage('columnFilters', []);
+                          }
+                        }}
+                        className="w-full"
+                      >
+                        <X size={16} className="mr-2" />
+                        Clear All Filters
+                      </Button>
+                    </DrawerFooter>
+                  )}
+                </DrawerContent>
+              </Drawer>
+            </div>
+          )}
 
           {/* Controls Row - Hidden on mobile, responsive layout on larger screens */}
           <div className="hidden md:flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
