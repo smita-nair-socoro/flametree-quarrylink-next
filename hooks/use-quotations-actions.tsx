@@ -78,7 +78,7 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-5">
             <span className="text-[14px] text-[#364153] font-normal">
-              Are you sure you wnat to send this quote to the customer?
+              Are you sure you want to send this quote to the customer?
             </span>
             <div className="border-1 border-[#FFD6A7] rounded-md p-[16.625px] bg-[#FFF7ED]">
               <div className="flex justify-start gap-2 self-stretch">
@@ -551,6 +551,11 @@ export function useQuotationActions(
       console.log('Archive quotation:', quotationId);
       // TODO: implement delete logic
     }),
+
+    unarchive: createDialogAction('unarchive', () => {
+      console.log('Unarchive quotation:', quotationId);
+      // TODO: implement unarchive logic
+    }),
   };
 
   // Render active dialog
@@ -602,12 +607,20 @@ export function useQuotationActions(
               console.log('Archive quotation:', quotationId, quotationData);
               // TODO: implement archive logic
               break;
+            case 'unarchive':
+              console.log('Unarchive quotation:', quotationId, quotationData);
+              // TODO: implement unarchive logic
+              break;
           }
         }}
       />
     );
   });
 
+  const canEdit =
+    quotationData?.status !== 'CONVERTED_TO_JOB' &&
+    quotationData?.status !== 'PENDING' &&
+    quotationData?.status !== 'APPROVED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
@@ -629,7 +642,7 @@ export function useQuotationActions(
         useSelectedQuotation: true,
       }}
     >
-      <QuotationForm />
+      <QuotationForm canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
