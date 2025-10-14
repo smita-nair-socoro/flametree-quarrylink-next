@@ -5,6 +5,8 @@ import { QuotationLineItem } from '@/lib/types/quotation';
 import QuotationLineItemForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-line-item-form';
 import { ActionDialog } from '@/components/action-dialog';
 import { QuotationLineItemActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-line-item-action-buttons';
+import { Trash2 } from 'lucide-react';
+import { centsToDollars } from '@/lib/utils/currency';
 
 interface DialogConfig {
   title?: string;
@@ -31,17 +33,87 @@ const getDialogConfigs = (
   lineItemData?: QuotationLineItem | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  if (selectedAction?.key === 'sendToCustomer') {
+  const lineItemName = lineItemData?.product_name;
+  const productCode = lineItemData?.supplier_product_name;
+  const totalSellPrice = centsToDollars(
+    lineItemData?.total_product_sell_price || 0
+  );
+  const productQty = lineItemData?.product_sell_qty;
+  const productUom = lineItemData?.product_sell_uom;
+
+  if (selectedAction?.key === 'remove') {
     return {
-      sendToCustomer: {
-        title: 'Send Quote',
+      remove: {
+        title: 'Remove Line Item',
         description: (
-          <div className="flex justify-start items-center gap-2"></div>
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFE2E2] rounded-full">
+              <span className="flex items-center justify-center">
+                <Trash2 className="h-[20px] w-[20px] text-[#E7000B]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{lineItemName}</span>
+              <span className="text-sm text-[#6A7282]">{productCode}</span>
+            </div>
+          </div>
         ),
-        content: <div className="flex flex-col gap-5"></div>,
-        confirmText: 'Send Quote',
-        confirmVariant: 'default',
-        confirmCustomColor: '#F54900',
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to remove this line item from the quote?
+            </span>
+            <div className="border-1 border-[#E7000B] rounded-md p-[16.625px] bg-[#FFE2E2]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <Trash2 className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#E7000B] font-medium">
+                    LIne Item Removal
+                  </span>
+                  <span className="text-[14px] font-normal text-[#E7000B]">
+                    This line item will be permanentl yremoved from the quote.
+                    This action cannot be undone.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md p-1 bg-[#E5E5E5]">
+              <div className="flex flex-col gap-1 px-4 py-2">
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Quantity:
+                  </span>
+                  <span className="text-[16px] font-normal text-[#364153]">
+                    {productQty} {productUom}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[14px] font-normal text-[#6A7282]">
+                    Total Sell Value:
+                  </span>
+                  <span className="text-[16px] font-normal text-[#101828]">
+                    ${totalSellPrice}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when line item is removed:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Line item is permanently removed from quote</li>
+                <li> Quote total will be recalculated automatically</li>
+                <li> Action cannot be undone once confirmed</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Remove Line Item',
+        confirmVariant: 'destructive',
+        confirmCustomColor: '#E7000B',
       },
     };
   }
@@ -56,11 +128,6 @@ export function useQuotationLineItemActions(
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
-    const weekFromToday = new Date();
-    weekFromToday.setDate(weekFromToday.getDate() + 7);
-    return weekFromToday;
-  });
 
   const dialogConfigs = getDialogConfigs(
     lineItemData,
@@ -81,6 +148,10 @@ export function useQuotationLineItemActions(
     remove: createDialogAction('remove', () => {
       console.log('Remove quotation line item:', lineItemId);
       // TODO: implement remove logic
+    }),
+    duplicate: createDialogAction('duplicate', () => {
+      console.log('Duplicate quotation line item:', lineItemId);
+      // TODO: implement duplicate logic
     }),
   };
 
@@ -112,6 +183,10 @@ export function useQuotationLineItemActions(
             case 'remove':
               console.log('Remove quotation line item:', lineItemId);
               // TODO: implement remove logic
+              break;
+            case 'duplicate':
+              console.log('Duplicate quotation line item:', lineItemId);
+              // TODO: implement duplicate logic
               break;
           }
         }}
