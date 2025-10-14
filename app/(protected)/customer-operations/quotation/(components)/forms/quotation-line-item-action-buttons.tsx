@@ -4,9 +4,16 @@ import * as React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { useQuotationLineItemActions } from '@/hooks/use-quotations-line-item-actions';
-import { Delete } from 'lucide-react';
+import { Delete, Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 
 interface QuotationLineItemActionButtonsProps {
   quotationLineItem: QuotationLineItem | null | undefined;
@@ -44,13 +51,13 @@ export function QuotationLineItemActionButtons({
           <Button
             variant="ghost"
             size="sm"
-            onClick={actions.remove}
-            className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200 "
+            onClick={actions.duplicate}
+            className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
           >
-            <Delete className="h-4 w-4 mr-2 text-red-600" />
-            <span className="text-red-600">Remove</span>
+            <Plus className="h-4 w-4 mr-2" />
+            Duplicate
           </Button>
-          {/* <DropdownMenu>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -69,7 +76,7 @@ export function QuotationLineItemActionButtons({
                 Remove
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu> */}
+          </DropdownMenu>
         </div>
       </div>
     );
@@ -84,13 +91,13 @@ export function QuotationLineItemActionButtons({
         <Button
           variant="ghost"
           size="sm"
-          onClick={actions.remove}
-          className="rounded-none border-r bg-bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-600 border-gray-200 "
+          onClick={actions.duplicate}
+          className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
         >
-          <Delete className="h-4 w-4 mr-2 text-red-600" />
-          <span className="text-red-600">Remove</span>
+          <Plus className="h-4 w-4 mr-2" />
+          Duplicate
         </Button>
-        {/* <DropdownMenu>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -109,7 +116,7 @@ export function QuotationLineItemActionButtons({
               Remove
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu> */}
+        </DropdownMenu>
       </div>
     </div>
   );

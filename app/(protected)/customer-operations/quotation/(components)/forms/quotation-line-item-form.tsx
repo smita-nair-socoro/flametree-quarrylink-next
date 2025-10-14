@@ -50,7 +50,6 @@ export default function QuoteLineItemForm({
   });
 
   const selectedLineItem = useSelectedLineItem();
-  console.log(selectedLineItem);
 
   const quotationLineItemForm = useForm<
     z.infer<typeof NewQuotationLineItemFormSchema>
@@ -354,7 +353,7 @@ export default function QuoteLineItemForm({
             {/* Product Information */}
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <span className="text-20px font-semibold mt-3">
+                <span className="text-[20px] font-semibold mt-3">
                   Product Information
                 </span>
                 <Separator />
@@ -415,7 +414,7 @@ export default function QuoteLineItemForm({
             {/* Pricing */}
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <span className="text-20px font-semibold mt-3">Pricing</span>
+                <span className="text-[20px] font-semibold mt-3">Pricing</span>
                 <Separator />
               </div>
 
@@ -553,7 +552,7 @@ export default function QuoteLineItemForm({
             {/* Truck Configuration */}
             <div className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
-                <span className="text-20px font-semibold mt-3">
+                <span className="text-[20px] font-semibold mt-3">
                   Truck Configuration
                 </span>
                 <Separator />

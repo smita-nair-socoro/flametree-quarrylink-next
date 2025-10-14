@@ -510,7 +510,7 @@
           "quarryId": 3,
           "productName": "Diamond",
           "quarryName": "Quarry ABC",
-          "supplierProductName": "DIAMOND",
+          "supplierProductName": "DIAMOND Quarry ABC",
           "productCostUom": "TN",
           "productCostQty": 5,
           "productCostPrice": 20000,

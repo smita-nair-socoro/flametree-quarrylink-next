@@ -52,7 +52,7 @@ const getDialogConfigs = (
                 <Trash2 className="h-[20px] w-[20px] text-[#E7000B]" />
               </span>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <span className="font-medium">{lineItemName}</span>
               <span className="text-sm text-[#6A7282]">{productCode}</span>
             </div>

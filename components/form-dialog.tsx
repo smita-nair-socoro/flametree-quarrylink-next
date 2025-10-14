@@ -168,7 +168,8 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
     finalCustomId = selectedQuotationLineItem.product_name;
-    finalPrimaryBadges = [selectedQuotationLineItem.supplier_product_name];
+    finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
+    finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -233,7 +234,7 @@ export function FormDialog({
       (finalSecondaryBadges && finalSecondaryBadges.length > 0) ||
       (finalThirdBadges && finalThirdBadges.length > 0);
 
-    if (!hasBadges) return null;
+    if (!hasBadges) return '\u00A0';
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">
