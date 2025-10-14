@@ -91,6 +91,8 @@ export default function QuarrySupplierForm({
     } else {
       quarrySupplierForm.setValue('quarry_name', '');
     }
+    // Clear all form errors when switching types
+    quarrySupplierForm.clearErrors();
   };
 
   // Effect to handle address changes
@@ -177,7 +179,7 @@ export default function QuarrySupplierForm({
         <form
           id="add-quarry-supplier-form"
           className={cn(
-            'gap-1 p-1 w-full grid grid-cols-1',
+            'gap-1 p-1 w-full grid grid-cols-1 md:grid-cols-2',
             className,
             isSubmitting && 'pointer-events-none'
           )}
@@ -189,7 +191,7 @@ export default function QuarrySupplierForm({
             name="type"
             render={({ field }) => (
               <FormItem className="col-span-1 col-start-1">
-                <FormLabel>Type*</FormLabel>
+                <FormLabel className='mb-3'>Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => {
@@ -219,11 +221,11 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          <Separator className="col-span-full my-2" />
+          <Separator className="col-span-full my-2 mb-5" />
 
           {/* Section: Basic Information */}
           <div className="col-span-full">
-            <h2 className="text-lg font-semibold">Basic Information</h2>
+            <h2 className="text-lg font-semibold mb-3">Basic Information</h2>
           </div>
 
           {/* Quarry/Supplier Name */}
@@ -232,7 +234,7 @@ export default function QuarrySupplierForm({
               control={quarrySupplierForm.control}
               name="quarry_name"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-full md:col-span-1">
                   <FormLabel>Quarry Name*</FormLabel>
                   <FormControl>
                     <Input
@@ -250,7 +252,7 @@ export default function QuarrySupplierForm({
               control={quarrySupplierForm.control}
               name="supplier_name"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-full md:col-span-1">
                   <FormLabel>Supplier Name*</FormLabel>
                   <FormControl>
                     <Input
@@ -270,7 +272,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="website"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-full md:col-span-1">
                 <FormLabel>Website</FormLabel>
                 <FormControl>
                   <Input
@@ -289,7 +291,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-full md:col-span-1">
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
@@ -308,7 +310,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="phone"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-full md:col-span-1">
                 <FormLabel>Phone</FormLabel>
                 <FormControl>
                   <PhoneInput
@@ -322,10 +324,10 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          <Separator className="col-span-full my-2" />
+          <Separator className="col-span-full my-2 mb-5" />
           {/* Section: Location Information */}
           <div className="col-span-full">
-            <h2 className="text-lg font-semibold">Location Information</h2>
+            <h2 className="text-lg font-semibold mb-3">Location Information</h2>
           </div>
 
           {/* Address */}
@@ -350,74 +352,77 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          <Separator className="col-span-full my-2" />
+          <Separator className="col-span-full my-2 mb-5" />
           {/* Section: Contact Person */}
           <div className="col-span-full">
-            <h2 className="text-lg font-semibold mb-4">Contact Person</h2>
+            <h2 className="text-lg font-semibold mb-3">Contact Person</h2>
           </div>
 
-          {/* Contact Person Name */}
-          <FormField
-            control={quarrySupplierForm.control}
-            name="contact_person_name"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter contact person name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Contact Person - 3 column grid container */}
+          <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-1">
+            {/* Contact Person Name */}
+            <FormField
+              control={quarrySupplierForm.control}
+              name="contact_person_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter contact person name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Contact Person Phone */}
-          <FormField
-            control={quarrySupplierForm.control}
-            name="contact_person_phone"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <PhoneInput
-                    className="w-full"
-                    defaultCountry="AU"
-                    placeholder="Enter contact phone"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            {/* Contact Person Phone */}
+            <FormField
+              control={quarrySupplierForm.control}
+              name="contact_person_phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      className="w-full"
+                      defaultCountry="AU"
+                      placeholder="Enter contact phone"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Contact Person Email */}
-          <FormField
-            control={quarrySupplierForm.control}
-            name="contact_person_email"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter contact email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Separator className="col-span-full my-2" />
+            {/* Contact Person Email */}
+            <FormField
+              control={quarrySupplierForm.control}
+              name="contact_person_email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter contact email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <Separator className="col-span-full my-2 mb-5" />
 
           {/* Section: Operational Information */}
           <div className="col-span-full">
-            <h2 className="text-lg font-semibold mb-4">
+            <h2 className="text-lg font-semibold mb-2">
               Operational Information
             </h2>
           </div>
@@ -427,7 +432,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="opening_closing_times"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-full md:col-span-1">
                 <FormLabel>Opening & Closing Times</FormLabel>
                 <FormControl>
                   <Textarea
@@ -446,7 +451,7 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="weighbridge_info"
             render={({ field }) => (
-              <FormItem className="col-span-2">
+              <FormItem className="col-span-full md:col-span-1">
                 <FormLabel>Weightbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
