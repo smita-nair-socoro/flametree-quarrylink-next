@@ -133,6 +133,9 @@ jobs:
           --exclude "config.json" \
           --cache-control "public, max-age=31536000, immutable" \
           --delete
+      
+      - name: Wait for S3 propagation
+        run: sleep 10
 
       # Invalidate CloudFront
       # For "${INVALIDATE_ALL}" = "false" - only invalidate things likely to be cached aggressively but must update immediately. Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
