@@ -256,7 +256,7 @@ export default function QuarrySupplierForm({
         <form
           id="add-quarry-supplier-form"
           className={cn(
-            'gap-6 p-1 w-full',
+            'gap-1 p-1 w-full grid grid-cols-1',
             isEditing && isDesktop
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
@@ -301,7 +301,7 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          <Separator className="col-span-full my-6" />
+          <Separator className="col-span-full my-2" />
 
           {/* Section: Basic Information */}
           <div className="col-span-full">
@@ -434,7 +434,7 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          <Separator className="col-span-full my-6" />
+          <Separator className="col-span-full my-2" />
           {/* Section: Location Information */}
           <div className="col-span-full">
             <h2 className="text-lg font-semibold">Location Information</h2>
@@ -462,7 +462,7 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          <Separator className="col-span-full my-6" />
+          <Separator className="col-span-full my-2" />
           {/* Section: Contact Person */}
           <div className="col-span-full">
             <h2 className="text-lg font-semibold mb-4">Contact Person</h2>
@@ -543,7 +543,7 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          <Separator className="col-span-full my-6" />
+          <Separator className="col-span-full my-2" />
 
           {/* Section: Operational Information */}
           <div className="col-span-full">

@@ -3,12 +3,7 @@
 import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Control, UseFormWatch, FieldPath, FieldValues } from 'react-hook-form';
 import { InputMask } from '@/components/ui/input-mask';
 import { cn } from '@/lib/utils';
@@ -139,7 +134,6 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -165,7 +159,6 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     value={field.value as number}
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -188,7 +181,6 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     {...field}
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -211,7 +203,6 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />

@@ -44,6 +44,7 @@ export default function QuarriesSuppliersPage() {
   const facetDefs: FacetDefinition[] = [
     { column: 'type', title: 'Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
+    { column: 'suburb', title: 'Suburb', icon: Plus },
   ];
 
   return (
