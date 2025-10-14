@@ -276,7 +276,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
         >
           <div
             className={cn(
-              'gap-5 p-1 w-full',
+              'p-1 gap-1 w-full',
               isDesktop && isEditing
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',
@@ -540,11 +540,11 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                       disabled={{ before: today }}
                     />
                   </FormControl>
-                  <FormMessage />
                   <FormDescription>
                     If the quote is not approved by the expiry date, it will
                     automatically expire and no longer be valid.
                   </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
