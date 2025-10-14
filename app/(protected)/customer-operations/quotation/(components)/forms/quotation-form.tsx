@@ -569,7 +569,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   )}
                 >
                   <FormDialog
-                    dialogTitle="Add New Product"
+                    dialogTitle="Add Product"
                     buttonTitle="Add New Product"
                     dialogWidth="700px"
                     contentClass="-mt-5"

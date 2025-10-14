@@ -7,6 +7,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from '@/components/ui/sonner';
 import { AppAuthProviders } from '@/lib/providers/AuthProviders';
 import {ConfigProvider} from "@/lib/providers/ConfigProvider";
+import VersionLogger from "@/components/VersionLogger";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
       <ConfigProvider>
         <AppAuthProviders>
+          <VersionLogger />
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

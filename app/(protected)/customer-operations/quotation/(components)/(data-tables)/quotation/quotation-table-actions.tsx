@@ -5,12 +5,11 @@ import {
   Eye,
   Send,
   Printer,
-  Plus,
-  BadgeCheck,
   ThumbsDown,
   Briefcase,
   Archive,
   Timer,
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,11 +39,23 @@ export function QuotationTableActions({
     (state) => state.setSelectedQuotation
   );
 
-  const handleView = () => {
-    setSelectedQuotation(quotation);
-    setDropdownOpen(false); // Close dropdown before opening modal
-    actions.view();
-  };
+  const createHandler =
+    (actionFn: () => void, additionalSetup?: () => void) => () => {
+      additionalSetup?.();
+      setDropdownOpen(false);
+      actionFn();
+    };
+
+  const handleView = createHandler(actions.view, () =>
+    setSelectedQuotation(quotation)
+  );
+  const handleArchive = createHandler(actions.archive);
+  const handleSendToCustomer = createHandler(actions.sendToCustomer);
+  const handleDecline = createHandler(actions.decline);
+  const handleConvertToJob = createHandler(actions.convertToJob);
+  const handleDuplicate = createHandler(actions.duplicate);
+  const handleExtendExpiry = createHandler(actions.extendExpiry);
+  const handlePrint = createHandler(actions.print);
 
   return (
     <div>
@@ -63,41 +74,30 @@ export function QuotationTableActions({
             View Details
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
-          {/* Always available: Duplicate */}
-          <DropdownMenuItem onClick={actions.duplicate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Duplicate Quote
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
           {/* Status-specific actions */}
           {quotation.status === 'DRAFT' && (
             <>
-              <DropdownMenuItem onClick={actions.sendToCustomer}>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={handleSendToCustomer}>
                 <Send className="h-4 w-4 mr-2" />
                 Send to Customer
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.approve}>
-                <BadgeCheck className="h-4 w-4 mr-2" />
-                Approve Quote
               </DropdownMenuItem>
             </>
           )}
 
           {quotation.status === 'PENDING' && (
             <>
-              <DropdownMenuItem onClick={actions.sendToCustomer}>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={handleSendToCustomer}>
                 <Send className="h-4 w-4 mr-2" />
                 Re-Send To Customer
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.approve}>
-                <BadgeCheck className="h-4 w-4 mr-2" />
-                Approve Quote
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.decline}>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={handleDecline}>
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
               </DropdownMenuItem>
@@ -106,11 +106,15 @@ export function QuotationTableActions({
 
           {quotation.status === 'APPROVED' && (
             <>
-              <DropdownMenuItem onClick={actions.decline}>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={handleDecline}>
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={actions.convertToJob}>
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem onClick={handleConvertToJob}>
                 <Briefcase className="h-4 w-4 mr-2" />
                 Create Job
               </DropdownMenuItem>
@@ -118,23 +122,39 @@ export function QuotationTableActions({
           )}
 
           {quotation.status === 'CONVERTED_TO_JOB' && (
-            <DropdownMenuItem onClick={actions.duplicate}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Job
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDuplicate}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Job
+              </DropdownMenuItem>
+            </>
           )}
 
           {quotation.status === 'EXPIRED' && (
-            <DropdownMenuItem onClick={actions.extendExpiry}>
-              <Timer className="h-4 w-4 mr-2" />
-              Extend Expiry Date
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleExtendExpiry}>
+                <Timer className="h-4 w-4 mr-2" />
+                Extend Expiry Date
+              </DropdownMenuItem>
+            </>
           )}
 
           {/* Print action - always available for non-archived */}
-          <DropdownMenuItem onClick={actions.print}>
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
             Print Quote
+          </DropdownMenuItem>
+
+          {/* Always available: Duplicate */}
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem onClick={handleDuplicate}>
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate Quote
           </DropdownMenuItem>
 
           {/* Archive - always at the bottom for applicable statuses */}
@@ -142,11 +162,11 @@ export function QuotationTableActions({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={actions.archive}
+                onClick={handleArchive}
                 className="text-destructive focus:text-destructive"
               >
-                <Archive className="h-4 w-4 mr-2" />
-                Archive Quote
+                <Archive className="h-4 w-4 mr-2 text-destructive" />
+                Archive
               </DropdownMenuItem>
             </>
           )}
