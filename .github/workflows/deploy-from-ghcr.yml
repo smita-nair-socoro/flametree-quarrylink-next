@@ -132,7 +132,6 @@ jobs:
           --exclude "index.html" \
           --exclude "config.json" \
           --cache-control "public, max-age=31536000, immutable" \
-          --delete
       
       - name: Wait for S3 propagation
         run: sleep 10
