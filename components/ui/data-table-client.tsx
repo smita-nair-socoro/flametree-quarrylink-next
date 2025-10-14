@@ -44,6 +44,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   LucideIcon,
+  Plus,
   Search,
 } from 'lucide-react';
 import {
@@ -177,6 +178,17 @@ export function DataTableClient<TData, TValue>({
     if (isMobile) return defaultPaginationSize;
     return loadFromStorage('paginationSize', defaultPaginationSize);
   });
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [tempColumnFilters, setTempColumnFilters] =
+    useState<ColumnFiltersState>([]);
+
+  // Sync temp filters when drawer opens
+  useEffect(() => {
+    if (drawerOpen) {
+      setTempColumnFilters(columnFilters);
+    }
+  }, [drawerOpen, columnFilters]);
 
   // Clear localStorage when switching to mobile or reset everything for mobile
   useEffect(() => {
@@ -337,6 +349,29 @@ export function DataTableClient<TData, TValue>({
     });
   }
 
+  function handleTempFilterChange(columnId: string, values: string[]) {
+    setTempColumnFilters((old) => {
+      const existingFilter = old.find((filter) => filter.id === columnId);
+      if (values.length === 0) {
+        return old.filter((filter) => filter.id !== columnId);
+      }
+      if (existingFilter) {
+        return old.map((filter) =>
+          filter.id === columnId ? { ...filter, value: values } : filter
+        );
+      }
+      return [...old, { id: columnId, value: values }];
+    });
+  }
+
+  function applyTempFilters() {
+    setColumnFilters(tempColumnFilters);
+    if (!isMobile) {
+      saveToStorage('columnFilters', tempColumnFilters);
+    }
+    setDrawerOpen(false);
+  }
+
   return (
     <div className="space-y-4">
       {!simpleTable && (
@@ -356,7 +391,7 @@ export function DataTableClient<TData, TValue>({
           {/* Mobile Filter Button - Only visible on mobile */}
           {facetedWithCounts.length > 0 && (
             <div className="md:hidden flex justify-center">
-              <Drawer>
+              <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <DrawerTrigger asChild>
                   <Button
                     variant="outline"
@@ -380,11 +415,14 @@ export function DataTableClient<TData, TValue>({
                       Filters
                     </DrawerTitle>
                   </DrawerHeader>
-                  <div className="px-4 pb-4">
+                  <div
+                    className="flex-1 overflow-y-auto px-4 py-3"
+                    style={{ maxHeight: 'calc(95vh - 12rem)' }}
+                  >
                     <Accordion type="multiple" className="w-full">
                       {facetedWithCounts.map((filter) => {
                         const currentFilterValues =
-                          (columnFilters.find((f) => f.id === filter.column)
+                          (tempColumnFilters.find((f) => f.id === filter.column)
                             ?.value as string[]) || [];
 
                         return (
@@ -426,7 +464,7 @@ export function DataTableClient<TData, TValue>({
                                               ...currentFilterValues,
                                               option.value,
                                             ];
-                                        handleFilterChange(
+                                        handleTempFilterChange(
                                           filter.column,
                                           newValues
                                         );
@@ -465,23 +503,27 @@ export function DataTableClient<TData, TValue>({
                       })}
                     </Accordion>
                   </div>
-                  {columnFilters.length > 0 && (
-                    <DrawerFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setColumnFilters([]);
-                          if (!isMobile) {
-                            saveToStorage('columnFilters', []);
-                          }
-                        }}
-                        className="w-full"
-                      >
-                        <X size={16} className="mr-2" />
-                        Clear All Filters
-                      </Button>
-                    </DrawerFooter>
-                  )}
+                  <DrawerFooter>
+                    <Button variant="default" onClick={applyTempFilters}>
+                      <Plus size={16} className="mr-2" />
+                      Apply Filters
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setColumnFilters([]);
+                        setTempColumnFilters([]);
+                        if (!isMobile) {
+                          saveToStorage('columnFilters', []);
+                        }
+                        setDrawerOpen(false);
+                      }}
+                      className="w-full mb-4"
+                    >
+                      <X size={16} className="mr-2" />
+                      Clear All Filters
+                    </Button>
+                  </DrawerFooter>
                 </DrawerContent>
               </Drawer>
             </div>
