@@ -1,15 +1,27 @@
-import { QUARRY_STATUS } from './quarry-enums';
+import { QuarryStatus, QuarryType } from './quarry-enums';
 
 export interface Quarry {
   id: number;
-  quarry_name: string;
-  status: QUARRY_STATUS;
+  name: string;
+  status: QuarryStatus;
+  type: QuarryType;
+  website: string;
+  email: string;
+  phone: string;
+  // address: number; // FK to Address.id - to be implemented
+  contact_person_name: string;
+  contact_person_email: string;
+  contact_person_phone: string;
+  opening_closing_times: string;
+  // weighbridge_info: string;
+  notes: string;
   version: number;
   is_deleted: boolean;
   created_by: string;
   created_at: string;
   updated_at: string;
   last_modified_by: string;
+  suburb: string;
 }
 
 export interface QuarryProductPrice {
