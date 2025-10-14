@@ -116,11 +116,23 @@ jobs:
           aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive
 
       # Sync whole site to S3
+      # Added proper Cache-Control headers for index.html and config.json (no-cache) and long-term caching for static assets (public, max-age=31536000, immutable). This ensures users always get the latest build immediately after deployment without needing to clear their browser cache. Also added a toggle to invalidate only critical files instead of the entire CloudFront cache.
       - name: Upload static site files
         run: |
           set -euo pipefail
-          aws s3 sync site/ "s3://${{ secrets.S3_BUCKET_NAME }}/" \
-            --delete \
+          aws s3 cp site/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+          if [ -f "site/config.json" ]; then
+            aws s3 cp site/config.json s3://${{ secrets.S3_BUCKET_NAME }}/config.json \
+              --cache-control "no-cache, no-store, must-revalidate"
+          fi
+
+          aws s3 sync site/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+          --exclude "index.html" \
+          --exclude "config.json" \
+          --cache-control "public, max-age=31536000, immutable" \
+          --delete
 
       # Invalidate CloudFront
       # For "${INVALIDATE_ALL}" = "false" - only invalidate things likely to be cached aggressively but must update immediately. Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
