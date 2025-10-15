@@ -71,17 +71,11 @@ export default function QuarrySupplierForm({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
     defaultValues: {
-      type:
-        isEditing && selectedQuarrySupplier?.type
-          ? selectedQuarrySupplier.type
-          : 'QUARRY',
-      name:
-        isEditing && selectedQuarrySupplier?.type === 'QUARRY'
-          ? selectedQuarrySupplier?.name || ''
-          : '',
-      website: isEditing ? selectedQuarrySupplier?.website || '' : '',
-      email: isEditing ? selectedQuarrySupplier?.email || '' : '',
-      phone: isEditing ? selectedQuarrySupplier?.phone || '' : '',
+      type: 'QUARRY',
+      name: '',
+      website: '',
+      email: '',
+      phone: '',
       address: '', // Will be handled separately for address autocomplete
       contact_person_name: isEditing
         ? selectedQuarrySupplier?.contact_person_name || ''
@@ -106,8 +100,6 @@ export default function QuarrySupplierForm({
   const handleTypeChange = (value: string) => {
     setSelectedType(value);
     quarrySupplierForm.setValue('type', value as 'QUARRY' | 'SUPPLIER');
-    // Clear the name fields when switching types
-    quarrySupplierForm.setValue('name', '');
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
   };
@@ -298,44 +290,26 @@ export default function QuarrySupplierForm({
 
           {/* Basic Information Fields with reduced spacing */}
           <div className={isDesktop ? 'col-span-full grid grid-cols-2 gap-x-5' : 'col-span-full'}>
-            {/* Quarry/Supplier Name */}
-            {selectedType === 'QUARRY' ? (
-              <FormField
-                control={quarrySupplierForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Quarry Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter quarry name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={quarrySupplierForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Supplier Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter supplier name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            {/* Name */}
+            <FormField
+              control={quarrySupplierForm.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {selectedType === 'QUARRY' ? 'Quarry Name*' : 'Supplier Name*'}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder={selectedType === 'QUARRY' ? 'Enter quarry name' : 'Enter supplier name'}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Website */}
             <FormField
