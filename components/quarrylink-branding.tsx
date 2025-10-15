@@ -1,24 +1,24 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import Link from "next/link"
+import * as React from 'react';
+import Link from 'next/link';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 export function QuarryLinkBranding({
-  subscriptionType = "Lite Plus"
+  subscriptionType = 'Lite Plus',
 }: {
-  subscriptionType?: string
+  subscriptionType?: string;
 }) {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
           size="lg"
-          className="hover:bg-purple-50 cursor-pointer"
+          className="hover:bg-[#7138F533]  cursor-pointer"
           asChild
         >
           <Link href="/dashboard">
@@ -32,12 +32,16 @@ export function QuarryLinkBranding({
               />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">QuarryLink</span>
-              <span className="truncate text-xs text-muted-foreground">{subscriptionType}</span>
+              <span className="truncate font-semibold text-white">
+                QuarryLink
+              </span>
+              <span className="truncate text-xs text-[#71717B]">
+                {subscriptionType}
+              </span>
             </div>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
