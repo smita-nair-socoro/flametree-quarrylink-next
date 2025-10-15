@@ -58,6 +58,7 @@ const data = {
       icon: Package,
       items: [
         { title: 'Products', url: '/inventory/products' },
+        { title: 'Quarries & Suppliers', url: '/inventory/quarries-suppliers' },
         { title: 'Stockpile', url: '/inventory/stockpile' },
         { title: 'Weigh-Bridge Module', url: '/inventory/weigh-bridge' },
         { title: 'Production Planning', url: '/inventory/production' },
