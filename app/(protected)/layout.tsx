@@ -39,11 +39,11 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex flex-col min-w-0">
-        <header className="flex h-10 shrink-0 items-center gap-2 px-4">
+        <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
           {/* Mobile trigger - only visible when sidebar is closed */}
           <SidebarTrigger className="md:hidden" />
         </header>
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden bg-[#F9FAFB]">
           <div className="h-full overflow-y-auto overflow-x-hidden p-4">
             {children}
           </div>

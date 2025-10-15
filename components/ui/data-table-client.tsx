@@ -384,7 +384,7 @@ export function DataTableClient<TData, TValue>({
               value={table.getState().globalFilter ?? ''}
               onChange={(e) => table.setGlobalFilter(String(e.target.value))}
               startIcon={<Search size={18} />}
-              className="h-8 w-full md:w-[350px] lg:w-[450px]"
+              className="h-8 w-full md:w-[350px] lg:w-[450px] bg-white"
             />
           </div>
 
@@ -593,7 +593,7 @@ export function DataTableClient<TData, TValue>({
         <div
           className={cn(
             simpleTable ? '' : 'rounded-md border p-2',
-
+            'bg-white',
             'min-w-fit'
           )}
         >
@@ -653,7 +653,7 @@ export function DataTableClient<TData, TValue>({
                     className={cn(
                       simpleTable &&
                         'border-b border-border hover:bg-transparent',
-                      !simpleTable && ' hover:bg-gray-50 ',
+                      !simpleTable && 'bg-white hover:bg-gray-100 ',
                       onRowClick && !simpleTable && 'cursor-pointer'
                     )}
                     onClick={(e) => {
@@ -718,7 +718,7 @@ export function DataTableClient<TData, TValue>({
                 ))
               ) : (
                 <TableRow
-                  className={cn(simpleTable && 'border-b-0', 'bg-gray-50')}
+                  className={cn(simpleTable && 'border-b-0', 'bg-white')}
                 >
                   <TableCell
                     colSpan={columns.length}
