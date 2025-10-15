@@ -92,8 +92,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser } = useAuth();
 
   const user = {
-    name: amplifyUser?.signInDetails?.loginId ?? amplifyUser?.username ?? 'Unknown Name',
-    email: amplifyUser?.signInDetails?.loginId ?? amplifyUser?.username ?? 'Unknown Email',
+    name:
+      amplifyUser?.signInDetails?.loginId ??
+      amplifyUser?.username ??
+      'Unknown Name',
+    email:
+      amplifyUser?.signInDetails?.loginId ??
+      amplifyUser?.username ??
+      'Unknown Email',
     avatar: '/default-user.png',
   };
 
@@ -101,7 +107,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="mb-4">
         <div className="flex items-center justify-between mb-3">
-          <SidebarTrigger className="h-8 w-8" />
+          <SidebarTrigger className="h-8 w-8 text-white" />
         </div>
         <div className="mb-1">
           <QuarryLinkBranding subscriptionType="Enterprise" />
