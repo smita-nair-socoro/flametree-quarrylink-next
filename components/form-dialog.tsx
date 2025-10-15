@@ -264,28 +264,6 @@ export function FormDialog({
     );
   };
 
-  // Calculate dialog dimensions based on editing state
-  const getDialogDimensions = () => {
-    if (isEditing) {
-      // Editing mode: 95% width with max height constraint
-      return {
-        width: '95vw',
-        maxWidth: '95vw',
-        maxHeight: '95vh',
-        height: 'auto',
-      };
-    }
-    // Adding mode: 50% width with max height constraint
-    return {
-      width: '50vw',
-      maxWidth: '50vw',
-      maxHeight: '95vh',
-      height: 'auto',
-    };
-  };
-
-  const dimensions = getDialogDimensions();
-
   // For ScrollArea, use max-height instead of fixed height
   const getScrollAreaMaxHeight = (): string => {
     // Calculate available space: viewport height minus header space (approx 8rem)
@@ -328,12 +306,19 @@ export function FormDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
         <DialogContent
-          className="flex flex-col p-0"
+          className={clsx(
+            'flex flex-col p-0 w-full',
+            'overflow-hidden rounded-lg',
+            'scrollbar-gutter-stable'
+          )}
           style={{
-            width: dialogWidth ?? dimensions.width,
-            height: dimensions.height,
-            maxWidth: dimensions.maxWidth,
-            maxHeight: dimensions.maxHeight,
+            width: '100%',
+            maxWidth: dialogWidth
+              ? `min(${dialogWidth}, 95vw)`
+              : isEditing
+              ? 'min(95vw, 1100px)'
+              : 'min(90vw, 800px)',
+            maxHeight: '95vh',
           }}
         >
           {dialogInner}
