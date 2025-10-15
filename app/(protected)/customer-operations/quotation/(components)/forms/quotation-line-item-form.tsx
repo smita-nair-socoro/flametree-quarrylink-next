@@ -285,18 +285,18 @@ export default function QuoteLineItemForm({
         >
           <div
             className={cn(
-              'gap-6 p-1 w-full flex flex-col',
+              'p-1 w-full flex flex-col',
               className,
               isSubmitting && 'pointer-events-none'
             )}
           >
             {/* Product Information */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <span className="text-20px font-semibold mt-3">
                   Product Information
                 </span>
-                <Separator />
+                <Separator className="mb-4" />
               </div>
               <FormSelect
                 control={quotationLineItemForm.control}
@@ -352,10 +352,10 @@ export default function QuoteLineItemForm({
             </div>
 
             {/* Pricing */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <span className="text-20px font-semibold mt-3">Pricing</span>
-                <Separator />
+                <Separator className="mb-4" />
               </div>
 
               {/* Cost Pricing */}
@@ -489,12 +489,12 @@ export default function QuoteLineItemForm({
             </div>
 
             {/* Truck Configuration */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <span className="text-20px font-semibold mt-3">
                   Truck Configuration
                 </span>
-                <Separator />
+                <Separator className="mb-4" />
               </div>
               <FormSelect
                 control={quotationLineItemForm.control}
@@ -690,7 +690,7 @@ export default function QuoteLineItemForm({
             </div>
 
             {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
+              <div className="flex justify-end space-x-2 col-span-2 my-6">
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
@@ -706,7 +706,7 @@ export default function QuoteLineItemForm({
             )}
 
             {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
                   form="add-new-quote-line-item-form"
                   type="submit"

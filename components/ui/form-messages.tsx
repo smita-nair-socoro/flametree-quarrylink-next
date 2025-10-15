@@ -29,7 +29,7 @@ export function FormMessages({
       className={cn(
         'flex flex-col text-sm text-destructive',
         type === 'success' && ' text-muted-foreground',
-        className,
+        className
       )}
       {...props}
     >

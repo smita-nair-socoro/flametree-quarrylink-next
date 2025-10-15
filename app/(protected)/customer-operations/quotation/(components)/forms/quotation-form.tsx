@@ -282,7 +282,7 @@ export default function QuotationForm({
         >
           <div
             className={cn(
-              'gap-5 p-1 w-full',
+              'p-1 gap-1 w-full',
               isDesktop && isEditing
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',
@@ -557,11 +557,11 @@ export default function QuotationForm({
                       readOnly={isEditing && !canEdit}
                     />
                   </FormControl>
-                  <FormMessage />
                   <FormDescription>
                     If the quote is not approved by the expiry date, it will
                     automatically expire and no longer be valid.
                   </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -570,7 +570,7 @@ export default function QuotationForm({
               <div
                 className={cn(
                   isDesktop
-                    ? 'flex justify-between items-center col-span-2'
+                    ? 'flex justify-between items-center col-span-2 mb-5'
                     : 'flex flex-col gap-4 col-span-1'
                 )}
               >
@@ -671,7 +671,7 @@ export default function QuotationForm({
             )}
 
             {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
+              <div className="flex justify-end space-x-2 col-span-2 my-6">
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
@@ -687,7 +687,7 @@ export default function QuotationForm({
             )}
 
             {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
                   form="add-new-quote-form"
                   type="submit"

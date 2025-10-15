@@ -121,7 +121,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-product-form"
           className={cn(
-            'gap-12 p-1 w-full flex flex-col',
+            'gap-5 p-1 w-full flex flex-col',
             className,
             isSubmitting && 'pointer-events-none'
           )}
@@ -129,7 +129,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         >
           <div
             className={cn(
-              'gap-6 p-1 w-full mt-4',
+              'gap-1 p-1 w-full mt-4',
               isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
               className,
               isSubmitting && 'pointer-events-none'

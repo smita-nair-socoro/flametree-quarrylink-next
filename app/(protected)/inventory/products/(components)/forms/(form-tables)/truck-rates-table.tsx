@@ -20,7 +20,12 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
     { key: 'rate_type', label: 'Rate Type', className: 'w-30' },
     { key: 'rate', label: 'Rate ($)', className: 'w-30' },
     { key: 'unit', label: 'Unit', className: 'w-25' },
-    { key: 'available', label: 'Available', className: 'w-20' },
+    {
+      key: 'available',
+      label: 'Available',
+      className: 'w-20',
+      tooltip: 'TN is required as the base UoM',
+    },
   ];
 
   // Rows configuration
@@ -78,6 +83,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       key: 'available_truck',
       type: 'switch',
       className: 'w-20',
+      disabled: (row) => row.id === 'tn_rate',
     },
   ];
 
