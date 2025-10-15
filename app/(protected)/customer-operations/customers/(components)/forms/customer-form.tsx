@@ -297,7 +297,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-customer-form"
           className={cn(
-            'gap-6 p-1 w-full',
+            'p-1 gap-1 w-full',
             isEditing && isDesktop
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
@@ -633,7 +633,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                           }}
                         />
                       </FormControl>
-                      <FormMessage className="absolute top-full left-0 whitespace-nowrap z-10" />
+                      <FormMessage className="absolute mt-9 whitespace-nowrap" />
                     </FormItem>
                   )}
                 />

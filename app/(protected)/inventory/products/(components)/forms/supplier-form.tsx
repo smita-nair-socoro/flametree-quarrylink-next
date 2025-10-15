@@ -119,8 +119,8 @@ export default function SupplierForm({ id, onCancel, className }: FormProps) {
         ? (selectedSupplier?.price.truck_load_rate || 0) / 100
         : 0,
       available_truck_tn_rate: isEditing
-        ? selectedSupplier?.price.available_truck_tn_rate || false
-        : false,
+        ? selectedSupplier?.price.available_truck_tn_rate || true
+        : true,
       available_truck_m3_rate: isEditing
         ? selectedSupplier?.price.available_truck_m3_rate || false
         : false,

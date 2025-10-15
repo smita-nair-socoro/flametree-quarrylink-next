@@ -121,11 +121,8 @@ export const BADGE_COLORS: Record<string, string> = {
   DUST: 'bg-yellow-100 text-yellow-900 border-yellow-900 dark:bg-yellow-200 dark:text-yellow-900 dark:border-yellow-800',
   SOIL: 'bg-green-100 text-green-900 border-green-900 dark:bg-green-200 dark:text-green-900 dark:border-green-800',
   SAND: 'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-200 dark:text-blue-900 dark:border-blue-800',
-};
-
-export const QUOTE_TYPE_COLORS = {
-  COLLECTION:
-    'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-900 dark:border-orange-900',
-  DELIVERY:
-    'bg-blue-100 text-blue-800 border-blue-800 dark:text-blue-800 dark:border-blue-800',
+    QUARRY:
+  'bg-orange-100 text-orange-900 border-orange-900 dark:bg-orange-200 dark:text-orange-900 dark:border-orange-900',
+  SUPPLIER:
+    'bg-blue-100 text-blue-800 border-blue-800 dark:bg-blue-800 dark:text-blue-800 dark:border-blue-800',
 };
