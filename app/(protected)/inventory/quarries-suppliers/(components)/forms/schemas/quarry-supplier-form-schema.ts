@@ -24,8 +24,7 @@ const Base = z.object({
   }),
 
   // Basic Information
-  quarry_name: z.string().trim().optional(),
-  supplier_name: z.string().trim().optional(),
+  name: z.string().trim().optional(),
   website: z
     .string()
     .trim()
@@ -64,60 +63,30 @@ const Base = z.object({
 
 // Export the schema with conditional validation using superRefine
 export const QuarrySupplierFormSchema = Base.superRefine((data, ctx) => {
-  // Type-specific validations
-  if (data.type === 'QUARRY') {
-    // Quarry Name is required for Quarry type
-    if (!data.quarry_name || data.quarry_name.trim().length === 0) {
-      ctx.addIssue({
-        path: ['quarry_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'Quarry name is required',
-      });
-    } else if (data.quarry_name.trim().length < 2) {
-      ctx.addIssue({
-        path: ['quarry_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'At least 2 characters',
-      });
-    } else if (data.quarry_name.trim().length > 256) {
-      ctx.addIssue({
-        path: ['quarry_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'Maximum 256 characters',
-      });
-    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.quarry_name)) {
-      ctx.addIssue({
-        path: ['quarry_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid characters',
-      });
-    }
-  } else if (data.type === 'SUPPLIER') {
-    // Supplier Name is required for Supplier type
-    if (!data.supplier_name || data.supplier_name.trim().length === 0) {
-      ctx.addIssue({
-        path: ['supplier_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'Supplier name is required',
-      });
-    } else if (data.supplier_name.trim().length < 2) {
-      ctx.addIssue({
-        path: ['supplier_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'At least 2 characters',
-      });
-    } else if (data.supplier_name.trim().length > 256) {
-      ctx.addIssue({
-        path: ['supplier_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'Maximum 256 characters',
-      });
-    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.supplier_name)) {
-      ctx.addIssue({
-        path: ['supplier_name'],
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid characters',
-      });
-    }
+  // Name is required for both types
+  if (!data.name || data.name.trim().length === 0) {
+    ctx.addIssue({
+      path: ['name'],
+      code: z.ZodIssueCode.custom,
+      message: data.type === 'QUARRY' ? 'Quarry name is required' : 'Supplier name is required',
+    });
+  } else if (data.name.trim().length < 2) {
+    ctx.addIssue({
+      path: ['name'],
+      code: z.ZodIssueCode.custom,
+      message: 'At least 2 characters',
+    });
+  } else if (data.name.trim().length > 256) {
+    ctx.addIssue({
+      path: ['name'],
+      code: z.ZodIssueCode.custom,
+      message: 'Maximum 256 characters',
+    });
+  } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.name)) {
+    ctx.addIssue({
+      path: ['name'],
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid characters',
+    });
   }
 });
