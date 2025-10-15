@@ -258,7 +258,8 @@ export default function QuarrySupplierForm({
         <form
           id="add-quarry-supplier-form"
           className={cn(
-            'gap-1 p-1 w-full grid grid-cols-1 md:grid-cols-2',
+            'p-1 gap-1 w-full',
+            isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
             className,
             isSubmitting && 'pointer-events-none'
           )}
@@ -307,18 +308,58 @@ export default function QuarrySupplierForm({
             <h2 className="text-lg font-semibold mb-3">Basic Information</h2>
           </div>
 
-          {/* Quarry/Supplier Name */}
-          {selectedType === 'QUARRY' ? (
+          {/* Basic Information Fields with reduced spacing */}
+          <div className={isDesktop ? 'col-span-full grid grid-cols-2 gap-x-5' : 'col-span-full'}>
+            {/* Quarry/Supplier Name */}
+            {selectedType === 'QUARRY' ? (
+              <FormField
+                control={quarrySupplierForm.control}
+                name="quarry_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quarry Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter quarry name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={quarrySupplierForm.control}
+                name="supplier_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Supplier Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter supplier name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Website */}
             <FormField
               control={quarrySupplierForm.control}
-              name="quarry_name"
+              name="website"
               render={({ field }) => (
-                <FormItem className="col-span-full md:col-span-1">
-                  <FormLabel>Quarry Name*</FormLabel>
+                <FormItem>
+                  <FormLabel>Website</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
-                      placeholder="Enter quarry name"
+                      placeholder="Enter website URL"
                       {...field}
                     />
                   </FormControl>
@@ -326,17 +367,18 @@ export default function QuarrySupplierForm({
                 </FormItem>
               )}
             />
-          ) : (
+
+            {/* Email */}
             <FormField
               control={quarrySupplierForm.control}
-              name="supplier_name"
+              name="email"
               render={({ field }) => (
-                <FormItem className="col-span-full md:col-span-1">
-                  <FormLabel>Supplier Name*</FormLabel>
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
-                      placeholder="Enter supplier name"
+                      placeholder="email@example.com"
                       {...field}
                     />
                   </FormControl>
@@ -344,65 +386,27 @@ export default function QuarrySupplierForm({
                 </FormItem>
               )}
             />
-          )}
 
-          {/* Website */}
-          <FormField
-            control={quarrySupplierForm.control}
-            name="website"
-            render={({ field }) => (
-              <FormItem className="col-span-full md:col-span-1">
-                <FormLabel>Website</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter website URL"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Email */}
-          <FormField
-            control={quarrySupplierForm.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="col-span-full md:col-span-1">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="email@example.com"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Phone */}
-          <FormField
-            control={quarrySupplierForm.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem className="col-span-full md:col-span-1">
-                <FormLabel>Phone</FormLabel>
-                <FormControl>
-                  <PhoneInput
-                    className="w-full"
-                    defaultCountry="AU"
-                    placeholder="(61) 456 789"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            {/* Phone */}
+            <FormField
+              control={quarrySupplierForm.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      className="w-full"
+                      defaultCountry="AU"
+                      placeholder="(61) 456 789"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
           <Separator className="col-span-full my-2 mb-5" />
           {/* Section: Location Information */}
           <div className="col-span-full">
@@ -437,8 +441,8 @@ export default function QuarrySupplierForm({
             <h2 className="text-lg font-semibold mb-3">Contact Person</h2>
           </div>
 
-          {/* Contact Person - 3 column grid container */}
-          <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-1">
+          {/* Contact Person Fields */}
+          <div className={isDesktop ? 'col-span-full grid grid-cols-3 gap-4' : 'col-span-full'}>
             {/* Contact Person Name */}
             <FormField
               control={quarrySupplierForm.control}
@@ -501,7 +505,7 @@ export default function QuarrySupplierForm({
 
           {/* Section: Operational Information */}
           <div className="col-span-full">
-            <h2 className="text-lg font-semibold mb-2">
+            <h2 className="text-lg font-semibold mb-3">
               Operational Information
             </h2>
           </div>
@@ -511,7 +515,9 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="opening_closing_times"
             render={({ field }) => (
-              <FormItem className="col-span-full md:col-span-1">
+              <FormItem
+                className={isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'}
+              >
                 <FormLabel>Opening & Closing Times</FormLabel>
                 <FormControl>
                   <Textarea
@@ -530,7 +536,9 @@ export default function QuarrySupplierForm({
             control={quarrySupplierForm.control}
             name="weighbridge_info"
             render={({ field }) => (
-              <FormItem className="col-span-full md:col-span-1">
+              <FormItem
+                className={isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'}
+              >
                 <FormLabel>Weightbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
