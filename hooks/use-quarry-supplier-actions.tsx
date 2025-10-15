@@ -36,7 +36,7 @@ export function useQuarrySupplierActions(
         useSelectedQuarrySupplier: true,
       }}
     >
-      <QuarrySupplierForm />
+      <QuarrySupplierForm id={quarrySupplierId} />
     </FormDialog>
   ) : null;
 
