@@ -553,7 +553,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               <div
                 className={cn(
                   isDesktop
-                    ? 'flex justify-between items-center col-span-2'
+                    ? 'flex justify-between items-center col-span-2 mb-5'
                     : 'flex flex-col gap-4 col-span-1'
                 )}
               >
@@ -652,7 +652,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             )}
 
             {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
+              <div className="flex justify-end space-x-2 col-span-2 my-6">
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
@@ -668,7 +668,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             )}
 
             {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
                   form="add-new-quote-form"
                   type="submit"
