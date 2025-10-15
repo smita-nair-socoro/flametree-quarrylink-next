@@ -8,7 +8,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { ModeToggle } from '@/components/toggle';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
@@ -17,7 +16,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       const currentPath = window.location.pathname + window.location.search;
-      router.replace(`/login?returnTo=${encodeURIComponent(currentPath)}`); 
+      router.replace(`/login?returnTo=${encodeURIComponent(currentPath)}`);
     }
   }, [auth.isLoading, auth.isAuthenticated, router]);
 
@@ -40,12 +39,9 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="flex flex-col min-w-0">
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-10 shrink-0 items-center gap-2 px-4">
           {/* Mobile trigger - only visible when sidebar is closed */}
           <SidebarTrigger className="md:hidden" />
-          <div className="absolute top-4 right-4 z-50">
-            <ModeToggle />
-          </div>
         </header>
         <div className="flex-1 overflow-hidden">
           <div className="h-full overflow-y-auto overflow-x-hidden p-4">
