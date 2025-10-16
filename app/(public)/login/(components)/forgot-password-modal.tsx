@@ -38,7 +38,11 @@ const forgotPasswordSchema = z.object({
     .email({ message: 'Please enter a valid email address' }),
 });
 
-export function ForgotPasswordModal({ isOpen, onClose, onCodeSent }: ForgotPasswordModalProps) {
+export function ForgotPasswordModal({
+  isOpen,
+  onClose,
+  onCodeSent,
+}: ForgotPasswordModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailSent, setIsEmailSent] = useState(false);
 
@@ -52,7 +56,7 @@ export function ForgotPasswordModal({ isOpen, onClose, onCodeSent }: ForgotPassw
 
   async function onSubmit(values: z.infer<typeof forgotPasswordSchema>) {
     setIsLoading(true);
-    
+
     try {
       await resetPassword({ username: values.email });
       setIsEmailSent(true);
@@ -64,9 +68,9 @@ export function ForgotPasswordModal({ isOpen, onClose, onCodeSent }: ForgotPassw
       }, 4000);
     } catch (error: unknown) {
       console.error('Reset password error:', error);
-      
+
       const errorObj = error as { name?: string };
-      
+
       if (errorObj.name === 'UserNotFoundException') {
         notifyError('No account found with this email address');
       } else if (errorObj.name === 'LimitExceededException') {
@@ -94,11 +98,9 @@ export function ForgotPasswordModal({ isOpen, onClose, onCodeSent }: ForgotPassw
             Reset Password
           </DialogTitle>
           <DialogDescription>
-            {!isEmailSent ? (
-              "Enter your email address and we'll send you a link to reset your password."
-            ) : (
-              "We've sent a password reset link to your email address."
-            )}
+            {!isEmailSent
+              ? "Enter your email address and we'll send you a link to reset your password."
+              : "We've sent a password reset link to your email address."}
           </DialogDescription>
         </DialogHeader>
 
@@ -124,7 +126,8 @@ export function ForgotPasswordModal({ isOpen, onClose, onCodeSent }: ForgotPassw
               />
 
               <div className="text-sm text-muted-foreground">
-                If an account with this email exists, you will receive a password reset link shortly.
+                If an account with this email exists, you will receive a
+                password reset link shortly.
               </div>
 
               <div className="flex gap-2 pt-2">
@@ -148,10 +151,11 @@ export function ForgotPasswordModal({ isOpen, onClose, onCodeSent }: ForgotPassw
           </Form>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-lg bg-green-50 p-4 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-400">
+            <div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">
               <div className="font-medium">Email sent successfully!</div>
               <div className="mt-1">
-                Check your inbox and follow the instructions in the email to reset your password.
+                Check your inbox and follow the instructions in the email to
+                reset your password.
               </div>
             </div>
 

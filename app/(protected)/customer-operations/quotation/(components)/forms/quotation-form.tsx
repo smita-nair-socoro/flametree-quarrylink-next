@@ -624,8 +624,7 @@ export default function QuotationForm({
             )}
 
             {isEditing && (
-              <div className="col-span-full gap-0">
-                {/* TODO: Come back to this once Product is done! */}
+              <div className="col-span-full space-y-10">
                 <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                   <DataTableClient
                     columns={quotationLineItemColumns}
@@ -634,115 +633,62 @@ export default function QuotationForm({
                   />
                 </div>
 
-                <div className="flex flex-col gap-0">
-                  <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
-                    <div className="flex justify-between py-3">
-                      <span className="text-sm font-normal">
-                        Product Cost (Total):
-                      </span>
-                      <span className="text-sm font-normal">
-                        ${pricingBreakdown.totalProductCostPrice}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3">
-                      <span className="text-sm font-normal">
-                        Truck Cost (Total):
-                      </span>
-                      <span className="text-sm font-normal">
-                        ${pricingBreakdown.totalTruckCostPrice}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3">
-                      <span className="text-sm font-normal">
-                        Product Sell (Total):
-                      </span>
-                      <span className="text-sm font-normal">
-                        ${pricingBreakdown.totalProductSellPrice}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3">
-                      <span className="text-sm font-normal">
-                        Truck Sell (Total):
-                      </span>
-                      <span className="text-sm font-normal">
-                        ${pricingBreakdown.totalTruckSellPrice}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-3">
-                      <span className="text-sm font-semibold">
-                        Total Invoice:
-                      </span>
-                      <span className="text-sm font-normal">
-                        ${pricingBreakdown.totalInvoice}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between py-3 px-2 bg-slate-200">
-                    <span className="text-sm font-semibold">Gross Profit:</span>
-                    <span className="text-sm font-normal">
-                      ${pricingBreakdown.grossProfit} (
-                      {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold">Audit Information</h2>
 
-            {isEditing && (
-              <div className="col-span-full space-y-6 mt-5">
-                <h2 className="text-2xl font-bold">Audit Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Created By:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('created_by') || 'Jay Woo Choi'}
+                      </p>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Created By:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('created_by') || 'Jay Woo Choi'}
-                    </p>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Last Modified By:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('last_modified_by') ||
+                          'Jaywoo Choi'}
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Last Modified By:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('last_modified_by') || 'Jaywoo Choi'}
-                    </p>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Created Date:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('created_at')
+                          ? new Date(
+                              quotationForm.watch('created_at')
+                            ).toLocaleDateString('en-AU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: '2-digit',
+                            })
+                          : '10/02/25'}
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Created Date:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('created_at')
-                        ? new Date(
-                            quotationForm.watch('created_at')
-                          ).toLocaleDateString('en-AU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          })
-                        : '10/02/25'}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Modified Date:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('updated_at')
-                        ? new Date(
-                            quotationForm.watch('updated_at')
-                          ).toLocaleDateString('en-AU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          })
-                        : '21/04/25'}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Modified Date:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('updated_at')
+                          ? new Date(
+                              quotationForm.watch('updated_at')
+                            ).toLocaleDateString('en-AU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: '2-digit',
+                            })
+                          : '21/04/25'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
