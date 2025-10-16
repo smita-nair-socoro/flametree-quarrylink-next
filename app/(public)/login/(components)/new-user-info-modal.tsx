@@ -16,7 +16,11 @@ interface NewUserInfoModalProps {
   onContinue: () => void;
 }
 
-export function NewUserInfoModal({ isOpen, onClose, onContinue }: NewUserInfoModalProps) {
+export function NewUserInfoModal({
+  isOpen,
+  onClose,
+  onContinue,
+}: NewUserInfoModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -41,39 +45,48 @@ export function NewUserInfoModal({ isOpen, onClose, onContinue }: NewUserInfoMod
 
         <div className="space-y-4">
           <div className="space-y-3">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 ">
               <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
               <div className="text-sm">
-                <div className="font-medium text-blue-900 dark:text-blue-100">Check Your Email</div>
-                <div className="text-blue-700 dark:text-blue-300">
-                  Your administrator should have sent you a temporary password via email.
+                <div className="font-medium text-blue-900 ">
+                  Check Your Email
+                </div>
+                <div className="text-blue-700 ">
+                  Your administrator should have sent you a temporary password
+                  via email.
                 </div>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 ">
               <Key className="h-5 w-5 text-amber-600 mt-0.5" />
               <div className="text-sm">
-                <div className="font-medium text-amber-900 dark:text-amber-100">Use Temporary Password</div>
-                <div className="text-amber-700 dark:text-amber-300">
+                <div className="font-medium text-amber-900 ">
+                  Use Temporary Password
+                </div>
+                <div className="text-amber-700 ">
                   Sign in with your email and the temporary password provided.
                 </div>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-900/20">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 ">
               <ArrowRight className="h-5 w-5 text-green-600 mt-0.5" />
               <div className="text-sm">
-                <div className="font-medium text-green-900 dark:text-green-100">Set New Password</div>
-                <div className="text-green-700 dark:text-green-300">
-                  You'll be prompted to create a permanent password on first login.
+                <div className="font-medium text-green-900">
+                  Set New Password
+                </div>
+                <div className="text-green-700 ">
+                  You'll be prompted to create a permanent password on first
+                  login.
                 </div>
               </div>
             </div>
           </div>
 
           <div className="text-xs text-muted-foreground text-center">
-            Don't have a temporary password? Contact your administrator for assistance.
+            Don't have a temporary password? Contact your administrator for
+            assistance.
           </div>
 
           <div className="flex gap-2 pt-2">
@@ -85,11 +98,7 @@ export function NewUserInfoModal({ isOpen, onClose, onContinue }: NewUserInfoMod
             >
               Cancel
             </Button>
-            <Button
-              type="button"
-              onClick={onContinue}
-              className="flex-1"
-            >
+            <Button type="button" onClick={onContinue} className="flex-1">
               Try Again
             </Button>
           </div>
