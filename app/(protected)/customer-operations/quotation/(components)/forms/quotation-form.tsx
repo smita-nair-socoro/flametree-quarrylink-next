@@ -625,12 +625,68 @@ export default function QuotationForm({
 
             {isEditing && (
               <div className="col-span-full space-y-10">
-                <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                  <DataTableClient
-                    columns={quotationLineItemColumns}
-                    data={convertedQuotationLineItem ?? []}
-                    simpleTable={true}
-                  />
+                <div className="flex flex-col gap-0">
+                  <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                    <DataTableClient
+                      columns={quotationLineItemColumns}
+                      data={convertedQuotationLineItem ?? []}
+                      simpleTable={true}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-0">
+                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Product Cost (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalProductCostPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Truck Cost (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalTruckCostPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Product Sell (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalProductSellPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Truck Sell (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalTruckSellPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-semibold">
+                          Total Invoice:
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalInvoice}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-3 px-2 bg-slate-200">
+                      <span className="text-sm font-semibold">
+                        Gross Profit:
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.grossProfit} (
+                        {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
