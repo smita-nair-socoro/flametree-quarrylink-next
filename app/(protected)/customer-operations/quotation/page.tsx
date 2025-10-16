@@ -61,7 +61,7 @@ export default function QuotationsPage() {
       {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h3 className="text-2xl font-bold">Quotations</h3>
+          <h3 className="text-2xl">Quotations</h3>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
