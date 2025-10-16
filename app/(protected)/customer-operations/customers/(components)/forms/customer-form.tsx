@@ -128,6 +128,8 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     }
   };
 
+  console.log('selectedCustomer', selectedCustomer);
+
   // Effect to reset form when selected customer changes
   React.useEffect(() => {
     if (selectedCustomer && isEditing) {
@@ -203,9 +205,12 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   ];
 
   const accountManagerOptions = [
-    { label: 'Reza', value: 'Reza' },
+    { label: 'Alice', value: 'Alice' },
+    { label: 'Charlie', value: 'Charlie' },
+    { label: 'Bob', value: 'Bob' },
+    { label: 'David', value: 'David' },
+    { label: 'Jay', value: 'Jay' },
     { label: 'Armin', value: 'Armin' },
-    { label: 'Jaywoo', value: 'Jaywoo' },
   ]; // TODO: get account manager
 
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {

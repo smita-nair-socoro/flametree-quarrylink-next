@@ -32,31 +32,37 @@ interface ResetPasswordConfirmationModalProps {
   onSuccess: () => void;
 }
 
-const resetPasswordConfirmationSchema = z.object({
-  confirmationCode: z
-    .string()
-    .nonempty({ message: 'Confirmation code is required' })
-    .min(6, { message: 'Confirmation code must be at least 6 characters' }),
-  newPassword: z
-    .string()
-    .nonempty({ message: 'New password is required' })
-    .min(8, { message: 'Password must be at least 8 characters' })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
-      message: 'Password must contain uppercase, lowercase, number, and special character'
-    }),
-  confirmPassword: z
-    .string()
-    .nonempty({ message: 'Please confirm your password' }),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const resetPasswordConfirmationSchema = z
+  .object({
+    confirmationCode: z
+      .string()
+      .nonempty({ message: 'Confirmation code is required' })
+      .min(6, { message: 'Confirmation code must be at least 6 characters' }),
+    newPassword: z
+      .string()
+      .nonempty({ message: 'New password is required' })
+      .min(8, { message: 'Password must be at least 8 characters' })
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        {
+          message:
+            'Password must contain uppercase, lowercase, number, and special character',
+        }
+      ),
+    confirmPassword: z
+      .string()
+      .nonempty({ message: 'Please confirm your password' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
-export function ResetPasswordConfirmationModal({ 
-  isOpen, 
-  onClose, 
-  email, 
-  onSuccess 
+export function ResetPasswordConfirmationModal({
+  isOpen,
+  onClose,
+  email,
+  onSuccess,
 }: ResetPasswordConfirmationModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -72,9 +78,11 @@ export function ResetPasswordConfirmationModal({
     mode: 'onSubmit',
   });
 
-  async function onSubmit(values: z.infer<typeof resetPasswordConfirmationSchema>) {
+  async function onSubmit(
+    values: z.infer<typeof resetPasswordConfirmationSchema>
+  ) {
     setIsLoading(true);
-    
+
     try {
       await confirmResetPassword({
         username: email,
@@ -82,14 +90,16 @@ export function ResetPasswordConfirmationModal({
         newPassword: values.newPassword,
       });
 
-      notifySuccess('Password reset successfully! You can now sign in with your new password.');
+      notifySuccess(
+        'Password reset successfully! You can now sign in with your new password.'
+      );
       onSuccess();
       handleClose();
     } catch (error: unknown) {
       console.error('Password confirmation error:', error);
-      
+
       const errorObj = error as { name?: string };
-      
+
       if (errorObj.name === 'CodeMismatchException') {
         notifyError('Invalid confirmation code. Please try again.');
         form.setError('confirmationCode', {
@@ -97,7 +107,9 @@ export function ResetPasswordConfirmationModal({
           message: 'Invalid confirmation code',
         });
       } else if (errorObj.name === 'ExpiredCodeException') {
-        notifyError('Confirmation code has expired. Please request a new password reset.');
+        notifyError(
+          'Confirmation code has expired. Please request a new password reset.'
+        );
       } else if (errorObj.name === 'LimitExceededException') {
         notifyError('Too many attempts. Please try again later.');
       } else {
@@ -131,16 +143,18 @@ export function ResetPasswordConfirmationModal({
             Reset Your Password
           </DialogTitle>
           <DialogDescription className="text-center">
-            Enter the confirmation code from your email and set a new password for your account.
+            Enter the confirmation code from your email and set a new password
+            for your account.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+            <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800 ">
               <div className="font-medium">Check your email</div>
               <div className="mt-1">
-                We sent a confirmation code to <span className="font-medium">{email}</span>
+                We sent a confirmation code to{' '}
+                <span className="font-medium">{email}</span>
               </div>
             </div>
 
@@ -213,7 +227,9 @@ export function ResetPasswordConfirmationModal({
                         variant="ghost"
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
