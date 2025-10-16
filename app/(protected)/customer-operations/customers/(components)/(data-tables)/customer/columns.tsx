@@ -10,7 +10,7 @@ import { CustomerTableActions } from './customer-table-actions';
 export const customerColumns: ColumnDef<Customer>[] = [
   {
     id: 'customer_name',
-    accessorFn: (row) => row.business_name,
+    accessorFn: (row) => row.business_name || row.contact_name,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Customer Name" />

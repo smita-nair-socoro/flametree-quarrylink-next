@@ -283,18 +283,18 @@ export default function QuoteLineItemForm({
         >
           <div
             className={cn(
-              'gap-6 p-1 w-full flex flex-col',
+              'p-1 w-full flex flex-col',
               className,
               isSubmitting && 'pointer-events-none'
             )}
           >
             {/* Product Information */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <span className="text-20px font-semibold mt-3">
                   Product Information
                 </span>
-                <Separator />
+                <Separator className="mb-4" />
               </div>
               <FormSelect
                 control={quotationLineItemForm.control}
@@ -346,10 +346,10 @@ export default function QuoteLineItemForm({
             </div>
 
             {/* Pricing */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <span className="text-20px font-semibold mt-3">Pricing</span>
-                <Separator />
+                <Separator className="mb-4" />
               </div>
 
               {/* Cost Pricing */}
@@ -472,12 +472,12 @@ export default function QuoteLineItemForm({
             </div>
 
             {/* Truck Configuration */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col">
               <div className="flex flex-col gap-2">
                 <span className="text-20px font-semibold mt-3">
                   Truck Configuration
                 </span>
-                <Separator />
+                <Separator className="mb-4" />
               </div>
               <FormSelect
                 control={quotationLineItemForm.control}
@@ -488,115 +488,122 @@ export default function QuoteLineItemForm({
                 placeholder="Select Truck Type"
               />
 
-              <FormSelect
-                control={quotationLineItemForm.control}
-                name="truck_cost_uom"
-                label="Truck Cost UOM*"
-                searchLabel="Truck Cost UOM"
-                showSearch={false}
-                options={truckUnitOptions}
-                placeholder="Select UOM"
-                disabled={!quotationLineItemForm.watch('truck_type')}
-              />
+              <div className="space-y-2">
+                <span className="block text-sm font-medium text-[#737373]">
+                  Cost Pricing
+                </span>
+                <div
+                  className={
+                    isDesktop ? 'grid grid-cols-3 gap-4' : 'flex flex-col gap-3'
+                  }
+                >
+                  <FormSelect
+                    control={quotationLineItemForm.control}
+                    name="truck_cost_uom"
+                    label="Truck Cost UOM*"
+                    searchLabel="Truck Cost UOM"
+                    showSearch={false}
+                    options={truckUnitOptions}
+                    placeholder="Select UOM"
+                    disabled={!quotationLineItemForm.watch('truck_type')}
+                  />
 
-              <FormField
-                control={quotationLineItemForm.control}
-                name="truck_cost_qty"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Truck Cost QTY*</FormLabel>
-                    <FormControl>
-                      <Input className="w-full" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={quotationLineItemForm.control}
+                    name="truck_cost_qty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Truck Cost QTY*</FormLabel>
+                        <FormControl>
+                          <Input className="w-full" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={quotationLineItemForm.control}
-                name="truck_cost_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Truck Cost Rate*</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        id="truck_cost_price"
-                        className="w-full"
-                        value={field.value}
-                        onValueChange={(value) =>
-                          field.onChange(value === '' ? 0 : value)
-                        }
-                        decimalPlaces={2}
-                        allowNegative={false}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={quotationLineItemForm.control}
+                    name="truck_cost_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Truck Cost Rate*</FormLabel>
+                        <FormControl>
+                          <CurrencyInput
+                            id="truck_cost_price"
+                            className="w-full"
+                            value={field.value}
+                            onValueChange={(value) =>
+                              field.onChange(value === '' ? 0 : value)
+                            }
+                            decimalPlaces={2}
+                            allowNegative={false}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <span className="block text-sm font-medium text-[#737373]">
+                  Sell Pricing
+                </span>
+                <div
+                  className={
+                    isDesktop ? 'grid grid-cols-3 gap-4' : 'flex flex-col gap-3'
+                  }
+                >
+                  <FormSelect
+                    control={quotationLineItemForm.control}
+                    name="truck_sell_uom"
+                    label="Truck Sell UOM*"
+                    searchLabel="Truck Sell UOM"
+                    showSearch={false}
+                    options={truckUnitOptions}
+                    placeholder="Select UOM"
+                    disabled={!quotationLineItemForm.watch('truck_type')}
+                  />
 
-              <FormSelect
-                control={quotationLineItemForm.control}
-                name="truck_sell_uom"
-                label="Truck Sell UOM*"
-                searchLabel="Truck Sell UOM"
-                showSearch={false}
-                options={truckUnitOptions}
-                placeholder="Select UOM"
-                disabled={!quotationLineItemForm.watch('truck_type')}
-              />
+                  <FormField
+                    control={quotationLineItemForm.control}
+                    name="truck_sell_qty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Truck Sell QTY*</FormLabel>
+                        <FormControl>
+                          <Input className="w-full" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={quotationLineItemForm.control}
-                name="truck_sell_qty"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Truck Sell QTY*</FormLabel>
-                    <FormControl>
-                      <Input className="w-full" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={quotationLineItemForm.control}
-                name="truck_sell_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Truck Sell Rate*</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        id="truck_cost_price"
-                        className="w-full"
-                        value={field.value}
-                        onValueChange={(value) =>
-                          field.onChange(value === '' ? 0 : value)
-                        }
-                        decimalPlaces={2}
-                        allowNegative={false}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={quotationLineItemForm.control}
-                name="required_loads"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Required Loads*</FormLabel>
-                    <FormControl>
-                      <Input className="w-full" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={quotationLineItemForm.control}
+                    name="truck_sell_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Truck Sell Rate*</FormLabel>
+                        <FormControl>
+                          <CurrencyInput
+                            id="truck_cost_price"
+                            className="w-full"
+                            value={field.value}
+                            onValueChange={(value) =>
+                              field.onChange(value === '' ? 0 : value)
+                            }
+                            decimalPlaces={2}
+                            allowNegative={false}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col gap-0">
@@ -609,7 +616,7 @@ export default function QuoteLineItemForm({
               <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Product Cost Price:
+                    Product Cost (Total)
                   </span>
                   <span className="text-sm font-normal">
                     ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
@@ -617,7 +624,7 @@ export default function QuoteLineItemForm({
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Truck Cost Price:
+                    Truck Cost (Total):
                   </span>
                   <span className="text-sm font-normal">
                     ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
@@ -625,7 +632,7 @@ export default function QuoteLineItemForm({
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Product Sell Price:
+                    Product Sell (Total):
                   </span>
                   <span className="text-sm font-normal">
                     ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
@@ -633,7 +640,7 @@ export default function QuoteLineItemForm({
                 </div>
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
-                    Total Truck Sell Price:
+                    Truck Sell (Total):
                   </span>
                   <span className="text-sm font-normal">
                     ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
@@ -656,7 +663,7 @@ export default function QuoteLineItemForm({
             </div>
 
             {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
+              <div className="flex justify-end space-x-2 col-span-2 my-6">
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
@@ -672,7 +679,7 @@ export default function QuoteLineItemForm({
             )}
 
             {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
                   form="add-new-quote-line-item-form"
                   type="submit"

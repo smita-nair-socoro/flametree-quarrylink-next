@@ -25,7 +25,6 @@ import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
-import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -553,7 +552,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
               <div
                 className={cn(
                   isDesktop
-                    ? 'flex justify-between items-center col-span-2'
+                    ? 'flex justify-between items-center col-span-2 mb-5'
                     : 'flex flex-col gap-4 col-span-1'
                 )}
               >
@@ -581,7 +580,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             )}
 
             {isEditing && (
-              <div className="col-span-full space-y-6">
+              <div className="col-span-full space-y-10">
                 {/* TODO: Come back to this once Product is done! */}
                 <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                   <DataTableClient
@@ -591,68 +590,69 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
                   />
                 </div>
 
-                <Separator />
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold">Audit Information</h2>
 
-                <h2 className="text-2xl font-bold">Audit Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Created By:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('created_by') || 'Jay Woo Choi'}
+                      </p>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Created By:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('created_by') || 'Jay Woo Choi'}
-                    </p>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Last Modified By:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('last_modified_by') ||
+                          'Jaywoo Choi'}
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Last Modified By:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('last_modified_by') || 'Jaywoo Choi'}
-                    </p>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Created Date:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('created_at')
+                          ? new Date(
+                              quotationForm.watch('created_at')
+                            ).toLocaleDateString('en-AU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: '2-digit',
+                            })
+                          : '10/02/25'}
+                      </p>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Created Date:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('created_at')
-                        ? new Date(
-                            quotationForm.watch('created_at')
-                          ).toLocaleDateString('en-AU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          })
-                        : '10/02/25'}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Modified Date:
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {quotationForm.watch('updated_at')
-                        ? new Date(
-                            quotationForm.watch('updated_at')
-                          ).toLocaleDateString('en-AU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          })
-                        : '21/04/25'}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-foreground">
+                        Modified Date:
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {quotationForm.watch('updated_at')
+                          ? new Date(
+                              quotationForm.watch('updated_at')
+                            ).toLocaleDateString('en-AU', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: '2-digit',
+                            })
+                          : '21/04/25'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
             {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
+              <div className="flex justify-end space-x-2 col-span-2 my-6">
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
@@ -668,7 +668,7 @@ export default function QuotationForm({ id, onCancel, className }: FormProps) {
             )}
 
             {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
                   form="add-new-quote-form"
                   type="submit"
