@@ -12,18 +12,14 @@ interface TableBadgesProps {
   visibleCount?: number;
 }
 const PALETTE: Record<string, string> = {
-  red: 'bg-red-100 text-red-800 dark:bg-red-200 dark:text-red-900',
-  yellow:
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-200 dark:text-yellow-900',
-  emerald:
-    'bg-emerald-100 text-emerald-800 dark:bg-emerald-200 dark:text-emerald-900',
-  teal: 'bg-teal-100 text-teal-800 dark:bg-teal-200 dark:text-teal-900',
-  sky: 'bg-sky-100 text-sky-800 dark:bg-sky-200 dark:text-sky-900',
-  indigo:
-    'bg-indigo-100 text-indigo-800 dark:bg-indigo-200 dark:text-indigo-900',
-  violet:
-    'bg-violet-100 text-violet-800 dark:bg-violet-200 dark:text-violet-900',
-  pink: 'bg-pink-100 text-pink-800 dark:bg-pink-200 dark:text-pink-900',
+  red: 'bg-red-100 text-red-800',
+  yellow: 'bg-yellow-100 text-yellow-800',
+  emerald: 'bg-emerald-100 text-emerald-800',
+  teal: 'bg-teal-100 text-teal-800',
+  sky: 'bg-sky-100 text-sky-800',
+  indigo: 'bg-indigo-100 text-indigo-800',
+  violet: 'bg-violet-100 text-violet-800',
+  pink: 'bg-pink-100 text-pink-800',
 };
 const PALETTE_KEYS = Object.keys(PALETTE);
 function pickKey(name: string): string {
@@ -69,7 +65,7 @@ export function TableBadges({ names, visibleCount = 2 }: TableBadgesProps) {
           <TooltipTrigger asChild>
             <Badge
               variant="outline"
-              className="cursor-pointer border-gray-400 bg-gray-100 text-gray-800 dark:bg-gray-200 dark:text-gray-900"
+              className="cursor-pointer border-gray-400 bg-gray-100 text-gray-800"
             >
               +{hidden.length}
             </Badge>

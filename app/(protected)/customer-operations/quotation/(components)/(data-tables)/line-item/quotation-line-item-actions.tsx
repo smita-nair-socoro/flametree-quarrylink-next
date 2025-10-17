@@ -53,7 +53,7 @@ export function QuotationLineItemTableActions({
           <Button
             variant="ghost"
             size="sm"
-            className="rounded-none bg-gray-50 hover:bg-gray-100 text-gray-800 hover:text-gray-900"
+            className="rounded-none hover:bg-gray-50 text-gray-800 hover:text-gray-900"
           >
             <MoreHorizontal className="h-4 w-4" />
           </Button>

@@ -444,7 +444,7 @@ export default function QuoteLineItemForm({
                     name="product_cost_qty"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Cost QTY*</FormLabel>
+                        <FormLabel>QTY*</FormLabel>
                         <FormControl>
                           <Input
                             className="w-full"
@@ -509,7 +509,7 @@ export default function QuoteLineItemForm({
                     name="product_sell_qty"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Sell QTY*</FormLabel>
+                        <FormLabel>QTY*</FormLabel>
                         <FormControl>
                           <Input
                             className="w-full"
@@ -756,6 +756,65 @@ export default function QuoteLineItemForm({
                 </span>
               </div>
             </div>
+
+            {/* Audit Information */}
+            {isEditing && (
+              <div className="col-span-full space-y-6 mt-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-6 md:max-w-3xl">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">
+                      Created By:
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedLineItem?.created_by || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">
+                      Last Modified By:
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedLineItem?.last_modified_by || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">
+                      Created Date:
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedLineItem?.created_at
+                        ? new Date(
+                            selectedLineItem.created_at
+                          ).toLocaleDateString('en-AU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          })
+                        : 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">
+                      Modified Date:
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedLineItem?.updated_at
+                        ? new Date(
+                            selectedLineItem.updated_at || ''
+                          ).toLocaleDateString('en-AU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          })
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isDesktop && (
               <div className="flex justify-end space-x-2 col-span-2 my-6">

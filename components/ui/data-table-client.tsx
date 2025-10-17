@@ -384,7 +384,7 @@ export function DataTableClient<TData, TValue>({
               value={table.getState().globalFilter ?? ''}
               onChange={(e) => table.setGlobalFilter(String(e.target.value))}
               startIcon={<Search size={18} />}
-              className="h-8 w-full md:w-[350px] lg:w-[450px]"
+              className="h-8 w-full md:w-[350px] lg:w-[450px] bg-white"
             />
           </div>
 
@@ -454,7 +454,7 @@ export function DataTableClient<TData, TValue>({
                                   return (
                                     <div
                                       key={option.value}
-                                      className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                      className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                                       onClick={() => {
                                         const newValues = isSelected
                                           ? currentFilterValues.filter(
@@ -489,7 +489,7 @@ export function DataTableClient<TData, TValue>({
                                       </div>
                                       {filter.counts &&
                                         filter.counts[option.value] != null && (
-                                          <span className="text-xs text-muted-foreground bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                          <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                                             {filter.counts[option.value]}
                                           </span>
                                         )}
@@ -593,11 +593,11 @@ export function DataTableClient<TData, TValue>({
         <div
           className={cn(
             simpleTable ? '' : 'rounded-md border p-2',
-            'bg-gray-50 dark:bg-gray-900',
+            'bg-white',
             'min-w-fit'
           )}
         >
-          <Table className="bg-gray-50 dark:bg-gray-900 w-full">
+          <Table className="w-full">
             <TableHeader>
               {table.getHeaderGroups().map((hg) => (
                 <TableRow
@@ -653,8 +653,7 @@ export function DataTableClient<TData, TValue>({
                     className={cn(
                       simpleTable &&
                         'border-b border-border hover:bg-transparent',
-                      !simpleTable &&
-                        'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800',
+                      !simpleTable && 'bg-white hover:bg-gray-100 ',
                       onRowClick && !simpleTable && 'cursor-pointer'
                     )}
                     onClick={(e) => {
@@ -719,16 +718,13 @@ export function DataTableClient<TData, TValue>({
                 ))
               ) : (
                 <TableRow
-                  className={cn(
-                    simpleTable && 'border-b-0',
-                    'bg-gray-50 dark:bg-gray-900'
-                  )}
+                  className={cn(simpleTable && 'border-b-0', 'bg-white')}
                 >
                   <TableCell
                     colSpan={columns.length}
                     className={cn('border-b-0 p-0')}
                   >
-                    <div className="relative bg-purple-50 dark:bg-purple-900/20 border-2 border-dashed border-purple-200 dark:border-purple-700 p-12 text-center mt-2">
+                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center mt-2">
                       {/* Empty state icon */}
                       <div className="flex justify-center mb-4">
                         <Image
@@ -741,7 +737,7 @@ export function DataTableClient<TData, TValue>({
                       </div>
 
                       {/* Empty state text */}
-                      <h3 className="text-gray-700 dark:text-gray-300 font-medium mb-1">
+                      <h3 className="text-gray-700 font-medium mb-1">
                         No items are available
                       </h3>
                     </div>
