@@ -1,6 +1,13 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Archive, ArchiveRestore } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Eye,
+  Archive,
+  ArchiveRestore,
+  ScanBarcode,
+  CircleCheck,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -39,6 +46,7 @@ export function QuarrySupplierTableActions({
   const handleView = createHandler(actions.view, () =>
     setSelectedQuarrySupplier(quarrySupplier)
   );
+  const handleLinkedProducts = createHandler(actions.linkedProducts);
   const handleArchive = createHandler(actions.archive);
   const handleUnarchive = createHandler(actions.unarchive);
 
@@ -61,12 +69,21 @@ export function QuarrySupplierTableActions({
             View Details
           </DropdownMenuItem>
 
+          {/* Linked Products */}
+          <DropdownMenuItem onClick={handleLinkedProducts}>
+            <ScanBarcode className="h-4 w-4 mr-2" />
+            Linked Products
+          </DropdownMenuItem>
+
           <DropdownMenuSeparator />
 
           {/* Conditional: Archive or Unarchive based on status */}
           {isArchived ? (
-            <DropdownMenuItem onClick={handleUnarchive}>
-              <ArchiveRestore className="h-4 w-4 mr-2" />
+            <DropdownMenuItem
+              onClick={handleUnarchive}
+              className="text-green-500 focus:text-green-500"
+            >
+              <ArchiveRestore className="h-4 w-4 mr-2 text-green-500" />
               Unarchive
             </DropdownMenuItem>
           ) : (
