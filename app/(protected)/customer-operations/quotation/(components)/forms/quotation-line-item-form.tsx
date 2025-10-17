@@ -28,12 +28,14 @@ interface FormProps {
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  canEdit?: boolean;
 }
 
 export default function QuoteLineItemForm({
   id,
   onCancel,
   className,
+  canEdit,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -306,6 +308,7 @@ export default function QuoteLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
+                disabled={isEditing && !canEdit}
               />
 
               <FormSelect
@@ -318,7 +321,10 @@ export default function QuoteLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={!quotationLineItemForm.watch('product_id')}
+                disabled={
+                  !quotationLineItemForm.watch('product_id') ||
+                  (isEditing && !canEdit)
+                }
               />
 
               <FormField
@@ -336,7 +342,7 @@ export default function QuoteLineItemForm({
                         className="w-full"
                         placeholder="Enter Supplier Product Name"
                         {...field}
-                        disabled
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -370,6 +376,7 @@ export default function QuoteLineItemForm({
                     showSearch={false}
                     options={productUnitOptions}
                     placeholder="Select UOM"
+                    disabled={isEditing && !canEdit}
                   />
 
                   <FormField
@@ -379,7 +386,11 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>Product Cost QTY*</FormLabel>
                         <FormControl>
-                          <Input className="w-full" {...field} />
+                          <Input
+                            className="w-full"
+                            {...field}
+                            disabled={isEditing && !canEdit}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -429,6 +440,7 @@ export default function QuoteLineItemForm({
                     showSearch={false}
                     options={productUnitOptions}
                     placeholder="Select UOM"
+                    disabled={isEditing && !canEdit}
                   />
 
                   <FormField
@@ -438,7 +450,11 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>Product Sell QTY*</FormLabel>
                         <FormControl>
-                          <Input className="w-full" {...field} />
+                          <Input
+                            className="w-full"
+                            {...field}
+                            disabled={isEditing && !canEdit}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -461,6 +477,7 @@ export default function QuoteLineItemForm({
                             }
                             decimalPlaces={2}
                             allowNegative={false}
+                            disabled={isEditing && !canEdit}
                           />
                         </FormControl>
                         <FormMessage />
@@ -515,7 +532,11 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>Truck Cost QTY*</FormLabel>
                         <FormControl>
-                          <Input className="w-full" {...field} />
+                          <Input
+                            className="w-full"
+                            {...field}
+                            disabled={isEditing && !canEdit}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -538,6 +559,7 @@ export default function QuoteLineItemForm({
                             }
                             decimalPlaces={2}
                             allowNegative={false}
+                            disabled={isEditing && !canEdit}
                           />
                         </FormControl>
                         <FormMessage />
@@ -573,7 +595,11 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>Truck Sell QTY*</FormLabel>
                         <FormControl>
-                          <Input className="w-full" {...field} />
+                          <Input
+                            className="w-full"
+                            {...field}
+                            disabled={isEditing && !canEdit}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -596,6 +622,7 @@ export default function QuoteLineItemForm({
                             }
                             decimalPlaces={2}
                             allowNegative={false}
+                            disabled={isEditing && !canEdit}
                           />
                         </FormControl>
                         <FormMessage />
@@ -671,7 +698,7 @@ export default function QuoteLineItemForm({
                   form="add-new-quote-line-item-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>
@@ -684,6 +711,7 @@ export default function QuoteLineItemForm({
                   form="add-new-quote-line-item-form"
                   type="submit"
                   className="cursor-pointer"
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>
