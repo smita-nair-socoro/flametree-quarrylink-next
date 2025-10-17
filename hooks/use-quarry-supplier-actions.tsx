@@ -4,10 +4,19 @@ import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { Quarry } from '@/lib/types/quarry';
 import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-form';
-import { Archive, ArchiveRestore } from 'lucide-react';
+import {
+  Archive,
+  ArchiveRestore,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  TriangleAlert,
+} from 'lucide-react';
+import { Separator } from '@radix-ui/react-separator';
 
 interface DialogConfig {
   title?: string;
+  titleIcon?: React.ReactNode;
   description?: React.ReactNode;
   content?: React.ReactNode;
   confirmText?: string;
@@ -27,136 +36,229 @@ interface SelectedAction {
   key: string;
 }
 
+const canArchive = (quarrySupplierData?: Quarry | null): boolean => {
+  return (
+    quarrySupplierData?.status === 'ACTIVE' &&
+    quarrySupplierData?.type === 'QUARRY'
+  );
+};
+
+const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
+  return (
+    quarrySupplierData?.status === 'ARCHIVED' &&
+    quarrySupplierData?.type === 'SUPPLIER'
+  );
+};
+
 const getDialogConfigs = (
   quarrySupplierData?: Quarry | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
   const type = quarrySupplierData?.type;
-  const status = quarrySupplierData?.status;
 
   if (selectedAction?.key === 'archive') {
     return {
       archive: {
-        title: 'Archive Quarry / Supplier',
+        title: `Archive Supplier/ Quarry`,
         description: (
-          <div className="flex justify-start items-center gap-2">
-            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFE2E2] rounded-full">
-              <span className="flex items-center justify-center">
-                <Archive className="h-[20px] w-[20px] text-[#E7000B]" />
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-medium">{name}</span>
-              <div className="flex justify-start gap-2">
-                <span className="text-sm text-[#6A7282]">{type}</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FFEDD4] rounded-full">
+                <TriangleAlert className="h-[21px] w-[21px] text-[#F54900]" />
               </div>
+              <span className="font-semibold text-[17.4px]">{name}</span>
             </div>
+            <span className="text-[14px] text-[#000000] mt-3">
+              Are you sure you want to archive this{' '}
+              {type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}?
+            </span>
           </div>
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <span className="text-[14px] text-[#364153] font-normal">
-              Are you sure you want to archive this {type?.toLowerCase()}?
-            </span>
-            <div className="border-1 border-[#FFB3B3] rounded-md p-[16.625px] bg-[#FFE2E2]">
-              <div className="flex justify-start gap-2 self-stretch">
-                <Archive className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-1">
-                  <span className="text-[16px] text-[#E7000B] font-medium">
-                    Archive {type}
-                  </span>
-                  <span className="text-[14px] font-normal text-[#E7000B]">
-                    This {type?.toLowerCase()} will be archived and will no
-                    longer appear in active listings.
-                  </span>
+            <div className="flex flex-col gap-3">
+              <span className="font-semibold text-[14px] text-[#000000]">
+                Current Status:
+              </span>
+              <div className="flex flex-col gap-2">
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  15 line items - all fully delivered ✓
+                </div>
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  0 tonnes remaining to deliver ✓
+                </div>
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  All associated dockets completed ✓
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What happens when archived:
-              </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> {type} status changes to Archived</li>
-                <li> {type} will not appear in active listings</li>
-                <li> Historical data is preserved</li>
-                <li> {type} can be restored later if needed</li>
-              </ul>
-            </div>
 
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What continues to work:
+              <span className="font-semibold text-[14px] text-[#000000]">
+                Warnings:
               </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> {type} remains accessible for reference</li>
-                <li> All historical records are maintained</li>
-                <li> {type} can be unarchived at any time</li>
-                <li> Associated products and pricing are preserved</li>
+              <ul className="text-[12.1px] text-[#4A5565] space-y-1 list-disc list-outside pl-5">
+                <li>Products cannot be used in new quotes</li>
+                <li>Pricing configuration will be preserved</li>
+                <li>Existing quotes/jobs remain unchanged</li>
               </ul>
             </div>
           </div>
         ),
-        confirmText: 'Archive',
-        confirmVariant: 'destructive',
-        confirmCustomColor: '#E7000B',
+        confirmText: `Archive ${type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}`,
+        confirmVariant: 'default',
+        confirmCustomColor: '#4B5563',
+        confirmCustomClass: 'bg-gray-600 hover:bg-gray-700 text-white',
       },
     };
   } else if (selectedAction?.key === 'unarchive') {
     return {
       unarchive: {
-        title: 'Unarchive Quarry / Supplier',
+        title: 'Unarchiving',
         description: (
-          <div className="flex justify-start items-center gap-2">
-            <div className="flex w-[40px] h-[40px] justify-center bg-[#F0FDF4] rounded-full">
-              <span className="flex items-center justify-center">
-                <ArchiveRestore className="h-[20px] w-[20px] text-[#008236]" />
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-medium">{name}</span>
-              <div className="flex justify-start gap-2">
-                <span className="text-sm text-[#6A7282]">{type}</span>
+          <div className="flex justify-start items-center gap-1">
+            <div className="flex items-center gap-2">
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#F0FDF4] rounded-full">
+                <CircleCheck className="h-[21px] w-[21px] text-[#22C55E]" />
               </div>
+              <span className="font-semibold text-[17.4px]">{name}</span>
             </div>
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-5">
-            <span className="text-[14px] text-[#364153] font-normal">
-              Are you sure you want to unarchive this {type?.toLowerCase()}?
-            </span>
-            <div className="border-1 border-[#B9F8CF] rounded-md p-[16.625px] bg-[#F0FDF4]">
-              <div className="flex justify-start gap-2 self-stretch">
-                <ArchiveRestore className="h-[20px] w-[20px] text-[#008236] flex-shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-1">
-                  <span className="text-[16px] text-[#008236] font-medium">
-                    Restore {type}
-                  </span>
-                  <span className="text-[14px] font-normal text-[#008236]">
-                    This {type?.toLowerCase()} will be restored to active status
-                    and will appear in listings again.
-                  </span>
+          <div className="flex flex-col gap-4 mt-2">
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                Products Reactivation:
+              </span>
+              <div className="flex flex-col gap-2">
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  12 products will become available for new quotes
+                </div>
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  3 product pricing configurations restored
                 </div>
               </div>
             </div>
+
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What happens when unarchived:
+              <span className="font-semibold text-[14px] text-[#101828]">
+                System Integration:
               </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> {type} status changes to Active</li>
-                <li> {type} will appear in active listings</li>
-                <li> All historical data is restored</li>
-                <li> {type} can be used for new orders</li>
-              </ul>
+              <div className="flex flex-col gap-2">
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  Supplier dropdown selections restored
+                </div>
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  Historical data remains intact
+                </div>
+                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
+                  All audit trails preserved
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <CircleAlert className="h-[16px] w-[16px] text-[#FFFFFF] fill-[#F59E0B]" />
+                <span className="font-semibold text-[14px] text-[#101828]">
+                  Recommendations:
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="bg-[#FEFCEB] rounded-md p-3 text-[14px] text-[#101828] border border-[#FDE68A]">
+                  Review contact information
+                </div>
+                <div className="bg-[#FEFCEB] rounded-md p-3 text-[14px] text-[#101828] border border-[#FDE68A]">
+                  Confirm supplier is still operational
+                </div>
+              </div>
             </div>
           </div>
         ),
-        confirmText: 'Unarchive',
+        confirmText: `Unarchive ${type === 'QUARRY' ? 'Quarry' : 'Supplier'}`,
         confirmVariant: 'default',
-        confirmCustomColor: '#008236',
+        confirmCustomColor: '#16a34a',
+        confirmCustomClass:
+          'bg-green-600 hover:bg-green-700 text-white font-geist font-medium text-[16px] leading-[24px]',
+      },
+    };
+  } else if (selectedAction?.key === 'cannotArchive') {
+    return {
+      cannotArchive: {
+        title: 'Cannot Archive',
+        description: (
+          <div className="flex justify-start items-center gap-1">
+            <div className="flex items-center gap-2">
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FFEDD4] rounded-full">
+                <TriangleAlert className="h-[21px] w-[21px] text-[#F54900]" />
+              </div>
+              <span className="font-semibold text-[17.4px]">{name}</span>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-4">
+            <div className="text-[16px] text-[#364153]">
+              <div>Cannot archive while deliveries are pending.</div>
+              <div>Complete all deliveries first, then try again.</div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                Current Status:
+              </span>
+              <div className="flex flex-col gap-2">
+                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                  8 line items with pending deliveries (3475 tonnes remaining)
+                </div>
+                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                  3 active dockets not yet delivered
+                </div>
+                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                  2 quotes with line items
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Cancel',
+        confirmVariant: 'outline',
+        confirmCustomClass: 'border-[#E5E5E5]',
+        confirmActionNeeded: false,
+      },
+    };
+  } else if (selectedAction?.key === 'cannotUnarchive') {
+    return {
+      cannotUnarchive: {
+        title: `Cannot Unarchive ${name}`,
+        titleIcon: (
+          <div className="flex w-[42px] h-[42px] justify-center items-center bg-[#FEF2F2] rounded-full">
+            <CircleX className="h-[21px] w-[21px] text-[#DC2626]" />
+            <Separator />
+          </div>
+        ),
+        description: (
+          <div className="flex flex-col gap-4 pt-4 border-t border-gray-200">
+            <div className="text-[16px] text-[#364153]">
+              <div>Cannot unarchive while conflicts exist.</div>
+              <div>Resolve duplicate supplier issue first, then try again.</div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                Blocking Issues:
+              </span>
+              <div className="bg-[#FEF2F2] border border-[#FFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                Duplicate supplier already active with same name
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Cancel',
+        confirmVariant: 'outline',
+        confirmCustomClass: 'border-[#E5E5E5] col-span-2',
+        confirmActionNeeded: false,
       },
     };
   }
@@ -189,9 +291,25 @@ export function useQuarrySupplierActions(
       setViewOpen(true);
     },
 
-    archive: createDialogAction('archive'),
+    linkedProducts: () => {
+      // TODO: Implement linked products functionality
+    },
 
-    unarchive: createDialogAction('unarchive'),
+    archive: () => {
+      if (canArchive(quarrySupplierData)) {
+        createDialogAction('archive')();
+      } else {
+        createDialogAction('cannotArchive')();
+      }
+    },
+
+    unarchive: () => {
+      if (canUnarchive(quarrySupplierData)) {
+        createDialogAction('unarchive')();
+      } else {
+        createDialogAction('cannotUnarchive')();
+      }
+    },
   };
 
   // Render active dialog
@@ -209,6 +327,7 @@ export function useQuarrySupplierActions(
           }
         }}
         title={config.title ?? ''}
+        titleIcon={config.titleIcon}
         description={config.description}
         content={config.content}
         confirmText={config.confirmText ?? ''}
@@ -220,20 +339,28 @@ export function useQuarrySupplierActions(
         onConfirmAction={() => {
           switch (key) {
             case 'archive':
-              console.log(
-                'Archive quarry/supplier:',
-                quarrySupplierId,
-                quarrySupplierData
-              );
-              // TODO: implement archive logic
+              if (canArchive(quarrySupplierData)) {
+                console.log(
+                  'Archive quarry/supplier:',
+                  quarrySupplierId,
+                  quarrySupplierData
+                );
+                // TODO: implement archive API call
+              }
               break;
             case 'unarchive':
-              console.log(
-                'Unarchive quarry/supplier:',
-                quarrySupplierId,
-                quarrySupplierData
-              );
-              // TODO: implement unarchive logic
+              if (canUnarchive(quarrySupplierData)) {
+                console.log(
+                  'Unarchive quarry/supplier:',
+                  quarrySupplierId,
+                  quarrySupplierData
+                );
+                // TODO: implement unarchive API call
+              }
+              break;
+            case 'cannotArchive':
+            case 'cannotUnarchive':
+              // No action needed, just close the dialog
               break;
           }
         }}
