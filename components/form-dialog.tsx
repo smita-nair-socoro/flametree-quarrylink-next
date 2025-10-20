@@ -174,7 +174,8 @@ export function FormDialog({
     finalCustomId = selectedQuotationLineItem.product_name;
     finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
     finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
-    
+  }
+
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
     finalCustomId = selectedQuarrySupplier.name;
     finalPrimaryBadges = [selectedQuarrySupplier.status];
