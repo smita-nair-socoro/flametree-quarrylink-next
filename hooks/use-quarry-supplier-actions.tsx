@@ -4,6 +4,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { Quarry } from '@/lib/types/quarry';
 import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-form';
+import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
 
@@ -30,17 +31,27 @@ interface SelectedAction {
 }
 
 const canArchive = (quarrySupplierData?: Quarry | null): boolean => {
-  return (
+  // Can't archive if it's an ACTIVE SUPPLIER
+  if (
     quarrySupplierData?.status === 'ACTIVE' &&
-    quarrySupplierData?.type === 'QUARRY'
-  );
+    quarrySupplierData?.type === 'SUPPLIER'
+  ) {
+    return false;
+  }
+  // Can archive if it's ACTIVE and NOT a SUPPLIER (i.e., QUARRY)
+  return quarrySupplierData?.status === 'ACTIVE';
 };
 
 const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
-  return (
+  // Can't unarchive if it's an ARCHIVED SUPPLIER
+  if (
     quarrySupplierData?.status === 'ARCHIVED' &&
     quarrySupplierData?.type === 'SUPPLIER'
-  );
+  ) {
+    return false;
+  }
+  // Can unarchive if it's ARCHIVED and NOT a SUPPLIER (i.e., QUARRY)
+  return quarrySupplierData?.status === 'ARCHIVED';
 };
 
 const getDialogConfigs = (
@@ -380,6 +391,9 @@ export function useQuarrySupplierActions(
       headerInfo={{
         useSelectedQuarrySupplier: true,
       }}
+      headerButtons={
+        <QuarrySupplierActionButtons quarrySupplier={quarrySupplierData} />
+      }
     >
       <QuarrySupplierForm id={quarrySupplierId} />
     </FormDialog>
