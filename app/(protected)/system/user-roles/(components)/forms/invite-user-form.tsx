@@ -109,9 +109,6 @@ export default function InviteUserForm({ onCancel }: InviteUserFormProps) {
                   {...field}
                 />
               </FormControl>
-              <p className="text-xs text-muted-foreground">
-                Include country code for international numbers
-              </p>
               <FormMessage />
             </FormItem>
           )}
