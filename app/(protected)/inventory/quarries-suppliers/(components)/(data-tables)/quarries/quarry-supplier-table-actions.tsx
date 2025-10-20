@@ -6,7 +6,6 @@ import {
   Archive,
   ArchiveRestore,
   ScanBarcode,
-  CircleCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
