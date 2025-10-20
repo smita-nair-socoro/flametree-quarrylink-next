@@ -267,7 +267,7 @@
     {
       "id": 5,
       "quoteNumber": "Q105",
-      "status": "EXPIRED",
+      "status": "APPROVED",
       "quoteType": "COLLECTION",
       "customerId": 1,
       "customerName": "Jay",
