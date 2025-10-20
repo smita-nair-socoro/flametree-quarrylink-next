@@ -81,15 +81,6 @@ export function NavMain({
             );
           const isOpen = openStates[item.url] ?? false;
 
-          console.log(
-            `${item.title} - isActive:`,
-            isActive,
-            'pathname:',
-            pathname,
-            'item.url:',
-            item.url
-          );
-
           if (isCollapsed && item.items && item.items.length > 0) {
             return (
               <HoverCard
