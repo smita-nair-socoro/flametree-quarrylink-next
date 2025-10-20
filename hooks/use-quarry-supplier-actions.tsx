@@ -4,6 +4,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { Quarry } from '@/lib/types/quarry';
 import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-form';
+import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
 
