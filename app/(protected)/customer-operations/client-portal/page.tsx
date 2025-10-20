@@ -28,6 +28,7 @@ export default function ClientPortalPage() {
   };
 
   const facetDefs: FacetDefinition[] = [
+    { column: 'client', title: 'Client', icon: Plus },
     { column: 'subscription', title: 'Subscription', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
   ];
