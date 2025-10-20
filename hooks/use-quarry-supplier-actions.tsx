@@ -4,15 +4,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { Quarry } from '@/lib/types/quarry';
 import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-form';
-import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
-import {
-  Archive,
-  ArchiveRestore,
-  CircleAlert,
-  CircleCheck,
-  CircleX,
-  TriangleAlert,
-} from 'lucide-react';
+import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
 
 interface DialogConfig {
@@ -71,7 +63,7 @@ const getDialogConfigs = (
   if (selectedAction?.key === 'archive') {
     return {
       archive: {
-        title: `Archive Supplier/ Quarry`,
+        title: `Archive Supplier / Quarry`,
         description: (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -192,7 +184,7 @@ const getDialogConfigs = (
         confirmVariant: 'default',
         confirmCustomColor: '#16a34a',
         confirmCustomClass:
-          'bg-green-600 hover:bg-green-700 text-white font-geist font-medium text-[16px] leading-[24px]',
+          'bg-green-600 hover:bg-green-700 text-white font-geist font-medium leading-[24px]',
       },
     };
   } else if (selectedAction?.key === 'cannotArchive') {
@@ -268,7 +260,7 @@ const getDialogConfigs = (
         ),
         confirmText: 'Cancel',
         confirmVariant: 'outline',
-        confirmCustomClass: 'border-[#E5E5E5] col-span-2',
+        confirmCustomClass: 'border-[#E5E5E5]',
         confirmActionNeeded: false,
       },
     };
@@ -398,7 +390,9 @@ export function useQuarrySupplierActions(
       headerInfo={{
         useSelectedQuarrySupplier: true,
       }}
-      headerButtons={<QuarrySupplierActionButtons quarrySupplier={quarrySupplierData} />}
+      headerButtons={
+        <QuarrySupplierActionButtons quarrySupplier={quarrySupplierData} />
+      }
     >
       <QuarrySupplierForm id={quarrySupplierId} />
     </FormDialog>

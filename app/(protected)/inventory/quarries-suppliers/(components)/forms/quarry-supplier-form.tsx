@@ -65,9 +65,7 @@ export default function QuarrySupplierForm({
   });
   const [searchInput, setSearchInput] = React.useState('');
 
-  const quarrySupplierForm = useForm<
-    z.infer<typeof QuarrySupplierFormSchema>
-  >({
+  const quarrySupplierForm = useForm<z.infer<typeof QuarrySupplierFormSchema>>({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
     defaultValues: {
@@ -172,9 +170,7 @@ export default function QuarrySupplierForm({
     [quarrySupplierForm]
   );
 
-  async function onSubmit(
-    values: z.infer<typeof QuarrySupplierFormSchema>
-  ) {
+  async function onSubmit(values: z.infer<typeof QuarrySupplierFormSchema>) {
     console.log('onSubmit function called!');
     console.log('Quarry/Supplier Form Values:', values);
 
@@ -248,7 +244,7 @@ export default function QuarrySupplierForm({
             name="type"
             render={({ field }) => (
               <FormItem className="col-span-1 col-start-1">
-                <FormLabel className='mb-3'>Type*</FormLabel>
+                <FormLabel className="mb-3">Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => {
@@ -286,7 +282,13 @@ export default function QuarrySupplierForm({
           </div>
 
           {/* Basic Information Fields with reduced spacing */}
-          <div className={isDesktop ? 'col-span-full grid grid-cols-2 gap-x-5' : 'col-span-full'}>
+          <div
+            className={
+              isDesktop
+                ? 'col-span-full grid grid-cols-2 gap-x-5'
+                : 'col-span-full'
+            }
+          >
             {/* Name */}
             <FormField
               control={quarrySupplierForm.control}
@@ -294,12 +296,18 @@ export default function QuarrySupplierForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {selectedType === 'QUARRY' ? 'Quarry Name*' : 'Supplier Name*'}
+                    {selectedType === 'QUARRY'
+                      ? 'Quarry Name*'
+                      : 'Supplier Name*'}
                   </FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
-                      placeholder={selectedType === 'QUARRY' ? 'Enter quarry name' : 'Enter supplier name'}
+                      placeholder={
+                        selectedType === 'QUARRY'
+                          ? 'Enter quarry name'
+                          : 'Enter supplier name'
+                      }
                       {...field}
                     />
                   </FormControl>
@@ -401,7 +409,13 @@ export default function QuarrySupplierForm({
           </div>
 
           {/* Contact Person Fields */}
-          <div className={isDesktop ? 'col-span-full grid grid-cols-3 gap-4' : 'col-span-full'}>
+          <div
+            className={
+              isDesktop
+                ? 'col-span-full grid grid-cols-3 gap-4'
+                : 'col-span-full'
+            }
+          >
             {/* Contact Person Name */}
             <FormField
               control={quarrySupplierForm.control}
@@ -598,7 +612,7 @@ export default function QuarrySupplierForm({
 
           {/* Form Actions */}
           {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6">
+            <div className="flex justify-end space-x-2 col-span-2 my-6">
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
               </Button>
@@ -616,7 +630,7 @@ export default function QuarrySupplierForm({
           )}
 
           {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 mb-6">
+            <div className="flex flex-col col-span-2 gap-3 my-6">
               <Button type="submit" className="cursor-pointer">
                 {isEditing
                   ? 'Save Changes'

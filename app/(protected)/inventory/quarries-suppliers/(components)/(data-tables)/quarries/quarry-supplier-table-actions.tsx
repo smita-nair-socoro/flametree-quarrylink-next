@@ -6,7 +6,6 @@ import {
   Archive,
   ArchiveRestore,
   ScanBarcode,
-  CircleCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,19 +35,26 @@ export function QuarrySupplierTableActions({
     (state) => state.setSelectedQuarrySupplier
   );
 
-  const createHandler =
-    (actionFn: () => void, additionalSetup?: () => void) => () => {
-      additionalSetup?.();
-      setDropdownOpen(false);
-      actionFn();
-    };
+  const handleView = () => {
+    setSelectedQuarrySupplier(quarrySupplier);
+    setDropdownOpen(false);
+    actions.view();
+  };
 
-  const handleView = createHandler(actions.view, () =>
-    setSelectedQuarrySupplier(quarrySupplier)
-  );
-  const handleLinkedProducts = createHandler(actions.linkedProducts);
-  const handleArchive = createHandler(actions.archive);
-  const handleUnarchive = createHandler(actions.unarchive);
+  const handleLinkedProducts = () => {
+    setDropdownOpen(false);
+    actions.linkedProducts();
+  };
+
+  const handleArchive = () => {
+    setDropdownOpen(false);
+    actions.archive();
+  };
+
+  const handleUnarchive = () => {
+    setDropdownOpen(false);
+    actions.unarchive();
+  };
 
   const isArchived = quarrySupplier.status === 'ARCHIVED';
 
