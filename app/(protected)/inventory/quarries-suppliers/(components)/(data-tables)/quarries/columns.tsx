@@ -66,7 +66,7 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
       const suburb = row.original.suburb;
       return (
         <div className="py-2">
-          <TableBadges names={[suburb]} visibleCount={1} />
+          <TableBadges names={[suburb]} visibleCount={1} variant="suburb" />
         </div>
       );
     },
