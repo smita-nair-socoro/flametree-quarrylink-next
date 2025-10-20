@@ -14,7 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
-import {getRuntimeConfig} from "@/app/stores/runtimeConfigStore";
+import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
 interface AddressAutoCompleteProps {
   address: AddressType;
@@ -29,6 +29,7 @@ interface AddressAutoCompleteProps {
   onChange?: (value: string) => void;
   onBlur?: () => void;
   name?: string;
+  readOnly?: boolean;
 }
 
 interface AutocompleteSuggestion {
@@ -90,6 +91,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     placeholder,
     onChange,
     onBlur,
+    readOnly,
   } = props;
 
   const [selectedPlaceId, setSelectedPlaceId] = useState('');
@@ -254,7 +256,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     <>
       {selectedPlaceId !== '' || address.formattedAddress ? (
         <div className="flex items-center gap-2">
-          <Input value={address?.formattedAddress} readOnly />
+          <Input value={address?.formattedAddress} disabled={readOnly} />
           <AddressDialog
             isLoading={detailsLoading}
             dialogTitle={dialogTitle}
@@ -295,6 +297,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           placeholder={placeholder}
           onManualEntry={handleManualEntry}
           onBlur={onBlur}
+          readOnly={readOnly}
         />
       )}
     </>
@@ -311,6 +314,7 @@ interface CommonProps {
   placeholder?: string;
   onManualEntry: () => void;
   onBlur?: () => void;
+  readOnly?: boolean;
 }
 
 function AddressAutoCompleteInput(props: CommonProps) {
@@ -324,6 +328,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     placeholder,
     onManualEntry,
     onBlur,
+    readOnly,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -426,9 +431,10 @@ function AddressAutoCompleteInput(props: CommonProps) {
               onBlur();
             }
           }}
-          onFocus={open}
+          onFocus={readOnly ? undefined : open}
           placeholder={placeholder || 'Enter address'}
           className="w-full outline-none"
+          disabled={readOnly}
         />
       </div>
       {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
