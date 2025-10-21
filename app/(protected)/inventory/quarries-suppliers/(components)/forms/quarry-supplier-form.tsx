@@ -341,7 +341,7 @@ export default function QuarrySupplierForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email*</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
@@ -360,7 +360,7 @@ export default function QuarrySupplierForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Phone*</FormLabel>
                   <FormControl>
                     <PhoneInput
                       className="w-full"
