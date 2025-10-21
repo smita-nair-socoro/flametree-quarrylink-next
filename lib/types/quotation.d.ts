@@ -32,6 +32,10 @@ export interface Quotation {
   delivery_window_end: string;
   total_cost_price: number;
   total_sell_price: number;
+  total_truck_sell_price: number;
+  total_truck_cost_price: number;
+  gross_profit: number;
+  gross_profit_percentage: number;
   line_items_count: number;
   converted_at?: string;
   version: number;

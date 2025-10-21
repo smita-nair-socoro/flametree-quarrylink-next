@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
+import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
@@ -49,6 +50,8 @@ interface HeaderInfo {
   useSelectedProduct?: boolean;
   /** Use selected supplier data automatically */
   useSelectedSupplier?: boolean;
+  /** Use selected quotation line item data automatically */
+  useSelectedLineItem?: boolean;
   /** Use selected quarry/supplier data automatically */
   useSelectedQuarrySupplier?: boolean;
 }
@@ -140,6 +143,7 @@ export function FormDialog({
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
+  const selectedQuotationLineItem = useSelectedLineItem();
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
 
   let finalCustomId = headerInfo?.customId;
@@ -164,6 +168,12 @@ export function FormDialog({
     finalPrimaryBadges = [selectedProduct.material_type];
     finalSecondaryBadges = [selectedProduct.status];
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+  }
+
+  if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
+    finalCustomId = selectedQuotationLineItem.product_name;
+    finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
+    finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
   }
 
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
@@ -234,7 +244,7 @@ export function FormDialog({
       (finalSecondaryBadges && finalSecondaryBadges.length > 0) ||
       (finalThirdBadges && finalThirdBadges.length > 0);
 
-    if (!hasBadges) return null;
+    if (!hasBadges) return '\u00A0';
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">

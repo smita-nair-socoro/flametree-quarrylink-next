@@ -34,6 +34,7 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import rawJsonWithLineItems from '@/lib/tests/quotationWithLineItemsResonseData.json';
 import { Quotation } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { centsToDollars } from '@/lib/utils/currency';
 
 interface FormProps {
   id?: number;
@@ -214,8 +215,9 @@ export default function QuotationForm({
     { label: 'Jaywoo', value: 3 },
   ]; // TODO: get account manager
 
+  const customerId = quotationForm.watch('customer_id');
+
   React.useEffect(() => {
-    const customerId = quotationForm.watch('customer_id');
     if (customerId && customerId > 0) {
       // Only set values if they're empty to avoid controlled/uncontrolled warning
       const currentPhone = quotationForm.getValues('phone');
@@ -228,7 +230,7 @@ export default function QuotationForm({
         quotationForm.setValue('email', 'customer@email.com');
       }
     }
-  }, [quotationForm.watch('customer_id')]);
+  }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     console.log('onSubmit function called!');
@@ -249,6 +251,30 @@ export default function QuotationForm({
     const d = GetTodaysDate();
     return d;
   }, []);
+
+  const [pricingBreakdown] = React.useState({
+    totalProductCostPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_cost_price || 0)
+      : 0,
+    totalTruckCostPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_truck_cost_price || 0)
+      : 0,
+    totalProductSellPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_sell_price || 0)
+      : 0,
+    totalTruckSellPrice: isEditing
+      ? centsToDollars(currentQuotation?.total_truck_sell_price || 0)
+      : 0,
+    totalInvoice: isEditing
+      ? centsToDollars(currentQuotation?.total_sell_price || 0)
+      : 0,
+    grossProfit: isEditing
+      ? centsToDollars(currentQuotation?.gross_profit || 0)
+      : 0,
+    grossProfitPercentage: isEditing
+      ? currentQuotation?.gross_profit_percentage
+      : 0,
+  });
 
   return (
     <div className="w-full relative">
@@ -600,13 +626,68 @@ export default function QuotationForm({
 
             {isEditing && (
               <div className="col-span-full space-y-10">
-                {/* TODO: Come back to this once Product is done! */}
-                <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                  <DataTableClient
-                    columns={quotationLineItemColumns}
-                    data={convertedQuotationLineItem ?? []}
-                    simpleTable={true}
-                  />
+                <div className="flex flex-col gap-0">
+                  <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                    <DataTableClient
+                      columns={quotationLineItemColumns}
+                      data={convertedQuotationLineItem ?? []}
+                      simpleTable={true}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-0">
+                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Product Cost (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalProductCostPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Truck Cost (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalTruckCostPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Product Sell (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalProductSellPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">
+                          Truck Sell (Total):
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalTruckSellPrice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-semibold">
+                          Total Invoice:
+                        </span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.totalInvoice}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between py-3 px-2 bg-slate-200">
+                      <span className="text-sm font-semibold">
+                        Gross Profit:
+                      </span>
+                      <span className="text-sm font-normal">
+                        ${pricingBreakdown.grossProfit} (
+                        {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-6">
