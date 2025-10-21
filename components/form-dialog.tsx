@@ -30,6 +30,7 @@ import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
+import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -51,6 +52,8 @@ interface HeaderInfo {
   useSelectedSupplier?: boolean;
   /** Use selected quotation line item data automatically */
   useSelectedLineItem?: boolean;
+  /** Use selected quarry/supplier data automatically */
+  useSelectedQuarrySupplier?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -141,6 +144,7 @@ export function FormDialog({
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
   const selectedQuotationLineItem = useSelectedLineItem();
+  const selectedQuarrySupplier = useSelectedQuarrySupplier();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -164,6 +168,12 @@ export function FormDialog({
     finalPrimaryBadges = [selectedProduct.material_type];
     finalSecondaryBadges = [selectedProduct.status];
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+  }
+
+  if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
+    finalCustomId = selectedQuarrySupplier.name;
+    finalPrimaryBadges = [selectedQuarrySupplier.status];
+    finalSecondaryBadges = [selectedQuarrySupplier.type];
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {

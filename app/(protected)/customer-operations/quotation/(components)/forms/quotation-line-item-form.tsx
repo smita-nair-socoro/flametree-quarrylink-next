@@ -353,7 +353,7 @@ export default function QuoteLineItemForm({
             {/* Product Information */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
-                <span className="text-[20px] font-semibold mt-3">
+                <span className="text-[20px] font-semibold">
                   Product Information
                 </span>
                 <Separator className="mb-4" />
