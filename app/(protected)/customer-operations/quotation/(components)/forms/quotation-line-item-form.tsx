@@ -25,7 +25,6 @@ import { CurrencyInput } from '@/components/ui/input-mask';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
   canEdit?: boolean;
@@ -93,87 +92,141 @@ export default function QuoteLineItemForm({
     },
   });
 
-  const productOptions: FormSelectOption[] = [
-    {
-      label: 'Rock',
-      value: 1,
-    },
-    {
-      label: 'Onyx',
-      value: 2,
-    },
-    {
-      label: 'Sand',
-      value: 3,
-    },
-    {
-      label: 'Soil',
-      value: 4,
-    },
-    {
-      label: 'Diamond',
-      value: 5,
-    },
-  ];
+  const productOptions: FormSelectOption[] = React.useMemo(
+    () => [
+      {
+        label: 'Rock',
+        value: 1,
+      },
+      {
+        label: 'Onyx',
+        value: 2,
+      },
+      {
+        label: 'Sand',
+        value: 3,
+      },
+      {
+        label: 'Soil',
+        value: 4,
+      },
+      {
+        label: 'Diamond',
+        value: 5,
+      },
+    ],
+    []
+  );
 
-  const quarryOptions: FormSelectOption[] = [
-    { label: 'Socoro', value: 1 },
-    { label: 'QuarryLink Internal Quarry', value: 2 },
-    { label: 'Quarry ABC', value: 3 },
-  ];
+  const quarryOptions: FormSelectOption[] = React.useMemo(
+    () => [
+      { label: 'Socoro', value: 1 },
+      { label: 'QuarryLink Internal Quarry', value: 2 },
+      { label: 'Quarry ABC', value: 3 },
+    ],
+    []
+  );
 
-  const truckTypeOptions: FormSelectOption[] = [
-    { label: 'Truck', value: 'Truck' },
-    { label: 'Semi-Trailer', value: 'Semi-Trailer' },
-    { label: 'Truck + Trailer', value: 'Truck + Trailer' },
-  ];
+  const truckTypeOptions: FormSelectOption[] = React.useMemo(
+    () => [
+      { label: 'Truck', value: 'Truck' },
+      { label: 'Semi-Trailer', value: 'Semi-Trailer' },
+      { label: 'Truck + Trailer', value: 'Truck + Trailer' },
+    ],
+    []
+  );
 
-  const productUnitOptions: FormSelectOption[] = [
-    { label: 'TN', value: 'TN' },
-    { label: 'M3', value: 'M3' },
-    { label: 'KG_20', value: 'KG_20' },
-    { label: 'BULKA', value: 'BULKA' },
-  ];
+  const productUnitOptions: FormSelectOption[] = React.useMemo(
+    () => [
+      { label: 'TN', value: 'TN' },
+      { label: 'M3', value: 'M3' },
+      { label: 'KG_20', value: 'KG_20' },
+      { label: 'BULKA', value: 'BULKA' },
+    ],
+    []
+  );
 
-  const truckUnitOptions: FormSelectOption[] = [
-    { label: 'TN', value: 'TN' },
-    { label: 'M3', value: 'M3' },
-    { label: 'HOURLY', value: 'HOURLY' },
-    { label: 'LOAD', value: 'LOAD' },
-  ];
+  const truckUnitOptions: FormSelectOption[] = React.useMemo(
+    () => [
+      { label: 'TN', value: 'TN' },
+      { label: 'M3', value: 'M3' },
+      { label: 'HOURLY', value: 'HOURLY' },
+      { label: 'LOAD', value: 'LOAD' },
+    ],
+    []
+  );
+
+  // when product changes, set quarry and supplier product name empty
+  // Will change this once API is implemented
+  const productId = quotationLineItemForm.watch('product_id');
 
   React.useEffect(() => {
-    // when product changes, set quarry and supplier product name empty
-    quotationLineItemForm.setValue('quarry_id', 0);
-    quotationLineItemForm.setValue('supplier_product_name', '');
-  }, [quotationLineItemForm.watch('product_id')]);
+    const currentProductId = quotationLineItemForm.getValues('product_id');
+    const initialProductId = isEditing ? selectedLineItem?.product_id : 0;
+
+    if (currentProductId !== initialProductId) {
+      quotationLineItemForm.setValue('quarry_id', 0);
+      quotationLineItemForm.setValue('supplier_product_name', '');
+    }
+  }, [
+    productId,
+    isEditing,
+    selectedLineItem?.product_id,
+    quotationLineItemForm,
+  ]);
+
+  // Dynamically set supplier product name based on selected Product and Quarry
+  // Will change this once API is implemented
+  const quarryId = quotationLineItemForm.watch('quarry_id');
 
   React.useEffect(() => {
-    const productId = quotationLineItemForm.getValues('product_id');
-    const quarryId = quotationLineItemForm.getValues('quarry_id');
+    const currentProductId = quotationLineItemForm.getValues('product_id');
+    const currentQuarryId = quotationLineItemForm.getValues('quarry_id');
 
-    // Dynamically set supplier product name based on selected Product and Quarry
-    // Will change this once API is implemented
-    if (productId && quarryId) {
+    if (currentProductId && currentQuarryId) {
       const productLabel =
-        productOptions.find((option) => option.value === productId)?.label ||
-        '';
+        productOptions.find((option) => option.value === currentProductId)
+          ?.label || '';
       const quarryLabel =
-        quarryOptions.find((option) => option.value === quarryId)?.label || '';
+        quarryOptions.find((option) => option.value === currentQuarryId)
+          ?.label || '';
 
       quotationLineItemForm.setValue(
         'supplier_product_name',
         productLabel + ' ' + quarryLabel
       );
     }
-  }, [quotationLineItemForm.watch('quarry_id')]);
+  }, [quarryId, productOptions, quarryOptions, quotationLineItemForm]);
+
+  // When truck type changes, set truck cost and sell UOM fields to empty
+  // Will change this once API is implemented
+  const truckType = quotationLineItemForm.watch('truck_type');
 
   React.useEffect(() => {
-    quotationLineItemForm.setValue('truck_cost_uom', '');
-    quotationLineItemForm.setValue('truck_sell_uom', '');
-  }, [quotationLineItemForm.watch('truck_type')]);
+    const currentTruckType = quotationLineItemForm.getValues('truck_type');
+    const initialTruckType = isEditing ? selectedLineItem?.truck_type : '';
+
+    if (currentTruckType !== initialTruckType) {
+      quotationLineItemForm.setValue('truck_cost_uom', '');
+      quotationLineItemForm.setValue('truck_sell_uom', '');
+    }
+  }, [
+    truckType,
+    isEditing,
+    selectedLineItem?.truck_type,
+    quotationLineItemForm,
+  ]);
 
   // Calculate pricing breakdown whenever relevant form values change
+  const productCostQty = quotationLineItemForm.watch('product_cost_qty');
+  const productCostPrice = quotationLineItemForm.watch('product_cost_price');
+  const truckCostQty = quotationLineItemForm.watch('truck_cost_qty');
+  const truckCostPrice = quotationLineItemForm.watch('truck_cost_price');
+  const productSellQty = quotationLineItemForm.watch('product_sell_qty');
+  const productSellPrice = quotationLineItemForm.watch('product_sell_price');
+  const truckSellQty = quotationLineItemForm.watch('truck_sell_qty');
+  const truckSellPrice = quotationLineItemForm.watch('truck_sell_price');
+
   React.useEffect(() => {
     const formValues = quotationLineItemForm.getValues();
 
@@ -228,15 +281,22 @@ export default function QuoteLineItemForm({
     );
     quotationLineItemForm.setValue('gross_profit', grossProfit);
   }, [
-    quotationLineItemForm.watch('product_cost_qty'),
-    quotationLineItemForm.watch('product_cost_price'),
-    quotationLineItemForm.watch('truck_cost_qty'),
-    quotationLineItemForm.watch('truck_cost_price'),
-    quotationLineItemForm.watch('product_sell_qty'),
-    quotationLineItemForm.watch('product_sell_price'),
-    quotationLineItemForm.watch('truck_sell_qty'),
-    quotationLineItemForm.watch('truck_sell_price'),
+    productCostQty,
+    productCostPrice,
+    truckCostQty,
+    truckCostPrice,
+    productSellQty,
+    productSellPrice,
+    truckSellQty,
+    truckSellPrice,
+    quotationLineItemForm,
   ]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    quotationLineItemForm.handleSubmit(onSubmit)(e);
+  };
 
   async function onSubmit(
     values: z.infer<typeof NewQuotationLineItemFormSchema>
@@ -281,7 +341,7 @@ export default function QuoteLineItemForm({
             className,
             isSubmitting && 'pointer-events-none'
           )}
-          onSubmit={quotationLineItemForm.handleSubmit(onSubmit)}
+          onSubmit={handleSubmit}
         >
           <div
             className={cn(
@@ -293,7 +353,7 @@ export default function QuoteLineItemForm({
             {/* Product Information */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
-                <span className="text-20px font-semibold mt-3">
+                <span className="text-[20px] font-semibold mt-3">
                   Product Information
                 </span>
                 <Separator className="mb-4" />
@@ -413,6 +473,7 @@ export default function QuoteLineItemForm({
                             }
                             decimalPlaces={2}
                             allowNegative={false}
+                            disabled={isEditing && !canEdit}
                           />
                         </FormControl>
                         <FormMessage />
@@ -491,7 +552,7 @@ export default function QuoteLineItemForm({
             {/* Truck Configuration */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
-                <span className="text-20px font-semibold mt-3">
+                <span className="text-[20px] font-semibold mt-3">
                   Truck Configuration
                 </span>
                 <Separator className="mb-4" />
@@ -503,6 +564,7 @@ export default function QuoteLineItemForm({
                 searchLabel="Truck Type"
                 options={truckTypeOptions}
                 placeholder="Select Truck Type"
+                disabled={isEditing && !canEdit}
               />
 
               <div className="space-y-2">
@@ -522,7 +584,10 @@ export default function QuoteLineItemForm({
                     showSearch={false}
                     options={truckUnitOptions}
                     placeholder="Select UOM"
-                    disabled={!quotationLineItemForm.watch('truck_type')}
+                    disabled={
+                      !quotationLineItemForm.watch('truck_type') ||
+                      (isEditing && !canEdit)
+                    }
                   />
 
                   <FormField
@@ -585,7 +650,10 @@ export default function QuoteLineItemForm({
                     showSearch={false}
                     options={truckUnitOptions}
                     placeholder="Select UOM"
-                    disabled={!quotationLineItemForm.watch('truck_type')}
+                    disabled={
+                      !quotationLineItemForm.watch('truck_type') ||
+                      (isEditing && !canEdit)
+                    }
                   />
 
                   <FormField
@@ -699,6 +767,9 @@ export default function QuoteLineItemForm({
                   className="cursor-pointer"
                   type="submit"
                   disabled={isSubmitting || !canEdit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>
@@ -712,6 +783,9 @@ export default function QuoteLineItemForm({
                   type="submit"
                   className="cursor-pointer"
                   disabled={isSubmitting || !canEdit}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>

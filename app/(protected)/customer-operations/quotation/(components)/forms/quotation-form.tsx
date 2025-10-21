@@ -215,8 +215,9 @@ export default function QuotationForm({
     { label: 'Jaywoo', value: 3 },
   ]; // TODO: get account manager
 
+  const customerId = quotationForm.watch('customer_id');
+
   React.useEffect(() => {
-    const customerId = quotationForm.watch('customer_id');
     if (customerId && customerId > 0) {
       // Only set values if they're empty to avoid controlled/uncontrolled warning
       const currentPhone = quotationForm.getValues('phone');
@@ -229,7 +230,7 @@ export default function QuotationForm({
         quotationForm.setValue('email', 'customer@email.com');
       }
     }
-  }, [quotationForm.watch('customer_id')]);
+  }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     console.log('onSubmit function called!');
