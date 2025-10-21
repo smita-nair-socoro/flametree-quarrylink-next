@@ -85,7 +85,7 @@ export const BADGE_COLORS: Record<string, string> = {
   DECLINED: 'bg-orange-100 text-orange-800 border-orange-800',
   ARCHIVED: 'bg-gray-100 text-gray-500 border-gray-500',
   ACTIVE: 'bg-green-100 text-green-800 border-green-800',
-  INACTIVE: 'bg-gray-100 text-gray-600 border-gray-600',
+  INACTIVE: 'bg-gray-100 text-gray-400 border-gray-400',
   AVAILABLE: 'bg-green-100 text-green-800 border-green-800',
   UNAVAILABLE: 'bg-red-100 text-red-800 border-red-800',
   COLLECTION: 'bg-orange-100 text-orange-900 border-orange-900',
