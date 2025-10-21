@@ -170,16 +170,16 @@ export function FormDialog({
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
   }
 
-  if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
-    finalCustomId = selectedQuarrySupplier.name;
-    finalPrimaryBadges = [selectedQuarrySupplier.status];
-    finalSecondaryBadges = [selectedQuarrySupplier.type];
-  }
-
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
     finalCustomId = selectedQuotationLineItem.product_name;
     finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
     finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
+  }
+
+  if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
+    finalCustomId = selectedQuarrySupplier.name;
+    finalPrimaryBadges = [selectedQuarrySupplier.status];
+    finalSecondaryBadges = [selectedQuarrySupplier.type];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
