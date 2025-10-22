@@ -19,14 +19,6 @@ export default function ClientPortalPage() {
     items: Client[];
   };
 
-  const [selectedClient, setSelectedClient] = React.useState<Client | null>(
-    null
-  );
-
-  const handleRowClick = (client: Client) => {
-    setSelectedClient(client);
-  };
-
   const facetDefs: FacetDefinition[] = [
     { column: 'client', title: 'Client', icon: Plus },
     { column: 'subscription', title: 'Subscription', icon: Plus },
@@ -42,7 +34,6 @@ export default function ClientPortalPage() {
           columns={clientColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search clients..."
-          onRowClick={handleRowClick}
         />
       </div>
     </div>
