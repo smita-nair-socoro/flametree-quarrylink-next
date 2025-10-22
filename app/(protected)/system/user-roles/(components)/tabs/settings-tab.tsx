@@ -248,6 +248,7 @@ export default function SettingsTab() {
                       <FormLabel>Current Password*</FormLabel>
                       <FormControl>
                         <Input
+                          type="password"
                           className="w-full"
                           placeholder="Enter Current Password"
                           {...field}
@@ -265,6 +266,7 @@ export default function SettingsTab() {
                       <FormLabel>New Password*</FormLabel>
                       <FormControl>
                         <Input
+                          type="password"
                           className="w-full"
                           placeholder="Enter New Password"
                           {...field}
@@ -282,6 +284,7 @@ export default function SettingsTab() {
                       <FormLabel>Confirm Password*</FormLabel>
                       <FormControl>
                         <Input
+                          type="password"
                           className="w-full"
                           placeholder="Enter Confirm Password"
                           {...field}
