@@ -102,4 +102,6 @@ export const BADGE_COLORS: Record<string, string> = {
   SAND: 'bg-blue-100 text-blue-800 border-blue-800',
   QUARRY: 'bg-orange-100 text-orange-900 border-orange-900',
   SUPPLIER: 'bg-blue-100 text-blue-800 border-blue-800',
+  DUE_PAYMENT: 'bg-red-100 text-red-900 border-red-900',
+  'DUE PAYMENT': 'bg-red-100 text-red-900 border-red-900',
 };
