@@ -25,6 +25,7 @@ import { Label } from '@/components/ui/label';
 import rawJson from '@/lib/tests/personalInformationResponseData.json';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { User } from '@/lib/types/user';
+import { getRelativeTime } from '@/lib/utils/date';
 
 const convertedJson = convertKeysToSnakeCase(rawJson);
 const { full_name, email, phone, created_at, last_login_at } =
@@ -190,15 +191,10 @@ export default function SettingsTab() {
 
                   {/* Audit Information */}
                   <div className="flex flex-col gap-1">
-                    <span>
-                      Last Login:{' '}
-                      {new Date(last_login_at).toLocaleDateString('en-AU', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: '2-digit',
-                      })}
+                    <span className="text-sm text-[#4B5563]">
+                      Last Login: {getRelativeTime(last_login_at)}
                     </span>
-                    <span>
+                    <span className="text-sm text-[#4B5563]">
                       Created On:{' '}
                       {new Date(created_at).toLocaleDateString('en-AU', {
                         day: '2-digit',
@@ -248,6 +244,7 @@ export default function SettingsTab() {
                       <FormLabel>Current Password*</FormLabel>
                       <FormControl>
                         <Input
+                          type="password"
                           className="w-full"
                           placeholder="Enter Current Password"
                           {...field}
@@ -265,6 +262,7 @@ export default function SettingsTab() {
                       <FormLabel>New Password*</FormLabel>
                       <FormControl>
                         <Input
+                          type="password"
                           className="w-full"
                           placeholder="Enter New Password"
                           {...field}
@@ -282,6 +280,7 @@ export default function SettingsTab() {
                       <FormLabel>Confirm Password*</FormLabel>
                       <FormControl>
                         <Input
+                          type="password"
                           className="w-full"
                           placeholder="Enter Confirm Password"
                           {...field}
