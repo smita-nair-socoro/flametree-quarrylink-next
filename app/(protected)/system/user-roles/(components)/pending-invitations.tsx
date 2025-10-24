@@ -41,7 +41,7 @@ export default function PendingInvitations() {
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-white p-6">
+    <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
       <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
       <div className="space-y-3">
         {pendingInvitationsMockData.map((invitation) => (
