@@ -23,31 +23,31 @@ export function RoleDetailsCard({
 }: RoleDetailsCardProps) {
   return (
     <Card className="h-full">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-0">
         <div className="space-y-3">
           {/* Role Badge */}
-          <Badge
-            variant="outline"
-            className={cn(
-              'w-fit',
-              roleType === 'admin'
-                ? 'bg-purple-50 text-purple-700 border-purple-300'
-                : 'bg-blue-50 text-blue-700 border-blue-300'
-            )}
-          >
-            <div className="flex items-center gap-1.5">
-              {roleType === 'admin' && (
-                <Crown className="h-3.5 w-3.5 fill-purple-200" />
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className={cn(
+                'w-fit',
+                roleType === 'admin'
+                  ? 'text-[#6E11B0] border border-[#E9D4FF] bg-[#F3E8FF]'
+                  : 'bg-blue-50 text-blue-700 border-blue-300'
               )}
-              <span className="font-medium">{roleName}</span>
-            </div>
-          </Badge>
+            >
+              <span className="font-medium text-[10.5px]">{roleName}</span>
+            </Badge>
+            {roleType === 'admin' && (
+              <Crown className="h-4 w-4 text-[#9810FA]" />
+            )}
+          </div>
 
           {/* Title */}
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          <h3 className="text-[15.0594px] font-normal">{title}</h3>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-[13.6719px] font-normal text-[#717182] leading-relaxed">
             {description}
           </p>
         </div>
@@ -55,14 +55,13 @@ export function RoleDetailsCard({
 
       <CardContent>
         {/* Features List */}
-        <ul className="space-y-2.5">
+        <ul className="list-disc pl-6 space-y-0">
           {features.map((feature, index) => (
             <li
               key={index}
-              className="flex items-start gap-2 text-sm text-muted-foreground"
+              className="marker:text-[#99A1AF] marker:text-[11.99px] text-[12.1078px] font-normal text-[#4A5565]"
             >
-              <span className="text-muted-foreground mt-0.5">•</span>
-              <span>{feature}</span>
+              {feature}
             </li>
           ))}
         </ul>

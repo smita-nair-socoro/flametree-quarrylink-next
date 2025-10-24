@@ -18,9 +18,9 @@ export default function RolesTab() {
       description: 'Basic quotation and customer management',
       maxUsers: '10 min users',
       featured: true,
-      priceBgColor: 'bg-[#F3F4F6]',
-      priceBorderColor: 'border-[#E5E7EB]',
-      priceColor: 'text-[#1E2939]',
+      priceBgColor: '#F3F4F6',
+      priceBorderColor: '#E5E7EB',
+      priceColor: '#1E2939',
       permissions: [
         {
           name: 'User Management',
@@ -87,9 +87,9 @@ export default function RolesTab() {
       description: 'Complete job and fleet management',
       maxUsers: '10 min users',
       featured: false,
-      priceBgColor: 'bg-[#DBEAFE]',
-      priceBorderColor: 'border-[#BEDBFF]',
-      priceColor: 'text-[#193CB8]',
+      priceBgColor: '#DBEAFE',
+      priceBorderColor: '#BEDBFF',
+      priceColor: '#193CB8',
       permissions: [
         {
           name: 'User Management',
@@ -160,9 +160,9 @@ export default function RolesTab() {
       description: 'Advanced operations with driver app',
       maxUsers: '10 min users',
       featured: false,
-      priceBgColor: 'bg-[#F3E8FF]',
-      priceBorderColor: 'border-[#E9D4FF]',
-      priceColor: 'text-[#6E11B0]',
+      priceBgColor: '#F3E8FF',
+      priceBorderColor: '#E9D4FF',
+      priceColor: '#6E11B0',
       permissions: [
         {
           name: 'User Management',
@@ -236,8 +236,8 @@ export default function RolesTab() {
     <div className="p-6 space-y-3">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold mb-2">Roles & Permissions</h2>
-        <p className="text-muted-foreground">
+        <h2 className="text-[20.1797px] font-bold mb-2">Roles & Permissions</h2>
+        <p className="text-muted-foreground text-[13.5625px]">
           Simplified two-tier access control: Super Admin with full control,
           Users with operational access
         </p>
@@ -246,8 +246,10 @@ export default function RolesTab() {
       {/* Current Subscription Plan Section */}
       <div className="border rounded-lg p-6 space-y-4 bg-white">
         <div>
-          <h3 className="text-lg font-semibold">Current Subscription Plan</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="font-medium text-[13.7813px]">
+            Current Subscription Plan
+          </h3>
+          <p className="text-[13.5625px] font-normal text-muted-foreground">
             Select a plan to view its permission matrix and available features
           </p>
         </div>
@@ -263,6 +265,8 @@ export default function RolesTab() {
               maxUsers={plan.maxUsers}
               featured={plan.featured}
               priceColor={plan.priceColor}
+              priceBgColor={plan.priceBgColor}
+              priceBorderColor={plan.priceBorderColor}
               isSelected={selectedPlanIndex === index}
               onClick={() => setSelectedPlanIndex(index)}
             />
@@ -278,6 +282,7 @@ export default function RolesTab() {
         modules={selectedPlan.permissions}
         titleBgColor={selectedPlan.priceBgColor}
         titleTextColor={selectedPlan.priceColor}
+        titleBorderColor={selectedPlan.priceBorderColor}
       />
 
       {/* Role Details Cards */}

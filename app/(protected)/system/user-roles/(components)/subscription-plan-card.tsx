@@ -33,45 +33,55 @@ export function SubscriptionPlanCard({
     <Card
       onClick={onClick}
       className={cn(
-        'relative overflow-hidden transition-all hover:shadow-md cursor-pointer bg-white',
+        'py-3 relative overflow-hidden transition-all hover:shadow-md cursor-pointer bg-white',
         isSelected
           ? `bg-[#FAF5FF] border-2 border-[#AD46FF]`
           : 'border-border hover:border-purple-300'
       )}
     >
-      <CardContent className="px-6">
+      <CardContent className="px-3">
         <div>
           {/* Price */}
           <div className="flex items-baseline gap-1 justify-between">
             <div
-              className={cn(
-                'flex items-baseline gap-1 rounded-md px-2 py-1 border',
-                priceBgColor
-              )}
+              className="flex items-baseline gap-1 rounded-md px-1.5 py-0.5 border"
               style={{
-                borderColor: priceBorderColor?.replace('border-[', '').replace(']', ''),
+                backgroundColor: priceBgColor,
+                borderColor: priceBorderColor,
               }}
             >
-              <span className={cn('text-1xl font-bold', priceColor)}>
+              <span
+                className="text-[10.5px] font-medium"
+                style={{ color: priceColor }}
+              >
                 {price}
               </span>
-              <span className={cn('text-sm', priceColor)}>/ mo</span>
+              <span
+                className="text-[10.5px] font-medium"
+                style={{ color: priceColor }}
+              >
+                / mo
+              </span>
             </div>
             {isSelected && (
-              <Crown className="h-5 w-5 text-purple-600 fill-purple-200" />
+              <Crown className="h-[14px] w-[14px] text-[#9810FA]" />
             )}
           </div>
 
           {/* Plan Name */}
-          <h3 className="text-lg font-semibold text-foreground">{planName}</h3>
+          <h3 className="text-lg font-semibold text-foreground text-[12.3px]">
+            {planName}
+          </h3>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="font-normal text-muted-foreground leading-relaxed text-[10.5px]">
             {description}
           </p>
 
           {/* Max Users */}
-          <p className="text-sm font-medium text-foreground">{maxUsers}</p>
+          <p className="font-medium text-foreground text-[10.5px]">
+            {maxUsers}
+          </p>
         </div>
       </CardContent>
     </Card>
