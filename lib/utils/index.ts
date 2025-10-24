@@ -3,6 +3,7 @@ import { compareAsc, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import { CANCELLED } from 'dns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -102,6 +103,8 @@ export const BADGE_COLORS: Record<string, string> = {
   SAND: 'bg-blue-100 text-blue-800 border-blue-800',
   QUARRY: 'bg-orange-100 text-orange-900 border-orange-900',
   SUPPLIER: 'bg-blue-100 text-blue-800 border-blue-800',
-  DUE_PAYMENT: 'bg-red-100 text-red-900 border-red-900',
-  'DUE PAYMENT': 'bg-red-100 text-red-900 border-red-900',
+  SUSPENDED: 'bg-red-100 text-red-900 border-red-900',
+  CANCELLED: 'bg-gray-100 text-gray-400 border-gray-400',
+  'PAYMENT ISSUE': 'bg-orange-100 border-orange-800 text-orange-800',
+  'PENDING PAYMENT': 'bg-gray-100 text-gray-800 border-gray-800',
 };
