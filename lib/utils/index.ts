@@ -3,7 +3,6 @@ import { compareAsc, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
-import { CANCELLED } from 'dns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
