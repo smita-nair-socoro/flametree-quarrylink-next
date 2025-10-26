@@ -59,7 +59,7 @@ export default function PendingInvitations() {
                   <span className="mx-2">•</span>
                   <span>Invited by: {invitation.invitedBy}</span>
                   <span className="mx-2">•</span>
-                  <span>Expires in {invitation.expiresIn}</span>
+                  <span>Expires in: {invitation.expiresIn}</span>
                 </div>
               </div>
               <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
