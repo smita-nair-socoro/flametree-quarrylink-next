@@ -15,5 +15,3 @@ export const InviteUserFormSchema = z.object({
   phone: PhoneOptional,
   role: z.string().min(1, 'Role is required'),
 });
-
-export type InviteUserFormValues = z.infer<typeof InviteUserFormSchema>;

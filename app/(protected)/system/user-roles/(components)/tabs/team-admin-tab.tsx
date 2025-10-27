@@ -16,19 +16,18 @@ export default function TeamAdminTab() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
             dialogTitle="Invite User"
-            dialogDescription="Send an invitation to a new team member"
+            dialogDescription="Send an invitation to a new team member with
+             their assigned role and contact information."
+            buttonTitle="Invite User"
             dialogWidth="max-w-md"
-            trigger={
-              <Button className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white">
-                <Plus className="h-4 w-4" /> Invite User
-              </Button>
-            }
           >
             <InviteUserForm />
           </FormDialog>
         </div>
       </div>
-      <p className="text-muted-foreground">Team member table will be displayed here</p>
+      <p className="text-muted-foreground">
+        Team member table will be displayed here
+      </p>
     </div>
   );
 }

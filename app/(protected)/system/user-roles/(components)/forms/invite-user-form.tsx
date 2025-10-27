@@ -19,15 +19,13 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import z from 'zod';
 import React from 'react';
-import {
-  InviteUserFormSchema,
-  InviteUserFormValues,
-} from './schemas/invite-user-form-schema';
+import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
 
 const ROLE_OPTIONS: FormSelectOption[] = [
-  { label: 'Admin', value: 'admin' },
   { label: 'User', value: 'user' },
+  { label: 'Admin', value: 'admin' },
   { label: 'Manager', value: 'manager' },
   { label: 'Viewer', value: 'viewer' },
 ];
@@ -44,7 +42,7 @@ export default function InviteUserForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const form = useForm<InviteUserFormValues>({
+  const form = useForm<z.infer<typeof InviteUserFormSchema>>({
     resolver: zodResolver(InviteUserFormSchema),
     defaultValues: {
       fullName: '',
@@ -54,7 +52,7 @@ export default function InviteUserForm({
     },
   });
 
-  const onSubmit = async (data: InviteUserFormValues) => {
+  const onSubmit = async (data: z.infer<typeof InviteUserFormSchema>) => {
     console.log('Invite user data:', data);
 
     setIsSubmitting(true);
@@ -90,14 +88,13 @@ export default function InviteUserForm({
 
       <Form {...form}>
         <form
+          id="invite-user-form"
           onSubmit={form.handleSubmit(onSubmit)}
-          className={cn('space-y-1', isSubmitting && 'pointer-events-none')}
+          className={cn(
+            'space-y-1 px-2',
+            isSubmitting && 'pointer-events-none'
+          )}
         >
-          <p className="text-sm text-muted-foreground mb-6">
-            Send an invitation to a new team member with their assigned role and
-            contact information.
-          </p>
-
           <FormField
             control={form.control}
             name="fullName"
@@ -165,18 +162,13 @@ export default function InviteUserForm({
           <Separator className="my-4" />
 
           <div className="flex justify-end gap-2 mb-4 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              size="lg"
-            >
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
             <Button
+              form="invite-user-form"
               type="submit"
-              size="lg"
-              className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white"
+              className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
               disabled={isSubmitting}
             >
               Send Invitation
