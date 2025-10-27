@@ -15,9 +15,9 @@ export default function TeamAdminTab() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
+            contentClass="px-2 mx-2"
             dialogTitle="Invite User"
-            dialogDescription="Send an invitation to a new team member with
-             their assigned role and contact information."
+            dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
             buttonTitle="Invite User"
             dialogWidth="max-w-md"
           >
