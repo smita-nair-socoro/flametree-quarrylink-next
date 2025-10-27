@@ -22,5 +22,7 @@ export const NewQuotationLineItemFormSchema = z.object({
   total_truck_cost_price: z.coerce.number().min(1, { message: 'Required' }),
   total_product_sell_price: z.coerce.number().min(1, { message: 'Required' }),
   total_truck_sell_price: z.coerce.number().min(1, { message: 'Required' }),
-  gross_profit: z.coerce.number().min(1, { message: 'Required' }),
+
+  // Will come back to Gross Profit once we decide how to handle it
+  gross_profit: z.coerce.number().optional(),
 });

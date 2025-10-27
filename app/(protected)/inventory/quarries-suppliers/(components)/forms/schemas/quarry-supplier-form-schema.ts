@@ -1,12 +1,29 @@
 import z from 'zod';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
+const PhoneRequired = z
+  .string()
+  .trim()
+  .nonempty({ message: 'Phone number is required' })
+  .refine((v) => !v || isValidPhoneNumber(v), {
+    message: 'Invalid phone number',
+  });
+
 const PhoneOptional = z
   .string()
   .trim()
   .optional()
   .refine((v) => !v || isValidPhoneNumber(v), {
     message: 'Invalid phone number',
+  });
+
+const EmailRequired = z
+  .string()
+  .trim()
+  .nonempty({ message: 'Email is required' })
+  .max(256, 'Maximum 256 characters')
+  .refine((v) => !v || z.string().email().safeParse(v).success, {
+    message: 'Invalid email format',
   });
 
 const EmailOptional = z
@@ -38,8 +55,8 @@ const Base = z.object({
         message: 'Invalid website URL',
       }
     ),
-  email: EmailOptional,
-  phone: PhoneOptional,
+  email: EmailRequired,
+  phone: PhoneRequired,
 
   // Location Information
   address: z.string().trim().min(1, 'Address is required'),
