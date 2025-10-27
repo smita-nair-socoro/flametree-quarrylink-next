@@ -4,6 +4,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Client } from '@/lib/types/client';
 import { ColumnDef } from '@tanstack/react-table';
+import { ClientPortalTableActions } from './client-portal-table-actions';
 
 export const clientColumns: ColumnDef<Client>[] = [
   {
@@ -92,5 +93,15 @@ export const clientColumns: ColumnDef<Client>[] = [
       );
     },
     meta: 'Status',
+  },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const client = row.original;
+      return <ClientPortalTableActions client={client} />;
+    },
   },
 ];
