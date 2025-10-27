@@ -31,23 +31,33 @@ interface NewPasswordModalProps {
   onSuccess: () => void;
 }
 
-const newPasswordSchema = z.object({
-  newPassword: z
-    .string()
-    .nonempty({ message: 'New password is required' })
-    .min(8, { message: 'Password must be at least 8 characters' })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
-      message: 'Password must contain uppercase, lowercase, number, and special character'
-    }),
-  confirmPassword: z
-    .string()
-    .nonempty({ message: 'Please confirm your password' }),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const newPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .nonempty({ message: 'New password is required' })
+      .min(8, { message: 'Password must be at least 8 characters' })
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/,
+        {
+          message:
+            'Password must contain uppercase, lowercase, number, and special character',
+        }
+      ),
+    confirmPassword: z
+      .string()
+      .nonempty({ message: 'Please confirm your password' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
-export function NewPasswordModal({ isOpen, onClose, onSuccess }: NewPasswordModalProps) {
+export function NewPasswordModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: NewPasswordModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -63,7 +73,7 @@ export function NewPasswordModal({ isOpen, onClose, onSuccess }: NewPasswordModa
 
   async function onSubmit(values: z.infer<typeof newPasswordSchema>) {
     setIsLoading(true);
-    
+
     try {
       // For NEW_PASSWORD_REQUIRED challenge, we only need the new password
       // The verification code (if needed) should be handled by Cognito automatically
@@ -72,8 +82,8 @@ export function NewPasswordModal({ isOpen, onClose, onSuccess }: NewPasswordModa
         options: {
           userAttributes: {
             name: 'QuarryLink User', // Default name for new users
-          }
-        }
+          },
+        },
       });
 
       if (isSignedIn) {
@@ -83,9 +93,9 @@ export function NewPasswordModal({ isOpen, onClose, onSuccess }: NewPasswordModa
       }
     } catch (error: unknown) {
       console.error('New password error:', error);
-      
+
       const errorObj = error as { name?: string };
-      
+
       if (errorObj.name === 'InvalidPasswordException') {
         notifyError('Password does not meet requirements');
       } else if (errorObj.name === 'InvalidParameterException') {
@@ -123,7 +133,8 @@ export function NewPasswordModal({ isOpen, onClose, onSuccess }: NewPasswordModa
             Set Your Password
           </DialogTitle>
           <DialogDescription className="text-center">
-            Welcome to QuarryLink! Please set a new password to complete your account setup.
+            Welcome to QuarryLink! Please set a new password to complete your
+            account setup.
           </DialogDescription>
         </DialogHeader>
 
@@ -180,7 +191,9 @@ export function NewPasswordModal({ isOpen, onClose, onSuccess }: NewPasswordModa
                         variant="ghost"
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
