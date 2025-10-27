@@ -61,23 +61,39 @@ function TabsContent({
 interface TabItem {
   name: string;
   content: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 interface CustomTabsProps {
   tabs: TabItem[];
   defaultTab?: string;
   className?: string;
+  tabsClassName?: string;
+  tabsTriggerClassName?: string;
 }
 
-function Tab({ tabs, defaultTab, className }: CustomTabsProps) {
+function Tab({
+  tabs,
+  defaultTab,
+  className,
+  tabsClassName,
+  tabsTriggerClassName,
+}: CustomTabsProps) {
   const defaultValue = defaultTab || tabs[0]?.name || '';
 
   return (
     <Tabs defaultValue={defaultValue} className={className}>
-      <TabsList>
+      <TabsList className={tabsClassName}>
         {tabs.map((tab) => (
-          <TabsTrigger key={tab.name} value={tab.name} className="w-full">
-            {tab.name}
+          <TabsTrigger
+            key={tab.name}
+            value={tab.name}
+            className={cn('w-full', tabsTriggerClassName)}
+          >
+            <div className="flex items-center gap-2">
+              {tab.icon && tab.icon}
+              <span>{tab.name}</span>
+            </div>
           </TabsTrigger>
         ))}
       </TabsList>
