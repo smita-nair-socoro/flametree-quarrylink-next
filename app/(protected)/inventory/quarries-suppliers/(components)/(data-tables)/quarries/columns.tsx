@@ -4,6 +4,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Quarry } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
+import { QuarrySupplierTableActions } from './quarry-supplier-table-actions';
 
 export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
   {
@@ -66,7 +67,7 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
       const suburb = row.original.suburb;
       return (
         <div className="py-2">
-          <TableBadges names={[suburb]} visibleCount={1} />
+          <TableBadges names={[suburb]} visibleCount={1} variant="suburb" />
         </div>
       );
     },
@@ -87,5 +88,15 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
       );
     },
     meta: 'Status',
+  },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const quarrySupplier = row.original;
+      return <QuarrySupplierTableActions quarrySupplier={quarrySupplier} />;
+    },
   },
 ];
