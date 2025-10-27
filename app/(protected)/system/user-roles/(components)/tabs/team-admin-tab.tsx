@@ -122,13 +122,8 @@ const TeamsMemberMockData: TeamMember[] = [
 ];
 
 export default function TeamAdminTab() {
-  const [selectedMember, setSelectedMember] = React.useState<TeamMember | null>(
-    null
-  );
-
   // Handle row click to open member details
   const handleRowClick = (member: TeamMember) => {
-    setSelectedMember(member);
     // TODO: Implement member details view
     console.log('Selected member:', member);
   };
