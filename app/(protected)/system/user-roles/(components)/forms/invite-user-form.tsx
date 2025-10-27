@@ -37,7 +37,10 @@ interface InviteUserFormProps {
   onSuccess?: () => void;
 }
 
-export default function InviteUserForm({ onCancel, onSuccess }: InviteUserFormProps) {
+export default function InviteUserForm({
+  onCancel,
+  onSuccess,
+}: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -47,7 +50,7 @@ export default function InviteUserForm({ onCancel, onSuccess }: InviteUserFormPr
       fullName: '',
       email: '',
       phone: '',
-      role: '',
+      role: 'user',
     },
   });
 
@@ -95,91 +98,92 @@ export default function InviteUserForm({ onCancel, onSuccess }: InviteUserFormPr
             contact information.
           </p>
 
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Full Name<span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="John Smith" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="fullName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name*</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Smith" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Email Address<span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="john.smith@company.com"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email Address*</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="john.smith@company.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Phone Number{' '}
-                <span className="text-muted-foreground">(optional)</span>
-              </FormLabel>
-              <FormControl>
-                <PhoneInput
-                  className="w-full"
-                  defaultCountry="AU"
-                  placeholder="Enter phone number"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Phone Number{' '}
+                  <span className="text-muted-foreground">(optional)</span>
+                </FormLabel>
+                <FormControl>
+                  <PhoneInput
+                    className="w-full"
+                    defaultCountry="AU"
+                    placeholder="Enter phone number"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormSelect
-          control={form.control}
-          name="role"
-          label="Role*"
-          searchLabel="role"
-          options={ROLE_OPTIONS}
-          placeholder="Select role"
-          showSearch={false}
-        />
+          <FormSelect
+            control={form.control}
+            name="role"
+            label="Role*"
+            searchLabel="role"
+            options={ROLE_OPTIONS}
+            placeholder="Select role"
+            showSearch={false}
+          />
 
-        <Separator className="my-4" />
+          <Separator className="my-4" />
 
-        <div className="flex justify-end gap-2 mb-4 mt-4">
-          <Button type="button" variant="outline" onClick={onCancel} size="lg">
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            size="lg"
-            className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white"
-            disabled={isSubmitting}
-          >
-            Send Invitation
-          </Button>
-        </div>
-      </form>
-    </Form>
+          <div className="flex justify-end gap-2 mb-4 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              size="lg"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white"
+              disabled={isSubmitting}
+            >
+              Send Invitation
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }
