@@ -10,15 +10,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -28,11 +25,22 @@ import {
   InviteUserFormValues,
 } from './schemas/invite-user-form-schema';
 
+const ROLE_OPTIONS: FormSelectOption[] = [
+  { label: 'Admin', value: 'admin' },
+  { label: 'User', value: 'user' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Viewer', value: 'viewer' },
+];
+
 interface InviteUserFormProps {
   onCancel?: () => void;
+  onSuccess?: () => void;
 }
 
-export default function InviteUserForm({ onCancel }: InviteUserFormProps) {
+export default function InviteUserForm({ onCancel, onSuccess }: InviteUserFormProps) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const form = useForm<InviteUserFormValues>({
     resolver: zodResolver(InviteUserFormSchema),
     defaultValues: {
@@ -43,18 +51,49 @@ export default function InviteUserForm({ onCancel }: InviteUserFormProps) {
     },
   });
 
-  const onSubmit = (data: InviteUserFormValues) => {
+  const onSubmit = async (data: InviteUserFormValues) => {
     console.log('Invite user data:', data);
-    onCancel?.();
+
+    setIsSubmitting(true);
+
+    // Simulate API call delay (remove this in production)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setIsSubmitting(false);
+
+    // TODO: Add actual API call here
+    // On success, call onSuccess to close the dialog
+    onSuccess?.();
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
-        <p className="text-sm text-muted-foreground mb-6">
-          Send an invitation to a new team member with their assigned role and
-          contact information.
-        </p>
+    <div className="w-full relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10'
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              Sending Invitation...
+            </p>
+          </div>
+        </div>
+      )}
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={cn('space-y-1', isSubmitting && 'pointer-events-none')}
+        >
+          <p className="text-sm text-muted-foreground mb-6">
+            Send an invitation to a new team member with their assigned role and
+            contact information.
+          </p>
 
         <FormField
           control={form.control}
@@ -114,30 +153,14 @@ export default function InviteUserForm({ onCancel }: InviteUserFormProps) {
           )}
         />
 
-        <FormField
+        <FormSelect
           control={form.control}
           name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Role<span className="text-destructive">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="User" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Role*"
+          searchLabel="role"
+          options={ROLE_OPTIONS}
+          placeholder="Select role"
+          showSearch={false}
         />
 
         <Separator className="my-4" />
@@ -150,11 +173,13 @@ export default function InviteUserForm({ onCancel }: InviteUserFormProps) {
             type="submit"
             size="lg"
             className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white"
+            disabled={isSubmitting}
           >
             Send Invitation
           </Button>
         </div>
       </form>
     </Form>
+    </div>
   );
 }

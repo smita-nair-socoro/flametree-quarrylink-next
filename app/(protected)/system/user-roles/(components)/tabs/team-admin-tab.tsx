@@ -8,22 +8,27 @@ import { Plus } from 'lucide-react';
 
 export default function TeamAdminTab() {
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-[24px] font-bold">Team Management</h2>
-        <FormDialog
-          dialogTitle="Invite User"
-          dialogWidth="max-w-md"
-          trigger={
-            <Button className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white">
-              <Plus className="h-4 w-4" /> Invite User
-            </Button>
-          }
-        >
-          <InviteUserForm />
-        </FormDialog>
+    <div className="flex flex-1 flex-col gap-4 p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div>
+          <h2 className="text-[24px] font-bold">Team Management</h2>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <FormDialog
+            dialogTitle="Invite User"
+            dialogDescription="Send an invitation to a new team member"
+            dialogWidth="max-w-md"
+            trigger={
+              <Button className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white">
+                <Plus className="h-4 w-4" /> Invite User
+              </Button>
+            }
+          >
+            <InviteUserForm />
+          </FormDialog>
+        </div>
       </div>
-      <p className="text-muted-foreground">Team & Admin content goes here</p>
+      <p className="text-muted-foreground">Team member table will be displayed here</p>
     </div>
   );
 }
