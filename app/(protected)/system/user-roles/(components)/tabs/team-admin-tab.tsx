@@ -3,8 +3,6 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 
 export default function TeamAdminTab() {
   return (

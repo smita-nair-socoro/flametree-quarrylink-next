@@ -45,7 +45,7 @@ export default function InviteUserForm({
   const form = useForm<z.infer<typeof InviteUserFormSchema>>({
     resolver: zodResolver(InviteUserFormSchema),
     defaultValues: {
-      fullName: '',
+      full_name: '',
       email: '',
       phone: '',
       role: 'user',
@@ -97,7 +97,7 @@ export default function InviteUserForm({
         >
           <FormField
             control={form.control}
-            name="fullName"
+            name="full_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Full Name*</FormLabel>
