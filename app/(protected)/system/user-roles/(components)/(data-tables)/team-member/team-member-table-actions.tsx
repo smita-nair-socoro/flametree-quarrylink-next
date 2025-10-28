@@ -20,7 +20,7 @@ export function TeamMemberTableActions({
   teamMember,
 }: TeamMemberTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, deleteDialog, deleteFormDialog } = useTeamMemberActions(
+  const { actions, deleteDialog } = useTeamMemberActions(
     teamMember.id,
     teamMember
   );
@@ -42,15 +42,12 @@ export function TeamMemberTableActions({
 
   const handleDelete = () => {
     setDropdownOpen(false);
-    // For now, using the complex delete with dependencies
-    // In production, you would check if user has dependencies first
     actions.deleteWithDependencies();
   };
 
   return (
     <div>
       {deleteDialog}
-      {deleteFormDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
