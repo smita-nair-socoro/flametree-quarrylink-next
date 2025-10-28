@@ -143,74 +143,74 @@ export function useTeamMemberActions(
     <Form {...form}>
       <div className="space-y-3">
         {/* Account Manager Section */}
-            <div className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Users className="h-4 w-4 text-blue-600" />
-                Account Manager for {customerCount} customers
-              </div>
-              <FormSelect
-                control={form.control}
-                name="accountManagerReassignTo"
-                label="Reassign to:"
-                searchLabel="team member"
-                options={teamMemberOptions}
-                placeholder="Select team member..."
-                popoverWidthClass="w-[300px]"
-              />
-            </div>
+        <div className="border rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Users className="h-4 w-4 text-blue-600" />
+            Account Manager for {customerCount} customers
+          </div>
+          <FormSelect
+            control={form.control}
+            name="accountManagerReassignTo"
+            label="Reassign to:"
+            searchLabel="team member"
+            options={teamMemberOptions}
+            placeholder="Select team member..."
+            popoverWidthClass="w-[300px]"
+          />
+        </div>
 
-            {/* Quotations Section */}
-            <div className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <FileText className="h-4 w-4 text-green-600" />
-                Created {quotationCount} quotations
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="keep-historical"
-                  checked={keepHistoricalRecords}
-                  onCheckedChange={(checked) =>
-                    setKeepHistoricalRecords(checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="keep-historical"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Keep as &quot;{teamMemberData?.user_name}&quot; (Historical
-                  records)
-                </label>
-              </div>
-            </div>
+        {/* Quotations Section */}
+        <div className="border rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <FileText className="h-4 w-4 text-green-600" />
+            Created {quotationCount} quotations
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="keep-historical"
+              checked={keepHistoricalRecords}
+              onCheckedChange={(checked) =>
+                setKeepHistoricalRecords(checked as boolean)
+              }
+            />
+            <label
+              htmlFor="keep-historical"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Keep as &quot;{teamMemberData?.user_name}&quot; (Historical
+              records)
+            </label>
+          </div>
+        </div>
 
-            {/* Active Jobs Section */}
-            <div className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Briefcase className="h-4 w-4 text-purple-600" />
-                Assigned to {activeJobsCount} active jobs
-              </div>
-              <FormSelect
-                control={form.control}
-                name="jobReassignTo"
-                label="Reassign to:"
-                searchLabel="job"
-                options={jobOptions}
-                placeholder="Select job assignee..."
-                popoverWidthClass="w-[400px]"
-              />
-            </div>
+        {/* Active Jobs Section */}
+        <div className="border rounded-lg p-4 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Briefcase className="h-4 w-4 text-purple-600" />
+            Assigned to {activeJobsCount} active jobs
+          </div>
+          <FormSelect
+            control={form.control}
+            name="jobReassignTo"
+            label="Reassign to:"
+            searchLabel="job"
+            options={jobOptions}
+            placeholder="Select job assignee..."
+            popoverWidthClass="w-[400px]"
+          />
+        </div>
 
-            {/* Deletion Reason */}
-            <div className="space-y-2">
-              <Label htmlFor="deletion-reason" className="text-red-600">
-                Deletion Reason (required):
-              </Label>
-              <Textarea
-                id="deletion-reason"
-                placeholder="e.g., Employee left company"
-                {...form.register('deletionReason')}
-                className="min-h-[80px]"
-              />
+        {/* Deletion Reason */}
+        <div className="space-y-2">
+          <Label htmlFor="deletion-reason" className="text-red-600">
+            Deletion Reason (required):
+          </Label>
+          <Textarea
+            id="deletion-reason"
+            placeholder="e.g., Employee left company"
+            {...form.register('deletionReason')}
+            className="min-h-[80px]"
+          />
           {form.formState.errors.deletionReason && (
             <p className="text-sm text-red-600">
               {form.formState.errors.deletionReason.message}
