@@ -11,17 +11,19 @@ export default function BillingTab() {
   const usage = {
     totalUsers: 20,
     currentUsers: 3,
-    userPercentage: 15,
     totalDrivers: 20,
     currentDrivers: 8,
-    driverPercentage: 40,
     totalTrucks: 25,
     currentTrucks: 12,
-    truckPercentage: 48,
     totalQuarries: 25,
     currentQuarries: 12,
-    quarryPercentage: 48,
   };
+
+  const calculatePercentage = (current: number, total: number): number => {
+    if (total === 0) return 0;
+    return Math.round((current / total) * 100);
+  };
+
   const recentInvoices = [
     {
       date: 'March 2024',
@@ -55,6 +57,7 @@ export default function BillingTab() {
             </Button>
           </div>
         </CardHeader>
+        {/* Once API is ready, we can replace the static data with the actual data. */}
         <CardContent>
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
@@ -96,9 +99,16 @@ export default function BillingTab() {
                   {usage.currentUsers}/{usage.totalUsers}
                 </span>
               </div>
-              <Progress value={usage.userPercentage} className="h-2" />
+              <Progress
+                value={calculatePercentage(
+                  usage.currentUsers,
+                  usage.totalUsers
+                )}
+                className="h-2"
+              />
               <span className="text-xs text-[#6B7280]">
-                {usage.userPercentage}% used
+                {calculatePercentage(usage.currentUsers, usage.totalUsers)}%
+                used
               </span>
             </div>
 
@@ -110,9 +120,16 @@ export default function BillingTab() {
                   {usage.currentDrivers}/{usage.totalDrivers}
                 </span>
               </div>
-              <Progress value={usage.driverPercentage} className="h-2" />
+              <Progress
+                value={calculatePercentage(
+                  usage.currentDrivers,
+                  usage.totalDrivers
+                )}
+                className="h-2"
+              />
               <span className="text-xs text-[#6B7280]">
-                {usage.driverPercentage}% used
+                {calculatePercentage(usage.currentDrivers, usage.totalDrivers)}%
+                used
               </span>
             </div>
 
@@ -124,9 +141,16 @@ export default function BillingTab() {
                   {usage.currentTrucks}/{usage.totalTrucks}
                 </span>
               </div>
-              <Progress value={usage.truckPercentage} className="h-2" />
+              <Progress
+                value={calculatePercentage(
+                  usage.currentTrucks,
+                  usage.totalTrucks
+                )}
+                className="h-2"
+              />
               <span className="text-xs text-[#6B7280]">
-                {usage.truckPercentage}% used
+                {calculatePercentage(usage.currentTrucks, usage.totalTrucks)}%
+                used
               </span>
             </div>
 
@@ -138,9 +162,19 @@ export default function BillingTab() {
                   {usage.currentQuarries}/{usage.totalQuarries}
                 </span>
               </div>
-              <Progress value={usage.quarryPercentage} className="h-2" />
+              <Progress
+                value={calculatePercentage(
+                  usage.currentQuarries,
+                  usage.totalQuarries
+                )}
+                className="h-2"
+              />
               <span className="text-xs text-[#6B7280]">
-                {usage.quarryPercentage}% used
+                {calculatePercentage(
+                  usage.currentQuarries,
+                  usage.totalQuarries
+                )}
+                % used
               </span>
             </div>
           </div>

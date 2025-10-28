@@ -8,6 +8,8 @@ import rawJson from '@/lib/tests/quarryResponseData.json';
 import { Quarry } from '@/lib/types/quarry';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
 import { Plus } from 'lucide-react';
+import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
+import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
 
 import {
   DataTableClient,
@@ -21,6 +23,24 @@ export default function QuarriesSuppliersPage() {
     items: Quarry[];
   };
 
+  const setSelectedQuarrySupplier = useQuarrySupplierStore(
+    (state) => state.setSelectedQuarrySupplier
+  );
+  const [selectedQuarrySupplierForActions, setSelectedQuarrySupplierForActions] =
+    React.useState<Quarry | null>(null);
+
+  const { actions, viewDialog } = useQuarrySupplierActions(
+    selectedQuarrySupplierForActions?.id,
+    selectedQuarrySupplierForActions
+  );
+
+  // Handle row click to open quarry/supplier details
+  const handleRowClick = (quarrySupplier: Quarry) => {
+    setSelectedQuarrySupplier(quarrySupplier);
+    setSelectedQuarrySupplierForActions(quarrySupplier);
+    actions.view();
+  };
+
   const facetDefs: FacetDefinition[] = [
     { column: 'type', title: 'Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
@@ -29,6 +49,8 @@ export default function QuarriesSuppliersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {viewDialog}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Quarries & Suppliers</h1>
@@ -51,6 +73,7 @@ export default function QuarriesSuppliersPage() {
           columns={quarriesSuppliersColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search Quarries & Suppliers..."
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
