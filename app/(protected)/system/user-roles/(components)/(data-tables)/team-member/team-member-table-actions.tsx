@@ -10,46 +10,44 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { TeamMember } from '@/lib/types/team-member';
-import { DeleteTeamMemberModal } from './delete-team-member-modal';
+import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 
 interface TeamMemberTableActionsProps {
   teamMember: TeamMember;
 }
 
-export function TeamMemberTableActions({ teamMember }: TeamMemberTableActionsProps) {
+export function TeamMemberTableActions({
+  teamMember,
+}: TeamMemberTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
+  const { actions, deleteDialog } = useTeamMemberActions(
+    teamMember.id,
+    teamMember
+  );
 
   const handleDeactivate = () => {
     setDropdownOpen(false);
-    // TODO: Implement deactivate functionality
-    console.log('Deactivate user:', teamMember);
+    actions.deactivate();
   };
 
   const handleViewEdit = () => {
     setDropdownOpen(false);
-    // TODO: Implement view/edit functionality
-    console.log('View/Edit user:', teamMember);
+    actions.viewEdit();
   };
 
   const handleResetPassword = () => {
     setDropdownOpen(false);
-    // TODO: Implement reset password functionality
-    console.log('Reset password for user:', teamMember);
+    actions.resetPassword();
   };
 
   const handleDelete = () => {
     setDropdownOpen(false);
-    setDeleteModalOpen(true);
+    actions.delete();
   };
 
   return (
     <div>
-      <DeleteTeamMemberModal
-        teamMember={teamMember}
-        open={deleteModalOpen}
-        onOpenChange={setDeleteModalOpen}
-      />
+      {deleteDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">

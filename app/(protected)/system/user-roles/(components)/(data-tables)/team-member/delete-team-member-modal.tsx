@@ -9,16 +9,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { TeamMember } from '@/lib/types/team-member';
 import { AlertTriangle, Users, FileText, Briefcase } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { FormSelect } from '@/components/ui/form-select';
+import { Form } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 // Mock data for team members
 const MOCK_TEAM_MEMBERS = [
@@ -33,8 +31,22 @@ const MOCK_TEAM_MEMBERS = [
 const MOCK_ACTIVE_JOBS = [
   { id: '1', name: 'Construction Project Alpha', location: 'Downtown Site A' },
   { id: '2', name: 'Renovation Project Beta', location: 'Uptown Building B' },
-  { id: '3', name: 'Infrastructure Project Gamma', location: 'Industrial Zone C' },
+  {
+    id: '3',
+    name: 'Infrastructure Project Gamma',
+    location: 'Industrial Zone C',
+  },
 ];
+
+// Form schema
+const deleteTeamMemberSchema = z.object({
+  accountManagerReassignTo: z.string().min(1, 'Please select a team member'),
+  jobReassignTo: z.string().min(1, 'Please select a job assignee'),
+  keepHistoricalRecords: z.boolean(),
+  deletionReason: z.string().min(1, 'Deletion reason is required'),
+});
+
+type DeleteTeamMemberFormValues = z.infer<typeof deleteTeamMemberSchema>;
 
 interface DeleteTeamMemberModalProps {
   teamMember: TeamMember;
@@ -47,34 +59,48 @@ export function DeleteTeamMemberModal({
   open,
   onOpenChange,
 }: DeleteTeamMemberModalProps) {
-  const [accountManagerReassignTo, setAccountManagerReassignTo] = React.useState('');
-  const [jobReassignTo, setJobReassignTo] = React.useState('');
-  const [keepHistoricalRecords, setKeepHistoricalRecords] = React.useState(true);
-  const [deletionReason, setDeletionReason] = React.useState('');
+  const [keepHistoricalRecords, setKeepHistoricalRecords] =
+    React.useState(true);
+
+  const form = useForm<DeleteTeamMemberFormValues>({
+    resolver: zodResolver(deleteTeamMemberSchema),
+    defaultValues: {
+      accountManagerReassignTo: '',
+      jobReassignTo: '',
+      keepHistoricalRecords: true,
+      deletionReason: '',
+    },
+  });
 
   // Mock data - in real implementation, these would come from API
   const customerCount = 8;
   const quotationCount = 15;
   const activeJobsCount = 3;
 
-  const handleDelete = () => {
+  // Convert mock data to FormSelectOption format
+  const teamMemberOptions = MOCK_TEAM_MEMBERS.map((member) => ({
+    label: member.name,
+    value: member.id,
+  }));
+
+  const jobOptions = MOCK_ACTIVE_JOBS.map((job) => ({
+    label: `${job.name} - ${job.location}`,
+    value: job.id,
+  }));
+
+  const onSubmit = (data: DeleteTeamMemberFormValues) => {
     // TODO: Implement actual delete logic
     console.log('Deleting user:', {
       teamMember,
-      accountManagerReassignTo,
-      jobReassignTo,
-      keepHistoricalRecords,
-      deletionReason,
+      ...data,
     });
     onOpenChange(false);
+    form.reset();
   };
 
   const handleCancel = () => {
-    // Reset form
-    setAccountManagerReassignTo('');
-    setJobReassignTo('');
+    form.reset();
     setKeepHistoricalRecords(true);
-    setDeletionReason('');
     onOpenChange(false);
   };
 
@@ -88,7 +114,8 @@ export function DeleteTeamMemberModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
           <p className="text-sm text-muted-foreground">
             This user has dependencies that need to be reassigned before
             deletion can proceed.
@@ -107,24 +134,15 @@ export function DeleteTeamMemberModal({
               <Users className="h-4 w-4 text-blue-600" />
               Account Manager for {customerCount} customers
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="account-manager-reassign">Reassign to:</Label>
-              <Select
-                value={accountManagerReassignTo}
-                onValueChange={setAccountManagerReassignTo}
-              >
-                <SelectTrigger id="account-manager-reassign">
-                  <SelectValue placeholder="Select team member..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {MOCK_TEAM_MEMBERS.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <FormSelect
+              control={form.control}
+              name="accountManagerReassignTo"
+              label="Reassign to:"
+              searchLabel="team member"
+              options={teamMemberOptions}
+              placeholder="Select team member..."
+              popoverWidthClass="w-[300px]"
+            />
           </div>
 
           {/* Quotations Section */}
@@ -156,21 +174,15 @@ export function DeleteTeamMemberModal({
               <Briefcase className="h-4 w-4 text-purple-600" />
               Assigned to {activeJobsCount} active jobs
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="job-reassign">Reassign to:</Label>
-              <Select value={jobReassignTo} onValueChange={setJobReassignTo}>
-                <SelectTrigger id="job-reassign">
-                  <SelectValue placeholder="Select job assignee..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {MOCK_ACTIVE_JOBS.map((job) => (
-                    <SelectItem key={job.id} value={job.id}>
-                      {job.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <FormSelect
+              control={form.control}
+              name="jobReassignTo"
+              label="Reassign to:"
+              searchLabel="job"
+              options={jobOptions}
+              placeholder="Select job assignee..."
+              popoverWidthClass="w-[400px]"
+            />
           </div>
 
           {/* Deletion Reason */}
@@ -181,25 +193,30 @@ export function DeleteTeamMemberModal({
             <Textarea
               id="deletion-reason"
               placeholder="e.g., Employee left company"
-              value={deletionReason}
-              onChange={(e) => setDeletionReason(e.target.value)}
+              {...form.register('deletionReason')}
               className="min-h-[80px]"
             />
+            {form.formState.errors.deletionReason && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.deletionReason.message}
+              </p>
+            )}
           </div>
-        </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={!accountManagerReassignTo || !jobReassignTo || !deletionReason.trim()}
-          >
-            Delete & Reassign
-          </Button>
-        </div>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="destructive"
+              disabled={!form.formState.isValid}
+            >
+              Delete & Reassign
+            </Button>
+          </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
