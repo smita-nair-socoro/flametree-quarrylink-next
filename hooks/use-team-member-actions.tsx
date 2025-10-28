@@ -238,7 +238,7 @@ export function useTeamMemberActions(
     selectedAction || undefined
   );
 
-  const createDialogAction = (actionKey: string) => {
+  const createDialogAction = (actionKey: string, action?: () => void) => {
     return () => {
       setSelectedAction({ key: actionKey });
       setActiveDialog(actionKey);
