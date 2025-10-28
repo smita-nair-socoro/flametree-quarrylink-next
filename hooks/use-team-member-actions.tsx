@@ -135,7 +135,7 @@ export function useTeamMemberActions(
       return {
         deleteWithDependencies: {
           title: `Delete User: ${userName}`,
-          titleIcon: <Trash2 className="h-5 w-5 text-red-600" />,
+          titleIcon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
           description: (
             <div className="flex flex-col gap-2">
               <span className="text-sm text-muted-foreground">

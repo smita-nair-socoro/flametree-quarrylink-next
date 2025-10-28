@@ -70,8 +70,6 @@ export function TeamMemberTableActions({
             Reset Password
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator />
-
           <DropdownMenuItem
             onClick={handleDelete}
             className="text-destructive focus:text-destructive"
