@@ -1,5 +1,9 @@
 export interface User {
   id: number;
+  full_name: string;
+  phone: string;
+  email: string;
+  last_login_at: string;
   organisation_id: number;
   username?: string;
   email: string;
