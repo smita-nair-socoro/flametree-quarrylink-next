@@ -10,10 +10,8 @@ const PhoneOptional = z
   });
 
 export const InviteUserFormSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
+  full_name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: PhoneOptional,
   role: z.string().min(1, 'Role is required'),
 });
-
-export type InviteUserFormValues = z.infer<typeof InviteUserFormSchema>;

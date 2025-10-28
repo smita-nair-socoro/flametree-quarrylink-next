@@ -10,151 +10,172 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import z from 'zod';
 import React from 'react';
-import {
-  InviteUserFormSchema,
-  InviteUserFormValues,
-} from './schemas/invite-user-form-schema';
+import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
+
+const ROLE_OPTIONS: FormSelectOption[] = [
+  { label: 'User', value: 'user' },
+  { label: 'Admin', value: 'admin' },
+  { label: 'Manager', value: 'manager' },
+  { label: 'Viewer', value: 'viewer' },
+];
 
 interface InviteUserFormProps {
   onCancel?: () => void;
+  onSuccess?: () => void;
 }
 
-export default function InviteUserForm({ onCancel }: InviteUserFormProps) {
-  const form = useForm<InviteUserFormValues>({
+export default function InviteUserForm({
+  onCancel,
+  onSuccess,
+}: InviteUserFormProps) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const form = useForm<z.infer<typeof InviteUserFormSchema>>({
     resolver: zodResolver(InviteUserFormSchema),
     defaultValues: {
-      fullName: '',
+      full_name: '',
       email: '',
       phone: '',
-      role: '',
+      role: 'user',
     },
   });
 
-  const onSubmit = (data: InviteUserFormValues) => {
+  const onSubmit = async (data: z.infer<typeof InviteUserFormSchema>) => {
     console.log('Invite user data:', data);
-    onCancel?.();
+
+    setIsSubmitting(true);
+
+    // Simulate API call delay (remove this in production)
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setIsSubmitting(false);
+
+    // TODO: Add actual API call here
+    // On success, call onSuccess to close the dialog
+    onSuccess?.();
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
-        <p className="text-sm text-muted-foreground mb-6">
-          Send an invitation to a new team member with their assigned role and
-          contact information.
-        </p>
-
-        <FormField
-          control={form.control}
-          name="fullName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Full Name<span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="John Smith" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+    <div className="w-full relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10'
           )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Email Address<span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="john.smith@company.com"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Phone Number{' '}
-                <span className="text-muted-foreground">(optional)</span>
-              </FormLabel>
-              <FormControl>
-                <PhoneInput
-                  className="w-full"
-                  defaultCountry="AU"
-                  placeholder="Enter phone number"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="role"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Role<span className="text-destructive">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="User" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Separator className="my-4" />
-
-        <div className="flex justify-end gap-2 mb-4 mt-4">
-          <Button type="button" variant="outline" onClick={onCancel} size="lg">
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            size="lg"
-            className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white"
-          >
-            Send Invitation
-          </Button>
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              Sending Invitation...
+            </p>
+          </div>
         </div>
-      </form>
-    </Form>
+      )}
+
+      <Form {...form}>
+        <form
+          id="invite-user-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className={cn(
+            'space-y-1 px-2',
+            isSubmitting && 'pointer-events-none'
+          )}
+        >
+          <FormField
+            control={form.control}
+            name="full_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name*</FormLabel>
+                <FormControl>
+                  <Input placeholder="John Smith" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email Address*</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="john.smith@company.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Phone Number{' '}
+                  <span className="text-muted-foreground">(optional)</span>
+                </FormLabel>
+                <FormControl>
+                  <PhoneInput
+                    className="w-full"
+                    defaultCountry="AU"
+                    placeholder="Enter phone number"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="role"
+            label="Role*"
+            searchLabel="role"
+            options={ROLE_OPTIONS}
+            placeholder="Select role"
+            showSearch={false}
+          />
+
+          <Separator className="my-4" />
+
+          <div className="flex justify-end gap-2 mb-4 mt-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button
+              form="invite-user-form"
+              type="submit"
+              className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
+              disabled={isSubmitting}
+            >
+              Send Invitation
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }
