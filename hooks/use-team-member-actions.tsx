@@ -1,13 +1,15 @@
 'use client';
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
+import { FormDialog } from '@/components/form-dialog';
 import { TeamMember } from '@/lib/types/team-member';
-import { AlertTriangle, Users, FileText, Briefcase } from 'lucide-react';
+import { AlertTriangle, Users, FileText, Briefcase, Trash2 } from 'lucide-react';
 import { FormSelect } from '@/components/ui/form-select';
 import { Form } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -66,34 +68,43 @@ interface SelectedAction {
 
 const getDialogConfigs = (
   teamMemberData?: TeamMember | null,
-  selectedAction?: SelectedAction,
-  formComponent?: React.ReactNode
+  selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
   const userName = teamMemberData?.user_name;
 
-  if (selectedAction?.key === 'delete') {
+  if (selectedAction?.key === 'deleteSimple') {
     return {
-      delete: {
-        title: `Delete User: ${userName}`,
-        titleIcon: <AlertTriangle className="h-5 w-5 text-orange-500" />,
+      deleteSimple: {
+        title: 'Delete User',
+        titleIcon: <Trash2 className="h-5 w-5 text-red-600" />,
         description: (
-          <p className="text-sm text-muted-foreground">
-            This user has dependencies that need to be reassigned before
-            deletion can proceed.
-          </p>
+          <div className="flex flex-col gap-2">
+            <span className="font-medium">{userName}</span>
+            <span className="text-sm text-muted-foreground">
+              Are you sure you want to delete this user?
+            </span>
+          </div>
         ),
         content: (
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
               <p className="text-sm text-orange-800 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
-                This user has data that needs reassignment:
+                This action cannot be undone. The user will be permanently
+                removed from the system.
               </p>
             </div>
-            {formComponent}
+            <div>
+              <span className="font-semibold text-sm">What will happen:</span>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-outside pl-5 mt-2">
+                <li>User account will be permanently deleted</li>
+                <li>Access to the system will be revoked</li>
+                <li>Historical data will be preserved</li>
+              </ul>
+            </div>
           </div>
         ),
-        confirmText: 'Delete & Reassign',
+        confirmText: 'Delete User',
         confirmVariant: 'destructive',
         confirmActionNeeded: true,
       },
@@ -110,6 +121,7 @@ export function useTeamMemberActions(
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [deleteFormOpen, setDeleteFormOpen] = React.useState(false);
   const [keepHistoricalRecords, setKeepHistoricalRecords] =
     React.useState(true);
 
@@ -223,8 +235,7 @@ export function useTeamMemberActions(
 
   const dialogConfigs = getDialogConfigs(
     teamMemberData,
-    selectedAction || undefined,
-    formComponent
+    selectedAction || undefined
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -235,7 +246,10 @@ export function useTeamMemberActions(
   };
 
   const actions = {
-    delete: createDialogAction('delete'),
+    delete: createDialogAction('deleteSimple'),
+    deleteWithDependencies: () => {
+      setDeleteFormOpen(true);
+    },
     deactivate: () => {
       // TODO: Implement deactivate functionality
       console.log('Deactivate user:', teamMemberData);
@@ -249,6 +263,18 @@ export function useTeamMemberActions(
       console.log('Reset password for user:', teamMemberData);
     },
   };
+
+  // Handle form submission
+  const handleDeleteWithDependencies = form.handleSubmit((data) => {
+    // TODO: Implement actual delete logic with reassignments
+    console.log('Deleting user with dependencies:', {
+      teamMember: teamMemberData,
+      ...data,
+    });
+    setDeleteFormOpen(false);
+    form.reset();
+    setKeepHistoricalRecords(true);
+  });
 
   // Render active dialog
   const deleteDialog = Object.entries(dialogConfigs).map(([key, config]) => {
@@ -277,17 +303,11 @@ export function useTeamMemberActions(
         confirmActionNeeded={config.confirmActionNeeded}
         onConfirmAction={() => {
           switch (key) {
-            case 'delete':
-              form.handleSubmit((data) => {
-                // TODO: Implement actual delete logic
-                console.log('Deleting user:', {
-                  teamMember: teamMemberData,
-                  ...data,
-                });
-                setActiveDialog(null);
-                setSelectedAction(null);
-                form.reset();
-              })();
+            case 'deleteSimple':
+              // TODO: Implement actual simple delete logic
+              console.log('Deleting user:', teamMemberData);
+              setActiveDialog(null);
+              setSelectedAction(null);
               break;
           }
         }}
@@ -295,8 +315,66 @@ export function useTeamMemberActions(
     );
   });
 
+  // Render FormDialog for complex delete with dependencies
+  const deleteFormDialog = deleteFormOpen ? (
+    <FormDialog
+      key="deleteWithDependencies"
+      id={teamMemberId}
+      dialogTitle={`Delete User: ${teamMemberData?.user_name}`}
+      open={deleteFormOpen}
+      onOpenChangeAction={(open) => {
+        setDeleteFormOpen(open);
+        if (!open) {
+          form.reset();
+          setKeepHistoricalRecords(true);
+        }
+      }}
+      hideTrigger
+      dialogWidth="600px"
+    >
+      <div className="space-y-4 pb-4">
+        <p className="text-sm text-muted-foreground">
+          This user has dependencies that need to be reassigned before deletion
+          can proceed.
+        </p>
+
+        <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
+          <p className="text-sm text-orange-800 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            This user has data that needs reassignment:
+          </p>
+        </div>
+
+        {formComponent}
+
+        <div className="flex justify-end gap-3 pt-4 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setDeleteFormOpen(false);
+              form.reset();
+              setKeepHistoricalRecords(true);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDeleteWithDependencies}
+            disabled={!form.formState.isValid}
+          >
+            Delete & Reassign
+          </Button>
+        </div>
+      </div>
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     deleteDialog,
+    deleteFormDialog,
   };
 }
