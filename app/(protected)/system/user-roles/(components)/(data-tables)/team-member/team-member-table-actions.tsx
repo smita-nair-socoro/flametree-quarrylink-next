@@ -41,7 +41,7 @@ export function TeamMemberTableActions({
 
   const handleDelete = () => {
     setDropdownOpen(false);
-    actions.deleteWithDependencies();
+    actions.delete();
   };
 
   return (

@@ -46,17 +46,11 @@ interface DialogConfig {
   confirmActionNeeded?: boolean;
 }
 
-interface SelectedAction {
-  key: string;
-}
-
 export function useTeamMemberActions(
   teamMemberId: number | undefined,
   teamMemberData?: TeamMember | null
 ) {
-  const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
-  const [selectedAction, setSelectedAction] =
-    React.useState<SelectedAction | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   // State for delete with dependencies form
   const [accountManagerReassignTo, setAccountManagerReassignTo] =
@@ -74,9 +68,14 @@ export function useTeamMemberActions(
   }>({});
 
   // Mock data - in real implementation, these would come from API
+  // TODO: Fetch from API: GET /api/team-members/${teamMemberId}/dependencies
   const customerCount = 8;
   const quotationCount = 15;
   const activeJobsCount = 3;
+
+  // Check if user has dependencies that need reassignment
+  const hasDependencies =
+    customerCount > 0 || quotationCount > 0 || activeJobsCount > 0;
 
   // Convert mock data to SelectOption format
   const teamMemberOptions = MOCK_TEAM_MEMBERS.map((member) => ({
@@ -91,69 +90,31 @@ export function useTeamMemberActions(
 
   const userName = teamMemberData?.user_name;
 
-  const getDialogConfigs = (): Record<string, DialogConfig> => {
-    if (selectedAction?.key === 'deleteSimple') {
-      return {
-        deleteSimple: {
-          title: 'Delete User',
-          titleIcon: <Trash2 className="h-5 w-5 text-red-600" />,
-          description: (
-            <div className="flex flex-col gap-2">
-              <span className="font-medium">{userName}</span>
-              <span className="text-sm text-muted-foreground">
-                Are you sure you want to delete this user?
-              </span>
+  // Single delete dialog config that adapts based on dependencies
+  const deleteDialogConfig: DialogConfig = hasDependencies
+    ? {
+        // Has dependencies - show full reassignment form
+        title: `Delete User: ${userName}`,
+        titleIcon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
+        description: (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-muted-foreground">
+              This user has dependencies that need to be reassigned before
+              deletion can proceed.
+            </span>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-4">
+            <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
+              <p className="text-sm text-orange-800 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                This user has data that needs reassignment:
+              </p>
             </div>
-          ),
-          content: (
-            <div className="flex flex-col gap-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
-                <p className="text-sm text-orange-800 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  This action cannot be undone. The user will be permanently
-                  removed from the system.
-                </p>
-              </div>
-              <div>
-                <span className="font-semibold text-sm">What will happen:</span>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-outside pl-5 mt-2">
-                  <li>User account will be permanently deleted</li>
-                  <li>Access to the system will be revoked</li>
-                  <li>Historical data will be preserved</li>
-                </ul>
-              </div>
-            </div>
-          ),
-          confirmText: 'Delete User',
-          confirmVariant: 'destructive',
-          confirmActionNeeded: true,
-        },
-      };
-    }
 
-    if (selectedAction?.key === 'deleteWithDependencies') {
-      return {
-        deleteWithDependencies: {
-          title: `Delete User: ${userName}`,
-          titleIcon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
-          description: (
-            <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground">
-                This user has dependencies that need to be reassigned before
-                deletion can proceed.
-              </span>
-            </div>
-          ),
-          content: (
-            <div className="flex flex-col gap-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
-                <p className="text-sm text-orange-800 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  This user has data that needs reassignment:
-                </p>
-              </div>
-
-              {/* Account Manager Section */}
+            {/* Account Manager Section */}
+            {customerCount > 0 && (
               <div className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Users className="h-4 w-4 text-blue-600" />
@@ -170,8 +131,10 @@ export function useTeamMemberActions(
                   error={validationErrors.accountManager}
                 />
               </div>
+            )}
 
-              {/* Quotations Section */}
+            {/* Quotations Section */}
+            {quotationCount > 0 && (
               <div className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <FileText className="h-4 w-4 text-green-600" />
@@ -193,8 +156,10 @@ export function useTeamMemberActions(
                   </label>
                 </div>
               </div>
+            )}
 
-              {/* Active Jobs Section */}
+            {/* Active Jobs Section */}
+            {activeJobsCount > 0 && (
               <div className="border rounded-lg p-4 space-y-3">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Briefcase className="h-4 w-4 text-purple-600" />
@@ -211,45 +176,66 @@ export function useTeamMemberActions(
                   error={validationErrors.job}
                 />
               </div>
+            )}
 
-              {/* Deletion Reason */}
-              <div className="space-y-2">
-                <Label htmlFor="deletion-reason" className="text-red-600">
-                  Deletion Reason (required):
-                </Label>
-                <Textarea
-                  id="deletion-reason"
-                  placeholder="e.g., Employee left company"
-                  value={deletionReason}
-                  onChange={(e) => setDeletionReason(e.target.value)}
-                  className="min-h-[80px]"
-                />
-                {validationErrors.reason && (
-                  <p className="text-sm text-red-600">
-                    {validationErrors.reason}
-                  </p>
-                )}
-              </div>
+            {/* Deletion Reason */}
+            <div className="space-y-2">
+              <Label htmlFor="deletion-reason" className="text-red-600">
+                Deletion Reason (required):
+              </Label>
+              <Textarea
+                id="deletion-reason"
+                placeholder="e.g., Employee left company"
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                className="min-h-[80px]"
+              />
+              {validationErrors.reason && (
+                <p className="text-sm text-red-600">
+                  {validationErrors.reason}
+                </p>
+              )}
             </div>
-          ),
-          confirmText: 'Delete & Reassign',
-          confirmVariant: 'destructive',
-          confirmActionNeeded: true,
-        },
+          </div>
+        ),
+        confirmText: 'Delete & Reassign',
+        confirmVariant: 'destructive',
+        confirmActionNeeded: true,
+      }
+    : {
+        // No dependencies - show simple confirmation
+        title: `Delete User: ${userName}`,
+        titleIcon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
+        description: (
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-muted-foreground">
+              Are you sure you want to delete this user?
+            </span>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-4">
+            <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
+              <p className="text-sm text-orange-800 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                This action cannot be undone. The user will be permanently
+                removed from the system.
+              </p>
+            </div>
+            <div>
+              <span className="font-semibold text-sm">What will happen:</span>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-outside pl-5 mt-2">
+                <li>User account will be permanently deleted</li>
+                <li>Access to the system will be revoked</li>
+                <li>Historical data will be preserved</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Delete User',
+        confirmVariant: 'destructive',
+        confirmActionNeeded: true,
       };
-    }
-
-    return {};
-  };
-
-  const dialogConfigs = getDialogConfigs();
-
-  const createDialogAction = (actionKey: string) => {
-    return () => {
-      setSelectedAction({ key: actionKey });
-      setActiveDialog(actionKey);
-    };
-  };
 
   const resetDeleteForm = () => {
     setAccountManagerReassignTo(undefined);
@@ -260,13 +246,19 @@ export function useTeamMemberActions(
   };
 
   const validateDeleteForm = (): boolean => {
+    // Only validate if there are dependencies
+    if (!hasDependencies) {
+      return true;
+    }
+
     const errors: typeof validationErrors = {};
 
-    if (!accountManagerReassignTo) {
+    // Only validate fields that are shown
+    if (customerCount > 0 && !accountManagerReassignTo) {
       errors.accountManager = 'Please select a team member';
     }
 
-    if (!jobReassignTo) {
+    if (activeJobsCount > 0 && !jobReassignTo) {
       errors.job = 'Please select a job assignee';
     }
 
@@ -279,8 +271,9 @@ export function useTeamMemberActions(
   };
 
   const actions = {
-    delete: createDialogAction('deleteSimple'),
-    deleteWithDependencies: createDialogAction('deleteWithDependencies'),
+    delete: () => {
+      setIsDeleteDialogOpen(true);
+    },
     deactivate: () => {
       // TODO: Implement deactivate functionality
       console.log('Deactivate user:', teamMemberData);
@@ -295,59 +288,55 @@ export function useTeamMemberActions(
     },
   };
 
-  // Render active dialog
-  const deleteDialog = Object.entries(dialogConfigs).map(([key, config]) => {
-    if (activeDialog !== key) return null;
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (!validateDeleteForm()) {
+      return;
+    }
 
-    return (
-      <ActionDialog
-        key={key}
-        open={activeDialog === key}
-        onOpenChangeAction={(open) => {
-          if (!open) {
-            setActiveDialog(null);
-            setSelectedAction(null);
-            resetDeleteForm();
-          }
-        }}
-        title={config.title ?? ''}
-        titleIcon={config.titleIcon}
-        description={config.description}
-        content={config.content}
-        confirmText={config.confirmText ?? ''}
-        confirmVariant={config.confirmVariant}
-        confirmCustomColor={config.confirmCustomColor}
-        confirmCustomClass={config.confirmCustomClass}
-        confirmIcon={config.confirmIcon}
-        confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
-          switch (key) {
-            case 'deleteSimple':
-              // TODO: Implement actual simple delete logic
-              console.log('Deleting user:', teamMemberData);
-              setActiveDialog(null);
-              setSelectedAction(null);
-              break;
-            case 'deleteWithDependencies':
-              if (validateDeleteForm()) {
-                // TODO: Implement actual delete logic with reassignments
-                console.log('Deleting user with dependencies:', {
-                  teamMember: teamMemberData,
-                  accountManagerReassignTo,
-                  jobReassignTo,
-                  keepHistoricalRecords,
-                  deletionReason,
-                });
-                setActiveDialog(null);
-                setSelectedAction(null);
-                resetDeleteForm();
-              }
-              break;
-          }
-        }}
-      />
-    );
-  });
+    if (hasDependencies) {
+      // TODO: Implement actual delete logic with reassignments
+      // API call: DELETE /api/team-members/${teamMemberId} with reassignment data
+      console.log('Deleting user with dependencies:', {
+        teamMember: teamMemberData,
+        accountManagerReassignTo,
+        jobReassignTo,
+        keepHistoricalRecords,
+        deletionReason,
+      });
+    } else {
+      // TODO: Implement actual simple delete logic
+      // API call: DELETE /api/team-members/${teamMemberId}
+      console.log('Deleting user:', teamMemberData);
+    }
+
+    setIsDeleteDialogOpen(false);
+    resetDeleteForm();
+  };
+
+  // Render delete dialog
+  const deleteDialog = (
+    <ActionDialog
+      open={isDeleteDialogOpen}
+      onOpenChangeAction={(open) => {
+        setIsDeleteDialogOpen(open);
+        if (!open) {
+          resetDeleteForm();
+        }
+      }}
+      title={deleteDialogConfig.title ?? ''}
+      titleIcon={deleteDialogConfig.titleIcon}
+      description={deleteDialogConfig.description}
+      content={deleteDialogConfig.content}
+      confirmText={deleteDialogConfig.confirmText ?? ''}
+      confirmVariant={deleteDialogConfig.confirmVariant}
+      confirmCustomColor={deleteDialogConfig.confirmCustomColor}
+      confirmCustomClass={deleteDialogConfig.confirmCustomClass}
+      confirmIcon={deleteDialogConfig.confirmIcon}
+      confirmActionNeeded={deleteDialogConfig.confirmActionNeeded}
+      onConfirmAction={handleDeleteConfirm}
+    />
+  );
 
   return {
     actions,
