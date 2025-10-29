@@ -3,7 +3,6 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { TeamMember } from '@/lib/types/team-member';
 import {
@@ -122,13 +121,8 @@ const TeamsMemberMockData: TeamMember[] = [
 ];
 
 export default function TeamAdminTab() {
-  const [selectedMember, setSelectedMember] = React.useState<TeamMember | null>(
-    null
-  );
-
   // Handle row click to open member details
   const handleRowClick = (member: TeamMember) => {
-    setSelectedMember(member);
     // TODO: Implement member details view
     console.log('Selected member:', member);
   };
@@ -139,20 +133,17 @@ export default function TeamAdminTab() {
   ];
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-6">
+    <div className="flex flex-1 flex-col gap-4 py-2">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h2 className="text-[24px] font-bold">Team Management</h2>
+          <h2 className="text-[23px] font-semibold">Team Management</h2>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
             dialogTitle="Invite User"
+            dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
             dialogWidth="max-w-md"
-            trigger={
-              <Button className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white">
-                <Plus className="h-4 w-4" /> Invite User
-              </Button>
-            }
+            buttonTitle="Invite User"
           >
             <InviteUserForm />
           </FormDialog>
