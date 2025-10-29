@@ -139,7 +139,12 @@ export default function TeamAdminTab() {
           <h2 className="text-[23px] font-semibold">Team Management</h2>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog dialogTitle="Invite User" dialogWidth="max-w-md">
+          <FormDialog
+            dialogTitle="Invite User"
+            dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
+            dialogWidth="max-w-md"
+            buttonTitle="Invite User"
+          >
             <InviteUserForm />
           </FormDialog>
         </div>
