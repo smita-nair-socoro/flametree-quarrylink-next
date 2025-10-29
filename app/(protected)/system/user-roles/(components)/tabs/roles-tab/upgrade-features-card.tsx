@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export interface UpgradeFeaturesCardProps {
+interface UpgradeFeaturesCardProps {
   title: string;
   description: string;
   buttonText?: string;

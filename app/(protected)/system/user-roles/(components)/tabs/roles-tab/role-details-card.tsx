@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface RoleDetailsCardProps {
+interface RoleDetailsCardProps {
   roleName: string;
   roleType: 'admin' | 'user';
   title: string;

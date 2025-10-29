@@ -14,19 +14,19 @@ import { Check, X, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toneVariants } from './subscription-card';
 
-export interface PermissionRole {
+interface PermissionRole {
   name: string;
   isAdmin: boolean;
 }
 
-export interface PermissionModule {
+interface PermissionModule {
   name: string;
   permissions: {
     [roleKey: string]: boolean;
   };
 }
 
-export interface PermissionMatrixProps {
+interface PermissionMatrixProps {
   title: string;
   description: string;
   roles: PermissionRole[];
@@ -127,9 +127,7 @@ export function PermissionMatrix({
 
         {/* Legend */}
         <div className="mt-3 px-2 py-3 bg-[#F9FAFB] rounded-md space-y-2">
-          <div className="font-medium text-foreground text-[13px]">
-            Legend:
-          </div>
+          <div className="font-medium text-foreground text-[13px]">Legend:</div>
           <div className="flex items-center text-xs font-normal justify-between">
             <div className="flex items-center gap-2 w-1/3">
               <Check className="h-4 w-4 text-green-600" />

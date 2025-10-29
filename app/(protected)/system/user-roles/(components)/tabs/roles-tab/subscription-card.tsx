@@ -23,7 +23,7 @@ const toneVariants = {
   },
 } as const;
 
-export interface SubscriptionPlanCardProps {
+interface SubscriptionPlanCardProps {
   price: string;
   planName: string;
   description: string;
