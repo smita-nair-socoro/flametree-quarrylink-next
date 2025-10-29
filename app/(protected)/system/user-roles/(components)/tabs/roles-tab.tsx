@@ -9,7 +9,7 @@ import { UpgradeFeaturesCard } from './roles-tab/upgrade-features-card';
 // ==================== Main RolesTab Component ====================
 export default function RolesTab() {
   // Selected plan state (default to first plan)
-  const [selectedPlanIndex, setSelectedPlanIndex] = React.useState(0);
+  const [selectedPlanId, setSelectedPlanId] = React.useState('essentials');
 
   const subscriptionPlans = [
     {
@@ -216,7 +216,7 @@ export default function RolesTab() {
     },
   ];
 
-  const selectedPlan = subscriptionPlans[selectedPlanIndex];
+  const selectedPlan = subscriptionPlans.find((plan) => plan.id === selectedPlanId) || subscriptionPlans[0];
 
   // Permission matrix configuration
   const permissionRoles = [
@@ -248,7 +248,7 @@ export default function RolesTab() {
 
         {/* Subscription Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {subscriptionPlans.map((plan, index) => (
+          {subscriptionPlans.map((plan) => (
             <SubscriptionPlanCard
               key={plan.id}
               price={plan.price}
@@ -256,8 +256,8 @@ export default function RolesTab() {
               description={plan.description}
               minUsers={plan.minUsers}
               tone={plan.tone}
-              isSelected={selectedPlanIndex === index}
-              onClick={() => setSelectedPlanIndex(index)}
+              isSelected={selectedPlanId === plan.id}
+              onClick={() => setSelectedPlanId(plan.id)}
             />
           ))}
         </div>
@@ -305,11 +305,11 @@ export default function RolesTab() {
       </div>
 
       {/* Upgrade Features Card - Only show if not on PRO plan */}
-      {selectedPlanIndex < subscriptionPlans.length - 1 && (
+      {selectedPlanId !== 'pro' && (
         <UpgradeFeaturesCard
           title="Unlock More Features"
           description={
-            selectedPlanIndex === 0
+            selectedPlanId === 'essentials'
               ? 'Upgrade to QuarryLink Plus for advanced features'
               : 'Upgrade to QuarryLink Pro for advanced features'
           }

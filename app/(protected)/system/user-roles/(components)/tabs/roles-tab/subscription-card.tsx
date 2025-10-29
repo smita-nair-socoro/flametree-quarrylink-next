@@ -29,7 +29,7 @@ export interface SubscriptionPlanCardProps {
   description: string;
   minUsers: number;
   tone: keyof typeof toneVariants;
-  isSelected?: boolean;
+  isSelected: boolean;
   onClick?: () => void;
 }
 

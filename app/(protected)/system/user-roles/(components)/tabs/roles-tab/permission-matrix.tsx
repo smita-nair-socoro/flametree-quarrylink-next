@@ -93,12 +93,10 @@ export function PermissionMatrix({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {modules.map((module, moduleIndex) => (
+            {modules.map((module) => (
               <TableRow
                 key={module.name}
-                className={cn(
-                  moduleIndex % 2 === 0 ? 'bg-white' : 'bg-[#F9FAFB]'
-                )}
+                className="even:bg-[#F9FAFB] odd:bg-white"
               >
                 <TableCell className="text-[13px] font-medium">
                   {module.name}
