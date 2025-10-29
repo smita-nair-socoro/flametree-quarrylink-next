@@ -216,7 +216,9 @@ export default function RolesTab() {
     },
   ];
 
-  const selectedPlan = subscriptionPlans.find((plan) => plan.id === selectedPlanId) || subscriptionPlans[0];
+  const selectedPlan =
+    subscriptionPlans.find((plan) => plan.id === selectedPlanId) ||
+    subscriptionPlans[0];
 
   // Permission matrix configuration
   const permissionRoles = [
@@ -225,7 +227,7 @@ export default function RolesTab() {
   ];
 
   return (
-    <div className="p-6 space-y-3">
+    <div className="py-3 space-y-3">
       {/* Header */}
       <div>
         <h2 className="text-xl font-bold mb-2">Roles & Permissions</h2>
@@ -238,9 +240,7 @@ export default function RolesTab() {
       {/* Current Subscription Plan Section */}
       <div className="border rounded-lg p-6 space-y-4 bg-white">
         <div>
-          <h3 className="font-medium text-[13px]">
-            Current Subscription Plan
-          </h3>
+          <h3 className="font-medium text-[13px]">Current Subscription Plan</h3>
           <p className="text-[13px] font-normal text-muted-foreground">
             Select a plan to view its permission matrix and available features
           </p>
