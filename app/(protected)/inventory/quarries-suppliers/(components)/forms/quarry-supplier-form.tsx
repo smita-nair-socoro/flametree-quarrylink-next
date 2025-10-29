@@ -26,21 +26,30 @@ import { AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
+import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 
 interface FormProps {
+  id?: number;
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
 }
 
 export default function QuarrySupplierForm({
+  id,
   onCancel,
   className,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [isEditing] = React.useState(Boolean(id));
+  const selectedQuarrySupplier = useSelectedQuarrySupplier();
 
-  // Initialize states with default values
-  const [selectedType, setSelectedType] = React.useState<string>('QUARRY');
+  // Initialize states with selected quarry/supplier data only when editing, defaults otherwise
+  const [selectedType, setSelectedType] = React.useState<string>(
+    isEditing && selectedQuarrySupplier?.type
+      ? selectedQuarrySupplier.type
+      : 'QUARRY'
+  );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -56,9 +65,7 @@ export default function QuarrySupplierForm({
   });
   const [searchInput, setSearchInput] = React.useState('');
 
-  const quarrySupplierForm = useForm<
-    z.infer<typeof QuarrySupplierFormSchema>
-  >({
+  const quarrySupplierForm = useForm<z.infer<typeof QuarrySupplierFormSchema>>({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
     defaultValues: {
@@ -68,12 +75,19 @@ export default function QuarrySupplierForm({
       email: '',
       phone: '',
       address: '', // Will be handled separately for address autocomplete
-      contact_person_name: '',
-      contact_person_phone: '',
-      contact_person_email: '',
-      opening_closing_times: '',
-      weighbridge_info: '',
-      notes: '',
+      contact_person_name: isEditing
+        ? selectedQuarrySupplier?.contact_person_name || ''
+        : '',
+      contact_person_phone: isEditing
+        ? selectedQuarrySupplier?.contact_person_phone || ''
+        : '',
+      contact_person_email: isEditing
+        ? selectedQuarrySupplier?.contact_person_email || ''
+        : '',
+      opening_closing_times: isEditing
+        ? selectedQuarrySupplier?.opening_closing_times || ''
+        : '',
+      notes: isEditing ? selectedQuarrySupplier?.notes || '' : '',
       created_at: undefined,
       updated_at: undefined,
       created_by: 'current_user',
@@ -87,6 +101,53 @@ export default function QuarrySupplierForm({
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
   };
+
+  // Effect to reset form when selected quarry/supplier changes
+  React.useEffect(() => {
+    if (selectedQuarrySupplier && isEditing) {
+      setSelectedType(selectedQuarrySupplier.type);
+
+      quarrySupplierForm.reset({
+        type: selectedQuarrySupplier.type,
+        name: selectedQuarrySupplier.name || '',
+        website:
+          selectedQuarrySupplier.website === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.website || '',
+        email: selectedQuarrySupplier.email || '',
+        phone: selectedQuarrySupplier.phone || '',
+        address: '', // Will be handled separately
+        contact_person_name:
+          selectedQuarrySupplier.contact_person_name === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.contact_person_name || '',
+        contact_person_phone:
+          selectedQuarrySupplier.contact_person_phone === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.contact_person_phone || '',
+        contact_person_email:
+          selectedQuarrySupplier.contact_person_email === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.contact_person_email || '',
+        opening_closing_times:
+          selectedQuarrySupplier.opening_closing_times === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.opening_closing_times || '',
+        notes:
+          selectedQuarrySupplier.notes === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.notes || '',
+        created_at: selectedQuarrySupplier.created_at
+          ? new Date(selectedQuarrySupplier.created_at)
+          : undefined,
+        updated_at: selectedQuarrySupplier.updated_at
+          ? new Date(selectedQuarrySupplier.updated_at)
+          : undefined,
+        created_by: selectedQuarrySupplier.created_by,
+        last_modified_by: selectedQuarrySupplier.last_modified_by,
+      });
+    }
+  }, [selectedQuarrySupplier, isEditing, quarrySupplierForm]);
 
   // Effect to handle address changes
   React.useEffect(() => {
@@ -109,9 +170,7 @@ export default function QuarrySupplierForm({
     [quarrySupplierForm]
   );
 
-  async function onSubmit(
-    values: z.infer<typeof QuarrySupplierFormSchema>
-  ) {
+  async function onSubmit(values: z.infer<typeof QuarrySupplierFormSchema>) {
     console.log('onSubmit function called!');
     console.log('Quarry/Supplier Form Values:', values);
 
@@ -185,7 +244,7 @@ export default function QuarrySupplierForm({
             name="type"
             render={({ field }) => (
               <FormItem className="col-span-1 col-start-1">
-                <FormLabel className='mb-3'>Type*</FormLabel>
+                <FormLabel className="mb-3">Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
                     onValueChange={(value) => {
@@ -223,7 +282,13 @@ export default function QuarrySupplierForm({
           </div>
 
           {/* Basic Information Fields with reduced spacing */}
-          <div className={isDesktop ? 'col-span-full grid grid-cols-2 gap-x-5' : 'col-span-full'}>
+          <div
+            className={
+              isDesktop
+                ? 'col-span-full grid grid-cols-2 gap-x-5'
+                : 'col-span-full'
+            }
+          >
             {/* Name */}
             <FormField
               control={quarrySupplierForm.control}
@@ -231,12 +296,18 @@ export default function QuarrySupplierForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {selectedType === 'QUARRY' ? 'Quarry Name*' : 'Supplier Name*'}
+                    {selectedType === 'QUARRY'
+                      ? 'Quarry Name*'
+                      : 'Supplier Name*'}
                   </FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
-                      placeholder={selectedType === 'QUARRY' ? 'Enter quarry name' : 'Enter supplier name'}
+                      placeholder={
+                        selectedType === 'QUARRY'
+                          ? 'Enter quarry name'
+                          : 'Enter supplier name'
+                      }
                       {...field}
                     />
                   </FormControl>
@@ -270,7 +341,7 @@ export default function QuarrySupplierForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email*</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
@@ -289,7 +360,7 @@ export default function QuarrySupplierForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Phone*</FormLabel>
                   <FormControl>
                     <PhoneInput
                       className="w-full"
@@ -338,7 +409,13 @@ export default function QuarrySupplierForm({
           </div>
 
           {/* Contact Person Fields */}
-          <div className={isDesktop ? 'col-span-full grid grid-cols-3 gap-4' : 'col-span-full'}>
+          <div
+            className={
+              isDesktop
+                ? 'col-span-full grid grid-cols-3 gap-4'
+                : 'col-span-full'
+            }
+          >
             {/* Contact Person Name */}
             <FormField
               control={quarrySupplierForm.control}
@@ -466,12 +543,78 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
+          <Separator className="col-span-full my-2 mb-5" />
+          {/* Audit Information */}
+          {isEditing && (
+            <div className="col-span-full space-y-6">
+              <h2 className="text-2xl font-bold">Audit Information</h2>
+
+              <div
+                className={cn(
+                  'grid gap-3',
+                  isDesktop ? 'grid-cols-2 gap-2 max-w-3xl' : 'grid-cols-1'
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Create By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedQuarrySupplier?.created_by || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedQuarrySupplier?.last_modified_by || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Create Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedQuarrySupplier?.created_at
+                      ? new Date(
+                          selectedQuarrySupplier.created_at
+                        ).toLocaleDateString('en-AU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                        })
+                      : 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedQuarrySupplier?.updated_at
+                      ? new Date(
+                          selectedQuarrySupplier.updated_at
+                        ).toLocaleDateString('en-AU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit',
+                        })
+                      : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Form Actions */}
           {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6 mt-6">
+            <div className="flex justify-end space-x-2 col-span-2 my-6">
               <Button variant="outline" type="button" onClick={onCancel}>
-                Cancel
+                {isEditing ? 'Close' : 'Cancel'}
               </Button>
               <Button
                 form="add-quarry-supplier-form"
@@ -479,18 +622,22 @@ export default function QuarrySupplierForm({
                 type="submit"
                 disabled={isSubmitting}
               >
-                Add {selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}
+                {isEditing
+                  ? 'Save Changes'
+                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
               </Button>
             </div>
           )}
 
           {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 mb-6 mt-6">
+            <div className="flex flex-col col-span-2 gap-3 my-6">
               <Button type="submit" className="cursor-pointer">
-                Add {selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}
+                {isEditing
+                  ? 'Save Changes'
+                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
-                Cancel
+                {isEditing ? 'Close' : 'Cancel'}
               </Button>
             </div>
           )}
