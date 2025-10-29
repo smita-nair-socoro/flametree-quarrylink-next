@@ -2,7 +2,13 @@
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { TeamMember } from '@/lib/types/team-member';
-import { AlertTriangle, Users, FileText, Briefcase, Trash2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Users,
+  FileText,
+  Briefcase,
+  Trash2,
+} from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -61,6 +67,7 @@ export function useTeamMemberActions(
   const [keepHistoricalRecords, setKeepHistoricalRecords] =
     React.useState(true);
   const [deletionReason, setDeletionReason] = React.useState('');
+  // Not sure if we need this to be done manually or use zod?
   const [validationErrors, setValidationErrors] = React.useState<{
     accountManager?: string;
     job?: string;
@@ -69,9 +76,39 @@ export function useTeamMemberActions(
 
   // Mock data - in real implementation, these would come from API
   // TODO: Fetch from API: GET /api/team-members/${teamMemberId}/dependencies
-  const customerCount = 8;
-  const quotationCount = 15;
-  const activeJobsCount = 3;
+  // Simulate different dependency scenarios based on team member ID
+  const getMockDependencies = (id: number | undefined) => {
+    if (!id) return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+
+    // Different scenarios for testing both flows
+    switch (id) {
+      case 1: // Armin - Full dependencies
+        return { customerCount: 8, quotationCount: 15, activeJobsCount: 3 };
+      case 2: // Sarah - Only customers
+        return { customerCount: 5, quotationCount: 0, activeJobsCount: 0 };
+      case 3: // Mike - No dependencies (pending user)
+        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+      case 4: // Emma - Customers and quotations
+        return { customerCount: 3, quotationCount: 8, activeJobsCount: 0 };
+      case 5: // David - Only jobs
+        return { customerCount: 0, quotationCount: 0, activeJobsCount: 2 };
+      case 6: // Lisa - All types
+        return { customerCount: 12, quotationCount: 20, activeJobsCount: 5 };
+      case 7: // James - No dependencies
+        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+      case 8: // Maria - Quotations only
+        return { customerCount: 0, quotationCount: 7, activeJobsCount: 0 };
+      case 9: // Tom - No dependencies (pending)
+        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+      case 10: // Jessica - No dependencies (inactive)
+        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+      default:
+        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+    }
+  };
+
+  const { customerCount, quotationCount, activeJobsCount } =
+    getMockDependencies(teamMemberId);
 
   // Check if user has dependencies that need reassignment
   const hasDependencies =
@@ -90,33 +127,77 @@ export function useTeamMemberActions(
 
   const userName = teamMemberData?.user_name;
 
-  // Single delete dialog config that adapts based on dependencies
-  const deleteDialogConfig: DialogConfig = hasDependencies
-    ? {
-        // Has dependencies - show full reassignment form
-        title: `Delete User: ${userName}`,
-        titleIcon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
-        description: (
-          <div className="flex flex-col gap-2">
+  // Helper function to format role for display
+  const formatRole = (role: string | undefined) => {
+    if (!role) return '';
+    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+  };
+
+  // Single delete dialog config - same structure for both cases
+  const deleteDialogConfig: DialogConfig = {
+    title: 'Delete User',
+    description: (
+      <div className="flex flex-col gap-3">
+        {/* User Info Card */}
+        <div className="flex items-center gap-3 rounded-lg">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <Trash2 className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-semibold text-base">{userName}</span>
             <span className="text-sm text-muted-foreground">
-              This user has dependencies that need to be reassigned before
-              deletion can proceed.
+              {teamMemberData?.email}
+              {teamMemberData?.role && (
+                <>
+                  {' • '}
+                  {formatRole(teamMemberData.role)}
+                </>
+              )}
             </span>
           </div>
-        ),
-        content: (
-          <div className="flex flex-col gap-4">
-            <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
-              <p className="text-sm text-orange-800 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                This user has data that needs reassignment:
-              </p>
-            </div>
-
+        </div>
+        {/* Confirmation text */}
+        <span className="text-sm">
+          Are you sure you want to delete this user?
+        </span>
+        {/* Warning Box */}
+        <div className="bg-[#FFE2E2] border border-[#E7000B] rounded-md p-3 flex gap-3 text-[#E7000B]">
+          <Trash2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold mb-1">Permanent Deletion</p>
+            <p className="text-sm">
+              This action cannot be undone. The user will be permanently removed
+              from the system and will lose access immediately.
+            </p>
+          </div>
+        </div>
+        {/* Dependency warning text - Only show when hasDependencies */}
+        {hasDependencies && (
+          <span className="text-sm text-muted-foreground">
+            This user has dependencies that need to be reassigned before
+            deletion can proceed.
+          </span>
+        )}
+      </div>
+    ),
+    content: (
+      <div className="flex flex-col gap-4">
+        {/* Dependency reassignment warning - Only show when hasDependencies */}
+        {hasDependencies && (
+          <div className="bg-orange-50 border border-orange-400 rounded-md p-3 flex text-orange-800">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+            <p className="text-sm font-medium">
+              This user has data that needs reassignment:
+            </p>
+          </div>
+        )}
+        {/* Conditional Dependency Sections - Only show when hasDependencies */}
+        {hasDependencies && (
+          <>
             {/* Account Manager Section */}
             {customerCount > 0 && (
-              <div className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Users className="h-4 w-4 text-blue-600" />
                   Account Manager for {customerCount} customers
                 </div>
@@ -129,28 +210,36 @@ export function useTeamMemberActions(
                   placeholder="Select team member..."
                   popoverWidthClass="w-[300px]"
                   error={validationErrors.accountManager}
+                  className="bg-white border-border text-foreground"
                 />
               </div>
             )}
 
             {/* Quotations Section */}
             {quotationCount > 0 && (
-              <div className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <FileText className="h-4 w-4 text-green-600" />
                   Created {quotationCount} quotations
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <Checkbox
                     id="keep-historical"
                     checked={keepHistoricalRecords}
-                    onCheckedChange={(checked) =>
-                      setKeepHistoricalRecords(checked as boolean)
-                    }
+                    onCheckedChange={(v) => setKeepHistoricalRecords(!!v)}
+                    className="
+                    h-5 w-5
+                    border-2 border-gray-300
+                    rounded
+                    data-[state=checked]:bg-white
+                    data-[state=checked]:border-gray-600
+                    data-[state=checked]:text-gray-900
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600
+                  "
                   />
                   <label
                     htmlFor="keep-historical"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-sm text-foreground cursor-pointer select-none"
                   >
                     Keep as &quot;{userName}&quot; (Historical records)
                   </label>
@@ -160,8 +249,8 @@ export function useTeamMemberActions(
 
             {/* Active Jobs Section */}
             {activeJobsCount > 0 && (
-              <div className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                   <Briefcase className="h-4 w-4 text-purple-600" />
                   Assigned to {activeJobsCount} active jobs
                 </div>
@@ -174,68 +263,48 @@ export function useTeamMemberActions(
                   placeholder="Select job assignee..."
                   popoverWidthClass="w-[400px]"
                   error={validationErrors.job}
+                  className="bg-white border-border text-foreground"
                 />
               </div>
             )}
+          </>
+        )}
 
-            {/* Deletion Reason */}
-            <div className="space-y-2">
-              <Label htmlFor="deletion-reason" className="text-red-600">
-                Deletion Reason (required):
-              </Label>
-              <Textarea
-                id="deletion-reason"
-                placeholder="e.g., Employee left company"
-                value={deletionReason}
-                onChange={(e) => setDeletionReason(e.target.value)}
-                className="min-h-[80px]"
-              />
-              {validationErrors.reason && (
-                <p className="text-sm text-red-600">
-                  {validationErrors.reason}
-                </p>
-              )}
-            </div>
-          </div>
-        ),
-        confirmText: 'Delete & Reassign',
-        confirmVariant: 'destructive',
-        confirmActionNeeded: true,
-      }
-    : {
-        // No dependencies - show simple confirmation
-        title: `Delete User: ${userName}`,
-        titleIcon: <AlertTriangle className="h-5 w-5 text-orange-600" />,
-        description: (
-          <div className="flex flex-col gap-2">
-            <span className="text-sm text-muted-foreground">
-              Are you sure you want to delete this user?
-            </span>
-          </div>
-        ),
-        content: (
-          <div className="flex flex-col gap-4">
-            <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
-              <p className="text-sm text-orange-800 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                This action cannot be undone. The user will be permanently
-                removed from the system.
-              </p>
-            </div>
-            <div>
-              <span className="font-semibold text-sm">What will happen:</span>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-outside pl-5 mt-2">
-                <li>User account will be permanently deleted</li>
-                <li>Access to the system will be revoked</li>
-                <li>Historical data will be preserved</li>
-              </ul>
-            </div>
-          </div>
-        ),
-        confirmText: 'Delete User',
-        confirmVariant: 'destructive',
-        confirmActionNeeded: true,
-      };
+        {/* Deletion Reason - Always shown */}
+        <div className="space-y-2">
+          <Label htmlFor="deletion-reason">
+            Deletion Reason <span className="text-red-600">(required)</span>:
+          </Label>
+          <Textarea
+            id="deletion-reason"
+            placeholder="e.g., Employee left company"
+            value={deletionReason}
+            onChange={(e) => setDeletionReason(e.target.value)}
+            className="min-h-[80px]"
+          />
+          {validationErrors.reason && (
+            <p className="text-sm text-red-600">{validationErrors.reason}</p>
+          )}
+        </div>
+
+        {/* What happens section - Always shown */}
+        <div>
+          <span className="font-semibold text-sm">
+            What happens when user is deleted:
+          </span>
+          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-outside pl-5 mt-2">
+            <li>User account is permanently removed</li>
+            <li>User loses access to the system immediately</li>
+            <li>User cannot log in or access any data</li>
+            <li>Historical records remain for audit purposes</li>
+          </ul>
+        </div>
+      </div>
+    ),
+    confirmText: hasDependencies ? 'Delete & Reassign' : 'Delete User',
+    confirmVariant: 'destructive',
+    confirmActionNeeded: true,
+  };
 
   const resetDeleteForm = () => {
     setAccountManagerReassignTo(undefined);
@@ -246,24 +315,22 @@ export function useTeamMemberActions(
   };
 
   const validateDeleteForm = (): boolean => {
-    // Only validate if there are dependencies
-    if (!hasDependencies) {
-      return true;
-    }
-
     const errors: typeof validationErrors = {};
 
-    // Only validate fields that are shown
-    if (customerCount > 0 && !accountManagerReassignTo) {
-      errors.accountManager = 'Please select a team member';
-    }
-
-    if (activeJobsCount > 0 && !jobReassignTo) {
-      errors.job = 'Please select a job assignee';
-    }
-
+    // Deletion reason is always required
     if (!deletionReason.trim()) {
       errors.reason = 'Deletion reason is required';
+    }
+
+    // Only validate reassignment fields if there are dependencies
+    if (hasDependencies) {
+      if (customerCount > 0 && !accountManagerReassignTo) {
+        errors.accountManager = 'Please select a team member';
+      }
+
+      if (activeJobsCount > 0 && !jobReassignTo) {
+        errors.job = 'Please select a job assignee';
+      }
     }
 
     setValidationErrors(errors);
