@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { TeamMember } from '@/lib/types/team-member';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';

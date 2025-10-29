@@ -3,7 +3,6 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { TeamMember } from '@/lib/types/team-member';
 import {
@@ -140,15 +139,7 @@ export default function TeamAdminTab() {
           <h2 className="text-[24px] font-bold">Team Management</h2>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Invite User"
-            dialogWidth="max-w-md"
-            trigger={
-              <Button className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white">
-                <Plus className="h-4 w-4" /> Invite User
-              </Button>
-            }
-          >
+          <FormDialog dialogTitle="Invite User" dialogWidth="max-w-md">
             <InviteUserForm />
           </FormDialog>
         </div>
