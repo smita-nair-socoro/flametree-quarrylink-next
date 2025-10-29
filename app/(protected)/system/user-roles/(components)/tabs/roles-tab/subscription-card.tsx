@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const toneVariants = {
+export const toneVariants = {
   essentials: {
     bg: 'bg-[#F3F4F6]',
     border: 'border-[#E5E7EB]',
@@ -97,5 +97,3 @@ export function SubscriptionPlanCard({
     </button>
   );
 }
-
-export { toneVariants };
