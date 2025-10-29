@@ -133,10 +133,10 @@ export default function TeamAdminTab() {
   ];
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-6">
+    <div className="flex flex-1 flex-col gap-4 py-2">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h2 className="text-[24px] font-bold">Team Management</h2>
+          <h2 className="text-[23px] font-semibold">Team Management</h2>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog dialogTitle="Invite User" dialogWidth="max-w-md">
