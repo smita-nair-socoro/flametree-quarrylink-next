@@ -19,12 +19,7 @@ export function UpgradeFeaturesCard({
   onUpgrade,
 }: UpgradeFeaturesCardProps) {
   return (
-    <Card
-      className={cn(
-        'w-full border-[#E9D4FF] rounded-[13px]',
-        'bg-gradient-to-r from-[#FAF5FF] to-[#FFF6FF]'
-      )}
-    >
+    <Card className="w-full border-[#E9D4FF] rounded-[13px] bg-gradient-to-r from-[#FAF5FF] to-[#FFF6FF]">
       <CardContent className="px-[22px]">
         <div className="flex items-center justify-between gap-4">
           {/* Left Content */}
