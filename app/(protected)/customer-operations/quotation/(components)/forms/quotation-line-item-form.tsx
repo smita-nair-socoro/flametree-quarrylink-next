@@ -414,7 +414,9 @@ export default function QuoteLineItemForm({
             {/* Pricing */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
-                <span className="text-20px font-semibold mt-3">Pricing</span>
+                <span className="text-[20px] font-semibold mt-3">
+                  Product Pricing
+                </span>
                 <Separator className="mb-4" />
               </div>
 
@@ -431,11 +433,11 @@ export default function QuoteLineItemForm({
                   <FormSelect
                     control={quotationLineItemForm.control}
                     name="product_cost_uom"
-                    label="UOM*"
-                    searchLabel="UOM"
+                    label="Unit of Measure*"
+                    searchLabel="Unit of Measure"
                     showSearch={false}
                     options={productUnitOptions}
-                    placeholder="Select UOM"
+                    placeholder="Select Unit of Measure"
                     disabled={isEditing && !canEdit}
                   />
 
@@ -462,7 +464,7 @@ export default function QuoteLineItemForm({
                     name="product_cost_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Cost*</FormLabel>
+                        <FormLabel>Cost Per Unit*</FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="product_cost_price"
@@ -496,11 +498,11 @@ export default function QuoteLineItemForm({
                   <FormSelect
                     control={quotationLineItemForm.control}
                     name="product_sell_uom"
-                    label="UOM*"
-                    searchLabel="UOM"
+                    label="Unit of Measure*"
+                    searchLabel="Unit of Measure"
                     showSearch={false}
                     options={productUnitOptions}
-                    placeholder="Select UOM"
+                    placeholder="Select Unit of Measure"
                     disabled={isEditing && !canEdit}
                   />
 
@@ -527,7 +529,7 @@ export default function QuoteLineItemForm({
                     name="product_sell_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Product Sell*</FormLabel>
+                        <FormLabel>Sell Price Per Unit*</FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="product_sell_price"
@@ -579,11 +581,11 @@ export default function QuoteLineItemForm({
                   <FormSelect
                     control={quotationLineItemForm.control}
                     name="truck_cost_uom"
-                    label="Truck Cost UOM*"
-                    searchLabel="Truck Cost UOM"
+                    label="Unit of Measure*"
+                    searchLabel="Unit of Measure"
                     showSearch={false}
                     options={truckUnitOptions}
-                    placeholder="Select UOM"
+                    placeholder="Select Unit of Measure"
                     disabled={
                       !quotationLineItemForm.watch('truck_type') ||
                       (isEditing && !canEdit)
@@ -595,7 +597,7 @@ export default function QuoteLineItemForm({
                     name="truck_cost_qty"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Truck Cost QTY*</FormLabel>
+                        <FormLabel>QTY*</FormLabel>
                         <FormControl>
                           <Input
                             className="w-full"
@@ -613,7 +615,7 @@ export default function QuoteLineItemForm({
                     name="truck_cost_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Truck Cost Rate*</FormLabel>
+                        <FormLabel>Cost Per Unit*</FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="truck_cost_price"
@@ -645,11 +647,11 @@ export default function QuoteLineItemForm({
                   <FormSelect
                     control={quotationLineItemForm.control}
                     name="truck_sell_uom"
-                    label="Truck Sell UOM*"
-                    searchLabel="Truck Sell UOM"
+                    label="Unit of Measure*"
+                    searchLabel="Unit of Measure"
                     showSearch={false}
                     options={truckUnitOptions}
-                    placeholder="Select UOM"
+                    placeholder="Select Unit of Measure"
                     disabled={
                       !quotationLineItemForm.watch('truck_type') ||
                       (isEditing && !canEdit)
@@ -661,7 +663,7 @@ export default function QuoteLineItemForm({
                     name="truck_sell_qty"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Truck Sell QTY*</FormLabel>
+                        <FormLabel>QTY*</FormLabel>
                         <FormControl>
                           <Input
                             className="w-full"
@@ -679,7 +681,7 @@ export default function QuoteLineItemForm({
                     name="truck_sell_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Truck Sell Rate*</FormLabel>
+                        <FormLabel>Sell Price Per Unit*</FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="truck_cost_price"
