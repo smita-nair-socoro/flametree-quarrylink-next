@@ -8,7 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { TeamMember } from '@/lib/types/team-member';
+import { TeamMember } from '@/lib/types/user';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 
 interface TeamMemberTableActionsProps {

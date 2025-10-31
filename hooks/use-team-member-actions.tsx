@@ -1,13 +1,8 @@
 'use client';
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
-import { TeamMember } from '@/lib/types/team-member';
-import {
-  AlertTriangle,
-  Users,
-  Briefcase,
-  Trash2,
-} from 'lucide-react';
+import { TeamMember } from '@/lib/types/user';
+import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SelectOptions } from '@/components/ui/select-options';
@@ -92,8 +87,7 @@ export function useTeamMemberActions(
     }
   };
 
-  const { customerCount, activeJobsCount } =
-    getMockDependencies(teamMemberId);
+  const { customerCount, activeJobsCount } = getMockDependencies(teamMemberId);
 
   // Check if user has dependencies that need reassignment
   const hasDependencies = customerCount > 0 || activeJobsCount > 0;

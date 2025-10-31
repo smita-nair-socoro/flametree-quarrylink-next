@@ -2,22 +2,21 @@
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { TeamMember } from '@/lib/types/team-member';
-import { TEAM_MEMBER_STATUS, TEAM_MEMBER_ROLE } from '@/lib/types/team-member-enums';
 import { getRelativeTime } from '@/lib/utils/date';
 import { TeamMemberTableActions } from './team-member-table-actions';
+import { TeamMember } from '@/lib/types/user';
+import { Role, UserStatus } from '@/lib/types/user-enums';
 
 export const teamMemberColumns: ColumnDef<TeamMember>[] = [
   {
     id: 'user_name',
     accessorFn: (row) => row.user_name,
     header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="User Name" />
-      );
+      return <TableClientSortableHeader column={column} title="User Name" />;
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'User Name',
+    size: 180,
   },
   {
     id: 'email',
@@ -27,6 +26,7 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Email',
+    size: 240,
   },
   {
     id: 'role',
@@ -37,13 +37,15 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
     cell: ({ row }) => {
       const role = row.original.role;
       const formattedRole =
-        role === TEAM_MEMBER_ROLE.ADMIN ? 'Admin' :
-        role === TEAM_MEMBER_ROLE.USER ? 'User' :
-        role === TEAM_MEMBER_ROLE.MANAGER ? 'Manager' :
-        role;
+        role === Role.ADMIN
+          ? 'Admin'
+          : role === Role.SUPERADMIN
+          ? 'Super Admin'
+          : 'User'; // TODO: Add other roles here
       return <div className="py-2">{formattedRole}</div>;
     },
     meta: 'Role',
+    size: 120,
   },
   {
     id: 'status',
@@ -52,12 +54,15 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ getValue }) => {
-      const status = getValue<string>() as TEAM_MEMBER_STATUS;
+      const status = getValue<string>() as UserStatus;
       const formattedStatus =
-        status === TEAM_MEMBER_STATUS.ACTIVE ? 'ACTIVE' :
-        status === TEAM_MEMBER_STATUS.PENDING ? 'PENDING' :
-        status === TEAM_MEMBER_STATUS.INACTIVE ? 'INACTIVE' :
-        status;
+        status === UserStatus.ACTIVE
+          ? 'ACTIVE'
+          : status === UserStatus.PENDING
+          ? 'PENDING'
+          : status === UserStatus.INACTIVE
+          ? 'INACTIVE'
+          : status;
       return (
         <div className="py-2">
           <TableBadges names={[formattedStatus]} visibleCount={1} />
@@ -65,20 +70,21 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
       );
     },
     meta: 'Status',
+    size: 180,
   },
   {
-    id: 'last_login',
-    accessorFn: (row) => row.last_login,
+    id: 'last_login_at',
+    accessorFn: (row) => row.last_login_at,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Last Login" />;
     },
     cell: ({ row }) => {
-      const lastLogin = row.original.last_login;
+      const lastLogin = row.original.last_login_at;
       const displayText = lastLogin ? getRelativeTime(lastLogin) : 'Never';
       return <div className="py-2 text-left">{displayText}</div>;
     },
     meta: 'Last Login',
-    size: 150,
+    size: 80,
   },
   {
     id: 'actions',
@@ -89,5 +95,6 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
       const teamMember = row.original;
       return <TeamMemberTableActions teamMember={teamMember} />;
     },
+    size: 100,
   },
 ];

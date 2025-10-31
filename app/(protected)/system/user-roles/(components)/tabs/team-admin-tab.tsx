@@ -4,121 +4,159 @@ import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
 import { Plus } from 'lucide-react';
-import { TeamMember } from '@/lib/types/team-member';
-import {
-  TEAM_MEMBER_STATUS,
-  TEAM_MEMBER_ROLE,
-} from '@/lib/types/team-member-enums';
+import { PendingInvitation, TeamMember } from '@/lib/types/user';
+import { Role, UserStatus } from '@/lib/types/user-enums';
 import { teamMemberColumns } from '../(data-tables)/team-member/columns';
 import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import PendingInvitations from '../pending-invitations';
+import { Button } from '@/components/ui/button';
+import { getRelativeTimeFuture } from '@/lib/utils/date';
 
 // Mock data for team members
-const TeamsMemberMockData: TeamMember[] = [
+const teamMemberMockData: TeamMember[] = [
   {
     id: 1,
+    tenant_id: 'Tenant-001',
     user_name: 'Armin Menhaji',
     email: 'armin@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.ADMIN,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.ADMIN,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-10-29T13:00:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 2,
+    tenant_id: 'Tenant-001',
     user_name: 'Sarah Johnson',
     email: 'sarah@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.ADMIN,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.ADMIN,
+    status: UserStatus.ACTIVE,
+    last_login_at: null,
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 3,
+    tenant_id: 'Tenant-001',
     user_name: 'Mike Chen',
     email: 'mike@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.ADMIN,
-    status: TEAM_MEMBER_STATUS.PENDING,
-    last_login: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.ADMIN,
+    status: UserStatus.PENDING,
+    last_login_at: '2025-10-30T19:11:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 4,
+    tenant_id: 'Tenant-001',
     user_name: 'Emma Wilson',
     email: 'emma.wilson@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.MANAGER,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.USER,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-10-30T23:11:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 5,
+    tenant_id: 'Tenant-001',
     user_name: 'David Martinez',
     email: 'david.martinez@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.MANAGER,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.USER,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-10-24T22:00:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 6,
+    tenant_id: 'Tenant-001',
     user_name: 'Lisa Anderson',
     email: 'lisa.anderson@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.USER,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.USER,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-10-30T13:00:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 7,
+    tenant_id: 'Tenant-001',
     user_name: 'James Brown',
     email: 'james.brown@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.USER,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.USER,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-10-30T13:00:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 8,
+    tenant_id: 'Tenant-001',
     user_name: 'Maria Garcia',
     email: 'maria.garcia@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.USER,
-    status: TEAM_MEMBER_STATUS.ACTIVE,
-    last_login: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.USER,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-10-30T00:00:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 9,
+    tenant_id: 'Tenant-001',
     user_name: 'Tom Rodriguez',
     email: 'tom.rodriguez@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.MANAGER,
-    status: TEAM_MEMBER_STATUS.PENDING,
-    last_login: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.USER,
+    status: UserStatus.PENDING,
+    last_login_at: null,
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
   {
     id: 10,
+    tenant_id: 'Tenant-001',
     user_name: 'Jessica Lee',
     email: 'jessica.lee@terminco.com.au',
-    role: TEAM_MEMBER_ROLE.USER,
-    status: TEAM_MEMBER_STATUS.INACTIVE,
-    last_login: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    role: Role.ADMIN,
+    status: UserStatus.ACTIVE,
+    last_login_at: '2025-09-28T22:00:00.000Z',
+    created_at: '2025-10-30T13:00:00.000Z',
+    updated_at: '2025-10-30T13:00:00.000Z',
   },
 ];
+
+// Mock data for pending invitations
+const pendingInvitationsMockData: PendingInvitation[] = [
+  {
+    id: 1,
+    tenant_id: 'Tenant-001',
+    email: 'new@company.com',
+    role: Role.USER,
+    invited_by: 'John Doe',
+    expires_at: '2025-11-05T13:00:00.000Z',
+  },
+  {
+    id: 2,
+    tenant_id: 'Tenant-001',
+    email: 'temp@company.com',
+    role: Role.USER,
+    invited_by: 'Sarah M',
+    expires_at: '2025-11-02T13:00:00.000Z',
+  },
+];
+
+const handleResend = (invitation: PendingInvitation) => {
+  // TODO: Implement resend invitation functionality
+  console.log('Resend invitation to:', invitation.email);
+};
+
+const handleRevoke = (invitation: PendingInvitation) => {
+  // TODO: Implement revoke invitation functionality
+  console.log('Revoke invitation for:', invitation.email);
+};
 
 export default function TeamAdminTab() {
   // Handle row click to open member details
@@ -162,17 +200,68 @@ export default function TeamAdminTab() {
         <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
           <DataTableClient
             tableId="team_member_data_table"
-            data={TeamsMemberMockData}
+            data={teamMemberMockData}
             columns={teamMemberColumns}
             facetDefination={facetDefs}
             searchPlaceHolder="Search team members..."
             onRowClick={handleRowClick}
+            useColumnSizing={true}
             isShowHideColumns={false}
           />
         </div>
       </div>
 
-      <PendingInvitations />
+      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+        <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
+        <div className="space-y-3">
+          {pendingInvitationsMockData.map((invitation) => (
+            <div
+              key={invitation.id}
+              className="border border-gray-200 rounded-lg bg-white p-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="font-medium text-[16px]">
+                    {invitation.email}
+                  </div>
+                  <div className="text-[14px] text-[#4B5563] font-normal mt-1">
+                    <span>
+                      Role:{' '}
+                      {invitation.role === Role.USER
+                        ? 'User'
+                        : invitation.role === Role.ADMIN
+                        ? 'Admin'
+                        : 'Super Admin'}
+                    </span>
+                    <span className="mx-2">•</span>
+                    <span>Invited by: {invitation.invited_by}</span>
+                    <span className="mx-2">•</span>
+                    <span>
+                      Expires in: {getRelativeTimeFuture(invitation.expires_at)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleResend(invitation)}
+                  >
+                    Resend
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRevoke(invitation)}
+                  >
+                    Revoke
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
