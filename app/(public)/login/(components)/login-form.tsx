@@ -32,6 +32,7 @@ import { ForgotPasswordModal } from './forgot-password-modal';
 import { NewPasswordModal } from './new-password-modal';
 import { NewUserInfoModal } from './new-user-info-modal';
 import { ResetPasswordConfirmationModal } from './reset-password-confirmation-modal';
+import Image from 'next/image';
 
 export function LoginForm({
   className,
@@ -222,7 +223,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <img
+            <Image
               src="/quarrylink-logo.png"
               alt="QuarryLink Logo"
               width={48}

@@ -7,6 +7,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import Image from 'next/image';
 
 export function QuarryLinkBranding({
   subscriptionType = 'Lite Plus',
@@ -23,7 +24,7 @@ export function QuarryLinkBranding({
         >
           <Link href="/dashboard">
             <div className="flex aspect-square size-8 items-center justify-center">
-              <img
+              <Image
                 src="/quarrylink-logo.png"
                 alt="QuarryLink Logo"
                 width={32}
