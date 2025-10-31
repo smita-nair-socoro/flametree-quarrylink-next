@@ -114,7 +114,7 @@ export default function SettingsTab() {
           </div>
         </div>
       )}
-      <div className="flex flex-col gap-4">
+      <div className="py-3 space-y-3">
         <h2 className="text-2xl font-semibold">Account Settings</h2>
 
         {/* Personal Information */}

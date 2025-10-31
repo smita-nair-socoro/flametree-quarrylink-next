@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Mail, Key, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface NewUserInfoModalProps {
   isOpen: boolean;
@@ -26,7 +27,7 @@ export function NewUserInfoModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <img
+            <Image
               src="/quarrylink-logo.png"
               alt="QuarryLink Logo"
               width={48}
