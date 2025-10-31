@@ -34,8 +34,9 @@ export interface TeamMember {
 
 export interface PendingInvitation {
   id: number;
+  tenant_id: string;
   email: string;
-  role: string;
-  invitedBy: string;
-  expiresIn: string;
+  role: Role;
+  invited_by: string;
+  expires_at: string;
 }
