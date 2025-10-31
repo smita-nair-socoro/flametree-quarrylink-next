@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, KeyRound } from 'lucide-react';
+import Image from 'next/image';
 
 interface ResetPasswordConfirmationModalProps {
   isOpen: boolean;
@@ -130,7 +131,7 @@ export function ResetPasswordConfirmationModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <img
+            <Image
               src="/quarrylink-logo.png"
               alt="QuarryLink Logo"
               width={48}

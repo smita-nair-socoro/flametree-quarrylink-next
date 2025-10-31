@@ -230,7 +230,7 @@ export default function RolesTab() {
     <div className="py-3 space-y-3">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold mb-2">Roles & Permissions</h2>
+        <h2 className="text-2xl font-semibold mb-2">Roles & Permissions</h2>
         <p className="text-muted-foreground text-[13px]">
           Simplified two-tier access control: Super Admin with full control,
           Users with operational access

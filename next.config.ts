@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
 
   // Optional: Change the output directory `out` -> `dist`
   // distDir: 'dist',
+
+  // Disable image optimization for static export
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
