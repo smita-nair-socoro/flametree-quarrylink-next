@@ -136,32 +136,40 @@ export default function TeamAdminTab() {
     <div className="flex flex-1 flex-col gap-4 py-2">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h2 className="text-[23px] font-semibold">Team Management</h2>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Invite User"
-            dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
-            dialogWidth="max-w-md"
-            buttonTitle="Invite User"
-          >
-            <InviteUserForm />
-          </FormDialog>
+          <h2 className="text-2xl font-semibold">Team Management</h2>
         </div>
       </div>
 
       <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-        <h3 className="text-[24px] font-semibold mb-4 text-[#09090B]">
-          Team Members
-        </h3>
-        <DataTableClient
-          tableId="team_member_data_table"
-          data={TeamsMemberMockData}
-          columns={teamMemberColumns}
-          facetDefination={facetDefs}
-          searchPlaceHolder="Search team members..."
-          onRowClick={handleRowClick}
-        />
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <div>
+            <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
+              Team Members
+            </h1>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog
+              dialogTitle="Invite User"
+              dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
+              dialogWidth="max-w-md"
+              buttonTitle="Invite User"
+            >
+              <InviteUserForm />
+            </FormDialog>
+          </div>
+        </div>
+
+        <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+          <DataTableClient
+            tableId="team_member_data_table"
+            data={TeamsMemberMockData}
+            columns={teamMemberColumns}
+            facetDefination={facetDefs}
+            searchPlaceHolder="Search team members..."
+            onRowClick={handleRowClick}
+            isShowHideColumns={false}
+          />
+        </div>
       </div>
 
       <PendingInvitations />
