@@ -1,17 +1,10 @@
 'use client';
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
-import { TeamMember } from '@/lib/types/team-member';
-import {
-  AlertTriangle,
-  Users,
-  FileText,
-  Briefcase,
-  Trash2,
-} from 'lucide-react';
+import { TeamMember } from '@/lib/types/user';
+import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { SelectOptions } from '@/components/ui/select-options';
 
 // Mock data for team members
@@ -21,17 +14,6 @@ const MOCK_TEAM_MEMBERS = [
   { id: '3', name: 'Emily Rodriguez' },
   { id: '4', name: 'David Kim' },
   { id: '5', name: 'Jessica Williams' },
-];
-
-// Mock data for active jobs
-const MOCK_ACTIVE_JOBS = [
-  { id: '1', name: 'Construction Project Alpha', location: 'Downtown Site A' },
-  { id: '2', name: 'Renovation Project Beta', location: 'Uptown Building B' },
-  {
-    id: '3',
-    name: 'Infrastructure Project Gamma',
-    location: 'Industrial Zone C',
-  },
 ];
 
 interface DialogConfig {
@@ -64,8 +46,6 @@ export function useTeamMemberActions(
   const [jobReassignTo, setJobReassignTo] = React.useState<
     string | number | undefined
   >(undefined);
-  const [keepHistoricalRecords, setKeepHistoricalRecords] =
-    React.useState(true);
   const [deletionReason, setDeletionReason] = React.useState('');
   // Not sure if we need this to be done manually or use zod?
   const [validationErrors, setValidationErrors] = React.useState<{
@@ -78,51 +58,44 @@ export function useTeamMemberActions(
   // TODO: Fetch from API: GET /api/team-members/${teamMemberId}/dependencies
   // Simulate different dependency scenarios based on team member ID
   const getMockDependencies = (id: number | undefined) => {
-    if (!id) return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+    if (!id) return { customerCount: 0, activeJobsCount: 0 };
 
     // Different scenarios for testing both flows
     switch (id) {
       case 1: // Armin - Full dependencies
-        return { customerCount: 8, quotationCount: 15, activeJobsCount: 3 };
+        return { customerCount: 8, activeJobsCount: 3 };
       case 2: // Sarah - Only customers
-        return { customerCount: 5, quotationCount: 0, activeJobsCount: 0 };
+        return { customerCount: 5, activeJobsCount: 0 };
       case 3: // Mike - No dependencies (pending user)
-        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
-      case 4: // Emma - Customers and quotations
-        return { customerCount: 3, quotationCount: 8, activeJobsCount: 0 };
+        return { customerCount: 0, activeJobsCount: 0 };
+      case 4: // Emma - Customers and jobs
+        return { customerCount: 3, activeJobsCount: 2 };
       case 5: // David - Only jobs
-        return { customerCount: 0, quotationCount: 0, activeJobsCount: 2 };
-      case 6: // Lisa - All types
-        return { customerCount: 12, quotationCount: 20, activeJobsCount: 5 };
+        return { customerCount: 0, activeJobsCount: 2 };
+      case 6: // Lisa - Both types
+        return { customerCount: 12, activeJobsCount: 5 };
       case 7: // James - No dependencies
-        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
-      case 8: // Maria - Quotations only
-        return { customerCount: 0, quotationCount: 7, activeJobsCount: 0 };
+        return { customerCount: 0, activeJobsCount: 0 };
+      case 8: // Maria - Only customers
+        return { customerCount: 4, activeJobsCount: 0 };
       case 9: // Tom - No dependencies (pending)
-        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+        return { customerCount: 0, activeJobsCount: 0 };
       case 10: // Jessica - No dependencies (inactive)
-        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+        return { customerCount: 0, activeJobsCount: 0 };
       default:
-        return { customerCount: 0, quotationCount: 0, activeJobsCount: 0 };
+        return { customerCount: 0, activeJobsCount: 0 };
     }
   };
 
-  const { customerCount, quotationCount, activeJobsCount } =
-    getMockDependencies(teamMemberId);
+  const { customerCount, activeJobsCount } = getMockDependencies(teamMemberId);
 
   // Check if user has dependencies that need reassignment
-  const hasDependencies =
-    customerCount > 0 || quotationCount > 0 || activeJobsCount > 0;
+  const hasDependencies = customerCount > 0 || activeJobsCount > 0;
 
   // Convert mock data to SelectOption format
   const teamMemberOptions = MOCK_TEAM_MEMBERS.map((member) => ({
     label: member.name,
     value: member.id,
-  }));
-
-  const jobOptions = MOCK_ACTIVE_JOBS.map((job) => ({
-    label: `${job.name} - ${job.location}`,
-    value: job.id,
   }));
 
   const userName = teamMemberData?.user_name;
@@ -215,38 +188,6 @@ export function useTeamMemberActions(
               </div>
             )}
 
-            {/* Quotations Section */}
-            {quotationCount > 0 && (
-              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <FileText className="h-4 w-4 text-green-600" />
-                  Created {quotationCount} quotations
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id="keep-historical"
-                    checked={keepHistoricalRecords}
-                    onCheckedChange={(v) => setKeepHistoricalRecords(!!v)}
-                    className="
-                    h-5 w-5
-                    border-2 border-gray-300
-                    rounded
-                    data-[state=checked]:bg-white
-                    data-[state=checked]:border-gray-600
-                    data-[state=checked]:text-gray-900
-                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600
-                  "
-                  />
-                  <label
-                    htmlFor="keep-historical"
-                    className="text-sm text-foreground cursor-pointer select-none"
-                  >
-                    Keep as &quot;{userName}&quot; (Historical records)
-                  </label>
-                </div>
-              </div>
-            )}
-
             {/* Active Jobs Section */}
             {activeJobsCount > 0 && (
               <div className="border border-border bg-white rounded-lg p-3 space-y-3">
@@ -256,12 +197,12 @@ export function useTeamMemberActions(
                 </div>
                 <SelectOptions
                   label="Reassign to:"
-                  searchLabel="job"
-                  options={jobOptions}
+                  searchLabel="team member"
+                  options={teamMemberOptions}
                   value={jobReassignTo}
                   onChange={setJobReassignTo}
-                  placeholder="Select job assignee..."
-                  popoverWidthClass="w-[400px]"
+                  placeholder="Select team member..."
+                  popoverWidthClass="w-[300px]"
                   error={validationErrors.job}
                   className="bg-white border-border text-foreground"
                 />
@@ -309,7 +250,6 @@ export function useTeamMemberActions(
   const resetDeleteForm = () => {
     setAccountManagerReassignTo(undefined);
     setJobReassignTo(undefined);
-    setKeepHistoricalRecords(true);
     setDeletionReason('');
     setValidationErrors({});
   };
@@ -368,7 +308,6 @@ export function useTeamMemberActions(
         teamMember: teamMemberData,
         accountManagerReassignTo,
         jobReassignTo,
-        keepHistoricalRecords,
         deletionReason,
       });
     } else {
