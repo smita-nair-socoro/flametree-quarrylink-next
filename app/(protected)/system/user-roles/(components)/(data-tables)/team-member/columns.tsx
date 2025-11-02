@@ -3,7 +3,6 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { getRelativeTime } from '@/lib/utils/date';
-import { TeamMemberTableActions } from './team-member-table-actions';
 import { TeamMember } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 
@@ -85,16 +84,5 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
     },
     meta: 'Last Login',
     size: 80,
-  },
-  {
-    id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const teamMember = row.original;
-      return <TeamMemberTableActions teamMember={teamMember} />;
-    },
-    size: 100,
   },
 ];
