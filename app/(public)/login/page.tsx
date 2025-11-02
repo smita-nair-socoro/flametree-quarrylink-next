@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { getSafeRedirectUrl } from '@/lib/utils/redirect-helpers';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -50,10 +51,12 @@ export default function LoginPage() {
 
       {/* Right side - QuarryLink Illustration (hidden on mobile) */}
       <div className="hidden lg:flex flex-1 overflow-hidden">
-        <img
+        <Image
           src="/quarrylink-login-side-image.png"
           alt="QuarryLink - Quarry Operations Management"
           className="w-full h-full object-cover"
+          width={1000}
+          height={1000}
         />
       </div>
     </div>
