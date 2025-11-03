@@ -301,11 +301,11 @@ export default function RolesTab() {
       </div>
 
       {/* Upgrade Features Card - Disabled, Future Plan */}
-      {selectedPlanId === 'future' && (
+      {selectedPlanId !== 'Pro' && (
         <UpgradeFeaturesCard
           title="Unlock More Features"
           description={
-            selectedPlanId === 'future'
+            selectedPlanId === 'essentials'
               ? 'Upgrade to QuarryLink Plus for advanced features'
               : 'Upgrade to QuarryLink Pro for advanced features'
           }
