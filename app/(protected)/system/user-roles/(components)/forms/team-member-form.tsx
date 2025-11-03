@@ -62,7 +62,7 @@ export function EditTeamMemberForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const initialData = useSelectedTeamMember();
 
-  const fullName = initialData?.full_name.trim() || initialData?.email || '';
+  const fullName = initialData?.full_name.trim() || 'Unnamed User';
 
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(
     () => ({
