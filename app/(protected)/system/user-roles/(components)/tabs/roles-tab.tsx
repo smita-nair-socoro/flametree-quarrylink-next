@@ -301,7 +301,7 @@ export default function RolesTab() {
       </div>
 
       {/* Upgrade Features Card - Disabled, Future Plan */}
-      {selectedPlanId !== 'Pro' && (
+      {selectedPlanId !== 'pro' && (
         <UpgradeFeaturesCard
           title="Unlock More Features"
           description={
