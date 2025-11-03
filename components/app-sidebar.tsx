@@ -26,14 +26,9 @@ import { useAuth } from '@/hooks/use-auth';
 const data = {
   navMain: [
     {
-      title: 'Dashboard',
+      title: 'Reports & Dashboard',
       url: '/dashboard',
       icon: LayoutDashboard,
-      isActive: true,
-      items: [
-        { title: 'Reports & Dashboard', url: '/dashboard' },
-        { title: 'Drone Analytics', url: '/dashboard/drone-analytics' },
-      ],
     },
     {
       title: 'Customer Operations',
@@ -41,13 +36,13 @@ const data = {
       icon: Users,
       items: [
         {
-          title: 'Customers Management',
+          title: 'Customers',
           url: '/customer-operations/customers',
         },
-        { title: 'Quotation', url: '/customer-operations/quotation' },
+        { title: 'Quotations', url: '/customer-operations/quotation' },
         {
-          title: 'Jobs, Dockets & Invoicing',
-          url: '/customer-operations/jobs',
+          title: 'Dockets',
+          url: '/customer-operations/dockets',
         },
         { title: 'Client Portal', url: '/customer-operations/client-portal' },
       ],
@@ -60,7 +55,7 @@ const data = {
         { title: 'Products', url: '/inventory/products' },
         { title: 'Quarries & Suppliers', url: '/inventory/quarries-suppliers' },
         { title: 'Stockpile', url: '/inventory/stockpile' },
-        { title: 'Weigh-Bridge Module', url: '/inventory/weigh-bridge' },
+        { title: 'Weighbridge', url: '/inventory/weigh-bridge' },
         { title: 'Production Planning', url: '/inventory/production' },
       ],
     },
@@ -69,10 +64,11 @@ const data = {
       url: '/logistics',
       icon: Truck,
       items: [
-        { title: 'Driver Management', url: '/logistics/drivers' },
-        { title: "Driver's Application", url: '/logistics/driver-app' },
+        { title: 'Drivers', url: '/logistics/drivers' },
+        { title: "Trucks", url: '/logistics/trucks' },
+        { title: 'Deliveries', url: '/logistics/deliveries' },
         { title: 'Site & Driver Sign-In', url: '/logistics/sign-in' },
-        { title: 'Delivery Tracking', url: '/logistics/delivery' },
+
       ],
     },
     {
