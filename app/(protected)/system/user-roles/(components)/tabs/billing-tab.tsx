@@ -11,10 +11,6 @@ export default function BillingTab() {
   const usage = {
     totalUsers: 20,
     currentUsers: 3,
-    totalDrivers: 20,
-    currentDrivers: 8,
-    totalTrucks: 25,
-    currentTrucks: 12,
     totalQuarries: 25,
     currentQuarries: 12,
   };
@@ -77,9 +73,6 @@ export default function BillingTab() {
               <span className="text-[16px] text-[#4B5563]">
                 Next billing: 15 April 2025
               </span>
-              <span className="text-[16px] text-[#4B5563]">
-                Payment: **** 4242 (Visa)
-              </span>
             </div>
           </div>
         </CardContent>
@@ -108,48 +101,6 @@ export default function BillingTab() {
               />
               <span className="text-xs text-[#6B7280]">
                 {calculatePercentage(usage.currentUsers, usage.totalUsers)}%
-                used
-              </span>
-            </div>
-
-            {/* Drivers */}
-            <div className="flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Drivers:</span>
-                <span className="text-sm font-medium">
-                  {usage.currentDrivers}/{usage.totalDrivers}
-                </span>
-              </div>
-              <Progress
-                value={calculatePercentage(
-                  usage.currentDrivers,
-                  usage.totalDrivers
-                )}
-                className="h-2"
-              />
-              <span className="text-xs text-[#6B7280]">
-                {calculatePercentage(usage.currentDrivers, usage.totalDrivers)}%
-                used
-              </span>
-            </div>
-
-            {/* Trucks */}
-            <div className="flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Trucks:</span>
-                <span className="text-sm font-medium">
-                  {usage.currentTrucks}/{usage.totalTrucks}
-                </span>
-              </div>
-              <Progress
-                value={calculatePercentage(
-                  usage.currentTrucks,
-                  usage.totalTrucks
-                )}
-                className="h-2"
-              />
-              <span className="text-xs text-[#6B7280]">
-                {calculatePercentage(usage.currentTrucks, usage.totalTrucks)}%
                 used
               </span>
             </div>
