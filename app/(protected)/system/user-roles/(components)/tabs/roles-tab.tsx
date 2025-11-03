@@ -14,9 +14,9 @@ export default function RolesTab() {
   const subscriptionPlans = [
     {
       id: 'essentials',
-      price: '$399',
-      planName: 'Essentials',
-      description: 'Basic quotation and customer management',
+      price: '$116 user / month',
+      planName: 'QuarryLink Essentials',
+      description: 'Your Digital Foundation',
       minUsers: 10,
       tone: 'essentials' as const,
       permissions: [
@@ -80,9 +80,9 @@ export default function RolesTab() {
     },
     {
       id: 'plus',
-      price: '$999',
-      planName: 'Plus',
-      description: 'Complete job and fleet management',
+      price: '$233 user / month',
+      planName: 'QuarryLink Plus',
+      description: 'Automate Your Workflows',
       minUsers: 10,
       tone: 'plus' as const,
       permissions: [
@@ -142,17 +142,13 @@ export default function RolesTab() {
           name: 'Production Planning',
           permissions: { super_admin: false, user: false },
         },
-        {
-          name: 'Integrations',
-          permissions: { super_admin: false, user: false },
-        },
       ],
     },
     {
       id: 'pro',
-      price: '$1,899',
-      planName: 'Pro',
-      description: 'Advanced operations with driver app',
+      price: 'Custome Pricing / Contact Us',
+      planName: 'QuarryLink Pro',
+      description: 'See Everything, Control Everything',
       minUsers: 10,
       tone: 'pro' as const,
       permissions: [
@@ -304,12 +300,12 @@ export default function RolesTab() {
         />
       </div>
 
-      {/* Upgrade Features Card - Only show if not on PRO plan */}
-      {selectedPlanId !== 'pro' && (
+      {/* Upgrade Features Card - Disabled, Future Plan */}
+      {selectedPlanId === 'future' && (
         <UpgradeFeaturesCard
           title="Unlock More Features"
           description={
-            selectedPlanId === 'essentials'
+            selectedPlanId === 'future'
               ? 'Upgrade to QuarryLink Plus for advanced features'
               : 'Upgrade to QuarryLink Pro for advanced features'
           }
