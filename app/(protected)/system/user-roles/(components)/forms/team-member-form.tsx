@@ -62,7 +62,7 @@ export function EditTeamMemberForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const initialData = useSelectedTeamMember();
 
-  const fullName = initialData?.full_name?.trim() || initialData?.email || '';
+  const fullName = initialData?.full_name.trim() || initialData?.email || '';
 
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(
     () => ({
@@ -160,7 +160,13 @@ export function EditTeamMemberForm({
   return (
     <div className="flex flex-col gap-6">
       <header className="rounded-lg border border-border bg-[#F9FAFB] p-4 sm:p-5">
-        <div className="flex flex-row items-center gap-5">
+        <div
+          className={
+            isDesktop
+              ? 'flex flex-row items-center gap-5'
+              : 'flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5'
+          }
+        >
           <Avatar className="size-14 bg-[#DBEAFE] text-lg font-semibold text-[#2563EB]">
             <AvatarFallback className="text-base font-semibold">
               {getInitials(fullName)}
@@ -170,7 +176,7 @@ export function EditTeamMemberForm({
             <span className="text-lg font-semibold text-foreground">
               {fullName}
             </span>
-            <span className="text-sm text-[#4B5563]">{initialData?.email}</span>
+            <span className="text-sm text-[#4B5563]">{initialData.email}</span>
             <span className="font-sm text-[#6B7280]">
               Joined: {formattedJoined}
             </span>
@@ -252,7 +258,13 @@ export function EditTeamMemberForm({
               <Separator className="mt-2" />
             </div>
 
-            <div className={isDesktop ? 'grid gap-4 grid-cols-2 mt-4 mb-0' : 'space-y-4 mt-4'}>
+            <div
+              className={
+                isDesktop
+                  ? 'grid gap-4 grid-cols-2 mt-4 mb-0'
+                  : 'space-y-4 mt-4'
+              }
+            >
               <FormSelect<EditTeamMemberFormValues>
                 control={form.control}
                 name="role"
@@ -272,7 +284,11 @@ export function EditTeamMemberForm({
                     <FormLabel>Account Status</FormLabel>
                     <FormControl>
                       <RadioGroup
-                        className={isDesktop ? 'flex flex-row gap-8' : 'flex flex-col gap-2'}
+                        className={
+                          isDesktop
+                            ? 'flex flex-row gap-8'
+                            : 'flex flex-col gap-2'
+                        }
                         onValueChange={field.onChange}
                         value={field.value}
                       >
@@ -316,8 +332,14 @@ export function EditTeamMemberForm({
           </section>
 
           <section className="space-y-4">
-            <div className="flex flex-row items-center justify-between">
-              <div className="w-4/5">
+            <div
+              className={
+                isDesktop
+                  ? 'flex flex-row items-center justify-between'
+                  : 'flex flex-col gap-2'
+              }
+            >
+              <div className={isDesktop ? 'w-4/5' : 'w-full'}>
                 <h3 className="text-base font-semibold text-foreground mb-2">
                   Activity Summary
                 </h3>
@@ -328,7 +350,7 @@ export function EditTeamMemberForm({
               </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-2">
+            <div className={isDesktop ? 'grid gap-4 grid-cols-2' : 'space-y-4'}>
               <div className="space-y-3">
                 <p className="text-sm">Last Login: {lastLoginRelative}</p>
                 <p className="text-sm">
@@ -344,14 +366,25 @@ export function EditTeamMemberForm({
             </div>
           </section>
 
-          <Separator />
+          {isDesktop && <Separator />}
 
-          <div className="flex flex-row justify-end gap-2 mb-3">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button type="submit">Save Changes</Button>
-          </div>
+          {isDesktop && (
+            <div className="flex flex-row justify-end gap-2 mb-3">
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
+            </div>
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-3">
+              <Button type="submit">Save Changes</Button>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>
