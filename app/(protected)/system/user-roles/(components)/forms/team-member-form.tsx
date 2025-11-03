@@ -30,13 +30,15 @@ type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
 type EditTeamMemberPayload = EditTeamMemberFormValues & {
   id?: number;
-  user_name?: string | null;
+  client_id?: number;
   created_at?: string | null;
-  joined_at?: string | null;
   last_login_at?: string | null;
-  total_logins?: number | null;
-  quotation_created?: number | null;
-  jobs_managed?: number | null;
+  total_logins?: number;
+  quotation_created?: number;
+  jobs_managed?: number;
+  invited_by?: number;
+  deletion_reason?: string;
+  isDeleted?: boolean;
   updated_at?: string | null;
 };
 
@@ -77,7 +79,6 @@ export function EditTeamMemberForm({
 
   const fullName =
     initialData?.full_name?.trim() ||
-    initialData?.user_name?.trim() ||
     initialData?.email ||
     '';
 
@@ -107,8 +108,7 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const joinedDate =
-    initialData?.joined_at || initialData?.created_at || undefined;
+  const joinedDate = initialData?.created_at || undefined;
   const formattedJoined = joinedDate
     ? formatDate(joinedDate, 'd MMM yyyy')
     : '—';
@@ -149,14 +149,16 @@ export function EditTeamMemberForm({
     const payload: EditTeamMemberPayload = {
       ...values,
       id: initialData?.id,
+      client_id: initialData?.client_id,
       phone: normalizedPhone,
-      user_name: values.full_name,
       created_at: initialData?.created_at,
-      joined_at: initialData?.joined_at,
       last_login_at: initialData?.last_login_at,
       total_logins: initialData?.total_logins,
       quotation_created: initialData?.quotation_created,
       jobs_managed: initialData?.jobs_managed,
+      invited_by: initialData?.invited_by,
+      deletion_reason: initialData?.deletion_reason,
+      isDeleted: initialData?.isDeleted,
       updated_at: initialData?.updated_at,
     };
 

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -39,7 +39,7 @@ interface DialogConfig {
 
 export function useTeamMemberActions(
   teamMemberId: number | undefined,
-  teamMemberData?: TeamMember | null,
+  teamMemberData?: User | null,
   roles?: readonly FormSelectOption[],
   currentUserId?: number | string
 ) {
@@ -103,7 +103,7 @@ export function useTeamMemberActions(
     value: member.id,
   }));
 
-  const userName = teamMemberData?.user_name;
+  const userName = teamMemberData?.full_name;
 
   // Helper function to format role for display
   const formatRole = (role: string | undefined) => {

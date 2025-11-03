@@ -24,16 +24,10 @@ export interface TeamMember {
   id: number;
   tenant_id: string;
   user_name: string;
-  full_name?: string | null;
   email: string;
-  phone?: string | null;
   role: Role;
   status: UserStatus;
   last_login_at: string | null;
-  joined_at?: string | null;
-  total_logins?: number | null;
-  quotation_created?: number | null;
-  jobs_managed?: number | null;
   created_at: string;
   updated_at: string;
 }

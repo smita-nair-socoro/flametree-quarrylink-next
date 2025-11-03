@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 
 interface TeamMemberStore {
-  teamMembers: TeamMember[];
-  selectedTeamMember: TeamMember | null;
+  teamMembers: User[];
+  selectedTeamMember: User | null;
   isLoading: boolean;
 
   // Actions
-  setTeamMembers: (teamMembers: TeamMember[]) => void;
-  setSelectedTeamMember: (teamMember: TeamMember | null) => void;
+  setTeamMembers: (teamMembers: User[]) => void;
+  setSelectedTeamMember: (teamMember: User | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getTeamMemberById: (id: number) => TeamMember | undefined;
+  getTeamMemberById: (id: number) => User | undefined;
 }
 
 export const useTeamMemberStore = create<TeamMemberStore>()(

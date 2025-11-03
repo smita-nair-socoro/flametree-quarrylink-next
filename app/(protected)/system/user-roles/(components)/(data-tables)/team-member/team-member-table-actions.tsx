@@ -8,12 +8,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 
 interface TeamMemberTableActionsProps {
-  teamMember: TeamMember;
+  teamMember: User;
 }
 
 export function TeamMemberTableActions({
