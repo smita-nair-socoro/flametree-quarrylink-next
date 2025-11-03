@@ -3,6 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { ClientFormSchema } from './schemas/client-form-schema';
+import { useSelectedClient } from '@/app/stores/client-store';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -26,6 +27,7 @@ import { AddressType } from '@/lib/types/address';
 import { FormSelect } from '@/components/ui/form-select';
 import { CircleCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 
 interface FormProps {
   id?: number;
@@ -53,16 +55,18 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     lng: 0,
   });
   const [searchInput, setSearchInput] = React.useState('');
+  const selectedClient = useSelectedClient();
+
   const clientForm = useForm<z.infer<typeof ClientFormSchema>>({
     resolver: zodResolver(ClientFormSchema),
     mode: 'onChange',
     defaultValues: {
-      name: '',
-      contact_name: '',
-      email: '',
-      phone: '',
-      subscription: '',
-      abn: '',
+      name: isEditing ? selectedClient?.name || '' : '',
+      contact_name: isEditing ? selectedClient?.contact_name || '' : '',
+      email: isEditing ? selectedClient?.email || '' : '',
+      phone: isEditing ? selectedClient?.phone || '' : '',
+      subscription: isEditing ? selectedClient?.subscription || '' : '',
+      abn: isEditing ? selectedClient?.abn || '' : '',
       billing_address: '',
     },
   });
@@ -191,7 +195,13 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
           )}
           onSubmit={clientForm.handleSubmit(onSubmit)}
         >
-          {step === 1 && (
+          {!isEditing && (
+            <Progress
+              value={step === 1 ? 33 : step === 2 ? 66 : 100}
+              className="mb-5"
+            />
+          )}
+          {!isEditing && step === 1 && (
             <>
               <FormField
                 control={clientForm.control}
@@ -328,7 +338,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
             </>
           )}
 
-          {step === 2 && (
+          {!isEditing && step === 2 && (
             <>
               <FormSelect
                 control={clientForm.control}
@@ -365,7 +375,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 </div>
               )}
 
-              <div className="flex justify-end space-x-2 mb-6">
+              <div className="flex justify-end space-x-2 my-6">
                 <Button
                   variant="outline"
                   type="button"
@@ -391,10 +401,14 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
             </>
           )}
 
-          {step === 3 && (
+          {(step === 3 || isEditing) && (
             <>
-              <h1 className="text-xl font-semibold mb-2">Summary</h1>
-              <Separator className="mb-4" />
+              {!isEditing && (
+                <>
+                  <h1 className="text-xl font-semibold mb-1">Summary</h1>
+                  <Separator className="mb-4" />
+                </>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="border border-[#E5E5E5] bg-white p-4 rounded-lg flex flex-col gap-2">

@@ -14,7 +14,6 @@ import {
 import { FormDialog } from '@/components/form-dialog';
 import ClientForm from './(components)/forms/client-form';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { centsToDollars } from '@/lib/utils/currency';
 
 export default function ClientPortalPage() {
@@ -88,7 +87,6 @@ export default function ClientPortalPage() {
                   {card.percentage}% from last week
                 </span>
               </div>
-              <Progress value={card.percentage} className="h-2" />
             </div>
           </div>
         ))}
