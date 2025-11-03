@@ -1,6 +1,6 @@
 'use client';
 
-// import { TableBadges } from '@/components/table-badges';
+import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Client } from '@/lib/types/client';
 import { ColumnDef } from '@tanstack/react-table';
@@ -60,13 +60,10 @@ export const clientColumns: ColumnDef<Client>[] = [
     },
     cell: ({ row }) => {
       const users = row.original.total_users;
-      const maxUsers = row.original.total_users;
-      const percentage = (users / maxUsers) * 100;
+      const percentage = (users / 30) * 100;
       return (
         <div className="py-2 flex items-center gap-2">
-          <span className="min-w-[50px]">
-            {users} / {maxUsers}
-          </span>
+          <span className="min-w-[50px]">{users} / 30</span>
           <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-purple-500 rounded-full transition-all"
@@ -78,22 +75,24 @@ export const clientColumns: ColumnDef<Client>[] = [
     },
     meta: 'Users',
   },
-  // {
-  //   id: 'status',
-  //   accessorFn: (row) => row.clientStatus,
-  //   header: ({ column }) => {
-  //     return <TableClientSortableHeader column={column} title="Status" />;
-  //   },
-  //   cell: ({ row }) => {
-  //     const status = row.original.clientStatus;
-  //     return (
-  //       <div className="py-2">
-  //         <TableBadges names={[status]} visibleCount={1} />
-  //       </div>
-  //     );
-  //   },
-  //   meta: 'Status',
-  // },
+  {
+    id: 'client_status',
+    accessorFn: (row) => row.client_status,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Status" />;
+    },
+    cell: ({ row }) => {
+      const status = row.original.client_status;
+      console.log(row.original);
+      console.log(status);
+      return (
+        <div className="py-2">
+          <TableBadges names={[status]} visibleCount={1} />
+        </div>
+      );
+    },
+    meta: 'Client Status',
+  },
   {
     id: 'actions',
     header: () => {

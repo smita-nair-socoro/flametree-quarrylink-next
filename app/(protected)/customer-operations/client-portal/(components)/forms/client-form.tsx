@@ -19,6 +19,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
+import { ABNInput } from '@/components/ui/input-mask';
+import { PhoneInput } from '@/components/ui/phone-input';
+import AddressAutoComplete from '@/components/ui/address-autocomplete';
+import { AddressType } from '@/lib/types/address';
 
 interface FormProps {
   id?: number;
@@ -31,6 +35,18 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [address, setAddress] = React.useState<AddressType>({
+    address1: '',
+    address2: '',
+    formattedAddress: '',
+    city: '',
+    region: '',
+    postalCode: '',
+    country: '',
+    lat: 0,
+    lng: 0,
+  });
+  const [searchInput, setSearchInput] = React.useState('');
   const clientForm = useForm<z.infer<typeof ClientFormSchema>>({
     resolver: zodResolver(ClientFormSchema),
     mode: 'onChange',
@@ -45,11 +61,23 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
   });
 
-  // const subscriptionOptions = [
-  //   { label: 'Essential', value: 'ESSENTIAL' },
-  //   { label: 'Plus', value: 'PLUS' },
-  //   { label: 'Pro', value: 'PRO' },
-  // ];
+  const subscriptionOptions = [
+    { label: 'Essential', value: 'ESSENTIAL' },
+    { label: 'Plus', value: 'PLUS' },
+    { label: 'Pro', value: 'PRO' },
+  ];
+
+  const handleAddressChange = React.useCallback(
+    (newAddress: AddressType) => {
+      setAddress(newAddress);
+      if (newAddress.formattedAddress) {
+        setSearchInput('');
+        // Trigger validation for the billing_address field
+        clientForm.trigger('billing_address');
+      }
+    },
+    [clientForm]
+  );
 
   async function onSubmit(values: z.infer<typeof ClientFormSchema>) {
     console.log('onSubmit function called!');
@@ -96,9 +124,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
             control={clientForm.control}
             name="name"
             render={({ field }) => (
-              <FormItem
-                className={isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'}
-              >
+              <FormItem>
                 <FormLabel>Company Name*</FormLabel>
                 <FormControl>
                   <Input
@@ -111,9 +137,100 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={clientForm.control}
+            name="abn"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ABN*</FormLabel>
+                <FormControl>
+                  <ABNInput className="w-full" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={clientForm.control}
+            name="contact_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Name*</FormLabel>
+                <FormControl>
+                  <Input
+                    className="w-full"
+                    placeholder="Enter full name of main contact person"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={clientForm.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Email</FormLabel>
+                <FormControl>
+                  <Input
+                    className="w-full"
+                    placeholder="contact@company.com.au"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={clientForm.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Phone</FormLabel>
+                <FormControl>
+                  <PhoneInput
+                    className="w-full"
+                    defaultCountry="AU"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={clientForm.control}
+            name="billing_address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Billing Address</FormLabel>
+                <FormControl>
+                  <AddressAutoComplete
+                    address={address}
+                    setAddress={handleAddressChange}
+                    searchInput={searchInput}
+                    setSearchInput={setSearchInput}
+                    dialogTitle="Search for Billing Address"
+                    placeholder="Search for Billing Address..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Form Actions */}
           {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6">
+            <div className="flex justify-end space-x-2 mb-6">
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
               </Button>
