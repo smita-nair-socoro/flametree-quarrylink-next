@@ -13,6 +13,9 @@ import {
 } from '@/components/ui/data-table-client';
 import { Button } from '@/components/ui/button';
 import { getRelativeTimeFuture } from '@/lib/utils/date';
+import { useTeamMemberStore } from '@/app/stores/team-member-store';
+import { EditTeamMemberForm } from '../forms/team-member-form';
+import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
 const teamMemberMockData: User[] = [
@@ -238,11 +241,23 @@ const handleRevoke = (invitation: PendingInvitation) => {
   console.log('Revoke invitation for:', invitation.email);
 };
 
+// Roles options for the form
+const rolesOptions: readonly FormSelectOption[] = [
+  { label: 'Admin', value: Role.ADMIN },
+  { label: 'User', value: Role.USER },
+  { label: 'Super Admin', value: Role.SUPERADMIN },
+];
+
 export default function TeamAdminTab() {
+  const [viewOpen, setViewOpen] = React.useState(false);
+  const setSelectedTeamMember = useTeamMemberStore(
+    (state) => state.setSelectedTeamMember
+  );
+
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
-    // TODO: Implement member details view
-    console.log('Selected member:', member);
+    setSelectedTeamMember(member);
+    setViewOpen(true);
   };
 
   const facetDefs: FacetDefinition[] = [
@@ -250,98 +265,121 @@ export default function TeamAdminTab() {
     { column: 'status', title: 'Status', icon: Plus },
   ];
 
-  return (
-    <div className="flex flex-1 flex-col gap-4 py-2">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <h2 className="text-2xl font-semibold">Team Management</h2>
-        </div>
-      </div>
+  // Render view/edit dialog
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      dialogTitle="Edit Team Member"
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+        if (!open) {
+          setViewOpen(false);
+        }
+      }}
+      hideTrigger
+    >
+      <EditTeamMemberForm roles={rolesOptions} currentUserId={1} />
+    </FormDialog>
+  ) : null;
 
-      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+  return (
+    <>
+      {viewDialog}
+      <div className="flex flex-1 flex-col gap-4 py-2">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div>
-            <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
-              Team Members
-            </h1>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <FormDialog
-              dialogTitle="Invite User"
-              dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
-              dialogWidth="max-w-md"
-              buttonTitle="Invite User"
-            >
-              <InviteUserForm />
-            </FormDialog>
+            <h2 className="text-2xl font-semibold">Team Management</h2>
           </div>
         </div>
 
-        <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-          <DataTableClient
-            tableId="team_member_data_table"
-            data={teamMemberMockData}
-            columns={teamMemberColumns}
-            facetDefination={facetDefs}
-            searchPlaceHolder="Search team members..."
-            onRowClick={handleRowClick}
-            useColumnSizing={true}
-            isShowHideColumns={false}
-          />
-        </div>
-      </div>
+        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+            <div>
+              <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
+                Team Members
+              </h1>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <FormDialog
+                dialogTitle="Invite User"
+                dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
+                dialogWidth="max-w-md"
+                buttonTitle="Invite User"
+              >
+                <InviteUserForm />
+              </FormDialog>
+            </div>
+          </div>
 
-      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-        <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
-        <div className="space-y-3">
-          {pendingInvitationsMockData.map((invitation) => (
-            <div
-              key={invitation.id}
-              className="border border-gray-200 rounded-lg bg-white p-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-medium text-[16px]">
-                    {invitation.email}
+          <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+            <DataTableClient
+              tableId="team_member_data_table"
+              data={teamMemberMockData}
+              columns={teamMemberColumns}
+              facetDefination={facetDefs}
+              searchPlaceHolder="Search team members..."
+              onRowClick={handleRowClick}
+              useColumnSizing={true}
+              isShowHideColumns={false}
+            />
+          </div>
+        </div>
+
+        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+          <h3 className="text-[24px] font-semibold mb-4">
+            Pending Invitations
+          </h3>
+          <div className="space-y-3">
+            {pendingInvitationsMockData.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="border border-gray-200 rounded-lg bg-white p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-[16px]">
+                      {invitation.email}
+                    </div>
+                    <div className="text-[14px] text-[#4B5563] font-normal mt-1">
+                      <span>
+                        Role:{' '}
+                        {invitation.role === Role.USER
+                          ? 'User'
+                          : invitation.role === Role.ADMIN
+                          ? 'Admin'
+                          : 'Super Admin'}
+                      </span>
+                      <span className="mx-2">•</span>
+                      <span>Invited by: {invitation.invited_by}</span>
+                      <span className="mx-2">•</span>
+                      <span>
+                        Expires in:{' '}
+                        {getRelativeTimeFuture(invitation.expires_at)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-[14px] text-[#4B5563] font-normal mt-1">
-                    <span>
-                      Role:{' '}
-                      {invitation.role === Role.USER
-                        ? 'User'
-                        : invitation.role === Role.ADMIN
-                        ? 'Admin'
-                        : 'Super Admin'}
-                    </span>
-                    <span className="mx-2">•</span>
-                    <span>Invited by: {invitation.invited_by}</span>
-                    <span className="mx-2">•</span>
-                    <span>
-                      Expires in: {getRelativeTimeFuture(invitation.expires_at)}
-                    </span>
+                  <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleResend(invitation)}
+                    >
+                      Resend
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRevoke(invitation)}
+                    >
+                      Revoke
+                    </Button>
                   </div>
-                </div>
-                <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleResend(invitation)}
-                  >
-                    Resend
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRevoke(invitation)}
-                  >
-                    Revoke
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

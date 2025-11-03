@@ -356,6 +356,9 @@ export function useTeamMemberActions(
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) {
+          setViewOpen(false);
+        }
       }}
       hideTrigger
     >
