@@ -73,7 +73,7 @@ const data = {
     {
       title: 'Client Portal',
       url: '/customer-operations/client-portal',
-      icon: Users,
+      icon: Settings2,
     }
   ],
 };
