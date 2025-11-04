@@ -40,11 +40,11 @@ const data = {
           url: '/customer-operations/customers',
         },
         { title: 'Quotations', url: '/customer-operations/quotation' },
+        { title: 'Jobs', url: '/customer-operations/jobs' },
         {
           title: 'Dockets',
           url: '/customer-operations/dockets',
         },
-        { title: 'Client Portal', url: '/customer-operations/client-portal' },
       ],
     },
     {
@@ -68,19 +68,13 @@ const data = {
         { title: "Trucks", url: '/logistics/trucks' },
         { title: 'Deliveries', url: '/logistics/deliveries' },
         { title: 'Site & Driver Sign-In', url: '/logistics/sign-in' },
-
       ],
     },
     {
-      title: 'System Settings',
-      url: '/system',
-      icon: Settings2,
-      items: [
-        { title: 'User Role Management', url: '/system/user-roles' },
-        { title: 'Camera Feed Add-On', url: '/system/camera' },
-        { title: 'Accounting Integrations', url: '/system/accounting' },
-      ],
-    },
+      title: 'Client Portal',
+      url: '/customer-operations/client-portal',
+      icon: Users,
+    }
   ],
 };
 
