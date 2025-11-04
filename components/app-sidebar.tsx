@@ -85,17 +85,22 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user: amplifyUser } = useAuth();
+  const { user: amplifyUser, attributes } = useAuth();
+
+  const displayName =
+    attributes?.name ||
+    amplifyUser?.signInDetails?.loginId ||
+    amplifyUser?.username ||
+    'Unknown Name';
+  const email =
+    attributes?.email ||
+    amplifyUser?.signInDetails?.loginId ||
+    amplifyUser?.username ||
+    'Unknown Email';
 
   const user = {
-    name:
-      amplifyUser?.signInDetails?.loginId ??
-      amplifyUser?.username ??
-      'Unknown Name',
-    email:
-      amplifyUser?.signInDetails?.loginId ??
-      amplifyUser?.username ??
-      'Unknown Email',
+    name: displayName,
+    email,
     avatar: '/default-user.png',
   };
 
