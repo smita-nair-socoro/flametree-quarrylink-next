@@ -4,10 +4,7 @@ import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { SelectOptions } from '@/components/ui/select-options';
-import { EditTeamMemberForm } from '@/app/(protected)/system/user-roles/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
@@ -35,6 +32,7 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
 }
 
 export function useTeamMemberActions(
@@ -52,13 +50,6 @@ export function useTeamMemberActions(
   const [jobReassignTo, setJobReassignTo] = React.useState<
     string | number | undefined
   >(undefined);
-  const [deletionReason, setDeletionReason] = React.useState('');
-  // Not sure if we need this to be done manually or use zod?
-  const [validationErrors, setValidationErrors] = React.useState<{
-    accountManager?: string;
-    job?: string;
-    reason?: string;
-  }>({});
 
   // Mock data - in real implementation, these would come from API
   // Simulate different dependency scenarios based on team member ID
@@ -104,6 +95,19 @@ export function useTeamMemberActions(
   }));
 
   const userName = teamMemberData?.full_name;
+
+  // Check if delete button should be disabled
+  const isDeleteButtonDisabled = React.useMemo(() => {
+    if (!hasDependencies) return false;
+
+    // If there are customers, must select account manager
+    if (customerCount > 0 && !accountManagerReassignTo) return true;
+
+    // If there are jobs, must select job assignee
+    if (activeJobsCount > 0 && !jobReassignTo) return true;
+
+    return false;
+  }, [hasDependencies, customerCount, activeJobsCount, accountManagerReassignTo, jobReassignTo]);
 
   // Helper function to format role for display
   const formatRole = (role: string | undefined) => {
@@ -187,7 +191,6 @@ export function useTeamMemberActions(
                   onChange={setAccountManagerReassignTo}
                   placeholder="Select team member..."
                   popoverWidthClass="w-[300px]"
-                  error={validationErrors.accountManager}
                   className="bg-white border-border text-foreground"
                 />
               </div>
@@ -208,30 +211,12 @@ export function useTeamMemberActions(
                   onChange={setJobReassignTo}
                   placeholder="Select team member..."
                   popoverWidthClass="w-[300px]"
-                  error={validationErrors.job}
                   className="bg-white border-border text-foreground"
                 />
               </div>
             )}
           </>
         )}
-
-        {/* Deletion Reason - Always shown */}
-        <div className="space-y-2">
-          <Label htmlFor="deletion-reason">
-            Deletion Reason <span className="text-red-600">(required)</span>:
-          </Label>
-          <Textarea
-            id="deletion-reason"
-            placeholder="e.g., Employee left company"
-            value={deletionReason}
-            onChange={(e) => setDeletionReason(e.target.value)}
-            className="min-h-[80px]"
-          />
-          {validationErrors.reason && (
-            <p className="text-sm text-red-600">{validationErrors.reason}</p>
-          )}
-        </div>
 
         {/* What happens section - Always shown */}
         <div>
@@ -250,36 +235,12 @@ export function useTeamMemberActions(
     confirmText: hasDependencies ? 'Delete & Reassign' : 'Delete User',
     confirmVariant: 'destructive',
     confirmActionNeeded: true,
+    confirmDisabled: isDeleteButtonDisabled,
   };
 
   const resetDeleteForm = () => {
     setAccountManagerReassignTo(undefined);
     setJobReassignTo(undefined);
-    setDeletionReason('');
-    setValidationErrors({});
-  };
-
-  const validateDeleteForm = (): boolean => {
-    const errors: typeof validationErrors = {};
-
-    // Deletion reason is always required
-    if (!deletionReason.trim()) {
-      errors.reason = 'Deletion reason is required';
-    }
-
-    // Only validate reassignment fields if there are dependencies
-    if (hasDependencies) {
-      if (customerCount > 0 && !accountManagerReassignTo) {
-        errors.accountManager = 'Please select a team member';
-      }
-
-      if (activeJobsCount > 0 && !jobReassignTo) {
-        errors.job = 'Please select a job assignee';
-      }
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
   };
 
   const actions = {
@@ -301,10 +262,6 @@ export function useTeamMemberActions(
 
   // Handle delete confirmation
   const handleDeleteConfirm = () => {
-    if (!validateDeleteForm()) {
-      return;
-    }
-
     if (hasDependencies) {
       // TODO: Implement actual delete logic with reassignments
       // API call: DELETE /api/team-members/${teamMemberId} with reassignment data
@@ -312,7 +269,6 @@ export function useTeamMemberActions(
         teamMember: teamMemberData,
         accountManagerReassignTo,
         jobReassignTo,
-        deletionReason,
       });
     } else {
       // TODO: Implement actual simple delete logic
@@ -344,31 +300,14 @@ export function useTeamMemberActions(
       confirmCustomClass={deleteDialogConfig.confirmCustomClass}
       confirmIcon={deleteDialogConfig.confirmIcon}
       confirmActionNeeded={deleteDialogConfig.confirmActionNeeded}
+      confirmDisabled={deleteDialogConfig.confirmDisabled}
       onConfirmAction={handleDeleteConfirm}
     />
   );
 
-  // Render view/edit dialog
-  const viewDialog = viewOpen ? (
-    <FormDialog
-      id={teamMemberId}
-      dialogTitle="Edit Team Member"
-      open={viewOpen}
-      onOpenChangeAction={(open) => {
-        setViewOpen(open);
-        if (!open) {
-          setViewOpen(false);
-        }
-      }}
-      hideTrigger
-    >
-      <EditTeamMemberForm roles={roles || []} currentUserId={currentUserId} />
-    </FormDialog>
-  ) : null;
 
   return {
     actions,
     deleteDialog,
-    viewDialog,
   };
 }

@@ -20,7 +20,7 @@ export function TeamMemberTableActions({
   teamMember,
 }: TeamMemberTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
+  const { actions, deleteDialog } = useTeamMemberActions(
     teamMember.id,
     teamMember
   );
@@ -45,7 +45,6 @@ export function TeamMemberTableActions({
   return (
     <div>
       {deleteDialog}
-      {viewDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
