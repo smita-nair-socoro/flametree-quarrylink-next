@@ -71,8 +71,8 @@ const data = {
       ],
     },
     {
-      title: 'Client Portal',
-      url: '/customer-operations/client-portal',
+      title: 'Client Management',
+      url: '/client-management',
       icon: Settings2,
     }
   ],
