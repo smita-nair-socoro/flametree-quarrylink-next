@@ -1,11 +1,14 @@
 'use client';
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
-import { TeamMember } from '@/lib/types/user';
+import { FormDialog } from '@/components/form-dialog';
+import { User } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SelectOptions } from '@/components/ui/select-options';
+import { EditTeamMemberForm } from '@/app/(protected)/system/user-roles/(components)/forms/team-member-form';
+import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
 const MOCK_TEAM_MEMBERS = [
@@ -36,9 +39,12 @@ interface DialogConfig {
 
 export function useTeamMemberActions(
   teamMemberId: number | undefined,
-  teamMemberData?: TeamMember | null
+  teamMemberData?: User | null,
+  roles?: readonly FormSelectOption[],
+  currentUserId?: number | string
 ) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [viewOpen, setViewOpen] = React.useState(false);
 
   // State for delete with dependencies form
   const [accountManagerReassignTo, setAccountManagerReassignTo] =
@@ -55,7 +61,6 @@ export function useTeamMemberActions(
   }>({});
 
   // Mock data - in real implementation, these would come from API
-  // TODO: Fetch from API: GET /api/team-members/${teamMemberId}/dependencies
   // Simulate different dependency scenarios based on team member ID
   const getMockDependencies = (id: number | undefined) => {
     if (!id) return { customerCount: 0, activeJobsCount: 0 };
@@ -98,7 +103,7 @@ export function useTeamMemberActions(
     value: member.id,
   }));
 
-  const userName = teamMemberData?.user_name;
+  const userName = teamMemberData?.full_name;
 
   // Helper function to format role for display
   const formatRole = (role: string | undefined) => {
@@ -286,8 +291,7 @@ export function useTeamMemberActions(
       console.log('Deactivate user:', teamMemberData);
     },
     viewEdit: () => {
-      // TODO: Implement view/edit functionality
-      console.log('View/Edit user:', teamMemberData);
+      setViewOpen(true);
     },
     resetPassword: () => {
       // TODO: Implement reset password functionality
@@ -344,8 +348,27 @@ export function useTeamMemberActions(
     />
   );
 
+  // Render view/edit dialog
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={teamMemberId}
+      dialogTitle="Edit Team Member"
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+        if (!open) {
+          setViewOpen(false);
+        }
+      }}
+      hideTrigger
+    >
+      <EditTeamMemberForm roles={roles || []} currentUserId={currentUserId} />
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     deleteDialog,
+    viewDialog,
   };
 }
