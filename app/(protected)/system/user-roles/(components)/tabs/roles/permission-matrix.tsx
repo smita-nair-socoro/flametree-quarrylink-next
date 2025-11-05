@@ -129,17 +129,13 @@ export function PermissionMatrix({
         <div className="mt-3 px-2 py-3 bg-[#F9FAFB] rounded-md space-y-2">
           <div className="font-medium text-foreground text-[13px]">Legend:</div>
           <div className="flex items-center text-xs font-normal justify-between">
-            <div className="flex items-center gap-2 w-1/3">
+            <div className="flex items-center gap-2 w-1/2">
               <Check className="h-4 w-4 text-green-600" />
               <span className="text-muted-foreground">Full Access</span>
             </div>
-            <div className="flex items-center gap-2 w-1/3">
+            <div className="flex items-center gap-2 w-1/2">
               <X className="h-4 w-4 text-red-500" />
               <span className="text-muted-foreground">No Access</span>
-            </div>
-            <div className="flex items-center gap-2 w-1/3">
-              <Crown className="h-4 w-4 text-[#9810FA]" />
-              <span className="text-muted-foreground">Admin Only</span>
             </div>
           </div>
         </div>
