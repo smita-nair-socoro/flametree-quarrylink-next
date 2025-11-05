@@ -19,6 +19,11 @@ export const DateCell: React.FC<DateCellProps> = ({
   dateString,
   side = 'top',
 }) => {
+  // Handle null, undefined, or empty string
+  if (!dateString) {
+    return <span className="text-muted-foreground">-</span>;
+  }
+
   const date = parseISO(dateString);
 
   const displayDate = format(date, 'dd MMM yyyy');
