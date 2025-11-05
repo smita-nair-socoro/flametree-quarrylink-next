@@ -4,6 +4,7 @@ import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
+import { Quotation } from '../types/quotation';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -127,8 +128,8 @@ export async function HttpClient<T = unknown>(
     },
   };
 
-  const authUser = await getUser();        // ✅ Properly awaited
-const tenantId = await getTenantId();    // ✅ Properly awaited
+  const authUser = await getUser(); // ✅ Properly awaited
+  const tenantId = await getTenantId(); // ✅ Properly awaited
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -363,5 +364,9 @@ export const APIClient = {
     getAll: () => appClient.Get<Customer[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
       appClient.Get<Customer>(`/socoro/quarrylink/api/customer/${customerId}`),
+  },
+
+  quotations: {
+    getAll: () => appClient.Get<Quotation[]>(`/socoro/quarrylink/api/quote`),
   },
 };

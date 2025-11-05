@@ -29,3 +29,9 @@ export const CustomerKeys = {
   list: () => [...CustomerKeys.all, 'list'] as const,
   detail: (id: number) => [...CustomerKeys.all, 'detail', id] as const,
 };
+
+export const QuotationKeys = {
+  all: ['quotations'] as const,
+  list: () => [...QuotationKeys.all, 'list'] as const,
+  detail: (id: number) => [...QuotationKeys.all, 'detail', id] as const,
+};
