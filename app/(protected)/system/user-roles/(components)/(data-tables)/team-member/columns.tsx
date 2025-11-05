@@ -86,15 +86,4 @@ export const teamMemberColumns: ColumnDef<User>[] = [
     meta: 'Last Login',
     size: 80,
   },
-  {
-    id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const teamMember = row.original;
-      return <TeamMemberTableActions teamMember={teamMember} />;
-    },
-    size: 100,
-  },
 ];
