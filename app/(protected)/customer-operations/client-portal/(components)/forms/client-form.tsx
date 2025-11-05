@@ -28,6 +28,10 @@ import { FormSelect } from '@/components/ui/form-select';
 import { CircleCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import UserAccessTab from './tabs/user-access-tab';
+import UsageStatisticsTab from './tabs/usage-statistics-tab';
+import BillingHistoryTab from './tabs/billing-history-tab';
+import { Tab } from '@/components/ui/tabs';
 
 interface FormProps {
   id?: number;
@@ -40,8 +44,9 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const selectedClient = useSelectedClient();
   const [selectedSubscription, setSelectedSubscription] =
-    React.useState<string>('');
+    React.useState<string>(isEditing ? selectedClient?.subscription || '' : '');
   const [step, setStep] = React.useState(1);
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
@@ -55,7 +60,6 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     lng: 0,
   });
   const [searchInput, setSearchInput] = React.useState('');
-  const selectedClient = useSelectedClient();
 
   const clientForm = useForm<z.infer<typeof ClientFormSchema>>({
     resolver: zodResolver(ClientFormSchema),
@@ -72,14 +76,14 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
   });
 
   const subscriptionOptions = [
-    { label: 'Essential', value: 'ESSENTIAL' },
-    { label: 'Plus', value: 'PLUS' },
-    { label: 'Pro', value: 'PRO' },
+    { label: 'Essential', value: 'Essential' },
+    { label: 'Plus', value: 'Plus' },
+    { label: 'Pro', value: 'Pro' },
   ];
 
   // This will be changed so leave it as it is for now
   const subscriptionDetails = {
-    ESSENTIAL: {
+    Essential: {
       name: 'Essential',
       price: '116.00',
       features: [
@@ -95,7 +99,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
         'Standard Reports',
       ],
     },
-    PLUS: {
+    Plus: {
       name: 'Plus',
       price: '233.00',
       features: [
@@ -111,7 +115,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
         'Standard Reports',
       ],
     },
-    PRO: {
+    Pro: {
       name: 'Pro',
       price: '466.00',
       features: [
@@ -165,6 +169,21 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
 
     setIsSubmitting(false);
   }
+
+  const tabs = [
+    {
+      name: 'User & Access',
+      content: <UserAccessTab />,
+    },
+    {
+      name: 'Usage Statistics',
+      content: <UsageStatisticsTab />,
+    },
+    {
+      name: 'Billing History',
+      content: <BillingHistoryTab />,
+    },
+  ];
 
   return (
     <div className="w-full relative">
@@ -429,7 +448,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                       Subscription
                     </span>
                     <span>Monthly billing cycle</span>
-                    <span>Upt to 5 users, 5 drivers, 10 trucks</span>
+                    <span>Up to 5 users, 5 drivers, 10 trucks</span>
                   </div>
                 </div>
               </div>
@@ -473,7 +492,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
               </div>
 
               {/* Form Actions */}
-              {isDesktop && (
+              {isDesktop && !isEditing && (
                 <div className="flex justify-end space-x-2 my-6">
                   <Button
                     variant="outline"
@@ -493,7 +512,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 </div>
               )}
 
-              {!isDesktop && (
+              {!isDesktop && !isEditing && (
                 <div className="flex flex-col col-span-2 gap-3 mb-6">
                   <Button type="submit" className="cursor-pointer">
                     {isEditing ? 'Save Changes' : 'Add Client'}
@@ -504,6 +523,33 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 </div>
               )}
             </>
+          )}
+
+          {isEditing && (
+            <div className="mt-6">
+              <Tab
+                tabs={tabs}
+                variant="underline"
+                tabsClassName=""
+                tabsTriggerClassName=""
+              />
+            </div>
+          )}
+
+          {isEditing && (
+            <div className="flex justify-end space-x-2 my-6">
+              <Button variant="outline" type="button" onClick={onCancel}>
+                Close
+              </Button>
+              <Button
+                form="add-new-client-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                Save Changes
+              </Button>
+            </div>
           )}
         </form>
       </Form>
