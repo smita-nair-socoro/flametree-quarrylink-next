@@ -8,7 +8,7 @@ import {
 import { Activity, Factory, Tags } from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
-import { Quotation } from '@/lib/types/quotation';
+import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { useQuotationStore } from '@/app/stores/quotation-store';
@@ -29,19 +29,32 @@ export default function QuotationsPage() {
     if (isError && error) {
       console.error('Quotation API Error:', error);
     }
-  }, [isError, error]);
+    if (!isLoading && !isError) {
+      console.log('✅ Quotations fetched successfully');
+    }
+  }, [isError, error, isLoading]);
 
   // Transform the API data to match our component expectations
   const items: Quotation[] =
-    quotationsData?.map((quotation) => {
+    (Array.isArray(quotationsData)
+      ? quotationsData
+      : quotationsData?.content || []
+    )?.map((quotation) => {
       // Convert API response to snake_case if needed
-      const convertedQuotation = convertKeysToSnakeCase(quotation);
+      const convertedQuotation = convertKeysToSnakeCase(
+        quotation
+      ) as QuotationDTO;
 
       return {
         ...convertedQuotation,
         quoteId: convertedQuotation.id,
-      };
+        status: convertedQuotation.quote_status, // Map quote_status to status for columns
+      } as Quotation;
     }) || [];
+
+  console.log('Transformed items:', items);
+  console.log('Items count:', items.length);
+  console.log('========================');
 
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation

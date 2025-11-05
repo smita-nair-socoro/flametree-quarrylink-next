@@ -1,10 +1,10 @@
-import { baseUrl, getTenantId, getUser } from '../utils';
+import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
-import { Quotation } from '../types/quotation';
+import { QuotationDTO } from '../types/quotation';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -129,15 +129,14 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  const tenantId = await getTenantId(); // ✅ Properly awaited
-
+  // const tenantId = await getTenantId(); // ✅ Properly awaited - commented out as not currently used
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
       ...init.headers,
       Authorization: `Bearer ${authUser.access_token}`,
-      'access-token': authUser.access_token,
-      'id-token': authUser.id_token,
-      'tenant-id': tenantId || '',
+      // 'access-token': authUser.access_token,
+      // 'id-token': authUser.id_token,
+      // 'tenant-id': tenantId || '',
     };
   } else {
     return Promise.reject(new Error('Token expired or invalid.'));
@@ -367,6 +366,14 @@ export const APIClient = {
   },
 
   quotations: {
-    getAll: () => appClient.Get<Quotation[]>(`/socoro/quarrylink/api/quote`),
+    getAll: () =>
+      appClient.Get<
+        | QuotationDTO[]
+        | {
+            content: QuotationDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/quote`),
   },
 };
