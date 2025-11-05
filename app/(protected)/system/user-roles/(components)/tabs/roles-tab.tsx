@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { SubscriptionPlanCard } from './roles-tab/subscription-card';
-import { PermissionMatrix } from './roles-tab/permission-matrix';
-import { RoleDetailsCard } from './roles-tab/role-details-card';
-import { UpgradeFeaturesCard } from './roles-tab/upgrade-features-card';
+import { SubscriptionPlanCard } from './roles/subscription-card';
+import { PermissionMatrix } from './roles/permission-matrix';
+import { RoleDetailsCard } from './roles/role-details-card';
+import { UpgradeFeaturesCard } from './roles/upgrade-features-card';
 
 // ==================== Main RolesTab Component ====================
 export default function RolesTab() {
