@@ -32,15 +32,15 @@ const { full_name, email, phone, created_at, last_login_at } =
   convertedJson as User;
 
 export default function SettingsTab() {
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const settingsForm = useForm<z.infer<typeof PersonalInformationSchema>>({
     resolver: zodResolver(PersonalInformationSchema),
     defaultValues: {
       full_name: full_name,
       phone: phone,
-      created_at: new Date(created_at),
-      last_login_at: new Date(last_login_at),
+      created_at: '2025-10-29T13:00:00.000Z',
+      last_login_at: '2025-10-29T13:00:00.000Z',
     },
   });
 
@@ -192,7 +192,8 @@ export default function SettingsTab() {
                   {/* Audit Information */}
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-[#4B5563]">
-                      Last Login: {getRelativeTime(last_login_at)}
+                      Last Login:{' '}
+                      {last_login_at ? getRelativeTime(last_login_at) : 'Never'}
                     </span>
                     <span className="text-sm text-[#4B5563]">
                       Created On:{' '}
