@@ -296,7 +296,7 @@ export function FormDialog({
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
-            <DialogDescription className="mt-2">
+            <DialogDescription className="mt-2 -mb-5">
               {dialogDescription}
             </DialogDescription>
           )}
