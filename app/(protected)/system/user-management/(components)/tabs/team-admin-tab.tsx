@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus } from 'lucide-react';
+import { Plus, Bug } from 'lucide-react';
 import { PendingInvitation, TeamMember } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { teamMemberColumns } from '../(data-tables)/team-member/columns';
@@ -13,6 +13,13 @@ import {
 } from '@/components/ui/data-table-client';
 import { Button } from '@/components/ui/button';
 import { getRelativeTimeFuture } from '@/lib/utils/date';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Mock data for team members
 const teamMemberMockData: TeamMember[] = [
@@ -159,11 +166,18 @@ const handleRevoke = (invitation: PendingInvitation) => {
 };
 
 export default function TeamAdminTab() {
+  // Debug mode state for testing different UI states
+  const [debugMode, setDebugMode] = React.useState(false);
+  const [debugCount, setDebugCount] = React.useState<number>(5);
+
   // Handle row click to open member details
   const handleRowClick = (member: TeamMember) => {
     // TODO: Implement member details view
     console.log('Selected member:', member);
   };
+
+  // Calculate team member count based on debug mode
+  const teamMemberCount = debugMode ? debugCount : teamMemberMockData.length;
 
   const facetDefs: FacetDefinition[] = [
     { column: 'role', title: 'Role', icon: Plus },
@@ -186,13 +200,43 @@ export default function TeamAdminTab() {
             </h1>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {/* Debug Mode Toggle */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+              <Bug className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-900">
+                Debug Mode:
+              </span>
+              <Button
+                variant={debugMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setDebugMode(!debugMode)}
+                className="h-7 text-xs"
+              >
+                {debugMode ? 'ON' : 'OFF'}
+              </Button>
+              {debugMode && (
+                <Select
+                  value={debugCount.toString()}
+                  onValueChange={(value) => setDebugCount(parseInt(value))}
+                >
+                  <SelectTrigger className="h-7 w-[140px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">Under Limit (5)</SelectItem>
+                    <SelectItem value="10">Over Limit (10)</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
             <FormDialog
               dialogTitle="Invite User"
-              dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
               dialogWidth="max-w-md"
               buttonTitle="Invite User"
+              key={teamMemberCount}
             >
-              <InviteUserForm />
+              <InviteUserForm teamMemberCount={teamMemberCount} />
             </FormDialog>
           </div>
         </div>
