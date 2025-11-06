@@ -68,9 +68,6 @@ export function SubscriptionPlanCard({
                 <span className={cn('text-[11px] font-medium', toneStyle.text)}>
                   {price}
                 </span>
-                <span className={cn('text-[11px] font-medium', toneStyle.text)}>
-                  / mo
-                </span>
               </div>
               {isSelected && (
                 <Crown className="h-[14px] w-[14px] text-[#9810FA]" />

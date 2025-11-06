@@ -1,4 +1,5 @@
 import { isValidPhoneNumber } from 'react-phone-number-input';
+import isValidABN from 'is-valid-abn';
 import z from 'zod';
 
 const PhoneRequired = z
@@ -23,6 +24,14 @@ export const ClientFormSchema = z.object({
   email: EmailRequired,
   phone: PhoneRequired,
   subscription: z.string().nonempty({ message: 'Required' }),
-  abn: z.string().trim().optional(),
-  billing_address: z.string().trim().min(1, 'Required'),
+  subscription_payment_term: z.string().nonempty({ message: 'Required' }),
+  abn: z
+    .string()
+    .trim()
+    .nonempty({ message: 'ABN is required' })
+    .refine((v) => isValidABN(v), {
+      message: 'Invalid ABN',
+    }),
+  // billing_address: z.string().trim().min(1, 'Required'),
+  billing_address: z.string().optional(),
 });
