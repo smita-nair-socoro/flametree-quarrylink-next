@@ -6,7 +6,7 @@ import InviteUserForm from '../forms/invite-user-form';
 import { Plus, Bug } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
-import { teamMemberColumns } from '../(data-tables)/team-member/columns';
+import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
 import {
   DataTableClient,
   FacetDefinition,
@@ -284,6 +284,12 @@ export default function TeamAdminTab() {
   // Calculate team member count based on debug mode
   const teamMemberCount = debugMode ? debugCount : teamMemberMockData.length;
 
+  // Create columns with roles and currentUserId
+  const columns = React.useMemo(
+    () => createTeamMemberColumns(rolesOptions, 1),
+    [rolesOptions]
+  );
+
   const facetDefs: FacetDefinition[] = [
     { column: 'role', title: 'Role', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
@@ -352,7 +358,7 @@ export default function TeamAdminTab() {
             <DataTableClient
               tableId="team_member_data_table"
               data={teamMemberMockData}
-              columns={teamMemberColumns}
+              columns={columns}
               facetDefination={facetDefs}
               searchPlaceHolder="Search team members..."
               onRowClick={handleRowClick}

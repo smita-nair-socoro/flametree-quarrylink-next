@@ -11,18 +11,25 @@ import {
 import { User } from '@/lib/types/user';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
+import { FormSelectOption } from '@/components/ui/form-select';
 
 interface TeamMemberTableActionsProps {
   teamMember: User;
+  roles?: readonly FormSelectOption[];
+  currentUserId?: number | string;
 }
 
 export function TeamMemberTableActions({
   teamMember,
+  roles,
+  currentUserId,
 }: TeamMemberTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
     teamMember.id,
-    teamMember
+    teamMember,
+    roles,
+    currentUserId
   );
   const setSelectedTeamMember = useTeamMemberStore(
     (state) => state.setSelectedTeamMember
@@ -36,9 +43,11 @@ export function TeamMemberTableActions({
     };
 
   const handleDeactivate = createHandler(actions.deactivate);
-  const handleViewEdit = createHandler(actions.viewEdit, () =>
-    setSelectedTeamMember(teamMember)
-  );
+  const handleViewEdit = createHandler(() => {
+    // Set the selected member in the store FIRST, then open dialog
+    setSelectedTeamMember(teamMember);
+    actions.viewEdit();
+  });
   const handleResetPassword = createHandler(actions.resetPassword);
   const handleDelete = createHandler(actions.delete);
 
