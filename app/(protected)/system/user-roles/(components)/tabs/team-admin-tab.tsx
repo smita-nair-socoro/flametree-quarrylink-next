@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { EditTeamMemberForm } from '../forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 
@@ -259,7 +260,9 @@ export default function TeamAdminTab() {
   const [debugMode, setDebugMode] = React.useState(false);
   const [debugCount, setDebugCount] = React.useState<number>(5);
   const [viewOpen, setViewOpen] = React.useState(false);
-  const [selectedTeamMember, setSelectedTeamMember] = React.useState<User | null>(null);
+
+  // Use Zustand store for selected team member
+  const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
 
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
