@@ -128,8 +128,6 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     }
   };
 
-  console.log('selectedCustomer', selectedCustomer);
-
   // Effect to reset form when selected customer changes
   React.useEffect(() => {
     if (selectedCustomer && isEditing) {
