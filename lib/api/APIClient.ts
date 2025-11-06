@@ -1,4 +1,4 @@
-import { baseUrl, getTenantId, getUser } from '../utils';
+import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
@@ -128,7 +128,7 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  const tenantId = await getTenantId(); // ✅ Properly awaited
+  // const tenantId = await getTenantId(); // ✅ Properly awaited
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
