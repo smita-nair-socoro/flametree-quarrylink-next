@@ -92,7 +92,7 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
                 <Link
-                  href="/system/user-roles"
+                  href="/system/user-management"
                   className="flex items-center gap-2"
                 >
                   <BadgeCheck />
