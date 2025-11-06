@@ -169,7 +169,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
     finalCustomId = selectedProduct.product_name;
-    finalPrimaryBadges = [selectedProduct.material_type];
+    finalPrimaryBadges = [selectedProduct.material.name];
     finalSecondaryBadges = [selectedProduct.status];
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
   }

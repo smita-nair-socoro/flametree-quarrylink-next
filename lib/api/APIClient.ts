@@ -1,9 +1,7 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
-import { Category } from '../types/category';
 import { Customer } from '../types/customer';
-import { Quarry } from '../types/quarry';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -336,27 +334,18 @@ const appClient = {
 
 export const APIClient = {
   products: {
-    list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
-  },
-  quarries: {
-    getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
-
-    deleteProductFromQuarry: (quarryProductPriceId: number) =>
-      appClient.Delete(
-        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
+    getAll: () =>
+      appClient.Get<ProductDetails[]>(
+        `/socoro/quarrylink/api/product/material`
       ),
-    deletePrice: (priceId: number) =>
-      appClient.Delete(`/api/v1/quarries/quarry-product-prices/${priceId}`),
-  },
-
-  categories: {
-    getAll: () => appClient.Get<Category[]>(`/api/v1/categories`),
-    new: (name: string) =>
-      appClient.Post<Category>('/api/v1/categories/new', {
-        body: {
-          name,
-        },
-      }),
+    getByIdWithMaterial: (productId: number) =>
+      appClient.Get<ProductDetails>(
+        `/socoro/quarrylink/api/product/${productId}/material`
+      ),
+    getByIdWithQuarrySupplierProduct: (productId: number) =>
+      appClient.Get<ProductDetails>(
+        `/socoro/quarrylink/api/product/${productId}/quarry-supplier-product`
+      ),
   },
 
   customers: {

@@ -28,17 +28,17 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
 
   {
     id: 'material_type',
-    accessorFn: (row) => row.material_type,
+    accessorFn: (row) => row.material,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Material Type" />
       );
     },
     cell: ({ row }) => {
-      const material_type = row.original.material_type;
+      const material_type = row.original.material.name;
       return (
         <div className="py-2">
-          <TableBadges names={[material_type]} visibleCount={1} />
+          <TableBadges names={material_type} visibleCount={1} />
         </div>
       );
     },
@@ -52,7 +52,8 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status =
+        row.original.is_active === true ? 'Available' : 'Unavailable';
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />

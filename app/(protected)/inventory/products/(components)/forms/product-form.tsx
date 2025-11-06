@@ -67,7 +67,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     defaultValues: {
       product_name: isEditing ? selectedProduct?.product_name || '' : '',
       product_code: isEditing ? selectedProduct?.product_code || '' : '',
-      material_type: isEditing ? selectedProduct?.material_type || '' : '',
+      material_type: isEditing ? selectedProduct?.material.name || '' : '',
       product_description: isEditing
         ? selectedProduct?.product_description || ''
         : '',

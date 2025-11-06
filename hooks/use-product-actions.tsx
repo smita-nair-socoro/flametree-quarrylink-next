@@ -666,7 +666,7 @@ export function useProductActions(
         useSelectedProduct: true,
       }}
     >
-      <ProductForm />
+      <ProductForm id={productId} />
     </FormDialog>
   ) : null;
 

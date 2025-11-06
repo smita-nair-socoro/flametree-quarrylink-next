@@ -7,11 +7,12 @@ export interface Product {
   id: number;
   product_name: string;
   product_code: string;
-  material_type: string;
+  material: MaterialType;
   density_tonnage_per_m3: number;
   product_description: string;
   base_unit: BASE_UNIT;
   measure_unit: MEASURE_UNIT[];
+  is_active: boolean;
   cost_price: number;
   sell_price: number;
   margin: number;
@@ -22,6 +23,12 @@ export interface Product {
   created_at: string;
   updated_at: string;
   last_modified_by: string;
+}
+
+export interface MaterialType {
+  id: number;
+  name: string;
+  version: number;
 }
 
 export interface ProductDetails extends Product {

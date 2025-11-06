@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import rawJson from '@/lib/tests/productResponseData.json';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import { Plus } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
+import { useQuery } from '@tanstack/react-query';
+import { ProductsListQueryOptions } from '@/lib/api/product';
 
 import {
   DataTableClient,
@@ -17,21 +18,6 @@ import { useProductStore } from '@/app/stores/product-store';
 import { useProductActions } from '@/hooks/use-product-actions';
 
 export default function ProductsPage() {
-  const convertedJson = convertKeysToSnakeCase(rawJson);
-
-  const { items: rawItems } = convertedJson as unknown as {
-    items: Array<
-      Omit<ProductDetails, 'productId'> & {
-        productId: number;
-      }
-    >;
-  };
-
-  const items: ProductDetails[] = rawItems.map((item) => ({
-    ...item,
-    productId: item.id,
-  }));
-
   const setSelectedProduct = useProductStore(
     (state) => state.setSelectedProduct
   );
@@ -43,11 +29,40 @@ export default function ProductsPage() {
     selectedProductForActions
   );
 
+  // Use React Query to fetch products data
+  const {
+    data: productsData,
+    isLoading,
+    error,
+    isError,
+  } = useQuery(ProductsListQueryOptions());
+
+  React.useEffect(() => {
+    if (isError && error) {
+      console.error('Product API Error:', error);
+    }
+  }, [isError, error]);
+
+  // Handle row click to open product details
   const handleRowClick = (product: ProductDetails) => {
     setSelectedProduct(product);
     setSelectedProductForActions(product);
     actions.view();
   };
+
+  // Transform the API data to match our component expectations
+  const items: ProductDetails[] =
+    productsData?.map((product) => {
+      // Convert API response to snake_case if needed
+      const convertedProduct = convertKeysToSnakeCase(product);
+
+      return {
+        ...convertedProduct,
+        productId: convertedProduct.id,
+      } as ProductDetails;
+    }) || [];
+
+  console.log(items);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'material_type', title: 'Material Type', icon: Plus },
@@ -75,14 +90,27 @@ export default function ProductsPage() {
       </div>
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        <DataTableClient
-          tableId="product_main_data_table"
-          data={items ?? []}
-          columns={productColumns}
-          facetDefination={facetDefs}
-          searchPlaceHolder="Search products..."
-          onRowClick={handleRowClick}
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p>Loading products...</p>
+            </div>
+          </div>
+        ) : isError ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">Error loading products</div>
+          </div>
+        ) : (
+          <DataTableClient
+            tableId="product_main_data_table"
+            data={items ?? []}
+            columns={productColumns}
+            facetDefination={facetDefs}
+            searchPlaceHolder="Search products..."
+            onRowClick={handleRowClick}
+          />
+        )}
       </div>
     </div>
   );

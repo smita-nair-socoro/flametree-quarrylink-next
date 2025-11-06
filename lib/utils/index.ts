@@ -98,6 +98,7 @@ export const BADGE_COLORS: Record<string, string> = {
   AGGREGATE: 'bg-orange-100 text-orange-900 border-orange-900',
   'CRUSHED ROCK': 'bg-gray-100 text-gray-900 border-gray-900',
   DUST: 'bg-yellow-100 text-yellow-900 border-yellow-900',
+  ROCK: 'bg-gray-100 text-gray-900 border-gray-900',
   SOIL: 'bg-green-100 text-green-900 border-green-900',
   SAND: 'bg-blue-100 text-blue-800 border-blue-800',
   QUARRY: 'bg-orange-100 text-orange-900 border-orange-900',
