@@ -77,9 +77,9 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
   });
 
   const subscriptionOptions = [
-    { label: 'Quarrylink Essential', value: 'ESSENTIAL' },
-    { label: 'Quarrylink Plus', value: 'PLUS' },
-    { label: 'Quarrylink Pro', value: 'PRO' },
+    { label: 'Quarrylink ESSENTIAL', value: 'ESSENTIAL' },
+    { label: 'Quarrylink PLUS', value: 'PLUS' },
+    { label: 'Quarrylink PRO - Custom Pricing', value: 'PRO' },
   ];
 
   // This will be changed so leave it as it is for now
@@ -370,7 +370,6 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 className="w-fit"
               />
 
-              {/* <div className="grid grid-cols-2 gap-10"> */}
               <ButtonRadio
                 options={subscriptionPaymentTermOptions}
                 defaultValue="Monthly"
@@ -379,7 +378,6 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                   clientForm.setValue('subscription_payment_term', value)
                 }
               />
-              {/* </div> */}
 
               {currentPlan && (
                 <div className="border border-green-600 bg-green-50 p-6 flex flex-col gap-5 rounded-lg">
