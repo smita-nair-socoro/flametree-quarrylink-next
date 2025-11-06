@@ -117,6 +117,12 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
   showSearch?: boolean;
 
   /**
+   * Whether to show the error message below the select control.
+   * @default true
+   */
+  showErrorMessage?: boolean;
+
+  /**
    * Optional callback called when the value changes.
    * Receives the new value as a parameter.
    */
@@ -152,6 +158,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
   showSearch = true,
   onChange,
   disabled = false,
+  showErrorMessage = true,
 }: FormSelectProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
 
@@ -242,7 +249,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
               </Command>
             </PopoverContent>
           </Popover>
-          <FormMessage />
+          {showErrorMessage && <FormMessage />}
         </FormItem>
       )}
     />
