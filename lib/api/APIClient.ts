@@ -1,4 +1,4 @@
-import { baseUrl, getTenantId, getUser } from '../utils';
+import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
@@ -127,16 +127,16 @@ export async function HttpClient<T = unknown>(
     },
   };
 
-  const authUser = await getUser();        // ✅ Properly awaited
-const tenantId = await getTenantId();    // ✅ Properly awaited
+  const authUser = await getUser(); // ✅ Properly awaited
+  // const tenantId = await getTenantId(); // ✅ Properly awaited
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
       ...init.headers,
       Authorization: `Bearer ${authUser.access_token}`,
-      'access-token': authUser.access_token,
-      'id-token': authUser.id_token,
-      'tenant-id': tenantId || '',
+      // 'access-token': authUser.access_token,
+      // 'id-token': authUser.id_token,
+      // 'tenant-id': tenantId || '',
     };
   } else {
     return Promise.reject(new Error('Token expired or invalid.'));

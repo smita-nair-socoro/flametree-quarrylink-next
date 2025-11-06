@@ -31,6 +31,7 @@ import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
+import { useSelectedClient } from '@/app/stores/client-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -54,6 +55,8 @@ interface HeaderInfo {
   useSelectedLineItem?: boolean;
   /** Use selected quarry/supplier data automatically */
   useSelectedQuarrySupplier?: boolean;
+  /** Use selected client data automatically */
+  useSelectedClient?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -145,6 +148,7 @@ export function FormDialog({
   const selectedProduct = useSelectedProduct();
   const selectedQuotationLineItem = useSelectedLineItem();
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
+  const selectedClient = useSelectedClient();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -180,6 +184,12 @@ export function FormDialog({
     finalCustomId = selectedQuarrySupplier.name;
     finalPrimaryBadges = [selectedQuarrySupplier.status];
     finalSecondaryBadges = [selectedQuarrySupplier.type];
+  }
+
+  if (headerInfo?.useSelectedClient && selectedClient) {
+    finalCustomId = selectedClient.name;
+    finalPrimaryBadges = [selectedClient.client_status];
+    finalSecondaryBadges = [selectedClient.subscription];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -296,7 +306,7 @@ export function FormDialog({
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
-            <DialogDescription className="mt-2">
+            <DialogDescription className="mt-2 -mb-5">
               {dialogDescription}
             </DialogDescription>
           )}
