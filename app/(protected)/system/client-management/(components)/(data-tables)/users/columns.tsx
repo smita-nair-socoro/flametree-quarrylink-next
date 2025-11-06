@@ -5,6 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { getRelativeTime } from '@/lib/utils/date';
 import { TeamMember } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
+import { UserTableActions } from './user-table-actions';
 
 export const userColumns: ColumnDef<TeamMember>[] = [
   {
@@ -84,5 +85,15 @@ export const userColumns: ColumnDef<TeamMember>[] = [
     },
     meta: 'Last Login',
     size: 80,
+  },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const user = row.original;
+      return <UserTableActions user={user} />;
+    },
   },
 ];

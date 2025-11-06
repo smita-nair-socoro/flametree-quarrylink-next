@@ -11,13 +11,13 @@ interface UserAccessTabProps {
 export default function UserAccessTab({
   convertedClientWithUsers,
 }: UserAccessTabProps) {
-  const userNum = convertedClientWithUsers.length;
+  const teamMemberCount = convertedClientWithUsers.length;
 
   return (
     <div>
       <div className="flex flex-col space-y-5">
         <div className="flex justify-between items-center mt-5">
-          <h1 className="text-lg font-semibold">Users ({userNum}/20)</h1>
+          <h1 className="text-lg font-semibold">Users ({teamMemberCount}/20)</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <FormDialog
               dialogTitle="Invite User"
@@ -25,7 +25,7 @@ export default function UserAccessTab({
               dialogWidth="max-w-md"
               buttonTitle="Add New User"
             >
-              <InviteUserForm />
+              <InviteUserForm teamMemberCount={teamMemberCount} />
             </FormDialog>
           </div>
         </div>
