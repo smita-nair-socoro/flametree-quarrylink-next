@@ -11,7 +11,6 @@ import { MoreHorizontal, Archive, ArchiveRestore, Ban } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
-import { PRODUCT_STATUS } from '@/lib/types/product-enums';
 import { Quotation } from '@/lib/types/quotation';
 import { JobDetails } from '@/lib/types/job';
 
@@ -25,7 +24,7 @@ export function ProductActionButtons({
   layout = 'expanded',
 }: ProductActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isUnavailable = product?.status === PRODUCT_STATUS.UNAVAILABLE;
+  const isUnavailable = product?.is_active === false;
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     product?.id,
     product
@@ -156,7 +155,7 @@ export function ProductActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {product.status !== PRODUCT_STATUS.ARCHIVED && (
+            {product.is_active !== false && (
               <DropdownMenuItem
                 onClick={
                   canProductBeArchived()
@@ -168,7 +167,7 @@ export function ProductActionButtons({
                 <span className="text-destructive">Archive</span>
               </DropdownMenuItem>
             )}
-            {product.status === PRODUCT_STATUS.ARCHIVED && (
+            {product.is_active === false && (
               <DropdownMenuItem onClick={actions.unarchive}>
                 <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
                 <span className="text-blue-600">Unarchive</span>

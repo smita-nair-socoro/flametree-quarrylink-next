@@ -170,8 +170,12 @@ export function FormDialog({
   if (headerInfo?.useSelectedProduct && selectedProduct) {
     finalCustomId = selectedProduct.product_name;
     finalPrimaryBadges = [selectedProduct.material.name];
-    finalSecondaryBadges = [selectedProduct.status];
-    finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+    finalSecondaryBadges = [
+      selectedProduct.is_active ? 'Available' : 'Unavailable',
+    ];
+    finalThirdBadges = [
+      `${selectedProduct.quarrySupplierProducts.length} Suppliers`,
+    ];
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {

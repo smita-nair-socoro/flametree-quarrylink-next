@@ -19,7 +19,6 @@ import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
-import { useSelectedProduct } from '@/app/stores/product-store';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +33,12 @@ import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing
 import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing-column';
 import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
 import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
+import { useQuery } from '@tanstack/react-query';
+import {
+  ProductDetailWithMaterialQueryOptions,
+  ProductDetailWithQuarrySupplierProductQueryOptions,
+} from '@/lib/api/product';
+import { ProductDetails } from '@/lib/types/product';
 
 interface FormProps {
   id?: number;
@@ -45,13 +50,53 @@ interface FormProps {
 export default function ProductForm({ id, onCancel, className }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
-  const selectedProduct = useSelectedProduct();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [totalSupplier, setTotalSupplier] = React.useState(0);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
 
-  const convertedProduct = convertKeysToSnakeCase(selectedProduct);
+  // Fetch product details with material (for form fields)
+  const {
+    data: productData,
+    isLoading: isLoadingProduct,
+    error: productError,
+    isError: isProductError,
+  } = useQuery({
+    ...ProductDetailWithMaterialQueryOptions(id!),
+    enabled: isEditing && !!id,
+  });
+
+  // Fetch product with quarries/suppliers (for supplier table)
+  const {
+    data: productWithQuarriesData,
+    isLoading: isLoadingQuarries,
+    error: quarriesError,
+    isError: isQuarriesError,
+  } = useQuery({
+    ...ProductDetailWithQuarrySupplierProductQueryOptions(id!),
+    enabled: isEditing && !!id,
+  });
+
+  React.useEffect(() => {
+    if (isProductError && productError) {
+      console.error('Product Detail API Error:', productError);
+    }
+    if (isQuarriesError && quarriesError) {
+      console.error('Product Quarries API Error:', quarriesError);
+    }
+  }, [isProductError, productError, isQuarriesError, quarriesError]);
+
+  // Convert product data to snake_case
+  const selectedProduct: ProductDetails | null = React.useMemo(() => {
+    if (!productData) return null;
+    return convertKeysToSnakeCase(productData) as ProductDetails;
+  }, [productData]);
+
+  // Convert product with quarries data to snake_case
+  const convertedProduct = React.useMemo(() => {
+    if (!productWithQuarriesData) return null;
+    return convertKeysToSnakeCase(productWithQuarriesData);
+  }, [productWithQuarriesData]);
 
   const materialTypeOptions = [
     { label: 'Aggregate', value: 'AGGREGATE' },
@@ -64,28 +109,63 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   // TODO: Zod Validation
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
-    defaultValues: {
-      product_name: isEditing ? selectedProduct?.product_name || '' : '',
-      product_code: isEditing ? selectedProduct?.product_code || '' : '',
-      material_type: isEditing ? selectedProduct?.material.name || '' : '',
-      product_description: isEditing
-        ? selectedProduct?.product_description || ''
-        : '',
-      density_tonnage_per_m3: isEditing
-        ? selectedProduct?.density_tonnage_per_m3 || 0
-        : 0,
-      created_at: undefined,
-      updated_at: undefined,
-      created_by: isEditing ? selectedProduct?.created_by || '' : '',
-      last_modified_by: isEditing
-        ? selectedProduct?.last_modified_by || ''
-        : '',
-    },
+    defaultValues:
+      isEditing && selectedProduct
+        ? {
+            product_name: selectedProduct.product_name || '',
+            product_code: selectedProduct.product_code || '',
+            material_type: selectedProduct.material?.name || '',
+            product_description: selectedProduct.product_description || '',
+            density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
+            created_at: selectedProduct.created_at
+              ? new Date(selectedProduct.created_at)
+              : undefined,
+            updated_at: selectedProduct.updated_at
+              ? new Date(selectedProduct.updated_at)
+              : undefined,
+            created_by: selectedProduct.created_by || '',
+            last_modified_by: selectedProduct.last_modified_by || '',
+          }
+        : {
+            product_name: '',
+            product_code: '',
+            material_type: '',
+            product_description: '',
+            density_tonnage_per_m3: 0,
+            created_at: undefined,
+            updated_at: undefined,
+            created_by: '',
+            last_modified_by: '',
+          },
   });
 
+  // Update form values when product data is loaded (for editing mode)
   React.useEffect(() => {
-    setTotalSupplier(selectedProduct?.quarries.length || 0);
-  }, [selectedProduct]);
+    if (isEditing && selectedProduct) {
+      productForm.reset({
+        product_name: selectedProduct.product_name || '',
+        product_code: selectedProduct.product_code || '',
+        material_type: selectedProduct.material?.name || '',
+        product_description: selectedProduct.product_description || '',
+        density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
+        created_at: selectedProduct.created_at
+          ? new Date(selectedProduct.created_at)
+          : undefined,
+        updated_at: selectedProduct.updated_at
+          ? new Date(selectedProduct.updated_at)
+          : undefined,
+        created_by: selectedProduct.created_by || '',
+        last_modified_by: selectedProduct.last_modified_by || '',
+      });
+    }
+  }, [isEditing, selectedProduct, productForm]);
+
+  // Update total supplier count when quarries data is loaded
+  React.useEffect(() => {
+    if (convertedProduct?.quarrySupplierProducts) {
+      setTotalSupplier(convertedProduct.quarrySupplierProducts.length || 0);
+    }
+  }, [convertedProduct]);
 
   async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     console.log('Product Form Values:', values);
@@ -96,6 +176,39 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
     setIsSubmitting(false);
   }
+
+  // Show loading state when fetching product details
+  if (isEditing && (isLoadingProduct || isLoadingQuarries)) {
+    return (
+      <div className="w-full flex items-center justify-center h-96">
+        <div className="flex flex-col items-center space-y-4">
+          <Spinner size="medium" />
+          <p className="text-lg text-muted-foreground font-bold">
+            Loading product details...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (isEditing && (isProductError || isQuarriesError)) {
+    return (
+      <div className="w-full flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-lg text-destructive font-bold mb-2">
+            Error loading product details
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {productError?.message ||
+              quarriesError?.message ||
+              'An error occurred'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
@@ -286,14 +399,14 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   <span className="font-normal text-[#364153]">TN Pricing</span>
                   <DataTableClient
                     columns={tnPricingColumn}
-                    data={convertedProduct?.quarries || []}
+                    data={convertedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
                   <span className="font-normal text-[#364153]">m³ Pricing</span>
                   <DataTableClient
                     columns={m3PricingColumn}
-                    data={convertedProduct?.quarries || []}
+                    data={convertedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -302,7 +415,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={kgPricingColumn}
-                    data={convertedProduct?.quarries || []}
+                    data={convertedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -311,7 +424,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={bulkaPricingColumn}
-                    data={convertedProduct?.quarries || []}
+                    data={convertedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -320,7 +433,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={truckRateComparisonColumn}
-                    data={convertedProduct?.quarries || []}
+                    data={convertedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -333,7 +446,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
               <DataTableClient
                 columns={supplierColumns}
-                data={isEditing ? convertedProduct?.quarries ?? [] : []}
+                data={
+                  isEditing
+                    ? convertedProduct?.quarrySupplierProducts ?? []
+                    : []
+                }
                 simpleTable={true}
               />
             </div>
