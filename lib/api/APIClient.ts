@@ -129,7 +129,8 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  // const tenantId = await getTenantId(); // ✅ Properly awaited - commented out as not currently used
+  // const tenantId = await getTenantId(); // ✅ Properly awaited
+
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
       ...init.headers,

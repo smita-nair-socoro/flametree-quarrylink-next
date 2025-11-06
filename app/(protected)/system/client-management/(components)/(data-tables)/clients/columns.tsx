@@ -4,17 +4,17 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Client } from '@/lib/types/client';
 import { ColumnDef } from '@tanstack/react-table';
-import { ClientPortalTableActions } from './client-portal-table-actions';
+import { ClientTableActions } from './client-table-actions';
 
 export const clientColumns: ColumnDef<Client>[] = [
   {
-    id: 'client',
-    accessorFn: (row) => row.client,
+    id: 'name',
+    accessorFn: (row) => row.name,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Client" />;
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
-    meta: 'Client',
+    meta: 'Name',
   },
   {
     id: 'contact_name',
@@ -54,19 +54,16 @@ export const clientColumns: ColumnDef<Client>[] = [
   },
   {
     id: 'users',
-    accessorFn: (row) => `${row.users} / ${row.max_users}`,
+    accessorFn: (row) => `${row.total_users} / ${row.total_users}`,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Users" />;
     },
     cell: ({ row }) => {
-      const users = row.original.users;
-      const maxUsers = row.original.max_users;
-      const percentage = (users / maxUsers) * 100;
+      const users = row.original.total_users;
+      const percentage = (users / 30) * 100;
       return (
         <div className="py-2 flex items-center gap-2">
-          <span className="min-w-[50px]">
-            {users} / {maxUsers}
-          </span>
+          <span className="min-w-[50px]">{users} / 30</span>
           <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-purple-500 rounded-full transition-all"
@@ -79,20 +76,20 @@ export const clientColumns: ColumnDef<Client>[] = [
     meta: 'Users',
   },
   {
-    id: 'status',
-    accessorFn: (row) => row.status,
+    id: 'client_status',
+    accessorFn: (row) => row.client_status,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.client_status;
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />
         </div>
       );
     },
-    meta: 'Status',
+    meta: 'Client Status',
   },
   {
     id: 'actions',
@@ -101,7 +98,7 @@ export const clientColumns: ColumnDef<Client>[] = [
     },
     cell: ({ row }) => {
       const client = row.original;
-      return <ClientPortalTableActions client={client} />;
+      return <ClientTableActions client={client} />;
     },
   },
 ];

@@ -65,16 +65,16 @@ const data = {
       icon: Truck,
       items: [
         { title: 'Drivers', url: '/logistics/drivers' },
-        { title: "Trucks", url: '/logistics/trucks' },
+        { title: 'Trucks', url: '/logistics/trucks' },
         { title: 'Deliveries', url: '/logistics/deliveries' },
         { title: 'Site & Driver Sign-In', url: '/logistics/sign-in' },
       ],
     },
     {
       title: 'Client Management',
-      url: '/client-management',
+      url: '/system/client-management',
       icon: Settings2,
-    }
+    },
   ],
 };
 
