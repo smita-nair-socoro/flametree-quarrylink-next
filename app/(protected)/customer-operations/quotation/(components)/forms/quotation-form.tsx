@@ -26,7 +26,10 @@ import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { Spinner } from '@/components/ui/spinner';
-import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import {
+  useSelectedQuotation,
+  useQuotationStore,
+} from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
@@ -36,7 +39,6 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
-import { CustomersListQueryOptions } from '@/lib/api/customer';
 
 interface FormProps {
   id?: number;
@@ -63,18 +65,12 @@ export default function QuotationForm({
     error: detailError,
   } = useQuery(QuotationDetailQueryOptions(selectedQuotation?.id || 0));
 
-  // Fetch customer list for create mode dropdown
-  const { data: customersData } = useQuery(CustomersListQueryOptions());
-
   // Log API response for debugging
   React.useEffect(() => {
-    if (quotationDetailData) {
-      console.log('✅ Raw quotation detail data from API:', quotationDetailData);
-    }
     if (detailError) {
       console.error('❌ Error fetching quotation details:', detailError);
     }
-  }, [quotationDetailData, detailError]);
+  }, [detailError]);
 
   // Convert QuotationDTO from API to Quotation format for the form
   const getDetailedQuotation = React.useMemo(() => {
@@ -91,7 +87,6 @@ export default function QuotationForm({
         status: convertedQuotation.quote_status,
       } as Quotation;
 
-      console.log('✅ Transformed quotation for form:', transformedQuotation);
       return transformedQuotation;
     }
     return null;
@@ -193,7 +188,6 @@ export default function QuotationForm({
   // Update form values when API data loads
   React.useEffect(() => {
     if (isEditing && currentQuotation) {
-      console.log('🔄 Resetting form with API data:', currentQuotation);
       quotationForm.reset({
         quote_type: currentQuotation.quote_type || 'DELIVERY',
         customer_id: currentQuotation.customer_id || 0,
@@ -273,23 +267,23 @@ export default function QuotationForm({
     }
   }, []);
 
-  // Build customer options dynamically from API data
-  const customerOptions: FormSelectOption[] = React.useMemo(() => {
-    if (customersData && Array.isArray(customersData)) {
-      return customersData.map((customer) => ({
-        label: customer.name || `Customer ${customer.id}`,
-        value: customer.id,
-      }));
-    }
-    // Fallback to empty array if no data
-    return [];
-  }, [customersData]);
+  // Get unique customer names and account managers from quotations store
+  const getUniqueCustomerNames = useQuotationStore(
+    (state) => state.getUniqueCustomerNames
+  );
+  const getUniqueAccountManagers = useQuotationStore(
+    (state) => state.getUniqueAccountManagers
+  );
 
-  const accountManagerOptions: FormSelectOption[] = [
-    { label: 'Reza', value: 1 },
-    { label: 'Armin', value: 2 },
-    { label: 'Jaywoo', value: 3 },
-  ]; // TODO: get account manager
+  // Build customer options from quotations list
+  const customerOptions: FormSelectOption[] = React.useMemo(() => {
+    return getUniqueCustomerNames();
+  }, [getUniqueCustomerNames]);
+
+  // Build account manager options from quotations list
+  const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
+    return getUniqueAccountManagers();
+  }, [getUniqueAccountManagers]);
 
   const customerId = quotationForm.watch('customer_id');
 
@@ -309,17 +303,11 @@ export default function QuotationForm({
   }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    console.log('onSubmit function called!');
-    console.log('Form is valid:', quotationForm.formState.isValid);
-    console.log('Form errors:', quotationForm.formState.errors);
-    console.log('Quotation Form Values:', values);
-    console.log('Selected Address Details:', address);
-
     setIsSubmitting(true);
 
     // Simulate API call delay (remove this in production)
     await new Promise((resolve) => setTimeout(resolve, 2000));
-
+    console.log('Form submitted with values:', values);
     setIsSubmitting(false);
   }
 
@@ -379,10 +367,7 @@ export default function QuotationForm({
               ? detailError.message
               : 'Unknown error occurred'}
           </p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="mt-4"
-          >
+          <Button onClick={() => window.location.reload()} className="mt-4">
             Reload Page
           </Button>
         </div>
@@ -465,76 +450,31 @@ export default function QuotationForm({
               )}
             />
 
-            {isEditing ? (
-              <FormField
-                control={quotationForm.control}
-                name="customer_id"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Customer*</FormLabel>
-                    <FormControl>
-                      <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                        {currentQuotation?.customer_name || 'Unknown Customer'}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormSelect
-                control={quotationForm.control}
-                name="customer_id"
-                label="Customer*"
-                searchLabel="Customer"
-                options={customerOptions}
-                placeholder="Select Customer"
-                formItemClassName="col-span-2"
-                disabled={isEditing && !canEdit}
-              />
-            )}
+            <FormSelect
+              control={quotationForm.control}
+              name="customer_id"
+              label="Customer*"
+              searchLabel="Customer"
+              options={customerOptions}
+              placeholder="Select Customer"
+              formItemClassName={
+                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              }
+              disabled={isEditing && !canEdit}
+            />
 
-            {isEditing ? (
-              <FormField
-                control={quotationForm.control}
-                name="account_manager"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Account Manager*</FormLabel>
-                    <FormControl>
-                      <div className="flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm">
-                        {currentQuotation?.account_manager_name ||
-                          'Unknown Manager'}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormSelect
-                control={quotationForm.control}
-                name="account_manager"
-                label="Account Manager*"
-                searchLabel="Account Managers"
-                options={accountManagerOptions}
-                placeholder="Select Account Manager"
-                formItemClassName="col-span-2"
-                disabled={isEditing && !canEdit}
-              />
-            )}
+            <FormSelect
+              control={quotationForm.control}
+              name="account_manager"
+              label="Account Manager*"
+              searchLabel="Account Managers"
+              options={accountManagerOptions}
+              placeholder="Select Account Manager"
+              formItemClassName={
+                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+              }
+              disabled={isEditing && !canEdit}
+            />
 
             <FormField
               control={quotationForm.control}

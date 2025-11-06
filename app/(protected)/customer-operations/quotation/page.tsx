@@ -25,8 +25,7 @@ export default function QuotationsPage() {
     isError,
   } = useQuery(QuotationsListQueryOptions());
 
-  console.log('========================');
-  console.log('Quotations API Response:', quotationsData);
+  console.log('RAW quotation Response:', quotationsData);
   React.useEffect(() => {
     if (isError && error) {
       console.error('Quotation API Error:', error);
@@ -37,30 +36,38 @@ export default function QuotationsPage() {
   }, [isError, error, isLoading]);
 
   // Transform the API data to match our component expectations
-  const items: Quotation[] =
-    (Array.isArray(quotationsData)
-      ? quotationsData
-      : quotationsData?.content || []
-    )?.map((quotation) => {
-      // Convert API response to snake_case if needed
-      const convertedQuotation = convertKeysToSnakeCase(
-        quotation
-      ) as QuotationDTO;
+  const items: Quotation[] = React.useMemo(() => {
+    return (
+      (Array.isArray(quotationsData)
+        ? quotationsData
+        : quotationsData?.content || []
+      )?.map((quotation) => {
+        // Convert API response to snake_case if needed
+        const convertedQuotation = convertKeysToSnakeCase(
+          quotation
+        ) as QuotationDTO;
 
-      return {
-        ...convertedQuotation,
-        quoteId: convertedQuotation.id,
-        status: convertedQuotation.quote_status, // Map quote_status to status for columns
-      } as Quotation;
-    }) || [];
-
-  console.log('Transformed items:', items);
-  console.log('Items count:', items.length);
-  console.log('========================');
+        return {
+          ...convertedQuotation,
+          quoteId: convertedQuotation.id,
+          status: convertedQuotation.quote_status, // Map quote_status to status for columns
+        } as Quotation;
+      }) || []
+    );
+  }, [quotationsData]);
 
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
+  const setQuotations = useQuotationStore((state) => state.setQuotations);
+
+  // Populate the Zustand store with quotations data
+  React.useEffect(() => {
+    if (items && items.length > 0) {
+      setQuotations(items);
+      console.log('✅ Quotations stored in Zustand:', items.length, 'items');
+    }
+  }, [items, setQuotations]);
 
   const [selectedQuotationForActions, setSelectedQuotationForActions] =
     React.useState<Quotation | null>(null);
