@@ -108,6 +108,83 @@
           "lastLoginAt": "2025-10-29T13:00:00.000Z",
           "createdAt": "2025-10-30T13:00:00.000Z",
           "updatedAt": "2025-10-30T13:00:00.000Z"
+        },
+        {
+          "id": 4,
+          "tenantId": "Tenant-001",
+          "userName": "Emma Thompson",
+          "email": "emma.thompson@Farrells.com.au",
+          "role": "USER",
+          "status": "ACTIVE",
+          "lastLoginAt": "2025-10-28T09:30:00.000Z",
+          "createdAt": "2025-10-29T13:00:00.000Z",
+          "updatedAt": "2025-10-29T13:00:00.000Z"
+        },
+        {
+          "id": 5,
+          "tenantId": "Tenant-001",
+          "userName": "Michael Chen",
+          "email": "michael.chen@Farrells.com.au",
+          "role": "USER",
+          "status": "ACTIVE",
+          "lastLoginAt": "2025-10-27T14:15:00.000Z",
+          "createdAt": "2025-10-28T13:00:00.000Z",
+          "updatedAt": "2025-10-28T13:00:00.000Z"
+        },
+        {
+          "id": 6,
+          "tenantId": "Tenant-001",
+          "userName": "Sarah Williams",
+          "email": "sarah.williams@Farrells.com.au",
+          "role": "USER",
+          "status": "ACTIVE",
+          "lastLoginAt": "2025-10-26T11:45:00.000Z",
+          "createdAt": "2025-10-27T13:00:00.000Z",
+          "updatedAt": "2025-10-27T13:00:00.000Z"
+        },
+        {
+          "id": 7,
+          "tenantId": "Tenant-001",
+          "userName": "David Martinez",
+          "email": "david.martinez@Farrells.com.au",
+          "role": "USER",
+          "status": "ACTIVE",
+          "lastLoginAt": "2025-10-25T16:20:00.000Z",
+          "createdAt": "2025-10-26T13:00:00.000Z",
+          "updatedAt": "2025-10-26T13:00:00.000Z"
+        },
+        {
+          "id": 8,
+          "tenantId": "Tenant-001",
+          "userName": "Lisa Anderson",
+          "email": "lisa.anderson@Farrells.com.au",
+          "role": "USER",
+          "status": "PENDING",
+          "lastLoginAt": null,
+          "createdAt": "2025-10-25T13:00:00.000Z",
+          "updatedAt": "2025-10-25T13:00:00.000Z"
+        },
+        {
+          "id": 9,
+          "tenantId": "Tenant-001",
+          "userName": "James Wilson",
+          "email": "james.wilson@Farrells.com.au",
+          "role": "USER",
+          "status": "INACTIVE",
+          "lastLoginAt": "2025-09-15T08:00:00.000Z",
+          "createdAt": "2025-10-24T13:00:00.000Z",
+          "updatedAt": "2025-10-24T13:00:00.000Z"
+        },
+        {
+          "id": 10,
+          "tenantId": "Tenant-001",
+          "userName": "Rachel Davis",
+          "email": "rachel.davis@Farrells.com.au",
+          "role": "ADMIN",
+          "status": "ACTIVE",
+          "lastLoginAt": "2025-10-30T10:00:00.000Z",
+          "createdAt": "2025-10-23T13:00:00.000Z",
+          "updatedAt": "2025-10-23T13:00:00.000Z"
         }
       ]
     },
