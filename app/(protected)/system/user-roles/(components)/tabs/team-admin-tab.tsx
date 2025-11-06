@@ -5,7 +5,6 @@ import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
 import { Plus, Bug } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
-import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { teamMemberColumns } from '../(data-tables)/team-member/columns';
 import {
@@ -22,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
-import { EditTeamMemberForm } from '../forms/team-member-form';
+import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
@@ -34,7 +33,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Armin Menhaji',
     phone: '+61412345678',
     email: 'armin@terminco.com.au',
-    phone: '+61 400 000 001',
     role: Role.ADMIN,
     status: UserStatus.ACTIVE,
     total_logins: 120,
@@ -44,12 +42,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-29T13:00:00.000Z',
-    total_logins: 156,
-    quotation_created: 23,
-    jobs_managed: 12,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -60,7 +52,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Sarah Johnson',
     phone: '+61412345679',
     email: 'sarah@terminco.com.au',
-    phone: '+61 400 000 002',
     role: Role.ADMIN,
     status: UserStatus.ACTIVE,
     total_logins: 0,
@@ -70,12 +61,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: null,
-    total_logins: 89,
-    quotation_created: 15,
-    jobs_managed: 8,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -86,7 +71,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Mike Chen',
     phone: '+61412345680',
     email: 'mike@terminco.com.au',
-    phone: '+61 400 000 003',
     role: Role.ADMIN,
     status: UserStatus.PENDING,
     total_logins: 5,
@@ -96,12 +80,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-30T19:11:00.000Z',
-    total_logins: 0,
-    quotation_created: 0,
-    jobs_managed: 0,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -112,7 +90,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Emma Wilson',
     phone: '+61412345681',
     email: 'emma.wilson@terminco.com.au',
-    phone: '+61 400 000 004',
     role: Role.USER,
     status: UserStatus.ACTIVE,
     total_logins: 45,
@@ -122,12 +99,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-30T23:11:00.000Z',
-    total_logins: 45,
-    quotation_created: 12,
-    jobs_managed: 6,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -138,7 +109,6 @@ const teamMemberMockData: User[] = [
     full_name: 'David Martinez',
     phone: '+61412345682',
     email: 'david.martinez@terminco.com.au',
-    phone: '+61 400 000 005',
     role: Role.USER,
     status: UserStatus.ACTIVE,
     total_logins: 32,
@@ -148,12 +118,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-24T22:00:00.000Z',
-    total_logins: 72,
-    quotation_created: 8,
-    jobs_managed: 4,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -164,7 +128,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Lisa Anderson',
     phone: '+61412345683',
     email: 'lisa.anderson@terminco.com.au',
-    phone: '+61 400 000 006',
     role: Role.USER,
     status: UserStatus.ACTIVE,
     total_logins: 78,
@@ -174,12 +137,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-30T13:00:00.000Z',
-    total_logins: 120,
-    quotation_created: 18,
-    jobs_managed: 10,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -190,7 +147,6 @@ const teamMemberMockData: User[] = [
     full_name: 'James Brown',
     phone: '+61412345684',
     email: 'james.brown@terminco.com.au',
-    phone: '+61 400 000 007',
     role: Role.USER,
     status: UserStatus.ACTIVE,
     total_logins: 25,
@@ -200,12 +156,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-30T13:00:00.000Z',
-    total_logins: 65,
-    quotation_created: 9,
-    jobs_managed: 5,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -216,7 +166,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Maria Garcia',
     phone: '+61412345685',
     email: 'maria.garcia@terminco.com.au',
-    phone: '+61 400 000 008',
     role: Role.USER,
     status: UserStatus.ACTIVE,
     total_logins: 15,
@@ -226,12 +175,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-10-30T00:00:00.000Z',
-    total_logins: 34,
-    quotation_created: 6,
-    jobs_managed: 3,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -242,7 +185,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Tom Rodriguez',
     phone: '+61412345686',
     email: 'tom.rodriguez@terminco.com.au',
-    phone: '+61 400 000 009',
     role: Role.USER,
     status: UserStatus.PENDING,
     total_logins: 0,
@@ -252,12 +194,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: null,
-    total_logins: 0,
-    quotation_created: 0,
-    jobs_managed: 0,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -268,7 +204,6 @@ const teamMemberMockData: User[] = [
     full_name: 'Jessica Lee',
     phone: '+61412345687',
     email: 'jessica.lee@terminco.com.au',
-    phone: '+61 400 000 010',
     role: Role.ADMIN,
     status: UserStatus.ACTIVE,
     total_logins: 95,
@@ -278,12 +213,6 @@ const teamMemberMockData: User[] = [
     deletion_reason: '',
     isDeleted: false,
     last_login_at: '2025-09-28T22:00:00.000Z',
-    total_logins: 98,
-    quotation_created: 20,
-    jobs_managed: 11,
-    invited_by: 1,
-    deletion_reason: '',
-    isDeleted: false,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
@@ -330,15 +259,26 @@ export default function TeamAdminTab() {
   // Debug mode state for testing different UI states
   const [debugMode, setDebugMode] = React.useState(false);
   const [debugCount, setDebugCount] = React.useState<number>(5);
-  const [viewOpen, setViewOpen] = React.useState(false);
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
 
+  // Separate state for the actions hook (like customer implementation)
+  const [selectedTeamMemberForActions, setSelectedTeamMemberForActions] =
+    React.useState<User | null>(null);
+
+  const { actions, viewDialog } = useTeamMemberActions(
+    selectedTeamMemberForActions?.id,
+    selectedTeamMemberForActions,
+    rolesOptions,
+    1
+  );
+
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
     setSelectedTeamMember(member);
-    setViewOpen(true);
+    setSelectedTeamMemberForActions(member);
+    actions.viewEdit();
   };
 
   // Calculate team member count based on debug mode
@@ -348,23 +288,6 @@ export default function TeamAdminTab() {
     { column: 'role', title: 'Role', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
   ];
-
-  // Render view/edit dialog
-  const viewDialog = viewOpen ? (
-    <FormDialog
-      dialogTitle="Edit Team Member"
-      open={viewOpen}
-      onOpenChangeAction={(open) => {
-        setViewOpen(open);
-        if (!open) {
-          setViewOpen(false);
-        }
-      }}
-      hideTrigger
-    >
-      <EditTeamMemberForm roles={rolesOptions} currentUserId={1} />
-    </FormDialog>
-  ) : null;
 
   return (
     <>
