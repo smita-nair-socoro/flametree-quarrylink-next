@@ -4,7 +4,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { Client } from '@/lib/types/client';
 import { ColumnDef } from '@tanstack/react-table';
-import { ClientPortalTableActions } from './client-portal-table-actions';
+import { ClientTableActions } from './client-table-actions';
 
 export const clientColumns: ColumnDef<Client>[] = [
   {
@@ -83,8 +83,6 @@ export const clientColumns: ColumnDef<Client>[] = [
     },
     cell: ({ row }) => {
       const status = row.original.client_status;
-      console.log(row.original);
-      console.log(status);
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />
@@ -100,7 +98,7 @@ export const clientColumns: ColumnDef<Client>[] = [
     },
     cell: ({ row }) => {
       const client = row.original;
-      return <ClientPortalTableActions client={client} />;
+      return <ClientTableActions client={client} />;
     },
   },
 ];

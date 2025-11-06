@@ -15,6 +15,8 @@ import { FormDialog } from '@/components/form-dialog';
 import ClientForm from './(components)/forms/client-form';
 import { Button } from '@/components/ui/button';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useClientActions } from '@/hooks/use-client-actions';
+import { useClientStore } from '@/app/stores/client-store';
 
 export default function ClientPortalPage() {
   const convertedJson = convertKeysToSnakeCase(rawJson);
@@ -47,8 +49,26 @@ export default function ClientPortalPage() {
     },
   ];
 
+  const setSelectedClient = useClientStore((state) => state.setSelectedClient);
+
+  const [selectedClientForActions, setSelectedClientForActions] =
+    React.useState<Client | null>(null);
+
+  const { actions, confirmDialogs, viewDialog } = useClientActions(
+    selectedClientForActions?.id,
+    selectedClientForActions
+  );
+
+  const handleRowClick = (client: Client) => {
+    setSelectedClient(client);
+    setSelectedClientForActions(client);
+    actions.view();
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="border rounded-md p-5 bg-white">
           <div className="flex flex-col gap-4">
@@ -99,6 +119,7 @@ export default function ClientPortalPage() {
           columns={clientColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search clients..."
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
