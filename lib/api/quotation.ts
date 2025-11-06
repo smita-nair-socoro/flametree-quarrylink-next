@@ -9,3 +9,11 @@ export const QuotationsListQueryOptions = () =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const QuotationDetailQueryOptions = (quotationId: number) =>
+  queryOptions({
+    queryKey: QuotationKeys.detail(quotationId),
+    queryFn: () => APIClient.quotations.getById(quotationId),
+    staleTime: 5_000,
+    enabled: !!quotationId && quotationId > 0,
+  });

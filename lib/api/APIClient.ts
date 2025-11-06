@@ -375,5 +375,9 @@ export const APIClient = {
             totalPages: number;
           }
       >(`/socoro/quarrylink/api/quote`),
+    getById: (quotationId: number) =>
+      appClient.Get<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${quotationId}`
+      ),
   },
 };

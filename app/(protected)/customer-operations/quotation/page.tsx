@@ -25,6 +25,8 @@ export default function QuotationsPage() {
     isError,
   } = useQuery(QuotationsListQueryOptions());
 
+  console.log('========================');
+  console.log('Quotations API Response:', quotationsData);
   React.useEffect(() => {
     if (isError && error) {
       console.error('Quotation API Error:', error);
