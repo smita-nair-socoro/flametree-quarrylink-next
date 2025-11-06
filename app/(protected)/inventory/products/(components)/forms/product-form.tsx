@@ -98,6 +98,9 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     return convertKeysToSnakeCase(productWithQuarriesData);
   }, [productWithQuarriesData]);
 
+  console.log('productWithQuarriesData', productWithQuarriesData);
+  console.log('convertedProduct', convertedProduct);
+
   const materialTypeOptions = [
     { label: 'Aggregate', value: 'AGGREGATE' },
     { label: 'Crushed Rock', value: 'CRUSHED ROCK' },
@@ -162,8 +165,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   // Update total supplier count when quarries data is loaded
   React.useEffect(() => {
-    if (convertedProduct?.quarrySupplierProducts) {
-      setTotalSupplier(convertedProduct.quarrySupplierProducts.length || 0);
+    if (convertedProduct?.quarry_supplier_products) {
+      setTotalSupplier(convertedProduct.quarry_supplier_products.length || 0);
     }
   }, [convertedProduct]);
 
@@ -399,14 +402,14 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   <span className="font-normal text-[#364153]">TN Pricing</span>
                   <DataTableClient
                     columns={tnPricingColumn}
-                    data={convertedProduct?.quarrySupplierProducts || []}
+                    data={convertedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
                   <span className="font-normal text-[#364153]">m³ Pricing</span>
                   <DataTableClient
                     columns={m3PricingColumn}
-                    data={convertedProduct?.quarrySupplierProducts || []}
+                    data={convertedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -415,7 +418,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={kgPricingColumn}
-                    data={convertedProduct?.quarrySupplierProducts || []}
+                    data={convertedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -424,7 +427,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={bulkaPricingColumn}
-                    data={convertedProduct?.quarrySupplierProducts || []}
+                    data={convertedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -433,7 +436,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={truckRateComparisonColumn}
-                    data={convertedProduct?.quarrySupplierProducts || []}
+                    data={convertedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -448,7 +451,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 columns={supplierColumns}
                 data={
                   isEditing
-                    ? convertedProduct?.quarrySupplierProducts ?? []
+                    ? convertedProduct?.quarry_supplier_products ?? []
                     : []
                 }
                 simpleTable={true}

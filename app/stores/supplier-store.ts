@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 
 interface SupplierStore {
-  suppliers: QuarriesWithProduct[];
-  selectedSupplier: QuarriesWithProduct | null;
+  suppliers: QuarrySupplierProduct[];
+  selectedSupplier: QuarrySupplierProduct | null;
   isLoading: boolean;
 
   // Actions
-  setSuppliers: (suppliers: QuarriesWithProduct[]) => void;
-  setSelectedSupplier: (supplier: QuarriesWithProduct | null) => void;
+  setSuppliers: (suppliers: QuarrySupplierProduct[]) => void;
+  setSelectedSupplier: (supplier: QuarrySupplierProduct | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getSupplierById: (id: number) => QuarriesWithProduct | undefined;
-  getSuppliersByStatus: (status: boolean) => QuarriesWithProduct[];
+  getSupplierById: (id: number) => QuarrySupplierProduct | undefined;
+  getSuppliersByStatus: (status: boolean) => QuarrySupplierProduct[];
 
   getSupplierStats: () => {
     total: number;

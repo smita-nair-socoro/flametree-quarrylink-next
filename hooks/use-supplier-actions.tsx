@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ActionDialog } from '@/components/action-dialog';
 import SupplierForm from '@/app/(protected)/inventory/products/(components)/forms/supplier-form';
 import { TriangleAlert, CircleCheckBig } from 'lucide-react';
@@ -29,10 +29,11 @@ interface SelectedAction {
 }
 
 const getDialogConfigs = (
-  quarryData?: QuarriesWithProduct | null,
+  quarryData?: QuarrySupplierProduct | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  const quarryName = quarryData?.quarry_name;
+  const quarryName =
+    quarryData?.quarry_name ?? quarryData?.supplier_product_name;
   const supplierName = quarryData?.supplier_product_name;
   const supplierProductCode = quarryData?.supplier_product_code;
 
@@ -147,7 +148,7 @@ const getDialogConfigs = (
 
 export function useSupplierActions(
   quarryId: number | undefined,
-  quarryData?: QuarriesWithProduct | null
+  quarryData?: QuarrySupplierProduct | null
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);

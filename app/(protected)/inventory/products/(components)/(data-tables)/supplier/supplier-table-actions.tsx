@@ -9,17 +9,17 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { useSupplierActions } from '@/hooks/use-supplier-actions';
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { useSupplierStore } from '@/app/stores/supplier-store';
 
 interface SupplierTableActionProps {
-  quarry: QuarriesWithProduct;
+  quarry: QuarrySupplierProduct;
 }
 
 export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useSupplierActions(
-    quarry.id,
+    quarry.quarry_supplier_id,
     quarry
   );
 

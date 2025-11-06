@@ -1,6 +1,6 @@
 'use client';
 
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
@@ -8,7 +8,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
+export const supplierColumns: ColumnDef<QuarrySupplierProduct>[] = [
   {
     id: 'quarry_name',
     accessorFn: (row) => row.quarry_name,
@@ -33,8 +33,8 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     meta: 'Supplier Product',
   },
   {
-    id: 'cost_price',
-    accessorFn: (row) => row.price.tn_cost_price,
+    id: 'per_tn_cost_price',
+    accessorFn: (row) => row.per_tn_cost_price,
     header: ({}) => {
       return <div>Cost Price (TN)</div>;
     },
@@ -42,8 +42,8 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
       return (
         <div>
           $
-          {row.original.price.tn_cost_price
-            ? centsToDollars(row.original.price.tn_cost_price)
+          {row.original.per_tn_cost_price
+            ? centsToDollars(row.original.per_tn_cost_price)
             : '0'}
         </div>
       );
@@ -52,46 +52,46 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'sell_price',
-    accessorFn: (row) => row.price.tn_sell_price,
+    accessorFn: (row) => row.per_tn_sell_price,
     header: ({}) => {
       return <div>Sell Price (TN)</div>;
     },
     cell: ({ row }) => (
       <div>
         $
-        {row.original.price.tn_sell_price
-          ? centsToDollars(row.original.price.tn_sell_price)
+        {row.original.per_tn_sell_price
+          ? centsToDollars(row.original.per_tn_sell_price)
           : '0'}
       </div>
     ),
     meta: 'sell price',
   },
-  {
-    id: 'margin',
-    accessorFn: (row) => row.price.margin_tn,
-    header: ({}) => {
-      return <div>Margin</div>;
-    },
-    cell: ({ row }) => {
-      const margin = row.original.price.margin_tn || 0;
-      return (
-        <div
-          className={cn(
-            margin < 0 ? 'text-red-600' : 'text-green-600',
-            'flex justify-start gap-1'
-          )}
-        >
-          {margin < 0 && <TrendingDown className="w-4 h-4 text-red-600" />}
-          {margin > 0 && <TrendingUp className="w-4 h-4 text-green-600" />}
-          {((margin || 0) * 100).toFixed(2)}%
-        </div>
-      );
-    },
-    meta: 'Margin',
-  },
+  // {
+  //   id: 'margin',
+  //   accessorFn: (row) => row.price.margin_tn,
+  //   header: ({}) => {
+  //     return <div>Margin</div>;
+  //   },
+  //   cell: ({ row }) => {
+  //     const margin = row.original.price.margin_tn || 0;
+  //     return (
+  //       <div
+  //         className={cn(
+  //           margin < 0 ? 'text-red-600' : 'text-green-600',
+  //           'flex justify-start gap-1'
+  //         )}
+  //       >
+  //         {margin < 0 && <TrendingDown className="w-4 h-4 text-red-600" />}
+  //         {margin > 0 && <TrendingUp className="w-4 h-4 text-green-600" />}
+  //         {((margin || 0) * 100).toFixed(2)}%
+  //       </div>
+  //     );
+  //   },
+  //   meta: 'Margin',
+  // },
   {
     id: 'action',
-    accessorFn: (row) => row.id,
+    accessorFn: (row) => row.quarry_supplier_id,
     header: ({}) => {
       return <div>Actions</div>;
     },

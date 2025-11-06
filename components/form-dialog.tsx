@@ -173,9 +173,6 @@ export function FormDialog({
     finalSecondaryBadges = [
       selectedProduct.is_active ? 'Available' : 'Unavailable',
     ];
-    finalThirdBadges = [
-      `${selectedProduct.quarrySupplierProducts.length} Suppliers`,
-    ];
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
