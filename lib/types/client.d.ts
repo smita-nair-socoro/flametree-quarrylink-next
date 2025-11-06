@@ -14,6 +14,7 @@ export interface Client {
   email: string;
   phone: string;
   subscription: SubscriptionPlan;
+  subscription_payment_term: string;
   client_status: ClientStatus;
   abn: string;
   billing_address: number; // Address.id
