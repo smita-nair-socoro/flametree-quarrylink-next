@@ -1,5 +1,5 @@
 import { ClientStatus, InvoiceStatus, SubscriptionPlan } from './client-enums';
-import { User } from './user';
+import { TeamMember, User } from './user';
 
 export interface ClientsOverview {
   total_client: number;
@@ -22,10 +22,8 @@ export interface Client {
   invoices: BillingHistory;
   stripe_profile: string;
   total_users: number;
-  total_drivers: number;
-  total_trucks: number;
   total_quarries: number;
-  user: User;
+  user?: TeamMember[];
   isDeleted: boolean;
   last_login_at: string;
   createdBy: string;
