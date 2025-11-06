@@ -1,5 +1,5 @@
 import { ClientStatus, InvoiceStatus, SubscriptionPlan } from './client-enums';
-import { TeamMember, User } from './user';
+import { TeamMember } from './user';
 
 export interface ClientsOverview {
   total_client: number;
