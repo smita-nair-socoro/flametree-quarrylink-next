@@ -3,14 +3,14 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { getRelativeTime } from '@/lib/utils/date';
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { UserTableActions } from './user-table-actions';
 
-export const userColumns: ColumnDef<TeamMember>[] = [
+export const userColumns: ColumnDef<User>[] = [
   {
     id: 'user_name',
-    accessorFn: (row) => row.user_name,
+    accessorFn: (row) => row.full_name,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="User Name" />;
     },

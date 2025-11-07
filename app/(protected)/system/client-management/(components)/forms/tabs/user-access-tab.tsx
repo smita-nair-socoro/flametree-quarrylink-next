@@ -1,11 +1,11 @@
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 import { userColumns } from '../../(data-tables)/users/columns';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '@/app/(protected)/system/user-management/(components)/forms/invite-user-form';
 
 interface UserAccessTabProps {
-  convertedClientWithUsers: TeamMember[];
+  convertedClientWithUsers: User[];
 }
 
 export default function UserAccessTab({

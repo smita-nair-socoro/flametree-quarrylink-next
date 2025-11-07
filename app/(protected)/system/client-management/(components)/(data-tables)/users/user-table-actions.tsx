@@ -8,12 +8,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { TeamMember, User } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 import { useClientUserActions } from '@/hooks/use-client-user-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 interface UserTableActionsProps {
-  user: TeamMember;
+  user: User;
   roles?: readonly FormSelectOption[];
   currentUserId?: number | string;
 }
@@ -25,33 +25,9 @@ export function UserTableActions({
 }: UserTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-  // Convert TeamMember to User format for the hook
-  const userData: User | null = React.useMemo(() => {
-    if (!user) return null;
-    return {
-      id: user.id,
-      tenant_id: user.tenant_id,
-      client_id: 0, // This should be passed from parent or fetched
-      status: user.status,
-      full_name: user.user_name,
-      phone: '',
-      email: user.email,
-      role: user.role,
-      total_logins: 0,
-      quotation_created: 0,
-      jobs_managed: 0,
-      invited_by: 0,
-      deletion_reason: '',
-      isDeleted: false,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
-      last_login_at: user.last_login_at,
-    };
-  }, [user]);
-
   const { actions, deleteDialog, viewDialog } = useClientUserActions(
     user?.id,
-    userData,
+    user,
     roles,
     currentUserId
   );
