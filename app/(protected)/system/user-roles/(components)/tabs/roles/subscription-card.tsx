@@ -51,7 +51,8 @@ export function SubscriptionPlanCard({
           'py-3 relative overflow-hidden transition-all hover:shadow-md cursor-pointer bg-white',
           isSelected
             ? `bg-[#FAF5FF] border-2 border-[#AD46FF]`
-            : 'border-border hover:border-purple-300'
+            : 'border-border hover:border-purple-300',
+          tone !== 'essentials' && 'opacity-50'
         )}
       >
         <CardContent className="px-3">

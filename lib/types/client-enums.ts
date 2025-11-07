@@ -1,13 +1,18 @@
-export enum CLIENT_STATUS {
-  DRAFT = 'DRAFT',
+export enum ClientStatus {
+  PENDING_PAYMENT = 'PENDING_PAYMENT',
+  CANCELLED = 'CANCELLED',
+  SUSPENDED = 'SUSPENDED',
   ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
+  PAYMENT_ISSUE = 'PAYMENT_ISSUE',
+}
+
+export enum InvoiceStatus {
+  PAID = 'PAID',
   DUE_PAYMENT = 'DUE_PAYMENT',
 }
 
-export enum SUBSCRIPTION_TYPE {
-  LITE_PLUS = 'Lite+',
-  STANDARD = 'Standard',
-  PREMIUM = 'Premium',
-  ENTERPRISE = 'Enterprise',
+export enum SubscriptionPlan {
+  ESSENTIAL = 'ESSENTIAL',
+  PLUS = 'PLUS',
+  PRO = 'PRO',
 }
