@@ -4,8 +4,6 @@ import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-roles/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
@@ -215,23 +213,6 @@ export function useTeamMemberActions(
             )}
           </>
         )}
-
-        {/* Deletion Reason - Always shown */}
-        <div className="space-y-2">
-          <Label htmlFor="deletion-reason">
-            Deletion Reason <span className="text-red-600">(required)</span>:
-          </Label>
-          <Textarea
-            id="deletion-reason"
-            placeholder="e.g., Employee left company"
-            value={deletionReason}
-            onChange={(e) => setDeletionReason(e.target.value)}
-            className="min-h-[80px]"
-          />
-          {validationErrors.reason && (
-            <p className="text-sm text-red-600">{validationErrors.reason}</p>
-          )}
-        </div>
 
         {/* What happens section - Always shown */}
         <div>
