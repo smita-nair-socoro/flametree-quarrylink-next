@@ -59,7 +59,7 @@ export function UserTableActions({ user }: UserTableActionsProps) {
             className="text-destructive focus:text-destructive"
           >
             <Delete className="h-4 w-4 mr-2 text-red-600" />
-            Delete
+            Delete User
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
