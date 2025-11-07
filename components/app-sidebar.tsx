@@ -71,8 +71,8 @@ const data = {
       ],
     },
     {
-      title: 'Client Management',
-      url: '/system/client-management',
+      title: 'Tenant Management',
+      url: '/system/tenant-management',
       icon: Settings2,
     },
   ],
