@@ -7,7 +7,7 @@ import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SelectOptions } from '@/components/ui/select-options';
-import { EditTeamMemberForm } from '@/app/(protected)/system/user-roles/(components)/forms/team-member-form';
+import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
