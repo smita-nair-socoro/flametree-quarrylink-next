@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 export function GetTomorrowDate(): Date {
   const d = new Date();
   d.setDate(d.getDate() + 1);
@@ -87,4 +89,21 @@ export function getRelativeTimeFuture(date: Date | string | number): string {
   );
 
   return formatRelativeTime(diffInSeconds, '', 'Now');
+}
+
+/**
+ * Format a date using a pattern (e.g., 'd MMM yyyy', 'h:mm a')
+ * Returns '—' if the date is invalid
+ */
+export function formatDate(
+  value: string | number | Date | null | undefined,
+  pattern: string
+): string {
+  if (!value) return '—';
+
+  try {
+    return format(new Date(value), pattern);
+  } catch {
+    return '—';
+  }
 }
