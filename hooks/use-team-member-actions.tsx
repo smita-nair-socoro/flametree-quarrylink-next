@@ -33,6 +33,7 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
 }
 
 export function useTeamMemberActions(
@@ -102,6 +103,25 @@ export function useTeamMemberActions(
   }));
 
   const userName = teamMemberData?.full_name;
+
+  // Check if delete button should be disabled
+  const isDeleteButtonDisabled = React.useMemo(() => {
+    if (!hasDependencies) return false;
+
+    // If there are customers, must select account manager
+    if (customerCount > 0 && !accountManagerReassignTo) return true;
+
+    // If there are jobs, must select job assignee
+    if (activeJobsCount > 0 && !jobReassignTo) return true;
+
+    return false;
+  }, [
+    hasDependencies,
+    customerCount,
+    activeJobsCount,
+    accountManagerReassignTo,
+    jobReassignTo,
+  ]);
 
   // Helper function to format role for display
   const formatRole = (role: string | undefined) => {
@@ -231,6 +251,7 @@ export function useTeamMemberActions(
     confirmText: hasDependencies ? 'Delete & Reassign' : 'Delete User',
     confirmVariant: 'destructive',
     confirmActionNeeded: true,
+    confirmDisabled: isDeleteButtonDisabled,
   };
 
   const resetDeleteForm = () => {
@@ -325,6 +346,7 @@ export function useTeamMemberActions(
       confirmCustomClass={deleteDialogConfig.confirmCustomClass}
       confirmIcon={deleteDialogConfig.confirmIcon}
       confirmActionNeeded={deleteDialogConfig.confirmActionNeeded}
+      confirmDisabled={deleteDialogConfig.confirmDisabled}
       onConfirmAction={handleDeleteConfirm}
     />
   );
