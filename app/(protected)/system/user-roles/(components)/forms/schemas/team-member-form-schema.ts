@@ -30,7 +30,4 @@ export const EditTeamMemberFormSchema = z.object({
   phone: PhoneOptional,
   email: EmailRequired,
   role: z.string().trim().min(1, 'Role is required'),
-  status: z.enum(['ACTIVE', 'INACTIVE'], {
-    required_error: 'Status is required',
-  }),
 });

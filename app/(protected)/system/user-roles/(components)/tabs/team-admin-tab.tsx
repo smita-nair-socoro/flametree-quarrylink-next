@@ -53,7 +53,7 @@ const teamMemberMockData: User[] = [
     phone: '+61412345679',
     email: 'sarah@terminco.com.au',
     role: Role.ADMIN,
-    status: UserStatus.ACTIVE,
+    status: UserStatus.DELETED,
     total_logins: 0,
     quotation_created: 0,
     jobs_managed: 0,
@@ -91,7 +91,7 @@ const teamMemberMockData: User[] = [
     phone: '+61412345681',
     email: 'emma.wilson@terminco.com.au',
     role: Role.USER,
-    status: UserStatus.ACTIVE,
+    status: UserStatus.INACTIVE,
     total_logins: 45,
     quotation_created: 8,
     jobs_managed: 3,
@@ -215,6 +215,25 @@ const teamMemberMockData: User[] = [
     last_login_at: '2025-09-28T22:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
+  },
+  {
+    id: 11,
+    tenant_id: 'Tenant-001',
+    client_id: 1,
+    full_name: 'John Deleted',
+    phone: '+61412345688',
+    email: 'john.deleted@terminco.com.au',
+    role: Role.USER,
+    status: UserStatus.DELETED,
+    total_logins: 50,
+    quotation_created: 5,
+    jobs_managed: 2,
+    invited_by: 1,
+    deletion_reason: 'Left the company',
+    isDeleted: true,
+    last_login_at: '2025-09-15T10:00:00.000Z',
+    created_at: '2025-08-01T13:00:00.000Z',
+    updated_at: '2025-09-20T13:00:00.000Z',
   },
 ];
 
@@ -398,10 +417,10 @@ export default function TeamAdminTab() {
                     </span>
                   </div>
                 </div>
-                <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                <div className="inline-flex overflow-hidden rounded border bg-white text-[14px] font-medium text-[#09090B] ml-4">
                   <Button
                     variant="outline"
-                    className="rounded-none rounded-l-2xl px-6 py-6 gap-2 
+                    className="rounded-none rounded px-6 py-6 gap-2 
                    bg-white"
                     onClick={() => handleResend(invitation)}
                   >
@@ -410,7 +429,7 @@ export default function TeamAdminTab() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-none rounded-r-2xl px-6 py-6 gap-2 font-normal
+                    className="rounded-none rounded px-6 py-6 gap-2 font-normal
                    border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
                     onClick={() => handleRevoke(invitation)}
                   >
