@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus, Bug } from 'lucide-react';
+import { Plus, Bug, RotateCcwSquare, Delete } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
@@ -368,61 +368,61 @@ export default function TeamAdminTab() {
           </div>
         </div>
 
-        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-          <h3 className="text-[24px] font-semibold mb-4">
-            Pending Invitations
-          </h3>
-          <div className="space-y-3">
-            {pendingInvitationsMockData.map((invitation) => (
-              <div
-                key={invitation.id}
-                className="border border-gray-200 rounded-lg bg-white p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="font-medium text-[16px]">
-                      {invitation.email}
-                    </div>
-                    <div className="text-[14px] text-[#4B5563] font-normal mt-1">
-                      <span>
-                        Role:{' '}
-                        {invitation.role === Role.USER
-                          ? 'User'
-                          : invitation.role === Role.ADMIN
-                          ? 'Admin'
-                          : 'Super Admin'}
-                      </span>
-                      <span className="mx-2">•</span>
-                      <span>Invited by: {invitation.invited_by}</span>
-                      <span className="mx-2">•</span>
-                      <span>
-                        Expires in:{' '}
-                        {getRelativeTimeFuture(invitation.expires_at)}
-                      </span>
-                    </div>
+      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+        <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
+        <div className="space-y-3">
+          {pendingInvitationsMockData.map((invitation) => (
+            <div
+              key={invitation.id}
+              className="border border-gray-200 rounded-lg bg-white p-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="font-medium text-[16px]">
+                    {invitation.email}
                   </div>
-                  <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleResend(invitation)}
-                    >
-                      Resend
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRevoke(invitation)}
-                    >
-                      Revoke
-                    </Button>
+                  <div className="text-[14px] text-[#4B5563] font-normal mt-1">
+                    <span>
+                      Role:{' '}
+                      {invitation.role === Role.USER
+                        ? 'User'
+                        : invitation.role === Role.ADMIN
+                        ? 'Admin'
+                        : 'Super Admin'}
+                    </span>
+                    <span className="mx-2">•</span>
+                    <span>Invited by: {invitation.invited_by}</span>
+                    <span className="mx-2">•</span>
+                    <span>
+                      Expires in: {getRelativeTimeFuture(invitation.expires_at)}
+                    </span>
                   </div>
                 </div>
+                <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                  <Button
+                    variant="outline"
+                    className="rounded-none rounded-l-2xl px-6 py-6 gap-2 
+                   bg-white"
+                    onClick={() => handleResend(invitation)}
+                  >
+                    <RotateCcwSquare className="h-5 w-5 text-[#09090B]" />
+                    Resend Invitation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-none rounded-r-2xl px-6 py-6 gap-2 font-normal
+                   border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
+                    onClick={() => handleRevoke(invitation)}
+                  >
+                    <Delete className="h-5 w-5" />
+                    Delete User
+                  </Button>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }

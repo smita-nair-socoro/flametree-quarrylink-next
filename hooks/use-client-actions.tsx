@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { Client } from '@/lib/types/client';
-import ClientForm from '@/app/(protected)/system/client-management/(components)/forms/client-form';
+import ClientForm from '@/app/(protected)/system/tenant-management/(components)/forms/client-form';
 
 interface DialogConfig {
   title: string;
