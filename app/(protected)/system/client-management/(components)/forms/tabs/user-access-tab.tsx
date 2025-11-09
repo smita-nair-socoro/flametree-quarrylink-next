@@ -16,8 +16,10 @@ export default function UserAccessTab({
   return (
     <div>
       <div className="flex flex-col space-y-5">
-        <div className="flex justify-between items-center mt-5">
-          <h1 className="text-lg font-semibold">Users ({teamMemberCount}/20)</h1>
+        <div className="flex justify-between items-center mt-2">
+          <h1 className="text-xl font-semibold">
+            Users ({teamMemberCount}/20)
+          </h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <FormDialog
               dialogTitle="Invite User"

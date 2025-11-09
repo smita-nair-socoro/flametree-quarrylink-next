@@ -26,10 +26,10 @@ export interface Client {
   user?: TeamMember[];
   isDeleted: boolean;
   last_login_at: string;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  last_modified_by: string;
 }
 
 export interface BillingHistory {
