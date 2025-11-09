@@ -424,5 +424,6 @@ export default function TeamAdminTab() {
         </div>
       </div>
     </div>
+    </>
   );
 }
