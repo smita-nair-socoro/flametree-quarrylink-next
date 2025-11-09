@@ -125,7 +125,7 @@ export function PermissionMatrix({
           </TableBody>
         </Table>
 
-        {/* Legend */}
+        {/* Legend
         <div className="mt-3 px-2 py-3 bg-[#F9FAFB] rounded-md space-y-2">
           <div className="font-medium text-foreground text-[13px]">Legend:</div>
           <div className="flex items-center text-xs font-normal justify-between">
@@ -138,7 +138,7 @@ export function PermissionMatrix({
               <span className="text-muted-foreground">No Access</span>
             </div>
           </div>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );

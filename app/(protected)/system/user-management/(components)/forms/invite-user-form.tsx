@@ -92,7 +92,7 @@ export default function InviteUserForm({
           id="invite-user-form"
           onSubmit={form.handleSubmit(onSubmit)}
           className={cn(
-            'space-y-4 px-2',
+            'space-y-1 px-2',
             isSubmitting && 'pointer-events-none'
           )}
         >
@@ -114,7 +114,7 @@ export default function InviteUserForm({
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border border-[#FF8C00] bg-[#FFF4E6] p-3">
+            <div className="rounded-lg border border-[#FF8C00] bg-[#FFF4E6] p-3 mb-3">
               <div className="flex gap-3">
                 <AlertTriangle className="h-5 w-5 text-[#FF8C00] flex-shrink-0 mt-0.5" />
                 <div>
@@ -203,7 +203,7 @@ export default function InviteUserForm({
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3 mb-3">
               <h4 className="text-sm font-medium text-[#364153]">
                 Billing Summary
               </h4>
