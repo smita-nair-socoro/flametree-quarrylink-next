@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus, Bug } from 'lucide-react';
+import { Plus, Bug, RotateCcwSquare, Delete } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
@@ -418,6 +418,29 @@ export default function TeamAdminTab() {
                     </Button>
                   </div>
                 </div>
+<<<<<<< HEAD:app/(protected)/system/user-management/(components)/tabs/team-admin-tab.tsx
+=======
+                <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                  <Button
+                    variant="outline"
+                    className="rounded-none rounded-l-2xl px-6 py-6 gap-2 
+                   bg-white"
+                    onClick={() => handleResend(invitation)}
+                  >
+                    <RotateCcwSquare className="h-5 w-5 text-[#09090B]" />
+                    Resend Invitation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-none rounded-r-2xl px-6 py-6 gap-2 font-normal
+                   border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
+                    onClick={() => handleRevoke(invitation)}
+                  >
+                    <Delete className="h-5 w-5" />
+                    Delete User
+                  </Button>
+                </div>
+>>>>>>> develop:app/(protected)/system/user-roles/(components)/tabs/team-admin-tab.tsx
               </div>
             ))}
           </div>
