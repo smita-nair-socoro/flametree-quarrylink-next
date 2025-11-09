@@ -3,8 +3,8 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus, Bug } from 'lucide-react';
-import { PendingInvitation, TeamMember } from '@/lib/types/user';
+import { Plus, Bug, RotateCcwSquare, Delete } from 'lucide-react';
+import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { teamMemberColumns } from '../(data-tables)/team-member/columns';
 import {
@@ -22,14 +22,22 @@ import {
 } from '@/components/ui/select';
 
 // Mock data for team members
-const teamMemberMockData: TeamMember[] = [
+const teamMemberMockData: User[] = [
   {
     id: 1,
     tenant_id: 'Tenant-001',
-    user_name: 'Armin Menhaji',
+    client_id: 1,
+    full_name: 'Armin Menhaji',
+    phone: '+61412345678',
     email: 'armin@terminco.com.au',
     role: Role.ADMIN,
     status: UserStatus.ACTIVE,
+    total_logins: 120,
+    quotation_created: 15,
+    jobs_managed: 8,
+    invited_by: 0,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-29T13:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -37,10 +45,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 2,
     tenant_id: 'Tenant-001',
-    user_name: 'Sarah Johnson',
+    client_id: 1,
+    full_name: 'Sarah Johnson',
+    phone: '+61412345679',
     email: 'sarah@terminco.com.au',
     role: Role.ADMIN,
     status: UserStatus.ACTIVE,
+    total_logins: 0,
+    quotation_created: 0,
+    jobs_managed: 0,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: null,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -48,10 +64,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 3,
     tenant_id: 'Tenant-001',
-    user_name: 'Mike Chen',
+    client_id: 1,
+    full_name: 'Mike Chen',
+    phone: '+61412345680',
     email: 'mike@terminco.com.au',
     role: Role.ADMIN,
     status: UserStatus.PENDING,
+    total_logins: 5,
+    quotation_created: 2,
+    jobs_managed: 1,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-30T19:11:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -59,10 +83,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 4,
     tenant_id: 'Tenant-001',
-    user_name: 'Emma Wilson',
+    client_id: 1,
+    full_name: 'Emma Wilson',
+    phone: '+61412345681',
     email: 'emma.wilson@terminco.com.au',
     role: Role.USER,
     status: UserStatus.ACTIVE,
+    total_logins: 45,
+    quotation_created: 8,
+    jobs_managed: 3,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-30T23:11:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -70,10 +102,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 5,
     tenant_id: 'Tenant-001',
-    user_name: 'David Martinez',
+    client_id: 1,
+    full_name: 'David Martinez',
+    phone: '+61412345682',
     email: 'david.martinez@terminco.com.au',
     role: Role.USER,
     status: UserStatus.ACTIVE,
+    total_logins: 32,
+    quotation_created: 5,
+    jobs_managed: 2,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-24T22:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -81,10 +121,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 6,
     tenant_id: 'Tenant-001',
-    user_name: 'Lisa Anderson',
+    client_id: 1,
+    full_name: 'Lisa Anderson',
+    phone: '+61412345683',
     email: 'lisa.anderson@terminco.com.au',
     role: Role.USER,
     status: UserStatus.ACTIVE,
+    total_logins: 78,
+    quotation_created: 12,
+    jobs_managed: 5,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-30T13:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -92,10 +140,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 7,
     tenant_id: 'Tenant-001',
-    user_name: 'James Brown',
+    client_id: 1,
+    full_name: 'James Brown',
+    phone: '+61412345684',
     email: 'james.brown@terminco.com.au',
     role: Role.USER,
     status: UserStatus.ACTIVE,
+    total_logins: 25,
+    quotation_created: 3,
+    jobs_managed: 0,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-30T13:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -103,10 +159,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 8,
     tenant_id: 'Tenant-001',
-    user_name: 'Maria Garcia',
+    client_id: 1,
+    full_name: 'Maria Garcia',
+    phone: '+61412345685',
     email: 'maria.garcia@terminco.com.au',
     role: Role.USER,
     status: UserStatus.ACTIVE,
+    total_logins: 15,
+    quotation_created: 4,
+    jobs_managed: 1,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-10-30T00:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -114,10 +178,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 9,
     tenant_id: 'Tenant-001',
-    user_name: 'Tom Rodriguez',
+    client_id: 1,
+    full_name: 'Tom Rodriguez',
+    phone: '+61412345686',
     email: 'tom.rodriguez@terminco.com.au',
     role: Role.USER,
     status: UserStatus.PENDING,
+    total_logins: 0,
+    quotation_created: 0,
+    jobs_managed: 0,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: null,
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -125,10 +197,18 @@ const teamMemberMockData: TeamMember[] = [
   {
     id: 10,
     tenant_id: 'Tenant-001',
-    user_name: 'Jessica Lee',
+    client_id: 1,
+    full_name: 'Jessica Lee',
+    phone: '+61412345687',
     email: 'jessica.lee@terminco.com.au',
     role: Role.ADMIN,
     status: UserStatus.ACTIVE,
+    total_logins: 95,
+    quotation_created: 10,
+    jobs_managed: 4,
+    invited_by: 1,
+    deletion_reason: '',
+    isDeleted: false,
     last_login_at: '2025-09-28T22:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
@@ -171,7 +251,7 @@ export default function TeamAdminTab() {
   const [debugCount, setDebugCount] = React.useState<number>(5);
 
   // Handle row click to open member details
-  const handleRowClick = (member: TeamMember) => {
+  const handleRowClick = (member: User) => {
     // TODO: Implement member details view
     console.log('Selected member:', member);
   };
@@ -285,20 +365,24 @@ export default function TeamAdminTab() {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
+                <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
                   <Button
                     variant="outline"
-                    size="sm"
+                    className="rounded-none rounded-l-2xl px-6 py-6 gap-2 
+                   bg-white"
                     onClick={() => handleResend(invitation)}
                   >
-                    Resend
+                    <RotateCcwSquare className="h-5 w-5 text-[#09090B]" />
+                    Resend Invitation
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    className="rounded-none rounded-r-2xl px-6 py-6 gap-2 font-normal
+                   border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
                     onClick={() => handleRevoke(invitation)}
                   >
-                    Revoke
+                    <Delete className="h-5 w-5" />
+                    Delete User
                   </Button>
                 </div>
               </div>

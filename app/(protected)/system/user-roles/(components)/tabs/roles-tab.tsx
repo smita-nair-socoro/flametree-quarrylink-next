@@ -3,7 +3,7 @@
 import React from 'react';
 import { SubscriptionPlanCard } from './roles/subscription-card';
 import { PermissionMatrix } from './roles/permission-matrix';
-import { RoleDetailsCard } from './roles/role-details-card';
+// import { RoleDetailsCard } from './roles/role-details-card';
 import { UpgradeFeaturesCard } from './roles/upgrade-features-card';
 
 // ==================== Main RolesTab Component ====================
@@ -268,7 +268,7 @@ export default function RolesTab() {
         tone={selectedPlan.tone}
       />
 
-      {/* Role Details Cards */}
+      {/* Role Details Cards
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RoleDetailsCard
           roleName="Super Admin"
@@ -298,7 +298,7 @@ export default function RolesTab() {
             'Stockpile management',
           ]}
         />
-      </div>
+      </div> */}
 
       {/* Upgrade Features Card - Disabled, Future Plan */}
       {selectedPlanId !== 'pro' && (
