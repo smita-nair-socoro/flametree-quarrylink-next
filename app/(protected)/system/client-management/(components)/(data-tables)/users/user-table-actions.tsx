@@ -67,18 +67,15 @@ export function UserTableActions({
               Reset Password
             </DropdownMenuItem>
 
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-destructive focus:text-destructive"
-            >
-              <Delete className="h-4 w-4 mr-2 text-red-600" />
-              Delete User
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      {deleteDialog}
-      {viewDialog}
-    </>
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="text-destructive focus:text-destructive"
+          >
+            <Delete className="h-4 w-4 mr-2 text-red-600" />
+            Delete User
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
