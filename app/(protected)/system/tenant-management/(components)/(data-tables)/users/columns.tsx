@@ -6,8 +6,12 @@ import { getRelativeTime } from '@/lib/utils/date';
 import { User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { UserTableActions } from './user-table-actions';
+import { FormSelectOption } from '@/components/ui/form-select';
 
-export const userColumns: ColumnDef<User>[] = [
+export const createUserColumns = (
+  rolesOptions: readonly FormSelectOption[],
+  currentUserId?: number | string
+): ColumnDef<User>[] => [
   {
     id: 'user_name',
     accessorFn: (row) => row.full_name,
@@ -93,7 +97,16 @@ export const userColumns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const user = row.original;
-      return <UserTableActions user={user} />;
+      return (
+        <UserTableActions
+          user={user}
+          roles={rolesOptions}
+          currentUserId={currentUserId}
+        />
+      );
     },
   },
 ];
+
+// Default export for backwards compatibility
+export const userColumns = createUserColumns([], undefined);
