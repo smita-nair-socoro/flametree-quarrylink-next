@@ -31,6 +31,9 @@ export default function UserAccessTab({
   // Separate state for the actions hook
   const [selectedUserForActions, setSelectedUserForActions] = React.useState<User | null>(null);
 
+  // Ref to track if we should open the dialog after state update
+  const shouldOpenDialogRef = React.useRef(false);
+
   const { actions, viewDialog } = useClientUserActions(
     selectedUserForActions?.id,
     selectedUserForActions,
@@ -42,8 +45,16 @@ export default function UserAccessTab({
   const handleRowClick = (user: User) => {
     setSelectedTeamMember(user);
     setSelectedUserForActions(user);
-    actions.viewEdit();
+    shouldOpenDialogRef.current = true;
   };
+
+  // Open dialog after state has been updated
+  React.useEffect(() => {
+    if (shouldOpenDialogRef.current && selectedUserForActions) {
+      actions.viewEdit();
+      shouldOpenDialogRef.current = false;
+    }
+  }, [selectedUserForActions, actions]);
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
@@ -74,8 +85,9 @@ export default function UserAccessTab({
           <DataTableClient
             columns={columns}
             data={convertedClientWithUsers}
-            simpleTable={true}
+            simpleTable={false}
             onRowClick={handleRowClick}
+            allowClicksInsideModal={true}
           />
         </div>
       </div>

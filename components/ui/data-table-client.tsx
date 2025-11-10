@@ -86,6 +86,7 @@ interface DataTableProps<TData, TValue> {
   useColumnSizing?: boolean; // Optional prop to enable column sizing
   onRowClick?: (row: TData) => void; // Optional row click handler
   isShowHideColumns?: boolean;
+  allowClicksInsideModal?: boolean; // Allow row clicks when table is inside a modal/dialog (default: false)
 }
 
 export type FacetDefinition = {
@@ -123,6 +124,7 @@ export function DataTableClient<TData, TValue>({
   useColumnSizing = false, // Default to false to maintain existing behavior
   onRowClick,
   isShowHideColumns = true,
+  allowClicksInsideModal = false, // Default to false for safety
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -669,23 +671,28 @@ export function DataTableClient<TData, TValue>({
                         'button, a, [role="button"], [role="menuitem"], [data-radix-dropdown-menu-item], input, select, textarea'
                       );
 
-                      // Check if any modal/dialog is currently open
-                      const hasOpenModal = document.querySelector(
-                        '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]'
-                      );
+                      if (allowClicksInsideModal) {
+                        // Special mode: Allow clicks inside modals (for tables like UserAccessTab)
+                        if (!isInteractiveElement && onRowClick) {
+                          onRowClick(row.original);
+                        }
+                      } else {
+                        // Default mode: Block clicks if modal is open (safe default)
+                        const hasOpenModal = document.querySelector(
+                          '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]'
+                        );
+                        const isInsideModal = target.closest(
+                          '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]'
+                        );
 
-                      // Also check if the click is happening inside a modal/dialog content
-                      const isInsideModal = target.closest(
-                        '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]'
-                      );
-
-                      if (
-                        !isInteractiveElement &&
-                        !hasOpenModal &&
-                        !isInsideModal &&
-                        onRowClick
-                      ) {
-                        onRowClick(row.original);
+                        if (
+                          !isInteractiveElement &&
+                          !hasOpenModal &&
+                          !isInsideModal &&
+                          onRowClick
+                        ) {
+                          onRowClick(row.original);
+                        }
                       }
                     }}
                   >

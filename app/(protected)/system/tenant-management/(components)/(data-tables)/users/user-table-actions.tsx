@@ -11,6 +11,7 @@ import {
 import { User } from '@/lib/types/user';
 import { useClientUserActions } from '@/hooks/use-client-user-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { useTeamMemberStore } from '@/app/stores/team-member-store';
 
 interface UserTableActionsProps {
   user: User;
@@ -25,6 +26,9 @@ export function UserTableActions({
 }: UserTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
+  // Get the Zustand store setter to update selected user
+  const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
+
   const { actions, deleteDialog, viewDialog } = useClientUserActions(
     user?.id,
     user,
@@ -34,6 +38,8 @@ export function UserTableActions({
 
   const handleViewEdit = () => {
     setDropdownOpen(false);
+    // Update Zustand store with the user data BEFORE opening dialog
+    setSelectedTeamMember(user);
     actions.viewEdit();
   };
 
