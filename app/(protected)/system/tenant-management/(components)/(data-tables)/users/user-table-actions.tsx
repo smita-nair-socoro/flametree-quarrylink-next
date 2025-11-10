@@ -49,6 +49,8 @@ export function UserTableActions({
 
   return (
     <>
+      {viewDialog}
+      {deleteDialog}
       <div>
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>

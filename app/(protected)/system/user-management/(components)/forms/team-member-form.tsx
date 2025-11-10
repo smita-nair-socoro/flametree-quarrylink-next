@@ -50,8 +50,6 @@ interface EditTeamMemberFormProps {
   onSuccess?: () => void;
 }
 
-type StatusValue = EditTeamMemberPayload['status'];
-
 export function EditTeamMemberForm({
   roles,
   currentUserId,
@@ -106,10 +104,6 @@ export function EditTeamMemberForm({
   const quotations =
     typeof initialData?.quotation_created === 'number'
       ? initialData.quotation_created
-      : 0;
-  const jobs =
-    typeof initialData?.jobs_managed === 'number'
-      ? initialData.jobs_managed
       : 0;
 
   const disableRoleChange =

@@ -20,7 +20,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "Armin Menhaji",
+          "fullName": "Armin Menhaji",
           "email": "armin@onequarry.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -31,7 +31,7 @@
         {
           "id": 2,
           "tenantId": "Tenant-001",
-          "userName": "Sarah Johnson",
+          "fullName": "Sarah Johnson",
           "email": "sarah@onequarry.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -79,7 +79,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "Nishan Patel",
+          "fullName": "Nishan Patel",
           "email": "nishan.patel@Farrells.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -90,7 +90,7 @@
         {
           "id": 2,
           "tenantId": "Tenant-001",
-          "userName": "Karan Patel",
+          "fullName": "Karan Patel",
           "email": "karan.patel@Farrells.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -101,7 +101,7 @@
         {
           "id": 3,
           "tenantId": "Tenant-001",
-          "userName": "Jaywoo Choi",
+          "fullName": "Jaywoo Choi",
           "email": "jaywoo.choi@Farrells.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -112,7 +112,7 @@
         {
           "id": 4,
           "tenantId": "Tenant-001",
-          "userName": "Emma Thompson",
+          "fullName": "Emma Thompson",
           "email": "emma.thompson@Farrells.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -123,7 +123,7 @@
         {
           "id": 5,
           "tenantId": "Tenant-001",
-          "userName": "Michael Chen",
+          "fullName": "Michael Chen",
           "email": "michael.chen@Farrells.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -134,7 +134,7 @@
         {
           "id": 6,
           "tenantId": "Tenant-001",
-          "userName": "Sarah Williams",
+          "fullName": "Sarah Williams",
           "email": "sarah.williams@Farrells.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -145,7 +145,7 @@
         {
           "id": 7,
           "tenantId": "Tenant-001",
-          "userName": "David Martinez",
+          "fullName": "David Martinez",
           "email": "david.martinez@Farrells.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -156,7 +156,7 @@
         {
           "id": 8,
           "tenantId": "Tenant-001",
-          "userName": "Lisa Anderson",
+          "fullName": "Lisa Anderson",
           "email": "lisa.anderson@Farrells.com.au",
           "role": "USER",
           "status": "PENDING",
@@ -178,7 +178,7 @@
         {
           "id": 10,
           "tenantId": "Tenant-001",
-          "userName": "Rachel Davis",
+          "fullName": "Rachel Davis",
           "email": "rachel.davis@Farrells.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -226,7 +226,7 @@
         {
           "id": 2,
           "tenantId": "Tenant-001",
-          "userName": "Sarah Johnson",
+          "fullName": "Sarah Johnson",
           "email": "sarah@Riverside.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -237,7 +237,7 @@
         {
           "id": 3,
           "tenantId": "Tenant-001",
-          "userName": "John Doe",
+          "fullName": "John Doe",
           "email": "john.doe@Riverside.com",
           "role": "USER",
           "status": "ACTIVE",
@@ -267,7 +267,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "Armin Menhaji",
+          "fullName": "Armin Menhaji",
           "email": "armin@hunterquarries.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -278,7 +278,7 @@
         {
           "id": 2,
           "tenantId": "Tenant-001",
-          "userName": "Jessica Lee",
+          "fullName": "Jessica Lee",
           "email": "jessica.lee@hunterquarries.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -289,7 +289,7 @@
         {
           "id": 3,
           "tenantId": "Tenant-001",
-          "userName": "John Doe",
+          "fullName": "John Doe",
           "email": "john.vrendo@hunterquarries.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -319,7 +319,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "David Davies",
+          "fullName": "David Davies",
           "email": "david.davies@metroaggregates.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -349,7 +349,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "Armin Menhaji",
+          "fullName": "Armin Menhaji",
           "email": "armin@terminco.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -360,7 +360,7 @@
         {
           "id": 2,
           "tenantId": "Tenant-001",
-          "user_name": "Sarah Johnson",
+          "fullName": "Sarah Johnson",
           "email": "sarah@terminco.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -371,7 +371,7 @@
         {
           "id": 3,
           "tenantId": "Tenant-001",
-          "userName": "John Doe",
+          "fullName": "John Doe",
           "email": "john.doe@example.com",
           "role": "USER",
           "status": "ACTIVE",
@@ -382,7 +382,7 @@
         {
           "id": 4,
           "tenantId": "Tenant-001",
-          "userName": "Jay",
+          "fullName": "Jay",
           "email": "jay@terminco.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -412,7 +412,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "Armin Menhaji",
+          "fullName": "Armin Menhaji",
           "email": "armin@terminco.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -442,7 +442,7 @@
         {
           "id": 1,
           "tenantId": "Tenant-001",
-          "userName": "Armin Menhaji",
+          "fullName": "Armin Menhaji",
           "email": "armin@terminco.com.au",
           "role": "ADMIN",
           "status": "ACTIVE",
@@ -453,7 +453,7 @@
         {
           "id": 2,
           "tenantId": "Tenant-001",
-          "userName": "Sarah Johnson",
+          "fullName": "Sarah Johnson",
           "email": "sarah@terminco.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -464,7 +464,7 @@
         {
           "id": 3,
           "tenantId": "Tenant-001",
-          "userName": "Nishant Patel",
+          "fullName": "Nishant Patel",
           "email": "nishant.patel@easternquarries.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -475,7 +475,7 @@
         {
           "id": 4,
           "tenantId": "Tenant-001",
-          "userName": "Karan Patel",
+          "fullName": "Karan Patel",
           "email": "karan.patel@easternquarries.com.au",
           "role": "USER",
           "status": "ACTIVE",
@@ -486,7 +486,7 @@
         {
           "id": 5,
           "tenantId": "Tenant-001",
-          "userName": "Jaywoo Choi",
+          "fullName": "Jaywoo Choi",
           "email": "jaywoo.choi@easternquarries.com.au",
           "role": "USER",
           "status": "ACTIVE",
