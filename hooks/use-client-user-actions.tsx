@@ -5,7 +5,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
-import { EditClientUserForm } from '@/app/(protected)/system/client-management/(components)/forms/client-user-form';
+import { EditClientUserForm } from '@/app/(protected)/system/tenant-management/(components)/forms/client-user-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
