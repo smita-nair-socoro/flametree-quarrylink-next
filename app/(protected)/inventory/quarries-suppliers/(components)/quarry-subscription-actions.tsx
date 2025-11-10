@@ -3,8 +3,7 @@
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Building2, CircleAlert, CreditCard, Shield } from 'lucide-react';
+import { Building2, CircleAlert, CreditCard, MapPin } from 'lucide-react';
 
 interface SubscriptionDetails {
   billingCycle: 'monthly' | 'yearly';
@@ -85,44 +84,45 @@ export function QuarrySubscriptionActions({
       content={
         <div className="flex flex-col gap-6 text-sm text-[#475467]">
           <section className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#475467]">
-              Quarry Details
-            </p>
-            <div className="flex gap-4 rounded-2xl border border-[#E4E7EC] bg-[#F9F5FF] p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-[#7F56D9]">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-base font-semibold text-[#101828]">
-                  {quarryName}
-                </p>
-                <p className="text-sm text-[#6941C6]">{locationType}</p>
+            <div className="flex flex-col gap-4 rounded-xl border border-[#E5E5E5] bg-[#F9FAFB] p-4">
+              <p className="text-base font-medium tracking-wide text-[#475467]">
+                Quarry Details
+              </p>
+              <div className="flex gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#8B5CF6] text-white">
+                  <Building2 className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-base font-medium text-[#364153]">
+                    {quarryName}
+                  </p>
+                  <p className="text-sm text-[#6A7282]">{locationType}</p>
+                </div>
               </div>
             </div>
           </section>
 
           <section className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#475467]">
+            <p className="text-base font-medium tracking-wide text-[#364153]">
               Why is there a charge?
             </p>
             <div className="flex flex-col gap-3">
               <div className="rounded-2xl border border-[#A6F4C5] bg-[#F6FEF9] p-4 space-y-1">
-                <div className="flex items-center gap-2 text-[#027A48] font-semibold text-sm">
-                  <Shield className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-[#16A34A] font-semibold text-base">
+                  <MapPin className="h-5 w-5" />
                   Suppliers - FREE
                 </div>
-                <p className="text-sm text-[#2D6A4F]">
+                <p className="text-sm text-[#166534] pl-7">
                   Third-party suppliers you partner with. No charge to add these
                   to your network.
                 </p>
               </div>
-              <div className="rounded-2xl border border-[#FEC6A1] bg-[#FFF6ED] p-4 space-y-1">
-                <div className="flex items-center gap-2 text-[#B93815] font-semibold text-sm">
-                  <Building2 className="h-4 w-4" />
-                  Quarries - {formatCurrency(quarryFee)}{' '}
-                  {isMonthlyBilling ? 'per month' : 'per year'}
+              <div className="rounded-2xl border border-[#FCA5A5] bg-[#FEF3F2] p-4 space-y-1">
+                <div className="flex items-center gap-2 text-[#DC2626] font-semibold text-base">
+                  <Building2 className="h-5 w-5" />
+                  Quarries - {formatCurrency(quarryFee)}
                 </div>
-                <p className="text-sm text-[#B93815]">
+                <p className="text-sm text-[#991B1B] pl-7">
                   Owned or operated locations. Each quarry adds{' '}
                   {formatCurrency(quarryFee)} per{' '}
                   {isMonthlyBilling ? 'month' : 'year'} to your subscription.
@@ -132,75 +132,65 @@ export function QuarrySubscriptionActions({
           </section>
 
           <section className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border border-[#EAECF0]">
-                <AvatarFallback className="bg-[#EEF4FF] text-[#3E4784] font-semibold">
-                  QS
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-base font-semibold text-[#101828]">
-                  {isMonthlyBilling ? 'Billing Summary' : 'Payment Summary'}
-                </p>
-                <p className="text-sm text-[#475467]">
-                  {isMonthlyBilling
-                    ? 'Updated monthly total after adding this quarry.'
-                    : 'Amount due today to activate this quarry.'}
-                </p>
-              </div>
-            </div>
-            {isMonthlyBilling ? (
-              <div className="rounded-2xl border border-[#EAECF0] bg-white p-4 space-y-4">
-                {[
-                  {
-                    label: 'Quarry monthly fee',
-                    value: formatCurrency(monthlyFee),
-                  },
-                  {
-                    label: 'Plan limit',
-                    value: `${planLimit} ${planLimit === 1 ? 'Quarry' : 'Quarries'}`,
-                  },
-                  {
-                    label: 'Additional quarry',
-                    value: `${additionalQuarries}`,
-                  },
-                  {
-                    label: 'Additional monthly cost',
-                    value: formatCurrency(additionalRecurringCost),
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between text-sm text-[#475467]"
-                  >
-                    <div className="flex items-center gap-2 font-medium">
+            <div className="rounded-2xl border border-[#EAECF0] bg-white p-4 space-y-4">
+              <p className="text-base font-semibold text-[#101828]">
+                {isMonthlyBilling ? 'Billing Summary' : 'Payment Summary'}
+              </p>
+              {isMonthlyBilling ? (
+                <div className="space-y-3">
+                  {[
+                    {
+                      label: 'Quarry monthly fee',
+                      value: formatCurrency(monthlyFee),
+                    },
+                    {
+                      label: 'Plan limit',
+                      value: `${planLimit} ${
+                        planLimit === 1 ? 'Quarry' : 'Quarries'
+                      }`,
+                    },
+                    {
+                      label: 'Additional quarry',
+                      value: `${additionalQuarries}`,
+                    },
+                    {
+                      label: 'Additional monthly cost',
+                      value: formatCurrency(additionalRecurringCost),
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center justify-between text-sm text-[#475467]"
+                    >
+                      <div className="flex items-center gap-2 font-medium">
+                        <CreditCard className="h-4 w-4 text-[#98A2B3]" />
+                        {item.label}
+                      </div>
+                      <span className="font-semibold text-[#101828]">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm text-[#475467] font-medium">
+                    <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-[#98A2B3]" />
-                      {item.label}
+                      Quarry yearly fee
                     </div>
                     <span className="font-semibold text-[#101828]">
-                      {item.value}
+                      {formatCurrency(quarryFee)}
                     </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-[#EAECF0] bg-white p-4 space-y-3">
-                <div className="flex items-center justify-between text-sm text-[#475467] font-medium">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-[#98A2B3]" />
-                    Quarry yearly fee
+                  <div className="h-px w-full bg-[#EAECF0]" />
+                  <div className="flex items-center justify-between text-base font-semibold text-[#101828]">
+                    <span>Total due today</span>
+                    <span>{formatCurrency(additionalRecurringCost)}</span>
                   </div>
-                  <span className="font-semibold text-[#101828]">
-                    {formatCurrency(quarryFee)}
-                  </span>
                 </div>
-                <div className="h-px w-full bg-[#EAECF0]" />
-                <div className="flex items-center justify-between text-base font-semibold text-[#101828]">
-                  <span>Total due today</span>
-                  <span>{formatCurrency(additionalRecurringCost)}</span>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </section>
 
           <div className="flex items-start gap-3 rounded-2xl border border-[#EAECF0] bg-[#F9FAFB] p-4">
