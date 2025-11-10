@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
@@ -25,7 +24,7 @@ import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
 import { useSelectedTeamMember } from '@/app/stores/team-member-store';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
-
+import { TableBadges } from '@/components/table-badges';
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
 type EditTeamMemberPayload = EditTeamMemberFormValues & {
@@ -40,6 +39,7 @@ type EditTeamMemberPayload = EditTeamMemberFormValues & {
   deletion_reason?: string;
   isDeleted?: boolean;
   updated_at?: string | null;
+  status?: string | null;
 };
 
 interface EditTeamMemberFormProps {
@@ -50,7 +50,7 @@ interface EditTeamMemberFormProps {
   onSuccess?: () => void;
 }
 
-type StatusValue = EditTeamMemberFormValues['status'];
+type StatusValue = EditTeamMemberPayload['status'];
 
 export function EditTeamMemberForm({
   roles,
@@ -70,7 +70,7 @@ export function EditTeamMemberForm({
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
       role: initialData?.role ?? '',
-      status: normalizeStatus(initialData?.status),
+      status: initialData?.status,
     }),
     [
       fullName,
@@ -176,6 +176,7 @@ export function EditTeamMemberForm({
             <span className="text-lg font-semibold text-foreground">
               {fullName}
             </span>
+            <TableBadges names={initialData.status} visibleCount={1} />
             <span className="text-sm text-[#4B5563]">{initialData.email}</span>
             <span className="font-sm text-[#6B7280]">
               Joined: {formattedJoined}
@@ -261,7 +262,7 @@ export function EditTeamMemberForm({
             <div
               className={
                 isDesktop
-                  ? 'grid gap-4 grid-cols-2 mt-4 mb-0'
+                  ? 'mt-4 mb-0'
                   : 'space-y-4 mt-4'
               }
             >
@@ -274,50 +275,6 @@ export function EditTeamMemberForm({
                 placeholder="Select role"
                 showSearch={false}
                 disabled={disableRoleChange}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Account Status</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        className={
-                          isDesktop
-                            ? 'flex flex-row gap-8'
-                            : 'flex flex-col gap-2'
-                        }
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem value="ACTIVE" id="status-active" />
-                          <FormLabel
-                            htmlFor="status-active"
-                            className="font-normal"
-                          >
-                            Active
-                          </FormLabel>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value="INACTIVE"
-                            id="status-inactive"
-                          />
-                          <FormLabel
-                            htmlFor="status-inactive"
-                            className="font-normal"
-                          >
-                            Inactive
-                          </FormLabel>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
               />
             </div>
 
@@ -339,14 +296,11 @@ export function EditTeamMemberForm({
                   : 'flex flex-col gap-2'
               }
             >
-              <div className={isDesktop ? 'w-4/5' : 'w-full'}>
+              <div className='w-full'>
                 <h3 className="text-base font-semibold text-foreground mb-2">
                   Activity Summary
                 </h3>
                 <Separator />
-              </div>
-              <div className="text-[14px] text-[#18181B]">
-                View Full Activity
               </div>
             </div>
 
@@ -361,7 +315,6 @@ export function EditTeamMemberForm({
                 <p className="text-sm">
                   Quotations Created: {quotations.toLocaleString()}
                 </p>
-                <p className="text-sm">Jobs Managed: {jobs.toLocaleString()}</p>
               </div>
             </div>
           </section>
@@ -401,7 +354,3 @@ function getInitials(name: string | undefined): string {
   return initials.slice(0, 2) || '?';
 }
 
-function normalizeStatus(status: string | undefined | null): StatusValue {
-  if (status === 'INACTIVE') return 'INACTIVE';
-  return 'ACTIVE';
-}

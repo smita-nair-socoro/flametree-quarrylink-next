@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, UserX, Eye, Key, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Key, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -42,7 +42,6 @@ export function TeamMemberTableActions({
       actionFn();
     };
 
-  const handleDeactivate = createHandler(actions.deactivate);
   const handleViewEdit = createHandler(() => {
     // Set the selected member in the store FIRST, then open dialog
     setSelectedTeamMember(teamMember);
@@ -62,11 +61,6 @@ export function TeamMemberTableActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={handleDeactivate}>
-            <UserX className="h-4 w-4 mr-2" />
-            Deactivate
-          </DropdownMenuItem>
-
           <DropdownMenuItem onClick={handleViewEdit}>
             <Eye className="h-4 w-4 mr-2" />
             View/Edit User

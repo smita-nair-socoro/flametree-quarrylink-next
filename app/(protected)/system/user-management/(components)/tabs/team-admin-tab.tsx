@@ -53,7 +53,7 @@ const teamMemberMockData: User[] = [
     phone: '+61412345679',
     email: 'sarah@terminco.com.au',
     role: Role.ADMIN,
-    status: UserStatus.ACTIVE,
+    status: UserStatus.DELETED,
     total_logins: 0,
     quotation_created: 0,
     jobs_managed: 0,
@@ -91,7 +91,7 @@ const teamMemberMockData: User[] = [
     phone: '+61412345681',
     email: 'emma.wilson@terminco.com.au',
     role: Role.USER,
-    status: UserStatus.ACTIVE,
+    status: UserStatus.INACTIVE,
     total_logins: 45,
     quotation_created: 8,
     jobs_managed: 3,
@@ -215,6 +215,25 @@ const teamMemberMockData: User[] = [
     last_login_at: '2025-09-28T22:00:00.000Z',
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
+  },
+  {
+    id: 11,
+    tenant_id: 'Tenant-001',
+    client_id: 1,
+    full_name: 'John Deleted',
+    phone: '+61412345688',
+    email: 'john.deleted@terminco.com.au',
+    role: Role.USER,
+    status: UserStatus.DELETED,
+    total_logins: 50,
+    quotation_created: 5,
+    jobs_managed: 2,
+    invited_by: 1,
+    deletion_reason: 'Left the company',
+    isDeleted: true,
+    last_login_at: '2025-09-15T10:00:00.000Z',
+    created_at: '2025-08-01T13:00:00.000Z',
+    updated_at: '2025-09-20T13:00:00.000Z',
   },
 ];
 
@@ -347,6 +366,8 @@ export default function TeamAdminTab() {
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
                 buttonTitle="Invite User"
+                headerClassName='pb-2 h-[32px] pt-10'
+                preserveEmptyBadgeSpace={false}
                 key={teamMemberCount}
               >
                 <InviteUserForm teamMemberCount={teamMemberCount} />
@@ -357,7 +378,10 @@ export default function TeamAdminTab() {
           <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
             <DataTableClient
               tableId="team_member_data_table"
-              data={teamMemberMockData}
+              data={teamMemberMockData.filter(member =>
+                member.status !== UserStatus.DELETED &&
+                member.status !== UserStatus.INACTIVE
+              )}
               columns={columns}
               facetDefination={facetDefs}
               searchPlaceHolder="Search team members..."
@@ -368,81 +392,60 @@ export default function TeamAdminTab() {
           </div>
         </div>
 
-        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-          <h3 className="text-[24px] font-semibold mb-4">
-            Pending Invitations
-          </h3>
-          <div className="space-y-3">
-            {pendingInvitationsMockData.map((invitation) => (
-              <div
-                key={invitation.id}
-                className="border border-gray-200 rounded-lg bg-white p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="font-medium text-[16px]">
-                      {invitation.email}
-                    </div>
-                    <div className="text-[14px] text-[#4B5563] font-normal mt-1">
-                      <span>
-                        Role:{' '}
-                        {invitation.role === Role.USER
-                          ? 'User'
-                          : invitation.role === Role.ADMIN
-                          ? 'Admin'
-                          : 'Super Admin'}
-                      </span>
-                      <span className="mx-2">•</span>
-                      <span>Invited by: {invitation.invited_by}</span>
-                      <span className="mx-2">•</span>
-                      <span>
-                        Expires in:{' '}
-                        {getRelativeTimeFuture(invitation.expires_at)}
-                      </span>
-                    </div>
+      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+        <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
+        <div className="space-y-3">
+          {pendingInvitationsMockData.map((invitation) => (
+            <div
+              key={invitation.id}
+              className="border border-gray-200 rounded-lg bg-white p-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="font-medium text-[16px]">
+                    {invitation.email}
                   </div>
-                  <div className="flex gap-2 text-[14px] font-medium text-[#09090B] ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleResend(invitation)}
-                    >
-                      Resend
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRevoke(invitation)}
-                    >
-                      Revoke
-                    </Button>
+                  <div className="text-[14px] text-[#4B5563] font-normal mt-1">
+                    <span>
+                      Role:{' '}
+                      {invitation.role === Role.USER
+                        ? 'User'
+                        : invitation.role === Role.ADMIN
+                        ? 'Admin'
+                        : 'Super Admin'}
+                    </span>
+                    <span className="mx-2">•</span>
+                    <span>Invited by: {invitation.invited_by}</span>
+                    <span className="mx-2">•</span>
+                    <span>
+                      Expires in: {getRelativeTimeFuture(invitation.expires_at)}
+                    </span>
                   </div>
                 </div>
-                <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] ml-4">
                   <Button
                     variant="outline"
-                    className="rounded-none rounded-l-2xl px-6 py-6 gap-2 
-                   bg-white"
+                    className="rounded-none rounded-l-md px-4 h-auto py-2.5 gap-2 bg-white border-r"
                     onClick={() => handleResend(invitation)}
                   >
-                    <RotateCcwSquare className="h-5 w-5 text-[#09090B]" />
+                    <RotateCcwSquare className="h-4 w-4" />
                     Resend Invitation
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-none rounded-r-2xl px-6 py-6 gap-2 font-normal
-                   border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
+                    className="rounded-none rounded-r-md px-4 h-auto py-2.5 gap-2 border-l bg-[#FEF2F2] text-red-600 hover:text-red-600"
                     onClick={() => handleRevoke(invitation)}
                   >
-                    <Delete className="h-5 w-5" />
+                    <Delete className="h-4 w-4" />
                     Delete User
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
+    </div>
     </>
   );
 }

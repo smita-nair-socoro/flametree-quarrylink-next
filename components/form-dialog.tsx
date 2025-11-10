@@ -99,6 +99,12 @@ interface AddProductDrawerDialogProps {
   /** Optional content class to add to the content */
   contentClass?: string;
 
+  /** Optional custom class for the DialogHeader container (e.g., "px-5 pt-6 pb-2" or "px-5 pt-4 pb-0") */
+  headerClassName?: string;
+
+  /** Whether to preserve empty badge space in renderBadges */
+  preserveEmptyBadgeSpace?: boolean;
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
@@ -133,7 +139,9 @@ export function FormDialog({
   headerInfo,
   headerSeparator,
   contentClass,
+  headerClassName,
   children,
+  preserveEmptyBadgeSpace = true,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
@@ -254,7 +262,9 @@ export function FormDialog({
       (finalSecondaryBadges && finalSecondaryBadges.length > 0) ||
       (finalThirdBadges && finalThirdBadges.length > 0);
 
-    if (!hasBadges) return '\u00A0';
+    if (!hasBadges) {
+      return preserveEmptyBadgeSpace ? '\u00A0' : null;
+    }
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">
@@ -302,7 +312,7 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-6 flex-shrink-0">
+      <DialogHeader className={clsx("flex flex-row items-center justify-between flex-shrink-0 px-5 pt-6", headerClassName || "pb-2")}>
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
