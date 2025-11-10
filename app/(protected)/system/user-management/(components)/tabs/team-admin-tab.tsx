@@ -418,8 +418,6 @@ export default function TeamAdminTab() {
                     </Button>
                   </div>
                 </div>
-<<<<<<< HEAD:app/(protected)/system/user-management/(components)/tabs/team-admin-tab.tsx
-=======
                 <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
                   <Button
                     variant="outline"
@@ -440,7 +438,6 @@ export default function TeamAdminTab() {
                     Delete User
                   </Button>
                 </div>
->>>>>>> develop:app/(protected)/system/user-roles/(components)/tabs/team-admin-tab.tsx
               </div>
             ))}
           </div>
