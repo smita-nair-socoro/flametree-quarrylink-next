@@ -366,6 +366,8 @@ export default function TeamAdminTab() {
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
                 buttonTitle="Invite User"
+                headerClassName='pb-2 h-[32px] pt-10'
+                preserveEmptyBadgeSpace={false}
                 key={teamMemberCount}
               >
                 <InviteUserForm teamMemberCount={teamMemberCount} />
