@@ -376,7 +376,10 @@ export default function TeamAdminTab() {
           <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
             <DataTableClient
               tableId="team_member_data_table"
-              data={teamMemberMockData.filter(member => member.status !== UserStatus.DELETED)}
+              data={teamMemberMockData.filter(member =>
+                member.status !== UserStatus.DELETED &&
+                member.status !== UserStatus.INACTIVE
+              )}
               columns={columns}
               facetDefination={facetDefs}
               searchPlaceHolder="Search team members..."
@@ -417,23 +420,21 @@ export default function TeamAdminTab() {
                     </span>
                   </div>
                 </div>
-                <div className="inline-flex overflow-hidden rounded border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] ml-4">
                   <Button
                     variant="outline"
-                    className="rounded-none rounded px-6 py-6 gap-2 
-                   bg-white"
+                    className="rounded-none rounded-l-md px-4 h-auto py-2.5 gap-2 bg-white border-r"
                     onClick={() => handleResend(invitation)}
                   >
-                    <RotateCcwSquare className="h-5 w-5 text-[#09090B]" />
+                    <RotateCcwSquare className="h-4 w-4" />
                     Resend Invitation
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-none rounded px-6 py-6 gap-2 font-normal
-                   border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
+                    className="rounded-none rounded-r-md px-4 h-auto py-2.5 gap-2 border-l bg-[#FEF2F2] text-red-600 hover:text-red-600"
                     onClick={() => handleRevoke(invitation)}
                   >
-                    <Delete className="h-5 w-5" />
+                    <Delete className="h-4 w-4" />
                     Delete User
                   </Button>
                 </div>

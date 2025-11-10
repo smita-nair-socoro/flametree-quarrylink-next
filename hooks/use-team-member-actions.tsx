@@ -369,7 +369,7 @@ export function useTeamMemberActions(
         <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] mr-5">
           <Button
             variant="outline"
-            className="rounded-none rounded-l-md px-4 h-auto py-1.5 gap-2 bg-white border-none"
+            className="rounded-none rounded-l-md px-4 h-auto py-1.5 gap-2 bg-white border-r"
             onClick={actions.resetPassword}
           >
             <Key className="h-4 w-4" />
@@ -377,11 +377,8 @@ export function useTeamMemberActions(
           </Button>
           <Button
             variant="outline"
-            className="rounded-none rounded-r-md px-4 h-auto py-1.5 gap-2 border-none bg-[#FEF2F2] text-red-600 hover:text-red-600"
-            onClick={() => {
-              setViewOpen(false);
-              actions.delete();
-            }}
+            className="rounded-none rounded-r-md px-4 h-auto py-1.5 gap-2 border-l bg-[#FEF2F2] text-red-600 hover:text-red-600"
+            onClick={actions.delete}
           >
             <Trash2 className="h-4 w-4" />
             Delete User

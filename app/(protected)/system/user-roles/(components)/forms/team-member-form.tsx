@@ -70,7 +70,7 @@ export function EditTeamMemberForm({
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
       role: initialData?.role ?? '',
-      status: normalizeStatus(initialData?.status),
+      status: initialData?.status,
     }),
     [
       fullName,
@@ -354,7 +354,3 @@ function getInitials(name: string | undefined): string {
   return initials.slice(0, 2) || '?';
 }
 
-function normalizeStatus(status: string | undefined | null): StatusValue {
-  if (status === 'INACTIVE') return 'INACTIVE';
-  return 'ACTIVE';
-}
