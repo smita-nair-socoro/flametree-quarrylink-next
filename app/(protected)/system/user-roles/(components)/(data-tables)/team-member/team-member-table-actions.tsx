@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { User } from '@/lib/types/user';
-import { UserStatus } from '@/lib/types/user-enums';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { FormSelectOption } from '@/components/ui/form-select';
@@ -35,8 +34,6 @@ export function TeamMemberTableActions({
   const setSelectedTeamMember = useTeamMemberStore(
     (state) => state.setSelectedTeamMember
   );
-
-  const isDeleted = teamMember.status === UserStatus.DELETED;
 
   const createHandler =
     (actionFn: () => void, additionalSetup?: () => void) => () => {
@@ -69,22 +66,18 @@ export function TeamMemberTableActions({
             View/Edit User
           </DropdownMenuItem>
 
-          {!isDeleted && (
-            <>
-              <DropdownMenuItem onClick={handleResetPassword}>
-                <Key className="h-4 w-4 mr-2" />
-                Reset Password
-              </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleResetPassword}>
+            <Key className="h-4 w-4 mr-2" />
+            Reset Password
+          </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={handleDelete}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-                Delete User
-              </DropdownMenuItem>
-            </>
-          )}
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+            Delete User
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

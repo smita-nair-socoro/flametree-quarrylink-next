@@ -352,9 +352,6 @@ export function useTeamMemberActions(
     />
   );
 
-  // Check if user is deleted
-  const isUserDeleted = teamMemberData?.status === 'DELETED';
-
   // Render view/edit dialog
   const viewDialog = viewOpen ? (
     <FormDialog
@@ -369,29 +366,27 @@ export function useTeamMemberActions(
       }}
       hideTrigger
       headerButtons={
-        !isUserDeleted ? (
-          <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] mr-5">
-            <Button
-              variant="outline"
-              className="rounded-none rounded-l-md px-4 h-auto py-1.5 gap-2 bg-white border-none"
-              onClick={actions.resetPassword}
-            >
-              <Key className="h-4 w-4" />
-              Reset Password
-            </Button>
-            <Button
-              variant="outline"
-              className="rounded-none rounded-r-md px-4 h-auto py-1.5 gap-2 border-none bg-[#FEF2F2] text-red-600 hover:text-red-600"
-              onClick={() => {
-                setViewOpen(false);
-                actions.delete();
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete User
-            </Button>
-          </div>
-        ) : undefined
+        <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] mr-5">
+          <Button
+            variant="outline"
+            className="rounded-none rounded-l-md px-4 h-auto py-1.5 gap-2 bg-white border-none"
+            onClick={actions.resetPassword}
+          >
+            <Key className="h-4 w-4" />
+            Reset Password
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-none rounded-r-md px-4 h-auto py-1.5 gap-2 border-none bg-[#FEF2F2] text-red-600 hover:text-red-600"
+            onClick={() => {
+              setViewOpen(false);
+              actions.delete();
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete User
+          </Button>
+        </div>
       }
     >
       <EditTeamMemberForm roles={roles || []} currentUserId={currentUserId} />

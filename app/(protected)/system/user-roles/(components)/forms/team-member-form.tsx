@@ -63,7 +63,6 @@ export function EditTeamMemberForm({
   const initialData = useSelectedTeamMember();
 
   const fullName = initialData?.full_name.trim() || 'Unnamed User';
-  const isDeleted = initialData?.status === 'DELETED';
 
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(
     () => ({
@@ -210,7 +209,6 @@ export function EditTeamMemberForm({
                       <Input
                         placeholder="Jane Smith"
                         autoFocus={false}
-                        disabled={isDeleted}
                         {...field}
                       />
                     </FormControl>
@@ -229,7 +227,6 @@ export function EditTeamMemberForm({
                       <PhoneInput
                         defaultCountry="AU"
                         placeholder="e.g. +61 400 000 000"
-                        disabled={isDeleted}
                         {...field}
                       />
                     </FormControl>
@@ -277,7 +274,7 @@ export function EditTeamMemberForm({
                 options={roles}
                 placeholder="Select role"
                 showSearch={false}
-                disabled={disableRoleChange || isDeleted}
+                disabled={disableRoleChange}
               />
             </div>
 
@@ -329,13 +326,13 @@ export function EditTeamMemberForm({
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isDeleted}>Save Changes</Button>
+              <Button type="submit">Save Changes</Button>
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col gap-3 mb-3">
-              <Button type="submit" disabled={isDeleted}>Save Changes</Button>
+              <Button type="submit">Save Changes</Button>
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>

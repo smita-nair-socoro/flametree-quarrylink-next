@@ -376,7 +376,7 @@ export default function TeamAdminTab() {
           <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
             <DataTableClient
               tableId="team_member_data_table"
-              data={teamMemberMockData}
+              data={teamMemberMockData.filter(member => member.status !== UserStatus.DELETED)}
               columns={columns}
               facetDefination={facetDefs}
               searchPlaceHolder="Search team members..."
