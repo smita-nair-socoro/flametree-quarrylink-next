@@ -77,5 +77,6 @@ export function UserTableActions({
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+    </>
   );
 }
