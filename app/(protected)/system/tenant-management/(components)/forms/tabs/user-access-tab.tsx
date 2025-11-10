@@ -19,12 +19,14 @@ export default function UserAccessTab({
         <div className="flex justify-between items-center mt-5">
           <h1 className="text-lg font-semibold">Users ({teamMemberCount}/20)</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <FormDialog
-              dialogTitle="Invite User"
-              dialogDescription="Send an invitation to a new team member with their assigned role and contact information."
-              dialogWidth="max-w-md"
-              buttonTitle="Add New User"
-            >
+              <FormDialog
+                dialogTitle="Invite User"
+                dialogWidth="max-w-md"
+                buttonTitle="Invite User"
+                headerClassName='pb-2 h-[32px] pt-10'
+                preserveEmptyBadgeSpace={false}
+                key={teamMemberCount}
+              >
               <InviteUserForm teamMemberCount={teamMemberCount} />
             </FormDialog>
           </div>
