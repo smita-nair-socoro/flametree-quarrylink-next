@@ -5,7 +5,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2, Key } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
-import { EditTeamMemberForm } from '@/app/(protected)/system/user-roles/(components)/forms/team-member-form';
+import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { Button } from '@/components/ui/button';
 
