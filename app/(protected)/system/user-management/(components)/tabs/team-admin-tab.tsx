@@ -6,7 +6,7 @@ import InviteUserForm from '../forms/invite-user-form';
 import { Plus, Bug, RotateCcwSquare, Delete } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
-import { teamMemberColumns } from '../(data-tables)/team-member/columns';
+import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
 import {
   DataTableClient,
   FacetDefinition,
@@ -20,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTeamMemberStore } from '@/app/stores/team-member-store';
+import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
+import { FormSelectOption } from '@/components/ui/form-select';
 
 // Mock data for team members
 const teamMemberMockData: User[] = [
@@ -50,7 +53,7 @@ const teamMemberMockData: User[] = [
     phone: '+61412345679',
     email: 'sarah@terminco.com.au',
     role: Role.ADMIN,
-    status: UserStatus.ACTIVE,
+    status: UserStatus.DELETED,
     total_logins: 0,
     quotation_created: 0,
     jobs_managed: 0,
@@ -88,7 +91,7 @@ const teamMemberMockData: User[] = [
     phone: '+61412345681',
     email: 'emma.wilson@terminco.com.au',
     role: Role.USER,
-    status: UserStatus.ACTIVE,
+    status: UserStatus.INACTIVE,
     total_logins: 45,
     quotation_created: 8,
     jobs_managed: 3,
@@ -213,6 +216,25 @@ const teamMemberMockData: User[] = [
     created_at: '2025-10-30T13:00:00.000Z',
     updated_at: '2025-10-30T13:00:00.000Z',
   },
+  {
+    id: 11,
+    tenant_id: 'Tenant-001',
+    client_id: 1,
+    full_name: 'John Deleted',
+    phone: '+61412345688',
+    email: 'john.deleted@terminco.com.au',
+    role: Role.USER,
+    status: UserStatus.DELETED,
+    total_logins: 50,
+    quotation_created: 5,
+    jobs_managed: 2,
+    invited_by: 1,
+    deletion_reason: 'Left the company',
+    isDeleted: true,
+    last_login_at: '2025-09-15T10:00:00.000Z',
+    created_at: '2025-08-01T13:00:00.000Z',
+    updated_at: '2025-09-20T13:00:00.000Z',
+  },
 ];
 
 // Mock data for pending invitations
@@ -245,19 +267,49 @@ const handleRevoke = (invitation: PendingInvitation) => {
   console.log('Revoke invitation for:', invitation.email);
 };
 
+// Roles options for the form
+const rolesOptions: readonly FormSelectOption[] = [
+  { label: 'Admin', value: Role.ADMIN },
+  { label: 'User', value: Role.USER },
+  { label: 'Super Admin', value: Role.SUPERADMIN },
+];
+
 export default function TeamAdminTab() {
   // Debug mode state for testing different UI states
   const [debugMode, setDebugMode] = React.useState(false);
   const [debugCount, setDebugCount] = React.useState<number>(5);
 
+  // Use Zustand store for selected team member
+  const setSelectedTeamMember = useTeamMemberStore(
+    (state) => state.setSelectedTeamMember
+  );
+
+  // Separate state for the actions hook (like customer implementation)
+  const [selectedTeamMemberForActions, setSelectedTeamMemberForActions] =
+    React.useState<User | null>(null);
+
+  const { actions, viewDialog } = useTeamMemberActions(
+    selectedTeamMemberForActions?.id,
+    selectedTeamMemberForActions,
+    rolesOptions,
+    1
+  );
+
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
-    // TODO: Implement member details view
-    console.log('Selected member:', member);
+    setSelectedTeamMember(member);
+    setSelectedTeamMemberForActions(member);
+    actions.viewEdit();
   };
 
   // Calculate team member count based on debug mode
   const teamMemberCount = debugMode ? debugCount : teamMemberMockData.length;
+
+  // Create columns with roles and currentUserId
+  const columns = React.useMemo(
+    () => createTeamMemberColumns(rolesOptions, 1),
+    [] // rolesOptions is a constant, no need to track it
+  );
 
   const facetDefs: FacetDefinition[] = [
     { column: 'role', title: 'Role', icon: Plus },
@@ -265,131 +317,142 @@ export default function TeamAdminTab() {
   ];
 
   return (
-    <div className="flex flex-1 flex-col gap-4 py-2">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <h2 className="text-2xl font-semibold">Team Management</h2>
-        </div>
-      </div>
-
-      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+    <>
+      {viewDialog}
+      <div className="flex flex-1 flex-col gap-4 py-2">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div>
-            <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
-              Team Members
-            </h1>
+            <h2 className="text-2xl font-semibold">Team Management</h2>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            {/* Debug Mode Toggle */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-              <Bug className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-medium text-amber-900">
-                Debug Mode:
-              </span>
-              <Button
-                variant={debugMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setDebugMode(!debugMode)}
-                className="h-7 text-xs"
-              >
-                {debugMode ? 'ON' : 'OFF'}
-              </Button>
-              {debugMode && (
-                <Select
-                  value={debugCount.toString()}
-                  onValueChange={(value) => setDebugCount(parseInt(value))}
-                >
-                  <SelectTrigger className="h-7 w-[140px] text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">Under Limit (5)</SelectItem>
-                    <SelectItem value="10">Over Limit (10)</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+        </div>
+
+        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+            <div>
+              <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
+                Team Members
+              </h1>
             </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              {/* Debug Mode Toggle */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                <Bug className="h-4 w-4 text-amber-600" />
+                <span className="text-sm font-medium text-amber-900">
+                  Debug Mode:
+                </span>
+                <Button
+                  variant={debugMode ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setDebugMode(!debugMode)}
+                  className="h-7 text-xs"
+                >
+                  {debugMode ? 'ON' : 'OFF'}
+                </Button>
+                {debugMode && (
+                  <Select
+                    value={debugCount.toString()}
+                    onValueChange={(value) => setDebugCount(parseInt(value))}
+                  >
+                    <SelectTrigger className="h-7 w-[140px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">Under Limit (5)</SelectItem>
+                      <SelectItem value="10">Over Limit (10)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
 
-            <FormDialog
-              dialogTitle="Invite User"
-              dialogWidth="max-w-md"
-              buttonTitle="Invite User"
-              key={teamMemberCount}
-            >
-              <InviteUserForm teamMemberCount={teamMemberCount} />
-            </FormDialog>
+              <FormDialog
+                dialogTitle="Invite User"
+                dialogWidth="max-w-md"
+                buttonTitle="Invite User"
+                headerClassName="pb-2 h-[32px] pt-10"
+                preserveEmptyBadgeSpace={false}
+                key={teamMemberCount}
+              >
+                <InviteUserForm teamMemberCount={teamMemberCount} />
+              </FormDialog>
+            </div>
+          </div>
+
+          <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+            <DataTableClient
+              tableId="team_member_data_table"
+              data={teamMemberMockData.filter(
+                (member) =>
+                  member.status !== UserStatus.DELETED &&
+                  member.status !== UserStatus.INACTIVE
+              )}
+              columns={columns}
+              facetDefination={facetDefs}
+              searchPlaceHolder="Search team members..."
+              onRowClick={handleRowClick}
+              useColumnSizing={true}
+              isShowHideColumns={false}
+            />
           </div>
         </div>
 
-        <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-          <DataTableClient
-            tableId="team_member_data_table"
-            data={teamMemberMockData}
-            columns={teamMemberColumns}
-            facetDefination={facetDefs}
-            searchPlaceHolder="Search team members..."
-            onRowClick={handleRowClick}
-            useColumnSizing={true}
-            isShowHideColumns={false}
-          />
-        </div>
-      </div>
+        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+          <h3 className="text-[24px] font-semibold mb-4">
+            Pending Invitations
+          </h3>
+          <div className="space-y-3">
+            {pendingInvitationsMockData.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="border border-gray-200 rounded-lg bg-white p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-[16px]">
+                      {invitation.email}
+                    </div>
+                    <div className="text-[14px] text-[#4B5563] font-normal mt-1">
+                      <span>
+                        Role:{' '}
+                        {invitation.role === Role.USER
+                          ? 'User'
+                          : invitation.role === Role.ADMIN
+                          ? 'Admin'
+                          : 'Super Admin'}
+                      </span>
+                      <span className="mx-2">•</span>
+                      <span>Invited by: {invitation.invited_by}</span>
+                      <span className="mx-2">•</span>
+                      <span>
+                        Expires in:{' '}
+                        {getRelativeTimeFuture(invitation.expires_at)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                    <Button
+                      variant="outline"
+                      className="rounded-none px-4 h-auto py-2.5 gap-2 bg-white border-0 border-r"
+                      onClick={() => handleResend(invitation)}
+                    >
+                      <RotateCcwSquare className="h-4 w-4" />
+                      Resend Invitation
+                    </Button>
 
-      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-        <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
-        <div className="space-y-3">
-          {pendingInvitationsMockData.map((invitation) => (
-            <div
-              key={invitation.id}
-              className="border border-gray-200 rounded-lg bg-white p-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-medium text-[16px]">
-                    {invitation.email}
+                    <Button
+                      variant="outline"
+                      className="rounded-none px-4 h-auto py-2.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
+                      onClick={() => handleRevoke(invitation)}
+                    >
+                      <Delete className="h-4 w-4" />
+                      Delete User
+                    </Button>
                   </div>
-                  <div className="text-[14px] text-[#4B5563] font-normal mt-1">
-                    <span>
-                      Role:{' '}
-                      {invitation.role === Role.USER
-                        ? 'User'
-                        : invitation.role === Role.ADMIN
-                        ? 'Admin'
-                        : 'Super Admin'}
-                    </span>
-                    <span className="mx-2">•</span>
-                    <span>Invited by: {invitation.invited_by}</span>
-                    <span className="mx-2">•</span>
-                    <span>
-                      Expires in: {getRelativeTimeFuture(invitation.expires_at)}
-                    </span>
-                  </div>
-                </div>
-                <div className="inline-flex overflow-hidden rounded-2xl border bg-white text-[14px] font-medium text-[#09090B] ml-4">
-                  <Button
-                    variant="outline"
-                    className="rounded-none rounded-l-2xl px-6 py-6 gap-2 
-                   bg-white"
-                    onClick={() => handleResend(invitation)}
-                  >
-                    <RotateCcwSquare className="h-5 w-5 text-[#09090B]" />
-                    Resend Invitation
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-none rounded-r-2xl px-6 py-6 gap-2 font-normal
-                   border bg-[#FEF2F2] text-red-600 border-base hover:text-red-600"
-                    onClick={() => handleRevoke(invitation)}
-                  >
-                    <Delete className="h-5 w-5" />
-                    Delete User
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
