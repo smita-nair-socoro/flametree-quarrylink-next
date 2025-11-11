@@ -51,7 +51,8 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     },
     cell: ({ row }) => {
       const quote_type = row.original.quote_type;
-      return <TableBadges names={quote_type} visibleCount={1} />;
+      if (!quote_type) return <span className="text-muted-foreground">-</span>;
+      return <TableBadges names={[quote_type]} visibleCount={1} />;
     },
     meta: 'Quote Type',
   },
@@ -112,6 +113,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     },
     cell: ({ row }) => {
       const status = row.original.status;
+      if (!status) return <span className="text-muted-foreground">-</span>;
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />

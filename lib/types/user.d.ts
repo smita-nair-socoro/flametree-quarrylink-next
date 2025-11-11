@@ -20,6 +20,10 @@ export interface User {
   last_login_at: string | null;
 }
 
+/**
+ * @deprecated Use User interface instead. TeamMember is being phased out
+ * as both team member management and client user management share the same backend structure.
+ */
 export interface TeamMember {
   id: number;
   tenant_id: string;

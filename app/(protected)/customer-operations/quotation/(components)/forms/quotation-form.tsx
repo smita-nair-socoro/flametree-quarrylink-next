@@ -26,15 +26,19 @@ import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { Spinner } from '@/components/ui/spinner';
-import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import {
+  useSelectedQuotation,
+  useQuotationStore,
+} from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import rawJsonWithLineItems from '@/lib/tests/quotationWithLineItemsResonseData.json';
-import { Quotation } from '@/lib/types/quotation';
+import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useQuery } from '@tanstack/react-query';
+import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
 
 interface FormProps {
   id?: number;
@@ -54,19 +58,39 @@ export default function QuotationForm({
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
 
-  // When editing, fetch detailed quotation data with line items
-  // Change this with API call later
+  // When editing, fetch detailed quotation data with line items from backend API
+  const {
+    data: quotationDetailData,
+    isLoading: isLoadingDetail,
+    error: detailError,
+  } = useQuery(QuotationDetailQueryOptions(selectedQuotation?.id || 0));
+
+  // Log API response for debugging
+  React.useEffect(() => {
+    if (detailError) {
+      console.error('❌ Error fetching quotation details:', detailError);
+    }
+  }, [detailError]);
+
+  // Convert QuotationDTO from API to Quotation format for the form
   const getDetailedQuotation = React.useMemo(() => {
-    if (isEditing && selectedQuotation?.id) {
-      const convertedDetailedJson =
-        convertKeysToSnakeCase(rawJsonWithLineItems);
-      const { items: detailedItems } = convertedDetailedJson as unknown as {
-        items: Quotation[];
-      };
-      return detailedItems.find((item) => item.id === selectedQuotation.id);
+    if (isEditing && quotationDetailData) {
+      // Convert to snake_case if needed
+      const convertedQuotation = convertKeysToSnakeCase(
+        quotationDetailData
+      ) as QuotationDTO;
+
+      // Transform to match Quotation interface (map quote_status → status)
+      const transformedQuotation = {
+        ...convertedQuotation,
+        quoteId: convertedQuotation.id,
+        status: convertedQuotation.quote_status,
+      } as Quotation;
+
+      return transformedQuotation;
     }
     return null;
-  }, [isEditing, selectedQuotation?.id]);
+  }, [isEditing, quotationDetailData]);
 
   // Use detailed quotation for editing, or selected quotation for new
   const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
@@ -161,6 +185,55 @@ export default function QuotationForm({
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Update form values when API data loads
+  React.useEffect(() => {
+    if (isEditing && currentQuotation) {
+      quotationForm.reset({
+        quote_type: currentQuotation.quote_type || 'DELIVERY',
+        customer_id: currentQuotation.customer_id || 0,
+        account_manager: currentQuotation.account_manager || 0,
+        project_name: currentQuotation.project_name || '',
+        delivery_start_date: currentQuotation.delivery_start_date
+          ? new Date(currentQuotation.delivery_start_date)
+          : undefined,
+        delivery_window_start: currentQuotation.delivery_window_start
+          ? new Date(currentQuotation.delivery_window_start).toLocaleTimeString(
+              'en-US',
+              {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+              }
+            )
+          : '',
+        delivery_window_end: currentQuotation.delivery_window_end
+          ? new Date(currentQuotation.delivery_window_end).toLocaleTimeString(
+              'en-US',
+              {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+              }
+            )
+          : '',
+        expiry_date: currentQuotation.expiry_date
+          ? new Date(currentQuotation.expiry_date)
+          : undefined,
+        delivery_address: currentQuotation.delivery_address || '',
+        phone: currentQuotation.customer_email || '', // TODO: Add phone field to API
+        email: currentQuotation.customer_email || '',
+        created_at: currentQuotation.created_at
+          ? new Date(currentQuotation.created_at)
+          : new Date(),
+        updated_at: currentQuotation.updated_at
+          ? new Date(currentQuotation.updated_at)
+          : new Date(),
+        created_by: currentQuotation.created_by || 'Unknown',
+        last_modified_by: currentQuotation.last_modified_by || 'Unknown',
+      });
+    }
+  }, [isEditing, currentQuotation, quotationForm]);
+
   // Watch the quote_type field to make labels dynamic
   const quoteType = quotationForm.watch('quote_type');
 
@@ -194,26 +267,23 @@ export default function QuotationForm({
     }
   }, []);
 
-  const customerOptions: FormSelectOption[] = [
-    {
-      label: 'Armin Customer',
-      value: 1,
-    },
-    {
-      label: 'Bec Customer',
-      value: 2,
-    },
-    {
-      label: 'Jay Customer',
-      value: 3,
-    },
-  ];
+  // Get unique customer names and account managers from quotations store
+  const getUniqueCustomerNames = useQuotationStore(
+    (state) => state.getUniqueCustomerNames
+  );
+  const getUniqueAccountManagers = useQuotationStore(
+    (state) => state.getUniqueAccountManagers
+  );
 
-  const accountManagerOptions: FormSelectOption[] = [
-    { label: 'Reza', value: 1 },
-    { label: 'Armin', value: 2 },
-    { label: 'Jaywoo', value: 3 },
-  ]; // TODO: get account manager
+  // Build customer options from quotations list
+  const customerOptions: FormSelectOption[] = React.useMemo(() => {
+    return getUniqueCustomerNames();
+  }, [getUniqueCustomerNames]);
+
+  // Build account manager options from quotations list
+  const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
+    return getUniqueAccountManagers();
+  }, [getUniqueAccountManagers]);
 
   const customerId = quotationForm.watch('customer_id');
 
@@ -233,17 +303,11 @@ export default function QuotationForm({
   }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    console.log('onSubmit function called!');
-    console.log('Form is valid:', quotationForm.formState.isValid);
-    console.log('Form errors:', quotationForm.formState.errors);
-    console.log('Quotation Form Values:', values);
-    console.log('Selected Address Details:', address);
-
     setIsSubmitting(true);
 
     // Simulate API call delay (remove this in production)
     await new Promise((resolve) => setTimeout(resolve, 2000));
-
+    console.log('Form submitted with values:', values);
     setIsSubmitting(false);
   }
 
@@ -275,6 +339,41 @@ export default function QuotationForm({
       ? currentQuotation?.gross_profit_percentage
       : 0,
   });
+
+  // Show loading state while fetching quotation details
+  if (isEditing && isLoadingDetail) {
+    return (
+      <div className="w-full h-64 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Spinner size="medium" />
+          <p className="text-lg text-muted-foreground font-bold">
+            Loading quotation details...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if fetching failed
+  if (isEditing && detailError) {
+    return (
+      <div className="w-full h-64 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive font-semibold text-lg">
+            Failed to load quotation details
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            {detailError instanceof Error
+              ? detailError.message
+              : 'Unknown error occurred'}
+          </p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Reload Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full relative">
