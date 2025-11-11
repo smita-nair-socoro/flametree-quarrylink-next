@@ -152,7 +152,7 @@ export function EditTeamMemberForm({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <header className="rounded-lg border border-border bg-[#F9FAFB] p-4 sm:p-5">
         <div
           className={
@@ -182,9 +182,9 @@ export function EditTeamMemberForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-2 mt-2"
         >
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div>
               <h3 className="text-base font-semibold text-foreground">
                 User Information
@@ -192,7 +192,7 @@ export function EditTeamMemberForm({
               <Separator className="mt-2" />
             </div>
 
-            <div className={isDesktop ? 'grid gap-4 grid-cols-2' : 'space-y-4'}>
+            <div className={isDesktop ? 'grid gap-2 grid-cols-2' : 'space-y-4'}>
               <FormField
                 control={form.control}
                 name="full_name"
@@ -246,7 +246,7 @@ export function EditTeamMemberForm({
           </section>
 
           <section>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0">
               <h3 className="text-base font-semibold text-foreground">
                 Role &amp; Status
               </h3>

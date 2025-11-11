@@ -365,6 +365,7 @@ export function useTeamMemberActions(
         }
       }}
       hideTrigger
+      headerButtonsAlign="start"
       headerButtons={
         <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] mr-5">
           <Button
@@ -386,6 +387,7 @@ export function useTeamMemberActions(
           </Button>
         </div>
       }
+      preserveEmptyBadgeSpace={false}
     >
       <EditTeamMemberForm roles={roles || []} currentUserId={currentUserId} />
     </FormDialog>
