@@ -17,6 +17,8 @@ import {
   useReactTable,
   VisibilityState,
   Updater,
+  RowSelectionState,
+  Row,
 } from '@tanstack/react-table';
 
 import {
@@ -60,6 +62,7 @@ import { Separator } from './separator';
 import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Image from 'next/image';
+import { Checkbox } from './checkbox';
 import {
   Drawer,
   DrawerContent,
@@ -86,6 +89,10 @@ interface DataTableProps<TData, TValue> {
   useColumnSizing?: boolean; // Optional prop to enable column sizing
   onRowClick?: (row: TData) => void; // Optional row click handler
   isShowHideColumns?: boolean;
+  enableRowSelection?: boolean; // Enable row selection with checkboxes
+  onRowSelectionChange?: (selectedRows: TData[]) => void; // Callback when selection changes
+  rowSelectionFilter?: (row: TData) => boolean; // Filter which rows can be selected
+  bulkActionsSlot?: React.ReactNode; // Slot for bulk action buttons
 }
 
 export type FacetDefinition = {
@@ -112,6 +119,7 @@ const defaultColumnFilters: ColumnFiltersState = [];
 const defaultGlobalFilter = '';
 const defaultColumnVisibility: VisibilityState = {};
 const defaultPaginationSize = '10';
+const defaultRowSelection: RowSelectionState = {};
 
 export function DataTableClient<TData, TValue>({
   columns,
@@ -123,6 +131,10 @@ export function DataTableClient<TData, TValue>({
   useColumnSizing = false, // Default to false to maintain existing behavior
   onRowClick,
   isShowHideColumns = true,
+  enableRowSelection = false,
+  onRowSelectionChange,
+  rowSelectionFilter,
+  bulkActionsSlot,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -185,12 +197,32 @@ export function DataTableClient<TData, TValue>({
   const [tempColumnFilters, setTempColumnFilters] =
     useState<ColumnFiltersState>([]);
 
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>(
+    defaultRowSelection
+  );
+
   // Sync temp filters when drawer opens
   useEffect(() => {
     if (drawerOpen) {
       setTempColumnFilters(columnFilters);
     }
   }, [drawerOpen, columnFilters]);
+
+  // Notify parent of selection changes
+  useEffect(() => {
+    if (enableRowSelection && onRowSelectionChange && data.length > 0) {
+      const selectedRowIds = Object.keys(rowSelection).filter(
+        (key) => rowSelection[key]
+      );
+      const selectedRows = selectedRowIds
+        .map((id) => {
+          const index = parseInt(id);
+          return data[index];
+        })
+        .filter(Boolean);
+      onRowSelectionChange(selectedRows);
+    }
+  }, [rowSelection, enableRowSelection, onRowSelectionChange, data]);
 
   // Clear localStorage when switching to mobile or reset everything for mobile
   useEffect(() => {
@@ -286,6 +318,38 @@ export function DataTableClient<TData, TValue>({
     return found?.label ?? 'Select page size';
   }, [paginationSize]);
 
+  // Create columns with checkbox column if row selection is enabled
+  const tableColumns = useMemo(() => {
+    if (!enableRowSelection) return columns;
+
+    const checkboxColumn: ColumnDef<TData, TValue> = {
+      id: 'select',
+      size: 40,
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          disabled={!row.getCanSelect()}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    };
+
+    return [checkboxColumn, ...columns];
+  }, [columns, enableRowSelection]);
+
   // Define the filter function
   const arrIncludesSome: FilterFn<TData> = (row, columnId, filterValues) => {
     if (!Array.isArray(filterValues) || filterValues.length === 0) return true;
@@ -306,7 +370,7 @@ export function DataTableClient<TData, TValue>({
 
   const table = useReactTable({
     data,
-    columns,
+    columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -325,6 +389,14 @@ export function DataTableClient<TData, TValue>({
     onColumnFiltersChange: handleColumnFiltersChange,
     onGlobalFilterChange: handleGlobalFilterChange,
     onColumnVisibilityChange: handleColumnVisibilityChange,
+    onRowSelectionChange: setRowSelection,
+
+    enableRowSelection: enableRowSelection
+      ? (row: Row<TData>) => {
+          if (!rowSelectionFilter) return true;
+          return rowSelectionFilter(row.original);
+        }
+      : undefined,
 
     state: {
       sorting,
@@ -332,6 +404,7 @@ export function DataTableClient<TData, TValue>({
       columnFilters,
       globalFilter,
       columnVisibility,
+      rowSelection,
     },
   });
 
@@ -592,6 +665,11 @@ export function DataTableClient<TData, TValue>({
             )}
           </div>
         </div>
+      )}
+
+      {/* Bulk Actions Slot */}
+      {enableRowSelection && bulkActionsSlot && (
+        <div className="mb-3">{bulkActionsSlot}</div>
       )}
 
       {/* Table Container with External Scroll */}
