@@ -61,9 +61,9 @@ export default function QuotationsPage() {
     actions.view();
   };
 
-  const handleRowSelectionChange = (selected: Quotation[]) => {
+  const handleRowSelectionChange = React.useCallback((selected: Quotation[]) => {
     setSelectedQuotations(selected);
-  };
+  }, []);
 
   const handleClearSelection = () => {
     setSelectedQuotations([]);

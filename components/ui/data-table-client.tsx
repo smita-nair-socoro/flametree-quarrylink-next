@@ -210,7 +210,7 @@ export function DataTableClient<TData, TValue>({
 
   // Notify parent of selection changes
   useEffect(() => {
-    if (enableRowSelection && onRowSelectionChange && data.length > 0) {
+    if (enableRowSelection && onRowSelectionChange) {
       const selectedRowIds = Object.keys(rowSelection).filter(
         (key) => rowSelection[key]
       );
@@ -222,7 +222,8 @@ export function DataTableClient<TData, TValue>({
         .filter(Boolean);
       onRowSelectionChange(selectedRows);
     }
-  }, [rowSelection, enableRowSelection, onRowSelectionChange, data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection]);
 
   // Clear localStorage when switching to mobile or reset everything for mobile
   useEffect(() => {
