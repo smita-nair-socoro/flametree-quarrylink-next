@@ -280,7 +280,9 @@ export default function TeamAdminTab() {
   const [debugCount, setDebugCount] = React.useState<number>(5);
 
   // Use Zustand store for selected team member
-  const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
+  const setSelectedTeamMember = useTeamMemberStore(
+    (state) => state.setSelectedTeamMember
+  );
 
   // Separate state for the actions hook (like customer implementation)
   const [selectedTeamMemberForActions, setSelectedTeamMemberForActions] =
@@ -366,7 +368,7 @@ export default function TeamAdminTab() {
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
                 buttonTitle="Invite User"
-                headerClassName='pb-2 h-[32px] pt-10'
+                headerClassName="pb-2 h-[32px] pt-10"
                 preserveEmptyBadgeSpace={false}
                 key={teamMemberCount}
               >
@@ -378,9 +380,10 @@ export default function TeamAdminTab() {
           <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
             <DataTableClient
               tableId="team_member_data_table"
-              data={teamMemberMockData.filter(member =>
-                member.status !== UserStatus.DELETED &&
-                member.status !== UserStatus.INACTIVE
+              data={teamMemberMockData.filter(
+                (member) =>
+                  member.status !== UserStatus.DELETED &&
+                  member.status !== UserStatus.INACTIVE
               )}
               columns={columns}
               facetDefination={facetDefs}
@@ -392,60 +395,64 @@ export default function TeamAdminTab() {
           </div>
         </div>
 
-      <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-        <h3 className="text-[24px] font-semibold mb-4">Pending Invitations</h3>
-        <div className="space-y-3">
-          {pendingInvitationsMockData.map((invitation) => (
-            <div
-              key={invitation.id}
-              className="border border-gray-200 rounded-lg bg-white p-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="font-medium text-[16px]">
-                    {invitation.email}
+        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
+          <h3 className="text-[24px] font-semibold mb-4">
+            Pending Invitations
+          </h3>
+          <div className="space-y-3">
+            {pendingInvitationsMockData.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="border border-gray-200 rounded-lg bg-white p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="font-medium text-[16px]">
+                      {invitation.email}
+                    </div>
+                    <div className="text-[14px] text-[#4B5563] font-normal mt-1">
+                      <span>
+                        Role:{' '}
+                        {invitation.role === Role.USER
+                          ? 'User'
+                          : invitation.role === Role.ADMIN
+                          ? 'Admin'
+                          : 'Super Admin'}
+                      </span>
+                      <span className="mx-2">•</span>
+                      <span>Invited by: {invitation.invited_by}</span>
+                      <span className="mx-2">•</span>
+                      <span>
+                        Expires in:{' '}
+                        {getRelativeTimeFuture(invitation.expires_at)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-[14px] text-[#4B5563] font-normal mt-1">
-                    <span>
-                      Role:{' '}
-                      {invitation.role === Role.USER
-                        ? 'User'
-                        : invitation.role === Role.ADMIN
-                        ? 'Admin'
-                        : 'Super Admin'}
-                    </span>
-                    <span className="mx-2">•</span>
-                    <span>Invited by: {invitation.invited_by}</span>
-                    <span className="mx-2">•</span>
-                    <span>
-                      Expires in: {getRelativeTimeFuture(invitation.expires_at)}
-                    </span>
+                  <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] ml-4">
+                    <Button
+                      variant="outline"
+                      className="rounded-none px-4 h-auto py-2.5 gap-2 bg-white border-0 border-r"
+                      onClick={() => handleResend(invitation)}
+                    >
+                      <RotateCcwSquare className="h-4 w-4" />
+                      Resend Invitation
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      className="rounded-none px-4 h-auto py-2.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
+                      onClick={() => handleRevoke(invitation)}
+                    >
+                      <Delete className="h-4 w-4" />
+                      Delete User
+                    </Button>
                   </div>
-                </div>
-                <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] ml-4">
-                  <Button
-                    variant="outline"
-                    className="rounded-none rounded-l-md px-4 h-auto py-2.5 gap-2 bg-white border-r"
-                    onClick={() => handleResend(invitation)}
-                  >
-                    <RotateCcwSquare className="h-4 w-4" />
-                    Resend Invitation
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-none rounded-r-md px-4 h-auto py-2.5 gap-2 border-l bg-[#FEF2F2] text-red-600 hover:text-red-600"
-                    onClick={() => handleRevoke(invitation)}
-                  >
-                    <Delete className="h-4 w-4" />
-                    Delete User
-                  </Button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 }
