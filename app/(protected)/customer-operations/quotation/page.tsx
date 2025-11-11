@@ -72,11 +72,6 @@ export default function QuotationsPage() {
   const [selectedQuotationForActions, setSelectedQuotationForActions] =
     React.useState<Quotation | null>(null);
 
-  const [selectedQuotations, setSelectedQuotations] = React.useState<
-    Quotation[]
-  >([]);
-  const [tableKey, setTableKey] = React.useState(0);
-
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
     selectedQuotationForActions
@@ -86,18 +81,6 @@ export default function QuotationsPage() {
     setSelectedQuotation(quotation);
     setSelectedQuotationForActions(quotation);
     actions.view();
-  };
-
-  const handleRowSelectionChange = React.useCallback(
-    (selected: Quotation[]) => {
-      setSelectedQuotations(selected);
-    },
-    []
-  );
-
-  const handleClearSelection = () => {
-    setSelectedQuotations([]);
-    setTableKey((prev) => prev + 1); // Force table re-render to clear selection
   };
 
   const facetDefs: FacetDefinition[] = [
