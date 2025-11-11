@@ -5,7 +5,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { Activity, Factory, Tags, Archive } from 'lucide-react';
+import { Activity, Factory, Tags } from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import rawJson from '@/lib/tests/quotationResponseData.json';
@@ -14,9 +14,7 @@ import QuotationForm from './(components)/forms/quotation-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
-import { DataTableBulkActions } from '@/components/ui/data-table-bulk-actions';
-import { BulkArchiveDialog } from './(components)/dialogs/bulk-archive-dialog';
-import { Button } from '@/components/ui/button';
+import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
   const convertedJson = convertKeysToSnakeCase(rawJson);
@@ -36,9 +34,6 @@ export default function QuotationsPage() {
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
-  const bulkArchiveQuotations = useQuotationStore(
-    (state) => state.bulkArchiveQuotations
-  );
 
   const [selectedQuotationForActions, setSelectedQuotationForActions] =
     React.useState<Quotation | null>(null);
@@ -46,8 +41,6 @@ export default function QuotationsPage() {
   const [selectedQuotations, setSelectedQuotations] = React.useState<
     Quotation[]
   >([]);
-  const [bulkArchiveDialogOpen, setBulkArchiveDialogOpen] =
-    React.useState(false);
   const [tableKey, setTableKey] = React.useState(0);
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
@@ -70,17 +63,6 @@ export default function QuotationsPage() {
     setTableKey((prev) => prev + 1); // Force table re-render to clear selection
   };
 
-  const handleBulkArchiveClick = () => {
-    if (selectedQuotations.length > 0) {
-      setBulkArchiveDialogOpen(true);
-    }
-  };
-
-  const handleBulkArchiveConfirm = (quotationIds: number[]) => {
-    bulkArchiveQuotations(quotationIds);
-    handleClearSelection();
-  };
-
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
     { column: 'quote_type', title: 'Quote Type', icon: Tags },
@@ -92,12 +74,6 @@ export default function QuotationsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
-      <BulkArchiveDialog
-        open={bulkArchiveDialogOpen}
-        onOpenChange={setBulkArchiveDialogOpen}
-        quotations={selectedQuotations}
-        onConfirm={handleBulkArchiveConfirm}
-      />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h3 className="text-2xl">Quotations</h3>
@@ -127,20 +103,10 @@ export default function QuotationsPage() {
           onRowSelectionChange={handleRowSelectionChange}
           rowSelectionFilter={(row) => row.status !== 'ARCHIVED'}
           bulkActionsSlot={
-            <DataTableBulkActions
-              selectedCount={selectedQuotations.length}
+            <QuotationBulkActions
+              selectedQuotations={selectedQuotations}
               onClearSelection={handleClearSelection}
-            >
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleBulkArchiveClick}
-                disabled={selectedQuotations.length === 0}
-              >
-                <Archive className="mr-2 h-4 w-4" />
-                Actions ({selectedQuotations.length} selected)
-              </Button>
-            </DataTableBulkActions>
+            />
           }
         />
       </div>

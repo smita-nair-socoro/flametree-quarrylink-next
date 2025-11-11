@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
+import { BulkArchiveDialog } from '@/app/(protected)/customer-operations/quotation/(components)/dialogs/bulk-archive-dialog';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface DialogConfig {
   title?: string;
@@ -467,10 +469,13 @@ const getDialogConfigs = (
 
 export function useQuotationActions(
   quotationId: number | undefined,
-  quotationData?: Quotation | null
+  quotationData?: Quotation | null,
+  selectedQuotations?: Quotation[]
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [bulkArchiveDialogOpen, setBulkArchiveDialogOpen] =
+    React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
@@ -501,6 +506,10 @@ export function useQuotationActions(
       setActiveDialog(actionKey);
     };
   };
+
+  const bulkArchiveQuotations = useQuotationStore(
+    (state) => state.bulkArchiveQuotations
+  );
 
   const actions = {
     duplicate: () => {
@@ -556,6 +565,10 @@ export function useQuotationActions(
       console.log('Unarchive quotation:', quotationId);
       // TODO: implement unarchive logic
     }),
+
+    bulkArchive: () => {
+      setBulkArchiveDialogOpen(true);
+    },
   };
 
   // Render active dialog
@@ -617,6 +630,11 @@ export function useQuotationActions(
     );
   });
 
+  const handleBulkArchiveConfirm = (quotationIds: number[]) => {
+    bulkArchiveQuotations(quotationIds);
+    setBulkArchiveDialogOpen(false);
+  };
+
   const canEdit =
     quotationData?.status !== 'CONVERTED_TO_JOB' &&
     quotationData?.status !== 'PENDING' &&
@@ -646,9 +664,19 @@ export function useQuotationActions(
     </FormDialog>
   ) : null;
 
+  const bulkArchiveDialog = bulkArchiveDialogOpen && selectedQuotations ? (
+    <BulkArchiveDialog
+      open={bulkArchiveDialogOpen}
+      onOpenChange={setBulkArchiveDialogOpen}
+      quotations={selectedQuotations}
+      onConfirm={handleBulkArchiveConfirm}
+    />
+  ) : null;
+
   return {
     actions,
     confirmDialogs,
     viewDialog,
+    bulkArchiveDialog,
   };
 }
