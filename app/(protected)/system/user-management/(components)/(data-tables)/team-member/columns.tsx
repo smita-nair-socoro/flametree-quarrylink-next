@@ -3,18 +3,19 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { getRelativeTime } from '@/lib/utils/date';
-import { TeamMember } from '@/lib/types/user';
+import { TeamMemberTableActions } from './team-member-table-actions';
+import { User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 
-export const teamMemberColumns: ColumnDef<TeamMember>[] = [
+export const teamMemberColumns: ColumnDef<User>[] = [
   {
-    id: 'user_name',
-    accessorFn: (row) => row.user_name,
+    id: 'full_name',
+    accessorFn: (row) => row.full_name,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="User Name" />;
+      return <TableClientSortableHeader column={column} title="Full Name" />;
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
-    meta: 'User Name',
+    meta: 'Full Name',
     size: 180,
   },
   {
@@ -84,5 +85,16 @@ export const teamMemberColumns: ColumnDef<TeamMember>[] = [
     },
     meta: 'Last Login',
     size: 80,
+  },
+
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const teamMember = row.original;
+      return <TeamMemberTableActions teamMember={teamMember} />;
+    },
   },
 ];
