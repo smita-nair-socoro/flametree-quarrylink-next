@@ -13,6 +13,42 @@ export enum QuoteStatus {
   ARCHIVED = 'ARCHIVED',
 }
 
+// DTO type for API response (uses quote_status from backend)
+export interface QuotationDTO {
+  id: number;
+  quote_number: string;
+  quote_type: QuoteType;
+  customer_id: number;
+  customer_name: string;
+  customer_email: string;
+  account_manager: number;
+  account_manager_name: string;
+  project_name: string;
+  quote_status: QuoteStatus; // Backend uses quote_status
+  delivery_address: string;
+  job_id: number;
+  delivery_start_date: string | null;
+  expiry_date: string | null;
+  delivery_window_start: string | null;
+  delivery_window_end: string | null;
+  total_cost_price: number;
+  total_sell_price: number;
+  total_truck_sell_price: number;
+  total_truck_cost_price: number;
+  gross_profit: number;
+  gross_profit_percentage: number;
+  line_items_count: number;
+  converted_at?: string;
+  version: number;
+  is_deleted: boolean;
+  created_by: string;
+  created_at: string | null;
+  updated_at: string;
+  last_modified_by: string;
+  line_items: QuotationLineItem[];
+}
+
+// Frontend type (uses status for consistency with columns)
 export interface Quotation {
   id: number;
   quote_number: string;

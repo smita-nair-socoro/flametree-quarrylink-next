@@ -37,7 +37,7 @@ import { InputWithPlusMinusButtons } from '@/components/ui/input-with-plus-minus
 import { Client } from '@/lib/types/client';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJsonWithClientWithUsers from '@/lib/tests/clientWithUsersResponseData.json';
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 
 interface FormProps {
   id?: number;
@@ -199,10 +199,10 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
       const detailedClient = detailedItems.find(
         (client) => client.id === selectedClient.id
       );
-      const users = (detailedClient?.user || []) as TeamMember[];
-      return convertKeysToSnakeCase(users) as TeamMember[];
+      const users = (detailedClient?.user || []) as User[];
+      return convertKeysToSnakeCase(users) as User[];
     }
-    return [] as TeamMember[];
+    return [] as User[];
   }, [isEditing, selectedClient?.id]);
 
   const tabs = [
