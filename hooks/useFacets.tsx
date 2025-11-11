@@ -7,7 +7,7 @@ import { FacetDefinition } from '@/components/ui/data-table-client';
 
 export function useFacets<TData>(
   table: Table<TData>,
-  defs: FacetDefinition[],
+  defs: FacetDefinition[]
 ): Array<{
   column: string;
   title: string;
