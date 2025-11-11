@@ -90,7 +90,7 @@ export default function UserAccessTab({
           <DataTableClient
             columns={columns}
             data={convertedClientWithUsers}
-            simpleTable={false}
+            simpleTable={true}
             onRowClick={handleRowClick}
             allowClicksInsideModal={true}
           />
