@@ -20,7 +20,7 @@ export default function UsageStatisticsTab() {
       <div className="flex flex-col gap-4">
         <h1 className="text-xl font-semibold mt-2">Plan Usage</h1>
 
-        <div className="border rounded-md p-4">
+        <div className="border rounded-md p-4 gap-2 flex flex-col">
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Users:</span>
