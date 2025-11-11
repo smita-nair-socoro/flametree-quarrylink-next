@@ -50,8 +50,6 @@ interface EditTeamMemberFormProps {
   onSuccess?: () => void;
 }
 
-type StatusValue = EditTeamMemberPayload['status'];
-
 export function EditTeamMemberForm({
   roles,
   currentUserId,
@@ -106,10 +104,6 @@ export function EditTeamMemberForm({
   const quotations =
     typeof initialData?.quotation_created === 'number'
       ? initialData.quotation_created
-      : 0;
-  const jobs =
-    typeof initialData?.jobs_managed === 'number'
-      ? initialData.jobs_managed
       : 0;
 
   const disableRoleChange =
@@ -259,13 +253,7 @@ export function EditTeamMemberForm({
               <Separator className="mt-2" />
             </div>
 
-            <div
-              className={
-                isDesktop
-                  ? 'mt-4 mb-0'
-                  : 'space-y-4 mt-4'
-              }
-            >
+            <div className={isDesktop ? 'mt-4 mb-0' : 'space-y-4 mt-4'}>
               <FormSelect<EditTeamMemberFormValues>
                 control={form.control}
                 name="role"
@@ -296,7 +284,7 @@ export function EditTeamMemberForm({
                   : 'flex flex-col gap-2'
               }
             >
-              <div className='w-full'>
+              <div className="w-full">
                 <h3 className="text-base font-semibold text-foreground mb-2">
                   Activity Summary
                 </h3>
@@ -353,4 +341,3 @@ function getInitials(name: string | undefined): string {
     .join('');
   return initials.slice(0, 2) || '?';
 }
-
