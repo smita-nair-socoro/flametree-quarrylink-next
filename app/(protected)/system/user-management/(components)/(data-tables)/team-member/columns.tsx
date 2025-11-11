@@ -6,8 +6,12 @@ import { getRelativeTime } from '@/lib/utils/date';
 import { TeamMemberTableActions } from './team-member-table-actions';
 import { User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
+import { FormSelectOption } from '@/components/ui/form-select';
 
-export const teamMemberColumns: ColumnDef<User>[] = [
+export const createTeamMemberColumns = (
+  rolesOptions: readonly FormSelectOption[],
+  currentUserId?: number | string
+): ColumnDef<User>[] => [
   {
     id: 'full_name',
     accessorFn: (row) => row.full_name,
@@ -94,7 +98,16 @@ export const teamMemberColumns: ColumnDef<User>[] = [
     },
     cell: ({ row }) => {
       const teamMember = row.original;
-      return <TeamMemberTableActions teamMember={teamMember} />;
+      return (
+        <TeamMemberTableActions
+          teamMember={teamMember}
+          roles={rolesOptions}
+          currentUserId={currentUserId}
+        />
+      );
     },
   },
 ];
+
+// Default export for backwards compatibility
+export const teamMemberColumns = createTeamMemberColumns([], undefined);
