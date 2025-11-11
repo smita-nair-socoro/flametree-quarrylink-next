@@ -152,7 +152,7 @@ export function EditTeamMemberForm({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <header className="rounded-lg border border-border bg-[#F9FAFB] p-4 sm:p-5">
         <div
           className={
@@ -182,9 +182,9 @@ export function EditTeamMemberForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-4"
+          className="flex flex-col gap-2 mt-2"
         >
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div>
               <h3 className="text-base font-semibold text-foreground">
                 User Information
@@ -192,7 +192,7 @@ export function EditTeamMemberForm({
               <Separator className="mt-2" />
             </div>
 
-            <div className={isDesktop ? 'grid gap-4 grid-cols-2' : 'space-y-4'}>
+            <div className={isDesktop ? 'grid gap-2 grid-cols-2' : 'space-y-4'}>
               <FormField
                 control={form.control}
                 name="full_name"
@@ -246,20 +246,14 @@ export function EditTeamMemberForm({
           </section>
 
           <section>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0">
               <h3 className="text-base font-semibold text-foreground">
                 Role &amp; Status
               </h3>
               <Separator className="mt-2" />
             </div>
 
-            <div
-              className={
-                isDesktop
-                  ? 'mt-4 mb-0'
-                  : 'space-y-4 mt-4'
-              }
-            >
+            <div className={isDesktop ? 'mt-4 mb-0' : 'space-y-4 mt-4'}>
               <FormSelect<EditTeamMemberFormValues>
                 control={form.control}
                 name="role"
@@ -290,7 +284,7 @@ export function EditTeamMemberForm({
                   : 'flex flex-col gap-2'
               }
             >
-              <div className='w-full'>
+              <div className="w-full">
                 <h3 className="text-base font-semibold text-foreground mb-2">
                   Activity Summary
                 </h3>
@@ -347,4 +341,3 @@ function getInitials(name: string | undefined): string {
     .join('');
   return initials.slice(0, 2) || '?';
 }
-

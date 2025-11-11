@@ -90,6 +90,9 @@ interface AddProductDrawerDialogProps {
   /** Optional header buttons to display inline with the title */
   headerButtons?: React.ReactNode;
 
+  /** Vertical alignment of header buttons relative to content on the left (default: "center") */
+  headerButtonsAlign?: "start" | "center";
+
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
@@ -136,6 +139,7 @@ export function FormDialog({
   dialogWidth,
   hideTrigger,
   headerButtons,
+  headerButtonsAlign = "center",
   headerInfo,
   headerSeparator,
   contentClass,
@@ -312,7 +316,11 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className={clsx("flex flex-row items-center justify-between flex-shrink-0 px-5 pt-6", headerClassName || "pb-2")}>
+      <DialogHeader className={clsx(
+        "flex flex-row justify-between flex-shrink-0 px-5 pt-6",
+        headerButtonsAlign === "start" ? "items-start" : "items-center",
+        headerClassName || "pb-2"
+      )}>
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
