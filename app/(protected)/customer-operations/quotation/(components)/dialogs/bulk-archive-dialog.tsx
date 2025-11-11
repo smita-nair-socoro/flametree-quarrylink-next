@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Quotation } from '@/lib/types/quotation';
 import { TableBadges } from '@/components/table-badges';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BulkArchiveDialogProps {
@@ -46,9 +46,9 @@ export function BulkArchiveDialog({
     return { archivable, nonArchivable };
   }, [quotations]);
 
-  const [activeTab, setActiveTab] = React.useState<'archivable' | 'non-archivable'>(
-    'archivable'
-  );
+  const [activeTab, setActiveTab] = React.useState<
+    'archivable' | 'non-archivable'
+  >('archivable');
 
   const handleArchive = () => {
     if (archivable.length > 0) {
@@ -65,13 +65,6 @@ export function BulkArchiveDialog({
           <DialogTitle className="text-lg font-semibold">
             Bulk Archive Quotations
           </DialogTitle>
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
         </DialogHeader>
 
         {/* Tabs */}
@@ -123,11 +116,15 @@ export function BulkArchiveDialog({
                           {quotation.customer_name}
                         </span>
                       </div>
-                      <TableBadges names={[quotation.status]} visibleCount={1} />
+                      <TableBadges
+                        names={[quotation.status]}
+                        visibleCount={1}
+                      />
                     </div>
                   ))}
                   <p className="text-xs text-gray-500 pt-1">
-                    {archivable.length} quotation{archivable.length !== 1 ? 's' : ''}
+                    {archivable.length} quotation
+                    {archivable.length !== 1 ? 's' : ''}
                   </p>
                 </>
               ) : (
@@ -145,9 +142,9 @@ export function BulkArchiveDialog({
                   <div className="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 p-3">
                     <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-amber-800">
-                      The following quotations cannot be archived because they have
-                      active statuses (Pending or Approved). Please update their
-                      status manually before archiving.
+                      The following quotations cannot be archived because they
+                      have active statuses (Pending or Approved). Please update
+                      their status manually before archiving.
                     </p>
                   </div>
                   {nonArchivable.map((quotation) => (
@@ -164,11 +161,15 @@ export function BulkArchiveDialog({
                           {quotation.customer_name}
                         </span>
                       </div>
-                      <TableBadges names={[quotation.status]} visibleCount={1} />
+                      <TableBadges
+                        names={[quotation.status]}
+                        visibleCount={1}
+                      />
                     </div>
                   ))}
                   <p className="text-xs text-gray-500 pt-1">
-                    {nonArchivable.length} quotation{nonArchivable.length !== 1 ? 's' : ''}
+                    {nonArchivable.length} quotation
+                    {nonArchivable.length !== 1 ? 's' : ''}
                   </p>
                 </>
               ) : (
