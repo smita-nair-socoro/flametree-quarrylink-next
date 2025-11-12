@@ -22,6 +22,7 @@ import {
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
 import { useQuotationStore } from '@/app/stores/quotation-store';
+import { useAuth } from '@/hooks/use-auth';
 
 interface QuotationTableActionsProps {
   quotation: Quotation;
@@ -31,6 +32,12 @@ export function QuotationTableActions({
   quotation,
 }: QuotationTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole = attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
+
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     quotation.id,
     quotation
@@ -112,12 +119,16 @@ export function QuotationTableActions({
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={handleConvertToJob}>
-                <Briefcase className="h-4 w-4 mr-2" />
-                Create Job
-              </DropdownMenuItem>
+              {!isEssentials && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleConvertToJob}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Create Job
+                  </DropdownMenuItem>
+                </>
+              )}
             </>
           )}
 
