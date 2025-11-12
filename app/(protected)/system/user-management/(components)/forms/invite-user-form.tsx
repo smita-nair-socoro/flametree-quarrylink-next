@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -28,12 +29,14 @@ interface InviteUserFormProps {
   onCancel?: () => void;
   onSuccess?: () => void;
   teamMemberCount: number;
+  roleOptions: readonly FormSelectOption[];
 }
 
 export default function InviteUserForm({
   onCancel,
   onSuccess,
   teamMemberCount,
+  roleOptions,
 }: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -183,6 +186,16 @@ export default function InviteUserForm({
                 <FormMessage />
               </FormItem>
             )}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="role"
+            label="Role*"
+            searchLabel="role"
+            options={roleOptions}
+            placeholder="Select role..."
+            showSearch={false}
           />
 
           {/* Conditional Bottom Section */}
