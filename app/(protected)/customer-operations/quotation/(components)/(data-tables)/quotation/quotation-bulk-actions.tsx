@@ -161,8 +161,8 @@ export function QuotationBulkActions({
                     <div className="flex items-start gap-2 rounded-md bg-[#FFF4E6] border border-[#FF8C00] p-3">
                       <AlertTriangle className="h-5 w-5 text-[#FF8C00] mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-[#364153]">
-                        The following quotations cannot be archived because
-                        they have active statuses (Pending or Approved). Please
+                        The following quotations cannot be archived because they
+                        have active statuses (Pending or Approved). Please
                         update their status manually before archiving.
                       </p>
                     </div>
@@ -271,7 +271,10 @@ export function QuotationBulkActions({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleBulkArchiveClick}>
+              <DropdownMenuItem
+                onClick={handleBulkArchiveClick}
+                className="text-red-600"
+              >
                 <Archive className="h-4 w-4 mr-2" />
                 Archive Quotations
               </DropdownMenuItem>
