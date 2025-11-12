@@ -5,7 +5,7 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJson from '@/lib/tests/productResponseData.json';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Plus, Award, PackageX, TrendingUp, Package } from 'lucide-react';
+import { Plus, Gem, PackageX, TrendingUp, Package } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,7 +45,9 @@ export default function ProductsPage() {
       title: 'Most Quoted Product',
       value: 'Premium Granite',
       description: '$287,450 this month',
-      icon: Award,
+      icon: Gem,
+      iconBgColor: 'bg-[#FEF3C6]',
+      iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -53,6 +55,8 @@ export default function ProductsPage() {
       value: 12,
       description: '8% of inventory',
       icon: PackageX,
+      iconBgColor: 'bg-[#FFE2E2]',
+      iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -60,14 +64,18 @@ export default function ProductsPage() {
       value: '34.5%',
       description: '+2.3% vs last month',
       icon: TrendingUp,
-      descriptionColor: 'text-green-600',
+      iconBgColor: 'bg-[#D0FAE5]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
     },
     {
       title: 'Total Products',
       value: 156,
       description: '+8 added this month',
       icon: Package,
-      descriptionColor: 'text-green-600',
+      iconBgColor: 'bg-[#CEFAFE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
     },
   ];
 
@@ -98,12 +106,14 @@ export default function ProductsPage() {
           const Icon = card.icon;
           return (
             <Card key={card.title} className="p-5">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-start justify-between">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-[#737373]">{card.title}</span>
-                  <Icon className="h-5 w-5 text-[#737373]" />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
+                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                  </div>
                 </div>
-                <div className="text-2xl font-semibold">{card.value}</div>
+                <div className="text-2xl font-semibold pt-2">{card.value}</div>
                 <div className={`text-sm ${card.descriptionColor}`}>
                   {card.description}
                 </div>

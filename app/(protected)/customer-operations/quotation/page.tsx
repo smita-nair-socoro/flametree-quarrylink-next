@@ -5,7 +5,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { Activity, Factory, Tags, FileText, Clock, DollarSign, AlertCircle } from 'lucide-react';
+import { Activity, Factory, Tags, FileText, Clock, Wallet, AlertCircle } from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
@@ -16,6 +16,7 @@ import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
 import { Card, CardContent } from '@/components/ui/card';
+import { Alert } from '@/components/ui/alert';
 
 export default function QuotationsPage() {
   // Use React Query to fetch quotations data
@@ -80,27 +81,35 @@ export default function QuotationsPage() {
       value: 15,
       description: '+25% vs last month',
       icon: FileText,
-      descriptionColor: 'text-green-600',
+      iconBgColor: 'bg-[#EDE9FE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
     },
     {
       title: 'Pending Approval',
       value: 3,
       description: 'Need attention',
-      icon: Clock,
-      descriptionColor: 'text-red-600',
+      icon: AlertCircle,
+      iconBgColor: 'bg-[#FEF9C2]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#E7000B]',
     },
     {
       title: 'Total Quote Value',
       value: '$1,043,570',
       description: '+15% vs last month',
-      icon: DollarSign,
-      descriptionColor: 'text-green-600',
+      icon: Wallet,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
     },
     {
       title: 'Expiring Soon',
       value: 0,
       description: 'Within 7 days',
-      icon: AlertCircle,
+      icon: Clock,
+      iconBgColor: 'bg-[#FFE4E6]',
+      iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
   ];
@@ -134,12 +143,14 @@ export default function QuotationsPage() {
           const Icon = card.icon;
           return (
             <Card key={card.title} className="p-5">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-start justify-between">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-[#737373]">{card.title}</span>
-                  <Icon className="h-5 w-5 text-[#737373]" />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
+                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                  </div>
                 </div>
-                <div className="text-2xl font-semibold">{card.value}</div>
+                <div className="text-2xl font-semibold pt-2">{card.value}</div>
                 <div className={`text-sm ${card.descriptionColor}`}>
                   {card.description}
                 </div>

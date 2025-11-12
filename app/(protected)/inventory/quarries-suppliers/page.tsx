@@ -7,7 +7,7 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJson from '@/lib/tests/quarryResponseData.json';
 import { Quarry } from '@/lib/types/quarry';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
-import { Plus, DollarSign, Building, Mountain, Building2 } from 'lucide-react';
+import { Plus, DollarSign, Building, Mountain, Factory } from 'lucide-react';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,13 +37,17 @@ export default function QuarriesSuppliersPage() {
       value: '$645,890',
       description: '+12% vs last month',
       icon: DollarSign,
-      descriptionColor: 'text-green-600',
+      iconBgColor: 'bg-[#ECFCCA]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
     },
     {
       title: 'Top Supplier',
       value: 'Summit Stone Co.',
       description: '$198,750 this month',
       icon: Building,
+      iconBgColor: 'bg-[#E0E7FF]',
+      iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -51,13 +55,17 @@ export default function QuarriesSuppliersPage() {
       value: '$397,680',
       description: '-3.5% vs last month',
       icon: Mountain,
-      descriptionColor: 'text-red-600',
+      iconBgColor: 'bg-[#F1F5F9]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#F54900]',
     },
     {
       title: 'Top Quarry',
       value: 'RedRock Quarry',
       description: '$156,420 this month',
-      icon: Building2,
+      icon: Factory,
+      iconBgColor: 'bg-[#FFEDD4]',
+      iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
   ];
@@ -90,12 +98,14 @@ export default function QuarriesSuppliersPage() {
           const Icon = card.icon;
           return (
             <Card key={card.title} className="p-5">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-start justify-between">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-[#737373]">{card.title}</span>
-                  <Icon className="h-5 w-5 text-[#737373]" />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
+                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                  </div>
                 </div>
-                <div className="text-2xl font-semibold">{card.value}</div>
+                <div className="text-2xl font-semibold pt-2">{card.value}</div>
                 <div className={`text-sm ${card.descriptionColor}`}>
                   {card.description}
                 </div>
