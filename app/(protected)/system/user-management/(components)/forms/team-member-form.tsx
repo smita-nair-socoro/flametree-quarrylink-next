@@ -162,7 +162,7 @@ export function EditTeamMemberForm({
           }
         >
           <Avatar className="size-14 bg-[#DBEAFE] text-lg font-semibold text-[#2563EB]">
-            <AvatarFallback className="text-base font-semibold">
+            <AvatarFallback className="bg-[#DBEAFE] text-base font-semibold text-[#2563EB]">
               {getInitials(fullName)}
             </AvatarFallback>
           </Avatar>
@@ -171,8 +171,8 @@ export function EditTeamMemberForm({
               {fullName}
             </span>
             <TableBadges names={initialData.status} visibleCount={1} />
-            <span className="text-sm text-[#4B5563]">{initialData.email}</span>
-            <span className="font-sm text-[#6B7280]">
+            <span className="text-[16px] text-[#4B5563]">{initialData.email}</span>
+            <span className="text-[14px] text-[#6B7280]">
               Joined: {formattedJoined}
             </span>
           </div>

@@ -52,7 +52,7 @@ export default function InviteUserForm({
       full_name: '',
       email: '',
       phone: '',
-      role: 'user',
+      role: '',
     },
   });
 
