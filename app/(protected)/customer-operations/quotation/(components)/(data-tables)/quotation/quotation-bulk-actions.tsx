@@ -30,6 +30,7 @@ export function QuotationBulkActions({
   onClearSelection,
 }: QuotationBulkActionsProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<
     'archivable' | 'non-archivable'
   >('archivable');
@@ -58,6 +59,7 @@ export function QuotationBulkActions({
 
   const handleBulkArchiveClick = () => {
     if (selectedQuotations.length > 0) {
+      setDropdownOpen(false);
       setDialogOpen(true);
     }
   };
@@ -259,7 +261,7 @@ export function QuotationBulkActions({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
@@ -273,7 +275,7 @@ export function QuotationBulkActions({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
                 onClick={handleBulkArchiveClick}
-                className="text-red-600"
+                className="text-red-600 hover:text-red-600"
               >
                 <Archive className="h-4 w-4 mr-2 text-red-600" />
                 Archive Quotations
