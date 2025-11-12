@@ -275,7 +275,7 @@ export function QuotationBulkActions({
                 onClick={handleBulkArchiveClick}
                 className="text-red-600"
               >
-                <Archive className="h-4 w-4 mr-2" />
+                <Archive className="h-4 w-4 mr-2 text-red-600" />
                 Archive Quotations
               </DropdownMenuItem>
             </DropdownMenuContent>
