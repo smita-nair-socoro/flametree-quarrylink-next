@@ -16,7 +16,6 @@ import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
 import { Card, CardContent } from '@/components/ui/card';
-import { Alert } from '@/components/ui/alert';
 
 export default function QuotationsPage() {
   // Use React Query to fetch quotations data
