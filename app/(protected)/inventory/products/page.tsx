@@ -99,30 +99,6 @@ export default function ProductsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373]">{card.title}</span>
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
-                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
-                  </div>
-                </div>
-                <div className="text-2xl font-semibold pt-2">{card.value}</div>
-                <div className={`text-sm ${card.descriptionColor}`}>
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Products</h1>
@@ -137,7 +113,28 @@ export default function ProductsPage() {
           </FormDialog>
         </div>
       </div>
-
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {statsCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card key={card.title} className="p-5">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-[#737373] font-medium">{card.title}</span>
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
+                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold font-[Geist] pt-2">{card.value}</div>
+                <div className={`text-sm font-normal ${card.descriptionColor}`}>
+                  {card.description}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="product_main_data_table"
