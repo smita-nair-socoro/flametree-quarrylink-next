@@ -127,6 +127,28 @@ export default function QuotationsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {statsCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card key={card.title} className="p-5">
+              <CardContent className="p-0 space-y-3">
+                <div className="flex items-start justify-between">
+                  <span className="text-sm text-[#737373]">{card.title}</span>
+                  <Icon className="h-5 w-5 text-[#737373]" />
+                </div>
+                <div className="text-2xl font-semibold">{card.value}</div>
+                <div className={`text-sm ${card.descriptionColor}`}>
+                  {card.description}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h3 className="text-2xl">Quotations</h3>
