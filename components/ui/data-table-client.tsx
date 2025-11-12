@@ -702,6 +702,7 @@ export function DataTableClient<TData, TValue>({
                       className={cn(
                         'text-muted-foreground whitespace-nowrap',
                         simpleTable && 'border-b-0 font-medium',
+                        !simpleTable && 'first:pl-4 last:pr-4 py-2',
                         !simpleTable && headerIndex === 0 && 'rounded-tl-md',
                         !simpleTable &&
                           headerIndex === hg.headers.length - 1 &&
@@ -787,6 +788,7 @@ export function DataTableClient<TData, TValue>({
                         className={cn(
                           simpleTable && 'border-b-0',
                           'whitespace-nowrap',
+                          !simpleTable && 'first:pl-4 last:pr-4 py-2',
                           cellIndex === row.getVisibleCells().length - 1 &&
                             'w-auto text-right'
                         )}
