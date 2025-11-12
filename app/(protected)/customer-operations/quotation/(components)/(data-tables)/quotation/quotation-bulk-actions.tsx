@@ -13,6 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 interface QuotationBulkActionsProps {
   selectedQuotations: Quotation[];
@@ -253,15 +259,24 @@ export function QuotationBulkActions({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={handleBulkArchiveClick}
-            disabled={selectedQuotations.length === 0}
-            className="bg-[#8E51FF] text-white text-sm p-4"
-          >
-            Actions ({selectedQuotations.length} selected){' '}
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                disabled={selectedQuotations.length === 0}
+                className="bg-[#8E51FF] text-white text-sm p-4"
+              >
+                Actions ({selectedQuotations.length} selected)
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleBulkArchiveClick}>
+                <Archive className="h-4 w-4 mr-2" />
+                Archive Quotations
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </>
