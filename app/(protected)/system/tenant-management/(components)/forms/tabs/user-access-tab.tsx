@@ -83,7 +83,10 @@ export default function UserAccessTab({
                 preserveEmptyBadgeSpace={false}
                 key={teamMemberCount}
               >
-                <InviteUserForm teamMemberCount={teamMemberCount} />
+                <InviteUserForm
+                  teamMemberCount={teamMemberCount}
+                  roleOptions={rolesOptions}
+                />
               </FormDialog>
             </div>
           </div>
