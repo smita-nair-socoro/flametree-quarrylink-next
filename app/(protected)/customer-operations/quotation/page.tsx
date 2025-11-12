@@ -5,7 +5,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { Activity, Factory, Tags } from 'lucide-react';
+import { Activity, Factory, Tags, FileText, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
@@ -15,6 +15,7 @@ import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function QuotationsPage() {
   // Use React Query to fetch quotations data
