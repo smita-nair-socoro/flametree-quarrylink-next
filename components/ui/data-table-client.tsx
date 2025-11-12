@@ -203,9 +203,8 @@ export function DataTableClient<TData, TValue>({
   const [tempColumnFilters, setTempColumnFilters] =
     useState<ColumnFiltersState>([]);
 
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>(
-    defaultRowSelection
-  );
+  const [rowSelection, setRowSelection] =
+    useState<RowSelectionState>(defaultRowSelection);
 
   // Sync temp filters when drawer opens
   useEffect(() => {
@@ -685,7 +684,7 @@ export function DataTableClient<TData, TValue>({
       <div className="overflow-x-auto">
         <div
           className={cn(
-            simpleTable ? '' : 'rounded-md border p-2',
+            simpleTable ? '' : 'rounded-md border pt-2',
             'bg-white',
             'min-w-fit'
           )}

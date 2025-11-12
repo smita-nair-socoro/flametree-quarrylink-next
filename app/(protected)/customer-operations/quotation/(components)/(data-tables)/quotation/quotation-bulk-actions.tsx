@@ -69,6 +69,7 @@ export function QuotationBulkActions({
         onOpenChangeAction={setDialogOpen}
         customWidth="max-w-md"
         title="Bulk Archive Quotations"
+        titleSeparator={true}
         content={
           <>
             {/* Tabs */}
@@ -190,14 +191,16 @@ export function QuotationBulkActions({
         }
         cancelText={archivable.length > 0 ? 'Cancel' : 'Close'}
         confirmText="Archive"
-        confirmActionNeeded={activeTab === 'archivable' && archivable.length > 0}
+        confirmActionNeeded={
+          activeTab === 'archivable' && archivable.length > 0
+        }
         confirmCustomColor="#6B7280"
         confirmIcon={<Archive className="h-4 w-4" />}
         onConfirmAction={handleArchive}
       />
 
       {/* Bulk Actions Toolbar */}
-      <div className="flex items-center justify-between gap-4 rounded-md border p-3 bg-[#EFF6FF] border[#BEDBFF]">
+      <div className="flex items-center justify-between gap-4 rounded-md border p-3 bg-[#EFF6FF] border-[#BEDBFF]">
         <div className="flex items-center gap-3">
           <p className="text-sm font-medium">
             {selectedQuotations.length}{' '}

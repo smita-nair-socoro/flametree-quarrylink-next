@@ -15,6 +15,7 @@ interface ActionDialogProps {
   customWidth?: string;
   title: string;
   titleIcon?: React.ReactNode;
+  titleSeparator?: boolean;
   description?: React.ReactNode;
   content?: React.ReactNode;
   cancelText?: string;
@@ -40,6 +41,7 @@ export function ActionDialog({
   customWidth,
   title,
   titleIcon,
+  titleSeparator = false,
   description,
   content,
   cancelText = 'Cancel',
@@ -73,6 +75,7 @@ export function ActionDialog({
           customWidth ? customWidth : 'w-[512px]',
           'max-w-full gap-6 max-h-[90vh] overflow-y-auto p-[24.62px]'
         )}
+        style={{ scrollbarGutter: 'auto' }}
       >
         <DialogHeader>
           <DialogTitle>
@@ -83,11 +86,13 @@ export function ActionDialog({
           </DialogTitle>
         </DialogHeader>
 
+        {titleSeparator && <div className="border-b border-gray-200 -mx-6" />}
+
         {description && <>{description}</>}
 
         {content && <>{content}</>}
 
-        <div className="border-t border-gray-200"></div>
+        <div className="border-t border-gray-200 -mx-6"></div>
         <div className="grid grid-cols-2 space-x-2">
           <Button
             variant="outline"
