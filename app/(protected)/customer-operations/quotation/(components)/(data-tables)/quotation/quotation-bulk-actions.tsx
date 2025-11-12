@@ -100,7 +100,7 @@ export function QuotationBulkActions({
             {/* Content */}
             <div className="min-h-[200px] max-h-[400px] overflow-y-auto">
               {activeTab === 'archivable' && (
-                <div className="space-y-3 pt-3">
+                <div className="space-y-3">
                   {archivable.length > 0 ? (
                     <>
                       <p className="text-sm text-gray-600">
@@ -109,17 +109,17 @@ export function QuotationBulkActions({
                       {archivable.map((quotation) => (
                         <div
                           key={quotation.id}
-                          className="flex items-center justify-between rounded-md border p-3"
+                          className="flex items-center justify-between rounded-md border p-3 bg-[#F9FAFB]"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="font-medium text-sm font-[geist]">
+                            <span className="font-medium text-base font-[geist]">
                               {quotation.quote_number}
                             </span>
-                            <span className="text-gray-600 text-sm">•</span>
-                            <span className="text-sm text-gray-600 font-[geist]">
+                            <span className="text-[#364153] text-base">•</span>
+                            <span className="text-base text-[#364153] font-[geist]">
                               {quotation.customer_name}
                             </span>
-                            <span className="text-gray-600 text-sm">•</span>
+                            <span className="text-gray-600 text-base">•</span>
                             <TableBadges
                               names={[quotation.status]}
                               visibleCount={1}
@@ -141,12 +141,12 @@ export function QuotationBulkActions({
               )}
 
               {activeTab === 'non-archivable' && (
-                <div className="space-y-3 pt-3">
+                <div className="space-y-3">
                   {nonArchivable.length > 0 ? (
                     <>
-                      <div className="flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 p-3">
-                        <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-amber-800">
+                      <div className="flex items-start gap-2 rounded-md bg-[#FFF4E6] border border-[#FF8C00] p-3">
+                        <AlertTriangle className="h-5 w-5 text-[#FF8C00] mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-[#364153]">
                           The following quotations cannot be archived because
                           they have active statuses (Pending or Approved).
                           Please update their status manually before archiving.
@@ -155,17 +155,17 @@ export function QuotationBulkActions({
                       {nonArchivable.map((quotation) => (
                         <div
                           key={quotation.id}
-                          className="flex items-center justify-between rounded-md border p-3"
+                          className="flex items-center justify-between rounded-md border p-3 bg-[#F9FAFB]"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="font-medium text-sm font-[geist]">
+                            <span className="font-medium text-base font-[geist]">
                               {quotation.quote_number}
                             </span>
-                            <span className="text-gray-600 text-sm">•</span>
-                            <span className="text-sm text-gray-600 font-[geist]">
+                            <span className="text-gray-600 text-base">•</span>
+                            <span className="text-base text-[#364153] font-[geist]">
                               {quotation.customer_name}
                             </span>
-                            <span className="text-gray-600 text-sm">•</span>
+                            <span className="text-gray-600 text-base">•</span>
                             <TableBadges
                               names={[quotation.status]}
                               visibleCount={1}
@@ -190,7 +190,7 @@ export function QuotationBulkActions({
         }
         cancelText={archivable.length > 0 ? 'Cancel' : 'Close'}
         confirmText="Archive"
-        confirmActionNeeded={archivable.length > 0}
+        confirmActionNeeded={activeTab === 'archivable' && archivable.length > 0}
         confirmCustomColor="#6B7280"
         confirmIcon={<Archive className="h-4 w-4" />}
         onConfirmAction={handleArchive}
