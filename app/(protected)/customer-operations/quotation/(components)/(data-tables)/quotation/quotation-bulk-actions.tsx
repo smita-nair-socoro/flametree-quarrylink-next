@@ -275,9 +275,9 @@ export function QuotationBulkActions({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem
                 onClick={handleBulkArchiveClick}
-                className="text-red-600 hover:text-red-600"
+                className="text-red-600 hover:text-red-700 focus:text-red-600"
               >
-                <Archive className="h-4 w-4 mr-2 text-red-600" />
+                <Archive className="h-4 w-4 mr-2 text-current" />
                 Archive Quotations
               </DropdownMenuItem>
             </DropdownMenuContent>
