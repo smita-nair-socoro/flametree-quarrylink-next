@@ -73,6 +73,38 @@ export default function QuotationsPage() {
   const [selectedQuotationForActions, setSelectedQuotationForActions] =
     React.useState<Quotation | null>(null);
 
+  // Statistics cards data
+  const statsCards = [
+    {
+      title: 'Total Quotations',
+      value: 15,
+      description: '+25% vs last month',
+      icon: FileText,
+      descriptionColor: 'text-green-600',
+    },
+    {
+      title: 'Pending Approval',
+      value: 3,
+      description: 'Need attention',
+      icon: Clock,
+      descriptionColor: 'text-red-600',
+    },
+    {
+      title: 'Total Quote Value',
+      value: '$1,043,570',
+      description: '+15% vs last month',
+      icon: DollarSign,
+      descriptionColor: 'text-green-600',
+    },
+    {
+      title: 'Expiring Soon',
+      value: 0,
+      description: 'Within 7 days',
+      icon: AlertCircle,
+      descriptionColor: 'text-[#737373]',
+    },
+  ];
+
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
     selectedQuotationForActions
