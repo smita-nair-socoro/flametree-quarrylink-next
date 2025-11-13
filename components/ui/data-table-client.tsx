@@ -28,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './button';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -59,6 +59,7 @@ import { InputIcon } from './input-icon';
 import { Separator } from './separator';
 import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToolbarCompact } from '@/hooks/use-toolbar-compact';
 import Image from 'next/image';
 import {
   Drawer,
@@ -186,11 +187,6 @@ export function DataTableClient<TData, TValue>({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [tempColumnFilters, setTempColumnFilters] =
     useState<ColumnFiltersState>([]);
-
-  // State and refs for dynamic desktop/mobile filter switching
-  const [shouldShowDesktopFilters, setShouldShowDesktopFilters] = useState(true);
-  const filtersContainerRef = useRef<HTMLDivElement>(null);
-  const showHideButtonRef = useRef<HTMLButtonElement>(null);
 
   // Sync temp filters when drawer opens
   useEffect(() => {
@@ -344,78 +340,17 @@ export function DataTableClient<TData, TValue>({
 
   const facetedWithCounts = useFacets(table, facetDefination);
 
-  // Overlap detection for dynamic desktop/mobile filter switching
-  useEffect(() => {
-    const checkOverlap = () => {
-      // Check screen width first
-      const screenWidth = window.innerWidth;
-      const MOBILE_BREAKPOINT = 768; // Match md breakpoint
-
-      if (screenWidth < MOBILE_BREAKPOINT) {
-        // Always use mobile on small screens
-        setShouldShowDesktopFilters(false);
-        return;
-      }
-
-      // On larger screens, check for overlap and space constraints
-      const filtersContainer = filtersContainerRef.current;
-      const showHideButton = showHideButtonRef.current;
-
-      if (!filtersContainer || facetedWithCounts.length === 0) {
-        setShouldShowDesktopFilters(true);
-        return;
-      }
-
-      // If there's no Show/Hide button, always show desktop filters
-      if (!showHideButton || !isShowHideColumns) {
-        setShouldShowDesktopFilters(true);
-        return;
-      }
-
-      // Get bounding rectangles
-      const containerRect = filtersContainer.getBoundingClientRect();
-      const buttonRect = showHideButton.getBoundingClientRect();
-
-      // Check if there's enough space (with some padding)
-      const MIN_GAP = 16; // 1rem
-      const hasEnoughSpace = buttonRect.left - containerRect.right >= MIN_GAP;
-
-      // Also check if filters are wrapping too much (more than 2 rows might be bad UX)
-      const filterButtons = filtersContainer.querySelectorAll('button');
-      let rowCount = 1;
-      if (filterButtons.length > 0) {
-        const firstButtonTop = filterButtons[0].getBoundingClientRect().top;
-        filterButtons.forEach((button) => {
-          if (button.getBoundingClientRect().top > firstButtonTop + 5) {
-            rowCount++;
-          }
-        });
-
-        if (rowCount > 2) {
-          setShouldShowDesktopFilters(false);
-          return;
-        }
-      }
-
-      setShouldShowDesktopFilters(hasEnoughSpace);
-    };
-
-    // Initial check
-    checkOverlap();
-
-    // Add resize listener
-    const resizeObserver = new ResizeObserver(checkOverlap);
-    if (filtersContainerRef.current) {
-      resizeObserver.observe(filtersContainerRef.current);
-    }
-
-    window.addEventListener('resize', checkOverlap);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', checkOverlap);
-    };
-  }, [facetedWithCounts.length, isShowHideColumns]);
+  // Use toolbar compact hook for dynamic desktop/mobile filter switching
+  const {
+    containerRef: filtersContainerRef,
+    controlRef: showHideButtonRef,
+    toolbarContainerRef,
+    isCompact: shouldShowMobileFilters,
+    shouldHideControl,
+  } = useToolbarCompact({
+    hasControls: isShowHideColumns,
+    itemCount: facetedWithCounts.length,
+  });
 
   function handleFilterChange(columnId: string, values: string[]) {
     setColumnFilters((old) => {
@@ -459,7 +394,7 @@ export function DataTableClient<TData, TValue>({
       {!simpleTable && (
         <div className="space-y-3">
           {/* Single line: Search Bar + Filters + Show/Hide Columns */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div ref={toolbarContainerRef} className="flex items-center gap-2">
             {/* Search Bar - Fixed width */}
             <div className="flex-shrink-0">
               <InputIcon
@@ -472,11 +407,200 @@ export function DataTableClient<TData, TValue>({
               />
             </div>
 
-            {/* Desktop Filters - Only shown when shouldShowDesktopFilters is true */}
-            {shouldShowDesktopFilters && facetedWithCounts.length > 0 && (
+            {/* Mobile Filter Button - Shown when in compact mode */}
+            {shouldShowMobileFilters && facetedWithCounts.length > 0 && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                  <DrawerTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      data-filter-button
+                    >
+                      <Filter size={16} className="mr-2" />
+                      Filters
+                      {columnFilters.length > 0 && (
+                        <>
+                          <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground ml-2">
+                            {columnFilters.length}
+                          </div>
+                        </>
+                      )}
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerContent>
+                    <DrawerHeader>
+                      <DrawerTitle className="text-left font-medium text-[31.67px] ">
+                        Filters
+                      </DrawerTitle>
+                    </DrawerHeader>
+                    <div
+                      className="flex-1 overflow-y-auto px-4 py-3"
+                      style={{ maxHeight: 'calc(95vh - 12rem)' }}
+                    >
+                      <Accordion type="multiple" className="w-full">
+                        {facetedWithCounts.map((filter) => {
+                          const currentFilterValues =
+                            (tempColumnFilters.find((f) => f.id === filter.column)
+                              ?.value as string[]) || [];
+
+                          return (
+                            <AccordionItem
+                              key={filter.column}
+                              value={filter.column}
+                            >
+                              <AccordionTrigger className="text-left">
+                                <div className="flex items-center justify-between w-full pr-4">
+                                  <span className="text-lg">{filter.title}</span>
+                                  {currentFilterValues.length > 0 && (
+                                    <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                                      {currentFilterValues.length}
+                                    </div>
+                                  )}
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="space-y-2 pt-2">
+                                  {filter.options.map((option) => {
+                                    const isSelected =
+                                      currentFilterValues.includes(option.value);
+                                    const displayLabel = option.label.includes(
+                                      '_'
+                                    )
+                                      ? option.label.replace(/_/g, ' ')
+                                      : option.label;
+
+                                    return (
+                                      <div
+                                        key={option.value}
+                                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                        onClick={() => {
+                                          const newValues = isSelected
+                                            ? currentFilterValues.filter(
+                                                (v) => v !== option.value
+                                              )
+                                            : [
+                                                ...currentFilterValues,
+                                                option.value,
+                                              ];
+                                          handleTempFilterChange(
+                                            filter.column,
+                                            newValues
+                                          );
+                                        }}
+                                      >
+                                        <div className="flex items-center space-x-3">
+                                          <div
+                                            className={cn(
+                                              'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
+                                              isSelected
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'opacity-50'
+                                            )}
+                                          >
+                                            {isSelected && (
+                                              <Check className="h-3 w-3" />
+                                            )}
+                                          </div>
+                                          <span className="text-sm">
+                                            {displayLabel}
+                                          </span>
+                                        </div>
+                                        {filter.counts &&
+                                          filter.counts[option.value] != null && (
+                                            <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                                              {filter.counts[option.value]}
+                                            </span>
+                                          )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          );
+                        })}
+                      </Accordion>
+                    </div>
+                    <DrawerFooter>
+                      <Button variant="default" onClick={applyTempFilters}>
+                        <Plus size={16} className="mr-2" />
+                        Apply Filters
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setColumnFilters([]);
+                          setTempColumnFilters([]);
+                          if (!isMobile) {
+                            saveToStorage('columnFilters', []);
+                          }
+                          setDrawerOpen(false);
+                        }}
+                        className="w-full mb-4"
+                      >
+                        <X size={16} className="mr-2" />
+                        Clear All Filters
+                      </Button>
+                    </DrawerFooter>
+                  </DrawerContent>
+                </Drawer>
+
+                {/* Show/Hide Columns in compact mode */}
+                {isShowHideColumns && !shouldHideControl && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        ref={showHideButtonRef}
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                      >
+                        Show/Hide Columns
+                        <ChevronDown size={16} className="ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {table
+                        .getAllColumns()
+                        .filter((col) => col.getCanHide())
+                        .map((col) => {
+                          const displayName =
+                            (col.columnDef.meta as string) ||
+                            col.id
+                              .replace(/_/g, ' ')
+                              .replace(/\b\w/g, (char) => char.toUpperCase());
+
+                          return (
+                            <DropdownMenuCheckboxItem
+                              key={col.id}
+                              checked={col.getIsVisible()}
+                              onCheckedChange={(val) =>
+                                col.toggleVisibility(!!val)
+                              }
+                            >
+                              {displayName}
+                            </DropdownMenuCheckboxItem>
+                          );
+                        })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            )}
+
+            {/* Desktop Filters - Hidden in compact mode */}
+            {facetedWithCounts.length > 0 && (
               <>
                 {/* Faceted Filters */}
-                <div ref={filtersContainerRef} className="flex gap-2 flex-wrap">
+                <div
+                  ref={filtersContainerRef}
+                  className={cn(
+                    'flex gap-2 transition-opacity duration-200',
+                    shouldShowMobileFilters ? 'opacity-0 pointer-events-none absolute' : 'opacity-100'
+                  )}
+                >
                   {facetedWithCounts.map((filter) => (
                     <DataTableFacetedFilter
                       key={filter.column}
@@ -495,7 +619,7 @@ export function DataTableClient<TData, TValue>({
                 </div>
 
                 {/* Show/Hide Columns - Pushed to the right */}
-                {isShowHideColumns && (
+                {isShowHideColumns && !shouldShowMobileFilters && (
                   <div className="ml-auto flex-shrink-0">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -540,147 +664,6 @@ export function DataTableClient<TData, TValue>({
                 </>
               )}
           </div>
-
-          {/* Mobile Filter Button - Shown when desktop filters are hidden */}
-          {!shouldShowDesktopFilters && facetedWithCounts.length > 0 && (
-            <div className="flex justify-center">
-              <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <DrawerTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-full justify-center"
-                  >
-                    <Filter size={16} className="mr-2" />
-                    Filters
-                    {columnFilters.length > 0 && (
-                      <>
-                        <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                          {columnFilters.length}
-                        </div>
-                      </>
-                    )}
-                  </Button>
-                </DrawerTrigger>
-                <DrawerContent>
-                  <DrawerHeader>
-                    <DrawerTitle className="text-left font-medium text-[31.67px] ">
-                      Filters
-                    </DrawerTitle>
-                  </DrawerHeader>
-                  <div
-                    className="flex-1 overflow-y-auto px-4 py-3"
-                    style={{ maxHeight: 'calc(95vh - 12rem)' }}
-                  >
-                    <Accordion type="multiple" className="w-full">
-                      {facetedWithCounts.map((filter) => {
-                        const currentFilterValues =
-                          (tempColumnFilters.find((f) => f.id === filter.column)
-                            ?.value as string[]) || [];
-
-                        return (
-                          <AccordionItem
-                            key={filter.column}
-                            value={filter.column}
-                          >
-                            <AccordionTrigger className="text-left">
-                              <div className="flex items-center justify-between w-full pr-4">
-                                <span className="text-lg">{filter.title}</span>
-                                {currentFilterValues.length > 0 && (
-                                  <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                                    {currentFilterValues.length}
-                                  </div>
-                                )}
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <div className="space-y-2 pt-2">
-                                {filter.options.map((option) => {
-                                  const isSelected =
-                                    currentFilterValues.includes(option.value);
-                                  const displayLabel = option.label.includes(
-                                    '_'
-                                  )
-                                    ? option.label.replace(/_/g, ' ')
-                                    : option.label;
-
-                                  return (
-                                    <div
-                                      key={option.value}
-                                      className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                                      onClick={() => {
-                                        const newValues = isSelected
-                                          ? currentFilterValues.filter(
-                                              (v) => v !== option.value
-                                            )
-                                          : [
-                                              ...currentFilterValues,
-                                              option.value,
-                                            ];
-                                        handleTempFilterChange(
-                                          filter.column,
-                                          newValues
-                                        );
-                                      }}
-                                    >
-                                      <div className="flex items-center space-x-3">
-                                        <div
-                                          className={cn(
-                                            'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
-                                            isSelected
-                                              ? 'bg-primary text-primary-foreground'
-                                              : 'opacity-50'
-                                          )}
-                                        >
-                                          {isSelected && (
-                                            <Check className="h-3 w-3" />
-                                          )}
-                                        </div>
-                                        <span className="text-sm">
-                                          {displayLabel}
-                                        </span>
-                                      </div>
-                                      {filter.counts &&
-                                        filter.counts[option.value] != null && (
-                                          <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                                            {filter.counts[option.value]}
-                                          </span>
-                                        )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        );
-                      })}
-                    </Accordion>
-                  </div>
-                  <DrawerFooter>
-                    <Button variant="default" onClick={applyTempFilters}>
-                      <Plus size={16} className="mr-2" />
-                      Apply Filters
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setColumnFilters([]);
-                        setTempColumnFilters([]);
-                        if (!isMobile) {
-                          saveToStorage('columnFilters', []);
-                        }
-                        setDrawerOpen(false);
-                      }}
-                      className="w-full mb-4"
-                    >
-                      <X size={16} className="mr-2" />
-                      Clear All Filters
-                    </Button>
-                  </DrawerFooter>
-                </DrawerContent>
-              </Drawer>
-            </div>
-          )}
         </div>
       )}
 
