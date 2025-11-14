@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export interface ProceedActionsProps {
   validUntil: string;
@@ -16,22 +15,19 @@ export interface ProceedActionsProps {
 export function ProceedActions({
   validUntil,
   accountManager,
-  avatarUrl,
-  avatarFallback = 'AM',
+
   onApprove,
   onDecline,
 }: ProceedActionsProps) {
   return (
-    <div className="bg-white px-8 py-12">
-      {/* Purple top border */}
-      <div className="border-t-4 border-purple-600 mb-8"></div>
+    <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
 
       {/* Heading Section */}
-      <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+      <div className="text-center mb-12">
+        <h2 className="text-[28px] font-bold text-[rgba(10,10,10,1)] mb-4">
           Ready to Proceed?
         </h2>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+        <p className="text-[15px] text-[rgba(115,115,115,1)] max-w-3xl mx-auto">
           Please review the quotation details above and select your preferred
           action below. We're here to help with any questions or modifications
           you may need.
@@ -39,42 +35,34 @@ export function ProceedActions({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center gap-6 mb-12">
+      <div className="flex justify-center gap-2 mb-10">
         <Button
           onClick={onDecline}
           size="lg"
-          className="bg-red-500 hover:bg-red-600 text-white px-12 py-6 text-lg font-semibold rounded-lg"
+          className="bg-[rgba(231,0,11,1)] text-white px-10 py-6 text-base font-medium rounded-md"
         >
           Decline Quote
         </Button>
         <Button
           onClick={onApprove}
           size="lg"
-          className="bg-green-600 hover:bg-green-700 text-white px-12 py-6 text-lg font-semibold rounded-lg"
+          className="bg-[rgba(0,130,54,1)] text-white px-10 py-6 text-base font-medium rounded-md"
         >
           Approve Quote
         </Button>
       </div>
 
       {/* Contact Card */}
-      <Card className="max-w-3xl mx-auto bg-gray-50 border border-gray-200 shadow-sm">
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-lg text-gray-700">
-              This quotation is valid until{' '}
-              <span className="font-bold text-purple-600">{validUntil}</span>
-            </p>
-            {avatarUrl && (
-              <Avatar className="w-12 h-12 border-2 border-green-500">
-                <AvatarImage src={avatarUrl} alt="Account Manager" />
-                <AvatarFallback>{avatarFallback}</AvatarFallback>
-              </Avatar>
-            )}
-          </div>
+      <Card className="max-w-lg mx-auto bg-white border border-[#E5E5E5] shadow-sm mb-10">
+        <div className="p-4 text-center font-[Geist]">
+          <p className="mb-4 text-sm  text-[#737373]">
+            This quotation is valid until{" "}
+            <span className="font-bold text-[#8E51FF]">{validUntil}</span>
+          </p>
 
-          <p className="text-base text-gray-600 text-center">
-            Need assistance? Contact your account manager{' '}
-            <span className="font-semibold text-purple-600">
+          <p className="text-sm text-[#737373]">
+            Need assistance? Contact your account manager{" "}
+            <span className="font-semibold text-[#8E51FF]"> 
               {accountManager}
             </span>
           </p>

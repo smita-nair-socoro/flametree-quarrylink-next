@@ -11,6 +11,7 @@ import { QuoteFooter } from './quote-footer';
 import { ActionDialog } from '@/components/action-dialog';
 import { Check, X } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
+import { Separator } from 'react-aria-components';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -98,8 +99,8 @@ export default function QuoteReviewDocument({
       />
 
       {/* Main Document */}
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gray-100 p-4 print:px-0 print:py-0">
+        <div className="max-w-[960px] mx-auto bg-white">
           {/* Navbar */}
           <QuoteNavbar
             {...quotationData.navbar}
@@ -108,16 +109,17 @@ export default function QuoteReviewDocument({
 
           {/* Customer Information */}
           <CustomerInformation {...quotationData.customer} />
-
+          <Separator />
           {/* Project Details */}
           <ProjectDetails {...quotationData.project} />
+          <Separator />
 
           {/* Products & Services */}
           <ProductsServices products={quotationData.products} />
-
+          <Separator className='mb-8' />
           {/* Summary & Payment */}
           <SummaryPayment {...quotationData.summary} />
-
+          <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions */}
           <ProceedActions
             {...quotationData.proceedActions}

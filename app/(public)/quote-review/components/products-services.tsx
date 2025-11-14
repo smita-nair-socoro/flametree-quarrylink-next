@@ -1,5 +1,5 @@
 'use client';
-
+import { Separator } from 'react-aria-components';
 export interface Product {
   name: string;
   code: string;
@@ -22,53 +22,53 @@ export function ProductsServices({ products }: ProductsServicesProps) {
   };
 
   return (
-    <div className="bg-white px-8 py-8">
-      <h2 className="text-3xl font-bold text-purple-600 mb-6">
+    <div className="bg-white px-8 py-4 pt-10 mb-4">
+      <h2 className="text-lg font-bold text-[rgba(142,81,255,1)] mb-3">
         Products & Services
       </h2>
-
+      <Separator className="mb-4" />
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left py-4 px-2 text-base font-semibold text-gray-700">
+              <th className="text-left py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
                 Product
               </th>
-              <th className="text-left py-4 px-2 text-base font-semibold text-gray-700">
+              <th className="text-left py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
                 Truck Configuration
               </th>
-              <th className="text-left py-4 px-2 text-base font-semibold text-gray-700">
+              <th className="text-left py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
                 Quantity
               </th>
-              <th className="text-right py-4 px-2 text-base font-semibold text-gray-700">
+              <th className="text-right py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
                 Total Price
               </th>
             </tr>
           </thead>
           <tbody>
             {products.map((product, index) => (
-              <tr key={index} className="border-b border-gray-100">
+              <tr key={index} className="border-b border-gray-100 last:border-b-0">
                 <td className="py-4 px-2">
                   <div>
-                    <p className="text-lg font-bold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900">
                       {product.name}
                     </p>
-                    <p className="text-sm text-gray-500">{product.code}</p>
+                    <p className="text-xs text-gray-500 font-[Geist]">{product.code}</p>
                   </div>
                 </td>
                 <td className="py-4 px-2">
                   <div>
-                    <p className="text-base font-medium text-gray-900">
+                    <p className="text-sm text-gray-900 font-[Geist]">
                       {product.truckType}
                     </p>
-                    <p className="text-sm text-gray-500">{product.capacity}</p>
+                    <p className="text-xs text-gray-500 font-[Geist]">{product.capacity}</p>
                   </div>
                 </td>
                 <td className="py-4 px-2">
-                  <p className="text-base text-gray-900">{product.quantity}</p>
+                  <p className="text-sm text-gray-900 font-[Geist]">{product.quantity}</p>
                 </td>
                 <td className="py-4 px-2 text-right">
-                  <p className="text-lg font-bold text-gray-900">
+                  <p className="text-sm font-semibold text-gray-900 font-[Geist]">
                     {formatPrice(product.totalPrice)}
                   </p>
                 </td>
@@ -77,8 +77,6 @@ export function ProductsServices({ products }: ProductsServicesProps) {
           </tbody>
         </table>
       </div>
-
-      <div className="mt-8 border-b border-gray-200"></div>
     </div>
   );
 }

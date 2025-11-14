@@ -1,6 +1,7 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+import { TableBadges } from '@/components/table-badges';
+import { Separator } from 'react-aria-components';
 
 export interface ProjectDetailsProps {
   type: 'DELIVERY' | 'COLLECTION';
@@ -18,53 +19,49 @@ export function ProjectDetails({
   deliveryWindow,
 }: ProjectDetailsProps) {
   return (
-    <div className="bg-white px-8 py-8">
-      <h2 className="text-3xl font-bold text-purple-600 mb-6">
+    <div className="bg-white px-8 py-4 pt-10 mb-4">
+      <h2 className="text-lg font-semibold text-[rgba(142,81,255,1)] mb-3">
         Project Details
       </h2>
-
-      <Badge
-        variant="secondary"
-        className="bg-blue-100 text-blue-700 text-sm font-semibold px-4 py-1 mb-6"
-      >
-        {type}
-      </Badge>
+      <Separator className="mb-4" />
+      <div className='mb-3'>
+        <TableBadges names={[type]}></TableBadges>
+      </div>
+      
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Project Name */}
         <div>
-          <h3 className="text-base font-semibold text-gray-700 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Project Name
           </h3>
-          <p className="text-base text-gray-600">{projectName}</p>
+          <p className="text-sm text-gray-600  font-[Geist]">{projectName}</p>
         </div>
 
         {/* Delivery Address */}
         <div>
-          <h3 className="text-base font-semibold text-gray-700 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Address
           </h3>
-          <p className="text-base text-gray-600">{deliveryAddress}</p>
+          <p className="text-sm text-gray-600  font-[Geist]">{deliveryAddress}</p>
         </div>
 
         {/* Delivery Date */}
         <div>
-          <h3 className="text-base font-semibold text-gray-700 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Date
           </h3>
-          <p className="text-base text-gray-600">{deliveryDate}</p>
+          <p className="text-sm text-gray-600  font-[Geist]">{deliveryDate}</p>
         </div>
 
         {/* Delivery Window */}
         <div>
-          <h3 className="text-base font-semibold text-gray-700 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Window
           </h3>
-          <p className="text-base text-gray-600">{deliveryWindow}</p>
+          <p className="text-sm text-gray-600 font-[Geist]">{deliveryWindow}</p>
         </div>
       </div>
-
-      <div className="mt-8 border-b border-gray-200"></div>
     </div>
   );
 }
