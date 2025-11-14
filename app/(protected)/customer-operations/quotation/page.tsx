@@ -21,7 +21,6 @@ export default function QuotationsPage() {
   const {
     data: quotationsData,
     isLoading,
-    error,
     isError,
   } = useQuery(QuotationsListQueryOptions());
 
