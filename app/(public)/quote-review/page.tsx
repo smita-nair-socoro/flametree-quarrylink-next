@@ -1,21 +1,30 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import QuoteReviewPreview from './quote-review-preview';
+'use client';
 
-async function loadStaticSvg() {
-  const svgAbsolutePath = path.join(process.cwd(), 'app', 'svg1.svg');
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import QuoteReviewDocument from './components/quote-review-document';
 
-  try {
-    return await fs.readFile(svgAbsolutePath, 'utf8');
-  } catch (error) {
-    console.error('Unable to read quote review SVG:', error);
-    return null;
-  }
+function QuoteReviewContent() {
+  const searchParams = useSearchParams();
+  const quoteId = searchParams.get('quoteId') || '0';
+  const payload = searchParams.get('payload') || undefined;
+
+  return <QuoteReviewDocument quoteId={quoteId} payloadParam={payload} />;
 }
 
-export default async function QuoteReviewPage() {
-  const svgMarkup = await loadStaticSvg();
+export default function QuoteReviewPage() {
   return (
-    <QuoteReviewPreview svgMarkup={svgMarkup ?? undefined} />
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading quotation...</p>
+          </div>
+        </div>
+      }
+    >
+      <QuoteReviewContent />
+    </Suspense>
   );
 }

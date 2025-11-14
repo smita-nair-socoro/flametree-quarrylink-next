@@ -61,7 +61,8 @@ const openQuotePreviewWindow = (
   const encodedPayload = encodeQuotationPayload(quotationData);
   if (!encodedPayload) return;
 
-  const previewUrl = `/quote-review?quoteId=${quotationId}&designerPreview=1&payload=${encodedPayload}`;
+  // Use dynamic route with payload parameter
+  const previewUrl = `/quote-review/${quotationId}?payload=${encodedPayload}`;
   window.open(previewUrl, '_blank', 'noopener,noreferrer');
 };
 
