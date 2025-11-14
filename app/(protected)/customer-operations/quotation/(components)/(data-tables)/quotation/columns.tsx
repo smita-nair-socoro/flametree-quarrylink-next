@@ -115,7 +115,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
       const quotation = row.original;
       return (
         <div>
-          <QuotationTableActions quotation={quotation as Quotation} />
+          <QuotationTableActions quotation={quotation} />
         </div>
       );
     },

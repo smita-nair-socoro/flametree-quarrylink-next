@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { Quotation } from '@/lib/types/quotation';
+import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
@@ -15,6 +15,9 @@ import {
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
+import { useQuery } from '@tanstack/react-query';
+import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
 interface DialogConfig {
   title?: string;
@@ -518,8 +521,47 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
+  // Fetch detailed quotation data from backend (same as view/edit modal)
+  const {
+    data: quotationDetailData,
+    isLoading: isLoadingDetail,
+  } = useQuery(QuotationDetailQueryOptions(quotationId || 0));
+
+  // Convert and transform detailed quotation data
+  const detailedQuotation = React.useMemo(() => {
+    if (quotationDetailData) {
+      const convertedQuotation = convertKeysToSnakeCase(
+        quotationDetailData
+      ) as QuotationDTO;
+
+      // Generate mock email if backend doesn't provide customer_email
+      let customerEmail = convertedQuotation.customer_email;
+      if (!customerEmail && convertedQuotation.customer_name) {
+        // Create mock email from customer name
+        const emailName = convertedQuotation.customer_name
+          .toLowerCase()
+          .replace(/\s+/g, '.')
+          .replace(/[^a-z0-9.]/g, '');
+        customerEmail = `${emailName}@example.com`;
+      }
+
+      const transformed = {
+        ...convertedQuotation,
+        quoteId: convertedQuotation.id,
+        status: convertedQuotation.quote_status,
+        customer_email: customerEmail, // Use mock if backend doesn't provide
+      } as Quotation;
+
+      return transformed;
+    }
+    return null;
+  }, [quotationDetailData, quotationId, isLoadingDetail]);
+
+  // Use detailed data if available, otherwise fall back to list data
+  const quotationToUse = detailedQuotation || quotationData;
+
   const dialogConfigs = getDialogConfigs(
-    resolvedQuotation,
+    quotationToUse,
     selectedAction || undefined,
     newExpiryDate,
     setNewExpiryDate

@@ -21,19 +21,8 @@ export default function QuotationsPage() {
   const {
     data: quotationsData,
     isLoading,
-    error,
     isError,
   } = useQuery(QuotationsListQueryOptions());
-
-  console.log('RAW quotation Response:', quotationsData);
-  React.useEffect(() => {
-    if (isError && error) {
-      console.error('Quotation API Error:', error);
-    }
-    if (!isLoading && !isError) {
-      console.log('✅ Quotations fetched successfully');
-    }
-  }, [isError, error, isLoading]);
 
   // Transform the API data to match our component expectations
   const items: Quotation[] = React.useMemo(() => {
@@ -65,7 +54,6 @@ export default function QuotationsPage() {
   React.useEffect(() => {
     if (items && items.length > 0) {
       setQuotations(items);
-      console.log('✅ Quotations stored in Zustand:', items.length, 'items');
     }
   }, [items, setQuotations]);
 
