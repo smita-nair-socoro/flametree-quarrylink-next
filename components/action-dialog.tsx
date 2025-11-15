@@ -31,6 +31,7 @@ interface ActionDialogProps {
   confirmIcon?: React.ReactNode;
   onConfirmAction?: () => void;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
 }
 
 export function ActionDialog({
@@ -50,6 +51,7 @@ export function ActionDialog({
   confirmIcon,
   onConfirmAction,
   confirmActionNeeded = true,
+  confirmDisabled = false,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -105,6 +107,7 @@ export function ActionDialog({
               variant={confirmCustomColor ? undefined : confirmVariant}
               className={cn('h-10', confirmCustomClass)}
               style={customButtonStyle}
+              disabled={confirmDisabled}
               onClick={() => {
                 onConfirmAction?.();
                 onOpenChangeAction(false);
