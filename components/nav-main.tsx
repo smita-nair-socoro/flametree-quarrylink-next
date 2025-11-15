@@ -81,15 +81,23 @@ export function NavMain({
             );
           const isOpen = openStates[item.url] ?? false;
 
-          console.log(
-            `${item.title} - isActive:`,
-            isActive,
-            'pathname:',
-            pathname,
-            'item.url:',
-            item.url
-          );
+          // If item has no subitems, render as plain link
+          if (!item.items || item.items.length === 0) {
+            return (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <Link href={item.url}>
+                    {item.icon && <item.icon className="text-white" />}
+                    <span className="truncate whitespace-nowrap text-white">
+                      {item.title}
+                    </span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          }
 
+          // If collapsed and has subitems, show hover card
           if (isCollapsed && item.items && item.items.length > 0) {
             return (
               <HoverCard
@@ -138,6 +146,7 @@ export function NavMain({
             );
           }
 
+          // If expanded and has subitems, show collapsible menu
           return (
             <Collapsible
               key={item.url}

@@ -551,11 +551,6 @@ export function useQuotationActions(
       console.log('Archive quotation:', quotationId);
       // TODO: implement delete logic
     }),
-
-    unarchive: createDialogAction('unarchive', () => {
-      console.log('Unarchive quotation:', quotationId);
-      // TODO: implement unarchive logic
-    }),
   };
 
   // Render active dialog
@@ -606,10 +601,6 @@ export function useQuotationActions(
             case 'archive':
               console.log('Archive quotation:', quotationId, quotationData);
               // TODO: implement archive logic
-              break;
-            case 'unarchive':
-              console.log('Unarchive quotation:', quotationId, quotationData);
-              // TODO: implement unarchive logic
               break;
           }
         }}

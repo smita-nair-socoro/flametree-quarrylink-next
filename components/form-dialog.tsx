@@ -26,9 +26,12 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
+import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
+import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
+import { useSelectedClient } from '@/app/stores/client-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -48,6 +51,12 @@ interface HeaderInfo {
   useSelectedProduct?: boolean;
   /** Use selected supplier data automatically */
   useSelectedSupplier?: boolean;
+  /** Use selected quotation line item data automatically */
+  useSelectedLineItem?: boolean;
+  /** Use selected quarry/supplier data automatically */
+  useSelectedQuarrySupplier?: boolean;
+  /** Use selected client data automatically */
+  useSelectedClient?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -81,6 +90,9 @@ interface AddProductDrawerDialogProps {
   /** Optional header buttons to display inline with the title */
   headerButtons?: React.ReactNode;
 
+  /** Vertical alignment of header buttons relative to content on the left (default: "center") */
+  headerButtonsAlign?: "start" | "center";
+
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
@@ -89,6 +101,12 @@ interface AddProductDrawerDialogProps {
 
   /** Optional content class to add to the content */
   contentClass?: string;
+
+  /** Optional custom class for the DialogHeader container (e.g., "px-5 pt-6 pb-2" or "px-5 pt-4 pb-0") */
+  headerClassName?: string;
+
+  /** Whether to preserve empty badge space in renderBadges */
+  preserveEmptyBadgeSpace?: boolean;
 
   /**
    * **THIS** is our form (or any other content) to render inside
@@ -121,10 +139,13 @@ export function FormDialog({
   dialogWidth,
   hideTrigger,
   headerButtons,
+  headerButtonsAlign = "center",
   headerInfo,
   headerSeparator,
   contentClass,
+  headerClassName,
   children,
+  preserveEmptyBadgeSpace = true,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
@@ -137,6 +158,9 @@ export function FormDialog({
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
+  const selectedQuotationLineItem = useSelectedLineItem();
+  const selectedQuarrySupplier = useSelectedQuarrySupplier();
+  const selectedClient = useSelectedClient();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -160,6 +184,24 @@ export function FormDialog({
     finalPrimaryBadges = [selectedProduct.material_type];
     finalSecondaryBadges = [selectedProduct.status];
     finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+  }
+
+  if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
+    finalCustomId = selectedQuotationLineItem.product_name;
+    finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
+    finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
+  }
+
+  if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
+    finalCustomId = selectedQuarrySupplier.name;
+    finalPrimaryBadges = [selectedQuarrySupplier.status];
+    finalSecondaryBadges = [selectedQuarrySupplier.type];
+  }
+
+  if (headerInfo?.useSelectedClient && selectedClient) {
+    finalCustomId = selectedClient.name;
+    finalPrimaryBadges = [selectedClient.client_status];
+    finalSecondaryBadges = [selectedClient.subscription];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -224,7 +266,9 @@ export function FormDialog({
       (finalSecondaryBadges && finalSecondaryBadges.length > 0) ||
       (finalThirdBadges && finalThirdBadges.length > 0);
 
-    if (!hasBadges) return null;
+    if (!hasBadges) {
+      return preserveEmptyBadgeSpace ? '\u00A0' : null;
+    }
 
     return (
       <div className="flex flex-wrap gap-2 mt-2">
@@ -272,11 +316,15 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className="flex flex-row items-center justify-between px-5 pt-6 flex-shrink-0">
+      <DialogHeader className={clsx(
+        "flex flex-row justify-between flex-shrink-0 px-5 pt-6",
+        headerButtonsAlign === "start" ? "items-start" : "items-center",
+        headerClassName || "pb-2"
+      )}>
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
-            <DialogDescription className="mt-2">
+            <DialogDescription className="mt-2 -mb-5">
               {dialogDescription}
             </DialogDescription>
           )}
