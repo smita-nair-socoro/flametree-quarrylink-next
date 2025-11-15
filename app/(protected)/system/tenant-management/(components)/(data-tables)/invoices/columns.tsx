@@ -3,6 +3,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { Invoice } from '@/lib/types/user';
+import { InvoiceTableActions } from './inoice-table-actions';
 
 export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
@@ -69,14 +70,14 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     },
     meta: 'Invoice Status',
   },
-  //   {
-  //     id: 'actions',
-  //     header: () => {
-  //       return <div></div>;
-  //     },
-  //     cell: ({ row }) => {
-  //       const customer = row.original;
-  //       return <CustomerTableActions customer={customer} />;
-  //     },
-  //   },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const invoice = row.original;
+      return <InvoiceTableActions invoice={invoice} />;
+    },
+  },
 ];

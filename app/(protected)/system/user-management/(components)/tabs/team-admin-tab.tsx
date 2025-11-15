@@ -33,7 +33,7 @@ const teamMemberMockData: User[] = [
     full_name: 'Armin Menhaji',
     phone: '+61412345678',
     email: 'armin@terminco.com.au',
-    role: Role.ADMIN,
+    role: Role.SUPERADMIN,
     status: UserStatus.ACTIVE,
     total_logins: 120,
     quotation_created: 15,
@@ -52,7 +52,7 @@ const teamMemberMockData: User[] = [
     full_name: 'Sarah Johnson',
     phone: '+61412345679',
     email: 'sarah@terminco.com.au',
-    role: Role.ADMIN,
+    role: Role.SUPERADMIN,
     status: UserStatus.DELETED,
     total_logins: 0,
     quotation_created: 0,
@@ -71,7 +71,7 @@ const teamMemberMockData: User[] = [
     full_name: 'Mike Chen',
     phone: '+61412345680',
     email: 'mike@terminco.com.au',
-    role: Role.ADMIN,
+    role: Role.SUPERADMIN,
     status: UserStatus.PENDING,
     total_logins: 5,
     quotation_created: 2,
@@ -204,7 +204,7 @@ const teamMemberMockData: User[] = [
     full_name: 'Jessica Lee',
     phone: '+61412345687',
     email: 'jessica.lee@terminco.com.au',
-    role: Role.ADMIN,
+    role: Role.SUPERADMIN,
     status: UserStatus.ACTIVE,
     total_logins: 95,
     quotation_created: 10,
@@ -269,7 +269,6 @@ const handleRevoke = (invitation: PendingInvitation) => {
 
 // Roles options for the form
 const rolesOptions: readonly FormSelectOption[] = [
-  { label: 'Admin', value: Role.ADMIN },
   { label: 'User', value: Role.USER },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
@@ -372,7 +371,10 @@ export default function TeamAdminTab() {
                 preserveEmptyBadgeSpace={false}
                 key={teamMemberCount}
               >
-                <InviteUserForm teamMemberCount={teamMemberCount} />
+                <InviteUserForm
+                  teamMemberCount={teamMemberCount}
+                  roleOptions={rolesOptions}
+                />
               </FormDialog>
             </div>
           </div>
@@ -415,8 +417,6 @@ export default function TeamAdminTab() {
                         Role:{' '}
                         {invitation.role === Role.USER
                           ? 'User'
-                          : invitation.role === Role.ADMIN
-                          ? 'Admin'
                           : 'Super Admin'}
                       </span>
                       <span className="mx-2">•</span>
