@@ -126,7 +126,7 @@ export function ProceedActions({
 
       {/* Contact Card */}
       <Card className="max-w-lg mx-auto bg-white border border-[#E5E5E5] shadow-sm mb-10">
-        <div className="p-4 text-center font-[Geist]">
+        <div className="p-4 text-center">
           <p className="mb-4 text-sm  text-[#737373]">
             This quotation is valid until{' '}
             <span className="font-bold text-[#8E51FF]">{validUntil}</span>

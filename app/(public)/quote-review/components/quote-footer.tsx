@@ -25,7 +25,7 @@ export function QuoteFooter({
 }: QuoteFooterProps) {
   return (
     <footer className="bg-[#314158] text-white px-8 py-12 rounded-b-lg">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto text-center font-[Geist]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto text-center">
         {/* Column 1: Contact Information */}
         <div>
           <h3 className="text-base font-semibold mb-2">Contact Information</h3>
