@@ -1,5 +1,5 @@
 'use client';
-import { Separator } from 'react-aria-components';
+import { Separator } from '@/components/ui/separator';
 export interface Product {
   name: string;
   code: string;
@@ -47,13 +47,18 @@ export function ProductsServices({ products }: ProductsServicesProps) {
           </thead>
           <tbody>
             {products.map((product, index) => (
-              <tr key={index} className="border-b border-gray-100 last:border-b-0">
+              <tr
+                key={index}
+                className="border-b border-gray-100 last:border-b-0"
+              >
                 <td className="py-4 px-2">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
                       {product.name}
                     </p>
-                    <p className="text-xs text-gray-500 font-[Geist]">{product.code}</p>
+                    <p className="text-xs text-gray-500 font-[Geist]">
+                      {product.code}
+                    </p>
                   </div>
                 </td>
                 <td className="py-4 px-2">
@@ -61,11 +66,15 @@ export function ProductsServices({ products }: ProductsServicesProps) {
                     <p className="text-sm text-gray-900 font-[Geist]">
                       {product.truckType}
                     </p>
-                    <p className="text-xs text-gray-500 font-[Geist]">{product.capacity}</p>
+                    <p className="text-xs text-gray-500 font-[Geist]">
+                      {product.capacity}
+                    </p>
                   </div>
                 </td>
                 <td className="py-4 px-2">
-                  <p className="text-sm text-gray-900 font-[Geist]">{product.quantity}</p>
+                  <p className="text-sm text-gray-900 font-[Geist]">
+                    {product.quantity}
+                  </p>
                 </td>
                 <td className="py-4 px-2 text-right">
                   <p className="text-sm font-semibold text-gray-900 font-[Geist]">

@@ -1,6 +1,7 @@
 'use client';
 
-import { Separator } from "react-aria-components";
+import { Separator } from '@/components/ui/separator';
+
 
 export interface CustomerInformationProps {
   customerName: string;

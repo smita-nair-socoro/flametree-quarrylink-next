@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Separator } from 'react-aria-components';
+import { Separator } from '@/components/ui/separator';
 
 export interface SummaryPaymentProps {
   totalProducts: number;
@@ -39,7 +39,9 @@ export function SummaryPayment({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left Column - Summary */}
         <div>
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Summary</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">
+            Summary
+          </h2>
 
           <div className="space-y-2 mb-8">
             <div className="flex items-center gap-3">
@@ -73,7 +75,10 @@ export function SummaryPayment({
             </h3>
             <ul className="space-y-2">
               {termsAndConditions.map((term, index) => (
-                <li key={index} className="text-sm text-[rgba(115,115,115,1)] font-[Geist] flex">
+                <li
+                  key={index}
+                  className="text-sm text-[rgba(115,115,115,1)] font-[Geist] flex"
+                >
                   <span className="mr-2">•</span>
                   <span>{term}</span>
                 </li>

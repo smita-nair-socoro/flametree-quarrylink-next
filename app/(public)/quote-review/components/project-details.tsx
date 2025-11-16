@@ -1,7 +1,7 @@
 'use client';
 
 import { TableBadges } from '@/components/table-badges';
-import { Separator } from 'react-aria-components';
+import { Separator } from '@/components/ui/separator';
 
 export interface ProjectDetailsProps {
   type: 'DELIVERY' | 'COLLECTION';
@@ -24,10 +24,9 @@ export function ProjectDetails({
         Project Details
       </h2>
       <Separator className="mb-4" />
-      <div className='mb-3'>
+      <div className="mb-3">
         <TableBadges names={[type]}></TableBadges>
       </div>
-      
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Project Name */}
@@ -43,7 +42,9 @@ export function ProjectDetails({
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Address
           </h3>
-          <p className="text-sm text-gray-600  font-[Geist]">{deliveryAddress}</p>
+          <p className="text-sm text-gray-600  font-[Geist]">
+            {deliveryAddress}
+          </p>
         </div>
 
         {/* Delivery Date */}

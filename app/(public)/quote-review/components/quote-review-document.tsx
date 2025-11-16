@@ -11,7 +11,7 @@ import { QuoteFooter } from './quote-footer';
 import { ActionDialog } from '@/components/action-dialog';
 import { CircleX, CircleCheckBig } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
-import { Separator } from 'react-aria-components';
+import { Separator } from '@/components/ui/separator';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -92,8 +92,9 @@ export default function QuoteReviewDocument({
                   Quote Approval
                 </p>
                 <p className="text-sm font-[Geist] text-[#008236]">
-                  Your approval will be recorded and your account manager will be
-                  notified. They will contact you shortly to proceed with the next steps.
+                  Your approval will be recorded and your account manager will
+                  be notified. They will contact you shortly to proceed with the
+                  next steps.
                 </p>
               </div>
             </div>
@@ -168,7 +169,9 @@ export default function QuoteReviewDocument({
                 <CircleX className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-base font-medium text-[#E7000B] font-[Geist]">Quote Declined</p>
+                <p className="text-base font-medium text-[#E7000B] font-[Geist]">
+                  Quote Declined
+                </p>
                 <p className="text-sm text-[#E7000B] font-[Geist]">
                   This quote will be declined and your account manager will be
                   notified. Please contact them for further discussion, or they
@@ -239,7 +242,7 @@ export default function QuoteReviewDocument({
 
           {/* Products & Services */}
           <ProductsServices products={quotationData.products} />
-          <Separator className='mb-8' />
+          <Separator className="mb-8" />
           {/* Summary & Payment */}
           <SummaryPayment {...quotationData.summary} />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
