@@ -53,6 +53,10 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
   const selectedClient = useSelectedClient();
   const [selectedSubscription, setSelectedSubscription] =
     React.useState<string>(isEditing ? selectedClient?.subscription || '' : '');
+  const [numberOfUsers, setNumberOfUsers] = React.useState(10);
+  const [paymentTerm, setPaymentTerm] = React.useState<'Monthly' | 'Yearly'>(
+    'Monthly'
+  );
   const [step, setStep] = React.useState(1);
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
@@ -98,7 +102,8 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
   const subscriptionDetails = {
     ESSENTIAL: {
       name: 'ESSENTIAL',
-      price: '116.00',
+      monthlyPrice: '116.00',
+      yearlyPrice: '89.00',
       features: [
         'Customer Management',
         'Product Management',
@@ -110,7 +115,8 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
     PLUS: {
       name: 'PLUS',
-      price: '233.00',
+      monthlyPrice: '233.00',
+      yearlyPrice: '179.00',
       features: [
         'Customer Management',
         'Product Management',
@@ -127,7 +133,8 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
     PRO: {
       name: 'PRO',
-      price: '466.00',
+      monthlyPrice: '466.00',
+      yearlyPrice: '300.00',
       features: [
         'Customer Management',
         'Product Management',
@@ -158,6 +165,13 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
         selectedSubscription as keyof typeof subscriptionDetails
       ]
     : null;
+
+  // Get the current price based on payment term
+  const currentPrice = currentPlan
+    ? paymentTerm === 'Yearly'
+      ? currentPlan.yearlyPrice
+      : currentPlan.monthlyPrice
+    : '0.00';
 
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
@@ -416,15 +430,17 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 minValue={10}
                 maxValue={20}
                 className="w-fit"
+                onChange={(value) => setNumberOfUsers(value)}
               />
 
               <ButtonRadio
                 options={subscriptionPaymentTermOptions}
                 defaultValue="Monthly"
                 value={clientForm.getValues('subscription_payment_term')}
-                onChange={(value) =>
-                  clientForm.setValue('subscription_payment_term', value)
-                }
+                onChange={(value) => {
+                  clientForm.setValue('subscription_payment_term', value);
+                  setPaymentTerm(value as 'Monthly' | 'Yearly');
+                }}
               />
 
               {currentPlan && (
@@ -447,7 +463,9 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                   </div>
                   <div className="text-sm text-gray-700 font-medium pt-2 pl-7">
                     Monthly Recurring Price:{' '}
-                    <span className="font-semibold">${currentPlan.price}</span>{' '}
+                    <span className="font-semibold">
+                      ${(Number(currentPrice) * numberOfUsers).toFixed(2)}
+                    </span>{' '}
                     <span className="text-gray-500">(EX GST)</span>
                   </div>
                 </div>
@@ -522,17 +540,17 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 <div className="border-t border-b border-[#E5E5E5] overflow-hidden">
                   <div className="flex justify-between py-4 px-4 bg-slate-50 border-b border-[#E5E5E5]">
                     <span className="text-sm font-normal">
-                      QuarryLink {clientForm.getValues('subscription')}{' '}
-                      (Monthly)
+                      QuarryLink {clientForm.getValues('subscription')} (
+                      {paymentTerm})
                     </span>
                     <span className="text-sm font-normal">
-                      ${currentPlan?.price}
+                      ${(Number(currentPrice) * numberOfUsers).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between py-4 px-4 bg-slate-50 border-b border-[#E5E5E5]">
                     <span className="text-sm font-normal">GST (10%)</span>
                     <span className="text-sm font-normal">
-                      ${(Number(currentPlan?.price) * 0.1).toFixed(2)}
+                      ${(Number(currentPrice) * numberOfUsers * 0.1).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between py-4 px-4 bg-slate-100">
@@ -542,8 +560,8 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                     <span className="text-sm font-semibold">
                       $
                       {(
-                        Number(currentPlan?.price) +
-                        Number(currentPlan?.price) * 0.1
+                        Number(currentPrice) * numberOfUsers +
+                        Number(currentPrice) * numberOfUsers * 0.1
                       ).toFixed(2)}
                     </span>
                   </div>

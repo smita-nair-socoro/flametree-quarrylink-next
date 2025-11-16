@@ -33,17 +33,17 @@ export default function ClientPortalPage() {
 
   const statsCards = [
     {
-      title: 'Total Clients',
-      value: 329,
-      percentage: 25,
-    },
-    {
       title: 'Active Clients',
       value: 329,
       percentage: 25,
     },
     {
-      title: 'MMR',
+      title: 'Problem Clients',
+      value: 329,
+      percentage: 25,
+    },
+    {
+      title: 'Monthly Recurring Revenue',
       value: 1532900,
       percentage: 10,
     },
@@ -95,7 +95,7 @@ export default function ClientPortalPage() {
 
         {statsCards.map((card) => (
           <div key={card.title} className="border rounded-md p-5 bg-white">
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
               <span className="text-[#737373] text-sm">{card.title}</span>
               <div className="flex flex-col gap-1">
                 <span className="text-2xl font-semibold">
@@ -104,7 +104,7 @@ export default function ClientPortalPage() {
                     : card.value}
                 </span>
                 <span className="text-xs text-[#737373]">
-                  {card.percentage}% from last week
+                  {card.percentage}% compared to last month
                 </span>
               </div>
             </div>
