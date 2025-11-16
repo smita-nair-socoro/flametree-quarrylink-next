@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export interface SummaryPaymentProps {
   totalProducts: number;
@@ -27,13 +28,6 @@ export function SummaryPayment({
   avatarUrl,
   avatarFallback = 'AM',
 }: SummaryPaymentProps) {
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
-
   return (
     <div className="bg-[rgba(245,245,245,0.3)] px-8 py-8 border-b-[1.25px] border-[rgba(229,229,229,1)]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -96,7 +90,7 @@ export function SummaryPayment({
                   Subtotal:
                 </span>
                 <span className="text-base font-semibold text-[rgba(10,10,10,1)]">
-                  {formatPrice(subtotal)}
+                  ${centsToDollars(subtotal)}
                 </span>
               </div>
               <Separator />
@@ -105,7 +99,7 @@ export function SummaryPayment({
                   GST (10%):
                 </span>
                 <span className="text-base font-semibold text-[rgba(10,10,10,1)]">
-                  {formatPrice(gst)}
+                  ${centsToDollars(gst)}
                 </span>
               </div>
               <Separator />
@@ -115,7 +109,7 @@ export function SummaryPayment({
                     TOTAL AMOUNT:
                   </span>
                   <span className="text-lg font-bold text-[rgba(142,81,255,1)]">
-                    {formatPrice(total)}
+                    ${centsToDollars(total)}
                   </span>
                 </div>
               </div>

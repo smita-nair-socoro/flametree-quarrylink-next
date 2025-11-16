@@ -32,12 +32,12 @@ export const mockQuotationData = {
   // Products and services
   products: [
     {
-      name: '[Product Name]',
-      code: '[Product Code]',
+      name: 'Slate Stone E3',
+      code: 'P-1224446',
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
       quantity: '120 T',
-      totalPrice: 79200.0,
+      totalPrice: 7920000.0,
     },
     {
       name: 'Slate Stone E5',
@@ -45,7 +45,7 @@ export const mockQuotationData = {
       truckType: 'Tandem',
       capacity: '85 T per delivery',
       quantity: '120 T',
-      totalPrice: 52125.0,
+      totalPrice: 5212500.0,
     },
     {
       name: 'Marble Slab B2',
@@ -53,7 +53,7 @@ export const mockQuotationData = {
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
       quantity: '120 T',
-      totalPrice: 48000.0,
+      totalPrice: 4800000.0,
     },
     {
       name: 'Sandstone Panel D4',
@@ -61,7 +61,7 @@ export const mockQuotationData = {
       truckType: 'B-Double',
       capacity: '95 T per delivery',
       quantity: '120 T',
-      totalPrice: 68500.0,
+      totalPrice: 6850000.0,
     },
     {
       name: 'Granite Block A1',
@@ -69,7 +69,7 @@ export const mockQuotationData = {
       truckType: 'Tandem',
       capacity: '60 T per delivery',
       quantity: '120 T',
-      totalPrice: 36500.0,
+      totalPrice: 3650000.0,
     },
   ],
 
@@ -83,9 +83,9 @@ export const mockQuotationData = {
       'Delivery subject to weather conditions',
       'Quote valid for 14 days from issue date',
     ],
-    subtotal: 270100.0,
-    gst: 28432.5,
-    total: 312757.5,
+    subtotal: 27010000.0,
+    gst: 2843250.0,
+    total: 31275750.0,
     avatarUrl: undefined, // Can be added when available
     avatarFallback: 'SW',
   },
