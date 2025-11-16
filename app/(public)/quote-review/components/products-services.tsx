@@ -1,5 +1,9 @@
 'use client';
 import { Separator } from '@/components/ui/separator';
+import { centsToDollars } from '@/lib/utils/currency';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { ColumnDef } from '@tanstack/react-table';
+
 export interface Product {
   name: string;
   code: string;
@@ -13,79 +17,68 @@ export interface ProductsServicesProps {
   products: Product[];
 }
 
-export function ProductsServices({ products }: ProductsServicesProps) {
-  const formatPrice = (price: number) => {
-    return `$${price.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  };
+const columns: ColumnDef<Product>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Product',
+    cell: ({ row }) => (
+      <div>
+        <p className="text-sm font-semibold text-gray-900">
+          {row.original.name}
+        </p>
+        <p className="text-xs text-gray-500 font-[Geist]">
+          {row.original.code}
+        </p>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'truckType',
+    header: 'Truck Configuration',
+    cell: ({ row }) => (
+      <div>
+        <p className="text-sm text-gray-900 font-[Geist]">
+          {row.original.truckType}
+        </p>
+        <p className="text-xs text-gray-500 font-[Geist]">
+          {row.original.capacity}
+        </p>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'quantity',
+    header: 'Quantity',
+    cell: ({ row }) => (
+      <p className="text-sm text-gray-900 font-[Geist]">
+        {row.original.quantity}
+      </p>
+    ),
+  },
+  {
+    accessorKey: 'totalPrice',
+    header: 'Total Price',
+    cell: ({ row }) => (
+      <p className="text-sm font-semibold text-gray-900 font-[Geist]">
+        ${centsToDollars(row.original.totalPrice)}
+      </p>
+    ),
+  },
+];
 
+export function ProductsServices({ products }: ProductsServicesProps) {
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">
       <h2 className="text-lg font-bold text-[rgba(142,81,255,1)] mb-3">
         Products & Services
       </h2>
       <Separator className="mb-4" />
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="text-left py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
-                Product
-              </th>
-              <th className="text-left py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
-                Truck Configuration
-              </th>
-              <th className="text-left py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
-                Quantity
-              </th>
-              <th className="text-right py-4 px-2 text-sm font-normal text-gray-700 font-[Geist]">
-                Total Price
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product, index) => (
-              <tr
-                key={index}
-                className="border-b border-gray-100 last:border-b-0"
-              >
-                <td className="py-4 px-2">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {product.name}
-                    </p>
-                    <p className="text-xs text-gray-500 font-[Geist]">
-                      {product.code}
-                    </p>
-                  </div>
-                </td>
-                <td className="py-4 px-2">
-                  <div>
-                    <p className="text-sm text-gray-900 font-[Geist]">
-                      {product.truckType}
-                    </p>
-                    <p className="text-xs text-gray-500 font-[Geist]">
-                      {product.capacity}
-                    </p>
-                  </div>
-                </td>
-                <td className="py-4 px-2">
-                  <p className="text-sm text-gray-900 font-[Geist]">
-                    {product.quantity}
-                  </p>
-                </td>
-                <td className="py-4 px-2 text-right">
-                  <p className="text-sm font-semibold text-gray-900 font-[Geist]">
-                    {formatPrice(product.totalPrice)}
-                  </p>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTableClient
+        columns={columns}
+        data={products}
+        simpleTable={true}
+        isShowHideColumns={false}
+      />
     </div>
   );
 }
