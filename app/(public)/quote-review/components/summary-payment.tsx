@@ -71,7 +71,7 @@ export function SummaryPayment({
               {termsAndConditions.map((term, index) => (
                 <li
                   key={index}
-                  className="text-sm text-[rgba(115,115,115,1)] font-[Geist] flex"
+                  className="text-sm text-[rgba(115,115,115,1)] flex"
                 >
                   <span className="mr-2">•</span>
                   <span>{term}</span>

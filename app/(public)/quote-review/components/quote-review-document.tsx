@@ -66,10 +66,10 @@ export default function QuoteReviewDocument({
               <CircleCheckBig className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-base font-medium font-[Geist]">
+              <p className="text-base font-medium">
                 {project.projectName}
               </p>
-              <div className="text-base text-[#6A7282] font-[Geist] flex flex-wrap items-center gap-2">
+              <div className="text-base text-[#6A7282] flex flex-wrap items-center gap-2">
                 <span>{navbar.quoteNumber}</span>
                 <span>•</span>
                 <span>{customer.customerName}</span>
@@ -79,7 +79,7 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-4">
-          <p className="text-base font-[Geist] text-[#364153]">
+          <p className="text-base text-[#364153]">
             Are you sure you want to approve this quote?
           </p>
           <div className="rounded-2xl border border-[#B9F8CF] bg-[#F0FDF4] p-4">
@@ -88,10 +88,10 @@ export default function QuoteReviewDocument({
                 <CircleCheckBig className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-base font-[Geist] font-medium text-[#008236]">
+                <p className="text-base font-medium text-[#008236]">
                   Quote Approval
                 </p>
-                <p className="text-sm font-[Geist] text-[#008236]">
+                <p className="text-sm text-[#008236]">
                   Your approval will be recorded and your account manager will
                   be notified. They will contact you shortly to proceed with the
                   next steps.
@@ -102,10 +102,10 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-3">
-          <p className="font-medium font-[Geist] text-base text-[#101828]">
+          <p className="font-medium text-base text-[#101828]">
             What happens when quote is approved:
           </p>
-          <ul className="space-y-2 text-sm text-[#6A7282] font-[Geist]">
+          <ul className="space-y-2 text-sm text-[#6A7282]">
             {approvalNotes.map((note) => (
               <li key={note} className="flex items-start gap-2">
                 <span className="mt-[7px] h-[4px] w-[4px] rounded-full bg-[#6A7282]"></span>
@@ -116,15 +116,15 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="rounded-xl border border-slate-100 bg-[#E5E5E5] p-3 space-y-2">
-          <div className="flex items-center justify-between text-sm text-[#6A7282] font-[Geist]">
+          <div className="flex items-center justify-between text-sm text-[#6A7282]">
             <span>Quote Total (incl. GST):</span>
-            <span className="text-base font-medium text-[#101828] font-[Geist]">
+            <span className="text-base font-medium text-[#101828]">
               {currencyFormatter.format(summary.total)}
             </span>
           </div>
-          <div className="flex items-center justify-between text-sm text-[#6A7282] font-[Geist]">
+          <div className="flex items-center justify-between text-sm text-[#6A7282]">
             <span>Customer:</span>
-            <span className="text-base text-[#364153] font-[Geist]">
+            <span className="text-base text-[#364153]">
               {customer.customerName}
             </span>
           </div>
@@ -147,10 +147,10 @@ export default function QuoteReviewDocument({
               <CircleX className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-base font-medium font-[Geist]">
+              <p className="text-base font-medium">
                 {project.projectName}
               </p>
-              <div className="text-base text-[#6A7282] font-[Geist] flex flex-wrap items-center gap-2">
+              <div className="text-base text-[#6A7282] flex flex-wrap items-center gap-2">
                 <span>{navbar.quoteNumber}</span>
                 <span>•</span>
                 <span>{customer.customerName}</span>
@@ -160,7 +160,7 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-5">
-          <p className="text-base font-[Geist] text-[#364153]">
+          <p className="text-base text-[#364153]">
             Are you sure you want to decline this quote?
           </p>
           <div className="rounded-2xl border border-[#E7000B] bg-[#FFE2E2] p-4">
@@ -169,10 +169,10 @@ export default function QuoteReviewDocument({
                 <CircleX className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-base font-medium text-[#E7000B] font-[Geist]">
+                <p className="text-base font-medium text-[#E7000B]">
                   Quote Declined
                 </p>
-                <p className="text-sm text-[#E7000B] font-[Geist]">
+                <p className="text-sm text-[#E7000B]">
                   This quote will be declined and your account manager will be
                   notified. Please contact them for further discussion, or they
                   will be in touch with you shortly.
@@ -183,10 +183,10 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-3">
-          <p className="font-medium font-[Geist] text-base text-[#101828]">
+          <p className="font-medium text-base text-[#101828]">
             What happens when quote is declined:
           </p>
-          <ul className=" text-sm text-[#6A7282] font-[Geist]">
+          <ul className=" text-sm text-[#6A7282]">
             {declineNotes.map((note) => (
               <li key={note} className="flex items-start gap-2">
                 <span className="mt-[8px] h-[4px] w-[4px] rounded-full bg-[#6A7282]"></span>
