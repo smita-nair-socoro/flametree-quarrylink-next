@@ -12,6 +12,7 @@ import { ActionDialog } from '@/components/action-dialog';
 import { CircleX, CircleCheckBig } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
+import { QuoteStatusBanner, QuoteStatus } from './quote-status-banner';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -24,9 +25,15 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(null);
 
   // TODO: Replace mock data with actual data from payloadParam or API
   const quotationData = mockQuotationData;
+
+  // State for navbar status (will be updated when user approves/declines)
+  const [navbarStatus, setNavbarStatus] = useState<'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT'>(
+    quotationData.navbar.status
+  );
 
   const handleDownloadPDF = () => {
     console.log('Download PDF clicked for quote:', quoteId);
@@ -36,12 +43,16 @@ export default function QuoteReviewDocument({
   const handleApprove = () => {
     console.log('Approve quotation:', quoteId);
     // TODO: Implement backend API call
+    setQuoteStatus('approved');
+    setNavbarStatus('APPROVED');
     setApproveDialogOpen(false);
   };
 
   const handleDecline = () => {
     console.log('Decline quotation:', quoteId);
     // TODO: Implement backend API call
+    setQuoteStatus('declined');
+    setNavbarStatus('DECLINED');
     setDeclineDialogOpen(false);
   };
 
@@ -230,7 +241,14 @@ export default function QuoteReviewDocument({
           {/* Navbar */}
           <QuoteNavbar
             {...quotationData.navbar}
+            status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
+          />
+
+          {/* Status Banner */}
+          <QuoteStatusBanner
+            status={quoteStatus}
+            accountManagerName={quotationData.navbar.accountManager}
           />
 
           {/* Customer Information */}
@@ -249,6 +267,7 @@ export default function QuoteReviewDocument({
           {/* Proceed Actions */}
           <ProceedActions
             {...quotationData.proceedActions}
+            status={quoteStatus || 'pending'}
             onApprove={() => setApproveDialogOpen(true)}
             onDecline={() => setDeclineDialogOpen(true)}
           />
