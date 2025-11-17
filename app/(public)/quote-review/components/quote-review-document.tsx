@@ -13,6 +13,7 @@ import { CircleX, CircleCheckBig } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner, QuoteStatus } from './quote-status-banner';
+import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -35,9 +36,17 @@ export default function QuoteReviewDocument({
     quotationData.navbar.status
   );
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     console.log('Download PDF clicked for quote:', quoteId);
-    window.print();
+    try {
+      await downloadQuotePdf(
+        quotationData,
+        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
+      );
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      // TODO: Show error toast to user
+    }
   };
 
   const handleApprove = () => {
