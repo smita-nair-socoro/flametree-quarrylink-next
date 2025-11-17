@@ -229,7 +229,6 @@ export const pdfStyles = StyleSheet.create({
 
   sectionWithBg: {
     marginBottom: 10,
-    backgroundColor: '#F9FAFB',
     padding: 16,
     borderRadius: 8,
   },
