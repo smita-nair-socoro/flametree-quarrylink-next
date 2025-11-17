@@ -61,7 +61,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
         {/* Top Row: Logo and Quote Number */}
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            {/* eslint-disable-next-line jsx-a11y/alt-text */}
+            {/* eslint-disable-next-line jsx-a11y/alt-text react-pdf/renderer's Image component doesn't support alt attribute */}
             <Image
               src="/quarrylink-logo.png"
               style={styles.logo}
@@ -79,7 +79,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
         <View style={styles.headerInfo}>
           {/* Left Column */}
           <View style={styles.headerColumn}>
-            <View style={{ marginBottom: 8 }}>
+            <View>
               <Text style={styles.headerLabel}>Date Issued</Text>
               <Text style={styles.headerValue}>{dateIssued}</Text>
             </View>
@@ -91,7 +91,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
 
           {/* Right Column */}
           <View style={styles.headerColumn}>
-            <View style={{ marginBottom: 8 }}>
+            <View>
               <Text style={styles.headerLabel}>Valid Until</Text>
               <Text style={styles.headerValue}>{validUntil}</Text>
             </View>

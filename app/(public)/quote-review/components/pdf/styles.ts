@@ -262,20 +262,20 @@ export const pdfStyles = StyleSheet.create({
   // Grid layouts
   twoColumn: {
     flexDirection: 'row',
-    gap: 48,
   },
 
   column: {
     flex: 1,
+    paddingRight: 24,
   },
 
   fourColumn: {
     flexDirection: 'row',
-    gap: 24,
   },
 
   quarterColumn: {
     flex: 1,
+    paddingRight: 12,
   },
 
   // Typography
