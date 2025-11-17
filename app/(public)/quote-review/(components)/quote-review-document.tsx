@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -19,11 +19,13 @@ import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 type QuoteReviewDocumentProps = {
   quoteId: string;
   payloadParam?: string;
+  initialAction?: 'approve' | 'decline';
 };
 
 export default function QuoteReviewDocument({
   quoteId,
   payloadParam, // eslint-disable-line @typescript-eslint/no-unused-vars
+  initialAction,
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
@@ -43,11 +45,21 @@ export default function QuoteReviewDocument({
     'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT'
   >(quotationData.navbar.status);
 
+  // Auto-open dialog based on initialAction prop from URL
+  useEffect(() => {
+    if (initialAction === 'approve') {
+      setApproveDialogOpen(true);
+    } else if (initialAction === 'decline') {
+      setDeclineDialogOpen(true);
+    }
+  }, [initialAction]);
+
   const handleDownloadPDF = async () => {
     console.log('Download PDF clicked for quote:', quoteId);
     try {
       await downloadQuotePdf(
         quotationData,
+        quoteId,
         `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
       );
     } catch (error) {

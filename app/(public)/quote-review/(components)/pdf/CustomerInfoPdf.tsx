@@ -22,7 +22,6 @@ export const CustomerInfoPdf: React.FC<CustomerInfoPdfProps> = ({
   return (
     <View style={styles.section}>
       <Text style={styles.sectionHeading}>Customer Information</Text>
-      <View style={styles.separator} />
 
       <View style={styles.twoColumn}>
         {/* Left Column - Customer Details */}
@@ -41,6 +40,7 @@ export const CustomerInfoPdf: React.FC<CustomerInfoPdfProps> = ({
           <Text style={styles.valueSmall}>{billingAddress.country}</Text>
         </View>
       </View>
+      <View style={styles.separator} />
     </View>
   );
 };

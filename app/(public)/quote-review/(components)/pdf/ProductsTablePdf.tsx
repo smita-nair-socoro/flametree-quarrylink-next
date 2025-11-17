@@ -22,7 +22,6 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
   return (
     <View style={styles.section}>
       <Text style={styles.sectionHeading}>Products & Services</Text>
-      <View style={styles.separator} />
 
       {/* Table Header */}
       <View style={styles.tableHeader}>

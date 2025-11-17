@@ -20,10 +20,8 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
   const isDelivery = type === 'DELIVERY';
 
   return (
-    <View style={styles.section}>
+    <View style={styles.sectionWithBg}>
       <Text style={styles.sectionHeading}>Project Details</Text>
-      <View style={styles.separator} />
-
       {/* Type Badge */}
       <View
         style={[
@@ -67,6 +65,7 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
           <Text style={styles.valueSmall}>{deliveryWindow}</Text>
         </View>
       </View>
+      <View style={styles.separator} />
     </View>
   );
 };

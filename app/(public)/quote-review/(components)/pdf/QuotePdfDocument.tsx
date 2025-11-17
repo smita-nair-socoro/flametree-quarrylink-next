@@ -72,10 +72,14 @@ export interface QuotationData {
 
 export interface QuotePdfDocumentProps {
   data: QuotationData;
+  quoteId: string;
+  baseUrl?: string;
 }
 
 export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
   data,
+  quoteId,
+  baseUrl,
 }) => {
   return (
     <Document>
@@ -95,10 +99,13 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           <ProductsTablePdf products={data.products} />
 
           {/* Summary & Payment */}
-          <SummaryPaymentPdf {...data.summary} />
-
-          {/* Note: ProceedActions (Approve/Decline buttons) are not included
-              in the PDF as they are interactive elements only relevant in the web view */}
+          <SummaryPaymentPdf
+            {...data.summary}
+            validUntil={data.navbar.validUntil}
+            accountManager={data.navbar.accountManager}
+            quoteId={quoteId}
+            baseUrl={baseUrl}
+          />
         </View>
 
         {/* Fixed Footer */}

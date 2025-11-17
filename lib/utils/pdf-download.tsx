@@ -6,19 +6,27 @@ import {
 } from '@/app/(public)/quote-review/(components)/pdf/QuotePdfDocument';
 
 /**
- * Generic function to generate and download a PDF document
- * @param PdfComponent - The React component that renders the PDF document
- * @param data - The data to pass to the PDF component
+ * Generate and download a PDF document for a quotation
+ * @param data - The quotation data to render in the PDF
+ * @param quoteId - The quote ID to include in hyperlinks
  * @param filename - The desired filename for the downloaded PDF (without .pdf extension)
+ * @param baseUrl - Optional base URL for hyperlinks (defaults to current origin)
  */
-export async function downloadPdf<T>(
-  PdfComponent: React.ComponentType<{ data: T }>,
-  data: T,
-  filename: string
+export async function downloadQuotePdf(
+  data: QuotationData,
+  quoteId: string,
+  filename: string,
+  baseUrl?: string
 ): Promise<void> {
   try {
-    // Generate PDF blob from the provided PDF component
-    const blob = await pdf(<PdfComponent data={data} />).toBlob();
+    // Generate PDF blob from the QuotePdfDocument component
+    const blob = await pdf(
+      <QuotePdfDocument
+        data={data}
+        quoteId={quoteId}
+        baseUrl={baseUrl || window.location.origin}
+      />
+    ).toBlob();
 
     // Create a temporary URL for the blob
     const url = URL.createObjectURL(blob);
@@ -37,16 +45,4 @@ export async function downloadPdf<T>(
     console.error('Failed to generate or download PDF:', error);
     throw new Error('PDF generation failed. Please try again.');
   }
-}
-
-/**
- * Generate and download a PDF document for a quotation
- * @param data - The quotation data to render in the PDF
- * @param filename - The desired filename for the downloaded PDF (without .pdf extension)
- */
-export async function downloadQuotePdf(
-  data: QuotationData,
-  filename: string
-): Promise<void> {
-  return downloadPdf(QuotePdfDocument, data, filename);
 }

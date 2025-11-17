@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
 import { centsToDollars } from '@/lib/utils/currency';
+import { ProceedActionsPdf } from './ProceedActionsPdf';
 
 export interface SummaryPaymentPdfProps {
   totalProducts: number;
@@ -11,6 +12,10 @@ export interface SummaryPaymentPdfProps {
   subtotal: number;
   gst: number;
   total: number;
+  validUntil: string;
+  accountManager: string;
+  quoteId: string;
+  baseUrl?: string;
 }
 
 export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
@@ -21,9 +26,14 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
   subtotal,
   gst,
   total,
+  validUntil,
+  accountManager,
+  quoteId,
+  baseUrl,
 }) => {
   return (
     <View style={styles.section}>
+      <View style={styles.separator} />
       <View style={styles.twoColumn}>
         {/* Left Column - Summary & Terms */}
         <View style={styles.column}>
@@ -66,16 +76,12 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
                 ${centsToDollars(subtotal)}
               </Text>
             </View>
-
-            <View style={styles.paymentSeparator} />
-
+            
             {/* GST */}
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>GST (10%):</Text>
               <Text style={styles.paymentValue}>${centsToDollars(gst)}</Text>
             </View>
-
-            <View style={styles.paymentSeparator} />
 
             {/* Total */}
             <View style={styles.totalSeparator}>
@@ -91,7 +97,15 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
       </View>
 
       {/* Purple separator line */}
-      <View style={styles.separatorPurple} />
+      <View style={styles.separator} />
+
+      {/* Proceed Actions */}
+      <ProceedActionsPdf
+        validUntil={validUntil}
+        accountManager={accountManager}
+        quoteId={quoteId}
+        baseUrl={baseUrl}
+      />
     </View>
   );
 };

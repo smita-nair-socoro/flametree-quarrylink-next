@@ -23,6 +23,13 @@ function QuoteReviewContent() {
   const searchParams = useSearchParams();
   const quoteId = searchParams.get('quoteId') || '0';
   const payload = searchParams.get('payload') || undefined;
+  const action = searchParams.get('action');
+
+  // Parse action parameter to determine if a dialog should auto-open
+  const initialAction =
+    action === 'approve' || action === 'decline'
+      ? (action as 'approve' | 'decline')
+      : undefined;
 
   // TODO: When backend is ready, fetch quote data here using quoteId
   // Example:
@@ -33,7 +40,13 @@ function QuoteReviewContent() {
   //     .then(data => setQuoteData(data));
   // }, [quoteId, payload]);
 
-  return <QuoteReviewDocument quoteId={quoteId} payloadParam={payload} />;
+  return (
+    <QuoteReviewDocument
+      quoteId={quoteId}
+      payloadParam={payload}
+      initialAction={initialAction}
+    />
+  );
 }
 
 export default function QuoteReviewPage() {

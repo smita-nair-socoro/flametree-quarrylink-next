@@ -1,9 +1,15 @@
-import { StyleSheet } from '@react-pdf/renderer';
+import { StyleSheet, Font } from '@react-pdf/renderer';
+
+// Register Geist font
+Font.register({
+  family: 'Geist',
+  src: '/fonts/Geist.ttf',
+});
 
 // Brand colors matching the web design
 export const colors = {
   // Primary brand colors
-  purple: '#8E51FF',
+  purple: '#5C34A5',
   purpleDark: '#553199',
   purpleLight: '#9F6FFF',
 
@@ -17,8 +23,7 @@ export const colors = {
   redBorder: '#FB2C36',
   yellow: '#FEF9C3',
   yellowDark: '#854D0E',
-  blue: '#3B82F6',
-  blueLight: '#DBEAFE',
+  blue: '#2B7FFF',
 
   // Neutral colors
   darkBlue: '#314158',
@@ -53,10 +58,10 @@ export const pdfStyles = StyleSheet.create({
   // Page layout
   page: {
     fontSize: fontSize.sm,
-    paddingTop: 180,
+    paddingTop: 172,
     paddingBottom: 90,
     paddingHorizontal: 40,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Geist',
     backgroundColor: colors.white,
   },
 
@@ -66,21 +71,22 @@ export const pdfStyles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 170,
-    paddingHorizontal: 40,
-    paddingVertical: 20,
+    height: 160,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 
   headerGradient: {
     backgroundColor: colors.purple,
-    padding: 28,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
   },
 
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 32,
+    marginBottom: 16,
   },
 
   headerLeft: {
@@ -89,14 +95,15 @@ export const pdfStyles = StyleSheet.create({
   },
 
   logo: {
-    width: 32,
-    height: 32,
-    marginRight: 12,
+    width: 30,
+    height: 30,
+    marginRight: 8,
   },
 
   brandName: {
-    fontSize: fontSize['2xl'],
-    fontFamily: 'Helvetica-Bold',
+    fontSize: fontSize.xl,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.white,
   },
 
@@ -105,8 +112,9 @@ export const pdfStyles = StyleSheet.create({
   },
 
   quoteNumber: {
-    fontSize: fontSize.xl,
-    fontFamily: 'Helvetica-Bold',
+    fontSize: fontSize.lg,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.white,
   },
 
@@ -128,16 +136,16 @@ export const pdfStyles = StyleSheet.create({
   headerLabel: {
     fontSize: fontSize.xs,
     color: colors.white,
-    marginBottom: 3,
-    lineHeight: 1.3,
+    marginBottom: 4,
+    lineHeight: 1.4,
   },
 
   headerValue: {
     fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.white,
-    marginBottom: 2,
-    lineHeight: 1.3,
+    lineHeight: 1.4,
   },
 
   // Status badge in header
@@ -147,12 +155,17 @@ export const pdfStyles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1,
     alignSelf: 'flex-start',
-    marginTop: 4,
+    marginTop: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   statusBadgeText: {
     fontSize: fontSize.xs,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   // Fixed footer
@@ -161,8 +174,8 @@ export const pdfStyles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 40,
-    paddingVertical: 20,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 
   footerBg: {
@@ -183,7 +196,8 @@ export const pdfStyles = StyleSheet.create({
 
   footerHeading: {
     fontSize: fontSize.base,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.white,
     marginBottom: 6,
     textAlign: 'center',
@@ -210,28 +224,32 @@ export const pdfStyles = StyleSheet.create({
 
   // Section styles
   section: {
-    marginBottom: 16,
+    marginBottom: 10,
+  },
+
+  sectionWithBg: {
+    marginBottom: 10,
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 8,
   },
 
   sectionHeading: {
     fontSize: fontSize.lg,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.purple,
-    marginBottom: 8,
+    marginBottom: 10,
   },
 
   separator: {
     borderBottomWidth: 1,
     borderBottomColor: colors.gray300,
-    marginBottom: 12,
+    marginTop: 14,
+    marginBottom: 14,
+    marginHorizontal: -40,
   },
 
-  separatorPurple: {
-    borderBottomWidth: 3,
-    borderBottomColor: colors.purple,
-    marginTop: 16,
-    marginBottom: 16,
-  },
 
   // Status banner
   statusBanner: {
@@ -254,7 +272,8 @@ export const pdfStyles = StyleSheet.create({
 
   statusBannerHeading: {
     fontSize: fontSize.lg,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     marginBottom: 6,
   },
 
@@ -266,6 +285,8 @@ export const pdfStyles = StyleSheet.create({
   // Grid layouts
   twoColumn: {
     flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',
   },
 
   column: {
@@ -285,14 +306,16 @@ export const pdfStyles = StyleSheet.create({
   // Typography
   label: {
     fontSize: fontSize.sm,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray700,
     marginBottom: 6,
   },
 
   value: {
     fontSize: fontSize.base,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
     marginBottom: 4,
   },
@@ -305,7 +328,7 @@ export const pdfStyles = StyleSheet.create({
 
   // Badge (for DELIVERY/COLLECTION)
   badge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 4,
     borderWidth: 1,
@@ -314,22 +337,25 @@ export const pdfStyles = StyleSheet.create({
   },
 
   badgeDelivery: {
-    backgroundColor: colors.blueLight,
+    backgroundColor: colors.blue,
+    borderWidth: 1,
     borderColor: colors.blue,
   },
 
   badgeCollection: {
     backgroundColor: '#FED7AA',
-    borderColor: '#EA580C',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
   },
 
   badgeText: {
     fontSize: fontSize.xs,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
   },
 
   badgeTextDelivery: {
-    color: colors.blue,
+    color: colors.white,
   },
 
   badgeTextCollection: {
@@ -358,7 +384,8 @@ export const pdfStyles = StyleSheet.create({
 
   tableHeaderText: {
     fontSize: fontSize.sm,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray700,
   },
 
@@ -385,7 +412,8 @@ export const pdfStyles = StyleSheet.create({
 
   productName: {
     fontSize: fontSize.sm,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
     marginBottom: 2,
   },
@@ -413,14 +441,16 @@ export const pdfStyles = StyleSheet.create({
 
   price: {
     fontSize: fontSize.sm,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
   },
 
   // Summary section
   summaryHeading: {
     fontSize: fontSize.base,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
     marginBottom: 12,
   },
@@ -432,13 +462,15 @@ export const pdfStyles = StyleSheet.create({
   },
 
   summaryLabel: {
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
   },
 
   // Terms list
   termsHeading: {
     fontSize: fontSize.base,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
     marginTop: 16,
     marginBottom: 8,
@@ -478,26 +510,22 @@ export const pdfStyles = StyleSheet.create({
 
   paymentLabel: {
     fontSize: fontSize.base,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
   },
 
   paymentValue: {
     fontSize: fontSize.base,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.gray900,
   },
 
-  paymentSeparator: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray300,
-    marginVertical: 8,
-  },
-
   totalSeparator: {
-    borderTopWidth: 2,
-    borderTopColor: colors.purple,
-    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray300,
+    paddingTop: 8,
     marginTop: 8,
   },
 
@@ -508,13 +536,104 @@ export const pdfStyles = StyleSheet.create({
 
   totalLabel: {
     fontSize: fontSize.lg,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.purple,
   },
 
   totalAmount: {
     fontSize: fontSize.lg,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.purple,
+  },
+
+  // Proceed Actions section
+  proceedSection: {
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    paddingVertical: 40,
+  },
+
+  proceedHeading: {
+    fontSize: fontSize['2xl'],
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+
+  proceedDescription: {
+    fontSize: fontSize.sm,
+    color: colors.gray600,
+    marginBottom: 16,
+    textAlign: 'center',
+    lineHeight: 1.5,
+    paddingHorizontal: 60,
+  },
+
+  proceedButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+
+  proceedButtonWrapper: {
+    marginHorizontal: 8,
+  },
+
+  proceedButtonLink: {
+    textDecoration: 'none',
+  },
+
+  proceedButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  proceedButtonDecline: {
+    backgroundColor: colors.red,
+  },
+
+  proceedButtonApprove: {
+    backgroundColor: colors.green,
+  },
+
+  proceedButtonText: {
+    fontSize: fontSize.base,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    textDecoration: 'none',
+  },
+
+  proceedButtonTextDecline: {
+    color: colors.white,
+  },
+
+  proceedButtonTextApprove: {
+    color: colors.white,
+  },
+
+  proceedFooter: {
+    alignItems: 'center',
+  },
+
+  proceedFooterText: {
+    fontSize: fontSize.sm,
+    color: colors.gray600,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+
+  proceedFooterHighlight: {
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
     color: colors.purple,
   },
 
