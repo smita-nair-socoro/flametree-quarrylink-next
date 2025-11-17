@@ -5,7 +5,15 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { Activity, Factory, Tags, FileText, Clock, Wallet, AlertCircle } from 'lucide-react';
+import {
+  Activity,
+  Factory,
+  Tags,
+  FileText,
+  Clock,
+  Wallet,
+  AlertCircle,
+} from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
@@ -160,12 +168,16 @@ export default function QuotationsPage() {
             <Card key={card.title} className="p-5">
               <CardContent className="p-2 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373] font-medium">{card.title}</span>
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
+                  <span className="text-sm text-[#737373] font-medium">
+                    {card.title}
+                  </span>
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
+                  >
                     <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
                   </div>
                 </div>
-                <div className="text-3xl font-bold font-[Geist] pt-2">{card.value}</div>
+                <div className="text-3xl font-bold pt-2">{card.value}</div>
                 <div className={`text-sm font-normal ${card.descriptionColor}`}>
                   {card.description}
                 </div>

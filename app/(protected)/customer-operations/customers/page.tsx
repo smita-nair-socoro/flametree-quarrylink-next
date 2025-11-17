@@ -130,7 +130,7 @@ export default function CustomersPage() {
           </FormDialog>
         </div>
       </div>
-      
+
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {statsCards.map((card) => {
@@ -139,12 +139,16 @@ export default function CustomersPage() {
             <Card key={card.title} className="p-5">
               <CardContent className="p-2 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373] font-medium">{card.title}</span>
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}>
+                  <span className="text-sm text-[#737373] font-medium">
+                    {card.title}
+                  </span>
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
+                  >
                     <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
                   </div>
                 </div>
-                <div className="text-3xl font-bold font-[Geist] pt-2">{card.value}</div>
+                <div className="text-3xl font-bold pt-2">{card.value}</div>
                 <div className={`text-sm font-normal ${card.descriptionColor}`}>
                   {card.description}
                 </div>
