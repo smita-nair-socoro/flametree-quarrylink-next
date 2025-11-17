@@ -380,5 +380,9 @@ export const APIClient = {
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`
       ),
+    create: (data: Partial<QuotationDTO>) =>
+      appClient.Post<QuotationDTO>('/socoro/quarrylink/api/quote', {
+        body: data,
+      }),
   },
 };

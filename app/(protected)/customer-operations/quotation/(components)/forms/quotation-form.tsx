@@ -38,7 +38,12 @@ import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useQuery } from '@tanstack/react-query';
-import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import {
+  QuotationDetailQueryOptions,
+  useCreateQuotation,
+} from '@/lib/api/quotation';
+import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
+import { notifyPromise } from '@/lib/toast';
 
 interface FormProps {
   id?: number;
@@ -183,7 +188,7 @@ export default function QuotationForm({
     },
   });
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const createQuotation = useCreateQuotation();
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -303,12 +308,20 @@ export default function QuotationForm({
   }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    setIsSubmitting(true);
+    // Transform form data to match backend API expectations
+    const quoteData = transformFormDataToQuoteDto(values);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log('Form submitted with values:', values);
-    setIsSubmitting(false);
+    // Use notifyPromise for automatic toast notifications
+    await notifyPromise(createQuotation.mutateAsync(quoteData), {
+      loading: 'Creating quotation...',
+      success: (data) =>
+        `Quotation ${data.quote_number} created successfully!`,
+      error: (err) =>
+        `Failed to create quotation: ${err instanceof Error ? err.message : 'Unknown error'}`,
+    });
+
+    // Close the form on success
+    onCancel?.();
   }
 
   const today = React.useMemo(() => {
@@ -378,7 +391,7 @@ export default function QuotationForm({
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {isSubmitting && (
+      {createQuotation.isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -400,7 +413,7 @@ export default function QuotationForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            isSubmitting && 'pointer-events-none'
+            createQuotation.isPending && 'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -411,7 +424,7 @@ export default function QuotationForm({
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',
               className,
-              isSubmitting && 'pointer-events-none'
+              createQuotation.isPending && 'pointer-events-none'
             )}
           >
             {/* Quote Type - Only show when creating new quote */}
@@ -859,7 +872,7 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting || !canEdit}
+                  disabled={createQuotation.isPending || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>
@@ -872,7 +885,7 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
-                  disabled={isSubmitting || !canEdit}
+                  disabled={createQuotation.isPending || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>

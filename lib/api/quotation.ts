@@ -1,6 +1,12 @@
-import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { QuotationKeys } from './keys';
+import { QuotationDTO } from '../types/quotation';
 
 export const QuotationsListQueryOptions = () =>
   queryOptions({
@@ -17,3 +23,22 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
+
+/**
+ * Mutation hook for creating a new quotation.
+ * Automatically invalidates the quotations list cache on success.
+ */
+export const useCreateQuotation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Partial<QuotationDTO>) =>
+      APIClient.quotations.create(data),
+
+    onSuccess: () => {
+      // Invalidate and refetch quotations list to show the new quotation
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
