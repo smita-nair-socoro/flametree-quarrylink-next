@@ -15,7 +15,6 @@ interface ActionDialogProps {
   customWidth?: string;
   title: string;
   titleIcon?: React.ReactNode;
-  titleSeparator?: boolean;
   description?: React.ReactNode;
   content?: React.ReactNode;
   cancelText?: string;
@@ -41,7 +40,6 @@ export function ActionDialog({
   customWidth,
   title,
   titleIcon,
-  titleSeparator = false,
   description,
   content,
   cancelText = 'Cancel',
@@ -85,8 +83,6 @@ export function ActionDialog({
             </div>
           </DialogTitle>
         </DialogHeader>
-
-        {titleSeparator && <div className="border-b border-gray-200 -mx-6" />}
 
         {description && <>{description}</>}
 
