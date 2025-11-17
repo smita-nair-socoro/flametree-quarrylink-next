@@ -1,7 +1,7 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
-import { QuotationDTO, QuoteType, QuoteStatus } from '@/lib/types/quotation';
+import type { QuotationDTO, QuoteType, QuoteStatus } from '../types/quotation';
 
-export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
+export const formatQuoteStatus = (status: QuoteStatus | string): string => {
   switch (status) {
     case QUOTE_STATUS.CONVERTED_TO_JOB:
     case 'CONVERTED_TO_JOB':
@@ -44,7 +44,8 @@ export const transformFormDataToQuoteDto = (
     customer_id: formData.customer_id as number,
     account_manager: formData.account_manager as number,
     project_name: formData.project_name as string,
-    quote_status: QuoteStatus.DRAFT, // Always DRAFT on creation
+    // Use string literal via QUOTE_STATUS and coerce to the enum type expected by QuotationDTO
+    quote_status: QUOTE_STATUS.DRAFT as unknown as QuoteStatus, // Always DRAFT on creation
     delivery_address: formData.delivery_address as string,
     delivery_start_date: formData.delivery_start_date
       ? (formData.delivery_start_date as Date).toISOString()
