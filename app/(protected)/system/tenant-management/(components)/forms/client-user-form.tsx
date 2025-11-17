@@ -16,18 +16,19 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { getRelativeTime, formatDate } from '@/lib/utils/date';
-import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
-import { useSelectedTeamMember } from '@/app/stores/team-member-store';
+import { EditClientUserFormSchema } from './schemas/client-user-form-schema';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { TableBadges } from '@/components/table-badges';
-type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
+import { User } from '@/lib/types/user';
 
-type EditTeamMemberPayload = EditTeamMemberFormValues & {
+type EditClientUserFormValues = z.infer<typeof EditClientUserFormSchema>;
+
+type EditClientUserPayload = EditClientUserFormValues & {
   id?: number;
   client_id?: number;
   created_at?: string | null;
@@ -39,36 +40,38 @@ type EditTeamMemberPayload = EditTeamMemberFormValues & {
   deletion_reason?: string;
   isDeleted?: boolean;
   updated_at?: string | null;
-  status?: string | null;
 };
 
-interface EditTeamMemberFormProps {
+interface EditClientUserFormProps {
   roles: readonly FormSelectOption[];
   currentUserId?: number | string;
-  onSave?: (updated: EditTeamMemberPayload) => void | Promise<void>;
+  initialData?: User | null;
+  onSave?: (updated: EditClientUserPayload) => void | Promise<void>;
   onCancel?: () => void;
   onSuccess?: () => void;
 }
 
-export function EditTeamMemberForm({
+type StatusValue = EditClientUserFormValues['status'];
+
+export function EditClientUserForm({
   roles,
   currentUserId,
+  initialData,
   onSave,
   onCancel,
   onSuccess,
-}: EditTeamMemberFormProps) {
+}: EditClientUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const initialData = useSelectedTeamMember();
 
   const fullName = initialData?.full_name.trim() || 'Unnamed User';
 
-  const defaultValues = React.useMemo<EditTeamMemberFormValues>(
+  const defaultValues = React.useMemo<EditClientUserFormValues>(
     () => ({
       full_name: fullName,
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
       role: initialData?.role ?? '',
-      status: initialData?.status,
+      status: normalizeStatus(initialData?.status),
     }),
     [
       fullName,
@@ -79,8 +82,8 @@ export function EditTeamMemberForm({
     ]
   );
 
-  const form = useForm<EditTeamMemberFormValues>({
-    resolver: zodResolver(EditTeamMemberFormSchema),
+  const form = useForm<EditClientUserFormValues>({
+    resolver: zodResolver(EditClientUserFormSchema),
     defaultValues,
   });
 
@@ -105,6 +108,10 @@ export function EditTeamMemberForm({
     typeof initialData?.quotation_created === 'number'
       ? initialData.quotation_created
       : 0;
+  const jobs =
+    typeof initialData?.jobs_managed === 'number'
+      ? initialData.jobs_managed
+      : 0;
 
   const disableRoleChange =
     currentUserId !== undefined &&
@@ -116,10 +123,10 @@ export function EditTeamMemberForm({
     onCancel?.();
   };
 
-  const handleSubmit = async (values: EditTeamMemberFormValues) => {
+  const handleSubmit = async (values: EditClientUserFormValues) => {
     const normalizedPhone = values.phone?.trim() || '';
 
-    const payload: EditTeamMemberPayload = {
+    const payload: EditClientUserPayload = {
       ...values,
       id: initialData?.id,
       client_id: initialData?.client_id,
@@ -146,13 +153,13 @@ export function EditTeamMemberForm({
   if (!initialData) {
     return (
       <div className="flex items-center justify-center p-8">
-        <p className="text-muted-foreground">No team member selected</p>
+        <p className="text-muted-foreground">No user selected</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <header className="rounded-lg border border-border bg-[#F9FAFB] p-4 sm:p-5">
         <div
           className={
@@ -162,7 +169,7 @@ export function EditTeamMemberForm({
           }
         >
           <Avatar className="size-14 bg-[#DBEAFE] text-lg font-semibold text-[#2563EB]">
-            <AvatarFallback className="bg-[#DBEAFE] text-base font-semibold text-[#2563EB]">
+            <AvatarFallback className="text-base font-semibold">
               {getInitials(fullName)}
             </AvatarFallback>
           </Avatar>
@@ -170,9 +177,8 @@ export function EditTeamMemberForm({
             <span className="text-lg font-semibold text-foreground">
               {fullName}
             </span>
-            <TableBadges names={initialData.status} visibleCount={1} />
-            <span className="text-[16px] text-[#4B5563]">{initialData.email}</span>
-            <span className="text-[14px] text-[#6B7280]">
+            <span className="text-sm text-[#4B5563]">{initialData.email}</span>
+            <span className="font-sm text-[#6B7280]">
               Joined: {formattedJoined}
             </span>
           </div>
@@ -182,9 +188,9 @@ export function EditTeamMemberForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-2 mt-2"
+          className="flex flex-col gap-4"
         >
-          <section className="space-y-3">
+          <section className="space-y-4">
             <div>
               <h3 className="text-base font-semibold text-foreground">
                 User Information
@@ -192,7 +198,7 @@ export function EditTeamMemberForm({
               <Separator className="mt-2" />
             </div>
 
-            <div className={isDesktop ? 'grid gap-2 grid-cols-2' : 'space-y-4'}>
+            <div className={isDesktop ? 'grid gap-4 grid-cols-2' : 'space-y-4'}>
               <FormField
                 control={form.control}
                 name="full_name"
@@ -246,15 +252,21 @@ export function EditTeamMemberForm({
           </section>
 
           <section>
-            <div className="flex flex-col gap-0">
+            <div className="flex flex-col gap-1">
               <h3 className="text-base font-semibold text-foreground">
                 Role &amp; Status
               </h3>
               <Separator className="mt-2" />
             </div>
 
-            <div className={isDesktop ? 'mt-4 mb-0' : 'space-y-4 mt-4'}>
-              <FormSelect<EditTeamMemberFormValues>
+            <div
+              className={
+                isDesktop
+                  ? 'grid gap-4 grid-cols-2 mt-4 mb-0'
+                  : 'space-y-4 mt-4'
+              }
+            >
+              <FormSelect<EditClientUserFormValues>
                 control={form.control}
                 name="role"
                 label="Role*"
@@ -263,6 +275,50 @@ export function EditTeamMemberForm({
                 placeholder="Select role"
                 showSearch={false}
                 disabled={disableRoleChange}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Account Status</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        className={
+                          isDesktop
+                            ? 'flex flex-row gap-8'
+                            : 'flex flex-col gap-2'
+                        }
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem value="ACTIVE" id="status-active" />
+                          <FormLabel
+                            htmlFor="status-active"
+                            className="font-normal"
+                          >
+                            Active
+                          </FormLabel>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="INACTIVE"
+                            id="status-inactive"
+                          />
+                          <FormLabel
+                            htmlFor="status-inactive"
+                            className="font-normal"
+                          >
+                            Inactive
+                          </FormLabel>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
 
@@ -284,11 +340,14 @@ export function EditTeamMemberForm({
                   : 'flex flex-col gap-2'
               }
             >
-              <div className="w-full">
+              <div className={isDesktop ? 'w-4/5' : 'w-full'}>
                 <h3 className="text-base font-semibold text-foreground mb-2">
                   Activity Summary
                 </h3>
                 <Separator />
+              </div>
+              <div className="text-[14px] text-[#18181B]">
+                View Full Activity
               </div>
             </div>
 
@@ -303,6 +362,7 @@ export function EditTeamMemberForm({
                 <p className="text-sm">
                   Quotations Created: {quotations.toLocaleString()}
                 </p>
+                <p className="text-sm">Jobs Managed: {jobs.toLocaleString()}</p>
               </div>
             </div>
           </section>
@@ -340,4 +400,9 @@ function getInitials(name: string | undefined): string {
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('');
   return initials.slice(0, 2) || '?';
+}
+
+function normalizeStatus(status: string | undefined | null): StatusValue {
+  if (status === 'INACTIVE') return 'INACTIVE';
+  return 'ACTIVE';
 }

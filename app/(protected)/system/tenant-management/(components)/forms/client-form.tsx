@@ -37,7 +37,7 @@ import { InputWithPlusMinusButtons } from '@/components/ui/input-with-plus-minus
 import { Client } from '@/lib/types/client';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJsonWithClientWithUsers from '@/lib/tests/clientWithUsersResponseData.json';
-import { TeamMember } from '@/lib/types/user';
+import { User } from '@/lib/types/user';
 
 interface FormProps {
   id?: number;
@@ -81,6 +81,10 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
         : '',
       abn: isEditing ? selectedClient?.abn || '' : '',
       billing_address: '',
+      created_by: isEditing ? selectedClient?.created_by || '' : '',
+      last_modified_by: isEditing ? selectedClient?.last_modified_by || '' : '',
+      created_at: isEditing ? selectedClient?.created_at || '' : '',
+      updated_at: isEditing ? selectedClient?.updated_at || '' : '',
     },
   });
 
@@ -199,10 +203,10 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
       const detailedClient = detailedItems.find(
         (client) => client.id === selectedClient.id
       );
-      const users = (detailedClient?.user || []) as TeamMember[];
-      return convertKeysToSnakeCase(users) as TeamMember[];
+      const users = (detailedClient?.user || []) as User[];
+      return convertKeysToSnakeCase(users) as User[];
     }
-    return [] as TeamMember[];
+    return [] as User[];
   }, [isEditing, selectedClient?.id]);
 
   const tabs = [
@@ -588,6 +592,69 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 tabsClassName=""
                 tabsTriggerClassName=""
               />
+            </div>
+          )}
+
+          {/* Audit Information */}
+          {isEditing && (
+            <div className="col-span-full space-y-6 mt-10">
+              <h2 className="text-2xl font-bold">Audit Information</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedClient?.created_by || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedClient?.last_modified_by || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedClient?.created_at
+                      ? new Date(selectedClient.created_at).toLocaleDateString(
+                          'en-AU',
+                          {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          }
+                        )
+                      : 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedClient?.updated_at
+                      ? new Date(selectedClient.updated_at).toLocaleDateString(
+                          'en-AU',
+                          {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          }
+                        )
+                      : 'N/A'}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

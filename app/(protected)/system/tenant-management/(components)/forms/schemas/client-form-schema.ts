@@ -34,4 +34,8 @@ export const ClientFormSchema = z.object({
     }),
   // billing_address: z.string().trim().min(1, 'Required'),
   billing_address: z.string().optional(),
+  created_by: z.string().optional(),
+  last_modified_by: z.string().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 });
