@@ -2,7 +2,7 @@ import { pdf } from '@react-pdf/renderer';
 import {
   QuotePdfDocument,
   QuotationData,
-} from '@/app/(public)/quote-review/components/pdf/QuotePdfDocument';
+} from '@/app/(public)/quote-review/(components)/pdf/QuotePdfDocument';
 
 /**
  * Generate and download a PDF document for a quotation
