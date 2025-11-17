@@ -94,8 +94,6 @@ interface DataTableProps<TData, TValue> {
   rowSelectionFilter?: (row: TData) => boolean; // Filter which rows can be selected
   bulkActionsSlot?: React.ReactNode; // Slot for bulk action buttons
   allowClicksInsideModal?: boolean; // Allow row clicks when table is inside a modal/dialog (default: false)
-  selectedRowClassName?: string; // Custom Tailwind classes for selected rows
-  checkboxClassName?: string; // Custom Tailwind classes for checkboxes
 }
 
 export type FacetDefinition = {
@@ -139,8 +137,6 @@ export function DataTableClient<TData, TValue>({
   onRowSelectionChange,
   rowSelectionFilter,
   bulkActionsSlot,
-  selectedRowClassName = '',
-  checkboxClassName = '',
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -339,7 +335,7 @@ export function DataTableClient<TData, TValue>({
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
-          className={checkboxClassName}
+          className={'data-[state=checked]:bg-[#1D2B41]'}
         />
       ),
       cell: ({ row }) => (
@@ -348,7 +344,7 @@ export function DataTableClient<TData, TValue>({
           onCheckedChange={(value) => row.toggleSelected(!!value)}
           aria-label="Select row"
           disabled={!row.getCanSelect()}
-          className={checkboxClassName}
+          className={'data-[state=checked]:bg-[#1D2B41]'}
         />
       ),
       enableSorting: false,
@@ -356,7 +352,7 @@ export function DataTableClient<TData, TValue>({
     };
 
     return [checkboxColumn, ...columns];
-  }, [columns, enableRowSelection, checkboxClassName]);
+  }, [columns, enableRowSelection]);
 
   // Define the filter function
   const arrIncludesSome: FilterFn<TData> = (row, columnId, filterValues) => {
@@ -744,11 +740,11 @@ export function DataTableClient<TData, TValue>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
-                      simpleTable &&
-                        'border-b border-border hover:bg-transparent',
-                      !simpleTable && 'bg-white hover:bg-gray-100',
-                      onRowClick && !simpleTable && 'cursor-pointer',
-                      row.getIsSelected() && selectedRowClassName
+                      simpleTable
+                        ? 'border-b border-border hover:bg-transparent'
+                        : 'bg-white hover:bg-gray-100',
+                      !simpleTable && onRowClick && 'cursor-pointer',
+                      row.getIsSelected() && '!bg-[#EFF6FF] hover:!bg-blue-100'
                     )}
                     onClick={(e) => {
                       // Prevent row click if clicking on buttons or interactive elements

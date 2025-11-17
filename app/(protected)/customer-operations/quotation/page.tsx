@@ -150,8 +150,7 @@ export default function QuotationsPage() {
             onRowClick={handleRowClick}
             enableRowSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
-            selectedRowClassName="!bg-[#EFF6FF] hover:!bg-blue-100"
-            checkboxClassName="data-[state=checked]:bg-[#1D2B41]"
+            // bulkActions={true}
             bulkActionsSlot={
               <QuotationBulkActions
                 selectedQuotations={selectedQuotations}
