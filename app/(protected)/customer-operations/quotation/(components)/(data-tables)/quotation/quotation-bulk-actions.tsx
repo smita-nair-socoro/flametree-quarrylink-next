@@ -89,28 +89,30 @@ export function QuotationBulkActions({
 
           {/* Tabs - full width */}
           <div className="flex border-b w-full">
-            <button
+            <Button
+              variant="outline"
               onClick={() => setActiveTab('archivable')}
               className={cn(
-                'flex-1 py-2 px-6 text-sm font-medium border-b-2 transition-colors',
+                'border-0 flex-1 py-2 px-6 text-sm font-medium border-b-2 transition-colors rounded-none',
                 activeTab === 'archivable'
-                  ? 'border-green-500 text-green-700'
+                  ? 'border-green-500 text-green-700 border-b-2'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               )}
             >
               Can be Archived ({archivable.length})
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => setActiveTab('non-archivable')}
               className={cn(
-                'flex-1 py-2 px-6 text-sm font-medium border-b-2 transition-colors',
+                'border-0 flex-1 py-2 px-6 text-sm font-medium border-b-2 transition-colors rounded-none',
                 activeTab === 'non-archivable'
-                  ? 'border-red-500 text-red-700'
+                  ? 'border-red-500 text-red-700 border-b-2'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               )}
             >
               Cannot be Archived ({nonArchivable.length})
-            </button>
+            </Button>
           </div>
 
           {/* Content with padding */}
@@ -203,10 +205,8 @@ export function QuotationBulkActions({
             )}
           </div>
 
-          {/* Full-width separator above buttons */}
           <div className="border-t border-gray-200" />
 
-          {/* Buttons with padding */}
           <div
             className={cn(
               'px-6 pb-6 pt-4',
@@ -228,12 +228,7 @@ export function QuotationBulkActions({
             </Button>
             {activeTab === 'archivable' && archivable.length > 0 && (
               <Button
-                className="h-10"
-                style={{
-                  backgroundColor: '#6B7280',
-                  borderColor: '#6B7280',
-                  color: 'white',
-                }}
+                className="h-10 bg-[#6B7280] border-[#6B7280] text-white"
                 onClick={handleArchive}
               >
                 <span className="pr-[7px] h-4 w-4 flex items-center justify-center">
@@ -248,17 +243,18 @@ export function QuotationBulkActions({
 
       {/* Bulk Actions Toolbar */}
       <div className="flex items-center justify-between gap-4 rounded-md border p-3 bg-[#EFF6FF] border-[#BEDBFF]">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
           <p className="text-sm font-medium">
             {selectedQuotations.length}{' '}
             {selectedQuotations.length === 1 ? 'item' : 'items'} selected
           </p>
-          <button
+          <Button
+            variant="link"
             onClick={onClearSelection}
-            className="text-sm text-[#155DFC] underline"
+            className="text-sm text-[#155DFC] underline cursor-pointer"
           >
             Clear Selection
-          </button>
+          </Button>
         </div>
         <div className="flex items-center gap-2">
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
