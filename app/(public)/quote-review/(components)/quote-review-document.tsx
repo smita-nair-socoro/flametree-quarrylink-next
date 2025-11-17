@@ -25,7 +25,43 @@ export default function QuoteReviewDocument({
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
 
-  // TODO: Replace mock data with actual data from payloadParam or API
+  /**
+   * CURRENT STATE: Using hardcoded mock data for all quotes
+   * This is intentional for static site deployment (no dynamic data fetching during build)
+   *
+   * FUTURE BACKEND INTEGRATION:
+   * When backend API is ready, replace mock data with actual API call:
+   *
+   * const [quotationData, setQuotationData] = useState(null);
+   * const [isLoading, setIsLoading] = useState(true);
+   *
+   * useEffect(() => {
+   *   async function fetchQuoteData() {
+   *     try {
+   *       const response = await fetch(
+   *         `${process.env.NEXT_PUBLIC_API_URL}/quotes/${quoteId}`,
+   *         {
+   *           headers: {
+   *             'Content-Type': 'application/json',
+   *             ...(payloadParam && { 'X-Payload': payloadParam }),
+   *           },
+   *         }
+   *       );
+   *       const data = await response.json();
+   *       setQuotationData(data);
+   *     } catch (error) {
+   *       console.error('Failed to fetch quote:', error);
+   *       // Handle error (show error UI, redirect, etc.)
+   *     } finally {
+   *       setIsLoading(false);
+   *     }
+   *   }
+   *   fetchQuoteData();
+   * }, [quoteId, payloadParam]);
+   *
+   * if (isLoading) return <LoadingSpinner />;
+   * if (!quotationData) return <ErrorMessage />;
+   */
   const quotationData = mockQuotationData;
 
   const handleDownloadPDF = () => {
@@ -33,15 +69,80 @@ export default function QuoteReviewDocument({
     window.print();
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);
-    // TODO: Implement backend API call
+
+    /**
+     * TODO: Implement backend API call when ready
+     *
+     * Example implementation:
+     * try {
+     *   const response = await fetch(
+     *     `${process.env.NEXT_PUBLIC_API_URL}/quotes/${quoteId}/approve`,
+     *     {
+     *       method: 'POST',
+     *       headers: {
+     *         'Content-Type': 'application/json',
+     *         ...(payloadParam && { 'X-Payload': payloadParam }),
+     *       },
+     *       body: JSON.stringify({
+     *         timestamp: new Date().toISOString(),
+     *       }),
+     *     }
+     *   );
+     *
+     *   if (!response.ok) throw new Error('Failed to approve quote');
+     *
+     *   const result = await response.json();
+     *   console.log('Quote approved:', result);
+     *
+     *   // Show success message and/or redirect
+     *   // router.push('/quote-approved');
+     * } catch (error) {
+     *   console.error('Error approving quote:', error);
+     *   // Show error message to user
+     * }
+     */
+
     setApproveDialogOpen(false);
   };
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
     console.log('Decline quotation:', quoteId);
-    // TODO: Implement backend API call
+
+    /**
+     * TODO: Implement backend API call when ready
+     *
+     * Example implementation:
+     * try {
+     *   const response = await fetch(
+     *     `${process.env.NEXT_PUBLIC_API_URL}/quotes/${quoteId}/decline`,
+     *     {
+     *       method: 'POST',
+     *       headers: {
+     *         'Content-Type': 'application/json',
+     *         ...(payloadParam && { 'X-Payload': payloadParam }),
+     *       },
+     *       body: JSON.stringify({
+     *         timestamp: new Date().toISOString(),
+     *         // reason: declineReason, // Optional: add reason field
+     *       }),
+     *     }
+     *   );
+     *
+     *   if (!response.ok) throw new Error('Failed to decline quote');
+     *
+     *   const result = await response.json();
+     *   console.log('Quote declined:', result);
+     *
+     *   // Show success message and/or redirect
+     *   // router.push('/quote-declined');
+     * } catch (error) {
+     *   console.error('Error declining quote:', error);
+     *   // Show error message to user
+     * }
+     */
+
     setDeclineDialogOpen(false);
   };
 
