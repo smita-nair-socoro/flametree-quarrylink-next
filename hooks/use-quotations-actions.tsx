@@ -61,8 +61,8 @@ const openQuotePreviewWindow = (
   const encodedPayload = encodeQuotationPayload(quotationData);
   if (!encodedPayload) return;
 
-  // Use dynamic route with payload parameter
-  const previewUrl = `/quote-review/${quotationId}?payload=${encodedPayload}`;
+  // Use search params for static site compatibility (S3 + CloudFront)
+  const previewUrl = `/quote-review?quoteId=${quotationId}&payload=${encodedPayload}`;
   window.open(previewUrl, '_blank', 'noopener,noreferrer');
 };
 
