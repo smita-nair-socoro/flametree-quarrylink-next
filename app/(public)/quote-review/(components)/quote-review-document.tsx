@@ -13,7 +13,7 @@ import { CircleX, CircleCheckBig } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner, QuoteStatus } from './quote-status-banner';
-import { downloadQuotePdf } from '@/lib/utils/pdf-download';
+import { downloadQuotePdf } from '@/app/(public)/quote-review/(components)/pdf/pdf-download';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
