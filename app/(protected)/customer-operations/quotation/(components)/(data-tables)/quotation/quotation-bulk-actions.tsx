@@ -128,11 +128,11 @@ export function QuotationBulkActions({
                         className="flex items-center justify-between rounded-md border p-3 bg-[#F9FAFB]"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="font-medium text-base font-[geist]">
+                          <span className="font-medium text-base">
                             {quotation.quote_number}
                           </span>
                           <span className="text-[#364153] text-base">•</span>
-                          <span className="text-base text-[#364153] font-[geist]">
+                          <span className="text-base text-[#364153]">
                             {quotation.customer_name}
                           </span>
                           <span className="text-gray-600 text-base">•</span>
@@ -174,11 +174,11 @@ export function QuotationBulkActions({
                         className="flex items-center justify-between rounded-md border p-3 bg-[#F9FAFB]"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="font-medium text-base font-[geist]">
+                          <span className="font-medium text-base">
                             {quotation.quote_number}
                           </span>
                           <span className="text-gray-600 text-base">•</span>
-                          <span className="text-base text-[#364153] font-[geist]">
+                          <span className="text-base text-[#364153]">
                             {quotation.customer_name}
                           </span>
                           <span className="text-gray-600 text-base">•</span>
