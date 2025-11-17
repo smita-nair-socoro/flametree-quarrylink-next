@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { centsToDollars } from '@/lib/utils/currency';
 
@@ -25,8 +24,6 @@ export function SummaryPayment({
   subtotal,
   gst,
   total,
-  avatarUrl,
-  avatarFallback = 'AM',
 }: SummaryPaymentProps) {
   return (
     <div className="bg-[rgba(245,245,245,0.3)] px-8 py-8 border-b-[1.25px] border-[rgba(229,229,229,1)]">
@@ -43,12 +40,6 @@ export function SummaryPayment({
                 <span className="text-sm font-bold">Total Products:</span>{' '}
                 {totalProducts} items
               </p>
-              {avatarUrl && (
-                <Avatar className="w-10 h-10 border-2 border-green-500">
-                  <AvatarImage src={avatarUrl} alt="Account Manager" />
-                  <AvatarFallback>{avatarFallback}</AvatarFallback>
-                </Avatar>
-              )}
             </div>
 
             <p className="text-sm text-gray-900">
