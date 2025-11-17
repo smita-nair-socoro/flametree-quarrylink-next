@@ -12,8 +12,6 @@ export interface SummaryPaymentProps {
   subtotal: number;
   gst: number;
   total: number;
-  avatarUrl?: string;
-  avatarFallback?: string;
 }
 
 export function SummaryPayment({

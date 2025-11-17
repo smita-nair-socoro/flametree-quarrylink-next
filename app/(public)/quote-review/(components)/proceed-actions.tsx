@@ -6,8 +6,6 @@ import { Card } from '@/components/ui/card';
 export interface ProceedActionsProps {
   validUntil: string;
   accountManager: string;
-  avatarUrl?: string;
-  avatarFallback?: string;
   onApprove: () => void;
   onDecline: () => void;
 }
@@ -15,13 +13,11 @@ export interface ProceedActionsProps {
 export function ProceedActions({
   validUntil,
   accountManager,
-
   onApprove,
   onDecline,
 }: ProceedActionsProps) {
   return (
     <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
-
       {/* Heading Section */}
       <div className="text-center mb-12">
         <h2 className="text-[28px] font-bold text-[rgba(10,10,10,1)] mb-4">
@@ -56,13 +52,13 @@ export function ProceedActions({
       <Card className="max-w-lg mx-auto bg-white border border-[#E5E5E5] shadow-sm mb-10">
         <div className="p-4 text-center">
           <p className="mb-4 text-sm  text-[#737373]">
-            This quotation is valid until{" "}
+            This quotation is valid until{' '}
             <span className="font-bold text-[#8E51FF]">{validUntil}</span>
           </p>
 
           <p className="text-sm text-[#737373]">
-            Need assistance? Contact your account manager{" "}
-            <span className="font-semibold text-[#8E51FF]"> 
+            Need assistance? Contact your account manager{' '}
+            <span className="font-semibold text-[#8E51FF]">
               {accountManager}
             </span>
           </p>
