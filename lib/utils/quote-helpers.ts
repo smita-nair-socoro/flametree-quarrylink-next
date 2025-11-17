@@ -1,5 +1,5 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
-import { QuotationDTO } from '../types/quotation';
+import { QuotationDTO, QuoteType, QuoteStatus } from '../types/quotation';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -40,11 +40,11 @@ export const transformFormDataToQuoteDto = (
   formData: Record<string, unknown>
 ): Partial<QuotationDTO> => {
   return {
-    quote_type: formData.quote_type as 'DELIVERY' | 'COLLECTION',
+    quote_type: formData.quote_type as QuoteType,
     customer_id: formData.customer_id as number,
     account_manager: formData.account_manager as number,
     project_name: formData.project_name as string,
-    quote_status: 'DRAFT', // Always DRAFT on creation
+    quote_status: QuoteStatus.DRAFT, // Always DRAFT on creation
     delivery_address: formData.delivery_address as string,
     delivery_start_date: formData.delivery_start_date
       ? (formData.delivery_start_date as Date).toISOString()
