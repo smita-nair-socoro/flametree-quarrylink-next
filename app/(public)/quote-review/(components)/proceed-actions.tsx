@@ -7,9 +7,6 @@ import { CircleCheck, CircleX } from 'lucide-react';
 export interface ProceedActionsProps {
   validUntil: string;
   accountManager: string;
-  avatarUrl?: string;
-  avatarFallback?: string;
-  status?: 'pending' | 'approved' | 'declined';
   onApprove: () => void;
   onDecline: () => void;
 }
@@ -17,7 +14,6 @@ export interface ProceedActionsProps {
 export function ProceedActions({
   validUntil,
   accountManager,
-  status = 'pending',
   onApprove,
   onDecline,
 }: ProceedActionsProps) {
