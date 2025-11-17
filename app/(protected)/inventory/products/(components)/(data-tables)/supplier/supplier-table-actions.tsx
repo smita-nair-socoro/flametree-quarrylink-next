@@ -11,6 +11,7 @@ import {
 import { useSupplierActions } from '@/hooks/use-supplier-actions';
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { useSupplierStore } from '@/app/stores/supplier-store';
+import { Separator } from '@/components/ui/separator';
 
 interface SupplierTableActionProps {
   quarry: QuarriesWithProduct;
@@ -33,10 +34,10 @@ export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
     actions.view();
   };
 
-  const handleRemoveSupplier = () => {
+  const handleDeleteSupplier = () => {
     setSelectedSupplier(quarry);
     setDropdownOpen(false); // Close dropdown before opening modal
-    actions.remove();
+    actions.delete();
   };
 
   return (
@@ -54,9 +55,10 @@ export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleRemoveSupplier}>
+          <Separator />
+          <DropdownMenuItem onClick={handleDeleteSupplier}>
             <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-            Remove
+            <span className="text-destructive">Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
