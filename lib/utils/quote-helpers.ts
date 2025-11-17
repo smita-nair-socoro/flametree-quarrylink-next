@@ -1,5 +1,5 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
-import { QuotationDTO, QuoteType, QuoteStatus } from '../types/quotation';
+import { QuotationDTO, QuoteType, QuoteStatus } from '@/lib/types/quotation';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
