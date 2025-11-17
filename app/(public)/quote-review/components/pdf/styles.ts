@@ -53,7 +53,7 @@ export const pdfStyles = StyleSheet.create({
   // Page layout
   page: {
     fontSize: fontSize.sm,
-    paddingTop: 130,
+    paddingTop: 180,
     paddingBottom: 90,
     paddingHorizontal: 40,
     fontFamily: 'Helvetica',
@@ -66,21 +66,21 @@ export const pdfStyles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 120,
+    height: 170,
     paddingHorizontal: 40,
     paddingVertical: 20,
   },
 
   headerGradient: {
     backgroundColor: colors.purple,
-    padding: 20,
+    padding: 28,
   },
 
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 32,
   },
 
   headerLeft: {
@@ -89,13 +89,13 @@ export const pdfStyles = StyleSheet.create({
   },
 
   logo: {
-    width: 40,
-    height: 40,
+    width: 32,
+    height: 32,
     marginRight: 12,
   },
 
   brandName: {
-    fontSize: fontSize['4xl'],
+    fontSize: fontSize['2xl'],
     fontFamily: 'Helvetica-Bold',
     color: colors.white,
   },
@@ -105,13 +105,13 @@ export const pdfStyles = StyleSheet.create({
   },
 
   quoteNumber: {
-    fontSize: fontSize['3xl'],
+    fontSize: fontSize.xl,
     fontFamily: 'Helvetica-Bold',
     color: colors.white,
   },
 
   quotationLabel: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: colors.white,
     marginTop: 2,
   },
@@ -122,24 +122,28 @@ export const pdfStyles = StyleSheet.create({
 
   headerColumn: {
     flex: 1,
-    paddingRight: 20,
+    paddingRight: 30,
   },
 
   headerLabel: {
-    fontSize: fontSize.sm,
+    fontSize: fontSize.xs,
     color: colors.white,
+    marginBottom: 3,
+    lineHeight: 1.3,
   },
 
   headerValue: {
-    fontSize: fontSize.base,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: colors.white,
+    marginBottom: 2,
+    lineHeight: 1.3,
   },
 
   // Status badge in header
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     borderRadius: 4,
     borderWidth: 1,
     alignSelf: 'flex-start',

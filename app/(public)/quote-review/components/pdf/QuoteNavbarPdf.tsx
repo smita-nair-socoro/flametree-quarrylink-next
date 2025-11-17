@@ -80,7 +80,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
         <View style={styles.headerInfo}>
           {/* Left Column */}
           <View style={styles.headerColumn}>
-            <View>
+            <View style={{ marginBottom: 16 }}>
               <Text style={styles.headerLabel}>Date Issued</Text>
               <Text style={styles.headerValue}>{dateIssued}</Text>
             </View>
@@ -92,7 +92,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
 
           {/* Right Column */}
           <View style={styles.headerColumn}>
-            <View>
+            <View style={{ marginBottom: 16 }}>
               <Text style={styles.headerLabel}>Valid Until</Text>
               <Text style={styles.headerValue}>{validUntil}</Text>
             </View>
