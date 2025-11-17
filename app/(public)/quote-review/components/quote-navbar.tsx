@@ -54,7 +54,7 @@ export function QuoteNavbar({
 
           <div className="text-right">
             <div className="text-[29px] font-bold">{quoteNumber}</div>
-            <div className="text-sm text-white font-[Geist]">QUOTATION</div>
+            <div className="text-sm text-white">QUOTATION</div>
           </div>
         </div>
       </div>
@@ -64,11 +64,11 @@ export function QuoteNavbar({
         {/* Left Column */}
         <div className="space-y-2">
           <div>
-            <div className="text-sm text-white font-[Geist]">Date Issued</div>
+            <div className="text-sm text-white">Date Issued</div>
             <div className="text-[15px] font-medium">{dateIssued}</div>
           </div>
           <div>
-            <div className="text-sm text-white font-[Geist]">Account Manager</div>
+            <div className="text-sm text-white">Account Manager</div>
             <div className="text-[15px] font-medium">{accountManager}</div>
           </div>
         </div>
@@ -76,11 +76,11 @@ export function QuoteNavbar({
         {/* Right Column */}
         <div className="space-y-2">
           <div>
-            <div className="text-sm text-white font-[Geist]">Valid Until</div>
+            <div className="text-sm text-white">Valid Until</div>
             <div className="text-[15px] font-medium">{validUntil}</div>
           </div>
           <div>
-            <div className="text-sm text-white font-[Geist]">Status</div>
+            <div className="text-sm text-white">Status</div>
             <TableBadges names={status} visibleCount={1} />
           </div>
         </div>

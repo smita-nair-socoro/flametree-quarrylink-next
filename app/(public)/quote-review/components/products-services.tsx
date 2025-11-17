@@ -26,7 +26,7 @@ const columns: ColumnDef<Product>[] = [
         <p className="text-sm font-semibold text-gray-900">
           {row.original.name}
         </p>
-        <p className="text-xs text-gray-500 font-[Geist]">
+        <p className="text-xs text-gray-500">
           {row.original.code}
         </p>
       </div>
@@ -37,10 +37,10 @@ const columns: ColumnDef<Product>[] = [
     header: 'Truck Configuration',
     cell: ({ row }) => (
       <div>
-        <p className="text-sm text-gray-900 font-[Geist]">
+        <p className="text-sm text-gray-900">
           {row.original.truckType}
         </p>
-        <p className="text-xs text-gray-500 font-[Geist]">
+        <p className="text-xs text-gray-500">
           {row.original.capacity}
         </p>
       </div>
@@ -50,7 +50,7 @@ const columns: ColumnDef<Product>[] = [
     accessorKey: 'quantity',
     header: 'Quantity',
     cell: ({ row }) => (
-      <p className="text-sm text-gray-900 font-[Geist]">
+      <p className="text-sm text-gray-900">
         {row.original.quantity}
       </p>
     ),
@@ -59,7 +59,7 @@ const columns: ColumnDef<Product>[] = [
     accessorKey: 'totalPrice',
     header: 'Total Price',
     cell: ({ row }) => (
-      <p className="text-sm font-semibold text-gray-900 font-[Geist]">
+      <p className="text-sm font-semibold text-gray-900">
         ${centsToDollars(row.original.totalPrice)}
       </p>
     ),

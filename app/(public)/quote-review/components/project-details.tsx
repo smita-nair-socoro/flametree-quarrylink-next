@@ -34,7 +34,7 @@ export function ProjectDetails({
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Project Name
           </h3>
-          <p className="text-sm text-gray-600  font-[Geist]">{projectName}</p>
+          <p className="text-sm text-gray-600">{projectName}</p>
         </div>
 
         {/* Delivery Address */}
@@ -42,7 +42,7 @@ export function ProjectDetails({
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Address
           </h3>
-          <p className="text-sm text-gray-600  font-[Geist]">
+          <p className="text-sm text-gray-600">
             {deliveryAddress}
           </p>
         </div>
@@ -52,7 +52,7 @@ export function ProjectDetails({
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Date
           </h3>
-          <p className="text-sm text-gray-600  font-[Geist]">{deliveryDate}</p>
+          <p className="text-sm text-gray-600">{deliveryDate}</p>
         </div>
 
         {/* Delivery Window */}
@@ -60,7 +60,7 @@ export function ProjectDetails({
           <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Window
           </h3>
-          <p className="text-sm text-gray-600 font-[Geist]">{deliveryWindow}</p>
+          <p className="text-sm text-gray-60">{deliveryWindow}</p>
         </div>
       </div>
     </div>

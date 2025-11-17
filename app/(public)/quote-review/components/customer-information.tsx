@@ -31,9 +31,9 @@ export function CustomerInformation({
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Customer</h3>
           <div className="space-y-2">
-            <p className="text-base font-semibold text-gray-900 font-[Geist]">{customerName}</p>
-            <p className="text-sm text-gray-600 font-[Geist]">{email}</p>
-            <p className="text-sm text-gray-600 font-[Geist]">Phone: {phone}</p>
+            <p className="text-base font-semibold text-gray-900">{customerName}</p>
+            <p className="text-sm text-gray-600">{email}</p>
+            <p className="text-sm text-gray-600">Phone: {phone}</p>
           </div>
         </div>
 
@@ -43,9 +43,9 @@ export function CustomerInformation({
             Billing Address
           </h3>
           <div className="space-y-1">
-            <p className="text-sm text-gray-600 font-[Geist]">{billingAddress.line1}</p>
-            <p className="text-sm text-gray-600 font-[Geist]">{billingAddress.line2}</p>
-            <p className="text-sm text-gray-600 font-[Geist]">{billingAddress.country}</p>
+            <p className="text-sm text-gray-600">{billingAddress.line1}</p>
+            <p className="text-sm text-gray-600">{billingAddress.line2}</p>
+            <p className="text-sm text-gray-600">{billingAddress.country}</p>
           </div>
         </div>
       </div>
