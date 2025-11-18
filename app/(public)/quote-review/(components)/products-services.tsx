@@ -24,7 +24,11 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
     header: 'Product',
     cell: ({ row }) => (
       <div>
-        <p className={`font-semibold text-gray-900 ${forPdf ? 'text-xl' : 'text-sm'}`}>
+        <p
+          className={`font-semibold text-gray-900 ${
+            forPdf ? 'text-xl' : 'text-sm'
+          }`}
+        >
           {row.original.name}
         </p>
         <p className={`text-gray-500 ${forPdf ? 'text-lg' : 'text-xs'}`}>
@@ -60,17 +64,97 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
     accessorKey: 'totalPrice',
     header: 'Total Price',
     cell: ({ row }) => (
-      <p className={`font-semibold text-gray-900 ${forPdf ? 'text-xl' : 'text-sm'}`}>
+      <p
+        className={`font-semibold text-gray-900 ${
+          forPdf ? 'text-xl' : 'text-sm'
+        }`}
+      >
         ${centsToDollars(row.original.totalPrice)}
       </p>
     ),
   },
 ];
 
-export function ProductsServices({ products, forPdf = false }: ProductsServicesProps) {
+export function ProductsServices({
+  products,
+  forPdf = false,
+}: ProductsServicesProps) {
+  // Use regular HTML table for PDF rendering
+  if (forPdf) {
+    return (
+      <div className="bg-white px-10 py-6 pt-8 mb-3">
+        <h2 className="font-bold text-[rgba(142,81,255,1)] mb-3 text-4xl">
+          Products & Services
+        </h2>
+        <table
+          className="w-full border-collapse"
+          style={{ tableLayout: 'fixed' }}
+        >
+          <thead>
+            <tr className="border-b border-border">
+              <th
+                className="text-muted-foreground  px-2 text-left align-middle font-medium whitespace-nowrap"
+                style={{ width: '25%' }}
+              >
+                Product
+              </th>
+              <th
+                className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
+                style={{ width: '25%' }}
+              >
+                <p className="text-lg">Truck Configuration</p>
+              </th>
+              <th
+                className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
+                style={{ width: '25%' }}
+              >
+                Quantity
+              </th>
+              <th
+                className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
+                style={{ width: '25%' }}
+              >
+                Total Price
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product, index) => (
+              <tr key={index} className="border-b border-border">
+                <td className="p-2 align-middle whitespace-nowrap">
+                  <div>
+                    <p className="font-semibold text-gray-900 text-xl">
+                      {product.name}
+                    </p>
+                    <p className="text-gray-500 text-lg">{product.code}</p>
+                  </div>
+                </td>
+                <td className="p-2 align-middle whitespace-nowrap">
+                  <div>
+                    <p className="text-gray-900 text-xl">{product.truckType}</p>
+                    <p className="text-gray-500 text-lg">{product.capacity}</p>
+                  </div>
+                </td>
+                <td className="p-2 align-middle whitespace-nowrap">
+                  <p className="text-gray-900 text-xl">{product.quantity}</p>
+                </td>
+                <td className="p-2 align-middle whitespace-nowrap text-right">
+                  <p className="font-semibold text-gray-900 text-xl">
+                    ${centsToDollars(product.totalPrice)}
+                  </p>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Use DataTableClient for web view
   return (
-    <div className={`bg-white ${forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-4 pt-10 mb-4'}`}>
-      <h2 className={`font-bold text-[rgba(142,81,255,1)] mb-3 ${forPdf ? 'text-4xl' : 'text-lg'}`}>
+    <div className="bg-white px-8 py-4 pt-10 mb-4">
+      <h2 className="font-bold text-[rgba(142,81,255,1)] mb-3 text-lg">
         Products & Services
       </h2>
       <Separator className="mb-4" />

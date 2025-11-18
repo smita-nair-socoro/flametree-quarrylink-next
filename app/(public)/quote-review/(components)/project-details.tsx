@@ -1,6 +1,6 @@
 'use client';
 
-import { TableBadges } from '@/components/table-badges';
+import { TableBadges, SimplePdfBadge } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 
 export interface ProjectDetailsProps {
@@ -27,7 +27,11 @@ export function ProjectDetails({
       </h2>
       <Separator className="mb-4" />
       <div className="mb-3">
-        <TableBadges names={[type]}></TableBadges>
+        {forPdf ? (
+          <SimplePdfBadge name={type} />
+        ) : (
+          <TableBadges names={[type]} />
+        )}
       </div>
 
       <div className={`grid grid-cols-1 md:grid-cols-4 ${forPdf ? 'gap-2' : 'gap-8'}`}>

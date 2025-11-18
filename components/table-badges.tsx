@@ -95,7 +95,7 @@ export function TableBadges({
         <Badge
           key={n}
           className={cn(
-            'px-2 py-0.5 text-xs font-medium border',
+            'inline-flex h-6 px-3 text-xs font-medium border items-center justify-center',
             getBadgeClassName(n, variant)
           )}
         >
@@ -123,7 +123,7 @@ export function TableBadges({
                 <Badge
                   key={n}
                   className={cn(
-                    'uppercase px-2 py-0.5 text-xs font-medium border',
+                    'inline-flex uppercase px-2 py-0.5 text-xs font-medium border items-center justify-center',
                     getBadgeClassName(n, variant)
                   )}
                 >
@@ -135,5 +135,25 @@ export function TableBadges({
         </Tooltip>
       )}
     </div>
+  );
+}
+
+// Simplified badge component for PDF rendering
+// No tooltips, no array handling, just a single badge
+interface SimplePdfBadgeProps {
+  name: string;
+  variant?: 'default' | 'suburb';
+}
+
+export function SimplePdfBadge({ name, variant = 'default' }: SimplePdfBadgeProps) {
+  return (
+    <Badge
+      className={cn(
+        'inline-flex h-6 px-3 text-xs font-medium border items-center justify-center',
+        getBadgeClassName(name, variant)
+      )}
+    >
+      {name.replace(/_/g, ' ')}
+    </Badge>
   );
 }
