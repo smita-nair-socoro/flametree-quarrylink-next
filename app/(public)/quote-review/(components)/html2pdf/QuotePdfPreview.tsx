@@ -107,25 +107,25 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
       <div data-pdf-content className="bg-white">
         {/* Customer Information Block */}
         <div data-pdf-block>
-          <CustomerInformation {...quotationData.customer} />
+          <CustomerInformation {...quotationData.customer} forPdf={true} />
           <Separator />
         </div>
 
         {/* Project Details Block */}
         <div data-pdf-block>
-          <ProjectDetails {...quotationData.project} />
+          <ProjectDetails {...quotationData.project} forPdf={true} />
           <Separator />
         </div>
 
         {/* Products & Services Block */}
         <div data-pdf-block>
-          <ProductsServices products={quotationData.products} />
+          <ProductsServices products={quotationData.products} forPdf={true} />
           <Separator className="mb-8" />
         </div>
 
         {/* Summary & Payment Block */}
         <div data-pdf-block>
-          <SummaryPayment {...quotationData.summary} />
+          <SummaryPayment {...quotationData.summary} forPdf={true} />
         </div>
 
         {/* Proceed Actions Block - Only shown for PENDING/DRAFT status */}
@@ -134,8 +134,6 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
             <ProceedActionsPdfPreview
               validUntil={quotationData.navbar.validUntil}
               accountManager={quotationData.navbar.accountManager}
-              quoteId={quotationData.proceedActions.quoteId}
-              baseUrl={quotationData.proceedActions.baseUrl}
               status={quotationData.navbar.status}
             />
           </div>

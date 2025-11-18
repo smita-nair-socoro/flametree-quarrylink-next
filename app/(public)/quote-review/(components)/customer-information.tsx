@@ -12,6 +12,7 @@ export interface CustomerInformationProps {
     line2: string;
     country: string;
   };
+  forPdf?: boolean;
 }
 
 export function CustomerInformation({
@@ -19,33 +20,34 @@ export function CustomerInformation({
   email,
   phone,
   billingAddress,
+  forPdf = false,
 }: CustomerInformationProps) {
   return (
-    <div className="bg-white px-8 py-4 pt-10 mb-4">
-      <h2 className="text-lg font-semibold text-[rgba(142,81,255,1)] mb-3">
+    <div className={`bg-white ${forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-4 pt-10 mb-4'}`}>
+      <h2 className={`font-semibold text-[rgba(142,81,255,1)] mb-3 ${forPdf ? 'text-2xl' : 'text-lg'}`}>
         Customer Information
       </h2>
       <Separator className="mb-3 border-gray-200" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${forPdf ? 'gap-3' : 'gap-12'}`}>
         {/* Left Column - Customer Details */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Customer</h3>
+          <h3 className={`font-semibold text-gray-700 mb-2 ${forPdf ? 'text-lg' : 'text-sm'}`}>Customer</h3>
           <div className="space-y-2">
-            <p className="text-base font-semibold text-gray-900">{customerName}</p>
-            <p className="text-sm text-gray-600">{email}</p>
-            <p className="text-sm text-gray-600">Phone: {phone}</p>
+            <p className={`font-semibold text-gray-900 ${forPdf ? 'text-xl' : 'text-base'}`}>{customerName}</p>
+            <p className={`text-gray-600 ${forPdf ? 'text-lg' : 'text-sm'}`}>{email}</p>
+            <p className={`text-gray-600 ${forPdf ? 'text-lg' : 'text-sm'}`}>Phone: {phone}</p>
           </div>
         </div>
 
         {/* Right Column - Billing Address */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+          <h3 className={`font-semibold text-gray-700 mb-2 ${forPdf ? 'text-lg' : 'text-sm'}`}>
             Billing Address
           </h3>
           <div className="space-y-1">
-            <p className="text-sm text-gray-600">{billingAddress.line1}</p>
-            <p className="text-sm text-gray-600">{billingAddress.line2}</p>
-            <p className="text-sm text-gray-600">{billingAddress.country}</p>
+            <p className={`text-gray-600 ${forPdf ? 'text-lg' : 'text-sm'}`}>{billingAddress.line1}</p>
+            <p className={`text-gray-600 ${forPdf ? 'text-lg' : 'text-sm'}`}>{billingAddress.line2}</p>
+            <p className={`text-gray-600 ${forPdf ? 'text-lg' : 'text-sm'}`}>{billingAddress.country}</p>
           </div>
         </div>
       </div>

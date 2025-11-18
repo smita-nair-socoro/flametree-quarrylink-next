@@ -67,67 +67,69 @@ export function QuoteNavbar({
         <div className="flex items-center gap-4">
           {/* TEMPORARY: Dropdown to choose between PDF export methods */}
           {/* TODO: Remove this once we decide on the final PDF method */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="secondary"
-                className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
-                size="default"
-              >
-                <Download className="w-4 h-4" />
-                Download PDF
-                <ChevronDown className="w-4 h-4 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={onDownloadPDF}>
-                <div className="flex flex-col">
-                  <span className="font-medium">HTML2Canvas (New)</span>
-                  <span className="text-xs text-muted-foreground">
-                    Canvas-based rendering
-                  </span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
-                <div className="flex flex-col">
-                  <span className="font-medium">React-PDF (Old)</span>
-                  <span className="text-xs text-muted-foreground">
-                    @react-pdf/renderer method
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!forPdf && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
+                  size="default"
+                >
+                  <Download className="w-4 h-4" />
+                  Download PDF
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={onDownloadPDF}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">HTML2Canvas (New)</span>
+                    <span className="text-xs text-muted-foreground">
+                      Canvas-based rendering
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">React-PDF (Old)</span>
+                    <span className="text-xs text-muted-foreground">
+                      @react-pdf/renderer method
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <div className="text-right">
-            <div className="text-[29px] font-bold">{quoteNumber}</div>
-            <div className="text-sm text-white">QUOTATION</div>
+            <div className={`font-bold ${forPdf ? 'text-[36px]' : 'text-[29px]'}`}>{quoteNumber}</div>
+            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>QUOTATION</div>
           </div>
         </div>
       </div>
 
       {/* Bottom Row - Info Grid */}
-      <div className="grid grid-cols-2 gap-8">
+      <div className={`grid grid-cols-2 ${forPdf ? 'gap-4' : 'gap-8'}`}>
         {/* Left Column */}
         <div className="space-y-2">
           <div>
-            <div className="text-sm text-white">Date Issued</div>
-            <div className="text-[15px] font-medium">{dateIssued}</div>
+            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Date Issued</div>
+            <div className={`font-medium ${forPdf ? 'text-lg' : 'text-[15px]'}`}>{dateIssued}</div>
           </div>
           <div>
-            <div className="text-sm text-white">Account Manager</div>
-            <div className="text-[15px] font-medium">{accountManager}</div>
+            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Account Manager</div>
+            <div className={`font-medium ${forPdf ? 'text-lg' : 'text-[15px]'}`}>{accountManager}</div>
           </div>
         </div>
 
         {/* Right Column */}
         <div className="space-y-2">
           <div>
-            <div className="text-sm text-white">Valid Until</div>
-            <div className="text-[15px] font-medium">{validUntil}</div>
+            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Valid Until</div>
+            <div className={`font-medium ${forPdf ? 'text-lg' : 'text-[15px]'}`}>{validUntil}</div>
           </div>
           <div>
-            <div className="text-sm text-white">Status</div>
+            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Status</div>
             <TableBadges names={status} visibleCount={1} />
           </div>
         </div>

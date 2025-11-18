@@ -1,6 +1,6 @@
 /**
  * Proceed Actions PDF Preview Component
- * Renders the approval/decline actions for PDF export with clickable hyperlinks
+ * Renders the approval/decline actions for PDF export
  */
 
 'use client';
@@ -11,21 +11,14 @@ import { Card } from '@/components/ui/card';
 export interface ProceedActionsPdfPreviewProps {
   validUntil: string;
   accountManager: string;
-  quoteId: string;
-  baseUrl?: string;
   status?: 'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT';
 }
 
 export function ProceedActionsPdfPreview({
   validUntil,
   accountManager,
-  quoteId,
-  baseUrl = 'https://quarrylink.com',
   status,
 }: ProceedActionsPdfPreviewProps) {
-  const approveUrl = `${baseUrl}/quote-review?quoteId=${quoteId}&action=approve`;
-  const declineUrl = `${baseUrl}/quote-review?quoteId=${quoteId}&action=decline`;
-
   // Only show buttons for PENDING status
   if (status !== 'PENDING' && status !== 'DRAFT') {
     return null;
@@ -45,36 +38,20 @@ export function ProceedActionsPdfPreview({
         </p>
       </div>
 
-      {/* Action Buttons - Using anchor tags for PDF hyperlinks */}
+      {/* Action Buttons */}
       <div className="flex justify-center gap-2 mb-10">
-        <a
-          href={declineUrl}
-          className="inline-block no-underline"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Button
+          size="lg"
+          className="bg-[rgba(231,0,11,1)] text-white px-10 py-6 text-base font-medium rounded-md"
         >
-          <Button
-            size="lg"
-            className="bg-[rgba(231,0,11,1)] text-white px-10 py-6 text-base font-medium rounded-md hover:bg-[rgba(231,0,11,0.9)] cursor-pointer"
-            asChild
-          >
-            <span>Decline Quote</span>
-          </Button>
-        </a>
-        <a
-          href={approveUrl}
-          className="inline-block no-underline"
-          target="_blank"
-          rel="noopener noreferrer"
+          Decline Quote
+        </Button>
+        <Button
+          size="lg"
+          className="bg-[rgba(0,130,54,1)] text-white px-10 py-6 text-base font-medium rounded-md"
         >
-          <Button
-            size="lg"
-            className="bg-[rgba(0,130,54,1)] text-white px-10 py-6 text-base font-medium rounded-md hover:bg-[rgba(0,130,54,0.9)] cursor-pointer"
-            asChild
-          >
-            <span>Approve Quote</span>
-          </Button>
-        </a>
+          Approve Quote
+        </Button>
       </div>
 
       {/* Contact Card */}

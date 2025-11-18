@@ -12,6 +12,7 @@ export interface SummaryPaymentProps {
   subtotal: number;
   gst: number;
   total: number;
+  forPdf?: boolean;
 }
 
 export function SummaryPayment({
@@ -22,45 +23,46 @@ export function SummaryPayment({
   subtotal,
   gst,
   total,
+  forPdf = false,
 }: SummaryPaymentProps) {
   return (
-    <div className="bg-[rgba(245,245,245,0.3)] px-8 py-8 border-b-[1.25px] border-[rgba(229,229,229,1)]">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className={`bg-[rgba(245,245,245,0.3)] border-b-[1.25px] border-[rgba(229,229,229,1)] ${forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-8'}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-2 ${forPdf ? 'gap-3' : 'gap-12'}`}>
         {/* Left Column - Summary */}
         <div>
-          <h2 className="text-base font-semibold text-gray-900 mb-4">
+          <h2 className={`font-semibold text-gray-900 mb-4 ${forPdf ? 'text-2xl' : 'text-base'}`}>
             Summary
           </h2>
 
-          <div className="space-y-2 mb-8">
+          <div className={`space-y-2 ${forPdf ? 'mb-4' : 'mb-8'}`}>
             <div className="flex items-center gap-3">
-              <p className="text-sm text-gray-900">
-                <span className="text-sm font-bold">Total Products:</span>{' '}
+              <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+                <span className={`font-bold ${forPdf ? 'text-lg' : 'text-sm'}`}>Total Products:</span>{' '}
                 {totalProducts} items
               </p>
             </div>
 
-            <p className="text-sm text-gray-900">
-              <span className="text-sm font-bold">Total Quantity:</span>{' '}
+            <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+              <span className={`font-bold ${forPdf ? 'text-lg' : 'text-sm'}`}>Total Quantity:</span>{' '}
               {totalQuantity}
             </p>
 
-            <p className="text-sm text-gray-900">
-              <span className="text-sm font-bold">Estimated Delivery:</span>{' '}
+            <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+              <span className={`font-bold ${forPdf ? 'text-lg' : 'text-sm'}`}>Estimated Delivery:</span>{' '}
               {estimatedDelivery}
             </p>
           </div>
 
           {/* Terms & Conditions */}
           <div>
-            <h3 className="text-base font-semibold text-[rgba(10,10,10,1)] mb-3">
+            <h3 className={`font-semibold text-[rgba(10,10,10,1)] mb-3 ${forPdf ? 'text-2xl' : 'text-base'}`}>
               Terms & Conditions
             </h3>
             <ul className="space-y-2">
               {termsAndConditions.map((term, index) => (
                 <li
                   key={index}
-                  className="text-sm text-[rgba(115,115,115,1)] flex"
+                  className={`text-[rgba(115,115,115,1)] flex ${forPdf ? 'text-lg' : 'text-sm'}`}
                 >
                   <span className="mr-2">•</span>
                   <span>{term}</span>
@@ -73,31 +75,31 @@ export function SummaryPayment({
         {/* Right Column - Payment Breakdown */}
         <div>
           <Card className="border-2 border-[rgba(229,229,229,1)] shadow-lg">
-            <CardContent className="px-7  space-y-3">
+            <CardContent className={`space-y-3 ${forPdf ? 'px-8' : 'px-7'}`}>
               <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-[rgba(10,10,10,1)]">
+                <span className={`font-semibold text-[rgba(10,10,10,1)] ${forPdf ? 'text-xl' : 'text-base'}`}>
                   Subtotal:
                 </span>
-                <span className="text-base font-semibold text-[rgba(10,10,10,1)]">
+                <span className={`font-semibold text-[rgba(10,10,10,1)] ${forPdf ? 'text-xl' : 'text-base'}`}>
                   ${centsToDollars(subtotal)}
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">
-                <span className="text-base font-semibold text-[rgba(10,10,10,1)]">
+                <span className={`font-semibold text-[rgba(10,10,10,1)] ${forPdf ? 'text-xl' : 'text-base'}`}>
                   GST (10%):
                 </span>
-                <span className="text-base font-semibold text-[rgba(10,10,10,1)]">
+                <span className={`font-semibold text-[rgba(10,10,10,1)] ${forPdf ? 'text-xl' : 'text-base'}`}>
                   ${centsToDollars(gst)}
                 </span>
               </div>
               <Separator />
               <div className="border-t-2 border-[rgba(142,81,255,1)] pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-[rgba(142,81,255,1)]">
+                  <span className={`font-bold text-[rgba(142,81,255,1)] ${forPdf ? 'text-2xl' : 'text-lg'}`}>
                     TOTAL AMOUNT:
                   </span>
-                  <span className="text-lg font-bold text-[rgba(142,81,255,1)]">
+                  <span className={`font-bold text-[rgba(142,81,255,1)] ${forPdf ? 'text-2xl' : 'text-lg'}`}>
                     ${centsToDollars(total)}
                   </span>
                 </div>

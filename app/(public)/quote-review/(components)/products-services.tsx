@@ -15,18 +15,19 @@ export interface Product {
 
 export interface ProductsServicesProps {
   products: Product[];
+  forPdf?: boolean;
 }
 
-const columns: ColumnDef<Product>[] = [
+const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
   {
     accessorKey: 'name',
     header: 'Product',
     cell: ({ row }) => (
       <div>
-        <p className="text-sm font-semibold text-gray-900">
+        <p className={`font-semibold text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
           {row.original.name}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className={`text-gray-500 ${forPdf ? 'text-base' : 'text-xs'}`}>
           {row.original.code}
         </p>
       </div>
@@ -37,10 +38,10 @@ const columns: ColumnDef<Product>[] = [
     header: 'Truck Configuration',
     cell: ({ row }) => (
       <div>
-        <p className="text-sm text-gray-900">
+        <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
           {row.original.truckType}
         </p>
-        <p className="text-xs text-gray-500">
+        <p className={`text-gray-500 ${forPdf ? 'text-base' : 'text-xs'}`}>
           {row.original.capacity}
         </p>
       </div>
@@ -50,7 +51,7 @@ const columns: ColumnDef<Product>[] = [
     accessorKey: 'quantity',
     header: 'Quantity',
     cell: ({ row }) => (
-      <p className="text-sm text-gray-900">
+      <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
         {row.original.quantity}
       </p>
     ),
@@ -59,22 +60,22 @@ const columns: ColumnDef<Product>[] = [
     accessorKey: 'totalPrice',
     header: 'Total Price',
     cell: ({ row }) => (
-      <p className="text-sm font-semibold text-gray-900">
+      <p className={`font-semibold text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
         ${centsToDollars(row.original.totalPrice)}
       </p>
     ),
   },
 ];
 
-export function ProductsServices({ products }: ProductsServicesProps) {
+export function ProductsServices({ products, forPdf = false }: ProductsServicesProps) {
   return (
-    <div className="bg-white px-8 py-4 pt-10 mb-4">
-      <h2 className="text-lg font-bold text-[rgba(142,81,255,1)] mb-3">
+    <div className={`bg-white ${forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-4 pt-10 mb-4'}`}>
+      <h2 className={`font-bold text-[rgba(142,81,255,1)] mb-3 ${forPdf ? 'text-2xl' : 'text-lg'}`}>
         Products & Services
       </h2>
       <Separator className="mb-4" />
       <DataTableClient
-        columns={columns}
+        columns={createColumns(forPdf)}
         data={products}
         simpleTable={true}
         isShowHideColumns={false}
