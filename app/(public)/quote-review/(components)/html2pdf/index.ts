@@ -1,6 +1,9 @@
 /**
  * HTML2PDF Export Module
  * Client-side PDF generation using html2canvas and jsPDF
+ *
+ * Note: oklch colors are converted to rgb at build time via PostCSS
+ * See postcss.config.mjs for configuration
  */
 
 export { exportToPdf } from './exportToPdf';

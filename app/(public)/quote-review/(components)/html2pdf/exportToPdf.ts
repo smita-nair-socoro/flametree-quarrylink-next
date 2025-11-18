@@ -1,6 +1,8 @@
 /**
  * Core HTML2PDF export utility
  * Uses html2canvas and jsPDF to export DOM elements to multi-page A4 PDF
+ *
+ * Note: oklch colors are converted to rgb at build time via PostCSS
  */
 
 import html2canvas from 'html2canvas';
@@ -187,7 +189,7 @@ async function renderPageToCanvas(
   document.body.appendChild(pageContainer);
 
   try {
-    // Render to canvas
+    // Render to canvas (oklch colors already converted to rgb by PostCSS)
     const canvas = await html2canvas(pageContainer, {
       scale,
       useCORS: true,
