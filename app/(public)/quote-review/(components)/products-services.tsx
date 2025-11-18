@@ -24,10 +24,10 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
     header: 'Product',
     cell: ({ row }) => (
       <div>
-        <p className={`font-semibold text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+        <p className={`font-semibold text-gray-900 ${forPdf ? 'text-xl' : 'text-sm'}`}>
           {row.original.name}
         </p>
-        <p className={`text-gray-500 ${forPdf ? 'text-base' : 'text-xs'}`}>
+        <p className={`text-gray-500 ${forPdf ? 'text-lg' : 'text-xs'}`}>
           {row.original.code}
         </p>
       </div>
@@ -38,10 +38,10 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
     header: 'Truck Configuration',
     cell: ({ row }) => (
       <div>
-        <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+        <p className={`text-gray-900 ${forPdf ? 'text-xl' : 'text-sm'}`}>
           {row.original.truckType}
         </p>
-        <p className={`text-gray-500 ${forPdf ? 'text-base' : 'text-xs'}`}>
+        <p className={`text-gray-500 ${forPdf ? 'text-lg' : 'text-xs'}`}>
           {row.original.capacity}
         </p>
       </div>
@@ -51,7 +51,7 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
     accessorKey: 'quantity',
     header: 'Quantity',
     cell: ({ row }) => (
-      <p className={`text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+      <p className={`text-gray-900 ${forPdf ? 'text-xl' : 'text-sm'}`}>
         {row.original.quantity}
       </p>
     ),
@@ -60,7 +60,7 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
     accessorKey: 'totalPrice',
     header: 'Total Price',
     cell: ({ row }) => (
-      <p className={`font-semibold text-gray-900 ${forPdf ? 'text-lg' : 'text-sm'}`}>
+      <p className={`font-semibold text-gray-900 ${forPdf ? 'text-xl' : 'text-sm'}`}>
         ${centsToDollars(row.original.totalPrice)}
       </p>
     ),
@@ -70,7 +70,7 @@ const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
 export function ProductsServices({ products, forPdf = false }: ProductsServicesProps) {
   return (
     <div className={`bg-white ${forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-4 pt-10 mb-4'}`}>
-      <h2 className={`font-bold text-[rgba(142,81,255,1)] mb-3 ${forPdf ? 'text-2xl' : 'text-lg'}`}>
+      <h2 className={`font-bold text-[rgba(142,81,255,1)] mb-3 ${forPdf ? 'text-4xl' : 'text-lg'}`}>
         Products & Services
       </h2>
       <Separator className="mb-4" />

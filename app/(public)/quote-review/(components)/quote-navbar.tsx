@@ -102,8 +102,8 @@ export function QuoteNavbar({
           )}
 
           <div className="text-right">
-            <div className={`font-bold ${forPdf ? 'text-[36px]' : 'text-[29px]'}`}>{quoteNumber}</div>
-            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>QUOTATION</div>
+            <div className={`font-bold ${forPdf ? 'text-[48px]' : 'text-[29px]'}`}>{quoteNumber}</div>
+            <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>QUOTATION</div>
           </div>
         </div>
       </div>
@@ -113,23 +113,23 @@ export function QuoteNavbar({
         {/* Left Column */}
         <div className="space-y-2">
           <div>
-            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Date Issued</div>
-            <div className={`font-medium ${forPdf ? 'text-lg' : 'text-[15px]'}`}>{dateIssued}</div>
+            <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>Date Issued</div>
+            <div className={`font-medium ${forPdf ? 'text-2xl' : 'text-[15px]'}`}>{dateIssued}</div>
           </div>
           <div>
-            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Account Manager</div>
-            <div className={`font-medium ${forPdf ? 'text-lg' : 'text-[15px]'}`}>{accountManager}</div>
+            <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>Account Manager</div>
+            <div className={`font-medium ${forPdf ? 'text-2xl' : 'text-[15px]'}`}>{accountManager}</div>
           </div>
         </div>
 
         {/* Right Column */}
         <div className="space-y-2">
           <div>
-            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Valid Until</div>
-            <div className={`font-medium ${forPdf ? 'text-lg' : 'text-[15px]'}`}>{validUntil}</div>
+            <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>Valid Until</div>
+            <div className={`font-medium ${forPdf ? 'text-2xl' : 'text-[15px]'}`}>{validUntil}</div>
           </div>
           <div>
-            <div className={`text-white ${forPdf ? 'text-base' : 'text-sm'}`}>Status</div>
+            <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>Status</div>
             <TableBadges names={status} visibleCount={1} />
           </div>
         </div>
