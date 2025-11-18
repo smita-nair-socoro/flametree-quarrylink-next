@@ -3,7 +3,13 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { TableBadges } from '@/components/table-badges';
-import { Download } from 'lucide-react';
+import { Download, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export interface QuoteNavbarProps {
   quoteNumber: string;
@@ -12,6 +18,8 @@ export interface QuoteNavbarProps {
   accountManager: string;
   status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT';
   onDownloadPDF?: () => void;
+  // TEMPORARY: For testing both PDF export methods
+  onDownloadPDFReactPdf?: () => void; // @react-pdf/renderer method
 }
 
 export function QuoteNavbar({
@@ -21,6 +29,7 @@ export function QuoteNavbar({
   accountManager,
   status,
   onDownloadPDF,
+  onDownloadPDFReactPdf, // TEMPORARY: For testing @react-pdf/renderer method
 }: QuoteNavbarProps) {
 
 
@@ -42,15 +51,39 @@ export function QuoteNavbar({
 
         {/* Download Button & Quote Number */}
         <div className="flex items-center gap-4">
-          <Button
-            onClick={onDownloadPDF}
-            variant="secondary"
-            className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
-            size="default"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </Button>
+          {/* TEMPORARY: Dropdown to choose between PDF export methods */}
+          {/* TODO: Remove this once we decide on the final PDF method */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
+                size="default"
+              >
+                <Download className="w-4 h-4" />
+                Download PDF
+                <ChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={onDownloadPDF}>
+                <div className="flex flex-col">
+                  <span className="font-medium">HTML2Canvas (New)</span>
+                  <span className="text-xs text-muted-foreground">
+                    Canvas-based rendering
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
+                <div className="flex flex-col">
+                  <span className="font-medium">React-PDF (Old)</span>
+                  <span className="text-xs text-muted-foreground">
+                    @react-pdf/renderer method
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <div className="text-right">
             <div className="text-[29px] font-bold">{quoteNumber}</div>

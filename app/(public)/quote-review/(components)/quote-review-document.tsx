@@ -14,6 +14,7 @@ import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner, QuoteStatus } from './quote-status-banner';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
+import { QuotePdfPreview, useHtml2Pdf } from './html2pdf';
 
 
 type QuoteReviewDocumentProps = {
@@ -45,6 +46,13 @@ export default function QuoteReviewDocument({
     'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT'
   >(quotationData.navbar.status);
 
+  // HTML2PDF hook for canvas-based PDF export
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { exportPdf, isExporting } = useHtml2Pdf({
+    defaultFilename: `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`,
+    debug: process.env.NODE_ENV === 'development',
+  }); // TODO: Use isExporting to show loading indicator
+
   // Auto-open dialog based on initialAction prop from URL
   useEffect(() => {
     if (initialAction === 'approve') {
@@ -54,6 +62,11 @@ export default function QuoteReviewDocument({
     }
   }, [initialAction]);
 
+  /**
+   * OLD METHOD: @react-pdf/renderer export
+   * Kept alongside new html2canvas method for comparison
+   * TEMPORARY: Available via dropdown in navbar for testing
+   */
   const handleDownloadPDF = async () => {
     console.log('Download PDF clicked for quote:', quoteId);
     try {
@@ -62,6 +75,26 @@ export default function QuoteReviewDocument({
         quoteId,
         `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
       );
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      // TODO: Show error toast to user
+    }
+  };
+
+  /**
+   * NEW METHOD: html2canvas + jsPDF export
+   * Uses DOM-based rendering for accurate layout matching
+   */
+  const handleDownloadPDFHtml2Canvas = async () => {
+    console.log('Download PDF (HTML2Canvas) clicked for quote:', quoteId);
+    try {
+      const result = await exportPdf();
+      if (result.success) {
+        console.log(`PDF generated successfully: ${result.pageCount} pages`);
+      } else {
+        console.error('PDF export failed:', result.error);
+        // TODO: Show error toast to user
+      }
     } catch (error) {
       console.error('PDF download failed:', error);
       // TODO: Show error toast to user
@@ -236,6 +269,9 @@ export default function QuoteReviewDocument({
 
   return (
     <>
+      {/* Hidden PDF Preview Layout for HTML2Canvas Export */}
+      <QuotePdfPreview quotationData={quotationData} />
+
       {/* Approve Dialog */}
       <ActionDialog
         open={approveDialogOpen}
@@ -263,10 +299,12 @@ export default function QuoteReviewDocument({
       <div className="min-h-screen bg-gray-100 p-4 print:px-0 print:py-0">
         <div className="max-w-[960px] mx-auto bg-white">
           {/* Navbar */}
+          {/* TEMPORARY: Passing both PDF methods for testing */}
           <QuoteNavbar
             {...quotationData.navbar}
             status={navbarStatus}
-            onDownloadPDF={handleDownloadPDF}
+            onDownloadPDF={handleDownloadPDFHtml2Canvas} // New method (default)
+            onDownloadPDFReactPdf={handleDownloadPDF} // Old method (for comparison)
           />
 
           {/* Status Banner */}
