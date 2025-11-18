@@ -20,6 +20,7 @@ export interface QuoteNavbarProps {
   onDownloadPDF?: () => void;
   // TEMPORARY: For testing both PDF export methods
   onDownloadPDFReactPdf?: () => void; // @react-pdf/renderer method
+  forPdf?: boolean;
 }
 
 export function QuoteNavbar({
@@ -30,11 +31,12 @@ export function QuoteNavbar({
   status,
   onDownloadPDF,
   onDownloadPDFReactPdf, // TEMPORARY: For testing @react-pdf/renderer method
+  forPdf = false,
 }: QuoteNavbarProps) {
 
 
   return (
-    <div className="bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 rounded-t-lg">
+    <div className={`bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 ${forPdf ? '' : 'rounded-t-lg'}`}>
       {/* Top Row */}
       <div className="flex items-start justify-between mb-6">
         {/* Logo */}

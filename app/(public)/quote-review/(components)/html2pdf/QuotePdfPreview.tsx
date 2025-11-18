@@ -12,6 +12,7 @@ import { ProjectDetails } from '../project-details';
 import { ProductsServices } from '../products-services';
 import { SummaryPayment } from '../summary-payment';
 import { QuoteFooter } from '../quote-footer';
+import { ProceedActionsPdfPreview } from './ProceedActionsPdfPreview';
 import { Separator } from '@/components/ui/separator';
 
 export interface QuotePdfPreviewProps {
@@ -74,6 +75,10 @@ export interface QuotePdfPreviewProps {
         support: string;
       };
     };
+    proceedActions?: {
+      quoteId: string;
+      baseUrl?: string;
+    };
   };
 }
 
@@ -94,6 +99,7 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
           {...quotationData.navbar}
           // Hide download button in PDF
           onDownloadPDF={undefined}
+          forPdf={true}
         />
       </div>
 
@@ -121,12 +127,25 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
         <div data-pdf-block>
           <SummaryPayment {...quotationData.summary} />
         </div>
+
+        {/* Proceed Actions Block - Only shown for PENDING/DRAFT status */}
+        {quotationData.proceedActions && (
+          <div data-pdf-block>
+            <ProceedActionsPdfPreview
+              validUntil={quotationData.navbar.validUntil}
+              accountManager={quotationData.navbar.accountManager}
+              quoteId={quotationData.proceedActions.quoteId}
+              baseUrl={quotationData.proceedActions.baseUrl}
+              status={quotationData.navbar.status}
+            />
+          </div>
+        )}
       </div>
 
       {/* Footer - appears on every page */}
       <div data-pdf-footer>
         <div className="border-t-[3.75px] border-[rgba(142,81,255,1)]"></div>
-        <QuoteFooter {...quotationData.footer} />
+        <QuoteFooter {...quotationData.footer} forPdf={true} />
       </div>
     </div>
   );

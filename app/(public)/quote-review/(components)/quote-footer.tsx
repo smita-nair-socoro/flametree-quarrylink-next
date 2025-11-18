@@ -16,15 +16,17 @@ export interface QuoteFooterProps {
     portalInfo: string;
     support: string;
   };
+  forPdf?: boolean;
 }
 
 export function QuoteFooter({
   contactInfo,
   officeAddress,
   website,
+  forPdf = false,
 }: QuoteFooterProps) {
   return (
-    <footer className="bg-[#314158] text-white px-8 py-12 rounded-b-lg">
+    <footer className={`bg-[#314158] text-white px-8 ${forPdf ? 'py-8' : 'py-12 rounded-b-lg'}`}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto text-center">
         {/* Column 1: Contact Information */}
         <div>

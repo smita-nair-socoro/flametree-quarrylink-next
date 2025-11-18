@@ -86,16 +86,14 @@ export const mockQuotationData = {
     subtotal: 27010000.0,
     gst: 2843250.0,
     total: 31275750.0,
-    avatarUrl: undefined, // Can be added when available
-    avatarFallback: 'SW',
   },
 
   // Proceed actions
   proceedActions: {
     validUntil: '29th July, 2026',
     accountManager: 'Sarah Wilson',
-    avatarUrl: undefined, // Can be added when available
-    avatarFallback: 'SW',
+    quoteId: 'QPO001',
+    baseUrl: 'https://quarrylink.com.au',
   },
 
   // Footer
