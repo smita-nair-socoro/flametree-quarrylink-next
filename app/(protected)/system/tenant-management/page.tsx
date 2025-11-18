@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/data-table-client';
 import { FormDialog } from '@/components/form-dialog';
 import ClientForm from './(components)/forms/client-form';
+import Step4SuccessfulDialog from './(components)/forms/steps/step-4-successful-dialog';
 import { Button } from '@/components/ui/button';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useClientActions } from '@/hooks/use-client-actions';
@@ -54,10 +55,22 @@ export default function ClientPortalPage() {
   const [selectedClientForActions, setSelectedClientForActions] =
     React.useState<Client | null>(null);
 
+  const [showSuccessDialog, setShowSuccessDialog] = React.useState(false);
+  const [newClientData, setNewClientData] = React.useState<{
+    name: string;
+    email: string;
+  } | null>(null);
+
   const { actions, confirmDialogs, viewDialog } = useClientActions(
     selectedClientForActions?.id,
     selectedClientForActions
   );
+
+  const handleClientSuccess = (clientName: string, clientEmail: string) => {
+    console.log('handleClientSuccess called with:', clientName, clientEmail);
+    setNewClientData({ name: clientName, email: clientEmail });
+    setShowSuccessDialog(true);
+  };
 
   const handleRowClick = (client: Client) => {
     setSelectedClient(client);
@@ -87,7 +100,7 @@ export default function ClientPortalPage() {
                 buttonTitle="Add Client"
                 dialogWidth="700px"
               >
-                <ClientForm />
+                <ClientForm onClientAdded={handleClientSuccess} />
               </FormDialog>
             </div>
           </div>
@@ -122,6 +135,19 @@ export default function ClientPortalPage() {
           onRowClick={handleRowClick}
         />
       </div>
+
+      {/* Success Dialog - Shown after client is added */}
+      {newClientData && (
+        <Step4SuccessfulDialog
+          open={showSuccessDialog}
+          onClose={() => {
+            setShowSuccessDialog(false);
+            setNewClientData(null);
+          }}
+          clientName={newClientData.name}
+          clientEmail={newClientData.email}
+        />
+      )}
     </div>
   );
 }
