@@ -1,17 +1,7 @@
-export enum QuoteType {
-  COLLECTION = 'COLLECTION',
-  DELIVERY = 'DELIVERY',
-}
+import { QUOTE_TYPE, QUOTE_STATUS } from './quotation-enums';
 
-export enum QuoteStatus {
-  DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  CONVERTED_TO_JOB = 'CONVERTED_TO_JOB',
-  EXPIRED = 'EXPIRED',
-  DECLINED = 'DECLINED',
-  ARCHIVED = 'ARCHIVED',
-}
+// Re-export the enums with PascalCase aliases for backward compatibility
+export { QUOTE_TYPE as QuoteType, QUOTE_STATUS as QuoteStatus };
 
 // DTO type for API response (uses quote_status from backend)
 export interface QuotationDTO {
