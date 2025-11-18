@@ -38,7 +38,6 @@ export default function Step1CompanyDetails({
   onNext,
 }: Step1CompanyDetailsProps) {
   const handleNextClick = async () => {
-    // Validate step 1 fields
     const isValid = await form.trigger([
       'name',
       'abn',

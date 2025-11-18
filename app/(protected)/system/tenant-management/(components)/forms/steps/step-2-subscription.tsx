@@ -56,7 +56,6 @@ export default function Step2Subscription({
   onBack,
   onNext,
 }: Step2SubscriptionProps) {
-  // Format currency with thousand separators
   const formatCurrency = (value: number): string => {
     return value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -64,7 +63,6 @@ export default function Step2Subscription({
     });
   };
 
-  // Set default payment term to 'Monthly' if not already set
   React.useEffect(() => {
     if (!form.getValues('subscription_payment_term')) {
       form.setValue('subscription_payment_term', 'Monthly');
@@ -73,14 +71,12 @@ export default function Step2Subscription({
   }, [form, setPaymentTerm]);
 
   const handleNextClick = async () => {
-    // Validate subscription field
     const isValid = await form.trigger(['subscription']);
     if (isValid && currentPlan) {
       onNext();
     }
   };
 
-  // Check if Next button should be disabled
   const isNextDisabled = () => {
     if (!currentPlan) return true;
 

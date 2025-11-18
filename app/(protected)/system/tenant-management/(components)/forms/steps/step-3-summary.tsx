@@ -28,7 +28,6 @@ export default function Step3Summary({
   onBack,
   onCancel,
 }: Step3SummaryProps) {
-  // Format currency with thousand separators
   const formatCurrency = (value: number): string => {
     return value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
