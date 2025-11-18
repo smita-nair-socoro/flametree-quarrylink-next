@@ -82,12 +82,15 @@ export function useHtml2Pdf(options: UseHtml2PdfOptions = {}): UseHtml2PdfReturn
       setIsExporting(true);
 
       try {
-        // Merge options
+        // Merge options - only include values that are defined to avoid overwriting defaults
         const finalOptions: PdfExportOptions = {
           filename: exportOptions?.filename || options.defaultFilename || 'document',
-          scale: exportOptions?.scale || options.scale,
-          imageQuality: exportOptions?.imageQuality || options.imageQuality,
-          debug: exportOptions?.debug ?? options.debug,
+          ...(exportOptions?.scale !== undefined && { scale: exportOptions.scale }),
+          ...(options.scale !== undefined && { scale: options.scale }),
+          ...(exportOptions?.imageQuality !== undefined && { imageQuality: exportOptions.imageQuality }),
+          ...(options.imageQuality !== undefined && { imageQuality: options.imageQuality }),
+          ...(exportOptions?.debug !== undefined && { debug: exportOptions.debug }),
+          ...(options.debug !== undefined && { debug: options.debug }),
         };
 
         // Wait a tick to ensure DOM is fully rendered
