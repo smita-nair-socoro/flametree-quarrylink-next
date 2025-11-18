@@ -285,6 +285,26 @@ export async function exportToPdf(
       );
     }
 
+    // CRITICAL: Temporarily show element on-screen to allow proper measurements
+    // Store original styles
+    const originalStyles = {
+      left: rootElement.style.left,
+      opacity: rootElement.style.opacity,
+      zIndex: rootElement.style.zIndex,
+    };
+
+    // Make visible on-screen but behind everything
+    rootElement.style.left = '0';
+    rootElement.style.opacity = '1';
+    rootElement.style.zIndex = '-9999';
+
+    if (opts.debug) {
+      console.log('[PDF Export] Temporarily showing element for measurements');
+    }
+
+    // Wait for layout to settle
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Wait for all images to load before measuring (critical for correct dimensions)
     await waitForImagesToLoad(rootElement, opts.debug);
 
@@ -348,6 +368,15 @@ export async function exportToPdf(
       console.log(`[PDF Export] Export completed in ${duration.toFixed(2)}ms`);
     }
 
+    // Restore original styles
+    rootElement.style.left = originalStyles.left;
+    rootElement.style.opacity = originalStyles.opacity;
+    rootElement.style.zIndex = originalStyles.zIndex;
+
+    if (opts.debug) {
+      console.log('[PDF Export] Restored element to hidden state');
+    }
+
     return {
       success: true,
       pageCount: pages.length,
@@ -355,6 +384,14 @@ export async function exportToPdf(
     };
   } catch (error) {
     console.error('[PDF Export] Export failed:', error);
+
+    // Restore original styles even on error
+    const rootElement = document.querySelector<HTMLElement>('[data-pdf-root]');
+    if (rootElement) {
+      rootElement.style.left = '-9999px';
+      rootElement.style.opacity = '0';
+      rootElement.style.zIndex = '-9999';
+    }
 
     return {
       success: false,

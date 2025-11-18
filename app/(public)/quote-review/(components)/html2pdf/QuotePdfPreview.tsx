@@ -81,11 +81,11 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
   return (
     <div
       data-pdf-root
-      className="fixed left-[-9999px] top-0 w-[595px] bg-white"
+      className="fixed left-[-9999px] top-0 w-[595px] bg-white pointer-events-none"
       style={{
         width: '595px', // A4 width in pixels at 72 DPI
-        opacity: 0, // Keep invisible but allow measurements (visibility:hidden causes offsetHeight=0)
-        pointerEvents: 'none',
+        opacity: 0,
+        zIndex: -9999,
       }}
     >
       {/* Header - appears on every page */}
