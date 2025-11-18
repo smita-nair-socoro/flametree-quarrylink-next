@@ -84,7 +84,7 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
       className="fixed left-[-9999px] top-0 w-[595px] bg-white"
       style={{
         width: '595px', // A4 width in pixels at 72 DPI
-        visibility: 'hidden',
+        opacity: 0, // Keep invisible but allow measurements (visibility:hidden causes offsetHeight=0)
         pointerEvents: 'none',
       }}
     >

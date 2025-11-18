@@ -27,6 +27,46 @@ const DEFAULT_OPTIONS: Required<Omit<PdfExportOptions, 'filename'>> = {
 };
 
 /**
+ * Wait for all images in an element to load
+ * This ensures html2canvas can capture images properly
+ */
+async function waitForImagesToLoad(element: HTMLElement, debug = false): Promise<void> {
+  const images = Array.from(element.querySelectorAll<HTMLImageElement>('img'));
+
+  if (debug) {
+    console.log(`[PDF Export] Waiting for ${images.length} images to load...`);
+  }
+
+  const imagePromises = images.map((img) => {
+    // Already loaded
+    if (img.complete && img.naturalHeight !== 0) {
+      return Promise.resolve();
+    }
+
+    // Wait for load event
+    return new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.onerror = () => {
+        console.warn(`[PDF Export] Failed to load image: ${img.src}`);
+        resolve(); // Continue anyway
+      };
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        console.warn(`[PDF Export] Image load timeout: ${img.src}`);
+        resolve();
+      }, 10000);
+    });
+  });
+
+  await Promise.all(imagePromises);
+
+  if (debug) {
+    console.log('[PDF Export] All images loaded');
+  }
+}
+
+/**
  * Calculate A4 page dimensions in pixels based on screen DPI
  */
 function getPageDimensions(scale: number): PdfPageDimensions {
@@ -153,7 +193,8 @@ function splitContentIntoPages(
 async function renderPageToCanvas(
   measurements: PdfLayoutMeasurements,
   pageContent: PdfPageContent,
-  scale: number
+  scale: number,
+  debug = false
 ): Promise<HTMLCanvasElement> {
   // Create a temporary container for this page
   const pageContainer = document.createElement('div');
@@ -189,14 +230,28 @@ async function renderPageToCanvas(
   document.body.appendChild(pageContainer);
 
   try {
+    // Wait for all images to load before capturing
+    await waitForImagesToLoad(pageContainer, debug);
+
+    if (debug) {
+      console.log('[PDF Export] Rendering page to canvas...');
+    }
+
     // Render to canvas (oklch colors already converted to rgb by PostCSS)
     const canvas = await html2canvas(pageContainer, {
       scale,
       useCORS: true,
-      logging: false,
+      allowTaint: true, // Allow cross-origin images
+      logging: debug, // Enable logging in debug mode
       backgroundColor: '#ffffff',
       width: measurements.pageWidth / scale,
       height: measurements.pageHeight / scale,
+      imageTimeout: 15000, // 15 second timeout for images
+      onclone: () => {
+        if (debug) {
+          console.log('[PDF Export] Document cloned for rendering');
+        }
+      },
     });
 
     return canvas;
@@ -229,6 +284,9 @@ export async function exportToPdf(
         'PDF root element not found. Ensure container has data-pdf-root attribute.'
       );
     }
+
+    // Wait for all images to load before measuring (critical for correct dimensions)
+    await waitForImagesToLoad(rootElement, opts.debug);
 
     // Measure layout
     if (opts.debug) {
@@ -269,7 +327,7 @@ export async function exportToPdf(
         console.log(`[PDF Export] Rendering page ${i + 1}/${pages.length}...`);
       }
 
-      const canvas = await renderPageToCanvas(measurements, pages[i], opts.scale);
+      const canvas = await renderPageToCanvas(measurements, pages[i], opts.scale, opts.debug);
       const imgData = canvas.toDataURL('image/jpeg', opts.imageQuality);
 
       if (i > 0) {

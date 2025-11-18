@@ -39,13 +39,25 @@ export function QuoteNavbar({
       <div className="flex items-start justify-between mb-6">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <Image
-            src="/quarrylink-logo.png"
-            alt="QuarryLink logo"
-            width={45}
-            height={45}
-            priority
-          />
+          {/* Use regular img for PDF preview (better html2canvas compatibility) */}
+          {onDownloadPDF === undefined ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/quarrylink-logo.png"
+              alt="QuarryLink logo"
+              width={45}
+              height={45}
+              style={{ width: '45px', height: '45px' }}
+            />
+          ) : (
+            <Image
+              src="/quarrylink-logo.png"
+              alt="QuarryLink logo"
+              width={45}
+              height={45}
+              priority
+            />
+          )}
           <h1 className="text-[39px] font-bold ">QuarryLink</h1>
         </div>
 
