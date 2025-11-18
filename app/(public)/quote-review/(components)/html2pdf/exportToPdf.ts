@@ -83,10 +83,21 @@ function getPageDimensions(scale: number): PdfPageDimensions {
 /**
  * Find and measure all PDF layout elements in the DOM
  */
-function measureLayout(rootElement: HTMLElement, scale: number): PdfLayoutMeasurements {
+function measureLayout(rootElement: HTMLElement, scale: number, debug = false): PdfLayoutMeasurements {
   const header = rootElement.querySelector<HTMLElement>('[data-pdf-header]');
   const footer = rootElement.querySelector<HTMLElement>('[data-pdf-footer]');
   const content = rootElement.querySelector<HTMLElement>('[data-pdf-content]');
+
+  if (debug) {
+    console.log('[PDF Export] Found elements:', {
+      header: !!header,
+      footer: !!footer,
+      content: !!content,
+      headerOffsetHeight: header?.offsetHeight,
+      footerOffsetHeight: footer?.offsetHeight,
+      contentOffsetHeight: content?.offsetHeight,
+    });
+  }
 
   if (!header || !footer || !content) {
     throw new Error(
@@ -109,6 +120,18 @@ function measureLayout(rootElement: HTMLElement, scale: number): PdfLayoutMeasur
   const headerHeight = header.offsetHeight * scale;
   const footerHeight = footer.offsetHeight * scale;
   const contentHeightPerPage = pageHeight - headerHeight - footerHeight;
+
+  if (debug) {
+    console.log('[PDF Export] Raw measurements:', {
+      'header.offsetHeight': header.offsetHeight,
+      'footer.offsetHeight': footer.offsetHeight,
+      scale,
+      headerHeight,
+      footerHeight,
+      pageHeight,
+      contentHeightPerPage,
+    });
+  }
 
   return {
     header,
@@ -288,22 +311,32 @@ export async function exportToPdf(
     // CRITICAL: Temporarily show element on-screen to allow proper measurements
     // Store original styles
     const originalStyles = {
+      position: rootElement.style.position,
       left: rootElement.style.left,
+      top: rootElement.style.top,
       opacity: rootElement.style.opacity,
-      zIndex: rootElement.style.zIndex,
+      visibility: rootElement.style.visibility,
     };
 
-    // Make visible on-screen but behind everything
+    // Make it fully visible and in normal position (no tricks!)
+    rootElement.style.position = 'absolute';
     rootElement.style.left = '0';
+    rootElement.style.top = '0';
     rootElement.style.opacity = '1';
-    rootElement.style.zIndex = '-9999';
+    rootElement.style.visibility = 'visible';
 
     if (opts.debug) {
       console.log('[PDF Export] Temporarily showing element for measurements');
+      console.log('[PDF Export] Element dimensions:', {
+        width: rootElement.offsetWidth,
+        height: rootElement.offsetHeight,
+        children: rootElement.children.length,
+        innerHTML: rootElement.innerHTML.substring(0, 200),
+      });
     }
 
     // Wait for layout to settle
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // Wait for all images to load before measuring (critical for correct dimensions)
     await waitForImagesToLoad(rootElement, opts.debug);
@@ -312,7 +345,7 @@ export async function exportToPdf(
     if (opts.debug) {
       console.log('[PDF Export] Measuring layout...');
     }
-    const measurements = measureLayout(rootElement, opts.scale);
+    const measurements = measureLayout(rootElement, opts.scale, opts.debug);
 
     if (opts.debug) {
       console.log('[PDF Export] Layout measurements:', {
@@ -369,9 +402,11 @@ export async function exportToPdf(
     }
 
     // Restore original styles
+    rootElement.style.position = originalStyles.position;
     rootElement.style.left = originalStyles.left;
+    rootElement.style.top = originalStyles.top;
     rootElement.style.opacity = originalStyles.opacity;
-    rootElement.style.zIndex = originalStyles.zIndex;
+    rootElement.style.visibility = originalStyles.visibility;
 
     if (opts.debug) {
       console.log('[PDF Export] Restored element to hidden state');
@@ -388,9 +423,11 @@ export async function exportToPdf(
     // Restore original styles even on error
     const rootElement = document.querySelector<HTMLElement>('[data-pdf-root]');
     if (rootElement) {
+      rootElement.style.position = 'fixed';
       rootElement.style.left = '-9999px';
+      rootElement.style.top = '0';
       rootElement.style.opacity = '0';
-      rootElement.style.zIndex = '-9999';
+      rootElement.style.visibility = 'hidden';
     }
 
     return {
