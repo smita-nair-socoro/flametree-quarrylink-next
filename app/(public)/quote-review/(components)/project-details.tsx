@@ -12,6 +12,16 @@ export interface ProjectDetailsProps {
   forPdf?: boolean;
 }
 
+const pdfStyles = {
+  title: { letterSpacing: '0.5px', fontWeight: 600 } as const,
+  label: { letterSpacing: '0.3px' } as const,
+  value: {
+    letterSpacing: '0.3px',
+    fontWeight: 400,
+    maxWidth: '300px',
+  } as const,
+};
+
 export function ProjectDetails({
   type,
   projectName,
@@ -32,7 +42,7 @@ export function ProjectDetails({
         className={`font-semibold text-[rgba(142,81,255,1)] ${
           forPdf ? 'text-3xl' : 'text-lg mb-3'
         }`}
-        style={forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined}
+        style={forPdf ? pdfStyles.title : undefined}
       >
         Project Details
       </h2>
@@ -56,11 +66,16 @@ export function ProjectDetails({
             className={`font-semibold text-gray-700 mb-3 ${
               forPdf ? 'text-2xl' : 'text-sm'
             }`}
-            style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+            style={forPdf ? pdfStyles.label : undefined}
           >
             Project Name
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
+          <p
+            className={` ${
+              forPdf ? 'text-[26px] text-[#0A0A0A]' : 'text-sm text-gray-600'
+            }`}
+            style={forPdf ? pdfStyles.value : undefined}
+          >
             {projectName}
           </p>
         </div>
@@ -69,13 +84,18 @@ export function ProjectDetails({
         <div>
           <h3
             className={`font-semibold text-gray-700 mb-3 ${
-              forPdf ? 'text-3xl' : 'text-sm'
+              forPdf ? 'text-2xl' : 'text-sm'
             }`}
-            style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+            style={forPdf ? pdfStyles.label : undefined}
           >
             Delivery Address
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
+          <p
+            className={` ${
+              forPdf ? 'text-[26px] text-[#0A0A0A]' : 'text-sm text-gray-600'
+            }`}
+            style={forPdf ? pdfStyles.value : undefined}
+          >
             {deliveryAddress}
           </p>
         </div>
@@ -84,13 +104,18 @@ export function ProjectDetails({
         <div>
           <h3
             className={`font-semibold text-gray-700 mb-3 ${
-              forPdf ? 'text-3xl' : 'text-sm'
+              forPdf ? 'text-2xl' : 'text-sm'
             }`}
-            style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+            style={forPdf ? pdfStyles.label : undefined}
           >
             Delivery Date
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
+          <p
+            className={` ${
+              forPdf ? 'text-[26px] text-[#0A0A0A]' : 'text-sm text-gray-600'
+            }`}
+            style={forPdf ? pdfStyles.value : undefined}
+          >
             {deliveryDate}
           </p>
         </div>
@@ -99,13 +124,18 @@ export function ProjectDetails({
         <div>
           <h3
             className={`font-semibold text-gray-700 mb-3 ${
-              forPdf ? 'text-3xl' : 'text-sm'
+              forPdf ? 'text-2xl' : 'text-sm'
             }`}
-            style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+            style={forPdf ? pdfStyles.label : undefined}
           >
             Delivery Window
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
+          <p
+            className={` ${
+              forPdf ? 'text-[26px] text-[#0A0A0A]' : 'text-sm text-gray-600'
+            }`}
+            style={forPdf ? pdfStyles.value : undefined}
+          >
             {deliveryWindow}
           </p>
         </div>
