@@ -55,6 +55,7 @@ export function QuoteNavbar({
                 display: 'inline-block',
                 verticalAlign: 'middle',
                 marginRight: '16px',
+                marginTop: '20px',
               }}
             />
             <h1

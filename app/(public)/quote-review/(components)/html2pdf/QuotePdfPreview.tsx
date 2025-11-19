@@ -109,12 +109,13 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
         {/* Project Details Block */}
         <div data-pdf-block>
           <ProjectDetails {...quotationData.project} forPdf={true} />{' '}
+          <Separator className="mb-4" />
         </div>
 
         {/* Products & Services Block */}
         <div data-pdf-block>
           <ProductsServices products={quotationData.products} forPdf={true} />
-          <Separator className="mb-8" />
+          <Separator className="mb-4" />
         </div>
 
         {/* Summary & Payment Block */}
