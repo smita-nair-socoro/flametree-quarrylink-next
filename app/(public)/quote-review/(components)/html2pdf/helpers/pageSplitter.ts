@@ -12,12 +12,15 @@ export function splitContentIntoPages(
   measurements: PdfLayoutMeasurements,
   scale: number
 ): PdfPageContent[] {
+  console.log('📄 Starting page split...');
+
   const pages: PdfPageContent[] = [];
   let currentPage: HTMLElement[] = [];
   let currentPageHeight = 0;
 
   for (const block of measurements.blocks) {
     const blockHeight = block.offsetHeight * scale;
+    console.log(`  Block: height=${blockHeight}px, currentPageHeight=${currentPageHeight}px, available=${measurements.contentHeightPerPage}px`);
 
     // Check if block fits on current page
     if (currentPageHeight + blockHeight <= measurements.contentHeightPerPage) {
@@ -65,6 +68,11 @@ export function splitContentIntoPages(
   if (pages.length > 0) {
     pages[pages.length - 1].isLastPage = true;
   }
+
+  console.log(`✅ Split complete: ${pages.length} pages created`);
+  pages.forEach((page, idx) => {
+    console.log(`  Page ${page.pageNumber}: ${page.blocks.length} blocks`);
+  });
 
   return pages;
 }

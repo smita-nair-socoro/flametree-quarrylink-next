@@ -47,21 +47,21 @@ export function QuoteNavbar({
             <Image
               src="/quarrylink-logo.png"
               alt="QuarryLink logo"
-              width={45}
-              height={45}
+              width={70}
+              height={70}
               style={{
-                width: '45px',
-                height: '45px',
+                width: '70px',
+                height: '70px',
                 display: 'inline-block',
                 verticalAlign: 'middle',
-                marginRight: '12px',
+                marginRight: '16px',
               }}
             />
             <h1
               style={{
                 display: 'inline-block',
                 verticalAlign: 'middle',
-                fontSize: '39px',
+                fontSize: '60px',
                 fontWeight: 'bold',
                 paddingBottom: '25px',
               }}
@@ -74,11 +74,11 @@ export function QuoteNavbar({
             <Image
               src="/quarrylink-logo.png"
               alt="QuarryLink logo"
-              width={45}
-              height={45}
-              style={{ width: '45px', height: '45px' }}
+              width={70}
+              height={70}
+              style={{ width: '70px', height: '70px' }}
             />
-            <h1 className="text-[39px] font-bold">QuarryLink</h1>
+            <h1 className="text-[60px] font-bold">QuarryLink</h1>
           </div>
         )}
 
@@ -122,13 +122,13 @@ export function QuoteNavbar({
 
           <div className="text-right">
             <div
-              className={`font-bold ${forPdf ? 'text-[48px]' : 'text-[29px]'}`}
+              className={`font-bold ${forPdf ? 'text-[56px]' : 'text-[29px]'}`}
               style={forPdf ? { letterSpacing: '0.5px' } : undefined}
             >
               {quoteNumber}
             </div>
             <div
-              className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}
+              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
               style={forPdf ? { letterSpacing: '1px' } : undefined}
             >
               QUOTATION
@@ -138,18 +138,18 @@ export function QuoteNavbar({
       </div>
 
       {/* Bottom Row - Info Grid */}
-      <div className={`grid grid-cols-2 ${forPdf ? 'gap-4' : 'gap-8'}`}>
+      <div className={`grid grid-cols-2 ${forPdf ? 'gap-2' : 'gap-8'}`}>
         {/* Left Column */}
         <div className="space-y-2">
           <div>
             <div
-              className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}
+              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
               style={forPdf ? { letterSpacing: '0.3px' } : undefined}
             >
               Date Issued
             </div>
             <div
-              className={`font-medium ${forPdf ? 'text-2xl' : 'text-[15px]'}`}
+              className={`font-medium ${forPdf ? 'text-3xl' : 'text-[15px]'}`}
               style={forPdf ? { letterSpacing: '0.3px' } : undefined}
             >
               {dateIssued}
@@ -157,13 +157,13 @@ export function QuoteNavbar({
           </div>
           <div>
             <div
-              className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}
+              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
               style={forPdf ? { letterSpacing: '0.3px' } : undefined}
             >
               Account Manager
             </div>
             <div
-              className={`font-medium ${forPdf ? 'text-2xl' : 'text-[15px]'}`}
+              className={`font-medium ${forPdf ? 'text-3xl' : 'text-[15px]'}`}
               style={forPdf ? { letterSpacing: '0.3px' } : undefined}
             >
               {accountManager}
@@ -175,13 +175,13 @@ export function QuoteNavbar({
         <div className="space-y-2">
           <div>
             <div
-              className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}
+              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
               style={forPdf ? { letterSpacing: '0.3px' } : undefined}
             >
               Valid Until
             </div>
             <div
-              className={`font-medium ${forPdf ? 'text-2xl' : 'text-[15px]'}`}
+              className={`font-medium ${forPdf ? 'text-3xl' : 'text-[15px]'}`}
               style={forPdf ? { letterSpacing: '0.3px' } : undefined}
             >
               {validUntil}

@@ -152,10 +152,10 @@ export function SimplePdfBadge({
   return (
     <div
       className={cn(
-        'inline-block h-6 px-3 text-xs font-medium border rounded-md',
+        'inline-block h-10 px-4 text-xl font-semibold border-2 rounded-lg uppercase',
         getBadgeClassName(name, variant)
       )}
-      style={{ lineHeight: '8px' }}
+      style={{ lineHeight: '13.5px' }}
     >
       {name.replace(/_/g, ' ')}
     </div>

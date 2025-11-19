@@ -28,13 +28,12 @@ export function QuoteFooter({
   return (
     <footer
       className={`bg-[#314158] text-white px-8 ${forPdf ? 'py-8' : 'py-12 rounded-b-lg'}`}
-      style={forPdf ? { position: 'absolute', bottom: 0, left: 0, right: 0, width: '100%' } : undefined}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto text-center">
+      <div className={`grid grid-cols-1 md:grid-cols-3 ${forPdf ? 'gap-6' : 'gap-12'} max-w-7xl mx-auto text-center`}>
         {/* Column 1: Contact Information */}
         <div>
-          <h3 className={`font-semibold mb-2 ${forPdf ? 'text-2xl' : 'text-base'}`}>Contact Information</h3>
-          <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <h3 className={`font-semibold mb-2 ${forPdf ? 'text-3xl' : 'text-base'}`}>Contact Information</h3>
+          <div className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             <p>{contactInfo.company}</p>
             <p>{contactInfo.phone}</p>
             <p>{contactInfo.email}</p>
@@ -43,8 +42,8 @@ export function QuoteFooter({
 
         {/* Column 2: Office Address */}
         <div>
-          <h3 className={`font-semibold mb-2 ${forPdf ? 'text-2xl' : 'text-base'}`}>Office Address</h3>
-          <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <h3 className={`font-semibold mb-2 ${forPdf ? 'text-3xl' : 'text-base'}`}>Office Address</h3>
+          <div className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             <p>{officeAddress.address}</p>
             <p>{officeAddress.city}</p>
             <p>ABN: {officeAddress.abn}</p>
@@ -53,8 +52,8 @@ export function QuoteFooter({
 
         {/* Column 3: Website */}
         <div>
-          <h3 className={`font-semibold mb-2 ${forPdf ? 'text-2xl' : 'text-base'}`}>Website</h3>
-          <div className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <h3 className={`font-semibold mb-2 ${forPdf ? 'text-3xl' : 'text-base'}`}>Website</h3>
+          <div className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             <p>{website.url}</p>
             <p>{website.portalInfo}</p>
             <p>{website.support}</p>

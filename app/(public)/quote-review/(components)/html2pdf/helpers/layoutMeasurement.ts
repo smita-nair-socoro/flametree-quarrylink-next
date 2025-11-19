@@ -37,6 +37,17 @@ export function measureLayout(rootElement: HTMLElement, scale: number): PdfLayou
   const footerHeight = footer.offsetHeight * scale;
   const contentHeightPerPage = pageHeight - headerHeight - footerHeight - SAFETY_MARGIN_PX;
 
+  console.log('📏 Layout Measurements:', {
+    scale,
+    pageHeight: `${pageHeight}px`,
+    pageWidth: `${pageWidth}px`,
+    headerHeight: `${headerHeight}px (${header.offsetHeight}px unscaled)`,
+    footerHeight: `${footerHeight}px (${footer.offsetHeight}px unscaled)`,
+    contentHeightPerPage: `${contentHeightPerPage}px`,
+    safetyMargin: `${SAFETY_MARGIN_PX}px`,
+    blocksCount: blocks.length,
+  });
+
   return {
     header,
     footer,

@@ -84,7 +84,7 @@ export function ProductsServices({
     return (
       <div className="bg-white px-10 py-6 pt-8 mb-3">
         <h2
-          className="font-bold text-[rgba(142,81,255,1)] mb-3 text-4xl"
+          className="font-bold text-[rgba(142,81,255,1)] mb-6 text-3xl"
           style={{ letterSpacing: '0.5px' }}
         >
           Products & Services
@@ -96,28 +96,26 @@ export function ProductsServices({
           <thead>
             <tr className="border-b border-border">
               <th
-                className="text-muted-foreground  px-2 text-left align-middle font-medium whitespace-nowrap"
-                style={{ width: '25%' }}
+                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{ width: '25%', letterSpacing: '0.5px' }}
               >
                 Product
               </th>
               <th
-                className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
-                style={{ width: '25%' }}
+                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{ width: '25%', letterSpacing: '0.5px' }}
               >
-                <p className="text-lg" style={{ letterSpacing: '0.3px' }}>
-                  Truck Configuration
-                </p>
+                Truck Configuration
               </th>
               <th
-                className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
-                style={{ width: '25%' }}
+                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{ width: '25%', letterSpacing: '0.5px' }}
               >
                 Quantity
               </th>
               <th
-                className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
-                style={{ width: '25%', letterSpacing: '0.3px' }}
+                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{ width: '25%', letterSpacing: '0.5px' }}
               >
                 Total Price
               </th>
@@ -125,7 +123,12 @@ export function ProductsServices({
           </thead>
           <tbody>
             {products.map((product, index) => (
-              <tr key={index} className="border-b border-border">
+              <tr
+                key={index}
+                className={
+                  index === products.length - 1 ? '' : 'border-b border-border'
+                }
+              >
                 <td className="p-2 align-middle whitespace-nowrap">
                   <div>
                     <p className="font-semibold text-gray-900 text-xl">

@@ -27,15 +27,15 @@ export function ProjectDetails({
       }`}
     >
       <h2
-        className={`font-semibold text-[rgba(142,81,255,1)] mb-3 ${
-          forPdf ? 'text-4xl' : 'text-lg'
+        className={`font-semibold text-[rgba(142,81,255,1)] ${
+          forPdf ? 'text-3xl' : 'text-lg mb-3'
         }`}
         style={forPdf ? { letterSpacing: '0.5px' } : undefined}
       >
         Project Details
       </h2>
-      <Separator className="mb-4" />
-      <div className="mb-3">
+      <Separator className={`${forPdf ? 'hidden' : 'mb-4'}`} />
+      <div className={`${forPdf ? 'mt-6' : 'mb-4'}`}>
         {forPdf ? (
           <SimplePdfBadge name={type} />
         ) : (
@@ -45,7 +45,7 @@ export function ProjectDetails({
 
       <div
         className={`grid grid-cols-1 md:grid-cols-4 ${
-          forPdf ? 'gap-2' : 'gap-8'
+          forPdf ? 'gap-1' : 'gap-8'
         }`}
       >
         {/* Project Name */}
@@ -58,7 +58,7 @@ export function ProjectDetails({
           >
             Project Name
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             {projectName}
           </p>
         </div>
@@ -67,13 +67,13 @@ export function ProjectDetails({
         <div>
           <h3
             className={`font-semibold text-gray-700 mb-3 ${
-              forPdf ? 'text-2xl' : 'text-sm'
+              forPdf ? 'text-3xl' : 'text-sm'
             }`}
             style={forPdf ? { letterSpacing: '0.3px' } : undefined}
           >
             Delivery Address
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             {deliveryAddress}
           </p>
         </div>
@@ -82,13 +82,13 @@ export function ProjectDetails({
         <div>
           <h3
             className={`font-semibold text-gray-700 mb-3 ${
-              forPdf ? 'text-2xl' : 'text-sm'
+              forPdf ? 'text-3xl' : 'text-sm'
             }`}
             style={forPdf ? { letterSpacing: '0.3px' } : undefined}
           >
             Delivery Date
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             {deliveryDate}
           </p>
         </div>
@@ -97,13 +97,13 @@ export function ProjectDetails({
         <div>
           <h3
             className={`font-semibold text-gray-700 mb-3 ${
-              forPdf ? 'text-2xl' : 'text-sm'
+              forPdf ? 'text-3xl' : 'text-sm'
             }`}
             style={forPdf ? { letterSpacing: '0.3px' } : undefined}
           >
             Delivery Window
           </h3>
-          <p className={`text-gray-600 ${forPdf ? 'text-xl' : 'text-sm'}`}>
+          <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
             {deliveryWindow}
           </p>
         </div>
