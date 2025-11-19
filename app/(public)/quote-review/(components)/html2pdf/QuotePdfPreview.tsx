@@ -12,7 +12,6 @@ import { ProjectDetails } from '../project-details';
 import { ProductsServices } from '../products-services';
 import { SummaryPayment } from '../summary-payment';
 import { QuoteFooter } from '../quote-footer';
-import { ProceedActionsPdfPreview } from './ProceedActionsPdfPreview';
 import { Separator } from '@/components/ui/separator';
 
 export interface QuotePdfPreviewProps {
@@ -75,10 +74,6 @@ export interface QuotePdfPreviewProps {
         support: string;
       };
     };
-    proceedActions?: {
-      quoteId: string;
-      baseUrl?: string;
-    };
   };
 }
 
@@ -127,17 +122,6 @@ export function QuotePdfPreview({ quotationData }: QuotePdfPreviewProps) {
         <div data-pdf-block>
           <SummaryPayment {...quotationData.summary} forPdf={true} />
         </div>
-
-        {/* Proceed Actions Block - Only shown for PENDING/DRAFT status */}
-        {quotationData.proceedActions && (
-          <div data-pdf-block>
-            <ProceedActionsPdfPreview
-              validUntil={quotationData.navbar.validUntil}
-              accountManager={quotationData.navbar.accountManager}
-              status={quotationData.navbar.status}
-            />
-          </div>
-        )}
       </div>
 
       {/* Footer - appears on every page */}

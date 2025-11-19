@@ -9,7 +9,6 @@
 export { exportToPdf } from './exportToPdf';
 export { useHtml2Pdf } from './useHtml2Pdf';
 export { QuotePdfPreview } from './QuotePdfPreview';
-export { ProceedActionsPdfPreview } from './ProceedActionsPdfPreview';
 export type {
   PdfExportOptions,
   PdfExportResult,
@@ -19,4 +18,3 @@ export type {
 } from './types';
 export type { UseHtml2PdfOptions, UseHtml2PdfReturn } from './useHtml2Pdf';
 export type { QuotePdfPreviewProps } from './QuotePdfPreview';
-export type { ProceedActionsPdfPreviewProps } from './ProceedActionsPdfPreview';
