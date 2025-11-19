@@ -83,7 +83,10 @@ export function ProductsServices({
   if (forPdf) {
     return (
       <div className="bg-white px-10 py-6 pt-8 mb-3">
-        <h2 className="font-bold text-[rgba(142,81,255,1)] mb-3 text-4xl">
+        <h2
+          className="font-bold text-[rgba(142,81,255,1)] mb-3 text-4xl"
+          style={{ letterSpacing: '0.5px' }}
+        >
           Products & Services
         </h2>
         <table
@@ -102,7 +105,9 @@ export function ProductsServices({
                 className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
                 style={{ width: '25%' }}
               >
-                <p className="text-lg">Truck Configuration</p>
+                <p className="text-lg" style={{ letterSpacing: '0.3px' }}>
+                  Truck Configuration
+                </p>
               </th>
               <th
                 className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
@@ -112,7 +117,7 @@ export function ProductsServices({
               </th>
               <th
                 className="text-muted-foreground px-2 text-left align-middle font-medium whitespace-nowrap"
-                style={{ width: '25%' }}
+                style={{ width: '25%', letterSpacing: '0.3px' }}
               >
                 Total Price
               </th>
@@ -138,7 +143,7 @@ export function ProductsServices({
                 <td className="p-2 align-middle whitespace-nowrap">
                   <p className="text-gray-900 text-xl">{product.quantity}</p>
                 </td>
-                <td className="p-2 align-middle whitespace-nowrap text-right">
+                <td className="p-2 align-middle whitespace-nowrap">
                   <p className="font-semibold text-gray-900 text-xl">
                     ${centsToDollars(product.totalPrice)}
                   </p>

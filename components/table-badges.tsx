@@ -95,7 +95,7 @@ export function TableBadges({
         <Badge
           key={n}
           className={cn(
-            'inline-flex h-6 px-3 text-xs font-medium border items-center justify-center',
+            'px-2 py-0.5 text-xs font-medium border',
             getBadgeClassName(n, variant)
           )}
         >
@@ -123,7 +123,7 @@ export function TableBadges({
                 <Badge
                   key={n}
                   className={cn(
-                    'inline-flex uppercase px-2 py-0.5 text-xs font-medium border items-center justify-center',
+                    'uppercase px-2 py-0.5 text-xs font-medium border',
                     getBadgeClassName(n, variant)
                   )}
                 >
@@ -145,15 +145,19 @@ interface SimplePdfBadgeProps {
   variant?: 'default' | 'suburb';
 }
 
-export function SimplePdfBadge({ name, variant = 'default' }: SimplePdfBadgeProps) {
+export function SimplePdfBadge({
+  name,
+  variant = 'default',
+}: SimplePdfBadgeProps) {
   return (
-    <Badge
+    <div
       className={cn(
-        'inline-flex h-6 px-3 text-xs font-medium border items-center justify-center',
+        'inline-block h-6 px-3 text-xs font-medium border rounded-md',
         getBadgeClassName(name, variant)
       )}
+      style={{ lineHeight: '8px' }}
     >
       {name.replace(/_/g, ' ')}
-    </Badge>
+    </div>
   );
 }
