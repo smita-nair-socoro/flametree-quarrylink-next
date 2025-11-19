@@ -26,7 +26,10 @@ export function QuoteFooter({
   forPdf = false,
 }: QuoteFooterProps) {
   return (
-    <footer className={`bg-[#314158] text-white px-8 ${forPdf ? 'py-8' : 'py-12 rounded-b-lg'}`}>
+    <footer
+      className={`bg-[#314158] text-white px-8 ${forPdf ? 'py-8' : 'py-12 rounded-b-lg'}`}
+      style={forPdf ? { position: 'absolute', bottom: 0, left: 0, right: 0, width: '100%' } : undefined}
+    >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto text-center">
         {/* Column 1: Contact Information */}
         <div>
