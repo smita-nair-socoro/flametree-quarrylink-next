@@ -49,7 +49,15 @@ export function CustomerInformation({
             className={`font-semibold mb-2 ${
               forPdf ? 'text-2xl text-[#4A5565]' : 'text-sm text-gray-700'
             }`}
-            style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+            style={
+              forPdf
+                ? {
+                    letterSpacing: '0.3px',
+                    lineHeight: '13px',
+                    fontWeight: 400,
+                  }
+                : undefined
+            }
           >
             Customer
           </h3>
@@ -61,10 +69,38 @@ export function CustomerInformation({
             >
               {customerName}
             </p>
-            <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
+            <p
+              className={` ${
+                forPdf
+                  ? 'text-2xl text-[#4A5565] mb-2'
+                  : 'text-sm text-gray-600'
+              }`}
+              style={
+                forPdf
+                  ? {
+                      letterSpacing: '0.3px',
+                      lineHeight: '13px',
+                      fontWeight: 400,
+                    }
+                  : undefined
+              }
+            >
               {email}
             </p>
-            <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
+            <p
+              className={` ${
+                forPdf ? 'text-2xl text-[#4A5565]' : 'text-sm text-gray-600'
+              }`}
+              style={
+                forPdf
+                  ? {
+                      letterSpacing: '0.3px',
+                      lineHeight: '13px',
+                      fontWeight: 400,
+                    }
+                  : undefined
+              }
+            >
               Phone: {phone}
             </p>
           </div>
@@ -73,10 +109,19 @@ export function CustomerInformation({
         {/* Right Column - Billing Address */}
         <div>
           <h3
-            className={`font-semibold text-gray-700 mb-2 ${
-              forPdf ? 'text-3xl' : 'text-sm'
+            className={`font-semibold ${
+              forPdf ? 'text-2xl' : 'text-sm text-gray-700'
             }`}
-            style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+            style={
+              forPdf
+                ? {
+                    color: '#4A5565',
+                    letterSpacing: '0.3px',
+                    lineHeight: '26px',
+                    fontWeight: 400,
+                  }
+                : undefined
+            }
           >
             Billing Address
           </h3>

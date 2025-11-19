@@ -145,13 +145,17 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
+              }
             >
               Date Issued
             </div>
             <div
-              className={`font-medium ${forPdf ? 'text-3xl' : 'text-[15px]'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              className={` ${forPdf ? 'text-2xl' : 'text-[15px] font-medium'}`}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 500 } : undefined
+              }
             >
               {dateIssued}
             </div>
@@ -159,13 +163,17 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
+              }
             >
               Account Manager
             </div>
             <div
-              className={`font-medium ${forPdf ? 'text-3xl' : 'text-[15px]'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              className={` ${forPdf ? 'text-2xl' : 'text-[15px] font-medium'}`}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 500 } : undefined
+              }
             >
               {accountManager}
             </div>
@@ -177,21 +185,27 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
+              }
             >
               Valid Until
             </div>
             <div
-              className={`font-medium ${forPdf ? 'text-3xl' : 'text-[15px]'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              className={`${forPdf ? 'text-2xl' : 'text-[15px] font-medium '}`}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 500 } : undefined
+              }
             >
               {validUntil}
             </div>
           </div>
           <div>
             <div
-              className={`text-white ${forPdf ? 'text-xl' : 'text-sm'}`}
-              style={forPdf ? { letterSpacing: '0.3px' } : undefined}
+              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
+              style={
+                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
+              }
             >
               Status
             </div>
