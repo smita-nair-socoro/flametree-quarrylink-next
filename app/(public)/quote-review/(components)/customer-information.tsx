@@ -28,10 +28,12 @@ export function CustomerInformation({
       }`}
     >
       <h2
-        className={`font-semibold text-[rgba(142,81,255,1)] mb-3 ${
-          forPdf ? 'text-3xl' : 'text-lg'
+        className={` mb-3 ${
+          forPdf
+            ? 'text-3xl text-[#9810FA]'
+            : 'text-lg text-[#8E51FF] font-semibold'
         }`}
-        style={forPdf ? { letterSpacing: '0.5px' } : undefined}
+        style={forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined}
       >
         Customer Information
       </h2>
@@ -44,8 +46,8 @@ export function CustomerInformation({
         {/* Left Column - Customer Details */}
         <div>
           <h3
-            className={`font-semibold text-gray-700 mb-2 ${
-              forPdf ? 'text-3xl' : 'text-sm'
+            className={`font-semibold mb-2 ${
+              forPdf ? 'text-2xl text-[#4A5565]' : 'text-sm text-gray-700'
             }`}
             style={forPdf ? { letterSpacing: '0.3px' } : undefined}
           >
@@ -78,16 +80,17 @@ export function CustomerInformation({
           >
             Billing Address
           </h3>
-          <div className="space-y-1">
-            <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
-              {billingAddress.line1}
-            </p>
-            <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
-              {billingAddress.line2}
-            </p>
-            <p className={`text-gray-600 ${forPdf ? 'text-2xl' : 'text-sm'}`}>
-              {billingAddress.country}
-            </p>
+          <div
+            className={`${
+              forPdf
+                ? 'text-3xl text-[#0A0A0A]'
+                : 'text-sm text-gray-600 space-y-1'
+            }`}
+            style={forPdf ? { lineHeight: '16px' } : undefined}
+          >
+            <p>{billingAddress.line1}</p>
+            <p>{billingAddress.line2}</p>
+            <p>{billingAddress.country}</p>
           </div>
         </div>
       </div>

@@ -41,9 +41,12 @@ export function SummaryPayment({
         {/* Left Column - Summary */}
         <div>
           <h2
-            className={`font-semibold text-gray-900 mb-4 ${
-              forPdf ? 'text-2xl' : 'text-base'
+            className={`font-semibold mb-4 ${
+              forPdf ? 'text-2xl text-[#0A0A0A]' : 'text-base text-gray-900'
             }`}
+            style={
+              forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined
+            }
           >
             Summary
           </h2>

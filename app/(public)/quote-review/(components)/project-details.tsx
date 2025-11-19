@@ -22,15 +22,17 @@ export function ProjectDetails({
 }: ProjectDetailsProps) {
   return (
     <div
-      className={`bg-white ${
-        forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-4 pt-10 mb-4'
+      className={`${
+        forPdf
+          ? 'px-10 py-6 pt-8 mb-3 bg-[#F9FAFB]'
+          : 'px-8 py-4 pt-10 mb-4 bg-white'
       }`}
     >
       <h2
         className={`font-semibold text-[rgba(142,81,255,1)] ${
           forPdf ? 'text-3xl' : 'text-lg mb-3'
         }`}
-        style={forPdf ? { letterSpacing: '0.5px' } : undefined}
+        style={forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined}
       >
         Project Details
       </h2>

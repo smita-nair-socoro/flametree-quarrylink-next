@@ -84,8 +84,10 @@ export function ProductsServices({
     return (
       <div className="bg-white px-10 py-6 pt-8 mb-3">
         <h2
-          className="font-bold text-[rgba(142,81,255,1)] mb-6 text-3xl"
-          style={{ letterSpacing: '0.5px' }}
+          className="font-bold text-[#9810FA] mb-6 text-3xl"
+          style={
+            forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined
+          }
         >
           Products & Services
         </h2>
