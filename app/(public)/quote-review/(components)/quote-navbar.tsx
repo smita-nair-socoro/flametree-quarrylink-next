@@ -23,6 +23,13 @@ export interface QuoteNavbarProps {
   forPdf?: boolean;
 }
 
+const pdfStyles = {
+  quoteNumber: { letterSpacing: '0.5px' } as const,
+  quotationText: { letterSpacing: '1px' } as const,
+  label: { letterSpacing: '0.3px', fontWeight: 400 } as const,
+  value: { letterSpacing: '0.3px', fontWeight: 500 } as const,
+};
+
 export function QuoteNavbar({
   quoteNumber,
   dateIssued,
@@ -124,13 +131,13 @@ export function QuoteNavbar({
           <div className="text-right">
             <div
               className={`font-bold ${forPdf ? 'text-[56px]' : 'text-[29px]'}`}
-              style={forPdf ? { letterSpacing: '0.5px' } : undefined}
+              style={forPdf ? pdfStyles.quoteNumber : undefined}
             >
               {quoteNumber}
             </div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? { letterSpacing: '1px' } : undefined}
+              style={forPdf ? pdfStyles.quotationText : undefined}
             >
               QUOTATION
             </div>
@@ -145,17 +152,13 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
-              }
+              style={forPdf ? pdfStyles.label : undefined}
             >
               Date Issued
             </div>
             <div
               className={` ${forPdf ? 'text-2xl' : 'text-[15px] font-medium'}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 500 } : undefined
-              }
+              style={forPdf ? pdfStyles.value : undefined}
             >
               {dateIssued}
             </div>
@@ -163,17 +166,13 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
-              }
+              style={forPdf ? pdfStyles.label : undefined}
             >
               Account Manager
             </div>
             <div
               className={` ${forPdf ? 'text-2xl' : 'text-[15px] font-medium'}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 500 } : undefined
-              }
+              style={forPdf ? pdfStyles.value : undefined}
             >
               {accountManager}
             </div>
@@ -185,17 +184,13 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
-              }
+              style={forPdf ? pdfStyles.label : undefined}
             >
               Valid Until
             </div>
             <div
               className={`${forPdf ? 'text-2xl' : 'text-[15px] font-medium '}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 500 } : undefined
-              }
+              style={forPdf ? pdfStyles.value : undefined}
             >
               {validUntil}
             </div>
@@ -203,9 +198,7 @@ export function QuoteNavbar({
           <div>
             <div
               className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={
-                forPdf ? { letterSpacing: '0.3px', fontWeight: 400 } : undefined
-              }
+              style={forPdf ? pdfStyles.label : undefined}
             >
               Status
             </div>

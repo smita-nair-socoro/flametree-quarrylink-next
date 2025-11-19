@@ -34,7 +34,7 @@ export function ProjectDetails({
     <div
       className={`${
         forPdf
-          ? 'px-10 py-6 pt-8 mb-3 bg-[#F9FAFB]'
+          ? 'px-10 py-6 pt-8 bg-[#F9FAFB]'
           : 'px-8 py-4 pt-10 mb-4 bg-white'
       }`}
     >

@@ -14,6 +14,22 @@ export interface CustomerInformationProps {
   forPdf?: boolean;
 }
 
+const pdfStyles = {
+  title: { letterSpacing: '0.5px', fontWeight: 600 } as const,
+  label: {
+    letterSpacing: '0.3px',
+    lineHeight: '13px',
+    fontWeight: 400,
+  } as const,
+  billingLabel: {
+    color: '#4A5565',
+    letterSpacing: '0.3px',
+    lineHeight: '26px',
+    fontWeight: 400,
+  } as const,
+  address: { lineHeight: '16px' } as const,
+};
+
 export function CustomerInformation({
   customerName,
   email,
@@ -33,7 +49,7 @@ export function CustomerInformation({
             ? 'text-3xl text-[#9810FA]'
             : 'text-lg text-[#8E51FF] font-semibold'
         }`}
-        style={forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined}
+        style={forPdf ? pdfStyles.title : undefined}
       >
         Customer Information
       </h2>
@@ -49,15 +65,7 @@ export function CustomerInformation({
             className={`font-semibold mb-2 ${
               forPdf ? 'text-2xl text-[#4A5565]' : 'text-sm text-gray-700'
             }`}
-            style={
-              forPdf
-                ? {
-                    letterSpacing: '0.3px',
-                    lineHeight: '13px',
-                    fontWeight: 400,
-                  }
-                : undefined
-            }
+            style={forPdf ? pdfStyles.label : undefined}
           >
             Customer
           </h3>
@@ -75,15 +83,7 @@ export function CustomerInformation({
                   ? 'text-2xl text-[#4A5565] mb-2'
                   : 'text-sm text-gray-600'
               }`}
-              style={
-                forPdf
-                  ? {
-                      letterSpacing: '0.3px',
-                      lineHeight: '13px',
-                      fontWeight: 400,
-                    }
-                  : undefined
-              }
+              style={forPdf ? pdfStyles.label : undefined}
             >
               {email}
             </p>
@@ -91,15 +91,7 @@ export function CustomerInformation({
               className={` ${
                 forPdf ? 'text-2xl text-[#4A5565]' : 'text-sm text-gray-600'
               }`}
-              style={
-                forPdf
-                  ? {
-                      letterSpacing: '0.3px',
-                      lineHeight: '13px',
-                      fontWeight: 400,
-                    }
-                  : undefined
-              }
+              style={forPdf ? pdfStyles.label : undefined}
             >
               Phone: {phone}
             </p>
@@ -112,26 +104,17 @@ export function CustomerInformation({
             className={`font-semibold ${
               forPdf ? 'text-2xl' : 'text-sm text-gray-700'
             }`}
-            style={
-              forPdf
-                ? {
-                    color: '#4A5565',
-                    letterSpacing: '0.3px',
-                    lineHeight: '26px',
-                    fontWeight: 400,
-                  }
-                : undefined
-            }
+            style={forPdf ? pdfStyles.billingLabel : undefined}
           >
             Billing Address
           </h3>
           <div
             className={`${
               forPdf
-                ? 'text-3xl text-[#0A0A0A]'
+                ? 'text-[28px] text-[#0A0A0A]'
                 : 'text-sm text-gray-600 space-y-1'
             }`}
-            style={forPdf ? { lineHeight: '16px' } : undefined}
+            style={forPdf ? pdfStyles.address : undefined}
           >
             <p>{billingAddress.line1}</p>
             <p>{billingAddress.line2}</p>
