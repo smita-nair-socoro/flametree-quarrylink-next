@@ -26,10 +26,13 @@ export default function UserAccessTab({
   const teamMemberCount = convertedClientWithUsers.length;
 
   // Use Zustand store for selected team member
-  const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
+  const setSelectedTeamMember = useTeamMemberStore(
+    (state) => state.setSelectedTeamMember
+  );
 
   // Separate state for the actions hook
-  const [selectedUserForActions, setSelectedUserForActions] = React.useState<User | null>(null);
+  const [selectedUserForActions, setSelectedUserForActions] =
+    React.useState<User | null>(null);
 
   // Ref to track if we should open the dialog after state update
   const shouldOpenDialogRef = React.useRef(false);
@@ -68,16 +71,18 @@ export default function UserAccessTab({
       <div>
         <div className="flex flex-col space-y-5">
           <div className="flex justify-between items-center mt-5">
-            <h1 className="text-lg font-semibold">Users ({teamMemberCount}/20)</h1>
+            <h1 className="text-lg font-semibold">
+              Users ({teamMemberCount}/20)
+            </h1>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <FormDialog
-                  dialogTitle="Invite User"
-                  dialogWidth="max-w-md"
-                  buttonTitle="Invite User"
-                  headerClassName='pb-2 h-[32px] pt-10'
-                  preserveEmptyBadgeSpace={false}
-                  key={teamMemberCount}
-                >
+              <FormDialog
+                dialogTitle="Invite User"
+                dialogWidth="max-w-md"
+                buttonTitle="Invite User"
+                headerClassName="pb-2 h-[32px] pt-10"
+                preserveEmptyBadgeSpace={false}
+                key={teamMemberCount}
+              >
                 <InviteUserForm
                   teamMemberCount={teamMemberCount}
                   roleOptions={rolesOptions}
@@ -88,7 +93,7 @@ export default function UserAccessTab({
           <DataTableClient
             columns={columns}
             data={convertedClientWithUsers}
-            simpleTable={false}
+            simpleTable={true}
             onRowClick={handleRowClick}
             allowClicksInsideModal={true}
           />
