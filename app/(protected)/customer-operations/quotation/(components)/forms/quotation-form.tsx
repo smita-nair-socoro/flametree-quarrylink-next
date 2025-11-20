@@ -57,7 +57,7 @@ export default function QuotationForm({
   id,
   onCancel,
   className,
-  canEdit,
+  canEdit = true,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
