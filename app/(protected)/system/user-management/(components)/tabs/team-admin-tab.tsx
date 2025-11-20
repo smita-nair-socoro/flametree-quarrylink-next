@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus, Bug, RotateCcwSquare, Delete } from 'lucide-react';
+import { Plus, RotateCcwSquare, Delete } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
@@ -13,13 +13,6 @@ import {
 } from '@/components/ui/data-table-client';
 import { Button } from '@/components/ui/button';
 import { getRelativeTimeFuture } from '@/lib/utils/date';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
@@ -274,10 +267,6 @@ const rolesOptions: readonly FormSelectOption[] = [
 ];
 
 export default function TeamAdminTab() {
-  // Debug mode state for testing different UI states
-  const [debugMode, setDebugMode] = React.useState(false);
-  const [debugCount, setDebugCount] = React.useState<number>(5);
-
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
     (state) => state.setSelectedTeamMember
@@ -301,8 +290,8 @@ export default function TeamAdminTab() {
     actions.viewEdit();
   };
 
-  // Calculate team member count based on debug mode
-  const teamMemberCount = debugMode ? debugCount : teamMemberMockData.length;
+  // Calculate team member count based on actual data
+  const teamMemberCount = teamMemberMockData.length;
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
@@ -333,36 +322,6 @@ export default function TeamAdminTab() {
               </h1>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              {/* Debug Mode Toggle */}
-              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-                <Bug className="h-4 w-4 text-amber-600" />
-                <span className="text-sm font-medium text-amber-900">
-                  Debug Mode:
-                </span>
-                <Button
-                  variant={debugMode ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setDebugMode(!debugMode)}
-                  className="h-7 text-xs"
-                >
-                  {debugMode ? 'ON' : 'OFF'}
-                </Button>
-                {debugMode && (
-                  <Select
-                    value={debugCount.toString()}
-                    onValueChange={(value) => setDebugCount(parseInt(value))}
-                  >
-                    <SelectTrigger className="h-7 w-[140px] text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">Under Limit (5)</SelectItem>
-                      <SelectItem value="10">Over Limit (10)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
               <FormDialog
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
