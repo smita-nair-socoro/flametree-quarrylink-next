@@ -40,13 +40,13 @@ export function CustomerInformation({
   return (
     <div
       className={`bg-white ${
-        forPdf ? 'px-10 py-6 pt-8 mb-3' : 'px-8 py-4 pt-10 mb-4'
+        forPdf ? 'px-10 py-6 pt-2 mb-3' : 'px-8 py-4 pt-10 mb-4'
       }`}
     >
       <h2
-        className={` mb-3 ${
+        className={`mb-3 ${
           forPdf
-            ? 'text-3xl text-[#9810FA]'
+            ? 'text-3xl text-[#9810FA] pb-2'
             : 'text-lg text-[#8E51FF] font-semibold'
         }`}
         style={forPdf ? pdfStyles.title : undefined}

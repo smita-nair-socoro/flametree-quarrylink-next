@@ -82,9 +82,9 @@ export function ProductsServices({
   // Use regular HTML table for PDF rendering
   if (forPdf) {
     return (
-      <div className="bg-white px-10 py-6 pt-8 mb-3">
+      <div className="bg-white px-10 py-6 pt-2 mb-3">
         <h2
-          className="font-bold text-[#9810FA] mb-6 text-3xl"
+          className="font-bold text-[#9810FA] pb-2 text-3xl"
           style={
             forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined
           }
@@ -95,29 +95,45 @@ export function ProductsServices({
           className="w-full border-collapse"
           style={{ tableLayout: 'fixed' }}
         >
-          <thead>
-            <tr className="border-b border-border">
+          <thead className="ml-0 pl-0">
+            <tr className="border-b border-border text-[#364153]">
               <th
-                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{ width: '25%', letterSpacing: '0.5px' }}
+                className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{
+                  width: '25%',
+                  letterSpacing: '0.5px',
+                  fontWeight: 500,
+                }}
               >
                 Product
               </th>
               <th
-                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{ width: '25%', letterSpacing: '0.5px' }}
+                className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{
+                  width: '25%',
+                  letterSpacing: '0.5px',
+                  fontWeight: 500,
+                }}
               >
                 Truck Configuration
               </th>
               <th
-                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{ width: '25%', letterSpacing: '0.5px' }}
+                className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{
+                  width: '25%',
+                  letterSpacing: '0.5px',
+                  fontWeight: 500,
+                }}
               >
                 Quantity
               </th>
               <th
-                className="text-muted-foreground px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{ width: '25%', letterSpacing: '0.5px' }}
+                className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
+                style={{
+                  width: '25%',
+                  letterSpacing: '0.5px',
+                  fontWeight: 500,
+                }}
               >
                 Total Price
               </th>

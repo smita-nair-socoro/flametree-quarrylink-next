@@ -34,13 +34,13 @@ export function ProjectDetails({
     <div
       className={`${
         forPdf
-          ? 'px-10 py-6 pt-8 bg-[#F9FAFB]'
+          ? 'px-10 py-6 pt-2 bg-[#F9FAFB]'
           : 'px-8 py-4 pt-10 mb-4 bg-white'
       }`}
     >
       <h2
         className={`font-semibold text-[rgba(142,81,255,1)] ${
-          forPdf ? 'text-3xl' : 'text-lg mb-3'
+          forPdf ? 'text-3xl pb-2' : 'text-lg mb-3'
         }`}
         style={forPdf ? pdfStyles.title : undefined}
       >
