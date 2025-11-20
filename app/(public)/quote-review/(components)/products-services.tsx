@@ -18,6 +18,17 @@ export interface ProductsServicesProps {
   forPdf?: boolean;
 }
 
+const pdfStyles = {
+  title: { letterSpacing: '0.5px', fontWeight: 600 } as const,
+  tableHeader: { letterSpacing: '0.5px', fontWeight: 500 } as const,
+  tableHeaderRight: {
+    letterSpacing: '0.5px',
+    fontWeight: 500,
+    textAlign: 'right' as const,
+  } as const,
+  table: { tableLayout: 'fixed' as const },
+};
+
 const createColumns = (forPdf: boolean): ColumnDef<Product>[] => [
   {
     accessorKey: 'name',
@@ -85,55 +96,43 @@ export function ProductsServices({
       <div className="bg-white px-10 py-6 pt-2 mb-3">
         <h2
           className="font-bold text-[#9810FA] pb-2 text-3xl"
-          style={
-            forPdf ? { letterSpacing: '0.5px', fontWeight: 600 } : undefined
-          }
+          style={forPdf ? pdfStyles.title : undefined}
         >
           Products & Services
         </h2>
         <table
           className="w-full border-collapse"
-          style={{ tableLayout: 'fixed' }}
+          style={pdfStyles.table}
         >
+          <colgroup>
+            <col style={{ width: '38%' }} /> 
+            <col style={{ width: '32%' }} />
+            <col style={{ width: '12%' }} /> 
+            <col style={{ width: '18%' }} /> 
+          </colgroup>
           <thead className="ml-0 pl-0">
             <tr className="border-b border-border text-[#364153]">
               <th
                 className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{
-                  width: '25%',
-                  letterSpacing: '0.5px',
-                  fontWeight: 500,
-                }}
+                style={pdfStyles.tableHeader}
               >
                 Product
               </th>
               <th
                 className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{
-                  width: '25%',
-                  letterSpacing: '0.5px',
-                  fontWeight: 500,
-                }}
+                style={pdfStyles.tableHeader}
               >
                 Truck Configuration
               </th>
               <th
                 className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{
-                  width: '25%',
-                  letterSpacing: '0.5px',
-                  fontWeight: 500,
-                }}
+                style={pdfStyles.tableHeader}
               >
                 Quantity
               </th>
               <th
-                className="px-2 pb-3 text-left align-middle font-medium whitespace-nowrap text-2xl"
-                style={{
-                  width: '25%',
-                  letterSpacing: '0.5px',
-                  fontWeight: 500,
-                }}
+                className="px-2 pb-3 align-middle font-medium whitespace-nowrap text-2xl"
+                style={pdfStyles.tableHeaderRight}
               >
                 Total Price
               </th>
@@ -149,23 +148,23 @@ export function ProductsServices({
               >
                 <td className="p-2 align-middle whitespace-nowrap">
                   <div>
-                    <p className="font-semibold text-gray-900 text-xl">
+                    <p className="font-semibold text-gray-900 text-2xl">
                       {product.name}
                     </p>
-                    <p className="text-gray-500 text-lg">{product.code}</p>
+                    <p className="text-gray-500 text-2xl">{product.code}</p>
                   </div>
                 </td>
                 <td className="p-2 align-middle whitespace-nowrap">
                   <div>
-                    <p className="text-gray-900 text-xl">{product.truckType}</p>
-                    <p className="text-gray-500 text-lg">{product.capacity}</p>
+                    <p className="text-gray-900 text-2xl">{product.truckType}</p>
+                    <p className="text-gray-500 text-2xl">{product.capacity}</p>
                   </div>
                 </td>
                 <td className="p-2 align-middle whitespace-nowrap">
-                  <p className="text-gray-900 text-xl">{product.quantity}</p>
+                  <p className="text-gray-900 text-2xl">{product.quantity}</p>
                 </td>
-                <td className="p-2 align-middle whitespace-nowrap">
-                  <p className="font-semibold text-gray-900 text-xl">
+                <td className="p-2 align-middle text-right whitespace-nowrap">
+                  <p className="font-semibold text-gray-900 text-2xl">
                     ${centsToDollars(product.totalPrice)}
                   </p>
                 </td>

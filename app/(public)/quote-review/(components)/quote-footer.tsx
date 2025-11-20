@@ -29,7 +29,7 @@ export function QuoteFooter({
     <footer
       className={`bg-[#314158] text-white px-8 ${forPdf ? 'py-8' : 'py-12 rounded-b-lg'}`}
     >
-      <div className={`grid grid-cols-1 md:grid-cols-3 ${forPdf ? 'gap-6' : 'gap-12'} max-w-7xl mx-auto text-center`}>
+      <div className={`grid ${forPdf ? 'grid-cols-3 gap-6' : 'grid-cols-1 md:grid-cols-3 gap-12'} max-w-7xl mx-auto text-center`}>
         {/* Column 1: Contact Information */}
         <div>
           <h3 className={`font-semibold mb-2 ${forPdf ? 'text-3xl' : 'text-base'}`}>Contact Information</h3>

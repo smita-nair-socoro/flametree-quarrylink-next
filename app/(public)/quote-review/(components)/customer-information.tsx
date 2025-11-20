@@ -55,8 +55,8 @@ export function CustomerInformation({
       </h2>
       <Separator className={`${forPdf ? 'hidden' : 'mb-3'}`} />
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 ${
-          forPdf ? 'gap-2 mt-4' : 'gap-12'
+        className={`grid ${
+          forPdf ? 'gap-2 mt-4 grid-cols-2' : ' grid-cols-1 md:grid-cols-2 gap-12'
         }`}
       >
         {/* Left Column - Customer Details */}

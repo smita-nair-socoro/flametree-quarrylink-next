@@ -70,7 +70,7 @@ export function splitContentIntoPages(
   }
 
   console.log(`✅ Split complete: ${pages.length} pages created`);
-  pages.forEach((page, idx) => {
+  pages.forEach((page) => {
     console.log(`  Page ${page.pageNumber}: ${page.blocks.length} blocks`);
   });
 

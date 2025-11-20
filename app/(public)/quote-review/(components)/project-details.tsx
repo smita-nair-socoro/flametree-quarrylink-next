@@ -39,8 +39,8 @@ export function ProjectDetails({
       }`}
     >
       <h2
-        className={`font-semibold text-[rgba(142,81,255,1)] ${
-          forPdf ? 'text-3xl pb-2' : 'text-lg mb-3'
+        className={`font-semibold ${
+          forPdf ? 'text-3xl pb-2 text-[#9810FA]' : 'text-lg mb-3 text-[rgba(142,81,255,1)]'
         }`}
         style={forPdf ? pdfStyles.title : undefined}
       >
@@ -56,8 +56,8 @@ export function ProjectDetails({
       </div>
 
       <div
-        className={`grid grid-cols-1 md:grid-cols-4 ${
-          forPdf ? 'gap-1' : 'gap-8'
+        className={` ${
+          forPdf ? ' grid gap-1 grid-cols-4' : 'gap-8 grid grid-cols-1 md:grid-cols-4'
         }`}
       >
         {/* Project Name */}
