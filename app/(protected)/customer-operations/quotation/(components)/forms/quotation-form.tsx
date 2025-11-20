@@ -42,7 +42,10 @@ import {
   QuotationDetailQueryOptions,
   useCreateQuotation,
 } from '@/lib/api/quotation';
-import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
+import {
+  transformFormDataToQuoteDto,
+  generateNextQuoteNumber,
+} from '@/lib/utils/quote-helpers';
 import { notifyPromise } from '@/lib/toast';
 
 interface FormProps {
@@ -308,8 +311,28 @@ export default function QuotationForm({
   }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
+    // Get additional data from store
+    const getCustomerNameById = useQuotationStore.getState().getCustomerNameById;
+    const getAccountManagerNameById = useQuotationStore.getState().getAccountManagerNameById;
+    const quotations = useQuotationStore.getState().quotations;
+
+    const customerName = getCustomerNameById(values.customer_id);
+    const accountManagerName = getAccountManagerNameById(values.account_manager);
+
+    // Generate next quote number
+    const quoteNumber = generateNextQuoteNumber(quotations);
+
+    if (!customerName || !accountManagerName) {
+      console.error('❌ Missing customer or account manager name');
+      return;
+    }
+
     // Transform form data to match backend API expectations
-    const quoteData = transformFormDataToQuoteDto(values);
+    const quoteData = transformFormDataToQuoteDto(values, {
+      customerName,
+      accountManagerName,
+      quoteNumber,
+    });
 
     // Use notifyPromise for automatic toast notifications
     await notifyPromise(createQuotation.mutateAsync(quoteData), {

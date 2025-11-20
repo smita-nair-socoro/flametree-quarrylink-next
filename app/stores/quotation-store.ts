@@ -26,6 +26,8 @@ interface QuotationStore {
   };
   getUniqueCustomerNames: () => Array<{ label: string; value: number }>;
   getUniqueAccountManagers: () => Array<{ label: string; value: number }>;
+  getCustomerNameById: (customerId: number) => string | null;
+  getAccountManagerNameById: (managerId: number) => string | null;
 }
 
 export const useQuotationStore = create<QuotationStore>()(
@@ -116,6 +118,22 @@ export const useQuotationStore = create<QuotationStore>()(
         return Array.from(managerMap.entries())
           .map(([value, label]) => ({ label, value }))
           .sort((a, b) => a.label.localeCompare(b.label));
+      },
+
+      getCustomerNameById: (customerId) => {
+        const state = get();
+        const quotation = state.quotations.find(
+          (q) => q.customer_id === customerId
+        );
+        return quotation?.customer_name || null;
+      },
+
+      getAccountManagerNameById: (managerId) => {
+        const state = get();
+        const quotation = state.quotations.find(
+          (q) => q.account_manager === managerId
+        );
+        return quotation?.account_manager_name || null;
       },
     }),
     { name: 'quotation-store' }

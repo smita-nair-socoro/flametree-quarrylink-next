@@ -15,7 +15,8 @@ export interface QuotationDTO {
   account_manager_name: string;
   project_name: string;
   quote_status: QuoteStatus; // Backend uses quote_status
-  delivery_address: string;
+  delivery_address: string; // For display purposes (from API response)
+  delivery_address_id: number; // Backend expects this for create/update
   job_id: number;
   delivery_start_date: string | null;
   expiry_date: string | null;

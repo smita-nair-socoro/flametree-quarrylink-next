@@ -36,24 +36,84 @@ export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
  * @param formData - The form data from the quotation form
  * @returns A partial QuotationDTO ready for POST request
  */
+/**
+ * Combines a date and time string to create an ISO DateTime string.
+ * @param date - The date object
+ * @param timeString - Time in HH:mm format
+ * @returns ISO DateTime string or null
+ */
+const combineDateAndTime = (date: Date | undefined, timeString: string): string | null => {
+  if (!date || !timeString) return null;
+
+  const [hours, minutes] = timeString.split(':');
+  const combined = new Date(date);
+  combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+  return combined.toISOString();
+};
+
+/**
+ * Generates the next quote number based on existing quotes.
+ * Format: Q#### (e.g., Q0001, Q0016, Q0017)
+ */
+export const generateNextQuoteNumber = (existingQuotes: { quote_number: string }[]): string => {
+  if (!existingQuotes || existingQuotes.length === 0) {
+    return 'Q0001';
+  }
+
+  // Extract numbers from existing quote numbers and find the max
+  const numbers = existingQuotes
+    .map((q) => {
+      const match = q.quote_number.match(/Q(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter((n) => !isNaN(n));
+
+  const maxNumber = Math.max(...numbers, 0);
+  const nextNumber = maxNumber + 1;
+
+  return `Q${String(nextNumber).padStart(4, '0')}`;
+};
+
 export const transformFormDataToQuoteDto = (
-  formData: Record<string, unknown>
+  formData: Record<string, unknown>,
+  additionalData: {
+    customerName: string;
+    accountManagerName: string;
+    quoteNumber: string;
+  }
 ): Partial<QuotationDTO> => {
-  return {
-    quote_type: formData.quote_type as QuoteType,
-    customer_id: formData.customer_id as number,
-    account_manager: formData.account_manager as number,
-    project_name: formData.project_name as string,
-    quote_status: QUOTE_STATUS.DRAFT, // Always DRAFT on creation
-    delivery_address: formData.delivery_address as string,
-    delivery_start_date: formData.delivery_start_date
-      ? (formData.delivery_start_date as Date).toISOString()
-      : null,
-    delivery_window_start: (formData.delivery_window_start as string) || null,
-    delivery_window_end: (formData.delivery_window_end as string) || null,
-    expiry_date: formData.expiry_date
+  const deliveryDate = formData.delivery_start_date as Date | undefined;
+
+  const transformed = {
+    quoteNumber: additionalData.quoteNumber,
+    quoteType: formData.quote_type as QuoteType,
+    customerId: formData.customer_id as number,
+    customerName: additionalData.customerName,
+    projectName: formData.project_name as string,
+    quoteStatus: QUOTE_STATUS.DRAFT, // Always DRAFT on creation
+    deliveryAddressId: 1, // TEMPORARY: Hardcoded - need address management
+    jobId: null, // Will be set when converted to job
+    deliveryStartDate: deliveryDate ? deliveryDate.toISOString() : null,
+    deliveryWindowStart: combineDateAndTime(
+      deliveryDate,
+      formData.delivery_window_start as string
+    ),
+    deliveryWindowEnd: combineDateAndTime(
+      deliveryDate,
+      formData.delivery_window_end as string
+    ),
+    expiryDate: formData.expiry_date
       ? (formData.expiry_date as Date).toISOString()
       : null,
-    line_items: [], // Empty on creation, added separately
+    accountManager: formData.account_manager as number,
+    accountManagerName: additionalData.accountManagerName,
+    lineItemsCount: 0, // Empty on creation
+    version: 1, // Default version for new quotes
   };
+
+  console.log('📤 Transforming form data to DTO:', formData);
+  console.log('📤 Transformed DTO:', transformed);
+
+  return transformed;
 };
