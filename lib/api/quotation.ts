@@ -6,7 +6,8 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { QuotationKeys } from './keys';
-import { QuotationDTO } from '../types/quotation';
+import { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import { convertKeysToSnakeCase } from '../utils/case-conversion';
 
 export const QuotationsListQueryOptions = () =>
   queryOptions({
@@ -75,6 +76,38 @@ export const useExtendExpiryDate = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for creating a new quote item.
+ * Automatically invalidates the quotations cache on success.
+ *
+ * Note: product_id, quarry_id, and quarry_product_id are temporarily defaulted to 1
+ * until the backend implementation is complete.
+ */
+export const useCreateQuoteItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: Partial<QuotationLineItem>) => {
+      const dataWithDefaults = {
+        ...data,
+        product_id: data.product_id || 1,
+        quarry_id: data.quarry_id || 1,
+        quarry_product_id: data.quarry_product_id || 1,
+      };
+      console.log('🔧 Data with defaults (before sending):', dataWithDefaults);
+      const response = await APIClient.quotations.createQuoteItem(dataWithDefaults);
+      console.log('✅ Response from backend:', response);
+      return convertKeysToSnakeCase(response) as QuotationLineItem;
+    },
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quote_id) });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });

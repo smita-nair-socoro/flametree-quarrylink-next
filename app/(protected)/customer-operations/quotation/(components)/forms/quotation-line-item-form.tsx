@@ -22,6 +22,9 @@ import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { CurrencyInput } from '@/components/ui/input-mask';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useCreateQuoteItem } from '@/lib/api/quotation';
+import { notifyPromise } from '@/lib/toast';
 
 interface FormProps {
   id?: number;
@@ -38,7 +41,6 @@ export default function QuoteLineItemForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [pricingBreakdown, setPricingBreakdown] = React.useState({
     totalProductCostPrice: 0,
     totalTruckCostPrice: 0,
@@ -50,6 +52,8 @@ export default function QuoteLineItemForm({
   });
 
   const selectedLineItem = useSelectedLineItem();
+  const selectedQuotation = useSelectedQuotation();
+  const createQuoteItem = useCreateQuoteItem();
 
   const quotationLineItemForm = useForm<
     z.infer<typeof NewQuotationLineItemFormSchema>
@@ -75,7 +79,7 @@ export default function QuoteLineItemForm({
       truck_sell_uom: isEditing ? selectedLineItem?.truck_sell_uom : '',
       truck_sell_qty: isEditing ? selectedLineItem?.truck_sell_qty : 0,
       truck_sell_price: isEditing ? selectedLineItem?.truck_sell_price : 0,
-      required_loads: isEditing ? selectedLineItem?.required_loads : 0,
+      required_loads: isEditing ? selectedLineItem?.required_loads : 1,
       total_product_cost_price: isEditing
         ? selectedLineItem?.total_product_cost_price
         : 0,
@@ -301,23 +305,62 @@ export default function QuoteLineItemForm({
   async function onSubmit(
     values: z.infer<typeof NewQuotationLineItemFormSchema>
   ) {
-    console.log('onSubmit function called!');
-    console.log('Form is valid:', quotationLineItemForm.formState.isValid);
-    console.log('Form errors:', quotationLineItemForm.formState.errors);
-    console.log('Quotation Form Values:', values);
+    if (!selectedQuotation?.id) {
+      console.error('No quotation selected');
+      return;
+    }
 
-    setIsSubmitting(true);
+    // Prepare quote item data
+    const quoteItemData = {
+      quote_id: selectedQuotation.id,
+      product_name: productOptions.find(p => p.value === values.product_id)?.label || '',
+      quarry_name: quarryOptions.find(q => q.value === values.quarry_id)?.label || '',
+      supplier_product_name: values.supplier_product_name,
+      product_cost_uom: values.product_cost_uom,
+      product_cost_qty: values.product_cost_qty,
+      product_cost_price: values.product_cost_price,
+      total_product_cost_price: values.total_product_cost_price,
+      product_sell_uom: values.product_sell_uom,
+      product_sell_qty: values.product_sell_qty,
+      product_sell_price: values.product_sell_price,
+      total_product_sell_price: values.total_product_sell_price,
+      truck_type: values.truck_type,
+      truck_cost_uom: values.truck_cost_uom,
+      truck_cost_qty: values.truck_cost_qty,
+      truck_cost_price: values.truck_cost_price,
+      total_truck_cost_price: values.total_truck_cost_price,
+      truck_sell_uom: values.truck_sell_uom,
+      truck_sell_qty: values.truck_sell_qty,
+      truck_sell_price: values.truck_sell_price,
+      total_truck_sell_price: values.total_truck_sell_price,
+      gross_profit: values.gross_profit,
+      total_quantity_required: values.product_sell_qty,
+      allocated_quantity: 0,
+      remaining_quantity: values.product_sell_qty,
+      required_loads: values.required_loads,
+      version: 1,
+      is_deleted: false,
+    };
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
+    await notifyPromise(
+      createQuoteItem.mutateAsync(quoteItemData),
+      {
+        loading: 'Adding product...',
+        success: () => {
+          quotationLineItemForm.reset();
+          onCancel?.();
+          return 'Product added successfully!';
+        },
+        error: (err) =>
+          `Failed to add product: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      }
+    );
   }
 
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {isSubmitting && (
+      {createQuoteItem.isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -339,7 +382,7 @@ export default function QuoteLineItemForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            isSubmitting && 'pointer-events-none'
+            createQuoteItem.isPending && 'pointer-events-none'
           )}
           onSubmit={handleSubmit}
         >
@@ -347,7 +390,7 @@ export default function QuoteLineItemForm({
             className={cn(
               'p-1 w-full flex flex-col',
               className,
-              isSubmitting && 'pointer-events-none'
+              createQuoteItem.isPending && 'pointer-events-none'
             )}
           >
             {/* Product Information */}
@@ -824,12 +867,16 @@ export default function QuoteLineItemForm({
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
                 <Button
-                  form="add-new-quote-line-item-form"
                   className="cursor-pointer"
-                  type="submit"
-                  disabled={isSubmitting || !canEdit}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  type="button"
+                  disabled={createQuoteItem.isPending || !canEdit}
+                  onClick={() => {
+                    console.log('=== Add Product Button Clicked ===');
+                    console.log('Form is valid:', quotationLineItemForm.formState.isValid);
+                    console.log('Form errors:', quotationLineItemForm.formState.errors);
+                    console.log('Form errors (stringified):', JSON.stringify(quotationLineItemForm.formState.errors, null, 2));
+                    console.log('Form values:', quotationLineItemForm.getValues());
+                    quotationLineItemForm.handleSubmit(onSubmit)();
                   }}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
@@ -840,12 +887,16 @@ export default function QuoteLineItemForm({
             {!isDesktop && (
               <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
-                  form="add-new-quote-line-item-form"
-                  type="submit"
+                  type="button"
                   className="cursor-pointer"
-                  disabled={isSubmitting || !canEdit}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  disabled={createQuoteItem.isPending || !canEdit}
+                  onClick={() => {
+                    console.log('=== Add Product Button Clicked ===');
+                    console.log('Form is valid:', quotationLineItemForm.formState.isValid);
+                    console.log('Form errors:', quotationLineItemForm.formState.errors);
+                    console.log('Form errors (stringified):', JSON.stringify(quotationLineItemForm.formState.errors, null, 2));
+                    console.log('Form values:', quotationLineItemForm.getValues());
+                    quotationLineItemForm.handleSubmit(onSubmit)();
                   }}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}

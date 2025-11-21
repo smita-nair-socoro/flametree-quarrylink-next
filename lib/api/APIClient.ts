@@ -4,8 +4,9 @@ import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
-import { QuotationDTO } from '../types/quotation';
+import { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
+import { convertKeysToCamelCase } from '../utils/case-conversion';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -398,5 +399,12 @@ export const APIClient = {
           },
         }
       ),
+    createQuoteItem: (data: Partial<QuotationLineItem>) => {
+      const camelCaseData = convertKeysToCamelCase(data);
+      console.log('🚀 Sending to backend (camelCase):', camelCaseData);
+      return appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
+        body: camelCaseData,
+      });
+    },
   },
 };
