@@ -51,8 +51,9 @@ export interface Quotation {
   account_manager_name: string;
   project_name: string;
   status: QuoteStatus;
-  delivery_address: string; // FK to Address.id (String for now; will change it later)
-  job_id: number; // FK to Job.id (if converted)
+  delivery_address: string;
+  delivery_address_id: number;
+  job_id: number;
   delivery_start_date: string;
   expiry_date: string;
   delivery_window_start: string;

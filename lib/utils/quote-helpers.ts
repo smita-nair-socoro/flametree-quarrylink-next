@@ -68,6 +68,7 @@ export const transformFormDataToQuoteDto = (
     customerName: string;
     accountManagerName: string;
     quoteNumber: string;
+    deliveryAddressId?: number;
   }
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.delivery_start_date as Date | undefined;
@@ -84,7 +85,7 @@ export const transformFormDataToQuoteDto = (
     customerName: additionalData.customerName,
     projectName: formData.project_name as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
-    deliveryAddressId: 1,
+    deliveryAddressId: additionalData.deliveryAddressId || 1,
     expiryDate: toLocalDateTime(expiryDate),
     accountManager: formData.account_manager as number,
     accountManagerName: additionalData.accountManagerName,

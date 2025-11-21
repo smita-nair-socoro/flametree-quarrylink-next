@@ -41,6 +41,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   QuotationDetailQueryOptions,
   useCreateQuotation,
+  useUpdateQuotation,
 } from '@/lib/api/quotation';
 import {
   transformFormDataToQuoteDto,
@@ -192,6 +193,7 @@ export default function QuotationForm({
   });
 
   const createQuotation = useCreateQuotation();
+  const updateQuotation = useUpdateQuotation();
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -315,28 +317,59 @@ export default function QuotationForm({
     const getAccountManagerNameById = useQuotationStore.getState().getAccountManagerNameById;
     const quotations = useQuotationStore.getState().quotations;
 
-    const customerName = getCustomerNameById(values.customer_id);
-    const accountManagerName = getAccountManagerNameById(values.account_manager);
-    const quoteNumber = generateNextQuoteNumber(quotations);
+    let customerName = getCustomerNameById(values.customer_id);
+    let accountManagerName = getAccountManagerNameById(values.account_manager);
+
+    if (isEditing && currentQuotation) {
+      customerName = customerName || currentQuotation.customer_name;
+      accountManagerName = accountManagerName || currentQuotation.account_manager_name;
+    }
 
     if (!customerName || !accountManagerName) {
       notifyError('Missing customer or account manager information');
       return;
     }
 
+    const quoteNumber = isEditing && currentQuotation?.quote_number
+      ? currentQuotation.quote_number
+      : generateNextQuoteNumber(quotations);
+
     const quoteData = transformFormDataToQuoteDto(values, {
       customerName,
       accountManagerName,
       quoteNumber,
+      deliveryAddressId: isEditing && currentQuotation?.delivery_address_id
+        ? currentQuotation.delivery_address_id
+        : 1,
     });
 
-    await notifyPromise(createQuotation.mutateAsync(quoteData), {
-      loading: 'Creating quotation...',
-      success: (data) =>
-        `Quotation ${data.quote_number} created successfully!`,
-      error: (err) =>
-        `Failed to create quotation: ${err instanceof Error ? err.message : 'Unknown error'}`,
+    console.log('📤 Request Data:', {
+      mode: isEditing ? 'UPDATE' : 'CREATE',
+      id: currentQuotation?.id,
+      data: quoteData,
+      jsonString: JSON.stringify(quoteData, null, 2)
     });
+
+    if (isEditing && currentQuotation?.id) {
+      await notifyPromise(
+        updateQuotation.mutateAsync({ id: currentQuotation.id, data: quoteData }),
+        {
+          loading: 'Updating quotation...',
+          success: (data) =>
+            `Quotation ${data.quote_number} updated successfully!`,
+          error: (err) =>
+            `Failed to update quotation: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        }
+      );
+    } else {
+      await notifyPromise(createQuotation.mutateAsync(quoteData), {
+        loading: 'Creating quotation...',
+        success: (data) =>
+          `Quotation ${data.quote_number} created successfully!`,
+        error: (err) =>
+          `Failed to create quotation: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      });
+    }
 
     onCancel?.();
   }
@@ -408,7 +441,7 @@ export default function QuotationForm({
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {createQuotation.isPending && (
+      {(createQuotation.isPending || updateQuotation.isPending) && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -418,7 +451,7 @@ export default function QuotationForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding Quote...
+              {isEditing ? 'Updating Quote...' : 'Adding Quote...'}
             </p>
           </div>
         </div>
@@ -430,7 +463,7 @@ export default function QuotationForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            createQuotation.isPending && 'pointer-events-none'
+            (createQuotation.isPending || updateQuotation.isPending) && 'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -441,7 +474,7 @@ export default function QuotationForm({
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',
               className,
-              createQuotation.isPending && 'pointer-events-none'
+              (createQuotation.isPending || updateQuotation.isPending) && 'pointer-events-none'
             )}
           >
             {/* Quote Type - Only show when creating new quote */}
@@ -889,7 +922,7 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={createQuotation.isPending || !canEdit}
+                  disabled={createQuotation.isPending || updateQuotation.isPending || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>
@@ -902,7 +935,7 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
-                  disabled={createQuotation.isPending || !canEdit}
+                  disabled={createQuotation.isPending || updateQuotation.isPending || !canEdit}
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>
