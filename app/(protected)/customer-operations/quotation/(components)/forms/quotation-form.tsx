@@ -334,6 +334,8 @@ export default function QuotationForm({
       ? currentQuotation.quote_number
       : generateNextQuoteNumber(quotations);
 
+
+    // address number is set to 1 by default, mock data since we currently don't have the address API
     const quoteData = transformFormDataToQuoteDto(values, {
       customerName,
       accountManagerName,
@@ -343,6 +345,7 @@ export default function QuotationForm({
         : 1,
     });
 
+    //test console.log
     console.log('📤 Request Data:', {
       mode: isEditing ? 'UPDATE' : 'CREATE',
       id: currentQuotation?.id,
