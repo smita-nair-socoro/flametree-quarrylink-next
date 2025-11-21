@@ -25,6 +25,7 @@ import { useSelectedTeamMember } from '@/app/stores/team-member-store';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TableBadges } from '@/components/table-badges';
+import { notifySuccess, notifyError } from '@/lib/toast';
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
 type EditTeamMemberPayload = EditTeamMemberFormValues & {
@@ -117,30 +118,48 @@ export function EditTeamMemberForm({
   };
 
   const handleSubmit = async (values: EditTeamMemberFormValues) => {
-    const normalizedPhone = values.phone?.trim() || '';
+    try {
+      const normalizedPhone = values.phone?.trim() || '';
 
-    const payload: EditTeamMemberPayload = {
-      ...values,
-      id: initialData?.id,
-      client_id: initialData?.client_id,
-      phone: normalizedPhone,
-      created_at: initialData?.created_at,
-      last_login_at: initialData?.last_login_at,
-      total_logins: initialData?.total_logins,
-      quotation_created: initialData?.quotation_created,
-      jobs_managed: initialData?.jobs_managed,
-      invited_by: initialData?.invited_by,
-      deletion_reason: initialData?.deletion_reason,
-      isDeleted: initialData?.isDeleted,
-      updated_at: initialData?.updated_at,
-    };
+      const payload: EditTeamMemberPayload = {
+        ...values,
+        id: initialData?.id,
+        client_id: initialData?.client_id,
+        phone: normalizedPhone,
+        created_at: initialData?.created_at,
+        last_login_at: initialData?.last_login_at,
+        total_logins: initialData?.total_logins,
+        quotation_created: initialData?.quotation_created,
+        jobs_managed: initialData?.jobs_managed,
+        invited_by: initialData?.invited_by,
+        deletion_reason: initialData?.deletion_reason,
+        isDeleted: initialData?.isDeleted,
+        updated_at: initialData?.updated_at,
+      };
 
-    await onSave?.(payload);
-    form.reset({
-      ...values,
-      phone: normalizedPhone,
+      await onSave?.(payload);
+      form.reset({
+        ...values,
+        phone: normalizedPhone,
+      });
+
+      // Show success toast
+      notifySuccess('User Updated');
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      notifyError('Update Failed', {
+        duration: 7000,
+      });
+    }
+  };
+
+  // Handle form validation errors
+  const handleError = (errors: unknown) => {
+    console.error('Team Member validation errors:', errors);
+    notifyError('Update Failed', {
+      duration: 7000,
     });
-    onSuccess?.();
   };
 
   if (!initialData) {
@@ -171,7 +190,9 @@ export function EditTeamMemberForm({
               {fullName}
             </span>
             <TableBadges names={initialData.status} visibleCount={1} />
-            <span className="text-[16px] text-[#4B5563]">{initialData.email}</span>
+            <span className="text-[16px] text-[#4B5563]">
+              {initialData.email}
+            </span>
             <span className="text-[14px] text-[#6B7280]">
               Joined: {formattedJoined}
             </span>
@@ -181,7 +202,7 @@ export function EditTeamMemberForm({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleSubmit)}
+          onSubmit={form.handleSubmit(handleSubmit, handleError)}
           className="flex flex-col gap-2 mt-2"
         >
           <section className="space-y-3">

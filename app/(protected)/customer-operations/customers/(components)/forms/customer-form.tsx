@@ -36,7 +36,12 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-export default function CustomerForm({ id, onCancel, className }: FormProps) {
+export default function CustomerForm({
+  id,
+  onCancel,
+  className,
+  onSuccess,
+}: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedCustomer = useSelectedCustomer();
@@ -280,7 +285,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
       notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added', {
         duration: 3000,
       });
-      onCancel?.();
+      onSuccess?.();
     } catch (error) {
       console.error('Error creating customer:', error);
       notifyError(

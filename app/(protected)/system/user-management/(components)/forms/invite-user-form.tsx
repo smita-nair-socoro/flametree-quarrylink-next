@@ -24,6 +24,7 @@ import z from 'zod';
 import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
 import { AlertTriangle, UserPlus } from 'lucide-react';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -59,17 +60,37 @@ export default function InviteUserForm({
   const onSubmit = async (data: z.infer<typeof InviteUserFormSchema>) => {
     console.log('Invite user data:', data);
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simulate API call delay (remove this in production)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    setIsSubmitting(false);
+      // Show success toast
+      notifySuccess('User Invited', {
+        description: `Invitation sent to ${data.email}`,
+        duration: 4000,
+      });
 
-    // TODO: Add actual API call here
-    // On success, call onSuccess to close the dialog
-    onSuccess?.();
+      // On success, call onSuccess to close the dialog
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      notifyError('Invitation Failed', {
+        duration: 7000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // Handle form validation errors
+  function onError(errors: unknown) {
+    console.error('Invite User validation errors:', errors);
+    notifyError('Invitation Failed', {
+      duration: 7000,
+    });
+  }
 
   return (
     <div className="w-full relative">
@@ -93,7 +114,7 @@ export default function InviteUserForm({
       <Form {...form}>
         <form
           id="invite-user-form"
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(onSubmit, onError)}
           className={cn(
             'space-y-1 px-2',
             isSubmitting && 'pointer-events-none'
@@ -155,11 +176,7 @@ export default function InviteUserForm({
               <FormItem>
                 <FormLabel>Email Address*</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="john.smith@company.com"
-                    {...field}
-                  />
+                  <Input placeholder="john.smith@company.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
