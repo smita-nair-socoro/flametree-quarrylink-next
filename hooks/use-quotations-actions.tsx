@@ -470,7 +470,8 @@ const getDialogConfigs = (
                     setNewExpiryDate(date);
                   }
                 }}
-                disabled={{ before: new Date(expiryDate ?? '') }}
+                // Original: disabled={{ before: new Date(expiryDate ?? '') }}, update for test
+                disabled={{ before: new Date() }}
               />
             </div>
 
