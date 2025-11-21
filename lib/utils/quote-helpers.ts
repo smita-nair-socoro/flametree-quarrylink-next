@@ -55,11 +55,14 @@ const combineDateAndTime = (date: Date | undefined, timeString: string): string 
 
 /**
  * Generates the next quote number based on existing quotes.
- * Format: Q#### (e.g., Q0001, Q0016, Q0017)
+ * Format: Q#### (e.g., Q0100, Q0101, Q0102)
+ * Starts from Q0100 to avoid conflicts with existing quotes
  */
 export const generateNextQuoteNumber = (existingQuotes: { quote_number: string }[]): string => {
+  const MIN_QUOTE_NUMBER = 100; // Start from Q0100
+
   if (!existingQuotes || existingQuotes.length === 0) {
-    return 'Q0001';
+    return `Q${String(MIN_QUOTE_NUMBER).padStart(4, '0')}`;
   }
 
   // Extract numbers from existing quote numbers and find the max
@@ -70,10 +73,13 @@ export const generateNextQuoteNumber = (existingQuotes: { quote_number: string }
     })
     .filter((n) => !isNaN(n));
 
-  const maxNumber = Math.max(...numbers, 0);
+  const maxNumber = Math.max(...numbers, MIN_QUOTE_NUMBER - 1);
   const nextNumber = maxNumber + 1;
 
-  return `Q${String(nextNumber).padStart(4, '0')}`;
+  const generatedNumber = `Q${String(nextNumber).padStart(4, '0')}`;
+  console.log(`📋 Generated quote number: ${generatedNumber} (max found: Q${String(maxNumber).padStart(4, '0')})`);
+
+  return generatedNumber;
 };
 
 export const transformFormDataToQuoteDto = (
