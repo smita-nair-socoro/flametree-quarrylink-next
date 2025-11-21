@@ -382,6 +382,10 @@ export const APIClient = {
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`
       ),
+    getWithQuoteItems: (quotationId: number) =>
+      appClient.Get<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
+      ),
     create: (data: Partial<QuotationDTO>) =>
       appClient.Post<QuotationDTO>('/socoro/quarrylink/api/quote', {
         body: data,
@@ -399,12 +403,9 @@ export const APIClient = {
           },
         }
       ),
-    createQuoteItem: (data: Partial<QuotationLineItem>) => {
-      const camelCaseData = convertKeysToCamelCase(data);
-      console.log('🚀 Sending to backend (camelCase):', camelCaseData);
-      return appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
-        body: camelCaseData,
-      });
-    },
+    createQuoteItem: (data: Partial<QuotationLineItem>) =>
+      appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
+        body: convertKeysToCamelCase(data),
+      }),
   },
 };

@@ -16,7 +16,7 @@ import {
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
-import { QuotationDetailQueryOptions, useExtendExpiryDate } from '@/lib/api/quotation';
+import { QuotationWithLineItemsQueryOptions, useExtendExpiryDate } from '@/lib/api/quotation';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { notifyPromise } from '@/lib/toast';
 
@@ -504,6 +504,7 @@ export function useQuotationActions(
   const fallbackQuotation = useQuotationStore((state) =>
     quotationId ? state.getQuotationById(quotationId) : null
   );
+  const setSelectedQuotation = useQuotationStore((state) => state.setSelectedQuotation);
   const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -526,11 +527,11 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
-  // Fetch detailed quotation data from backend (same as view/edit modal)
+  // Fetch detailed quotation data with line items from backend
   const {
     data: quotationDetailData,
     isLoading: isLoadingDetail,
-  } = useQuery(QuotationDetailQueryOptions(quotationId || 0));
+  } = useQuery(QuotationWithLineItemsQueryOptions(quotationId || 0));
 
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
@@ -561,6 +562,13 @@ export function useQuotationActions(
     }
     return null;
   }, [quotationDetailData, quotationId, isLoadingDetail]);
+
+  // Update store with detailed quotation that includes line items
+  React.useEffect(() => {
+    if (detailedQuotation) {
+      setSelectedQuotation(detailedQuotation);
+    }
+  }, [detailedQuotation, setSelectedQuotation]);
 
   // Use detailed data if available, otherwise fall back to list data
   const quotationToUse = detailedQuotation || quotationData;

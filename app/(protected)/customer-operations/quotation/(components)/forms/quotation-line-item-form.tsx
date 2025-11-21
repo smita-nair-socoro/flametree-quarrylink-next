@@ -870,14 +870,7 @@ export default function QuoteLineItemForm({
                   className="cursor-pointer"
                   type="button"
                   disabled={createQuoteItem.isPending || !canEdit}
-                  onClick={() => {
-                    console.log('=== Add Product Button Clicked ===');
-                    console.log('Form is valid:', quotationLineItemForm.formState.isValid);
-                    console.log('Form errors:', quotationLineItemForm.formState.errors);
-                    console.log('Form errors (stringified):', JSON.stringify(quotationLineItemForm.formState.errors, null, 2));
-                    console.log('Form values:', quotationLineItemForm.getValues());
-                    quotationLineItemForm.handleSubmit(onSubmit)();
-                  }}
+                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit)()}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>
@@ -890,14 +883,7 @@ export default function QuoteLineItemForm({
                   type="button"
                   className="cursor-pointer"
                   disabled={createQuoteItem.isPending || !canEdit}
-                  onClick={() => {
-                    console.log('=== Add Product Button Clicked ===');
-                    console.log('Form is valid:', quotationLineItemForm.formState.isValid);
-                    console.log('Form errors:', quotationLineItemForm.formState.errors);
-                    console.log('Form errors (stringified):', JSON.stringify(quotationLineItemForm.formState.errors, null, 2));
-                    console.log('Form values:', quotationLineItemForm.getValues());
-                    quotationLineItemForm.handleSubmit(onSubmit)();
-                  }}
+                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit)()}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>

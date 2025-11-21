@@ -39,7 +39,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import {
-  QuotationDetailQueryOptions,
+  QuotationWithLineItemsQueryOptions,
   useCreateQuotation,
   useUpdateQuotation,
 } from '@/lib/api/quotation';
@@ -72,7 +72,7 @@ export default function QuotationForm({
     data: quotationDetailData,
     isLoading: isLoadingDetail,
     error: detailError,
-  } = useQuery(QuotationDetailQueryOptions(selectedQuotation?.id || 0));
+  } = useQuery(QuotationWithLineItemsQueryOptions(selectedQuotation?.id || 0));
 
   // Log API response for debugging
   React.useEffect(() => {
