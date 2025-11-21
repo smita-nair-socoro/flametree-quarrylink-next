@@ -76,8 +76,8 @@ export function DatePicker({
           onSelect={handleDateSelect}
           disabled={disabled}
           required={required}
-          fromDate={new Date(2000, 0, 1)}
-          toDate={new Date(2050, 11, 31)}
+          startMonth={new Date(2000, 0)}
+          endMonth={new Date(2050, 11)}
         />
       </PopoverContent>
     </Popover>
