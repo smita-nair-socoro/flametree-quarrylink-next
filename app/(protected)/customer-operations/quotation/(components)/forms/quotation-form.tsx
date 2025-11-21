@@ -79,7 +79,10 @@ export default function QuotationForm({
     if (detailError) {
       console.error('❌ Error fetching quotation details:', detailError);
     }
-  }, [detailError]);
+    if (quotationDetailData) {
+      console.log('✅ Quotation detail data fetched from API:', quotationDetailData);
+    }
+  }, [detailError, quotationDetailData]);
 
   // Convert QuotationDTO from API to Quotation format for the form
   const getDetailedQuotation = React.useMemo(() => {
@@ -87,14 +90,19 @@ export default function QuotationForm({
       // Convert to snake_case if needed
       const convertedQuotation = convertKeysToSnakeCase(
         quotationDetailData
-      ) as QuotationDTO;
+      ) as any;
 
-      // Transform to match Quotation interface (map quote_status → status)
+      // Transform to match Quotation interface (map quote_status → status, quote_items → line_items)
       const transformedQuotation = {
         ...convertedQuotation,
         quoteId: convertedQuotation.id,
         status: convertedQuotation.quote_status,
+        line_items: convertedQuotation.quote_items || convertedQuotation.line_items || [],
       } as Quotation;
+
+      console.log('🔄 Transformed quotation data:', transformedQuotation);
+      console.log('📋 Line items count:', transformedQuotation.line_items?.length || 0);
+      console.log('📦 Line items:', transformedQuotation.line_items);
 
       return transformedQuotation;
     }
@@ -107,6 +115,11 @@ export default function QuotationForm({
   const convertedQuotationLineItem = convertKeysToSnakeCase(
     currentQuotation?.line_items
   );
+
+  React.useEffect(() => {
+    console.log('📊 Current quotation:', currentQuotation);
+    console.log('📋 Converted line items for table:', convertedQuotationLineItem);
+  }, [currentQuotation, convertedQuotationLineItem]);
 
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
@@ -382,29 +395,74 @@ export default function QuotationForm({
     return d;
   }, []);
 
-  const [pricingBreakdown] = React.useState({
-    totalProductCostPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_cost_price || 0)
-      : 0,
-    totalTruckCostPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_truck_cost_price || 0)
-      : 0,
-    totalProductSellPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_sell_price || 0)
-      : 0,
-    totalTruckSellPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_truck_sell_price || 0)
-      : 0,
-    totalInvoice: isEditing
-      ? centsToDollars(currentQuotation?.total_sell_price || 0)
-      : 0,
-    grossProfit: isEditing
-      ? centsToDollars(currentQuotation?.gross_profit || 0)
-      : 0,
-    grossProfitPercentage: isEditing
-      ? currentQuotation?.gross_profit_percentage
-      : 0,
-  });
+  const pricingBreakdown = React.useMemo(() => {
+    if (!isEditing || !currentQuotation) {
+      return {
+        totalProductCostPrice: 0,
+        totalTruckCostPrice: 0,
+        totalProductSellPrice: 0,
+        totalTruckSellPrice: 0,
+        totalInvoice: 0,
+        grossProfit: 0,
+        grossProfitPercentage: 0,
+      };
+    }
+
+    // Calculate totals from line items (values are in cents in database)
+    const lineItems = currentQuotation.line_items || [];
+
+    console.log('🔍 Line items raw values:', lineItems.map(item => ({
+      product: item.product_name,
+      total_product_cost_price: item.total_product_cost_price,
+      total_truck_cost_price: item.total_truck_cost_price,
+      total_product_sell_price: item.total_product_sell_price,
+      total_truck_sell_price: item.total_truck_sell_price,
+    })));
+
+    // Sum up the values (in cents)
+    const totalProductCostCents = lineItems.reduce(
+      (sum, item) => sum + (item.total_product_cost_price || 0),
+      0
+    );
+    const totalTruckCostCents = lineItems.reduce(
+      (sum, item) => sum + (item.total_truck_cost_price || 0),
+      0
+    );
+    const totalProductSellCents = lineItems.reduce(
+      (sum, item) => sum + (item.total_product_sell_price || 0),
+      0
+    );
+    const totalTruckSellCents = lineItems.reduce(
+      (sum, item) => sum + (item.total_truck_sell_price || 0),
+      0
+    );
+
+    const totalCostCents = totalProductCostCents + totalTruckCostCents;
+    const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
+    const grossProfitCents = totalInvoiceCents - totalCostCents;
+    const grossProfitPercentage = totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
+
+    console.log('💰 Pricing breakdown (in cents):', {
+      totalProductCostCents,
+      totalTruckCostCents,
+      totalProductSellCents,
+      totalTruckSellCents,
+      totalInvoiceCents,
+      grossProfitCents,
+      grossProfitPercentage,
+    });
+
+    // Convert cents to dollars for display
+    return {
+      totalProductCostPrice: centsToDollars(totalProductCostCents),
+      totalTruckCostPrice: centsToDollars(totalTruckCostCents),
+      totalProductSellPrice: centsToDollars(totalProductSellCents),
+      totalTruckSellPrice: centsToDollars(totalTruckSellCents),
+      totalInvoice: centsToDollars(totalInvoiceCents),
+      grossProfit: centsToDollars(grossProfitCents),
+      grossProfitPercentage: grossProfitPercentage,
+    };
+  }, [isEditing, currentQuotation]);
 
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {

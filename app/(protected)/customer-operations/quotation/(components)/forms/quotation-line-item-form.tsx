@@ -25,6 +25,7 @@ import { CurrencyInput } from '@/components/ui/input-mask';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem } from '@/lib/api/quotation';
 import { notifyPromise } from '@/lib/toast';
+import { dollarsToCents } from '@/lib/utils/currency';
 
 interface FormProps {
   id?: number;
@@ -310,7 +311,7 @@ export default function QuoteLineItemForm({
       return;
     }
 
-    // Prepare quote item data
+    // Prepare quote item data - convert dollars to cents for storage
     const quoteItemData = {
       quote_id: selectedQuotation.id,
       product_name: productOptions.find(p => p.value === values.product_id)?.label || '',
@@ -318,21 +319,21 @@ export default function QuoteLineItemForm({
       supplier_product_name: values.supplier_product_name,
       product_cost_uom: values.product_cost_uom,
       product_cost_qty: values.product_cost_qty,
-      product_cost_price: values.product_cost_price,
-      total_product_cost_price: values.total_product_cost_price,
+      product_cost_price: dollarsToCents(values.product_cost_price),
+      total_product_cost_price: dollarsToCents(values.total_product_cost_price),
       product_sell_uom: values.product_sell_uom,
       product_sell_qty: values.product_sell_qty,
-      product_sell_price: values.product_sell_price,
-      total_product_sell_price: values.total_product_sell_price,
+      product_sell_price: dollarsToCents(values.product_sell_price),
+      total_product_sell_price: dollarsToCents(values.total_product_sell_price),
       truck_type: values.truck_type,
       truck_cost_uom: values.truck_cost_uom,
       truck_cost_qty: values.truck_cost_qty,
-      truck_cost_price: values.truck_cost_price,
-      total_truck_cost_price: values.total_truck_cost_price,
+      truck_cost_price: dollarsToCents(values.truck_cost_price),
+      total_truck_cost_price: dollarsToCents(values.total_truck_cost_price),
       truck_sell_uom: values.truck_sell_uom,
       truck_sell_qty: values.truck_sell_qty,
-      truck_sell_price: values.truck_sell_price,
-      total_truck_sell_price: values.total_truck_sell_price,
+      truck_sell_price: dollarsToCents(values.truck_sell_price),
+      total_truck_sell_price: dollarsToCents(values.total_truck_sell_price),
       gross_profit: values.gross_profit,
       total_quantity_required: values.product_sell_qty,
       allocated_quantity: 0,

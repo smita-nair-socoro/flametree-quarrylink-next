@@ -538,7 +538,7 @@ export function useQuotationActions(
     if (quotationDetailData) {
       const convertedQuotation = convertKeysToSnakeCase(
         quotationDetailData
-      ) as QuotationDTO;
+      ) as any;
 
       // Generate mock email if backend doesn't provide customer_email
       let customerEmail = convertedQuotation.customer_email;
@@ -556,6 +556,7 @@ export function useQuotationActions(
         quoteId: convertedQuotation.id,
         status: convertedQuotation.quote_status,
         customer_email: customerEmail, // Use mock if backend doesn't provide
+        line_items: convertedQuotation.quote_items || convertedQuotation.line_items || [],
       } as Quotation;
 
       return transformed;
