@@ -152,6 +152,9 @@ export async function HttpClient<T = unknown>(
         'Content-Type': 'application/json',
       };
     }
+
+    // Log the request body for debugging
+    console.log('🌐 API Request Body:', init.body);
   }
 
   if (config.queryString) {

@@ -1,5 +1,6 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
 import type { QuotationDTO, QuoteType } from '../types/quotation';
+import { toLocalDateTime } from './date';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -49,7 +50,7 @@ const combineDateAndTime = (date: Date | undefined, timeString: string): string 
   const combined = new Date(date);
   combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-  return combined.toISOString();
+  return toLocalDateTime(combined);
 };
 
 /**
@@ -84,8 +85,14 @@ export const transformFormDataToQuoteDto = (
   }
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.delivery_start_date as Date | undefined;
+  const expiryDate = formData.expiry_date as Date | undefined;
 
-  const transformed = {
+  // Validate required fields
+  if (!expiryDate) {
+    throw new Error('Expiry date is required');
+  }
+
+  const transformed: Record<string, unknown> = {
     quoteNumber: additionalData.quoteNumber,
     quoteType: formData.quote_type as QuoteType,
     customerId: formData.customer_id as number,
@@ -93,27 +100,36 @@ export const transformFormDataToQuoteDto = (
     projectName: formData.project_name as string,
     quoteStatus: QUOTE_STATUS.DRAFT, // Always DRAFT on creation
     deliveryAddressId: 1, // TEMPORARY: Hardcoded - need address management
-    jobId: null, // Will be set when converted to job
-    deliveryStartDate: deliveryDate ? deliveryDate.toISOString() : null,
-    deliveryWindowStart: combineDateAndTime(
-      deliveryDate,
-      formData.delivery_window_start as string
-    ),
-    deliveryWindowEnd: combineDateAndTime(
-      deliveryDate,
-      formData.delivery_window_end as string
-    ),
-    expiryDate: formData.expiry_date
-      ? (formData.expiry_date as Date).toISOString()
-      : null,
+    expiryDate: toLocalDateTime(expiryDate), // Required field - LocalDateTime format
     accountManager: formData.account_manager as number,
     accountManagerName: additionalData.accountManagerName,
     lineItemsCount: 0, // Empty on creation
     version: 1, // Default version for new quotes
   };
 
+  // Add optional fields only if they have values
+  if (deliveryDate) {
+    transformed.deliveryStartDate = toLocalDateTime(deliveryDate);
+  }
+
+  const windowStart = combineDateAndTime(
+    deliveryDate,
+    formData.delivery_window_start as string
+  );
+  if (windowStart) {
+    transformed.deliveryWindowStart = windowStart;
+  }
+
+  const windowEnd = combineDateAndTime(
+    deliveryDate,
+    formData.delivery_window_end as string
+  );
+  if (windowEnd) {
+    transformed.deliveryWindowEnd = windowEnd;
+  }
+
   console.log('📤 Transforming form data to DTO:', formData);
   console.log('📤 Transformed DTO:', transformed);
 
-  return transformed;
+  return transformed as Partial<QuotationDTO>;
 };
