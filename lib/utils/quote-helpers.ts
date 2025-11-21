@@ -30,19 +30,6 @@ export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   }
 };
 
-/**
- * Transforms form data to the format expected by the backend API for creating quotations.
- * Strips form-only fields (phone, email, audit fields) and sets defaults.
- *
- * @param formData - The form data from the quotation form
- * @returns A partial QuotationDTO ready for POST request
- */
-/**
- * Combines a date and time string to create an ISO DateTime string.
- * @param date - The date object
- * @param timeString - Time in HH:mm format
- * @returns ISO DateTime string or null
- */
 const combineDateAndTime = (date: Date | undefined, timeString: string): string | null => {
   if (!date || !timeString) return null;
 
@@ -55,17 +42,13 @@ const combineDateAndTime = (date: Date | undefined, timeString: string): string 
 
 /**
  * Generates the next quote number based on existing quotes.
- * Format: Q#### (e.g., Q0100, Q0101, Q0102)
- * Starts from Q0100 to avoid conflicts with existing quotes
+ * Format: Q#### (e.g., Q0001, Q0016, Q0017)
  */
 export const generateNextQuoteNumber = (existingQuotes: { quote_number: string }[]): string => {
-  const MIN_QUOTE_NUMBER = 100; // Start from Q0100
-
   if (!existingQuotes || existingQuotes.length === 0) {
-    return `Q${String(MIN_QUOTE_NUMBER).padStart(4, '0')}`;
+    return 'Q0001';
   }
 
-  // Extract numbers from existing quote numbers and find the max
   const numbers = existingQuotes
     .map((q) => {
       const match = q.quote_number.match(/Q(\d+)/);
@@ -73,13 +56,10 @@ export const generateNextQuoteNumber = (existingQuotes: { quote_number: string }
     })
     .filter((n) => !isNaN(n));
 
-  const maxNumber = Math.max(...numbers, MIN_QUOTE_NUMBER - 1);
+  const maxNumber = Math.max(...numbers, 0);
   const nextNumber = maxNumber + 1;
 
-  const generatedNumber = `Q${String(nextNumber).padStart(4, '0')}`;
-  console.log(`📋 Generated quote number: ${generatedNumber} (max found: Q${String(maxNumber).padStart(4, '0')})`);
-
-  return generatedNumber;
+  return `Q${String(nextNumber).padStart(4, '0')}`;
 };
 
 export const transformFormDataToQuoteDto = (
@@ -93,7 +73,6 @@ export const transformFormDataToQuoteDto = (
   const deliveryDate = formData.delivery_start_date as Date | undefined;
   const expiryDate = formData.expiry_date as Date | undefined;
 
-  // Validate required fields
   if (!expiryDate) {
     throw new Error('Expiry date is required');
   }
@@ -104,16 +83,14 @@ export const transformFormDataToQuoteDto = (
     customerId: formData.customer_id as number,
     customerName: additionalData.customerName,
     projectName: formData.project_name as string,
-    quoteStatus: QUOTE_STATUS.DRAFT, // Always DRAFT on creation
-    deliveryAddressId: 1, // TEMPORARY: Hardcoded - need address management
-    expiryDate: toLocalDateTime(expiryDate), // Required field - LocalDateTime format
+    quoteStatus: QUOTE_STATUS.DRAFT,
+    deliveryAddressId: 1,
+    expiryDate: toLocalDateTime(expiryDate),
     accountManager: formData.account_manager as number,
     accountManagerName: additionalData.accountManagerName,
-    lineItemsCount: 0, // Empty on creation
-    version: 1, // Default version for new quotes
+    version: 1,
   };
 
-  // Add optional fields only if they have values
   if (deliveryDate) {
     transformed.deliveryStartDate = toLocalDateTime(deliveryDate);
   }
@@ -133,9 +110,6 @@ export const transformFormDataToQuoteDto = (
   if (windowEnd) {
     transformed.deliveryWindowEnd = windowEnd;
   }
-
-  console.log('📤 Transforming form data to DTO:', formData);
-  console.log('📤 Transformed DTO:', transformed);
 
   return transformed as Partial<QuotationDTO>;
 };
