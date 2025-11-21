@@ -7,22 +7,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Quotation } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
-import rawJson from '@/lib/tests/quotationWithLineItemsResonseData.json';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-
-const convertedJson = convertKeysToSnakeCase(rawJson);
-const { items: rawItems } = convertedJson as unknown as {
-  items: Array<
-    Omit<Quotation, 'quoteId'> & {
-      quoteId: number;
-    }
-  >;
-};
-
-const items: Quotation[] = rawItems.map((item) => ({
-  ...item,
-  quoteId: item.id,
-}));
 
 export const quotationColumns: ColumnDef<Quotation>[] = [
   {
@@ -128,11 +112,10 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
       return <div></div>;
     },
     cell: ({ row }) => {
-      const quotationId = row.original.id;
-      const quotation = items.find((item) => item.id === quotationId);
+      const quotation = row.original;
       return (
         <div>
-          <QuotationTableActions quotation={quotation as Quotation} />
+          <QuotationTableActions quotation={quotation} />
         </div>
       );
     },

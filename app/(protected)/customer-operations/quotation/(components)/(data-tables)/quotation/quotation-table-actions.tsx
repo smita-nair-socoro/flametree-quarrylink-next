@@ -50,7 +50,9 @@ export function QuotationTableActions({
     setSelectedQuotation(quotation)
   );
   const handleArchive = createHandler(actions.archive);
-  const handleSendToCustomer = createHandler(actions.sendToCustomer);
+  const handleSendToCustomer = createHandler(actions.sendToCustomer, () =>
+    setSelectedQuotation(quotation)
+  );
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
   const handleDuplicate = createHandler(actions.duplicate);
