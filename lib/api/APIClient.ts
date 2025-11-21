@@ -384,5 +384,9 @@ export const APIClient = {
       appClient.Post<QuotationDTO>('/socoro/quarrylink/api/quote', {
         body: data,
       }),
+    update: (id: number, data: Partial<QuotationDTO>) =>
+      appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${id}`, {
+        body: data,
+      }),
   },
 };

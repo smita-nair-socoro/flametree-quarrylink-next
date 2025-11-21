@@ -36,8 +36,26 @@ export const useCreateQuotation = () => {
       APIClient.quotations.create(data),
 
     onSuccess: () => {
-      // Invalidate and refetch quotations list to show the new quotation
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for updating an existing quotation.
+ * Automatically invalidates the quotations list and detail cache on success.
+ */
+export const useUpdateQuotation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<QuotationDTO> }) =>
+      APIClient.quotations.update(id, data),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
