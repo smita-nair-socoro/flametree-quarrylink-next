@@ -60,3 +60,22 @@ export const useUpdateQuotation = () => {
     },
   });
 };
+
+/**
+ * Mutation hook for extending the expiry date of a quotation.
+ * Automatically invalidates the quotations list and detail cache on success.
+ */
+export const useExtendExpiryDate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, expiryDate }: { id: number; expiryDate: Date }) =>
+      APIClient.quotations.extendExpiryDate(id, expiryDate),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};

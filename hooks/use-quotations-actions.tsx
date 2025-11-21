@@ -16,8 +16,9 @@ import {
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
-import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import { QuotationDetailQueryOptions, useExtendExpiryDate } from '@/lib/api/quotation';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { notifyPromise } from '@/lib/toast';
 
 interface DialogConfig {
   title?: string;
@@ -513,6 +514,8 @@ export function useQuotationActions(
     return weekFromToday;
   });
 
+  const extendExpiryMutation = useExtendExpiryDate();
+
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
     if (selectedAction?.key === 'extendExpiry') {
@@ -674,8 +677,24 @@ export function useQuotationActions(
               // TODO: implement convert to job logic
               break;
             case 'extendExpiry':
-              console.log('Extend expiry:', quotationId, resolvedQuotation);
-              // TODO: implement extend expiry logic
+              if (quotationId) {
+                notifyPromise(
+                  extendExpiryMutation.mutateAsync({
+                    id: quotationId,
+                    expiryDate: newExpiryDate,
+                  }),
+                  {
+                    loading: 'Extending expiry date...',
+                    success: () => {
+                      setActiveDialog(null);
+                      setSelectedAction(null);
+                      return 'Expiry date extended successfully!';
+                    },
+                    error: (err) =>
+                      `Failed to extend expiry date: ${err instanceof Error ? err.message : 'Unknown error'}`,
+                  }
+                );
+              }
               break;
             case 'archive':
               console.log('Archive quotation:', quotationId, resolvedQuotation);

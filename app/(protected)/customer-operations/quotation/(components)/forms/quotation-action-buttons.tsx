@@ -85,6 +85,10 @@ export function QuotationActionButtons({
                   <Send className="h-4 w-4 mr-2" />
                   Send to Customer
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={actions.extendExpiry}>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Extend Expiry Date
+                </DropdownMenuItem>
               </>
             )}
 
@@ -218,6 +222,15 @@ export function QuotationActionButtons({
             >
               <BadgeCheck className="h-4 w-4 mr-2" />
               Approve Quote
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={actions.extendExpiry}
+              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Extend Expiry Date
             </Button>
           </>
         )}

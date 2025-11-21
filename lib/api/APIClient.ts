@@ -5,6 +5,7 @@ import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
 import { QuotationDTO } from '../types/quotation';
+import { toLocalDateTime } from '../utils/date';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -388,5 +389,14 @@ export const APIClient = {
       appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${id}`, {
         body: data,
       }),
+    extendExpiryDate: (id: number, expiryDate: Date) =>
+      appClient.Put<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/extend-expiry-date`,
+        {
+          body: {
+            expiryDate: toLocalDateTime(expiryDate),
+          },
+        }
+      ),
   },
 };
