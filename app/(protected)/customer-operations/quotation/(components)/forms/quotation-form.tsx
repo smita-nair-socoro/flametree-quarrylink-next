@@ -36,7 +36,6 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { centsToDollars } from '@/lib/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
@@ -46,6 +45,7 @@ import {
 import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
+  calculateQuotationPricing,
 } from '@/lib/utils/quote-helpers';
 import { notifyPromise, notifyError } from '@/lib/toast';
 
@@ -384,53 +384,9 @@ export default function QuotationForm({
 
   const pricingBreakdown = React.useMemo(() => {
     if (!isEditing || !currentQuotation) {
-      return {
-        totalProductCostPrice: 0,
-        totalTruckCostPrice: 0,
-        totalProductSellPrice: 0,
-        totalTruckSellPrice: 0,
-        totalInvoice: 0,
-        grossProfit: 0,
-        grossProfitPercentage: 0,
-      };
+      return calculateQuotationPricing(null);
     }
-
-    // Calculate totals from line items (values are in cents in database)
-    const lineItems = currentQuotation.line_items || [];
-
-    // Sum up the values (in cents)
-    const totalProductCostCents = lineItems.reduce(
-      (sum, item) => sum + (item.total_product_cost_price || 0),
-      0
-    );
-    const totalTruckCostCents = lineItems.reduce(
-      (sum, item) => sum + (item.total_truck_cost_price || 0),
-      0
-    );
-    const totalProductSellCents = lineItems.reduce(
-      (sum, item) => sum + (item.total_product_sell_price || 0),
-      0
-    );
-    const totalTruckSellCents = lineItems.reduce(
-      (sum, item) => sum + (item.total_truck_sell_price || 0),
-      0
-    );
-
-    const totalCostCents = totalProductCostCents + totalTruckCostCents;
-    const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
-    const grossProfitCents = totalInvoiceCents - totalCostCents;
-    const grossProfitPercentage = totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
-
-    // Convert cents to dollars for display
-    return {
-      totalProductCostPrice: centsToDollars(totalProductCostCents),
-      totalTruckCostPrice: centsToDollars(totalTruckCostCents),
-      totalProductSellPrice: centsToDollars(totalProductSellCents),
-      totalTruckSellPrice: centsToDollars(totalTruckSellCents),
-      totalInvoice: centsToDollars(totalInvoiceCents),
-      grossProfit: centsToDollars(grossProfitCents),
-      grossProfitPercentage: grossProfitPercentage,
-    };
+    return calculateQuotationPricing(currentQuotation.line_items);
   }, [isEditing, currentQuotation]);
 
   // Show loading state while fetching quotation details

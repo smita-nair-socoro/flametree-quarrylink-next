@@ -1,6 +1,7 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
-import type { QuotationDTO, QuoteType } from '../types/quotation';
+import type { QuotationDTO, QuoteType, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from './date';
+import { centsToDollars } from './currency';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -113,4 +114,69 @@ export const transformFormDataToQuoteDto = (
   }
 
   return transformed as Partial<QuotationDTO>;
+};
+
+/**
+ * Quotation pricing breakdown interface
+ */
+export interface QuotationPricingBreakdown {
+  totalProductCostPrice: string;
+  totalTruckCostPrice: string;
+  totalProductSellPrice: string;
+  totalTruckSellPrice: string;
+  totalInvoice: string;
+  grossProfit: string;
+  grossProfitPercentage: number;
+}
+
+
+export const calculateQuotationPricing = (
+  lineItems: QuotationLineItem[] | undefined | null
+): QuotationPricingBreakdown => {
+  // Handle empty or null line items
+  if (!lineItems || lineItems.length === 0) {
+    return {
+      totalProductCostPrice: '0.00',
+      totalTruckCostPrice: '0.00',
+      totalProductSellPrice: '0.00',
+      totalTruckSellPrice: '0.00',
+      totalInvoice: '0.00',
+      grossProfit: '0.00',
+      grossProfitPercentage: 0,
+    };
+  }
+
+  // Sum up the values (in cents)
+  const totalProductCostCents = lineItems.reduce(
+    (sum, item) => sum + (item.total_product_cost_price || 0),
+    0
+  );
+  const totalTruckCostCents = lineItems.reduce(
+    (sum, item) => sum + (item.total_truck_cost_price || 0),
+    0
+  );
+  const totalProductSellCents = lineItems.reduce(
+    (sum, item) => sum + (item.total_product_sell_price || 0),
+    0
+  );
+  const totalTruckSellCents = lineItems.reduce(
+    (sum, item) => sum + (item.total_truck_sell_price || 0),
+    0
+  );
+
+  const totalCostCents = totalProductCostCents + totalTruckCostCents;
+  const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
+  const grossProfitCents = totalInvoiceCents - totalCostCents;
+  const grossProfitPercentage = totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
+
+  // Convert cents to dollars for display
+  return {
+    totalProductCostPrice: centsToDollars(totalProductCostCents),
+    totalTruckCostPrice: centsToDollars(totalTruckCostCents),
+    totalProductSellPrice: centsToDollars(totalProductSellCents),
+    totalTruckSellPrice: centsToDollars(totalTruckSellCents),
+    totalInvoice: centsToDollars(totalInvoiceCents),
+    grossProfit: centsToDollars(grossProfitCents),
+    grossProfitPercentage: grossProfitPercentage,
+  };
 };
