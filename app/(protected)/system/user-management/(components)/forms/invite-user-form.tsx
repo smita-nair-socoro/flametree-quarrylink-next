@@ -69,16 +69,13 @@ export default function InviteUserForm({
       // Show success toast
       notifySuccess('User Invited', {
         description: `Invitation sent to ${data.email}`,
-        duration: 4000,
       });
 
       // On success, call onSuccess to close the dialog
       onSuccess?.();
     } catch (error) {
       console.error('Error inviting user:', error);
-      notifyError('Invitation Failed', {
-        duration: 7000,
-      });
+      notifyError('Invitation Failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -87,9 +84,7 @@ export default function InviteUserForm({
   // Handle form validation errors
   function onError(errors: unknown) {
     console.error('Invite User validation errors:', errors);
-    notifyError('Invitation Failed', {
-      duration: 7000,
-    });
+    notifyError('Invitation Failed');
   }
 
   return (

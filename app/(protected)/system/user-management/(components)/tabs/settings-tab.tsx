@@ -82,9 +82,7 @@ export default function SettingsTab() {
       notifySuccess('Profile Updated');
     } catch (error) {
       console.error('Error updating profile:', error);
-      notifyError('Update Failed', {
-        duration: 7000,
-      });
+      notifyError('Update Failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -93,9 +91,7 @@ export default function SettingsTab() {
   // Handle Personal Information form validation errors
   function onErrorPersonalInformation(errors: unknown) {
     console.error('Personal Information validation errors:', errors);
-    notifyError('Update Failed', {
-      duration: 7000,
-    });
+    notifyError('Update Failed');
   }
 
   async function onSubmitChangePassword(
@@ -119,7 +115,6 @@ export default function SettingsTab() {
       console.error('Error changing password:', error);
       notifyError('Password Change Failed', {
         description: 'Check current password and try again',
-        duration: 7000,
       });
     } finally {
       setIsSubmitting(false);
@@ -131,7 +126,6 @@ export default function SettingsTab() {
     console.error('Change Password validation errors:', errors);
     notifyError('Password Change Failed', {
       description: 'Check current password and try again',
-      duration: 7000,
     });
   }
 

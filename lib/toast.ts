@@ -3,11 +3,11 @@ import React from 'react';
 
 // Timing Standards
 const TOAST_DURATIONS = {
-  DEFAULT: 4000, // 4 seconds
-  SUCCESS: 4000, // 4 seconds
+  DEFAULT: 3000, // 3 seconds
+  SUCCESS: 3000, // 3 seconds
   ERROR: 7000, // 7 seconds
   INFO: 6000, // 6 seconds
-  WARNING: 5000, // 5 seconds
+  WARNING: 4000, // 4 seconds
   PROMISE: 4000, // 4 seconds (after loading completes)
 };
 

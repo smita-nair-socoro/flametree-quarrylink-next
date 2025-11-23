@@ -282,17 +282,12 @@ export default function CustomerForm({
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Show success toast
-      notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added', {
-        duration: 3000,
-      });
+      notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added');
       onSuccess?.();
     } catch (error) {
       console.error('Error creating customer:', error);
       notifyError(
-        isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer',
-        {
-          duration: 7000,
-        }
+        isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer'
       );
     } finally {
       setIsSubmitting(false);
@@ -306,7 +301,6 @@ export default function CustomerForm({
       isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer',
       {
         description: 'Check required fields',
-        duration: 7000,
       }
     );
   }

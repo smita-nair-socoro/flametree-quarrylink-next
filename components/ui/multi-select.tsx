@@ -71,7 +71,7 @@ export const MultiSelect = React.forwardRef<
       addButtonClassName,
       ...props
     },
-    ref,
+    ref
   ) => {
     // Uncontrolled internal state
     const [internalValues, setInternalValues] =
@@ -91,7 +91,7 @@ export const MultiSelect = React.forwardRef<
     const [isAnimating, setIsAnimating] = React.useState(false);
 
     const handleInputKeyDown = (
-      event: React.KeyboardEvent<HTMLInputElement>,
+      event: React.KeyboardEvent<HTMLInputElement>
     ) => {
       if (event.key === 'Enter') setIsPopoverOpen(true);
       else if (event.key === 'Backspace' && !event.currentTarget.value) {
@@ -126,7 +126,7 @@ export const MultiSelect = React.forwardRef<
             onClick={() => setIsPopoverOpen((o) => !o)}
             className={cn(
               'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
-              className,
+              className
             )}
           >
             {selectedValues.length > 0 ? (
@@ -160,7 +160,7 @@ export const MultiSelect = React.forwardRef<
                       variant="secondary"
                       className={cn(
                         'flex items-center space-x-1 px-3 py-1 rounded-full border text-sm font-medium cursor-pointer',
-                        isAnimating ? 'animate-bounce' : '',
+                        isAnimating ? 'animate-bounce' : ''
                       )}
                       style={{ animationDuration: `${animation}s` }}
                     >
@@ -212,7 +212,7 @@ export const MultiSelect = React.forwardRef<
                       'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
                       selectedValues.length === options.length
                         ? 'bg-primary text-primary-foreground'
-                        : 'opacity-50 [&_svg]:invisible',
+                        : 'opacity-50 [&_svg]:invisible'
                     )}
                   >
                     <CheckIcon className="h-4 w-4 text-primary-foreground" />
@@ -232,7 +232,7 @@ export const MultiSelect = React.forwardRef<
                           'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
                           isSel
                             ? 'bg-primary text-primary-foreground'
-                            : 'opacity-50 [&_svg]:invisible',
+                            : 'opacity-50 [&_svg]:invisible'
                         )}
                       >
                         <CheckIcon className="h-4 w-4 text-primary-foreground" />
@@ -253,7 +253,7 @@ export const MultiSelect = React.forwardRef<
                     }}
                     className={cn(
                       'justify-start text-primary cursor-pointer flex-1',
-                      addButtonClassName,
+                      addButtonClassName
                     )}
                   >
                     {addButtonLabel}
@@ -276,14 +276,14 @@ export const MultiSelect = React.forwardRef<
           <WandSparkles
             className={cn(
               'cursor-pointer my-2 text-foreground bg-background w-3 h-3',
-              isAnimating ? '' : 'text-muted-foreground',
+              isAnimating ? '' : 'text-muted-foreground'
             )}
             onClick={() => setIsAnimating(!isAnimating)}
           />
         )}
       </Popover>
     );
-  },
+  }
 );
 
 MultiSelect.displayName = 'MultiSelect';

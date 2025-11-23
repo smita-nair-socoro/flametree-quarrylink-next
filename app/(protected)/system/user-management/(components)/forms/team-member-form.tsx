@@ -148,18 +148,14 @@ export function EditTeamMemberForm({
       onSuccess?.();
     } catch (error) {
       console.error('Error updating team member:', error);
-      notifyError('Update Failed', {
-        duration: 7000,
-      });
+      notifyError('Update Failed');
     }
   };
 
   // Handle form validation errors
   const handleError = (errors: unknown) => {
     console.error('Team Member validation errors:', errors);
-    notifyError('Update Failed', {
-      duration: 7000,
-    });
+    notifyError('Update Failed');
   };
 
   if (!initialData) {
