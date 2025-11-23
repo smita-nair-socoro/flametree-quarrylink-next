@@ -14,7 +14,7 @@ export interface Quarry {
   contact_person_email: string;
   contact_person_phone: string;
   opening_closing_times: string;
-  // weighbridge_info: string;
+  weighbridge_info: string;
   notes: string;
   version: number;
   is_deleted: boolean;
