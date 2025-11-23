@@ -26,7 +26,7 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.DRAFT);
+  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.PENDING);
 
   /**
    * CURRENT STATE: Using hardcoded mock data for all quotes
@@ -57,7 +57,6 @@ export default function QuoteReviewDocument({
     console.log('Decline quotation:', quoteId);
     setQuoteStatus(QuoteStatus.DECLINED);
     setNavbarStatus(QuoteStatus.DECLINED);
-
     setDeclineDialogOpen(false);
   };
 

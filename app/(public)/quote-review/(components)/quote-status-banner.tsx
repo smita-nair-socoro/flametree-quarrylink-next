@@ -12,11 +12,13 @@ export function QuoteStatusBanner({
   status,
   accountManagerName,
 }: QuoteStatusBannerProps) {
-  if (!status) return null;
 
-  const isApproved = status === 'APPROVED';
+  if (![QuoteStatus.APPROVED, QuoteStatus.DECLINED].includes(status)) return null;
+
+  const isApproved = status === QuoteStatus.APPROVED;
 
   return (
+    
     <div className="px-8 py-4 mt-4">
       <div
         className={`rounded-lg border-2 p-4 ${
