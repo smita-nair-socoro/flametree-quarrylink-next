@@ -4,10 +4,12 @@ import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import QuarrySupplierForm from './(components)/forms/quarry-supplier-form';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import rawJson from '@/lib/tests/quarryResponseData.json';
 import { Quarry } from '@/lib/types/quarry';
+import { QuarryType, QuarryStatus } from '@/lib/types/quarry-enums';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
 import { Plus, DollarSign, Building, Mountain, Factory } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { QuarryListQueryOptions } from '@/lib/api/quarries';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,12 +20,6 @@ import {
 } from '@/components/ui/data-table-client';
 
 export default function QuarriesSuppliersPage() {
-  const convertedJson = convertKeysToSnakeCase(rawJson);
-
-  const { items } = convertedJson as unknown as {
-    items: Quarry[];
-  };
-
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
     (state) => state.setSelectedQuarrySupplier
   );
@@ -31,6 +27,20 @@ export default function QuarriesSuppliersPage() {
     selectedQuarrySupplierForActions,
     setSelectedQuarrySupplierForActions,
   ] = React.useState<Quarry | null>(null);
+
+  // Use React Query to fetch quarries and suppliers data
+  const {
+    data: quarriesData,
+    isLoading,
+    error,
+    isError,
+  } = useQuery(QuarryListQueryOptions());
+
+  React.useEffect(() => {
+    if (isError && error) {
+      console.error('Quarry API Error:', error);
+    }
+  }, [isError, error]);
 
   // Statistics cards data
   const statsCards = [
@@ -76,6 +86,18 @@ export default function QuarriesSuppliersPage() {
     selectedQuarrySupplierForActions?.id,
     selectedQuarrySupplierForActions
   );
+
+  // Transform the API data to match our component expectations
+  const items: Quarry[] =
+    quarriesData?.map((quarry) => {
+      const convertedQuarry = convertKeysToSnakeCase(quarry);
+
+      return {
+        ...convertedQuarry,
+        type: convertedQuarry.type as QuarryType,
+        status: convertedQuarry.status as QuarryStatus,
+      };
+    }) || [];
 
   // Handle row click to open quarry/supplier details
   const handleRowClick = (quarrySupplier: Quarry) => {
@@ -135,14 +157,27 @@ export default function QuarriesSuppliersPage() {
         })}
       </div>
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        <DataTableClient
-          tableId="quarry_suppliers_table"
-          data={items ?? []}
-          columns={quarriesSuppliersColumns}
-          facetDefination={facetDefs}
-          searchPlaceHolder="Search Quarries & Suppliers..."
-          onRowClick={handleRowClick}
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p>Loading quarries & suppliers...</p>
+            </div>
+          </div>
+        ) : isError ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">Error loading quarries & suppliers</div>
+          </div>
+        ) : (
+          <DataTableClient
+            tableId="quarry_suppliers_table"
+            data={items ?? []}
+            columns={quarriesSuppliersColumns}
+            facetDefination={facetDefs}
+            searchPlaceHolder="Search Quarries & Suppliers..."
+            onRowClick={handleRowClick}
+          />
+        )}
       </div>
     </div>
   );
