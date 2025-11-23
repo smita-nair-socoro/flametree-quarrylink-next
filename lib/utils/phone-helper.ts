@@ -3,6 +3,8 @@
  * from backend format to E.164 format required by react-phone-number-input
  */
 
+import { Quarry } from '../types/quarry';
+
 /**
  * Transforms phone numbers from backend format to E.164 format
  * Adds +61 country code if the number doesn't already have it
