@@ -5,6 +5,7 @@ import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
 import { QuotationDTO } from '../types/quotation';
+import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -340,11 +341,16 @@ export const APIClient = {
     list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },
   quarries: {
-    getAll: () => appClient.Get<Quarry[]>(`/socoro/quarrylink/api/quarries`),
-    getById: (quarrySupplierId: number) =>
-      appClient.Get<Quarry>(
+    getAll: async () => {
+      const quarries = await appClient.Get<Quarry[]>(`/socoro/quarrylink/api/quarries`);
+      return quarries.map(normalizeObjectPhoneNumbers);
+    },
+    getById: async (quarrySupplierId: number) => {
+      const quarry = await appClient.Get<Quarry>(
         `/socoro/quarrylink/api/quarries/${quarrySupplierId}`
-      ),
+      );
+      return normalizeObjectPhoneNumbers(quarry);
+    },
     create: (quarry: Quarry) =>
       appClient.Post<Quarry>('/socoro/quarrylink/api/quarries', {
         body: quarry,
