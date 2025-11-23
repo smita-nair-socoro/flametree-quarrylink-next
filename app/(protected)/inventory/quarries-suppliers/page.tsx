@@ -105,7 +105,8 @@ export default function QuarriesSuppliersPage() {
           ...convertedQuarry,
           type: (convertedQuarry.type || 'QUARRY') as QuarryType,
           status: (convertedQuarry.status || 'ACTIVE') as QuarryStatus,
-          suburb: convertedQuarry.suburb || '',
+          // Extract suburb from address object for table display
+          suburb: convertedQuarry.address?.suburb || '',
           email: convertedQuarry.email || '',
           phone: convertedQuarry.phone || '',
         };

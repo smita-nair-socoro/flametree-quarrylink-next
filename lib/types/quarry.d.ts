@@ -1,4 +1,5 @@
 import { QuarryStatus, QuarryType } from './quarry-enums';
+import { Address } from './address';
 
 export interface Quarry {
   id: number;
@@ -8,7 +9,7 @@ export interface Quarry {
   website: string;
   email: string;
   phone: string;
-  // address: number; // FK to Address.id - to be implemented
+  address: Address;
   contact_person_name: string;
   contact_person_email: string;
   contact_person_phone: string;
@@ -21,7 +22,8 @@ export interface Quarry {
   created_at: string;
   updated_at: string;
   last_modified_by: string;
-  suburb: string;
+  // Computed property for table display (extracted from address.suburb)
+  suburb?: string;
 }
 
 export interface QuarryProductPrice {
