@@ -340,8 +340,25 @@ export const APIClient = {
     list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },
   quarries: {
-    getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
-
+    getAll: () => appClient.Get<Quarry[]>(`/socoro/quarrylink/api/quarries`),
+    getById: (quarrySupplierId: number) =>
+      appClient.Get<Quarry>(
+        `/socoro/quarrylink/api/quarries/${quarrySupplierId}`
+      ),
+    create: (quarry: Quarry) =>
+      appClient.Post<Quarry>('/socoro/quarrylink/api/quarries', {
+        body: quarry,
+      }),
+    update: (id: number, quarry: Quarry) =>
+      appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}`, {
+        body: quarry,
+      }),
+    unarchive: (id: number) =>
+      appClient.Put<Quarry>(
+        `/socoro/quarrylink/api/quarries/${id}/unarchive`
+      ),
+    getSuburbs: () =>
+      appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
