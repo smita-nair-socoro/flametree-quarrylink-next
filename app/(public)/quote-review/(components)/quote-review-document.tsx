@@ -12,7 +12,8 @@ import { ActionDialog } from '@/components/action-dialog';
 import { CircleX, CircleCheckBig } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
-import { QuoteStatusBanner, QuoteStatus } from './quote-status-banner';
+import { QuoteStatusBanner } from './quote-status-banner';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -25,7 +26,7 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(null);
+  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.DRAFT);
 
   /**
    * CURRENT STATE: Using hardcoded mock data for all quotes
@@ -37,9 +38,7 @@ export default function QuoteReviewDocument({
   const quotationData = mockQuotationData;
 
   // State for navbar status (will be updated when user approves/declines)
-  const [navbarStatus, setNavbarStatus] = useState<
-    'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT'
-  >(quotationData.navbar.status);
+  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(quotationData.navbar.status);
 
   const handleDownloadPDF = () => {
     console.log('Download PDF clicked for quote:', quoteId);
@@ -48,16 +47,16 @@ export default function QuoteReviewDocument({
 
   const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);
-    setQuoteStatus('approved');
-    setNavbarStatus('APPROVED');
+    setQuoteStatus(QuoteStatus.APPROVED);
+    setNavbarStatus(QuoteStatus.APPROVED);
 
     setApproveDialogOpen(false);
   };
 
   const handleDecline = async () => {
     console.log('Decline quotation:', quoteId);
-    setQuoteStatus('declined');
-    setNavbarStatus('DECLINED');
+    setQuoteStatus(QuoteStatus.DECLINED);
+    setNavbarStatus(QuoteStatus.DECLINED);
 
     setDeclineDialogOpen(false);
   };
@@ -269,7 +268,7 @@ export default function QuoteReviewDocument({
           {/* Proceed Actions */}
           <ProceedActions
             {...quotationData.proceedActions}
-            status={quoteStatus || 'pending'}
+            status={quoteStatus || QuoteStatus.PENDING}
             onApprove={() => setApproveDialogOpen(true)}
             onDecline={() => setDeclineDialogOpen(true)}
           />
