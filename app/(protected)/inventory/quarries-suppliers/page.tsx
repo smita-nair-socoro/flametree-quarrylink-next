@@ -42,6 +42,14 @@ export default function QuarriesSuppliersPage() {
     }
   }, [isError, error]);
 
+  // Debug: Log the raw API response
+  React.useEffect(() => {
+    if (quarriesData) {
+      console.log('Raw API Response (quarriesData):', quarriesData);
+      console.log('First item:', quarriesData[0]);
+    }
+  }, [quarriesData]);
+
   // Statistics cards data
   const statsCards = [
     {
@@ -88,16 +96,32 @@ export default function QuarriesSuppliersPage() {
   );
 
   // Transform the API data to match our component expectations
-  const items: Quarry[] =
-    quarriesData?.map((quarry) => {
-      const convertedQuarry = convertKeysToSnakeCase(quarry);
+  const items: Quarry[] = React.useMemo(() => {
+    return (
+      quarriesData?.map((quarry) => {
+        const convertedQuarry = convertKeysToSnakeCase(quarry);
 
-      return {
-        ...convertedQuarry,
-        type: convertedQuarry.type as QuarryType,
-        status: convertedQuarry.status as QuarryStatus,
-      };
-    }) || [];
+        const transformed = {
+          ...convertedQuarry,
+          type: (convertedQuarry.type || 'QUARRY') as QuarryType,
+          status: (convertedQuarry.status || 'ACTIVE') as QuarryStatus,
+          suburb: convertedQuarry.suburb || '',
+          email: convertedQuarry.email || '',
+          phone: convertedQuarry.phone || '',
+        };
+
+        return transformed;
+      }) || []
+    );
+  }, [quarriesData]);
+
+  // Debug: Log transformed data
+  React.useEffect(() => {
+    if (items.length > 0) {
+      console.log('Transformed items:', items);
+      console.log('First transformed item:', items[0]);
+    }
+  }, [items]);
 
   // Handle row click to open quarry/supplier details
   const handleRowClick = (quarrySupplier: Quarry) => {
