@@ -114,8 +114,6 @@ export default function QuotationForm({
   );
 
   React.useEffect(() => {
-    console.log('📊 Current quotation:', currentQuotation);
-    console.log('📋 Converted line items for table:', convertedQuotationLineItem);
   }, [currentQuotation, convertedQuotationLineItem]);
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -355,14 +353,6 @@ export default function QuotationForm({
         : 1,
     });
 
-    //test console.log
-    console.log('📤 Request Data:', {
-      mode: isEditing ? 'UPDATE' : 'CREATE',
-      id: currentQuotation?.id,
-      data: quoteData,
-      jsonString: JSON.stringify(quoteData, null, 2)
-    });
-
     if (isEditing && currentQuotation?.id) {
       await notifyPromise(
         updateQuotation.mutateAsync({ id: currentQuotation.id, data: quoteData }),
@@ -408,14 +398,6 @@ export default function QuotationForm({
     // Calculate totals from line items (values are in cents in database)
     const lineItems = currentQuotation.line_items || [];
 
-    console.log('🔍 Line items raw values:', lineItems.map(item => ({
-      product: item.product_name,
-      total_product_cost_price: item.total_product_cost_price,
-      total_truck_cost_price: item.total_truck_cost_price,
-      total_product_sell_price: item.total_product_sell_price,
-      total_truck_sell_price: item.total_truck_sell_price,
-    })));
-
     // Sum up the values (in cents)
     const totalProductCostCents = lineItems.reduce(
       (sum, item) => sum + (item.total_product_cost_price || 0),
@@ -438,16 +420,6 @@ export default function QuotationForm({
     const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
     const grossProfitCents = totalInvoiceCents - totalCostCents;
     const grossProfitPercentage = totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
-
-    console.log('💰 Pricing breakdown (in cents):', {
-      totalProductCostCents,
-      totalTruckCostCents,
-      totalProductSellCents,
-      totalTruckSellCents,
-      totalInvoiceCents,
-      grossProfitCents,
-      grossProfitPercentage,
-    });
 
     // Convert cents to dollars for display
     return {
