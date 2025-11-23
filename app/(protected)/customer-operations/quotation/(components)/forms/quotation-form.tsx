@@ -100,9 +100,6 @@ export default function QuotationForm({
         line_items: convertedQuotation.quote_items || convertedQuotation.line_items || [],
       } as Quotation;
 
-      console.log('🔄 Transformed quotation data:', transformedQuotation);
-      console.log('📋 Line items count:', transformedQuotation.line_items?.length || 0);
-      console.log('📦 Line items:', transformedQuotation.line_items);
 
       return transformedQuotation;
     }
