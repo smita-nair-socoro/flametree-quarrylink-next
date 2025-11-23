@@ -111,17 +111,17 @@ export function CustomerActionButtons({
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {/* Primary button - conditional based on role */}
-        {isEssentials ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={actions.viewQuotations}
-            className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            View Quotations
-          </Button>
-        ) : (
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={actions.viewQuotations}
+          className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          View Quotations
+        </Button>
+        {!isEssentials && (
           <Button
             variant="ghost"
             size="sm"
