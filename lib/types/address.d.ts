@@ -1,4 +1,4 @@
-// Backend Address structure (from API)
+// Backend Address structure (from API Get All Quarry and Suppliers)
 export interface Address {
   id: number;
   suburb: string;
