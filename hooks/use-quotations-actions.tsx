@@ -523,10 +523,9 @@ export function useQuotationActions(
   }, [selectedAction?.key]);
 
   // Fetch detailed quotation data from backend (same as view/edit modal)
-  const {
-    data: quotationDetailData,
-    isLoading: isLoadingDetail,
-  } = useQuery(QuotationDetailQueryOptions(quotationId || 0));
+  const { data: quotationDetailData, isLoading: isLoadingDetail } = useQuery(
+    QuotationDetailQueryOptions(quotationId || 0)
+  );
 
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
@@ -624,11 +623,6 @@ export function useQuotationActions(
       console.log('Archive quotation:', quotationId);
       // TODO: implement delete logic
     }),
-
-    unarchive: createDialogAction('unarchive', () => {
-      console.log('Unarchive quotation:', quotationId);
-      // TODO: implement unarchive logic
-    }),
   };
 
   // Render active dialog
@@ -680,10 +674,6 @@ export function useQuotationActions(
             case 'archive':
               console.log('Archive quotation:', quotationId, resolvedQuotation);
               // TODO: implement archive logic
-              break;
-            case 'unarchive':
-              console.log('Unarchive quotation:', quotationId, resolvedQuotation);
-              // TODO: implement unarchive logic
               break;
           }
         }}

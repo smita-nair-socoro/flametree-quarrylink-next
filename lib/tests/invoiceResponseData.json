@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "invoice_number": "INV-001",
+      "invoice_date": "2025-09-15",
+      "invoice_amount": 10000,
+      "invoice_status": "PAID"
+    },
+    {
+      "id": 2,
+      "invoice_number": "INV-002",
+      "invoice_date": "2025-09-16",
+      "invoice_amount": 23000,
+      "invoice_status": "DUE_PAYMENT"
+    },
+    {
+      "id": 3,
+      "invoice_number": "INV-003",
+      "invoice_date": "2025-09-17",
+      "invoice_amount": 35000,
+      "invoice_status": "DUE_PAYMENT"
+    },
+    {
+      "id": 4,
+      "invoice_number": "INV-004",
+      "invoice_date": "2025-09-18",
+      "invoice_amount": 40000,
+      "invoice_status": "PAID"
+    }
+  ]
+}

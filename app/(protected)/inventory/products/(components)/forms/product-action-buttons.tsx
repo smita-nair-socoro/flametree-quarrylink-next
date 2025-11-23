@@ -7,13 +7,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Archive, ArchiveRestore, Ban } from 'lucide-react';
+import { MoreHorizontal, ArchiveRestore, Ban, Trash2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { PRODUCT_STATUS } from '@/lib/types/product-enums';
 import { Quotation } from '@/lib/types/quotation';
 import { JobDetails } from '@/lib/types/job';
+import { Separator } from '@/components/ui/separator';
 
 interface ProductActionButtonsProps {
   product: ProductDetails | null | undefined;
@@ -41,7 +42,7 @@ export function ProductActionButtons({
     return null;
   }
 
-  const canProductBeArchived = () => {
+  const canProductBeDeleted = () => {
     // Check if there are active quotes that would prevent archiving
     const hasActiveQuotes = product.quotes?.some(
       (quote: Quotation) =>
@@ -90,16 +91,18 @@ export function ProductActionButtons({
                   <Ban className="h-4 w-4 mr-2 text-red-600" />
                   Mark as Unavailable
                 </DropdownMenuItem>
+                <Separator />
+
                 <DropdownMenuItem
                   onClick={
-                    canProductBeArchived()
-                      ? actions.archive
-                      : actions.cannotArchive
+                    canProductBeDeleted()
+                      ? actions.delete
+                      : actions.cannotDelete
                   }
                   className="text-destructive focus:text-destructive"
                 >
-                  <Archive className="h-4 w-4 mr-2 text-destructive" />
-                  Archive
+                  <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+                  Delete
                 </DropdownMenuItem>
               </>
             )}
@@ -156,24 +159,14 @@ export function ProductActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {product.status !== PRODUCT_STATUS.ARCHIVED && (
-              <DropdownMenuItem
-                onClick={
-                  canProductBeArchived()
-                    ? actions.archive
-                    : actions.cannotArchive
-                }
-              >
-                <Archive className="h-4 w-4 mr-2 text-destructive" />
-                <span className="text-destructive">Archive</span>
-              </DropdownMenuItem>
-            )}
-            {product.status === PRODUCT_STATUS.ARCHIVED && (
-              <DropdownMenuItem onClick={actions.unarchive}>
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                <span className="text-blue-600">Unarchive</span>
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem
+              onClick={
+                canProductBeDeleted() ? actions.delete : actions.cannotDelete
+              }
+            >
+              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+              <span className="text-destructive">Delete</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

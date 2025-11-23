@@ -44,3 +44,11 @@ export interface PendingInvitation {
   invited_by: string;
   expires_at: string;
 }
+
+export interface Invoice {
+  id: number;
+  invoice_number: string;
+  invoice_date: string;
+  invoice_amount: number;
+  invoice_status: string;
+}

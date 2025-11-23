@@ -107,4 +107,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'PAYMENT ISSUE': 'bg-orange-100 border-orange-800 text-orange-800',
   'PENDING PAYMENT': 'bg-gray-100 text-gray-800 border-gray-800',
   DELETED: 'bg-red-100 text-red-800 border-red-800',
+  PAID: 'bg-green-100 text-green-800 border-green-800',
+  DUE_PAYMENT: 'bg-red-100 text-red-800 border-red-800',
+  'DUE PAYMENT': 'bg-red-100 text-red-800 border-red-800',
 };
