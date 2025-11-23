@@ -64,7 +64,7 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
       return <TableClientSortableHeader column={column} title="Suburbs" />;
     },
     cell: ({ row }) => {
-      const suburb = row.original.suburb;
+      const suburb = row.original.address.suburb;
       return (
         <div className="py-2">
           <TableBadges names={[suburb]} visibleCount={1} variant="suburb" />
