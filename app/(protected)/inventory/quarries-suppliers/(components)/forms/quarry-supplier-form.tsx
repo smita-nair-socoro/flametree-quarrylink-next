@@ -104,6 +104,9 @@ export default function QuarrySupplierForm({
       opening_closing_times: isEditing
         ? selectedQuarrySupplier?.opening_closing_times || ''
         : '',
+      weighbridge_info: isEditing
+        ? selectedQuarrySupplier?.weighbridge_info || ''
+        : '',
       notes: isEditing ? selectedQuarrySupplier?.notes || '' : '',
       created_at: undefined,
       updated_at: undefined,
@@ -150,6 +153,10 @@ export default function QuarrySupplierForm({
           selectedQuarrySupplier.opening_closing_times === 'N/A'
             ? ''
             : selectedQuarrySupplier.opening_closing_times || '',
+        weighbridge_info:
+          selectedQuarrySupplier.weighbridge_info === 'N/A'
+            ? ''
+            : selectedQuarrySupplier.weighbridge_info || '',
         notes:
           selectedQuarrySupplier.notes === 'N/A'
             ? ''
