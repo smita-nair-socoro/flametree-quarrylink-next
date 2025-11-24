@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
 import { centsToDollars } from '@/lib/utils/currency';
-import { ProceedActionsPdf } from './ProceedActionsPdf';
 
 export interface SummaryPaymentPdfProps {
   totalProducts: number;
@@ -26,10 +25,6 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
   subtotal,
   gst,
   total,
-  validUntil,
-  accountManager,
-  quoteId,
-  baseUrl,
 }) => {
   return (
     <View style={styles.section}>
@@ -95,17 +90,6 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
           </View>
         </View>
       </View>
-
-      {/* Purple separator line */}
-      <View style={styles.separator} />
-
-      {/* Proceed Actions */}
-      <ProceedActionsPdf
-        validUntil={validUntil}
-        accountManager={accountManager}
-        quoteId={quoteId}
-        baseUrl={baseUrl}
-      />
     </View>
   );
 };

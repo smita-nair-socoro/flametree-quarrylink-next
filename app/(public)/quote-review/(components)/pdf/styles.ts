@@ -228,8 +228,8 @@ export const pdfStyles = StyleSheet.create({
   },
 
   sectionWithBg: {
-    marginBottom: 10,
-    padding: 16,
+    marginBottom: 5,
+    padding: 0,
     borderRadius: 8,
   },
 
@@ -238,14 +238,14 @@ export const pdfStyles = StyleSheet.create({
     fontFamily: 'Geist',
     fontWeight: 'bold',
     color: colors.purple,
-    marginBottom: 10,
+    marginBottom: 5,
   },
 
   separator: {
     borderBottomWidth: 1,
     borderBottomColor: colors.gray300,
     marginTop: 14,
-    marginBottom: 14,
+    marginBottom: 10,
     marginHorizontal: -40,
   },
 
