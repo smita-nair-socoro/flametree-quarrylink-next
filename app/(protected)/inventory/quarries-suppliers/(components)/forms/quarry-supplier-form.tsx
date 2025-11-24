@@ -29,7 +29,7 @@ import { Separator } from '@/components/ui/separator';
 import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-suppliers/(components)/quarry-subscription-actions';
 import { useCreateQuarry, useUpdateQuarry } from '@/lib/api/quarries';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
+import { useSelectedQuarrySupplier, useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { Quarry } from '@/lib/types/quarry';
 import { QuarryType } from '@/lib/types/quarry-enums';
 
@@ -54,6 +54,14 @@ export default function QuarrySupplierForm({
 
   // Get selected quarry/supplier from Zustand store
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
+  const setSelectedQuarrySupplier = useQuarrySupplierStore((state) => state.setSelectedQuarrySupplier);
+
+  // Clear selected quarry/supplier when creating new (not editing)
+  React.useEffect(() => {
+    if (!isEditing) {
+      setSelectedQuarrySupplier(null);
+    }
+  }, [isEditing, setSelectedQuarrySupplier]);
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
     React.useState(false);
   const [pendingSubmission, setPendingSubmission] =
