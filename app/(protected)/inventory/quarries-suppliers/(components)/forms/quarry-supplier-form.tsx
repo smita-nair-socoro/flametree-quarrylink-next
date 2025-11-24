@@ -28,7 +28,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
 import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-suppliers/(components)/quarry-subscription-actions';
 import { useQuery } from '@tanstack/react-query';
-import { QuarryDetailQueryOptions, useCreateQuarry } from '@/lib/api/quarries';
+import { QuarryDetailQueryOptions, useCreateQuarry, useUpdateQuarry } from '@/lib/api/quarries';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { notifySuccess, notifyError } from '@/lib/toast';
 
@@ -47,8 +47,9 @@ export default function QuarrySupplierForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
 
-  // Initialize mutation hook for creating quarry/supplier
+  // Initialize mutation hooks for creating and updating quarry/supplier
   const createQuarryMutation = useCreateQuarry();
+  const updateQuarryMutation = useUpdateQuarry();
 
   // Fetch quarry details when editing (id is provided)
   const {
@@ -90,6 +91,7 @@ export default function QuarrySupplierForm({
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Address state for AddressAutoComplete (uses AddressType)
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
     address2: '',
@@ -103,10 +105,11 @@ export default function QuarrySupplierForm({
   });
   const [searchInput, setSearchInput] = React.useState('');
 
-  // Function to generate mock address data in backend format
-  const generateMockAddress = () => {
+  // Function to convert AddressType to backend Address format
+  const convertToBackendAddress = (): Address => {
     return {
-      googlePlaceId: 123456789012345678,
+      id: 0,
+      googlePlaceId: '123456789012345678',
       formattedAddress: address.formattedAddress || '89 Adelaide St, Level 3, Brisbane, QLD, 4000, Australia',
       streetDetailsPrimary: address.address1 || '89 Adelaide St',
       streetDetailsOptional: address.address2 || 'Level 3',
@@ -165,6 +168,11 @@ export default function QuarrySupplierForm({
   React.useEffect(() => {
     if (selectedQuarrySupplier && isEditing) {
       setSelectedType(selectedQuarrySupplier.type);
+
+      // Display the formatted address in the form
+      const displayAddress = selectedQuarrySupplier.address?.formatted_address ||
+                            selectedQuarrySupplier.address?.formattedAddress || '';
+
       quarrySupplierForm.reset({
         type: selectedQuarrySupplier.type,
         name: selectedQuarrySupplier.name || '',
@@ -174,7 +182,7 @@ export default function QuarrySupplierForm({
             : selectedQuarrySupplier.website || '',
         email: selectedQuarrySupplier.email || '',
         phone: selectedQuarrySupplier.phone || '',
-        address: '', // Will be handled separately
+        address: displayAddress,
         contact_person_name:
           selectedQuarrySupplier.contact_person_name === 'N/A'
             ? ''
@@ -237,8 +245,30 @@ export default function QuarrySupplierForm({
       setIsSubmitting(true);
 
       try {
-        // Generate mock address in backend format (only address is mocked)
-        const mockAddress = generateMockAddress();
+        // Use existing address when editing, otherwise generate mock address
+        let addressData: Address;
+        if (isEditing && selectedQuarrySupplier?.address) {
+          // Use the existing address from backend (Address type)
+          const addr = selectedQuarrySupplier.address;
+          addressData = {
+            id: addr.id || 0,
+            googlePlaceId: addr.google_place_id || addr.googlePlaceId || '123456789012345678',
+            formattedAddress: addr.formatted_address || addr.formattedAddress || '',
+            streetDetailsPrimary: addr.street_details_primary || addr.streetDetailsPrimary || '',
+            streetDetailsOptional: addr.street_details_optional || addr.streetDetailsOptional || '',
+            city: addr.city || '',
+            suburb: addr.suburb || '',
+            state: addr.state || '',
+            postcode: addr.postcode || '',
+            country: addr.country || '',
+            latitude: addr.latitude || 0,
+            longitude: addr.longitude || 0,
+            version: addr.version || 0,
+          };
+        } else {
+          // Convert AddressType to backend Address format for new entries
+          addressData = convertToBackendAddress();
+        }
 
         const quarrySupplierData = {
           name: values.name,
@@ -253,16 +283,28 @@ export default function QuarrySupplierForm({
           contactPersonPhone: values.contact_person_phone || '',
           contactPersonEmail: values.contact_person_email || '',
           website: values.website || '',
-          address: mockAddress,
-          version: 0,
+          address: addressData,
+          version: selectedQuarrySupplier?.version || 0,
         };
 
-        // Call the mutation
-        await createQuarryMutation.mutateAsync(quarrySupplierData as any);
+        if (isEditing && id) {
+          // Update existing quarry/supplier
+          await updateQuarryMutation.mutateAsync({
+            id,
+            data: quarrySupplierData as any,
+          });
 
-        notifySuccess(
-          `${values.type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`
-        );
+          notifySuccess(
+            `${values.type === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`
+          );
+        } else {
+          // Create new quarry/supplier
+          await createQuarryMutation.mutateAsync(quarrySupplierData as any);
+
+          notifySuccess(
+            `${values.type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`
+          );
+        }
 
         // Close the form dialog on success
         if (onCancel) {
@@ -272,13 +314,13 @@ export default function QuarrySupplierForm({
         notifyError(
           error instanceof Error
             ? error.message
-            : `Failed to create ${values.type === 'QUARRY' ? 'quarry' : 'supplier'}`
+            : `Failed to ${isEditing ? 'update' : 'create'} ${values.type === 'QUARRY' ? 'quarry' : 'supplier'}`
         );
       } finally {
         setIsSubmitting(false);
       }
     },
-    [createQuarryMutation, generateMockAddress, onCancel, selectedType]
+    [createQuarryMutation, updateQuarryMutation, convertToBackendAddress, onCancel, selectedType, isEditing, id, selectedQuarrySupplier?.version]
   );
 
   const willExceedQuarryLimit = React.useCallback(() => {

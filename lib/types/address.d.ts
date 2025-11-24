@@ -1,12 +1,13 @@
 // Backend Address structure (from API Get All Quarry and Suppliers)
 export interface Address {
-  id: number;
+  id?: number;
   suburb: string;
   city: string;
   state: string;
   country: string;
   postcode: string;
   streetDetailsPrimary: string;
+  streetDetailsOptional?: string;
   formattedAddress: string;
   latitude: number;
   longitude: number;
