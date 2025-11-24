@@ -7,6 +7,7 @@ import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(
 import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
+import { useUnarchiveQuarry } from '@/lib/api/quarries';
 
 interface DialogConfig {
   title?: string;
@@ -278,6 +279,8 @@ export function useQuarrySupplierActions(
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
+  const unarchiveMutation = useUnarchiveQuarry();
+
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
     selectedAction || undefined
@@ -353,13 +356,23 @@ export function useQuarrySupplierActions(
               }
               break;
             case 'unarchive':
-              if (canUnarchive(quarrySupplierData)) {
-                console.log(
-                  'Unarchive quarry/supplier:',
-                  quarrySupplierId,
-                  quarrySupplierData
-                );
-                // TODO: implement unarchive API call
+              if (canUnarchive(quarrySupplierData) && quarrySupplierId) {
+                unarchiveMutation.mutate(quarrySupplierId, {
+                  onSuccess: () => {
+                    console.log(
+                      'Successfully unarchived quarry/supplier:',
+                      quarrySupplierId
+                    );
+                    setActiveDialog(null);
+                    setSelectedAction(null);
+                  },
+                  onError: (error) => {
+                    console.error(
+                      'Failed to unarchive quarry/supplier:',
+                      error
+                    );
+                  },
+                });
               }
               break;
             case 'cannotArchive':
