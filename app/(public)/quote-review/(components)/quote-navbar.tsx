@@ -18,17 +18,8 @@ export interface QuoteNavbarProps {
   accountManager: string;
   status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT';
   onDownloadPDF?: () => void;
-  // TEMPORARY: For testing both PDF export methods
-  onDownloadPDFReactPdf?: () => void; // @react-pdf/renderer method
-  forPdf?: boolean;
+  onDownloadPDFReactPdf?: () => void;
 }
-
-const pdfStyles = {
-  quoteNumber: { letterSpacing: '0.5px' } as const,
-  quotationText: { letterSpacing: '1px' } as const,
-  label: { letterSpacing: '0.3px', fontWeight: 400 } as const,
-  value: { letterSpacing: '0.3px', fontWeight: 500 } as const,
-};
 
 export function QuoteNavbar({
   quoteNumber,
@@ -37,177 +28,89 @@ export function QuoteNavbar({
   accountManager,
   status,
   onDownloadPDF,
-  onDownloadPDFReactPdf, // TEMPORARY: For testing @react-pdf/renderer method
-  forPdf = false,
+  onDownloadPDFReactPdf,
 }: QuoteNavbarProps) {
   return (
-    <div
-      className={`bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 ${
-        forPdf ? '' : 'rounded-t-lg'
-      }`}
-    >
+    <div className="bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 rounded-t-lg">
       {/* Top Row */}
       <div className="flex items-start justify-between mb-6">
         {/* Logo */}
-        {onDownloadPDF === undefined ? (
-          <div style={{ display: 'inline-block' }}>
-            <Image
-              src="/quarrylink-logo.png"
-              alt="QuarryLink logo"
-              width={70}
-              height={70}
-              style={{
-                width: '70px',
-                height: '70px',
-                display: 'inline-block',
-                verticalAlign: 'middle',
-                marginRight: '16px',
-                marginTop: '20px',
-              }}
-            />
-            <h1
-              style={{
-                display: 'inline-block',
-                verticalAlign: 'middle',
-                fontSize: '60px',
-                fontWeight: 'bold',
-                paddingBottom: '25px',
-              }}
-            >
-              QuarryLink
-            </h1>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Image
-              src="/quarrylink-logo.png"
-              alt="QuarryLink logo"
-              width={70}
-              height={70}
-              style={{ width: '70px', height: '70px' }}
-            />
-            <h1 className="text-[60px] font-bold">QuarryLink</h1>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Image
+            src="/quarrylink-logo.png"
+            alt="QuarryLink logo"
+            width={70}
+            height={70}
+            style={{ width: '70px', height: '70px' }}
+          />
+          <h1 className="text-[60px] font-bold">QuarryLink</h1>
+        </div>
 
         {/* Download Button & Quote Number */}
         <div className="flex items-center gap-4">
-          {/* TEMPORARY: Dropdown to choose between PDF export methods */}
-          {/* TODO: Remove this once we decide on the final PDF method */}
-          {!forPdf && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="secondary"
-                  className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
-                  size="default"
-                >
-                  <Download className="w-4 h-4" />
-                  Download PDF
-                  <ChevronDown className="w-4 h-4 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={onDownloadPDF}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">HTML2Canvas (New)</span>
-                    <span className="text-xs text-muted-foreground">
-                      Canvas-based rendering
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">React-PDF (Old)</span>
-                    <span className="text-xs text-muted-foreground">
-                      @react-pdf/renderer method
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="secondary"
+                className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
+                size="default"
+              >
+                <Download className="w-4 h-4" />
+                Download PDF
+                <ChevronDown className="w-4 h-4 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={onDownloadPDF}>
+                <div className="flex flex-col">
+                  <span className="font-medium">HTML2Canvas (New)</span>
+                  <span className="text-xs text-muted-foreground">
+                    Canvas-based rendering
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
+                <div className="flex flex-col">
+                  <span className="font-medium">React-PDF (Old)</span>
+                  <span className="text-xs text-muted-foreground">
+                    @react-pdf/renderer method
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <div className="text-right">
-            <div
-              className={`font-bold ${forPdf ? 'text-[56px]' : 'text-[29px]'}`}
-              style={forPdf ? pdfStyles.quoteNumber : undefined}
-            >
-              {quoteNumber}
-            </div>
-            <div
-              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? pdfStyles.quotationText : undefined}
-            >
-              QUOTATION
-            </div>
+            <div className="font-bold text-[29px]">{quoteNumber}</div>
+            <div className="text-white text-sm">QUOTATION</div>
           </div>
         </div>
       </div>
 
       {/* Bottom Row - Info Grid */}
-      <div className={`grid grid-cols-2 ${forPdf ? 'gap-2' : 'gap-8'}`}>
+      <div className="grid grid-cols-2 gap-8">
         {/* Left Column */}
         <div className="space-y-2">
           <div>
-            <div
-              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? pdfStyles.label : undefined}
-            >
-              Date Issued
-            </div>
-            <div
-              className={` ${forPdf ? 'text-2xl' : 'text-[15px] font-medium'}`}
-              style={forPdf ? pdfStyles.value : undefined}
-            >
-              {dateIssued}
-            </div>
+            <div className="text-white text-sm">Date Issued</div>
+            <div className="text-[15px] font-medium">{dateIssued}</div>
           </div>
           <div>
-            <div
-              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? pdfStyles.label : undefined}
-            >
-              Account Manager
-            </div>
-            <div
-              className={` ${forPdf ? 'text-2xl' : 'text-[15px] font-medium'}`}
-              style={forPdf ? pdfStyles.value : undefined}
-            >
-              {accountManager}
-            </div>
+            <div className="text-white text-sm">Account Manager</div>
+            <div className="text-[15px] font-medium">{accountManager}</div>
           </div>
         </div>
 
         {/* Right Column */}
         <div className="space-y-2">
           <div>
-            <div
-              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? pdfStyles.label : undefined}
-            >
-              Valid Until
-            </div>
-            <div
-              className={`${forPdf ? 'text-2xl' : 'text-[15px] font-medium '}`}
-              style={forPdf ? pdfStyles.value : undefined}
-            >
-              {validUntil}
-            </div>
+            <div className="text-white text-sm">Valid Until</div>
+            <div className="text-[15px] font-medium">{validUntil}</div>
           </div>
           <div>
-            <div
-              className={`text-white ${forPdf ? 'text-2xl' : 'text-sm'}`}
-              style={forPdf ? pdfStyles.label : undefined}
-            >
-              Status
-            </div>
-            <div className={`${forPdf ? 'mt-2' : ''}`}>
-              {forPdf ? (
-                <SimplePdfBadge name={status} />
-              ) : (
-                <TableBadges names={status} visibleCount={1} />
-              )}
+            <div className="text-white text-sm">Status</div>
+            <div>
+              <TableBadges names={status} visibleCount={1} />
             </div>
           </div>
         </div>
