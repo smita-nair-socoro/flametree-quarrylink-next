@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, Image } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
 export interface QuoteNavbarPdfProps {
   quoteNumber: string;
   dateIssued: string;
   validUntil: string;
   accountManager: string;
-  status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT';
+  status: QUOTE_STATUS;
 }
 
 // Status badge colors mapping

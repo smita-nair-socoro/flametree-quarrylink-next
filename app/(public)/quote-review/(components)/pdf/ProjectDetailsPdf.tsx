@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
+import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 export interface ProjectDetailsPdfProps {
-  type: 'DELIVERY' | 'COLLECTION';
+  type: QUOTE_TYPE;
   projectName: string;
   deliveryAddress: string;
   deliveryDate: string;

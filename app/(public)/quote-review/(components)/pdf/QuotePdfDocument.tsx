@@ -7,6 +7,7 @@ import { CustomerInfoPdf } from './CustomerInfoPdf';
 import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
+import { QUOTE_STATUS, QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 // Type matching the mockQuotationData structure
 export interface QuotationData {
@@ -15,7 +16,7 @@ export interface QuotationData {
     dateIssued: string;
     validUntil: string;
     accountManager: string;
-    status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT';
+    status: QUOTE_STATUS;
   };
   customer: {
     customerName: string;
@@ -28,7 +29,7 @@ export interface QuotationData {
     };
   };
   project: {
-    type: 'DELIVERY' | 'COLLECTION';
+    type: QUOTE_TYPE;
     projectName: string;
     deliveryAddress: string;
     deliveryDate: string;

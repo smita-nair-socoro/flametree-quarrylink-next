@@ -13,7 +13,6 @@ export interface QuoteNavbarProps {
   accountManager: string;
   status: QuoteStatus;
   onDownloadPDF?: () => void;
-  onDownloadPDFReactPdf?: () => void;
 }
 
 export function QuoteNavbar({
@@ -22,7 +21,7 @@ export function QuoteNavbar({
   validUntil,
   accountManager,
   status,
-  onDownloadPDFReactPdf,
+  onDownloadPDF,
 }: QuoteNavbarProps) {
   return (
     <div className="bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 rounded-t-lg">
@@ -42,14 +41,15 @@ export function QuoteNavbar({
 
         {/* Download Button & Quote Number */}
         <div className="flex items-center gap-4">
-              <Button
-                variant="secondary"
-                className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
-                size="default"
-              >
-                <Download className="w-4 h-4" />
-                Download PDF
-              </Button>
+          <Button
+            onClick={onDownloadPDF}
+            variant="secondary"
+            className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
+            size="default"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </Button>
 
           <div className="text-right">
             <div className="font-bold text-[29px]">{quoteNumber}</div>

@@ -14,6 +14,7 @@ import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
+import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -23,20 +24,12 @@ type QuoteReviewDocumentProps = {
 
 export default function QuoteReviewDocument({
   quoteId,
-  payloadParam, // eslint-disable-line @typescript-eslint/no-unused-vars
   initialAction,
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.PENDING);
 
-  /**
-   * CURRENT STATE: Using hardcoded mock data for all quotes
-   * This is intentional for static site deployment (no dynamic data fetching during build)
-   *
-   * FUTURE BACKEND INTEGRATION:
-   * When backend API is ready, replace mock data with actual API call:
-   */
   const quotationData = mockQuotationData;
 
   // State for navbar status (will be updated when user approves/declines)
@@ -50,11 +43,6 @@ export default function QuoteReviewDocument({
     }
   }, [initialAction]);
 
-  /**
-   * OLD METHOD: @react-pdf/renderer export
-   * Kept alongside new html2canvas method for comparison
-   * TEMPORARY: Available via dropdown in navbar for testing
-   */
   const handleDownloadPDF = async () => {
     console.log('Download PDF clicked for quote:', quoteId);
     try {
@@ -264,11 +252,10 @@ export default function QuoteReviewDocument({
       <div className="min-h-screen bg-gray-100 p-4 print:px-0 print:py-0">
         <div className="max-w-[960px] mx-auto bg-white">
           {/* Navbar */}
-          {/* TEMPORARY: Passing both PDF methods for testing */}
           <QuoteNavbar
             {...quotationData.navbar}
             status={navbarStatus}
-            onDownloadPDFReactPdf={handleDownloadPDF} // Old method (for comparison)
+            onDownloadPDF={handleDownloadPDF}
           />
 
           {/* Status Banner */}
