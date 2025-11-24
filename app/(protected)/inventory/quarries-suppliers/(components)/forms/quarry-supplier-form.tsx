@@ -26,8 +26,10 @@ import { AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
-import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-suppliers/(components)/quarry-subscription-actions';
+import { useQuery } from '@tanstack/react-query';
+import { QuarryDetailQueryOptions } from '@/lib/api/quarries';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
 interface FormProps {
   id?: number;
@@ -43,7 +45,22 @@ export default function QuarrySupplierForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
-  const selectedQuarrySupplier = useSelectedQuarrySupplier();
+
+  // Fetch quarry details when editing (id is provided)
+  const {
+    data: quarryData,
+    isLoading: isLoadingQuarry,
+    error: quarryError,
+  } = useQuery({
+    ...QuarryDetailQueryOptions(id!),
+    enabled: isEditing && !!id,
+  });
+
+  // Convert keys to snake_case for form compatibility
+  const selectedQuarrySupplier = React.useMemo(() => {
+    if (!quarryData) return null;
+    return convertKeysToSnakeCase(quarryData);
+  }, [quarryData]);
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
     React.useState(false);
   const [pendingSubmission, setPendingSubmission] =
@@ -101,8 +118,8 @@ export default function QuarrySupplierForm({
       contact_person_email: isEditing
         ? selectedQuarrySupplier?.contact_person_email || ''
         : '',
-      opening_closing_times: isEditing
-        ? selectedQuarrySupplier?.opening_closing_times || ''
+      opening_closing_info: isEditing
+        ? selectedQuarrySupplier?.opening_closing_info || ''
         : '',
       weighbridge_info: isEditing
         ? selectedQuarrySupplier?.weighbridge_info || ''
@@ -126,7 +143,7 @@ export default function QuarrySupplierForm({
   React.useEffect(() => {
     if (selectedQuarrySupplier && isEditing) {
       setSelectedType(selectedQuarrySupplier.type);
-
+      console.log(selectedQuarrySupplier)
       quarrySupplierForm.reset({
         type: selectedQuarrySupplier.type,
         name: selectedQuarrySupplier.name || '',
@@ -149,10 +166,10 @@ export default function QuarrySupplierForm({
           selectedQuarrySupplier.contact_person_email === 'N/A'
             ? ''
             : selectedQuarrySupplier.contact_person_email || '',
-        opening_closing_times:
-          selectedQuarrySupplier.opening_closing_times === 'N/A'
+        opening_closing_info:
+          selectedQuarrySupplier.opening_closing_info === 'N/A'
             ? ''
-            : selectedQuarrySupplier.opening_closing_times || '',
+            : selectedQuarrySupplier.opening_closing_info || '',
         weighbridge_info:
           selectedQuarrySupplier.weighbridge_info === 'N/A'
             ? ''
@@ -213,7 +230,7 @@ export default function QuarrySupplierForm({
         contactPersonName: values.contact_person_name || '',
         contactPersonPhone: values.contact_person_phone || '',
         contactPersonEmail: values.contact_person_email || '',
-        openingClosingTimes: values.opening_closing_times || '',
+        opening_closing_info: values.opening_closing_info || '',
         weighbridgeInfo: values.weighbridge_info || '',
         notes: values.notes || '',
         status: 'ACTIVE',
@@ -277,6 +294,43 @@ export default function QuarrySupplierForm({
   const watchedQuarryName = quarrySupplierForm.watch('name');
   const locationDescriptor =
     selectedType === 'QUARRY' ? 'Owned Location' : 'Supplier';
+
+  // Show loading state while fetching quarry details
+  if (isEditing && isLoadingQuarry) {
+    return (
+      <div className="w-full flex items-center justify-center p-8">
+        <div className="flex flex-col items-center space-y-4">
+          <Spinner size="medium" />
+          <p className="text-lg text-muted-foreground">
+            Loading quarry details...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if failed to fetch quarry details
+  if (isEditing && quarryError) {
+    return (
+      <div className="w-full flex items-center justify-center p-8">
+        <div className="flex flex-col items-center space-y-4 text-center">
+          <p className="text-lg text-destructive">
+            Failed to load quarry details
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {quarryError instanceof Error
+              ? quarryError.message
+              : 'An error occurred'}
+          </p>
+          {onCancel && (
+            <Button variant="outline" onClick={onCancel}>
+              Close
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full relative">
@@ -591,7 +645,7 @@ export default function QuarrySupplierForm({
           {/* Opening & Closing Times */}
           <FormField
             control={quarrySupplierForm.control}
-            name="opening_closing_times"
+            name="opening_closing_info"
             render={({ field }) => (
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'}

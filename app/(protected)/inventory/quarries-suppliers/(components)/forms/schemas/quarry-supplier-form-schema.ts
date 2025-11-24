@@ -67,7 +67,7 @@ const Base = z.object({
   contact_person_email: EmailOptional,
 
   // Operational Information
-  opening_closing_times: z.string().trim().optional(),
+  opening_closing_info: z.string().trim().optional(),
   weighbridge_info: z.string().trim().optional(),
   notes: z.string().trim().optional(),
 
