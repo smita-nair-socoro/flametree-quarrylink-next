@@ -342,14 +342,14 @@ export const APIClient = {
   },
   quarries: {
     getAll: async () => {
-      const quarries = await appClient.Get<any[]>(`/socoro/quarrylink/api/quarries`);
+      const quarries = await appClient.Get<Quarry[]>(`/socoro/quarrylink/api/quarries`);
 
       const normalizedQuarries = quarries.map(normalizeObjectPhoneNumbers);
 
       return normalizedQuarries;
     },
     getById: async (quarrySupplierId: number) => {
-      const quarry = await appClient.Get<any>(
+      const quarry = await appClient.Get<Quarry>(
         `/socoro/quarrylink/api/quarries/${quarrySupplierId}`
       );
 

@@ -2,7 +2,6 @@ import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@ta
 import { APIClient } from './APIClient';
 import { CategoryKeys, ProductKeys, QuarryKeys } from './keys';
 import { Quarry } from '../types/quarry';
-import { Address } from '../types/address';
 
 export const ProductsListQueryOptions = () =>
   queryOptions({
@@ -69,7 +68,7 @@ export const useUpdateQuarry = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
+    mutationFn: ({ id, data }: { id: number; data: Quarry }) =>
       APIClient.quarries.update(id, data),
 
     onSuccess: (data) => {

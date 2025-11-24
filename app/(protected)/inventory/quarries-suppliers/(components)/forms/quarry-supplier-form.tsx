@@ -30,6 +30,8 @@ import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-
 import { useCreateQuarry, useUpdateQuarry } from '@/lib/api/quarries';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
+import { Quarry } from '@/lib/types/quarry';
+import { QuarryType } from '@/lib/types/quarry-enums';
 
 interface FormProps {
   id?: number;
@@ -70,8 +72,8 @@ export default function QuarrySupplierForm({
   );
 
   // Initialize states with selected quarry/supplier data
-  const [selectedType, setSelectedType] = React.useState<string>(
-    selectedQuarrySupplier?.quarry_supplier_type || selectedQuarrySupplier?.type || 'QUARRY'
+  const [selectedType, setSelectedType] = React.useState<QuarryType>(
+    selectedQuarrySupplier?.quarry_supplier_type || selectedQuarrySupplier?.type || QuarryType.QUARRY
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -132,8 +134,9 @@ export default function QuarrySupplierForm({
   });
 
   const handleTypeChange = (value: string) => {
-    setSelectedType(value);
-    quarrySupplierForm.setValue('type', value as 'QUARRY' | 'SUPPLIER');
+    const quarryType = value as QuarryType;
+    setSelectedType(quarryType);
+    quarrySupplierForm.setValue('type', quarryType);
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
   };
@@ -189,6 +192,7 @@ export default function QuarrySupplierForm({
           addressData = convertToBackendAddress();
         }
 
+        // Create request body with camelCase field names as expected by backend
         const quarrySupplierData = {
           name: values.name,
           quarrySupplierType: values.type,
@@ -204,13 +208,13 @@ export default function QuarrySupplierForm({
           website: values.website || '',
           address: addressData,
           version: selectedQuarrySupplier?.version || 0,
-        };
+        } as unknown as Quarry;
 
         if (isEditing && id) {
           // Update existing quarry/supplier
           await updateQuarryMutation.mutateAsync({
             id,
-            data: quarrySupplierData as any,
+            data: quarrySupplierData,
           });
 
           notifySuccess(
@@ -218,7 +222,7 @@ export default function QuarrySupplierForm({
           );
         } else {
           // Create new quarry/supplier
-          await createQuarryMutation.mutateAsync(quarrySupplierData as any);
+          await createQuarryMutation.mutateAsync(quarrySupplierData);
 
           notifySuccess(
             `${values.type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`
@@ -239,12 +243,12 @@ export default function QuarrySupplierForm({
         setIsSubmitting(false);
       }
     },
-    [createQuarryMutation, updateQuarryMutation, convertToBackendAddress, onCancel, selectedType, isEditing, id, selectedQuarrySupplier?.version]
+    [createQuarryMutation, updateQuarryMutation, convertToBackendAddress, onCancel, isEditing, id, selectedQuarrySupplier?.version, selectedQuarrySupplier?.address]
   );
 
   const willExceedQuarryLimit = React.useCallback(() => {
     if (isEditing) return false;
-    if (selectedType !== 'QUARRY') return false;
+    if (selectedType !== QuarryType.QUARRY) return false;
     return (
       subscriptionMock.currentOwnedQuarries + 1 > subscriptionMock.planLimit
     );
@@ -283,7 +287,7 @@ export default function QuarrySupplierForm({
 
   const watchedQuarryName = quarrySupplierForm.watch('name');
   const locationDescriptor =
-    selectedType === 'QUARRY' ? 'Owned Location' : 'Supplier';
+    selectedType === QuarryType.QUARRY ? 'Owned Location' : 'Supplier';
 
   return (
     <div className="w-full relative">
@@ -298,7 +302,7 @@ export default function QuarrySupplierForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding {selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}...
+              Adding {selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}...
             </p>
           </div>
         </div>
@@ -408,7 +412,7 @@ export default function QuarrySupplierForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {selectedType === 'QUARRY'
+                    {selectedType === QuarryType.QUARRY
                       ? 'Quarry Name*'
                       : 'Supplier Name*'}
                   </FormLabel>
@@ -416,7 +420,7 @@ export default function QuarrySupplierForm({
                     <Input
                       className="w-full"
                       placeholder={
-                        selectedType === 'QUARRY'
+                        selectedType === QuarryType.QUARRY
                           ? 'Enter quarry name'
                           : 'Enter supplier name'
                       }
@@ -736,7 +740,7 @@ export default function QuarrySupplierForm({
               >
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
               </Button>
             </div>
           )}
@@ -746,7 +750,7 @@ export default function QuarrySupplierForm({
               <Button type="submit" className="cursor-pointer">
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

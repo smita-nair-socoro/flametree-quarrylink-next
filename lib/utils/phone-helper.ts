@@ -3,8 +3,6 @@
  * from backend format to E.164 format required by react-phone-number-input
  */
 
-import { Quarry } from '../types/quarry';
-
 /**
  * Transforms phone numbers from backend format to E.164 format
  * Adds +61 country code if the number doesn't already have it
@@ -52,14 +50,14 @@ export function normalizePhoneNumber(
  * normalizeObjectPhoneNumbers({ phone: "0412345678", contact_person_phone: "0498765432", businessPhone: "0387654321" })
  * // Returns { phone: "+61412345678", contact_person_phone: "+61498765432", businessPhone: "+61387654321" }
  */
-export function normalizeObjectPhoneNumbers<T extends Record<string, any>>(
+export function normalizeObjectPhoneNumbers<T>(
   obj: T
 ): T {
   if (!obj || typeof obj !== 'object') {
     return obj;
   }
 
-  const result: Record<string, any> = { ...obj };
+  const result = { ...obj } as Record<string, unknown>;
   // Regex pattern to match any field ending with "phone" (case-insensitive)
   const phoneFieldPattern = /phone$/i;
 

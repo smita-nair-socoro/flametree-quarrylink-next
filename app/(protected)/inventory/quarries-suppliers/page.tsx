@@ -95,11 +95,14 @@ export default function QuarriesSuppliersPage() {
 
         const quarryType = (convertedQuarry.quarry_supplier_type || convertedQuarry.type || 'QUARRY') as QuarryType;
 
+        // Check if is_active field exists (from API response)
+        const isActive = 'is_active' in convertedQuarry ? (convertedQuarry as Record<string, unknown>).is_active : undefined;
+
         const transformed = {
           ...convertedQuarry,
           type: quarryType,
           quarry_supplier_type: quarryType, // Preserve for editing
-          status: (convertedQuarry.is_active === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
+          status: (isActive === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
           // Extract suburb from address object for table display
           suburb: convertedQuarry.address?.suburb || '',
           email: convertedQuarry.email || '',
