@@ -233,19 +233,19 @@ const getDialogConfigs = (
         confirmCustomColor: '#E7000B',
       },
     };
-  } else if (selectedAction?.key === 'archive') {
+  } else if (selectedAction?.key === 'delete') {
     return {
-      archive: {
-        title: `Archive`,
+      delete: {
+        title: `Delete`,
         description: (
           <div className="flex justify-start items-center gap-2">
-            <div className="flex w-[40px] h-[40px] justify-center bg-[#DBEAFE] rounded-full">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFFBEB] rounded-full">
               <span className="flex items-center justify-center">
-                <Ban className="h-[20px] w-[20px] text-[#155DFC]" />
+                <CircleAlert className="h-[20px] w-[20px] text-[#E17100]" />
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="font-medium">Archive Product with History</span>
+              <span className="font-medium">Delete Product with History</span>
               <div className="flex justify-start gap-2">
                 <span className="text-sm text-[#6A7282]">
                   {productCode} ({productName})
@@ -276,14 +276,15 @@ const getDialogConfigs = (
             </div>
           </div>
         ),
-        confirmText: 'Archive Product',
-        confirmCustomClass: 'bg-[#475569] hover:bg-[#64748b] text-white',
+        confirmText: 'Delete Product',
+        confirmVariant: 'destructive',
+        confirmCustomColor: '#E7000B',
       },
     };
-  } else if (selectedAction?.key === 'cannotArchive') {
+  } else if (selectedAction?.key === 'cannotDelete') {
     return {
-      cannotArchive: {
-        title: `Archive`,
+      cannotDelete: {
+        title: `Delete`,
         description: (
           <div className="flex justify-start items-center gap-2">
             <div className="flex w-[40px] h-[40px] justify-center bg-[#FFEDD4] rounded-full">
@@ -292,7 +293,7 @@ const getDialogConfigs = (
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="font-medium">Cannot Archive Product</span>
+              <span className="font-medium">Cannot Delete Product</span>
               <div className="flex justify-start gap-2">
                 <span className="text-sm text-[#6A7282]">
                   {productName} ({productCode})
@@ -310,7 +311,7 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-5">
             <span className="text-[14px] text-[#364153] font-normal">
-              This product cannot be archived because it has pending business
+              This product cannot be deleted because it has pending business
               activities:
             </span>
 
@@ -369,7 +370,7 @@ const getDialogConfigs = (
                 <div className="flex justify-start gap-2">
                   <CircleAlert className="h-[16px] w-[16px] flex-shrink-0 text-[#155DFC] mt-1" />
                   <span className="text-[14px] text-[#193CB8] font-normal">
-                    Archiving this product now would disrupt ongoing business
+                    Deleting this product now would disrupt ongoing business
                     operations.
                   </span>
                 </div>
@@ -436,15 +437,6 @@ const getDialogConfigs = (
           </div>
         ),
         confirmActionNeeded: false,
-      },
-    };
-  } else if (selectedAction?.key === 'unarchive') {
-    return {
-      unarchive: {
-        title: `Unarchive`,
-        description: `Unarchive this product`,
-        confirmText: 'Unarchive',
-        confirmVariant: 'default',
       },
     };
   } else if (selectedAction?.key === 'available') {
@@ -567,19 +559,14 @@ export function useProductActions(
       // TODO: implement available logic
     }),
 
-    archive: createDialogAction('archive', () => {
-      console.log('Archive product:', productId);
-      // TODO: implement archive logic
+    delete: createDialogAction('delete', () => {
+      console.log('Delete product:', productId);
+      // TODO: implement delete logic
     }),
 
-    cannotArchive: createDialogAction('cannotArchive', () => {
-      console.log('Cannot archive product:', productId);
-      // This will show the informational modal about why archiving is not possible
-    }),
-
-    unarchive: createDialogAction('unarchive', () => {
-      console.log('Unarchive product:', productId);
-      // TODO: implement unarchive logic
+    cannotDelete: createDialogAction('cannotDelete', () => {
+      console.log('Cannot delete product:', productId);
+      // This will show the informational modal about why deleting is not possible
     }),
 
     removeSupplier: createDialogAction('removeSupplier', () => {
@@ -615,27 +602,23 @@ export function useProductActions(
           switch (key) {
             case 'unavailable':
               console.log('Unavailable product:', productId, productData);
-              // TODO: implement archive logic
+              // TODO: implement unavailable logic
               break;
             case 'available':
               console.log('Available product:', productId, productData);
-              // TODO: implement unarchive logic
+              // TODO: implement available logic
               break;
-            case 'archive':
-              console.log('Archive product:', productId, productData);
-              // TODO: implement archive logic
+            case 'delete':
+              console.log('Delete product:', productId, productData);
+              // TODO: implement delete logic
               break;
-            case 'cannotArchive':
-              console.log('Cannot archive product:', productId, productData);
+            case 'cannotDelete':
+              console.log('Cannot delete product:', productId, productData);
               // This is informational only, no action needed
               break;
             case 'removeSupplier':
               console.log('Remove supplier:', productId, productData);
               // TODO: implement remove supplier logic
-              break;
-            case 'unarchive':
-              console.log('Unarchive product:', productId, productData);
-              // TODO: implement unarchive logic
               break;
           }
           setActiveDialog(null);

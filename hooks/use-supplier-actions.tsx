@@ -36,10 +36,10 @@ const getDialogConfigs = (
   const supplierName = quarryData?.supplier_product_name;
   const supplierProductCode = quarryData?.supplier_product_code;
 
-  if (selectedAction?.key === 'cannotRemove') {
+  if (selectedAction?.key === 'cannotDelete ') {
     return {
-      cannotRemove: {
-        title: `Remove Supplier`,
+      delete: {
+        title: `Delete Supplier`,
         description: (
           <div className="flex justfiy-start gap-2">
             <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
@@ -48,7 +48,7 @@ const getDialogConfigs = (
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="font-medium">Cannot Remove Supplier</span>
+              <span className="font-medium">Cannot Delete Supplier</span>
               <div className="flex justify-start gap-2">
                 <span className="text-sm text-gray-500">
                   {supplierName} ({supplierProductCode})
@@ -60,17 +60,17 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-5">
             <span className="text-sm text-gray-500 font-semibold">
-              Are you sure you want to remove this supplier from the product?
+              Are you sure you want to delete this supplier from the product?
             </span>
           </div>
         ),
         confirmActionNeeded: false,
       },
     };
-  } else if (selectedAction?.key === 'remove') {
+  } else if (selectedAction?.key === 'delete') {
     return {
-      remove: {
-        title: `Remove Supplier`,
+      delete: {
+        title: `Delete Supplier`,
         titleIcon: <TriangleAlert className="h-5 w-5 text-[#F59E0B]" />,
         description: (
           <div className="flex flex-col gap-4">
@@ -78,7 +78,7 @@ const getDialogConfigs = (
               {quarryName} ({supplierProductCode})
             </span>
             <span>
-              Are you sure you want to remove this supplier from the product?
+              Are you sure you want to delete this supplier from the product?
             </span>
           </div>
         ),
@@ -117,7 +117,7 @@ const getDialogConfigs = (
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-semibold">What will be removed:</span>
+              <span className="font-semibold">What will be deleted:</span>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
                 <li> Supplier pricing configuration</li>
                 <li> Truck rates for this supplier</li>
@@ -135,7 +135,7 @@ const getDialogConfigs = (
             </div>
           </div>
         ),
-        confirmText: 'Remove Supplier',
+        confirmText: 'Delete Supplier',
         confirmVariant: 'destructive',
       },
     };
@@ -171,14 +171,14 @@ export function useSupplierActions(
       setViewOpen(true);
     },
 
-    remove: createDialogAction('remove', () => {
-      console.log('Remove supplier:', quarryId);
-      // TODO: implement remove logic
+    delete: createDialogAction('delete', () => {
+      console.log('Delete supplier:', quarryId);
+      // TODO: implement delete logic
     }),
 
-    cannotRemove: createDialogAction('cannotRemove', () => {
-      console.log('Cannot remove supplier:', quarryId);
-      // This will show the informational modal about why removing is not possible
+    cannotDelete: createDialogAction('cannotDelete', () => {
+      console.log('Cannot delete supplier:', quarryId);
+      // This will show the informational modal about why deleting is not possible
     }),
   };
 
@@ -208,13 +208,13 @@ export function useSupplierActions(
         confirmActionNeeded={config.confirmActionNeeded}
         onConfirmAction={() => {
           switch (key) {
-            case 'remove':
-              console.log('Remove supplier:', quarryId, quarryData);
-              // TODO: implement archive logic
+            case 'delete':
+              console.log('Delete supplier:', quarryId, quarryData);
+              // TODO: implement delete logic
               break;
-            case 'cannotRemove':
-              console.log('Cannot remove supplier:', quarryId, quarryData);
-              // TODO: implement cannot remove logic
+            case 'cannotDelete':
+              console.log('Cannot delete supplier:', quarryId, quarryData);
+              // TODO: implement cannot delete logic
               break;
           }
           setActiveDialog(null);
