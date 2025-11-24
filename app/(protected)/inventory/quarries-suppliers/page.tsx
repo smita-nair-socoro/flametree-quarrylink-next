@@ -95,8 +95,8 @@ export default function QuarriesSuppliersPage() {
 
         const transformed = {
           ...convertedQuarry,
-          type: (convertedQuarry.type || 'QUARRY') as QuarryType,
-          status: (convertedQuarry.status || 'ACTIVE') as QuarryStatus,
+          type: (convertedQuarry.quarry_supplier_type || convertedQuarry.type || 'QUARRY') as QuarryType,
+          status: (convertedQuarry.is_active === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
           // Extract suburb from address object for table display
           suburb: convertedQuarry.address?.suburb || '',
           email: convertedQuarry.email || '',
