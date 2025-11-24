@@ -42,8 +42,6 @@ export function QuoteNavbar({
 
         {/* Download Button & Quote Number */}
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
               <Button
                 variant="secondary"
                 className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
@@ -51,20 +49,7 @@ export function QuoteNavbar({
               >
                 <Download className="w-4 h-4" />
                 Download PDF
-                <ChevronDown className="w-4 h-4 ml-1" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
-                <div className="flex flex-col">
-                  <span className="font-medium">React-PDF</span>
-                  <span className="text-xs text-muted-foreground">
-                    @react-pdf/renderer method
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           <div className="text-right">
             <div className="font-bold text-[29px]">{quoteNumber}</div>
