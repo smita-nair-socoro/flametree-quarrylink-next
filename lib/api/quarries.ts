@@ -78,3 +78,21 @@ export const useUpdateQuarry = () => {
     },
   });
 };
+
+/**
+ * Mutation hook for unarchiving an existing quarry or supplier.
+ * Automatically invalidates the quarries list and detail cache on success.
+ */
+export const useUnarchiveQuarry = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.quarries.unarchive(id),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuarryKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuarryKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: QuarryKeys.all });
+    },
+  });
+};
