@@ -273,7 +273,6 @@ export function useQuarrySupplierActions(
   quarrySupplierId: number | undefined,
   quarrySupplierData?: Quarry | null
 ) {
-  console.log("Quarry supplier detailed data:", quarrySupplierData)
   const [viewOpen, setViewOpen] = React.useState(false);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =

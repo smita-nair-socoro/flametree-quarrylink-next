@@ -100,6 +100,7 @@ export default function QuarriesSuppliersPage() {
     return (
       quarriesData?.map((quarry) => {
         const convertedQuarry = convertKeysToSnakeCase(quarry);
+        console.log("convertedQuarry", convertedQuarry)
 
         const transformed = {
           ...convertedQuarry,
