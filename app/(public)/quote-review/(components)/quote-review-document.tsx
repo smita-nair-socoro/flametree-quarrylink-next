@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -15,16 +15,14 @@ import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
+import { notifyError } from '@/lib/toast';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
-  payloadParam?: string;
-  initialAction?: 'approve' | 'decline';
 };
 
 export default function QuoteReviewDocument({
   quoteId,
-  initialAction,
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
@@ -35,14 +33,6 @@ export default function QuoteReviewDocument({
   // State for navbar status (will be updated when user approves/declines)
   const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(quotationData.navbar.status);
 
-  useEffect(() => {
-    if (initialAction === 'approve') {
-      setApproveDialogOpen(true);
-    } else if (initialAction === 'decline') {
-      setDeclineDialogOpen(true);
-    }
-  }, [initialAction]);
-
   const handleDownloadPDF = async () => {
     console.log('Download PDF clicked for quote:', quoteId);
     try {
@@ -52,8 +42,11 @@ export default function QuoteReviewDocument({
         `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
       );
     } catch (error) {
-      console.error('PDF download failed:', error);
-      // TODO: Show error toast to user
+      notifyError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to download PDF. Please try again.'
+      );
     }
   };
 
