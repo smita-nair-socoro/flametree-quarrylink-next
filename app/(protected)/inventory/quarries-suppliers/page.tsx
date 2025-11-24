@@ -100,7 +100,6 @@ export default function QuarriesSuppliersPage() {
     return (
       quarriesData?.map((quarry) => {
         const convertedQuarry = convertKeysToSnakeCase(quarry);
-        console.log("convertedQuarry", convertedQuarry)
 
         const transformed = {
           ...convertedQuarry,
@@ -110,6 +109,7 @@ export default function QuarriesSuppliersPage() {
           suburb: convertedQuarry.address?.suburb || '',
           email: convertedQuarry.email || '',
           phone: convertedQuarry.phone || '',
+          opening_closing_times: convertedQuarry.opening_closing_info || '',
         };
 
         return transformed;
