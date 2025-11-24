@@ -27,7 +27,6 @@ export function QuoteNavbar({
   validUntil,
   accountManager,
   status,
-  onDownloadPDF,
   onDownloadPDFReactPdf,
 }: QuoteNavbarProps) {
   return (
@@ -61,17 +60,9 @@ export function QuoteNavbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={onDownloadPDF}>
-                <div className="flex flex-col">
-                  <span className="font-medium">HTML2Canvas (New)</span>
-                  <span className="text-xs text-muted-foreground">
-                    Canvas-based rendering
-                  </span>
-                </div>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={onDownloadPDFReactPdf}>
                 <div className="flex flex-col">
-                  <span className="font-medium">React-PDF (Old)</span>
+                  <span className="font-medium">React-PDF</span>
                   <span className="text-xs text-muted-foreground">
                     @react-pdf/renderer method
                   </span>
