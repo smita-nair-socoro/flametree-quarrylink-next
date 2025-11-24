@@ -28,7 +28,8 @@ export function CustomerActionButtons({
 
   // Role-based feature detection
   const { attributes } = useAuth();
-  const userRole = attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
@@ -111,7 +112,7 @@ export function CustomerActionButtons({
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {/* Primary button - conditional based on role */}
-        
+
         <Button
           variant="ghost"
           size="sm"
@@ -151,13 +152,13 @@ export function CustomerActionButtons({
                       <Eye className="h-4 w-4 mr-2" />
                       View Jobs
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={actions.viewQuotations}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Quotations
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                   </>
                 )}
+                <DropdownMenuItem onClick={actions.viewQuotations}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Quotations
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
