@@ -91,25 +91,6 @@ export default function QuarrySupplierForm({
   });
   const [searchInput, setSearchInput] = React.useState('');
 
-  // Function to convert AddressType to backend Address format
-  const convertToBackendAddress = (): Address => {
-    return {
-      id: 0,
-      googlePlaceId: '123456789012345678',
-      formattedAddress: address.formattedAddress || '89 Adelaide St, Level 3, Brisbane, QLD, 4000, Australia',
-      streetDetailsPrimary: address.address1 || '89 Adelaide St',
-      streetDetailsOptional: address.address2 || 'Level 3',
-      city: address.city || 'Brisbane',
-      suburb: address.city || 'Brisbane',
-      state: address.region || 'QLD',
-      postcode: address.postalCode || '4000',
-      country: address.country || 'Australia',
-      latitude: address.lat || -27.46977,
-      longitude: address.lng || 153.02513,
-      version: 0,
-    };
-  };
-
   const quarrySupplierForm = useForm<z.infer<typeof QuarrySupplierFormSchema>>({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
@@ -170,26 +151,26 @@ export default function QuarrySupplierForm({
         // Use existing address when editing, otherwise generate mock address
         let addressData: Address;
         if (isEditing && selectedQuarrySupplier?.address) {
-          // Use the existing address from backend (Address type)
-          const addr = selectedQuarrySupplier.address;
-          addressData = {
-            id: addr.id || 0,
-            googlePlaceId: addr.googlePlaceId || '123456789012345678',
-            formattedAddress: addr.formattedAddress || '',
-            streetDetailsPrimary: addr.streetDetailsPrimary || '',
-            streetDetailsOptional: addr.streetDetailsOptional || '',
-            city: addr.city || '',
-            suburb: addr.suburb || '',
-            state: addr.state || '',
-            postcode: addr.postcode || '',
-            country: addr.country || '',
-            latitude: addr.latitude || 0,
-            longitude: addr.longitude || 0,
-            version: addr.version || 0,
-          };
+          // Preserve the original address data completely when editing
+          // Google api is not workign currently 
+          addressData = selectedQuarrySupplier.address;
         } else {
-          // Convert AddressType to backend Address format for new entries
-          addressData = convertToBackendAddress();
+          // Convert AddressType to backend Address format for new entries (mock data)
+          addressData = {
+            id: 0,
+            googlePlaceId: '123456789012345678',
+            formattedAddress: address.formattedAddress || '89 Adelaide St, Level 3, Brisbane, QLD, 4000, Australia',
+            streetDetailsPrimary: address.address1 || '89 Adelaide St',
+            streetDetailsOptional: address.address2 || 'Level 3',
+            city: address.city || 'Brisbane',
+            suburb: address.city || 'Brisbane',
+            state: address.region || 'QLD',
+            postcode: address.postalCode || '4000',
+            country: address.country || 'Australia',
+            latitude: address.lat || -27.46977,
+            longitude: address.lng || 153.02513,
+            version: 0,
+          };
         }
 
         // Create request body with camelCase field names as expected by backend
@@ -243,7 +224,7 @@ export default function QuarrySupplierForm({
         setIsSubmitting(false);
       }
     },
-    [createQuarryMutation, updateQuarryMutation, convertToBackendAddress, onCancel, isEditing, id, selectedQuarrySupplier?.version, selectedQuarrySupplier?.address]
+    [createQuarryMutation, updateQuarryMutation, onCancel, isEditing, id, selectedQuarrySupplier?.version, selectedQuarrySupplier?.address, address]
   );
 
   const willExceedQuarryLimit = React.useCallback(() => {

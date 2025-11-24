@@ -103,8 +103,10 @@ export default function QuarriesSuppliersPage() {
           type: quarryType,
           quarry_supplier_type: quarryType, // Preserve for editing
           status: (isActive === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
+          // Preserve address in original camelCase format (backend uses camelCase for Address)
+          address: quarry.address,
           // Extract suburb from address object for table display
-          suburb: convertedQuarry.address?.suburb || '',
+          suburb: quarry.address?.suburb || '',
           email: convertedQuarry.email || '',
           phone: convertedQuarry.phone || '',
           opening_closing_times: convertedQuarry.opening_closing_info || '',
