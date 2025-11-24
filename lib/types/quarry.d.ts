@@ -6,6 +6,7 @@ export interface Quarry {
   name: string;
   status: QuarryStatus;
   type: QuarryType;
+  quarry_supplier_type?: QuarryType; // Backend field name (preserve for API compatibility)
   website: string;
   email: string;
   phone: string;

@@ -93,9 +93,12 @@ export default function QuarriesSuppliersPage() {
       quarriesData?.map((quarry) => {
         const convertedQuarry = convertKeysToSnakeCase(quarry);
 
+        const quarryType = (convertedQuarry.quarry_supplier_type || convertedQuarry.type || 'QUARRY') as QuarryType;
+
         const transformed = {
           ...convertedQuarry,
-          type: (convertedQuarry.quarry_supplier_type || convertedQuarry.type || 'QUARRY') as QuarryType,
+          type: quarryType,
+          quarry_supplier_type: quarryType, // Preserve for editing
           status: (convertedQuarry.is_active === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
           // Extract suburb from address object for table display
           suburb: convertedQuarry.address?.suburb || '',
@@ -110,10 +113,14 @@ export default function QuarriesSuppliersPage() {
   }, [quarriesData]);
 
 
+  // Get Zustand store actions
+  const setSelectedQuarrySupplierInStore = useQuarrySupplierStore((state) => state.setSelectedQuarrySupplier);
+
   // Handle row click to open quarry/supplier details
   const handleRowClick = (quarrySupplier: Quarry) => {
     setSelectedQuarrySupplier(quarrySupplier);
     setSelectedQuarrySupplierForActions(quarrySupplier);
+    setSelectedQuarrySupplierInStore(quarrySupplier); // Set in Zustand store
     actions.view();
   };
 
