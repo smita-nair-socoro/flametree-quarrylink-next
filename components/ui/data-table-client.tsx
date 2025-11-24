@@ -44,6 +44,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   LucideIcon,
+  Loader2,
   Plus,
   Search,
 } from 'lucide-react';
@@ -59,6 +60,7 @@ import { InputIcon } from './input-icon';
 import { Separator } from './separator';
 import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebounce } from '@/hooks/use-debounce';
 import Image from 'next/image';
 import {
   Drawer,
@@ -171,6 +173,22 @@ export function DataTableClient<TData, TValue>({
     return loadFromStorage('globalFilter', defaultGlobalFilter);
   });
 
+  // Search loading state
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    if (isMobile) return defaultGlobalFilter;
+    return loadFromStorage('globalFilter', defaultGlobalFilter);
+  });
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const isSearching = searchQuery !== debouncedSearchQuery;
+
+  // Filter loading state
+  const [activeColumnFilters, setActiveColumnFilters] =
+    useState<ColumnFiltersState>(() => {
+      if (isMobile) return defaultColumnFilters;
+      return loadFromStorage('columnFilters', defaultColumnFilters);
+    });
+  const debouncedColumnFilters = useDebounce(activeColumnFilters, 300);
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     () => {
       if (isMobile) return defaultColumnVisibility;
@@ -193,6 +211,16 @@ export function DataTableClient<TData, TValue>({
       setTempColumnFilters(columnFilters);
     }
   }, [drawerOpen, columnFilters]);
+
+  // Update globalFilter when debounced search query changes
+  useEffect(() => {
+    setGlobalFilter(debouncedSearchQuery);
+  }, [debouncedSearchQuery]);
+
+  // Update columnFilters when debounced filters change
+  useEffect(() => {
+    setColumnFilters(debouncedColumnFilters);
+  }, [debouncedColumnFilters]);
 
   // Clear localStorage when switching to mobile or reset everything for mobile
   useEffect(() => {
@@ -218,7 +246,9 @@ export function DataTableClient<TData, TValue>({
       setPagination(defaultPagination);
       setSorting(defaultSorting);
       setColumnFilters(defaultColumnFilters);
+      setActiveColumnFilters(defaultColumnFilters);
       setGlobalFilter(defaultGlobalFilter);
+      setSearchQuery(defaultGlobalFilter);
       setColumnVisibility(defaultColumnVisibility);
       setPaginationSize(defaultPaginationSize);
     }
@@ -385,9 +415,14 @@ export function DataTableClient<TData, TValue>({
             <InputIcon
               placeholder={searchPlaceHolder}
               type="search"
-              value={table.getState().globalFilter ?? ''}
-              onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(String(e.target.value))}
               startIcon={<Search size={18} />}
+              endIcon={
+                isSearching ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : null
+              }
               className="h-8 w-full md:w-[350px] lg:w-[450px] bg-white"
             />
           </div>
