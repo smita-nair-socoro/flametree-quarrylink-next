@@ -2,21 +2,16 @@
 
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { TableBadges, SimplePdfBadge } from '@/components/table-badges';
-import { Download, ChevronDown } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { TableBadges } from '@/components/table-badges';
+import { Download } from 'lucide-react';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 export interface QuoteNavbarProps {
   quoteNumber: string;
   dateIssued: string;
   validUntil: string;
   accountManager: string;
-  status: 'PENDING' | 'APPROVED' | 'DECLINED' | 'DRAFT';
+  status: QuoteStatus;
   onDownloadPDF?: () => void;
   onDownloadPDFReactPdf?: () => void;
 }

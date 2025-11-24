@@ -2,9 +2,10 @@
 
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
+import { QUOTE_TYPE } from '@/lib/types/quotation-enums'; 
 
 export interface ProjectDetailsProps {
-  type: 'DELIVERY' | 'COLLECTION';
+  type: QUOTE_TYPE;
   projectName: string;
   deliveryAddress: string;
   deliveryDate: string;

@@ -1,8 +1,7 @@
 'use client';
 
 import { CircleCheck, CircleX } from 'lucide-react';
-
-export type QuoteStatus = 'approved' | 'declined' | null;
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface QuoteStatusBannerProps {
   status: QuoteStatus;
@@ -13,11 +12,13 @@ export function QuoteStatusBanner({
   status,
   accountManagerName,
 }: QuoteStatusBannerProps) {
-  if (!status) return null;
 
-  const isApproved = status === 'approved';
+  if (![QuoteStatus.APPROVED, QuoteStatus.DECLINED].includes(status)) return null;
+
+  const isApproved = status === QuoteStatus.APPROVED;
 
   return (
+    
     <div className="px-8 py-4 mt-4">
       <div
         className={`rounded-lg border-2 p-4 ${

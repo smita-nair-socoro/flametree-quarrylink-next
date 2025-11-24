@@ -1,3 +1,5 @@
+import { QUOTE_STATUS as QuoteStatus, QUOTE_TYPE as QuoteType } from "@/lib/types/quotation-enums";
+
 export const mockQuotationData = {
   // Navbar data
   navbar: {
@@ -5,7 +7,7 @@ export const mockQuotationData = {
     dateIssued: '15th July, 2026',
     validUntil: '15th August, 2026',
     accountManager: 'Sarah Wilson',
-    status: 'PENDING' as const,
+    status: QuoteStatus.PENDING,
   },
 
   // Customer information
@@ -22,7 +24,7 @@ export const mockQuotationData = {
 
   // Project details
   project: {
-    type: 'DELIVERY' as const,
+    type: QuoteType.DELIVERY,
     projectName: 'Westfield Shopping Centre Extension',
     deliveryAddress: '543 Construction Access Road, Parramatta NSW 2150',
     deliveryDate: '23rd August, 2026',

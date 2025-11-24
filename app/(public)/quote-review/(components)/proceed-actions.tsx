@@ -3,11 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CircleCheck, CircleX } from 'lucide-react';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 export interface ProceedActionsProps {
   validUntil: string;
   accountManager: string;
-  status?: 'pending' | 'approved' | 'declined';
+  status?: QuoteStatus;
   onApprove: () => void;
   onDecline: () => void;
 }
@@ -15,11 +16,12 @@ export interface ProceedActionsProps {
 export function ProceedActions({
   validUntil,
   accountManager,
+  status = QuoteStatus.PENDING,
   onApprove,
   onDecline,
 }: ProceedActionsProps) {
   // Render approved state
-  if (status === 'approved') {
+  if (status === QuoteStatus.APPROVED) {
     return (
       <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
         <div className="max-w-2xl mx-auto text-center">
@@ -54,7 +56,7 @@ export function ProceedActions({
   }
 
   // Render declined state
-  if (status === 'declined') {
+  if (status === QuoteStatus.DECLINED) {
     return (
       <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
         <div className="max-w-2xl mx-auto text-center">
