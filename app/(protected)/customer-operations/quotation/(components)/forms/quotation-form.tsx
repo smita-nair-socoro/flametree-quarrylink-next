@@ -48,7 +48,6 @@ interface FormProps {
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
-  submitButtonText?: string;
 }
 
 export default function QuotationForm({
