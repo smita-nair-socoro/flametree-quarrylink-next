@@ -732,7 +732,7 @@ export function useQuotationActions(
       }}
       hideTrigger
     >
-      <QuotationForm canEdit={false} isDuplicate={true} />
+      <QuotationForm canEdit={true} isDuplicate={true} />
     </FormDialog>
   ) : null;
 
