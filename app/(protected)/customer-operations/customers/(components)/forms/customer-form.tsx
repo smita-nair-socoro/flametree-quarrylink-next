@@ -28,6 +28,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { delay } from '@/lib/utils/time';
 
 interface FormProps {
   id?: number;
@@ -279,7 +280,7 @@ export default function CustomerForm({
       console.log('Customer Data:', customerData);
 
       // Simulate API call delay (remove this in production)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await delay(2000);
 
       // Show success toast
       notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added');

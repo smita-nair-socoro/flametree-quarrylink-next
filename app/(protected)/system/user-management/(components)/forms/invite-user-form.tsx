@@ -25,6 +25,7 @@ import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
 import { AlertTriangle, UserPlus } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { delay } from '@/lib/utils/time';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -64,7 +65,7 @@ export default function InviteUserForm({
       setIsSubmitting(true);
 
       // Simulate API call delay (remove this in production)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await delay(2000);
 
       // Show success toast
       notifySuccess('User Invited', {
