@@ -882,7 +882,7 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting || (!canEdit && !isDuplicate)}
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isDuplicate
                     ? 'Create Duplicate'
@@ -899,7 +899,7 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
-                  disabled={isSubmitting || (!canEdit && !isDuplicate)}
+                  disabled={isSubmitting || !canEdit}
                 >
                   {isDuplicate
                     ? 'Create Duplicate'
