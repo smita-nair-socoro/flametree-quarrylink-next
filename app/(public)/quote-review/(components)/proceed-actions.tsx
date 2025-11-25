@@ -2,10 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { CircleCheck, CircleX } from 'lucide-react';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 export interface ProceedActionsProps {
   validUntil: string;
   accountManager: string;
+  status?: QuoteStatus;
   onApprove: () => void;
   onDecline: () => void;
 }
@@ -13,9 +16,81 @@ export interface ProceedActionsProps {
 export function ProceedActions({
   validUntil,
   accountManager,
+  status = QuoteStatus.PENDING,
   onApprove,
   onDecline,
 }: ProceedActionsProps) {
+  // Render approved state
+  if (status === QuoteStatus.APPROVED) {
+    return (
+      <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Green Check Icon */}
+          <div className="flex justify-center mb-2">
+            <div className="w-16 h-16 rounded-full bg-[#DCFCE7] flex items-center justify-center">
+              <CircleCheck className="w-10 h-10 text-[#00A63E]" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-[28px] font-bold text-[#0A0A0A] mb-4">
+            Quote Approved
+          </h2>
+
+          {/* Info Box */}
+          <p className="text-base text-center text-[#737373] font-[Geist] mb-4 max-w-[620px] mx-auto">
+            This quote has been approved and is now being processed. Your
+            account manager will contact you with the next steps.
+          </p>
+
+          {/* Contact Text */}
+          <p className="text-sm text-[#737373] font-[Geist]">
+            Need to discuss this quote? Contact your account manager{' '}
+            <span className="font-semibold text-[#8E51FF]">
+              {accountManager}
+            </span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render declined state
+  if (status === QuoteStatus.DECLINED) {
+    return (
+      <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Red X Icon */}
+          <div className="flex justify-center mb-2">
+            <div className="w-16 h-16 rounded-full bg-[#FFE2E2] flex items-center justify-center">
+              <CircleX className="w-10 h-10 text-[#E7000B]" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-[28px] font-bold text-[#0A0A0A] mb-4">
+            Quote Declined
+          </h2>
+
+          {/* Description */}
+          <p className="text-base text-[#737373] mb-4 max-w-[620px] mx-auto font-[Geist]">
+            This quote has been declined. Your account manager will be in touch
+            to discuss alternative options.
+          </p>
+
+          {/* Contact Text */}
+          <p className="text-sm text-[#737373]">
+            Need to discuss this quote? Contact your account manager{' '}
+            <span className="font-semibold text-[#8E51FF]">
+              {accountManager}
+            </span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render default pending state
   return (
     <div className="bg-[rgba(245,245,245,0.5)] px-8 py-12">
       {/* Heading Section */}
