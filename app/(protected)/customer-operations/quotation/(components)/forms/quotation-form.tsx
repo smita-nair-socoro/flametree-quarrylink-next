@@ -47,6 +47,7 @@ interface FormProps {
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
+  submitButtonText?: string;
 }
 
 export default function QuotationForm({
@@ -390,7 +391,7 @@ export default function QuotationForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding Quote...
+              {isDuplicate ? 'Creating Duplicate Quote...' : 'Adding Quote...'}
             </p>
           </div>
         </div>
@@ -891,9 +892,13 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting || !canEdit}
+                  disabled={isSubmitting || (!canEdit && !isDuplicate)}
                 >
-                  {isEditing ? 'Save Changes' : 'Add Quote'}
+                  {isDuplicate
+                    ? 'Create Duplicate'
+                    : isEditing
+                    ? 'Save Changes'
+                    : 'Add Quote'}
                 </Button>
               </div>
             )}
@@ -904,9 +909,13 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
-                  disabled={isSubmitting || !canEdit}
+                  disabled={isSubmitting || (!canEdit && !isDuplicate)}
                 >
-                  {isEditing ? 'Save Changes' : 'Add Quote'}
+                  {isDuplicate
+                    ? 'Create Duplicate'
+                    : isEditing
+                    ? 'Save Changes'
+                    : 'Add Quote'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}

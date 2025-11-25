@@ -713,7 +713,14 @@ export function useQuotationActions(
   const duplicateDialog = duplicateOpen ? (
     <FormDialog
       id={quotationId}
-      dialogTitle={`Duplicating Quote ${resolvedQuotation?.quote_number || ''}`}
+      customTitle={
+        <span>
+          Duplicating Quote{' '}
+          <span className="text-purple-600">
+            {resolvedQuotation?.quote_number || ''}
+          </span>
+        </span>
+      }
       open={duplicateOpen}
       onOpenChangeAction={(open) => {
         setDuplicateOpen(open);
@@ -724,9 +731,6 @@ export function useQuotationActions(
         }
       }}
       hideTrigger
-      headerInfo={{
-        useSelectedQuotation: true,
-      }}
     >
       <QuotationForm canEdit={false} isDuplicate={true} />
     </FormDialog>
