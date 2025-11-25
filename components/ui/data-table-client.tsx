@@ -623,44 +623,53 @@ export function DataTableClient<TData, TValue>({
                 </Drawer>
 
                 {/* Show/Hide Columns in compact mode */}
-                {isShowHideColumns && !shouldHideControl && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        ref={showHideButtonRef}
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                      >
-                        Show/Hide Columns
-                        <ChevronDown size={16} className="ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      {table
-                        .getAllColumns()
-                        .filter((col) => col.getCanHide())
-                        .map((col) => {
-                          const displayName =
-                            (col.columnDef.meta as string) ||
-                            col.id
-                              .replace(/_/g, ' ')
-                              .replace(/\b\w/g, (char) => char.toUpperCase());
+                {isShowHideColumns && (
+                  <div
+                    className={cn(
+                      'transition-opacity duration-200',
+                      shouldHideControl
+                        ? 'opacity-0 pointer-events-none absolute'
+                        : 'opacity-100'
+                    )}
+                  >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          ref={showHideButtonRef}
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                        >
+                          Show/Hide Columns
+                          <ChevronDown size={16} className="ml-1" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        {table
+                          .getAllColumns()
+                          .filter((col) => col.getCanHide())
+                          .map((col) => {
+                            const displayName =
+                              (col.columnDef.meta as string) ||
+                              col.id
+                                .replace(/_/g, ' ')
+                                .replace(/\b\w/g, (char) => char.toUpperCase());
 
-                          return (
-                            <DropdownMenuCheckboxItem
-                              key={col.id}
-                              checked={col.getIsVisible()}
-                              onCheckedChange={(val) =>
-                                col.toggleVisibility(!!val)
-                              }
-                            >
-                              {displayName}
-                            </DropdownMenuCheckboxItem>
-                          );
-                        })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            return (
+                              <DropdownMenuCheckboxItem
+                                key={col.id}
+                                checked={col.getIsVisible()}
+                                onCheckedChange={(val) =>
+                                  col.toggleVisibility(!!val)
+                                }
+                              >
+                                {displayName}
+                              </DropdownMenuCheckboxItem>
+                            );
+                          })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 )}
               </div>
             )}
@@ -694,8 +703,15 @@ export function DataTableClient<TData, TValue>({
                 </div>
 
                 {/* Show/Hide Columns - Pushed to the right */}
-                {isShowHideColumns && !shouldShowMobileFilters && (
-                  <div className="ml-auto flex-shrink-0">
+                {isShowHideColumns && (
+                  <div
+                    className={cn(
+                      'ml-auto flex-shrink-0 transition-opacity duration-200',
+                      shouldShowMobileFilters
+                        ? 'opacity-0 pointer-events-none absolute'
+                        : 'opacity-100'
+                    )}
+                  >
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button

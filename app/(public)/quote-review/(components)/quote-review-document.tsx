@@ -12,6 +12,8 @@ import { ActionDialog } from '@/components/action-dialog';
 import { CircleX, CircleCheckBig } from 'lucide-react';
 import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
+import { QuoteStatusBanner } from './quote-status-banner';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -24,6 +26,7 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.PENDING);
 
   /**
    * CURRENT STATE: Using hardcoded mock data for all quotes
@@ -31,38 +34,11 @@ export default function QuoteReviewDocument({
    *
    * FUTURE BACKEND INTEGRATION:
    * When backend API is ready, replace mock data with actual API call:
-   *
-   * const [quotationData, setQuotationData] = useState(null);
-   * const [isLoading, setIsLoading] = useState(true);
-   *
-   * useEffect(() => {
-   *   async function fetchQuoteData() {
-   *     try {
-   *       const response = await fetch(
-   *         `${process.env.NEXT_PUBLIC_API_URL}/quotes/${quoteId}`,
-   *         {
-   *           headers: {
-   *             'Content-Type': 'application/json',
-   *             ...(payloadParam && { 'X-Payload': payloadParam }),
-   *           },
-   *         }
-   *       );
-   *       const data = await response.json();
-   *       setQuotationData(data);
-   *     } catch (error) {
-   *       console.error('Failed to fetch quote:', error);
-   *       // Handle error (show error UI, redirect, etc.)
-   *     } finally {
-   *       setIsLoading(false);
-   *     }
-   *   }
-   *   fetchQuoteData();
-   * }, [quoteId, payloadParam]);
-   *
-   * if (isLoading) return <LoadingSpinner />;
-   * if (!quotationData) return <ErrorMessage />;
    */
   const quotationData = mockQuotationData;
+
+  // State for navbar status (will be updated when user approves/declines)
+  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(quotationData.navbar.status);
 
   const handleDownloadPDF = () => {
     console.log('Download PDF clicked for quote:', quoteId);
@@ -71,78 +47,16 @@ export default function QuoteReviewDocument({
 
   const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);
-
-    /**
-     * TODO: Implement backend API call when ready
-     *
-     * Example implementation:
-     * try {
-     *   const response = await fetch(
-     *     `${process.env.NEXT_PUBLIC_API_URL}/quotes/${quoteId}/approve`,
-     *     {
-     *       method: 'POST',
-     *       headers: {
-     *         'Content-Type': 'application/json',
-     *         ...(payloadParam && { 'X-Payload': payloadParam }),
-     *       },
-     *       body: JSON.stringify({
-     *         timestamp: new Date().toISOString(),
-     *       }),
-     *     }
-     *   );
-     *
-     *   if (!response.ok) throw new Error('Failed to approve quote');
-     *
-     *   const result = await response.json();
-     *   console.log('Quote approved:', result);
-     *
-     *   // Show success message and/or redirect
-     *   // router.push('/quote-approved');
-     * } catch (error) {
-     *   console.error('Error approving quote:', error);
-     *   // Show error message to user
-     * }
-     */
+    setQuoteStatus(QuoteStatus.APPROVED);
+    setNavbarStatus(QuoteStatus.APPROVED);
 
     setApproveDialogOpen(false);
   };
 
   const handleDecline = async () => {
     console.log('Decline quotation:', quoteId);
-
-    /**
-     * TODO: Implement backend API call when ready
-     *
-     * Example implementation:
-     * try {
-     *   const response = await fetch(
-     *     `${process.env.NEXT_PUBLIC_API_URL}/quotes/${quoteId}/decline`,
-     *     {
-     *       method: 'POST',
-     *       headers: {
-     *         'Content-Type': 'application/json',
-     *         ...(payloadParam && { 'X-Payload': payloadParam }),
-     *       },
-     *       body: JSON.stringify({
-     *         timestamp: new Date().toISOString(),
-     *         // reason: declineReason, // Optional: add reason field
-     *       }),
-     *     }
-     *   );
-     *
-     *   if (!response.ok) throw new Error('Failed to decline quote');
-     *
-     *   const result = await response.json();
-     *   console.log('Quote declined:', result);
-     *
-     *   // Show success message and/or redirect
-     *   // router.push('/quote-declined');
-     * } catch (error) {
-     *   console.error('Error declining quote:', error);
-     *   // Show error message to user
-     * }
-     */
-
+    setQuoteStatus(QuoteStatus.DECLINED);
+    setNavbarStatus(QuoteStatus.DECLINED);
     setDeclineDialogOpen(false);
   };
 
@@ -167,9 +81,7 @@ export default function QuoteReviewDocument({
               <CircleCheckBig className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-base font-medium">
-                {project.projectName}
-              </p>
+              <p className="text-base font-medium">{project.projectName}</p>
               <div className="text-base text-[#6A7282] flex flex-wrap items-center gap-2">
                 <span>{navbar.quoteNumber}</span>
                 <span>•</span>
@@ -248,9 +160,7 @@ export default function QuoteReviewDocument({
               <CircleX className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-base font-medium">
-                {project.projectName}
-              </p>
+              <p className="text-base font-medium">{project.projectName}</p>
               <div className="text-base text-[#6A7282] flex flex-wrap items-center gap-2">
                 <span>{navbar.quoteNumber}</span>
                 <span>•</span>
@@ -331,7 +241,14 @@ export default function QuoteReviewDocument({
           {/* Navbar */}
           <QuoteNavbar
             {...quotationData.navbar}
+            status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
+          />
+
+          {/* Status Banner */}
+          <QuoteStatusBanner
+            status={quoteStatus}
+            accountManagerName={quotationData.navbar.accountManager}
           />
 
           {/* Customer Information */}
@@ -350,6 +267,7 @@ export default function QuoteReviewDocument({
           {/* Proceed Actions */}
           <ProceedActions
             {...quotationData.proceedActions}
+            status={quoteStatus || QuoteStatus.PENDING}
             onApprove={() => setApproveDialogOpen(true)}
             onDecline={() => setDeclineDialogOpen(true)}
           />
