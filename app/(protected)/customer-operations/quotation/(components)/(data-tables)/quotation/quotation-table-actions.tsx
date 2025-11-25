@@ -31,10 +31,8 @@ export function QuotationTableActions({
   quotation,
 }: QuotationTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    quotation.id,
-    quotation
-  );
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } =
+    useQuotationActions(quotation.id, quotation);
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
@@ -55,7 +53,9 @@ export function QuotationTableActions({
   );
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
-  const handleDuplicate = createHandler(actions.duplicate);
+  const handleDuplicate = createHandler(actions.duplicate, () =>
+    setSelectedQuotation(quotation)
+  );
   const handleExtendExpiry = createHandler(actions.extendExpiry);
   const handlePrint = createHandler(actions.print);
 
@@ -63,6 +63,7 @@ export function QuotationTableActions({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
