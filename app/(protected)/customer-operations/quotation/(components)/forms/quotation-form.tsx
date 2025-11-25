@@ -340,6 +340,12 @@ export default function QuotationForm({
       : 0,
   });
 
+  // Calculate GST and Total Invoice(Inc GST)
+  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
+  const totalInvoiceIncGST = (
+    Number(pricingBreakdown.totalInvoice) + Number(gst)
+  ).toFixed(2);
+
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {
     return (
@@ -731,11 +737,12 @@ export default function QuotationForm({
                       columns={quotationLineItemColumns}
                       data={convertedQuotationLineItem ?? []}
                       simpleTable={true}
+                      useColumnSizing={true}
                     />
                   </div>
 
                   <div className="flex flex-col gap-0">
-                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5] [&>div]:border-b [&>div]:border-dashed [&>div]:border-purple-300 [&>div:nth-child(1)]:border-b-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(5)]:border-b-0">
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-normal">
                           Product Cost (Total):
@@ -769,11 +776,23 @@ export default function QuotationForm({
                         </span>
                       </div>
                       <div className="flex justify-between py-3">
-                        <span className="text-sm font-semibold">
-                          Total Invoice:
+                        <span className="text-sm font-normal">
+                          Subtotal (Ex GST):
                         </span>
                         <span className="text-sm font-normal">
                           ${pricingBreakdown.totalInvoice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-normal">GST (10%):</span>
+                        <span className="text-sm font-normal">${gst}</span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-semibold">
+                          Total Invoice (Inc GST):
+                        </span>
+                        <span className="text-sm font-semibold">
+                          ${totalInvoiceIncGST}
                         </span>
                       </div>
                     </div>
@@ -781,7 +800,7 @@ export default function QuotationForm({
                       <span className="text-sm font-semibold">
                         Gross Profit:
                       </span>
-                      <span className="text-sm font-normal">
+                      <span className="text-sm font-semibold">
                         ${pricingBreakdown.grossProfit} (
                         {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
                       </span>

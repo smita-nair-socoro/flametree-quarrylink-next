@@ -24,13 +24,13 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     },
     cell: (info) => info.getValue(),
     meta: 'quarry_name',
-    size: 200,
+    size: 150,
   },
   {
     id: 'total_product_cost_price',
     accessorFn: (row) => row.total_product_cost_price,
     header: () => {
-      return <div>Total Cost</div>;
+      return <div>Total Cost (ex-GST)</div>;
     },
     cell: ({ row }) => {
       const total_product_cost_price = row.original.total_product_cost_price
@@ -39,13 +39,13 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>${total_product_cost_price}</div>;
     },
     meta: 'Total Product Cost Price',
-    size: 120,
+    size: 180,
   },
   {
     id: 'total_product_sell_price',
     accessorFn: (row) => row.total_product_sell_price,
     header: () => {
-      return <div>Total Sell</div>;
+      return <div>Total Sell (ex-GST)</div>;
     },
     cell: ({ row }) => {
       const total_product_sell_price = row.original.total_product_sell_price
@@ -54,7 +54,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>${total_product_sell_price}</div>;
     },
     meta: 'Total Product Sell Price',
-    size: 120,
+    size: 180,
   },
   {
     id: 'product_sell_qty',
@@ -72,7 +72,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       );
     },
     meta: 'Product Sell QTY',
-    size: 120,
+    size: 100,
   },
   {
     id: 'truck_type',
@@ -98,7 +98,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>{gross_profit}%</div>;
     },
     meta: 'Gross Profit',
-    size: 80,
+    size: 60,
   },
   {
     id: 'actions',

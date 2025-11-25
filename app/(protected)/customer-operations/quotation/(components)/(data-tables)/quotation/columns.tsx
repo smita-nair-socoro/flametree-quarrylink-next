@@ -68,7 +68,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     id: 'total_sell_price',
     accessorFn: (row) => row.total_sell_price,
     header: ({}) => {
-      return <div>Total Sell Price (Ex-GST)</div>;
+      return <div>Total Sell Price (ex-GST)</div>;
     },
     cell: ({ row }) => {
       const total_sell_price = row.original.total_sell_price

@@ -292,6 +292,12 @@ export default function QuoteLineItemForm({
     quotationLineItemForm,
   ]);
 
+  // Calculate GST and Total Invoice(Inc GST)
+  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
+  const totalInvoiceIncGST = (
+    Number(pricingBreakdown.totalInvoice) + Number(gst)
+  ).toFixed(2);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -710,7 +716,7 @@ export default function QuoteLineItemForm({
                 </span>
                 <Separator />
               </div>
-              <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+              <div className="bg-gray-50 border-t px-2 border-[#E5E5E5] [&>div]:border-b [&>div]:border-dashed [&>div]:border-purple-300 [&>div:nth-child(1)]:border-b-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(5)]:border-b-0">
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
                     Product Cost (Total)
@@ -744,15 +750,29 @@ export default function QuoteLineItemForm({
                   </span>
                 </div>
                 <div className="flex justify-between py-3">
-                  <span className="text-sm font-semibold">Total Invoice:</span>
+                  <span className="text-sm font-normal">
+                    Subtotal (Ex GST):
+                  </span>
                   <span className="text-sm font-normal">
                     ${pricingBreakdown.totalInvoice.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between py-3">
+                  <span className="text-sm font-normal">GST (10%):</span>
+                  <span className="text-sm font-normal">${gst}</span>
+                </div>
+                <div className="flex justify-between py-3">
+                  <span className="text-sm font-semibold">
+                    Total Invoice (Inc GST):
+                  </span>
+                  <span className="text-sm font-semibold">
+                    ${totalInvoiceIncGST}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between py-3 px-2 bg-slate-200">
                 <span className="text-sm font-semibold">Gross Profit:</span>
-                <span className="text-sm font-normal">
+                <span className="text-sm font-semibold">
                   ${pricingBreakdown.grossProfit.toFixed(2)} (
                   {pricingBreakdown.grossProfitPercentage.toFixed(2)}%)
                 </span>
