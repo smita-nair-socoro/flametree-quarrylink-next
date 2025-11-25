@@ -7,11 +7,12 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { Customer } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { customerColumns } from './(components)/(data-tables)/customer/columns';
-import { Plus } from 'lucide-react';
+import { Plus, Users, UserCheck, Activity, Briefcase } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
+import { Card, CardContent } from '@/components/ui/card';
 
 import {
   DataTableClient,
@@ -24,6 +25,46 @@ export default function CustomersPage() {
   );
   const [selectedCustomerForActions, setSelectedCustomerForActions] =
     React.useState<Customer | null>(null);
+
+  // Statistics cards data
+  const statsCards = [
+    {
+      title: 'Total Customers',
+      value: 248,
+      description: '+12 this month',
+      icon: Users,
+      iconBgColor: 'bg-[#DBEAFE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+    {
+      title: 'Active Customers',
+      value: 185,
+      description: '75% of total',
+      icon: UserCheck,
+      iconBgColor: 'bg-[#DCFCE7]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Total Business Customers',
+      value: 142,
+      description: '45% requested quotes',
+      icon: Activity,
+      iconBgColor: 'bg-[#F3E8FF]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Total Individual Customers',
+      value: 63,
+      description: '45% requested quotes',
+      icon: Briefcase,
+      iconBgColor: 'bg-[#FCE7F3]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+  ];
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
     selectedCustomerForActions?.id,
@@ -88,6 +129,39 @@ export default function CustomersPage() {
             <CustomerForm />
           </FormDialog>
         </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card key={card.title} className="overflow-hidden p-5">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
+                    {card.title}
+                  </span>
+                  <div
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
+                  >
+                    <Icon
+                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
+                    />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
+                  {card.value}
+                </div>
+                <div
+                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
+                >
+                  {card.description}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">

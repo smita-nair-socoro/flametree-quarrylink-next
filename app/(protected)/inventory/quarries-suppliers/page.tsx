@@ -7,9 +7,10 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJson from '@/lib/tests/quarryResponseData.json';
 import { Quarry } from '@/lib/types/quarry';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
-import { Plus } from 'lucide-react';
+import { Plus, DollarSign, Building, Mountain, Factory } from 'lucide-react';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
+import { Card, CardContent } from '@/components/ui/card';
 
 import {
   DataTableClient,
@@ -26,8 +27,50 @@ export default function QuarriesSuppliersPage() {
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
     (state) => state.setSelectedQuarrySupplier
   );
-  const [selectedQuarrySupplierForActions, setSelectedQuarrySupplierForActions] =
-    React.useState<Quarry | null>(null);
+  const [
+    selectedQuarrySupplierForActions,
+    setSelectedQuarrySupplierForActions,
+  ] = React.useState<Quarry | null>(null);
+
+  // Statistics cards data
+  const statsCards = [
+    {
+      title: 'Monthly Value - Suppliers',
+      value: '$645,890',
+      description: '+12% vs last month',
+      icon: DollarSign,
+      iconBgColor: 'bg-[#ECFCCA]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+    {
+      title: 'Top Supplier',
+      value: 'Summit Stone Co.',
+      description: '$198,750 this month',
+      icon: Building,
+      iconBgColor: 'bg-[#E0E7FF]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Monthly Value - Quarries',
+      value: '$397,680',
+      description: '-3.5% vs last month',
+      icon: Mountain,
+      iconBgColor: 'bg-[#F1F5F9]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#F54900]',
+    },
+    {
+      title: 'Top Quarry',
+      value: 'RedRock Quarry',
+      description: '$156,420 this month',
+      icon: Factory,
+      iconBgColor: 'bg-[#FFEDD4]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+  ];
 
   const { actions, viewDialog } = useQuarrySupplierActions(
     selectedQuarrySupplierForActions?.id,
@@ -65,7 +108,38 @@ export default function QuarriesSuppliersPage() {
           </FormDialog>
         </div>
       </div>
-
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card key={card.title} className="overflow-hidden p-5">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
+                    {card.title}
+                  </span>
+                  <div
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
+                  >
+                    <Icon
+                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
+                    />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
+                  {card.value}
+                </div>
+                <div
+                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
+                >
+                  {card.description}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="quarry_suppliers_table"
