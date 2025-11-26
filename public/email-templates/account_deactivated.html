@@ -38,7 +38,7 @@
     .card {
       background-color: #ffffff;
       border-radius: 0 0 8px 8px;
-      padding: 40px;
+      padding: 30px 40px 16px 40px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .header {
@@ -59,13 +59,42 @@
       padding: 15px;
       margin: 20px 0;
     }
-    .footer {
-      font-size: 14px;
-      color: #6b7280;
-      line-height: 1.5;
-      margin-top: 30px;
+    .card-footer {
+      margin-top: 20px;
       padding-top: 20px;
       border-top: 1px solid #e5e7eb;
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+    .card-footer p {
+      margin: 0 0 0;
+    }
+    .info-footer {
+      background-color: #3f4e5f;
+      padding: 20px 30px;
+      display: flex;
+      gap: 30px;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0;
+      border-radius: 0 0 8px 8px;
+    }
+    .footer-column {
+      flex: 1;
+      color: #ffffff;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    .footer-column h4 {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #ffffff;
+    }
+    .footer-column p {
+      margin: 3px 0;
+      color: #e5e7eb;
     }
   </style>
 </head>
@@ -93,8 +122,29 @@
         <p style="margin: 5px 0; color: #374151;">{superAdminEmail}</p>
       </div>
 
-      <div class="footer">
+      <div class="card-footer">
         <p>You're receiving this because your QuarryLink account has been deactivated.</p>
+      </div>
+    </div>
+
+    <div class="info-footer">
+      <div class="footer-column">
+        <h4>Contact Information</h4>
+        <p>QuarryLink Australia Pty Ltd</p>
+        <p>1300 QUARRY (1300 782 779)</p>
+        <p>quotes@quarrylink.com.au</p>
+      </div>
+      <div class="footer-column">
+        <h4>Office Address</h4>
+        <p>Level 8, 123 Business Street</p>
+        <p>Sydney NSW 2000</p>
+        <p>ABN: 12 345 678 901</p>
+      </div>
+      <div class="footer-column">
+        <h4>Website</h4>
+        <p>www.quarrylink.com.au</p>
+        <p>Customer Portal Available</p>
+        <p>24/7 Support</p>
       </div>
     </div>
   </div>
