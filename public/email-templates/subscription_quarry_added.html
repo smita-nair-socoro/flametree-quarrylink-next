@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Password Reset Request - QuarryLink Account</title>
+  <title>Your QuarryLink subscription has been updated</title>
   <style>
     body {
       margin: 0;
@@ -53,6 +53,21 @@
       color: #374151;
       margin-bottom: 20px;
     }
+    .subscription-details {
+      background-color: #f9fafb;
+      border-left: 4px solid #7c3aed;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .subscription-details p {
+      margin: 8px 0;
+      font-size: 15px;
+      color: #374151;
+    }
+    .subscription-details strong {
+      color: #111827;
+      font-weight: 600;
+    }
     .button-container {
       margin: 30px 0;
       text-align: center;
@@ -98,7 +113,7 @@
   </style>
 </head>
 <body>
-  <span style="display:none !important;visibility:hidden;mso-hide:all;font-size:1px;color:#f3f4f6;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">We received a password reset request for your QuarryLink account.</span>
+  <span style="display:none !important;visibility:hidden;mso-hide:all;font-size:1px;color:#f3f4f6;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">A new quarry has been added to your subscription - $250 increase</span>
 
   <div class="container">
     <div class="navbar">
@@ -106,28 +121,33 @@
       <div class="navbar-title">QuarryLink</div>
     </div>
     <div class="card">
-      <div class="header">Hi {userName},</div>
+      <div class="header">Hi {tenantMainContactName},</div>
 
       <div class="content">
-        <p>We received a request to reset your password for QuarryLink.</p>
+        <p>Your QuarryLink subscription has been updated.</p>
 
-        <p>Click the button below to reset your password:</p>
+        <p>{userName} has added a new quarry to your account, which has increased your monthly subscription by $250 ex-GST.</p>
+      </div>
+
+      <div class="subscription-details">
+        <p><strong>Quarry added:</strong> {quarryName}</p>
+        <p><strong>Your new monthly subscription total is:</strong> ${newTotal} ex-GST</p>
+      </div>
+
+      <div class="content">
+        <p>This change will be reflected in your next billing cycle. You can view your full subscription details anytime by visiting your account settings.</p>
       </div>
 
       <div class="button-container">
-        <a href="{resetPasswordUrl}" style="display:inline-block;padding:12px 24px;border-radius:6px;background-color:#7c3aed;color:#ffffff;font-weight:600;text-decoration:none;">Reset Password</a>
+        <a href="{subscriptionUrl}" style="display:inline-block;padding:12px 24px;border-radius:6px;background-color:#7c3aed;color:#ffffff;font-weight:600;text-decoration:none;">View Subscription Details</a>
       </div>
 
       <div class="content">
-        <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-
-        <p>For security reasons, this link will expire in 24 hours.</p>
-
-        <p>If you continue to have trouble accessing your account, please contact your account administrator or our support team.</p>
+        <p>If you have any questions about this change or your billing, please don't hesitate to reach out to our support team.</p>
       </div>
 
       <div class="card-footer">
-        <p>You're receiving this because a password reset was requested for your QuarryLink account.</p>
+        <p>You're receiving this as the main contact for your QuarryLink account.</p>
       </div>
     </div>
 
