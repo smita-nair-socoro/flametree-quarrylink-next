@@ -605,19 +605,14 @@ export function useProductActions(
       // TODO: implement available logic
     }),
 
-    archive: createDialogAction('archive', () => {
-      console.log('Archive product:', productId);
-      // TODO: implement archive logic
+    delete: createDialogAction('delete', () => {
+      console.log('Delete product:', productId);
+      // TODO: implement delete logic
     }),
 
-    cannotArchive: createDialogAction('cannotArchive', () => {
-      console.log('Cannot archive product:', productId);
-      // This will show the informational modal about why archiving is not possible
-    }),
-
-    unarchive: createDialogAction('unarchive', () => {
-      console.log('Unarchive product:', productId);
-      // TODO: implement unarchive logic
+    cannotDelete: createDialogAction('cannotDelete', () => {
+      console.log('Cannot delete product:', productId);
+      // This will show the informational modal about why deleting is not possible
     }),
 
     removeSupplier: createDialogAction('removeSupplier', () => {
@@ -653,27 +648,23 @@ export function useProductActions(
           switch (key) {
             case 'unavailable':
               console.log('Unavailable product:', productId, productData);
-              // TODO: implement archive logic
+              // TODO: implement unavailable logic
               break;
             case 'available':
               console.log('Available product:', productId, productData);
-              // TODO: implement unarchive logic
+              // TODO: implement available logic
               break;
-            case 'archive':
-              console.log('Archive product:', productId, productData);
-              // TODO: implement archive logic
+            case 'delete':
+              console.log('Delete product:', productId, productData);
+              // TODO: implement delete logic
               break;
-            case 'cannotArchive':
-              console.log('Cannot archive product:', productId, productData);
+            case 'cannotDelete':
+              console.log('Cannot delete product:', productId, productData);
               // This is informational only, no action needed
               break;
             case 'removeSupplier':
               console.log('Remove supplier:', productId, productData);
               // TODO: implement remove supplier logic
-              break;
-            case 'unarchive':
-              console.log('Unarchive product:', productId, productData);
-              // TODO: implement unarchive logic
               break;
           }
           setActiveDialog(null);

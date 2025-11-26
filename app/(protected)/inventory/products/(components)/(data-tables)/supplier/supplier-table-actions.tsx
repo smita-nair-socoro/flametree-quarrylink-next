@@ -11,16 +11,31 @@ import {
 import { useSupplierActions } from '@/hooks/use-supplier-actions';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { useSupplierStore } from '@/app/stores/supplier-store';
+import { Separator } from '@/components/ui/separator';
 
 interface SupplierTableActionProps {
   quarry: QuarrySupplierProduct;
+  productId?: number;
 }
 
-export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
+export function SupplierTableActions({
+  quarry,
+  productId,
+}: SupplierTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+  // Add productId to quarry data for the actions
+  const quarryWithProductId = React.useMemo(
+    () => ({
+      ...quarry,
+      product_id: productId || quarry.product_id,
+    }),
+    [quarry, productId]
+  );
+
   const { actions, confirmDialogs, viewDialog } = useSupplierActions(
     quarry.quarry_supplier_id,
-    quarry
+    quarryWithProductId
   );
 
   const setSelectedSupplier = useSupplierStore(
@@ -28,15 +43,15 @@ export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
   );
 
   const handleView = () => {
-    setSelectedSupplier(quarry);
+    setSelectedSupplier(quarryWithProductId);
     setDropdownOpen(false); // Close dropdown before opening modal
     actions.view();
   };
 
-  const handleRemoveSupplier = () => {
-    setSelectedSupplier(quarry);
+  const handleDeleteSupplier = () => {
+    setSelectedSupplier(quarryWithProductId);
     setDropdownOpen(false); // Close dropdown before opening modal
-    actions.remove();
+    actions.delete();
   };
 
   return (
@@ -54,9 +69,10 @@ export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleRemoveSupplier}>
+          <Separator />
+          <DropdownMenuItem onClick={handleDeleteSupplier}>
             <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-            Remove
+            <span className="text-destructive">Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

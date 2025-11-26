@@ -1,7 +1,10 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
-import { ProductDetails } from '../types/product';
+import { Product, ProductDetails } from '../types/product';
 import { Customer } from '../types/customer';
+import { QuotationDTO } from '../types/quotation';
+import { Material } from '../types/material';
+import { Quarry, QuarrySupplierProduct } from '../types/quarry';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -344,13 +347,70 @@ export const APIClient = {
       ),
     getByIdWithQuarrySupplierProduct: (productId: number) =>
       appClient.Get<ProductDetails>(
-        `/socoro/quarrylink/api/product/${productId}/quarry-supplier-product`
+        `/socoro/quarrylink/api/product/${productId}/quarry-supplier`
       ),
+    createProduct: (data: Partial<Product>) =>
+      appClient.Post<Product>('/socoro/quarrylink/api/product', {
+        body: data,
+      }),
+    updateProduct: (id: number, data: Partial<Product>) =>
+      appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
+        body: data,
+      }),
+  },
+
+  materials: {
+    getAll: () => appClient.Get<Material[]>(`/socoro/quarrylink/api/materials`),
+  },
+
+  quarrySupplierProducts: {
+    getById: (quarrySupplierId: number, productId: number) =>
+      appClient.Get<QuarrySupplierProduct>(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`
+      ),
+    create: (data: Partial<QuarrySupplierProduct>) =>
+      appClient.Post<QuarrySupplierProduct>(
+        '/socoro/quarrylink/api/quarry-products',
+        {
+          body: data,
+        }
+      ),
+    update: (
+      quarrySupplierId: number,
+      productId: number,
+      data: Partial<QuarrySupplierProduct>
+    ) =>
+      appClient.Put<QuarrySupplierProduct>(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`,
+        {
+          body: data,
+        }
+      ),
+  },
+
+  quarries: {
+    getAll: () => appClient.Get<Quarry[]>(`/socoro/quarrylink/api/quarries`),
   },
 
   customers: {
     getAll: () => appClient.Get<Customer[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
       appClient.Get<Customer>(`/socoro/quarrylink/api/customer/${customerId}`),
+  },
+
+  quotations: {
+    getAll: () =>
+      appClient.Get<
+        | QuotationDTO[]
+        | {
+            content: QuotationDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/quote`),
+    getById: (quotationId: number) =>
+      appClient.Get<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${quotationId}`
+      ),
   },
 };

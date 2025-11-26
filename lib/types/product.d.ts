@@ -8,6 +8,7 @@ export interface Product {
   product_name: string;
   product_code: string;
   material: MaterialType;
+  material_id: number;
   density_tonnage_per_m3: number;
   product_description: string;
   base_unit: BASE_UNIT;

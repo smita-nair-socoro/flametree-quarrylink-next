@@ -22,16 +22,14 @@ export interface Client {
   invoices: BillingHistory;
   stripe_profile: string;
   total_users: number;
-  total_drivers: number;
-  total_trucks: number;
   total_quarries: number;
-  user: User;
+  user?: User[];
   isDeleted: boolean;
   last_login_at: string;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  last_modified_by: string;
 }
 
 export interface BillingHistory {

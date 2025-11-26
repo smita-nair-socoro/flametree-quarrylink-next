@@ -7,22 +7,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Quotation } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
-import rawJson from '@/lib/tests/quotationWithLineItemsResonseData.json';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-
-const convertedJson = convertKeysToSnakeCase(rawJson);
-const { items: rawItems } = convertedJson as unknown as {
-  items: Array<
-    Omit<Quotation, 'quoteId'> & {
-      quoteId: number;
-    }
-  >;
-};
-
-const items: Quotation[] = rawItems.map((item) => ({
-  ...item,
-  quoteId: item.id,
-}));
 
 export const quotationColumns: ColumnDef<Quotation>[] = [
   {
@@ -51,7 +35,8 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     },
     cell: ({ row }) => {
       const quote_type = row.original.quote_type;
-      return <TableBadges names={quote_type} visibleCount={1} />;
+      if (!quote_type) return <span className="text-muted-foreground">-</span>;
+      return <TableBadges names={[quote_type]} visibleCount={1} />;
     },
     meta: 'Quote Type',
   },
@@ -112,6 +97,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     },
     cell: ({ row }) => {
       const status = row.original.status;
+      if (!status) return <span className="text-muted-foreground">-</span>;
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />
@@ -126,11 +112,10 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
       return <div></div>;
     },
     cell: ({ row }) => {
-      const quotationId = row.original.id;
-      const quotation = items.find((item) => item.id === quotationId);
+      const quotation = row.original;
       return (
         <div>
-          <QuotationTableActions quotation={quotation as Quotation} />
+          <QuotationTableActions quotation={quotation} />
         </div>
       );
     },

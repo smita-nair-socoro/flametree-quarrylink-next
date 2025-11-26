@@ -21,7 +21,6 @@ import {
   GitPullRequestCreateArrow,
   Timer,
   Archive,
-  ArchiveRestore,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
@@ -162,15 +161,6 @@ export function QuotationActionButtons({
                 >
                   <Archive className="h-4 w-4 mr-2 text-destructive" />
                   Archive
-                </DropdownMenuItem>
-              )}
-              {quotation.status === 'ARCHIVED' && (
-                <DropdownMenuItem
-                  onClick={actions.unarchive}
-                  className="text-blue-600"
-                >
-                  <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                  Unarchive
                 </DropdownMenuItem>
               )}
             </>
@@ -329,15 +319,6 @@ export function QuotationActionButtons({
                 >
                   <Archive className="h-4 w-4 mr-2 text-destructive" />
                   Archive
-                </DropdownMenuItem>
-              )}
-              {quotation.status === 'ARCHIVED' && (
-                <DropdownMenuItem
-                  onClick={actions.unarchive}
-                  className="text-blue-600 focus:text-blue-600"
-                >
-                  <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                  Unarchive
                 </DropdownMenuItem>
               )}
             </div>

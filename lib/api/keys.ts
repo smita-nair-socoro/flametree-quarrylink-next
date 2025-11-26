@@ -14,3 +14,31 @@ export const CustomerKeys = {
   list: () => [...CustomerKeys.all, 'list'] as const,
   detail: (id: number) => [...CustomerKeys.all, 'detail', id] as const,
 };
+
+export const QuotationKeys = {
+  all: ['quotations'] as const,
+  list: () => [...QuotationKeys.all, 'list'] as const,
+  detail: (id: number) => [...QuotationKeys.all, 'detail', id] as const,
+};
+
+export const MaterialsKeys = {
+  all: ['materials'] as const,
+  list: () => [...MaterialsKeys.all, 'list'] as const,
+  detail: (id: number) => [...MaterialsKeys.all, 'detail', id] as const,
+};
+
+export const QuarrySupplierProductKeys = {
+  all: ['quarry-supplier-products'] as const,
+  detail: (quarrySupplierId: number, productId: number) =>
+    [
+      ...QuarrySupplierProductKeys.all,
+      'detail',
+      quarrySupplierId,
+      productId,
+    ] as const,
+};
+
+export const QuarryKeys = {
+  all: ['quarries'] as const,
+  list: () => [...QuarryKeys.all, 'list'] as const,
+};

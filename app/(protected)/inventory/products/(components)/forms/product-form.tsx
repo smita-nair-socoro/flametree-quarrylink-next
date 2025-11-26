@@ -26,7 +26,10 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { ChartColumn } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import {
+  convertKeysToSnakeCase,
+  convertKeysToCamelCase,
+} from '@/lib/utils/case-conversion';
 import { ActionDialog } from '@/components/action-dialog';
 import { tnPricingColumn } from '../(data-tables)/supplier-comparison/tn-pricing-column';
 import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing-column';
@@ -35,9 +38,11 @@ import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-p
 import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
 import { useQuery } from '@tanstack/react-query';
 import {
-  ProductDetailWithMaterialQueryOptions,
   ProductDetailWithQuarrySupplierProductQueryOptions,
+  useCreateProduct,
+  useUpdateProduct,
 } from '@/lib/api/product';
+import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { ProductDetails } from '@/lib/types/product';
 
 interface FormProps {
@@ -55,59 +60,59 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const [totalSupplier, setTotalSupplier] = React.useState(0);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
 
-  // Fetch product details with material (for form fields)
+  // Track newly created product ID
+  const [createdProductId, setCreatedProductId] = React.useState<number | null>(
+    null
+  );
+  const [productJustCreated, setProductJustCreated] = React.useState(false);
+
+  // Get the active product ID (either passed in or newly created)
+  const activeProductId = id || createdProductId;
+
+  // Fetch product with quarries/suppliers - single API call for everything
   const {
     data: productData,
     isLoading: isLoadingProduct,
     error: productError,
     isError: isProductError,
   } = useQuery({
-    ...ProductDetailWithMaterialQueryOptions(id!),
-    enabled: isEditing && !!id,
-  });
-
-  // Fetch product with quarries/suppliers (for supplier table)
-  const {
-    data: productWithQuarriesData,
-    isLoading: isLoadingQuarries,
-    error: quarriesError,
-    isError: isQuarriesError,
-  } = useQuery({
     ...ProductDetailWithQuarrySupplierProductQueryOptions(id!),
     enabled: isEditing && !!id,
   });
 
+  // Fetch materials for the dropdown
+  const {
+    data: materialsData,
+    isLoading: isLoadingMaterials,
+    error: materialsError,
+    isError: isMaterialsError,
+  } = useQuery(MaterialsListQueryOptions());
+
   React.useEffect(() => {
     if (isProductError && productError) {
-      console.error('Product Detail API Error:', productError);
+      console.error('Product API Error:', productError);
     }
-    if (isQuarriesError && quarriesError) {
-      console.error('Product Quarries API Error:', quarriesError);
+    if (isMaterialsError && materialsError) {
+      console.error('Materials API Error:', materialsError);
     }
-  }, [isProductError, productError, isQuarriesError, quarriesError]);
+  }, [isProductError, productError, isMaterialsError, materialsError]);
 
-  // Convert product data to snake_case
+  // Convert product data to snake_case (includes both product details and supplier info)
   const selectedProduct: ProductDetails | null = React.useMemo(() => {
     if (!productData) return null;
-    return convertKeysToSnakeCase(productData) as ProductDetails;
+    const converted = convertKeysToSnakeCase(productData) as ProductDetails;
+    console.log('Product Data (with suppliers):', converted);
+    return converted;
   }, [productData]);
 
-  // Convert product with quarries data to snake_case
-  const convertedProduct = React.useMemo(() => {
-    if (!productWithQuarriesData) return null;
-    return convertKeysToSnakeCase(productWithQuarriesData);
-  }, [productWithQuarriesData]);
-
-  console.log('productWithQuarriesData', productWithQuarriesData);
-  console.log('convertedProduct', convertedProduct);
-
-  const materialTypeOptions = [
-    { label: 'Aggregate', value: 'AGGREGATE' },
-    { label: 'Crushed Rock', value: 'CRUSHED ROCK' },
-    { label: 'Dust', value: 'DUST' },
-    { label: 'Soil', value: 'SOIL' },
-    { label: 'Sand', value: 'SAND' },
-  ];
+  // Map materials to options
+  const materialTypeOptions = React.useMemo(() => {
+    if (!materialsData) return [];
+    return materialsData.map((material) => ({
+      label: material.name,
+      value: material.id,
+    }));
+  }, [materialsData]);
 
   // TODO: Zod Validation
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
@@ -117,7 +122,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         ? {
             product_name: selectedProduct.product_name || '',
             product_code: selectedProduct.product_code || '',
-            material_type: selectedProduct.material?.name || '',
+            material_id: selectedProduct.material?.id,
             product_description: selectedProduct.product_description || '',
             density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
             created_at: selectedProduct.created_at
@@ -132,7 +137,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         : {
             product_name: '',
             product_code: '',
-            material_type: '',
+            material_id: undefined,
             product_description: '',
             density_tonnage_per_m3: 0,
             created_at: undefined,
@@ -148,7 +153,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
       productForm.reset({
         product_name: selectedProduct.product_name || '',
         product_code: selectedProduct.product_code || '',
-        material_type: selectedProduct.material?.name || '',
+        material_id: selectedProduct.material?.id,
         product_description: selectedProduct.product_description || '',
         density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
         created_at: selectedProduct.created_at
@@ -163,31 +168,90 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     }
   }, [isEditing, selectedProduct, productForm]);
 
-  // Update total supplier count when quarries data is loaded
+  // Update total supplier count when product data is loaded
   React.useEffect(() => {
-    if (convertedProduct?.quarry_supplier_products) {
-      setTotalSupplier(convertedProduct.quarry_supplier_products.length || 0);
+    if (selectedProduct?.quarry_supplier_products) {
+      setTotalSupplier(selectedProduct.quarry_supplier_products.length || 0);
     }
-  }, [convertedProduct]);
+  }, [selectedProduct]);
+
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
 
   async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
     console.log('Product Form Values:', values);
 
     setIsSubmitting(true);
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    setIsSubmitting(false);
+    try {
+      const payload = {
+        product_name: values.product_name,
+        product_code: values.product_code,
+        material_id: values.material_id,
+        density_tonnage_per_m3: values.density_tonnage_per_m3,
+        product_description: values.product_description,
+        is_active: true,
+        version: selectedProduct?.version || 0,
+      };
+
+      // Convert to camelCase as API expects camelCase keys
+      const camelCasePayload = convertKeysToCamelCase(payload);
+      console.log('Converted Payload (camelCase):', camelCasePayload);
+
+      if (isEditing && id) {
+        // Update existing product
+        await updateProduct.mutateAsync({
+          id: id,
+          data: { ...camelCasePayload, id },
+        });
+        console.log('Product updated successfully!');
+
+        // Close form after update
+        if (onCancel) {
+          onCancel();
+        }
+      } else {
+        // Create new product
+        const createdProduct = await createProduct.mutateAsync(
+          camelCasePayload
+        );
+        console.log('Product created successfully!', createdProduct);
+
+        // Store the created product ID and mark as just created
+        if (
+          createdProduct &&
+          typeof createdProduct === 'object' &&
+          'id' in createdProduct
+        ) {
+          setCreatedProductId(createdProduct.id as number);
+          setProductJustCreated(true);
+          console.log('Product ID stored:', createdProduct.id);
+        }
+
+        // Don't close the form - let user add suppliers
+        // Form will stay open with the "Add Supplier" button enabled
+      }
+    } catch (error) {
+      console.error(
+        `Error ${isEditing ? 'updating' : 'creating'} product:`,
+        error
+      );
+      // You might want to show a toast notification here
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  // Show loading state when fetching product details
-  if (isEditing && (isLoadingProduct || isLoadingQuarries)) {
+  // Show loading state when fetching product details or materials
+  if (isLoadingMaterials || (isEditing && isLoadingProduct)) {
     return (
       <div className="w-full flex items-center justify-center h-96">
         <div className="flex flex-col items-center space-y-4">
           <Spinner size="medium" />
           <p className="text-lg text-muted-foreground font-bold">
-            Loading product details...
+            {isLoadingMaterials
+              ? 'Loading materials...'
+              : 'Loading product details...'}
           </p>
         </div>
       </div>
@@ -195,16 +259,18 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   }
 
   // Show error state
-  if (isEditing && (isProductError || isQuarriesError)) {
+  if (isMaterialsError || (isEditing && isProductError)) {
     return (
       <div className="w-full flex items-center justify-center h-96">
         <div className="text-center">
           <p className="text-lg text-destructive font-bold mb-2">
-            Error loading product details
+            {isMaterialsError
+              ? 'Error loading materials'
+              : 'Error loading product details'}
           </p>
           <p className="text-sm text-muted-foreground">
-            {productError?.message ||
-              quarriesError?.message ||
+            {materialsError?.message ||
+              productError?.message ||
               'An error occurred'}
           </p>
         </div>
@@ -225,7 +291,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding Product...
+              {isEditing ? 'Updating Product...' : 'Adding Product...'}
             </p>
           </div>
         </div>
@@ -291,7 +357,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             {/* Material Type */}
             <FormSelect
               control={productForm.control}
-              name="material_type"
+              name="material_id"
               label="Material Type*"
               options={materialTypeOptions}
               placeholder="Select Material Type"
@@ -338,8 +404,38 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             />
           </div>
 
+          <div className={cn('mb-3 -mt-5', 'flex justify-end space-x-2')}>
+            <Button variant="outline" type="button" onClick={onCancel}>
+              Cancel
+            </Button>
+            {!isEditing && !productJustCreated && (
+              <Button
+                form="add-new-product-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Adding Product...' : 'Create Product'}
+              </Button>
+            )}
+            {productJustCreated && (
+              <Button variant="outline" disabled className="cursor-not-allowed">
+                ✓ Product Created
+              </Button>
+            )}
+            {isEditing && (
+              <Button
+                form="add-new-product-form"
+                type="submit"
+                className="cursor-pointer"
+              >
+                Save Changes
+              </Button>
+            )}
+          </div>
+
           {/* Supplier Table */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 mb-10">
             <div
               className={cn(
                 isDesktop
@@ -357,9 +453,14 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     rates
                   </span>
                 )}
-                {!isEditing && (
+                {!isEditing && !productJustCreated && (
                   <span className="text-sm text-gray-500">
-                    Add suppliers after creaeting the product
+                    Add suppliers after creating the product
+                  </span>
+                )}
+                {productJustCreated && (
+                  <span className="text-sm text-green-600 font-medium">
+                    ✓ Product created successfully! You can now add suppliers.
                   </span>
                 )}
               </div>
@@ -377,14 +478,16 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     Compare All
                   </Button>
                 )}
-                <FormDialog
-                  dialogTitle="Add New Supplier"
-                  buttonTitle="Add Supplier"
-                  dialogWidth="700px"
-                  contentClass="-mt-5"
-                >
-                  <SupplierForm />
-                </FormDialog>
+                {(isEditing || productJustCreated) && (
+                  <FormDialog
+                    dialogTitle="Add New Supplier"
+                    buttonTitle="Add Supplier"
+                    dialogWidth="700px"
+                    contentClass="-mt-5"
+                  >
+                    <SupplierForm productId={activeProductId || undefined} />
+                  </FormDialog>
+                )}
               </div>
             </div>
 
@@ -402,14 +505,14 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   <span className="font-normal text-[#364153]">TN Pricing</span>
                   <DataTableClient
                     columns={tnPricingColumn}
-                    data={convertedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
                   <span className="font-normal text-[#364153]">m³ Pricing</span>
                   <DataTableClient
                     columns={m3PricingColumn}
-                    data={convertedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -418,7 +521,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={kgPricingColumn}
-                    data={convertedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -427,7 +530,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={bulkaPricingColumn}
-                    data={convertedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -436,7 +539,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={truckRateComparisonColumn}
-                    data={convertedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarry_supplier_products || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -450,8 +553,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               <DataTableClient
                 columns={supplierColumns}
                 data={
-                  isEditing
-                    ? convertedProduct?.quarry_supplier_products ?? []
+                  isEditing || productJustCreated
+                    ? selectedProduct?.quarry_supplier_products ?? []
                     : []
                 }
                 simpleTable={true}
@@ -464,7 +567,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6'
+                'space-y-6 mb-10'
               )}
             >
               <h2 className="text-lg font-semibold">Audit Information</h2>
@@ -528,27 +631,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           )}
 
           {/* Form Actions */}
-          <div
-            className={cn(
-              'mb-6',
-              isDesktop
-                ? 'col-span-2 flex justify-end space-x-2'
-                : 'col-span-1 flex flex-col space-y-2 gap-3'
-            )}
-          >
-            {isDesktop && (
+          {/* <div className={cn('mb-6', 'flex justify-end space-x-2')}>
+            {isDesktop && isEditing && (
               <Button variant="outline" type="button" onClick={onCancel}>
                 Cancel
-              </Button>
-            )}
-            {!isEditing && (
-              <Button
-                form="add-new-product-form"
-                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Adding Product...' : 'Create Product'}
               </Button>
             )}
 
@@ -561,7 +647,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 Save Changes
               </Button>
             )}
-            {!isDesktop && (
+            {!isDesktop && isEditing && (
               <Button
                 variant="outline"
                 type="button"
@@ -571,7 +657,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 Cancel
               </Button>
             )}
-          </div>
+          </div> */}
         </form>
       </Form>
     </div>

@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { Quotation } from '@/lib/types/quotation';
+import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 import {
   ArrowRight,
   Calendar,
@@ -14,6 +15,9 @@ import {
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
+import { useQuery } from '@tanstack/react-query';
+import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
 interface DialogConfig {
   title?: string;
@@ -35,6 +39,32 @@ interface DialogConfig {
 interface SelectedAction {
   key: string;
 }
+
+const encodeQuotationPayload = (quotationData?: Quotation | null) => {
+  if (!quotationData) return null;
+  try {
+    const json = JSON.stringify(quotationData);
+    return encodeURIComponent(json);
+  } catch (error) {
+    console.error('Failed to encode quotation preview payload', error);
+    return null;
+  }
+};
+
+const openQuotePreviewWindow = (
+  quotationId?: number,
+  quotationData?: Quotation | null
+) => {
+  if (typeof window === 'undefined') return;
+  if (!quotationId) return;
+
+  const encodedPayload = encodeQuotationPayload(quotationData);
+  if (!encodedPayload) return;
+
+  // Use search params for static site compatibility (S3 + CloudFront)
+  const previewUrl = `/quote-review?quoteId=${quotationId}&payload=${encodedPayload}`;
+  window.open(previewUrl, '_blank', 'noopener,noreferrer');
+};
 
 const getDialogConfigs = (
   quotationData?: Quotation | null,
@@ -469,6 +499,10 @@ export function useQuotationActions(
   quotationId: number | undefined,
   quotationData?: Quotation | null
 ) {
+  const fallbackQuotation = useQuotationStore((state) =>
+    quotationId ? state.getQuotationById(quotationId) : null
+  );
+  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
@@ -488,8 +522,46 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
+  // Fetch detailed quotation data from backend (same as view/edit modal)
+  const { data: quotationDetailData, isLoading: isLoadingDetail } = useQuery(
+    QuotationDetailQueryOptions(quotationId || 0)
+  );
+
+  // Convert and transform detailed quotation data
+  const detailedQuotation = React.useMemo(() => {
+    if (quotationDetailData) {
+      const convertedQuotation = convertKeysToSnakeCase(
+        quotationDetailData
+      ) as QuotationDTO;
+
+      // Generate mock email if backend doesn't provide customer_email
+      let customerEmail = convertedQuotation.customer_email;
+      if (!customerEmail && convertedQuotation.customer_name) {
+        // Create mock email from customer name
+        const emailName = convertedQuotation.customer_name
+          .toLowerCase()
+          .replace(/\s+/g, '.')
+          .replace(/[^a-z0-9.]/g, '');
+        customerEmail = `${emailName}@example.com`;
+      }
+
+      const transformed = {
+        ...convertedQuotation,
+        quoteId: convertedQuotation.id,
+        status: convertedQuotation.quote_status,
+        customer_email: customerEmail, // Use mock if backend doesn't provide
+      } as Quotation;
+
+      return transformed;
+    }
+    return null;
+  }, [quotationDetailData, quotationId, isLoadingDetail]);
+
+  // Use detailed data if available, otherwise fall back to list data
+  const quotationToUse = detailedQuotation || quotationData;
+
   const dialogConfigs = getDialogConfigs(
-    quotationData,
+    quotationToUse,
     selectedAction || undefined,
     newExpiryDate,
     setNewExpiryDate
@@ -551,11 +623,6 @@ export function useQuotationActions(
       console.log('Archive quotation:', quotationId);
       // TODO: implement delete logic
     }),
-
-    unarchive: createDialogAction('unarchive', () => {
-      console.log('Unarchive quotation:', quotationId);
-      // TODO: implement unarchive logic
-    }),
   };
 
   // Render active dialog
@@ -584,32 +651,29 @@ export function useQuotationActions(
         onConfirmAction={() => {
           switch (key) {
             case 'sendToCustomer':
-              console.log('Send to customer:', quotationId, quotationData);
+              console.log('Send to customer:', quotationId, resolvedQuotation);
+              openQuotePreviewWindow(quotationId, resolvedQuotation);
               // TODO: implement send to customer mutation logic
               break;
             case 'approve':
-              console.log('Approve quotation:', quotationId, quotationData);
+              console.log('Approve quotation:', quotationId, resolvedQuotation);
               // TODO: implement approve logic
               break;
             case 'decline':
-              console.log('Decline quotation:', quotationId, quotationData);
+              console.log('Decline quotation:', quotationId, resolvedQuotation);
               // TODO: implement decline logic
               break;
             case 'convertToJob':
-              console.log('Convert to job:', quotationId, quotationData);
+              console.log('Convert to job:', quotationId, resolvedQuotation);
               // TODO: implement convert to job logic
               break;
             case 'extendExpiry':
-              console.log('Extend expiry:', quotationId, quotationData);
+              console.log('Extend expiry:', quotationId, resolvedQuotation);
               // TODO: implement extend expiry logic
               break;
             case 'archive':
-              console.log('Archive quotation:', quotationId, quotationData);
+              console.log('Archive quotation:', quotationId, resolvedQuotation);
               // TODO: implement archive logic
-              break;
-            case 'unarchive':
-              console.log('Unarchive quotation:', quotationId, quotationData);
-              // TODO: implement unarchive logic
               break;
           }
         }}
@@ -618,9 +682,9 @@ export function useQuotationActions(
   });
 
   const canEdit =
-    quotationData?.status !== 'CONVERTED_TO_JOB' &&
-    quotationData?.status !== 'PENDING' &&
-    quotationData?.status !== 'APPROVED';
+    resolvedQuotation?.status !== 'CONVERTED_TO_JOB' &&
+    resolvedQuotation?.status !== 'PENDING' &&
+    resolvedQuotation?.status !== 'APPROVED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
@@ -636,7 +700,7 @@ export function useQuotationActions(
           }, 100);
         }
       }}
-      headerButtons={<QuotationActionButtons quotation={quotationData} />}
+      headerButtons={<QuotationActionButtons quotation={resolvedQuotation} />}
       hideTrigger
       headerInfo={{
         useSelectedQuotation: true,

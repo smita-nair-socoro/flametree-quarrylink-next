@@ -40,7 +40,7 @@ export const ButtonRadio = ({
     if (defaultValue && onChange && value === undefined) {
       onChange(defaultValue);
     }
-  }, []);
+  }, [defaultValue, onChange, value]);
 
   const handleSelect = (optionValue: string) => {
     // Always update internal state for immediate UI feedback

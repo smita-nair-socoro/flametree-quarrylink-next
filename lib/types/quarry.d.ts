@@ -35,8 +35,8 @@ export interface QuarrySupplierProduct {
   per_tn_sell_price: number;
   per_m3_cost_price: number;
   per_m3_sell_price: number;
-  per_20kg_cost_price: number;
-  per_20kg_sell_price: number;
+  per20kg_cost_price: number;
+  per20kg_sell_price: number;
   per_bulka_cost_price: number;
   per_bulka_sell_price: number;
 

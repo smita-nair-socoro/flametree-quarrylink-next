@@ -1,6 +1,12 @@
-import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { ProductKeys } from './keys';
+import { Product } from '../types/product';
 
 export const ProductsListQueryOptions = () =>
   queryOptions({
@@ -30,3 +36,33 @@ export const ProductDetailWithQuarrySupplierProductQueryOptions = (
     staleTime: 5_000,
     enabled: !!productId,
   });
+
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<Product>) =>
+      APIClient.products.createProduct(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
+      queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+    },
+  });
+};
+
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<Product> }) =>
+      APIClient.products.updateProduct(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
+      queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: ProductKeys.detailWithMaterial(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ProductKeys.detailWithQuarrySupplierProduct(variables.id),
+      });
+    },
+  });
+};

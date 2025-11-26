@@ -185,7 +185,7 @@ const getDialogConfigs = (
         confirmVariant: 'default',
         confirmCustomColor: '#16a34a',
         confirmCustomClass:
-          'bg-green-600 hover:bg-green-700 text-white font-geist font-medium leading-[24px]',
+          'bg-green-600 hover:bg-green-700 text-white font-medium leading-[24px]',
       },
     };
   } else if (selectedAction?.key === 'cannotArchive') {
