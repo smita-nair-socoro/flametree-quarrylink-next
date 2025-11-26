@@ -741,7 +741,7 @@ export default function QuotationForm({
                     />
                   </div>
 
-                  <div className="flex flex-col gap-0">
+                  <div className="flex flex-col gap-3">
                     <div className="bg-gray-50 border-t px-2 border-[#E5E5E5] [&>div]:border-b [&>div]:border-dashed [&>div]:border-purple-300 [&>div:nth-child(1)]:border-b-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(5)]:border-b-0">
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-normal">
@@ -751,7 +751,7 @@ export default function QuotationForm({
                           ${pricingBreakdown.totalProductCostPrice}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3">
+                      <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">
                           Truck Cost (Total):
                         </span>
@@ -767,7 +767,7 @@ export default function QuotationForm({
                           ${pricingBreakdown.totalProductSellPrice}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3">
+                      <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">
                           Truck Sell (Total):
                         </span>
@@ -777,19 +777,19 @@ export default function QuotationForm({
                       </div>
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-normal">
-                          Subtotal (Ex GST):
+                          Subtotal (ex-GST):
                         </span>
                         <span className="text-sm font-normal">
                           ${pricingBreakdown.totalInvoice}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3">
+                      <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">GST (10%):</span>
                         <span className="text-sm font-normal">${gst}</span>
                       </div>
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-semibold">
-                          Total Invoice (Inc GST):
+                          Total Invoice (Incl. GST):
                         </span>
                         <span className="text-sm font-semibold">
                           ${totalInvoiceIncGST}

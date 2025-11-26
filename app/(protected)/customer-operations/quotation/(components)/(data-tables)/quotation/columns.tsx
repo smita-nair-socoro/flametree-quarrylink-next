@@ -7,6 +7,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Quotation } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 export const quotationColumns: ColumnDef<Quotation>[] = [
   {
@@ -68,7 +74,19 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     id: 'total_sell_price',
     accessorFn: (row) => row.total_sell_price,
     header: ({}) => {
-      return <div>Total Sell Price (ex-GST)</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Total Sell Price{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       const total_sell_price = row.original.total_sell_price

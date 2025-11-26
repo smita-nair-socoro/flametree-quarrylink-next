@@ -4,6 +4,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { centsToDollars } from '@/lib/utils/currency';
 import { QuotationLineItemTableActions } from './quotation-line-item-actions';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
   {
@@ -14,7 +20,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     },
     cell: (info) => info.getValue(),
     meta: 'Product Name',
-    size: 150,
+    size: 160,
   },
   {
     id: 'quarry_name',
@@ -24,13 +30,25 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     },
     cell: (info) => info.getValue(),
     meta: 'quarry_name',
-    size: 150,
+    size: 160,
   },
   {
     id: 'total_product_cost_price',
     accessorFn: (row) => row.total_product_cost_price,
     header: () => {
-      return <div>Total Cost (ex-GST)</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Total Cost{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       const total_product_cost_price = row.original.total_product_cost_price
@@ -39,13 +57,25 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>${total_product_cost_price}</div>;
     },
     meta: 'Total Product Cost Price',
-    size: 180,
+    size: 150,
   },
   {
     id: 'total_product_sell_price',
     accessorFn: (row) => row.total_product_sell_price,
     header: () => {
-      return <div>Total Sell (ex-GST)</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Total Sell{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       const total_product_sell_price = row.original.total_product_sell_price
@@ -54,7 +84,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>${total_product_sell_price}</div>;
     },
     meta: 'Total Product Sell Price',
-    size: 180,
+    size: 150,
   },
   {
     id: 'product_sell_qty',
@@ -85,7 +115,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>{truck_type}</div>;
     },
     meta: 'Truck Type',
-    size: 120,
+    size: 140,
   },
   {
     id: 'gross_profit',
@@ -98,7 +128,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>{gross_profit}%</div>;
     },
     meta: 'Gross Profit',
-    size: 60,
+    size: 40,
   },
   {
     id: 'actions',
