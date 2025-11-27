@@ -112,7 +112,7 @@ export default function ClientPortalPage() {
               <span className="text-[#737373] text-sm">{card.title}</span>
               <div className="flex flex-col gap-1">
                 <span className="text-2xl font-semibold">
-                  {card.title === 'MMR'
+                  {card.title === 'Monthly Recurring Revenue'
                     ? `$${centsToDollars(card.value)}`
                     : card.value}
                 </span>
