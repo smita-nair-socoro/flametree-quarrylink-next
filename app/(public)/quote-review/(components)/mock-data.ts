@@ -1,4 +1,7 @@
-import { QUOTE_STATUS as QuoteStatus, QUOTE_TYPE as QuoteType } from "@/lib/types/quotation-enums";
+import {
+  QUOTE_STATUS as QuoteStatus,
+  QUOTE_TYPE as QuoteType,
+} from '@/lib/types/quotation-enums';
 
 export const mockQuotationData = {
   // Navbar data
@@ -121,7 +124,6 @@ export const mockQuotationData = {
     totalQuantity: '600 tonnes, 45 m³',
     estimatedDelivery: '23rd August, 2026',
     termsAndConditions: [
-      'Payment terms: Net 30 days',
       'Delivery subject to weather conditions',
       'Quote valid for 14 days from issue date',
     ],
@@ -134,8 +136,6 @@ export const mockQuotationData = {
   proceedActions: {
     validUntil: '29th July, 2026',
     accountManager: 'Sarah Wilson',
-    quoteId: 'QPO001',
-    baseUrl: 'https://quarrylink.com.au',
   },
 
   // Footer
