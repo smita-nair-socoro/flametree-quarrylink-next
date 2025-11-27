@@ -26,7 +26,9 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.PENDING);
+  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
+    QuoteStatus.PENDING
+  );
 
   /**
    * CURRENT STATE: Using hardcoded mock data for all quotes
@@ -38,7 +40,9 @@ export default function QuoteReviewDocument({
   const quotationData = mockQuotationData;
 
   // State for navbar status (will be updated when user approves/declines)
-  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(quotationData.navbar.status);
+  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(
+    quotationData.navbar.status
+  );
 
   const handleDownloadPDF = () => {
     console.log('Download PDF clicked for quote:', quoteId);
@@ -130,7 +134,7 @@ export default function QuoteReviewDocument({
 
         <div className="rounded-xl border border-slate-100 bg-[#E5E5E5] p-3 space-y-2">
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
-            <span>Quote Total (incl. GST):</span>
+            <span>Quote Total (Incl. GST):</span>
             <span className="text-base font-medium text-[#101828]">
               {currencyFormatter.format(summary.total)}
             </span>

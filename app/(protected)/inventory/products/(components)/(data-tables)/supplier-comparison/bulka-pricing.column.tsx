@@ -2,9 +2,14 @@
 
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { HelpCircle, TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -21,7 +26,19 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     id: 'cost_price',
     accessorFn: (row) => row.price.bulka_cost_price,
     header: ({}) => {
-      return <div>Cost Price</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Cost Price{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.price.available_for_sale_bulka === false) {
@@ -34,13 +51,25 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'cost price',
-    size: 120,
+    size: 130,
   },
   {
     id: 'sell_price',
     accessorFn: (row) => row.price.bulka_sell_price,
     header: ({}) => {
-      return <div>Sell Price</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Sell Price{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.price.available_for_sale_bulka === false) {
@@ -53,7 +82,7 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'sell price',
-    size: 120,
+    size: 130,
   },
   {
     id: 'margin',
@@ -81,7 +110,7 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'Margin',
-    size: 160,
+    size: 130,
   },
   {
     id: 'available_for_sale_bulka',

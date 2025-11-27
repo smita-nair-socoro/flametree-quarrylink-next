@@ -5,7 +5,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { HelpCircle, TrendingDown, TrendingUp } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
@@ -36,7 +41,19 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     id: 'cost_price',
     accessorFn: (row) => row.price.tn_cost_price,
     header: ({}) => {
-      return <div>Cost Price (TN)</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Cost Price (TN){' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       return (
@@ -54,7 +71,19 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     id: 'sell_price',
     accessorFn: (row) => row.price.tn_sell_price,
     header: ({}) => {
-      return <div>Sell Price (TN)</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Sell Price (TN)
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => (
       <div>
@@ -93,7 +122,7 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     id: 'action',
     accessorFn: (row) => row.id,
     header: ({}) => {
-      return <div>Actions</div>;
+      return <div></div>;
     },
     cell: ({ row }) => <SupplierTableActions quarry={row.original} />,
     meta: 'Action',
