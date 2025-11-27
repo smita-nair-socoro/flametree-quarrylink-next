@@ -8,7 +8,12 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const supplierColumns: ColumnDef<QuarrySupplierProduct>[] = [
+// Allow passing the parent productId so actions can call detail APIs correctly
+export const supplierColumns = (
+  productId?: number
+): ColumnDef<
+  QuarrySupplierProduct & { quarry_supplier?: { id: number } }
+>[] => [
   {
     id: 'quarry_name',
     accessorFn: (row) => row.quarry_name || 'N/A',
@@ -94,7 +99,12 @@ export const supplierColumns: ColumnDef<QuarrySupplierProduct>[] = [
     header: ({}) => {
       return <div>Actions</div>;
     },
-    cell: ({ row }) => <SupplierTableActions quarry={row.original} />,
+    cell: ({ row }) => (
+      <SupplierTableActions
+        quarry={row.original}
+        productId={productId ?? row.original.product_id}
+      />
+    ),
     meta: 'Action',
   },
 ];

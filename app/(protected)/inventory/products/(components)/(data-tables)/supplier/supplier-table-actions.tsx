@@ -33,8 +33,12 @@ export function SupplierTableActions({
     [quarry, productId]
   );
 
+  // Support both direct id and nested quarry_supplier.id
+  const quarrySupplierId =
+    (quarry as any)?.quarry_supplier_id ?? (quarry as any)?.quarry_supplier?.id;
+
   const { actions, confirmDialogs, viewDialog } = useSupplierActions(
-    quarry.quarry_supplier_id,
+    quarrySupplierId,
     quarryWithProductId
   );
 

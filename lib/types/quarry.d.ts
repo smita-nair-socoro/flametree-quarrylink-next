@@ -25,6 +25,10 @@ export interface Quarry {
 }
 
 export interface QuarrySupplierProduct {
+  quarry_supplier?: {
+    id: number;
+    name: string;
+  };
   quarry_supplier_id: number;
   product_id: number;
   supplier_product_name: string;

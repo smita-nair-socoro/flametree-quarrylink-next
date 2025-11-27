@@ -105,8 +105,6 @@ export default function ProductsPage() {
       } as ProductDetails;
     }) || [];
 
-  console.log('Transformed products:', items);
-
   const facetDefs: FacetDefinition[] = [
     { column: 'material_type', title: 'Material Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },

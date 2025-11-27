@@ -154,7 +154,7 @@ export function useSupplierActions(
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-
+  console.log('quarryData', quarryData);
   const dialogConfigs = getDialogConfigs(
     quarryData,
     selectedAction || undefined
@@ -228,7 +228,7 @@ export function useSupplierActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quarryId}
-      dialogTitle={`${quarryData?.quarry_name} - Detailed Information`}
+      dialogTitle={`${quarryData?.quarry_supplier?.name} - Detailed Information`}
       dialogWidth="700px"
       contentClass="-mt-5"
       open={viewOpen}
@@ -248,7 +248,7 @@ export function useSupplierActions(
       }}
     >
       <SupplierForm
-        quarrySupplierId={quarryData?.quarry_supplier_id}
+        quarrySupplierId={quarryData?.quarry_supplier?.id}
         productId={quarryData?.product_id}
         onCancel={() => setViewOpen(false)}
       />

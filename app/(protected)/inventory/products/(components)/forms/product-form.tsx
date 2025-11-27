@@ -105,6 +105,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     return converted;
   }, [productData]);
 
+  console.log('selectedProduct', selectedProduct);
+
   // Map materials to options
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
@@ -551,7 +553,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             {/* Supplier Table */}
             <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
               <DataTableClient
-                columns={supplierColumns}
+                columns={supplierColumns(selectedProduct?.id)}
                 data={
                   isEditing || productJustCreated
                     ? selectedProduct?.quarry_supplier_products ?? []
