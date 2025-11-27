@@ -792,7 +792,6 @@ export default function CustomerForm({
           )}
 
           {/* Form Actions */}
-          {/* Form Actions */}
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 mb-6">
               <Button variant="outline" type="button" onClick={onCancel}>
