@@ -66,7 +66,7 @@ const getDialogConfigs = (
             q.status !== 'DRAFT' &&
             q.status !== 'CONVERTED_TO_JOB'
         )
-        .map((q: Quotation) => q.quote_number)
+        .map((q: Quotation) => q.quoteNumber)
         .join(', ');
     }
     return '';
