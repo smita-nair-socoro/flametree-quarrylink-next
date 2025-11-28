@@ -256,8 +256,12 @@ export function FormDialog({
       })
     : children;
 
-  const formatBadgeText = (text: string): string => {
-    return text.replace(/_/g, ' ');
+  const formatBadgeText = (text?: string | number | null): string => {
+    if (text === undefined || text === null) {
+      return '';
+    }
+    const stringValue = typeof text === 'string' ? text : String(text);
+    return stringValue.replace(/_/g, ' ');
   };
 
   const renderBadges = () => {

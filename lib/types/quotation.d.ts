@@ -36,7 +36,7 @@ export interface QuotationDTO {
   createdAt: string | null;
   updatedAt: string;
   lastModifiedBy: string;
-  lineItems: QuotationLineItem[];
+  quoteItems: QuotationLineItem[];
 }
 
 // Frontend type (same as DTO, uses camelCase)
@@ -72,7 +72,7 @@ export interface Quotation {
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
-  lineItems: QuotationLineItem[];
+  quoteItems: QuotationLineItem[];
 }
 
 export interface QuotationLineItem {

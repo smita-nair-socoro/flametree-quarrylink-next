@@ -391,7 +391,7 @@ export const APIClient = {
         `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
       );
       console.log('📦 getWithQuoteItems API Response:', response);
-      console.log('📦 Line items in response:', response.lineItems);
+      console.log('📦 Line items in response:', response.quoteItems);
       return response;
     },
     create: (data: Partial<QuotationDTO>) =>

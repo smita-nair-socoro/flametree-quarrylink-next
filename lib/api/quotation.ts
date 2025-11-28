@@ -7,12 +7,13 @@ import {
 import { APIClient } from './APIClient';
 import { QuotationKeys } from './keys';
 import { QuotationDTO, QuotationLineItem } from '../types/quotation';
-import { convertKeysToSnakeCase } from '../utils/case-conversion';
+import { convertKeysToCamelCase } from '../utils/case-conversion';
 
 export const QuotationsListQueryOptions = () =>
   queryOptions({
     queryKey: QuotationKeys.list(),
-    queryFn: () => APIClient.quotations.getAll(),
+    queryFn: async () =>
+      convertKeysToCamelCase(await APIClient.quotations.getAll()),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -20,7 +21,8 @@ export const QuotationsListQueryOptions = () =>
 export const QuotationDetailQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: QuotationKeys.detail(quotationId),
-    queryFn: () => APIClient.quotations.getById(quotationId),
+    queryFn: async () =>
+      convertKeysToCamelCase(await APIClient.quotations.getById(quotationId)),
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
@@ -28,7 +30,10 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
-    queryFn: () => APIClient.quotations.getWithQuoteItems(quotationId),
+    queryFn: async () =>
+      convertKeysToCamelCase(
+        await APIClient.quotations.getWithQuoteItems(quotationId)
+      ),
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
@@ -109,8 +114,10 @@ export const useCreateQuoteItem = () => {
         quarryId: data.quarryId || 1,
         quarryProductId: data.quarryProductId || 1,
       };
-      const response = await APIClient.quotations.createQuoteItem(dataWithDefaults);
-      return convertKeysToSnakeCase(response) as QuotationLineItem;
+      const response = await APIClient.quotations.createQuoteItem(
+        dataWithDefaults
+      );
+      return convertKeysToCamelCase(response) as QuotationLineItem;
     },
 
     onSuccess: (data) => {

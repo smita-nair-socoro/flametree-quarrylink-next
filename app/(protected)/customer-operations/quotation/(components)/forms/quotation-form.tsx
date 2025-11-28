@@ -80,8 +80,8 @@ export default function QuotationForm({
     }
     if (quotationDetailData) {
       console.log('✅ Quotation detail data fetched from API:', quotationDetailData);
-      console.log('✅ Line items from API:', quotationDetailData.lineItems);
-      console.log('✅ Line items count:', quotationDetailData.lineItems?.length || 0);
+      console.log('✅ Line items from API:', quotationDetailData.quoteItems);
+      console.log('✅ Line items count:', quotationDetailData.quoteItems?.length || 0);
     }
   }, [detailError, quotationDetailData]);
 
@@ -95,8 +95,8 @@ export default function QuotationForm({
       } as Quotation;
 
       console.log('🔄 Transformed quotation:', transformedQuotation);
-      console.log('🔄 Transformed line items:', transformedQuotation.lineItems);
-      console.log('🔄 Transformed line items count:', transformedQuotation.lineItems.length);
+      console.log('🔄 Transformed line items:', transformedQuotation.quoteItems);
+      console.log('🔄 Transformed line items count:', transformedQuotation.quoteItems.length);
 
       return transformedQuotation;
     }
@@ -109,8 +109,8 @@ export default function QuotationForm({
   // Log current quotation state
   React.useEffect(() => {
     console.log('🎯 Current quotation:', currentQuotation);
-    console.log('🎯 Current quotation line items:', currentQuotation?.lineItems);
-    console.log('🎯 Current quotation line items count:', currentQuotation?.lineItems?.length || 0);
+    console.log('🎯 Current quotation line items:', currentQuotation?.quoteItems);
+    console.log('🎯 Current quotation line items count:', currentQuotation?.quoteItems?.length || 0);
   }, [currentQuotation]);
 
   const [address, setAddress] = React.useState<AddressType>({
@@ -374,7 +374,7 @@ export default function QuotationForm({
     if (!isEditing || !currentQuotation) {
       return calculateQuotationPricing(null);
     }
-    return calculateQuotationPricing(currentQuotation.lineItems);
+    return calculateQuotationPricing(currentQuotation.quoteItems);
   }, [isEditing, currentQuotation]);
 
   // Calculate GST and Total Invoice(Inc GST)
@@ -771,19 +771,19 @@ export default function QuotationForm({
                 <div className="flex flex-col gap-0">
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
-                      const lineItemsData = currentQuotation?.lineItems ?? [];
-                      console.log('📊 DataTable rendering with line items:', lineItemsData);
-                      console.log('📊 Line items count for table:', lineItemsData.length);
-                      if (lineItemsData.length > 0) {
-                        console.log('📊 First line item structure:', lineItemsData[0]);
-                        console.log('📊 First line item keys:', Object.keys(lineItemsData[0]));
-                        console.log('📊 productName:', lineItemsData[0].productName);
-                        console.log('📊 quarryName:', lineItemsData[0].quarryName);
+                      const quoteItemsData = currentQuotation?.quoteItems ?? [];
+                      console.log('📊 DataTable rendering with line items:', quoteItemsData);
+                      console.log('📊 Line items count for table:', quoteItemsData.length);
+                      if (quoteItemsData.length > 0) {
+                        console.log('📊 First line item structure:', quoteItemsData[0]);
+                        console.log('📊 First line item keys:', Object.keys(quoteItemsData[0]));
+                        console.log('📊 productName:', quoteItemsData[0].productName);
+                        console.log('📊 quarryName:', quoteItemsData[0].quarryName);
                       }
                       return (
                         <DataTableClient
                           columns={quotationLineItemColumns}
-                          data={lineItemsData}
+                          data={quoteItemsData}
                           simpleTable={true}
                           useColumnSizing={true}
                         />
