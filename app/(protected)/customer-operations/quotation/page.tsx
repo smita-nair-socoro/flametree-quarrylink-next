@@ -49,7 +49,7 @@ export default function QuotationsPage() {
         return {
           ...convertedQuotation,
           quoteId: convertedQuotation.id,
-          status: convertedQuotation.quote_status, // Map quote_status to status for columns
+          status: convertedQuotation.quoteStatus, // Map quote_status to status for columns
         } as Quotation;
       }) || []
     );
