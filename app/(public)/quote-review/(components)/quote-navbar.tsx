@@ -34,7 +34,6 @@ export function QuoteNavbar({
             alt="QuarryLink logo"
             width={70}
             height={70}
-            style={{ width: '70px', height: '70px' }}
           />
           <h1 className="text-[60px] font-bold">QuarryLink</h1>
         </div>

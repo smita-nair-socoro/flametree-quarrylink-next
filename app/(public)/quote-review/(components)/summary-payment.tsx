@@ -34,23 +34,16 @@ export function SummaryPayment({
 
           <div className="mb-8 space-y-2">
             <p className="text-[#0A0A0A] text-sm">
-              <span className="font-bold text-sm">
-                Total Products:
-              </span>{' '}
-              {totalProducts} items
+              <span className="font-bold">Total Products:</span> {totalProducts}{' '}
+              items
             </p>
 
             <p className="text-[#0A0A0A] text-sm">
-              <span className="font-bold text-sm">
-                Total Quantity:
-              </span>{' '}
-              {totalQuantity}
+              <span className="font-bold">Total Quantity:</span> {totalQuantity}
             </p>
 
             <p className="text-[#0A0A0A] text-sm">
-              <span className="font-bold text-sm">
-                Estimated Delivery:
-              </span>{' '}
+              <span className="font-bold">Estimated Delivery:</span>{' '}
               {estimatedDelivery}
             </p>
           </div>
