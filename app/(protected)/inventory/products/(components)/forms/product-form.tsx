@@ -124,7 +124,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         ? {
             product_name: selectedProduct.product_name || '',
             product_code: selectedProduct.product_code || '',
-            material_id: selectedProduct.material?.id,
+            material_id: selectedProduct.material_id,
             product_description: selectedProduct.product_description || '',
             density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
             created_at: selectedProduct.created_at
@@ -155,7 +155,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
       productForm.reset({
         product_name: selectedProduct.product_name || '',
         product_code: selectedProduct.product_code || '',
-        material_id: selectedProduct.material?.id,
+        material_id: selectedProduct.material_id,
         product_description: selectedProduct.product_description || '',
         density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
         created_at: selectedProduct.created_at

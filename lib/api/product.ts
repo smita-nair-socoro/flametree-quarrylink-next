@@ -66,3 +66,17 @@ export const useUpdateProduct = () => {
     },
   });
 };
+
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.products.deleteProduct(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
+      queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+    },
+    onError: (error) => {
+      console.error('Error deleting product:', error);
+    },
+  });
+};

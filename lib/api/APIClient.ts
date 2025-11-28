@@ -357,6 +357,8 @@ export const APIClient = {
       appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
         body: data,
       }),
+    deleteProduct: (id: number) =>
+      appClient.Delete(`/socoro/quarrylink/api/product/${id}`),
   },
 
   materials: {
