@@ -33,13 +33,13 @@ const getDialogConfigs = (
   lineItemData?: QuotationLineItem | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  const lineItemName = lineItemData?.product_name;
-  const productCode = lineItemData?.supplier_product_name;
+  const lineItemName = lineItemData?.productName;
+  const productCode = lineItemData?.supplierProductName;
   const totalSellPrice = centsToDollars(
-    lineItemData?.total_product_sell_price || 0
+    lineItemData?.totalProductSellPrice || 0
   );
-  const productQty = lineItemData?.product_sell_qty;
-  const productUom = lineItemData?.product_sell_uom;
+  const productQty = lineItemData?.productSellQty;
+  const productUom = lineItemData?.productSellUom;
 
   if (selectedAction?.key === 'remove') {
     return {
@@ -134,7 +134,7 @@ export function useQuotationLineItemActions(
     selectedAction || undefined
   );
 
-  const createDialogAction = (actionKey: string, action: () => void) => {
+  const createDialogAction = (actionKey: string) => {
     return () => {
       setSelectedAction({ key: actionKey });
       setActiveDialog(actionKey);
@@ -145,14 +145,8 @@ export function useQuotationLineItemActions(
     view: () => {
       setViewOpen(true);
     },
-    remove: createDialogAction('remove', () => {
-      console.log('Remove quotation line item:', lineItemId);
-      // TODO: implement remove logic
-    }),
-    duplicate: createDialogAction('duplicate', () => {
-      console.log('Duplicate quotation line item:', lineItemId);
-      // TODO: implement duplicate logic
-    }),
+    remove: createDialogAction('remove'),
+    duplicate: createDialogAction('duplicate'),
   };
 
   // Render active dialog

@@ -369,23 +369,31 @@ export const APIClient = {
   },
 
   quotations: {
-    getAll: () =>
-      appClient.Get<
+    getAll: async () => {
+      const response = await appClient.Get<
         | QuotationDTO[]
         | {
             content: QuotationDTO[];
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/quote`),
+      >(`/socoro/quarrylink/api/quote`);
+      console.log('📋 getAll Quotations API Response:', response);
+      return response;
+    },
     getById: (quotationId: number) =>
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`
       ),
-    getWithQuoteItems: (quotationId: number) =>
-      appClient.Get<QuotationDTO>(
+    getWithQuoteItems: async (quotationId: number) => {
+      console.log('🔍 Fetching quotation with line items, ID:', quotationId);
+      const response = await appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
-      ),
+      );
+      console.log('📦 getWithQuoteItems API Response:', response);
+      console.log('📦 Line items in response:', response.line_items);
+      return response;
+    },
     create: (data: Partial<QuotationDTO>) =>
       appClient.Post<QuotationDTO>('/socoro/quarrylink/api/quote', {
         body: data,

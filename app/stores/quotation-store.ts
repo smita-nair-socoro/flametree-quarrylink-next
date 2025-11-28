@@ -106,8 +106,8 @@ export const useQuotationStore = create<QuotationStore>()(
         const customerMap = new Map<number, string>();
 
         state.quotations.forEach((quotation) => {
-          if (quotation.customer_id && quotation.customer_name) {
-            customerMap.set(quotation.customer_id, quotation.customer_name);
+          if (quotation.customerId && quotation.customerName) {
+            customerMap.set(quotation.customerId, quotation.customerName);
           }
         });
 
@@ -121,10 +121,10 @@ export const useQuotationStore = create<QuotationStore>()(
         const managerMap = new Map<number, string>();
 
         state.quotations.forEach((quotation) => {
-          if (quotation.account_manager && quotation.account_manager_name) {
+          if (quotation.accountManager && quotation.accountManagerName) {
             managerMap.set(
-              quotation.account_manager,
-              quotation.account_manager_name
+              quotation.accountManager,
+              quotation.accountManagerName
             );
           }
         });
@@ -137,17 +137,17 @@ export const useQuotationStore = create<QuotationStore>()(
       getCustomerNameById: (customerId) => {
         const state = get();
         const quotation = state.quotations.find(
-          (q) => q.customer_id === customerId
+          (q) => q.customerId === customerId
         );
-        return quotation?.customer_name || null;
+        return quotation?.customerName || null;
       },
 
       getAccountManagerNameById: (managerId) => {
         const state = get();
         const quotation = state.quotations.find(
-          (q) => q.account_manager === managerId
+          (q) => q.accountManager === managerId
         );
-        return quotation?.account_manager_name || null;
+        return quotation?.accountManagerName || null;
       },
     }),
     { name: 'quotation-store' }

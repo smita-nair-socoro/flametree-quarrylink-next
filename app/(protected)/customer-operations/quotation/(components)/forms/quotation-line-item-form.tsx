@@ -68,38 +68,38 @@ export default function QuoteLineItemForm({
     resolver: zodResolver(NewQuotationLineItemFormSchema),
     mode: 'onChange',
     defaultValues: {
-      product_id: isEditing ? selectedLineItem?.product_id : 0,
-      quarry_id: isEditing ? selectedLineItem?.quarry_id : 0,
-      supplier_product_name: isEditing
-        ? selectedLineItem?.supplier_product_name
+      productId: isEditing ? selectedLineItem?.productId : 0,
+      quarryId: isEditing ? selectedLineItem?.quarryId : 0,
+      supplierProductName: isEditing
+        ? selectedLineItem?.supplierProductName
         : '',
-      product_cost_uom: isEditing ? selectedLineItem?.product_cost_uom : '',
-      product_cost_qty: isEditing ? selectedLineItem?.product_cost_qty : 0,
-      product_cost_price: isEditing ? selectedLineItem?.product_cost_price : 0,
-      product_sell_uom: isEditing ? selectedLineItem?.product_sell_uom : '',
-      product_sell_qty: isEditing ? selectedLineItem?.product_sell_qty : 0,
-      product_sell_price: isEditing ? selectedLineItem?.product_sell_price : 0,
-      truck_type: isEditing ? selectedLineItem?.truck_type : '',
-      truck_cost_uom: isEditing ? selectedLineItem?.truck_cost_uom : '',
-      truck_cost_qty: isEditing ? selectedLineItem?.truck_cost_qty : 0,
-      truck_cost_price: isEditing ? selectedLineItem?.truck_cost_price : 0,
-      truck_sell_uom: isEditing ? selectedLineItem?.truck_sell_uom : '',
-      truck_sell_qty: isEditing ? selectedLineItem?.truck_sell_qty : 0,
-      truck_sell_price: isEditing ? selectedLineItem?.truck_sell_price : 0,
-      required_loads: isEditing ? selectedLineItem?.required_loads : 1,
-      total_product_cost_price: isEditing
-        ? selectedLineItem?.total_product_cost_price
+      productCostUom: isEditing ? selectedLineItem?.productCostUom : '',
+      productCostQty: isEditing ? selectedLineItem?.productCostQty : 0,
+      productCostPrice: isEditing ? selectedLineItem?.productCostPrice : 0,
+      productSellUom: isEditing ? selectedLineItem?.productSellUom : '',
+      productSellQty: isEditing ? selectedLineItem?.productSellQty : 0,
+      productSellPrice: isEditing ? selectedLineItem?.productSellPrice : 0,
+      truckType: isEditing ? selectedLineItem?.truckType : '',
+      truckCostUom: isEditing ? selectedLineItem?.truckCostUom : '',
+      truckCostQty: isEditing ? selectedLineItem?.truckCostQty : 0,
+      truckCostPrice: isEditing ? selectedLineItem?.truckCostPrice : 0,
+      truckSellUom: isEditing ? selectedLineItem?.truckSellUom : '',
+      truckSellQty: isEditing ? selectedLineItem?.truckSellQty : 0,
+      truckSellPrice: isEditing ? selectedLineItem?.truckSellPrice : 0,
+      requiredLoads: isEditing ? selectedLineItem?.requiredLoads : 1,
+      totalProductCostPrice: isEditing
+        ? selectedLineItem?.totalProductCostPrice
         : 0,
-      total_truck_cost_price: isEditing
-        ? selectedLineItem?.total_truck_cost_price
+      totalTruckCostPrice: isEditing
+        ? selectedLineItem?.totalTruckCostPrice
         : 0,
-      total_product_sell_price: isEditing
-        ? selectedLineItem?.total_product_sell_price
+      totalProductSellPrice: isEditing
+        ? selectedLineItem?.totalProductSellPrice
         : 0,
-      total_truck_sell_price: isEditing
-        ? selectedLineItem?.total_truck_sell_price
+      totalTruckSellPrice: isEditing
+        ? selectedLineItem?.totalTruckSellPrice
         : 0,
-      gross_profit: isEditing ? selectedLineItem?.gross_profit : 0,
+      grossProfit: isEditing ? selectedLineItem?.grossProfit : 0,
     },
   });
 
@@ -169,30 +169,30 @@ export default function QuoteLineItemForm({
 
   // when product changes, set quarry and supplier product name empty
   // Will change this once API is implemented
-  const productId = quotationLineItemForm.watch('product_id');
+  const productId = quotationLineItemForm.watch('productId');
 
   React.useEffect(() => {
-    const currentProductId = quotationLineItemForm.getValues('product_id');
-    const initialProductId = isEditing ? selectedLineItem?.product_id : 0;
+    const currentProductId = quotationLineItemForm.getValues('productId');
+    const initialProductId = isEditing ? selectedLineItem?.productId : 0;
 
     if (currentProductId !== initialProductId) {
-      quotationLineItemForm.setValue('quarry_id', 0);
-      quotationLineItemForm.setValue('supplier_product_name', '');
+      quotationLineItemForm.setValue('quarryId', 0);
+      quotationLineItemForm.setValue('supplierProductName', '');
     }
   }, [
     productId,
     isEditing,
-    selectedLineItem?.product_id,
+    selectedLineItem?.productId,
     quotationLineItemForm,
   ]);
 
   // Dynamically set supplier product name based on selected Product and Quarry
   // Will change this once API is implemented
-  const quarryId = quotationLineItemForm.watch('quarry_id');
+  const quarryId = quotationLineItemForm.watch('quarryId');
 
   React.useEffect(() => {
-    const currentProductId = quotationLineItemForm.getValues('product_id');
-    const currentQuarryId = quotationLineItemForm.getValues('quarry_id');
+    const currentProductId = quotationLineItemForm.getValues('productId');
+    const currentQuarryId = quotationLineItemForm.getValues('quarryId');
 
     if (currentProductId && currentQuarryId) {
       const productLabel =
@@ -203,7 +203,7 @@ export default function QuoteLineItemForm({
           ?.label || '';
 
       quotationLineItemForm.setValue(
-        'supplier_product_name',
+        'supplierProductName',
         productLabel + ' ' + quarryLabel
       );
     }
@@ -211,47 +211,47 @@ export default function QuoteLineItemForm({
 
   // When truck type changes, set truck cost and sell UOM fields to empty
   // Will change this once API is implemented
-  const truckType = quotationLineItemForm.watch('truck_type');
+  const truckType = quotationLineItemForm.watch('truckType');
 
   React.useEffect(() => {
-    const currentTruckType = quotationLineItemForm.getValues('truck_type');
-    const initialTruckType = isEditing ? selectedLineItem?.truck_type : '';
+    const currentTruckType = quotationLineItemForm.getValues('truckType');
+    const initialTruckType = isEditing ? selectedLineItem?.truckType : '';
 
     if (currentTruckType !== initialTruckType) {
-      quotationLineItemForm.setValue('truck_cost_uom', '');
-      quotationLineItemForm.setValue('truck_sell_uom', '');
+      quotationLineItemForm.setValue('truckCostUom', '');
+      quotationLineItemForm.setValue('truckSellUom', '');
     }
   }, [
     truckType,
     isEditing,
-    selectedLineItem?.truck_type,
+    selectedLineItem?.truckType,
     quotationLineItemForm,
   ]);
 
   // Calculate pricing breakdown whenever relevant form values change
-  const productCostQty = quotationLineItemForm.watch('product_cost_qty');
-  const productCostPrice = quotationLineItemForm.watch('product_cost_price');
-  const truckCostQty = quotationLineItemForm.watch('truck_cost_qty');
-  const truckCostPrice = quotationLineItemForm.watch('truck_cost_price');
-  const productSellQty = quotationLineItemForm.watch('product_sell_qty');
-  const productSellPrice = quotationLineItemForm.watch('product_sell_price');
-  const truckSellQty = quotationLineItemForm.watch('truck_sell_qty');
-  const truckSellPrice = quotationLineItemForm.watch('truck_sell_price');
+  const productCostQty = quotationLineItemForm.watch('productCostQty');
+  const productCostPrice = quotationLineItemForm.watch('productCostPrice');
+  const truckCostQty = quotationLineItemForm.watch('truckCostQty');
+  const truckCostPrice = quotationLineItemForm.watch('truckCostPrice');
+  const productSellQty = quotationLineItemForm.watch('productSellQty');
+  const productSellPrice = quotationLineItemForm.watch('productSellPrice');
+  const truckSellQty = quotationLineItemForm.watch('truckSellQty');
+  const truckSellPrice = quotationLineItemForm.watch('truckSellPrice');
 
   React.useEffect(() => {
     const formValues = quotationLineItemForm.getValues();
 
     const totalProductCostPrice =
-      (formValues.product_cost_qty || 0) * (formValues.product_cost_price || 0);
+      (formValues.productCostQty || 0) * (formValues.productCostPrice || 0);
 
     const totalTruckCostPrice =
-      (formValues.truck_cost_qty || 0) * (formValues.truck_cost_price || 0);
+      (formValues.truckCostQty || 0) * (formValues.truckCostPrice || 0);
 
     const totalProductSellPrice =
-      (formValues.product_sell_qty || 0) * (formValues.product_sell_price || 0);
+      (formValues.productSellQty || 0) * (formValues.productSellPrice || 0);
 
     const totalTruckSellPrice =
-      (formValues.truck_sell_qty || 0) * (formValues.truck_sell_price || 0);
+      (formValues.truckSellQty || 0) * (formValues.truckSellPrice || 0);
 
     // Calculate total invoice (product sell + truck sell)
     const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
@@ -275,22 +275,22 @@ export default function QuoteLineItemForm({
 
     // Update form values for the calculated totals
     quotationLineItemForm.setValue(
-      'total_product_cost_price',
+      'totalProductCostPrice',
       totalProductCostPrice
     );
     quotationLineItemForm.setValue(
-      'total_truck_cost_price',
+      'totalTruckCostPrice',
       totalTruckCostPrice
     );
     quotationLineItemForm.setValue(
-      'total_product_sell_price',
+      'totalProductSellPrice',
       totalProductSellPrice
     );
     quotationLineItemForm.setValue(
-      'total_truck_sell_price',
+      'totalTruckSellPrice',
       totalTruckSellPrice
     );
-    quotationLineItemForm.setValue('gross_profit', grossProfit);
+    quotationLineItemForm.setValue('grossProfit', grossProfit);
   }, [
     productCostQty,
     productCostPrice,
@@ -325,32 +325,32 @@ export default function QuoteLineItemForm({
 
     // Prepare quote item data - convert dollars to cents for storage
     const quoteItemData = {
-      quote_id: selectedQuotation.id,
-      product_name: productOptions.find(p => p.value === values.product_id)?.label || '',
-      quarry_name: quarryOptions.find(q => q.value === values.quarry_id)?.label || '',
-      supplier_product_name: values.supplier_product_name,
-      product_cost_uom: values.product_cost_uom,
-      product_cost_qty: values.product_cost_qty,
-      product_cost_price: dollarsToCents(values.product_cost_price),
-      total_product_cost_price: dollarsToCents(values.total_product_cost_price),
-      product_sell_uom: values.product_sell_uom,
-      product_sell_qty: values.product_sell_qty,
-      product_sell_price: dollarsToCents(values.product_sell_price),
-      total_product_sell_price: dollarsToCents(values.total_product_sell_price),
-      truck_type: values.truck_type,
-      truck_cost_uom: values.truck_cost_uom,
-      truck_cost_qty: values.truck_cost_qty,
-      truck_cost_price: dollarsToCents(values.truck_cost_price),
-      total_truck_cost_price: dollarsToCents(values.total_truck_cost_price),
-      truck_sell_uom: values.truck_sell_uom,
-      truck_sell_qty: values.truck_sell_qty,
-      truck_sell_price: dollarsToCents(values.truck_sell_price),
-      total_truck_sell_price: dollarsToCents(values.total_truck_sell_price),
-      gross_profit: values.gross_profit,
-      total_quantity_required: values.product_sell_qty,
+      quoteId: selectedQuotation.id,
+      product_name: productOptions.find(p => p.value === values.productId)?.label || '',
+      quarry_name: quarryOptions.find(q => q.value === values.quarryId)?.label || '',
+      supplierProductName: values.supplierProductName,
+      productCostUom: values.productCostUom,
+      productCostQty: values.productCostQty,
+      productCostPrice: dollarsToCents(values.productCostPrice),
+      total_productCostPrice: dollarsToCents(values.totalProductCostPrice),
+      productSellUom: values.productSellUom,
+      productSellQty: values.productSellQty,
+      productSellPrice: dollarsToCents(values.productSellPrice),
+      total_productSellPrice: dollarsToCents(values.totalProductSellPrice),
+      truckType: values.truckType,
+      truckCostUom: values.truckCostUom,
+      truckCostQty: values.truckCostQty,
+      truckCostPrice: dollarsToCents(values.truckCostPrice),
+      total_truckCostPrice: dollarsToCents(values.totalTruckCostPrice),
+      truckSellUom: values.truckSellUom,
+      truckSellQty: values.truckSellQty,
+      truckSellPrice: dollarsToCents(values.truckSellPrice),
+      total_truckSellPrice: dollarsToCents(values.totalTruckSellPrice),
+      grossProfit: values.grossProfit,
+      total_quantity_required: values.productSellQty,
       allocated_quantity: 0,
-      remaining_quantity: values.product_sell_qty,
-      required_loads: values.required_loads,
+      remaining_quantity: values.productSellQty,
+      requiredLoads: values.requiredLoads,
       version: 1,
       is_deleted: false,
     };
@@ -412,7 +412,7 @@ export default function QuoteLineItemForm({
               </div>
               <FormSelect
                 control={quotationLineItemForm.control}
-                name="product_id"
+                name="productId"
                 label="Product Name*"
                 searchLabel="Product"
                 options={productOptions}
@@ -425,7 +425,7 @@ export default function QuoteLineItemForm({
 
               <FormSelect
                 control={quotationLineItemForm.control}
-                name="quarry_id"
+                name="quarryId"
                 label="Quarry/Supplier*"
                 searchLabel="Quarry/Supplier"
                 options={quarryOptions}
@@ -434,14 +434,14 @@ export default function QuoteLineItemForm({
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
                 disabled={
-                  !quotationLineItemForm.watch('product_id') ||
+                  !quotationLineItemForm.watch('productId') ||
                   (isEditing && !canEdit)
                 }
               />
 
               <FormField
                 control={quotationLineItemForm.control}
-                name="supplier_product_name"
+                name="supplierProductName"
                 render={({ field }) => (
                   <FormItem
                     className={
@@ -484,7 +484,7 @@ export default function QuoteLineItemForm({
                 >
                   <FormSelect
                     control={quotationLineItemForm.control}
-                    name="product_cost_uom"
+                    name="productCostUom"
                     label="Unit of Measure*"
                     searchLabel="Unit of Measure"
                     showSearch={false}
@@ -495,7 +495,7 @@ export default function QuoteLineItemForm({
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="product_cost_qty"
+                    name="productCostQty"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
@@ -513,7 +513,7 @@ export default function QuoteLineItemForm({
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="product_cost_price"
+                    name="productCostPrice"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-1">
@@ -529,7 +529,7 @@ export default function QuoteLineItemForm({
                         </FormLabel>
                         <FormControl>
                           <CurrencyInput
-                            id="product_cost_price"
+                            id="productCostPrice"
                             className="w-full"
                             value={field.value}
                             onValueChange={(value) =>
@@ -559,7 +559,7 @@ export default function QuoteLineItemForm({
                 >
                   <FormSelect
                     control={quotationLineItemForm.control}
-                    name="product_sell_uom"
+                    name="productSellUom"
                     label="Unit of Measure*"
                     searchLabel="Unit of Measure"
                     showSearch={false}
@@ -570,7 +570,7 @@ export default function QuoteLineItemForm({
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="product_sell_qty"
+                    name="productSellQty"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
@@ -588,7 +588,7 @@ export default function QuoteLineItemForm({
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="product_sell_price"
+                    name="productSellPrice"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-1">
@@ -604,7 +604,7 @@ export default function QuoteLineItemForm({
                         </FormLabel>
                         <FormControl>
                           <CurrencyInput
-                            id="product_sell_price"
+                            id="productSellPrice"
                             className="w-full"
                             value={field.value}
                             onValueChange={(value) =>
@@ -633,7 +633,7 @@ export default function QuoteLineItemForm({
               </div>
               <FormSelect
                 control={quotationLineItemForm.control}
-                name="truck_type"
+                name="truckType"
                 label="Truck Type*"
                 searchLabel="Truck Type"
                 options={truckTypeOptions}
@@ -652,21 +652,21 @@ export default function QuoteLineItemForm({
                 >
                   <FormSelect
                     control={quotationLineItemForm.control}
-                    name="truck_cost_uom"
+                    name="truckCostUom"
                     label="Unit of Measure*"
                     searchLabel="Unit of Measure"
                     showSearch={false}
                     options={truckUnitOptions}
                     placeholder="Select Unit of Measure"
                     disabled={
-                      !quotationLineItemForm.watch('truck_type') ||
+                      !quotationLineItemForm.watch('truckType') ||
                       (isEditing && !canEdit)
                     }
                   />
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="truck_cost_qty"
+                    name="truckCostQty"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
@@ -684,7 +684,7 @@ export default function QuoteLineItemForm({
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="truck_cost_price"
+                    name="truckCostPrice"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-1">
@@ -700,7 +700,7 @@ export default function QuoteLineItemForm({
                         </FormLabel>
                         <FormControl>
                           <CurrencyInput
-                            id="truck_cost_price"
+                            id="truckCostPrice"
                             className="w-full"
                             value={field.value}
                             onValueChange={(value) =>
@@ -728,21 +728,21 @@ export default function QuoteLineItemForm({
                 >
                   <FormSelect
                     control={quotationLineItemForm.control}
-                    name="truck_sell_uom"
+                    name="truckSellUom"
                     label="Unit of Measure*"
                     searchLabel="Unit of Measure"
                     showSearch={false}
                     options={truckUnitOptions}
                     placeholder="Select Unit of Measure"
                     disabled={
-                      !quotationLineItemForm.watch('truck_type') ||
+                      !quotationLineItemForm.watch('truckType') ||
                       (isEditing && !canEdit)
                     }
                   />
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="truck_sell_qty"
+                    name="truckSellQty"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
@@ -760,7 +760,7 @@ export default function QuoteLineItemForm({
 
                   <FormField
                     control={quotationLineItemForm.control}
-                    name="truck_sell_price"
+                    name="truckSellPrice"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-1">
@@ -776,7 +776,7 @@ export default function QuoteLineItemForm({
                         </FormLabel>
                         <FormControl>
                           <CurrencyInput
-                            id="truck_cost_price"
+                            id="truckCostPrice"
                             className="w-full"
                             value={field.value}
                             onValueChange={(value) =>
@@ -874,7 +874,7 @@ export default function QuoteLineItemForm({
                       Created By:
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLineItem?.created_by || 'N/A'}
+                      {selectedLineItem?.createdBy || 'N/A'}
                     </p>
                   </div>
 
@@ -883,7 +883,7 @@ export default function QuoteLineItemForm({
                       Last Modified By:
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLineItem?.last_modified_by || 'N/A'}
+                      {selectedLineItem?.lastModifiedBy || 'N/A'}
                     </p>
                   </div>
 
@@ -892,9 +892,9 @@ export default function QuoteLineItemForm({
                       Created Date:
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLineItem?.created_at
+                      {selectedLineItem?.createdAt
                         ? new Date(
-                            selectedLineItem.created_at
+                            selectedLineItem.createdAt
                           ).toLocaleDateString('en-AU', {
                             day: '2-digit',
                             month: '2-digit',
@@ -909,9 +909,9 @@ export default function QuoteLineItemForm({
                       Modified Date:
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLineItem?.updated_at
+                      {selectedLineItem?.updatedAt
                         ? new Date(
-                            selectedLineItem.updated_at || ''
+                            selectedLineItem.updatedAt || ''
                           ).toLocaleDateString('en-AU', {
                             day: '2-digit',
                             month: '2-digit',

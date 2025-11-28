@@ -17,7 +17,6 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions, useExtendExpiryDate } from '@/lib/api/quotation';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DialogConfig {
@@ -73,15 +72,15 @@ const getDialogConfigs = (
   newExpiryDate?: Date,
   setNewExpiryDate?: (date: Date) => void
 ): Record<string, DialogConfig> => {
-  const quotationNumber = quotationData?.quote_number;
-  const projectName = quotationData?.project_name;
-  const customerName = quotationData?.customer_name;
-  const customerEmail = quotationData?.customer_email;
-  const totalSellPrice = quotationData?.total_sell_price
-    ? centsToDollars(quotationData?.total_sell_price)
+  const quotationNumber = quotationData?.quoteNumber;
+  const projectName = quotationData?.projectName;
+  const customerName = quotationData?.customerName;
+  const customerEmail = quotationData?.customerEmail;
+  const totalSellPrice = quotationData?.totalSellPrice
+    ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
-  const lineItemsCount = quotationData?.line_items_count;
-  const expiryDate = quotationData?.expiry_date;
+  const lineItemsCount = quotationData?.lineItemsCount;
+  const expiryDate = quotationData?.expiryDate;
 
   if (selectedAction?.key === 'sendToCustomer') {
     return {
@@ -536,15 +535,11 @@ export function useQuotationActions(
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
-      const convertedQuotation = convertKeysToSnakeCase(
-        quotationDetailData
-      ) as any;
-
-      // Generate mock email if backend doesn't provide customer_email
-      let customerEmail = convertedQuotation.customer_email;
-      if (!customerEmail && convertedQuotation.customer_name) {
+      // Generate mock email if backend doesn't provide customerEmail
+      let customerEmail = quotationDetailData.customerEmail;
+      if (!customerEmail && quotationDetailData.customerName) {
         // Create mock email from customer name
-        const emailName = convertedQuotation.customer_name
+        const emailName = quotationDetailData.customerName
           .toLowerCase()
           .replace(/\s+/g, '.')
           .replace(/[^a-z0-9.]/g, '');
@@ -552,11 +547,9 @@ export function useQuotationActions(
       }
 
       const transformed = {
-        ...convertedQuotation,
-        quoteId: convertedQuotation.id,
-        status: convertedQuotation.quote_status,
-        customer_email: customerEmail, // Use mock if backend doesn't provide
-        line_items: convertedQuotation.quote_items || convertedQuotation.line_items || [],
+        ...quotationDetailData,
+        status: quotationDetailData.quoteStatus,
+        customerEmail: customerEmail, // Use mock if backend doesn't provide
       } as Quotation;
 
       return transformed;
@@ -581,7 +574,7 @@ export function useQuotationActions(
     setNewExpiryDate
   );
 
-  const createDialogAction = (actionKey: string, action: () => void) => {
+  const createDialogAction = (actionKey: string) => {
     return () => {
       setSelectedAction({ key: actionKey });
       setActiveDialog(actionKey);
@@ -594,30 +587,15 @@ export function useQuotationActions(
       // TODO: implement duplicate logic
     },
 
-    sendToCustomer: createDialogAction('sendToCustomer', () => {
-      console.log('Send to customer:', quotationId);
-      // TODO: implement send to customer mutation logic
-    }),
+    sendToCustomer: createDialogAction('sendToCustomer'),
 
-    approve: createDialogAction('approve', () => {
-      console.log('Approve quotation:', quotationId);
-      // TODO: implement approve logic
-    }),
+    approve: createDialogAction('approve'),
 
-    decline: createDialogAction('decline', () => {
-      console.log('Decline quotation:', quotationId);
-      // TODO: implement decline logic
-    }),
+    decline: createDialogAction('decline'),
 
-    convertToJob: createDialogAction('convertToJob', () => {
-      console.log('Convert to job:', quotationId);
-      // TODO: implement convert to job logic
-    }),
+    convertToJob: createDialogAction('convertToJob'),
 
-    extendExpiry: createDialogAction('extendExpiry', () => {
-      console.log('Extend expiry:', quotationId);
-      // TODO: implement extend expiry logic
-    }),
+    extendExpiry: createDialogAction('extendExpiry'),
 
     view: () => {
       setViewOpen(true);
@@ -633,10 +611,7 @@ export function useQuotationActions(
       // TODO: implement print logic
     },
 
-    archive: createDialogAction('archive', () => {
-      console.log('Archive quotation:', quotationId);
-      // TODO: implement delete logic
-    }),
+    archive: createDialogAction('archive'),
   };
 
   // Render active dialog

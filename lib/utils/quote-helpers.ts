@@ -45,14 +45,14 @@ const combineDateAndTime = (date: Date | undefined, timeString: string): string 
  * Generates the next quote number based on existing quotes.
  * Format: Q#### (e.g., Q0001, Q0016, Q0017)
  */
-export const generateNextQuoteNumber = (existingQuotes: { quote_number: string }[]): string => {
+export const generateNextQuoteNumber = (existingQuotes: { quoteNumber: string }[]): string => {
   if (!existingQuotes || existingQuotes.length === 0) {
     return 'Q0001';
   }
 
   const numbers = existingQuotes
     .map((q) => {
-      const match = q.quote_number.match(/Q(\d+)/);
+      const match = q.quoteNumber.match(/Q(\d+)/);
       return match ? parseInt(match[1], 10) : 0;
     })
     .filter((n) => !isNaN(n));
@@ -72,8 +72,8 @@ export const transformFormDataToQuoteDto = (
     deliveryAddressId?: number;
   }
 ): Partial<QuotationDTO> => {
-  const deliveryDate = formData.delivery_start_date as Date | undefined;
-  const expiryDate = formData.expiry_date as Date | undefined;
+  const deliveryDate = formData.deliveryStartDate as Date | undefined;
+  const expiryDate = formData.expiryDate as Date | undefined;
 
   if (!expiryDate) {
     throw new Error('Expiry date is required');
@@ -81,14 +81,14 @@ export const transformFormDataToQuoteDto = (
 
   const transformed: Record<string, unknown> = {
     quoteNumber: additionalData.quoteNumber,
-    quoteType: formData.quote_type as QuoteType,
-    customerId: formData.customer_id as number,
+    quoteType: formData.quoteType as QuoteType,
+    customerId: formData.customerId as number,
     customerName: additionalData.customerName,
-    projectName: formData.project_name as string,
+    projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
     deliveryAddressId: additionalData.deliveryAddressId || 1,
     expiryDate: toLocalDateTime(expiryDate),
-    accountManager: formData.account_manager as number,
+    accountManager: formData.accountManager as number,
     accountManagerName: additionalData.accountManagerName,
     version: 1,
   };
@@ -99,7 +99,7 @@ export const transformFormDataToQuoteDto = (
 
   const windowStart = combineDateAndTime(
     deliveryDate,
-    formData.delivery_window_start as string
+    formData.deliveryWindowStart as string
   );
   if (windowStart) {
     transformed.deliveryWindowStart = windowStart;
@@ -107,7 +107,7 @@ export const transformFormDataToQuoteDto = (
 
   const windowEnd = combineDateAndTime(
     deliveryDate,
-    formData.delivery_window_end as string
+    formData.deliveryWindowEnd as string
   );
   if (windowEnd) {
     transformed.deliveryWindowEnd = windowEnd;
@@ -148,19 +148,19 @@ export const calculateQuotationPricing = (
 
   // Sum up the values (in cents)
   const totalProductCostCents = lineItems.reduce(
-    (sum, item) => sum + (item.total_product_cost_price || 0),
+    (sum, item) => sum + (item.totalProductCostPrice || 0),
     0
   );
   const totalTruckCostCents = lineItems.reduce(
-    (sum, item) => sum + (item.total_truck_cost_price || 0),
+    (sum, item) => sum + (item.totalTruckCostPrice || 0),
     0
   );
   const totalProductSellCents = lineItems.reduce(
-    (sum, item) => sum + (item.total_product_sell_price || 0),
+    (sum, item) => sum + (item.totalProductSellPrice || 0),
     0
   );
   const totalTruckSellCents = lineItems.reduce(
-    (sum, item) => sum + (item.total_truck_sell_price || 0),
+    (sum, item) => sum + (item.totalTruckSellPrice || 0),
     0
   );
 
