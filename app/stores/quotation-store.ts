@@ -11,6 +11,7 @@ interface QuotationStore {
   setQuotations: (quotations: Quotation[]) => void;
   setSelectedQuotation: (quotation: Quotation | null) => void;
   setLoading: (loading: boolean) => void;
+  bulkArchiveQuotations: (quotationIds: number[]) => void;
 
   getQuotationById: (id: number) => Quotation | undefined;
   getQuotationsByStatus: (status: string) => Quotation[];
@@ -42,6 +43,19 @@ export const useQuotationStore = create<QuotationStore>()(
         set({ selectedQuotation: quotation }),
 
       setLoading: (loading) => set({ isLoading: loading }),
+
+      bulkArchiveQuotations: (quotationIds) => {
+        const state = get();
+        const updatedQuotations = state.quotations.map((q) => {
+          if (quotationIds.includes(q.id)) {
+            return { ...q, status: 'ARCHIVED' } as Quotation;
+          }
+          return q;
+        });
+        set({ quotations: updatedQuotations });
+        console.log('Bulk archived quotations:', quotationIds);
+        // TODO: implement API call to archive quotations
+      },
 
       // Selectors
       getQuotationById: (id) => {
