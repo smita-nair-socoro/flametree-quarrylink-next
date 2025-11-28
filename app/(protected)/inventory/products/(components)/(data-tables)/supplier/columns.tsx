@@ -5,7 +5,12 @@ import { ColumnDef } from '@tanstack/react-table';
 // import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { HelpCircle, TrendingDown, TrendingUp } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 // Allow passing the parent productId so actions can call detail APIs correctly
@@ -36,7 +41,19 @@ export const supplierColumns = (
     id: 'per_tn_cost_price',
     accessorFn: (row) => row.per_tn_cost_price,
     header: ({}) => {
-      return <div>Cost Price per TN</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Cost Price (TN){' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       const costPrice = row.original.per_tn_cost_price || 0;
@@ -48,7 +65,19 @@ export const supplierColumns = (
     id: 'per_tn_sell_price',
     accessorFn: (row) => row.per_tn_sell_price,
     header: ({}) => {
-      return <div>Sell Price per TN</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Sell Price (TN)
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       const sellPrice = row.original.per_tn_sell_price || 0;
@@ -97,7 +126,7 @@ export const supplierColumns = (
     id: 'action',
     accessorFn: (row) => row.quarry_supplier_id,
     header: ({}) => {
-      return <div>Actions</div>;
+      return <div></div>;
     },
     cell: ({ row }) => (
       <SupplierTableActions

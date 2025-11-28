@@ -2,9 +2,14 @@
 
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
-// import { TrendingDown, TrendingUp } from 'lucide-react';
-// import { cn } from '@/lib/utils';
+import { TrendingDown, TrendingUp, HelpCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -21,7 +26,19 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     id: 'cost_price',
     accessorFn: (row) => row.per_tn_cost_price,
     header: ({}) => {
-      return <div>Cost Price</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Cost Price{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.available_for_sale_tn === false) {
@@ -34,13 +51,25 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'cost price',
-    size: 120,
+    size: 130,
   },
   {
     id: 'sell_price',
     accessorFn: (row) => row.per_tn_sell_price,
     header: ({}) => {
-      return <div>Sell Price</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Sell Price{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.available_for_sale_tn === false) {
@@ -53,36 +82,45 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'sell price',
-    size: 120,
+    size: 130,
   },
-  // {
-  //   id: 'margin',
-  //   accessorFn: (row) => row.price.margin_tn,
-  //   header: ({}) => {
-  //     return <div>Margin</div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     if (row.original.price.available_for_sale_tn === false) {
-  //       return <div>N/A</div>;
-  //     } else {
-  //       const margin = row.original.price.margin_tn || 0;
-  //       return (
-  //         <div
-  //           className={cn(
-  //             margin < 0 ? 'text-red-600' : 'text-green-600',
-  //             'flex justify-start gap-1'
-  //           )}
-  //         >
-  //           {margin < 0 && <TrendingDown className="w-4 h-4 text-red-600" />}
-  //           {margin > 0 && <TrendingUp className="w-4 h-4 text-green-600" />}
-  //           {((margin || 0) * 100).toFixed(2)}%
-  //         </div>
-  //       );
-  //     }
-  //   },
-  //   meta: 'Margin',
-  //   size: 160,
-  // },
+  {
+    id: 'margin',
+    accessorFn: (row) => {
+      const costPrice = row.per_tn_cost_price || 0;
+      const sellPrice = row.per_tn_sell_price || 0;
+      if (costPrice === 0) return 0;
+      return (sellPrice - costPrice) / costPrice;
+    },
+    header: ({}) => {
+      return <div>Margin</div>;
+    },
+    cell: ({ row }) => {
+      const costPrice = row.original.per_tn_cost_price || 0;
+      const sellPrice = row.original.per_tn_sell_price || 0;
+
+      // Calculate margin: (Sell Price - Cost Price) / Cost Price
+      const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
+
+      return (
+        <div
+          className={cn(
+            margin < 0
+              ? 'text-red-600'
+              : margin > 0
+              ? 'text-green-600'
+              : 'text-gray-600',
+            'flex justify-start items-center gap-1'
+          )}
+        >
+          {margin < 0 && <TrendingDown className="w-4 h-4" />}
+          {margin > 0 && <TrendingUp className="w-4 h-4" />}
+          <span>{(margin * 100).toFixed(2)}%</span>
+        </div>
+      );
+    },
+    meta: 'Margin',
+  },
   {
     id: 'available_for_sale_tn',
     accessorFn: (row) => row.available_for_sale_tn,

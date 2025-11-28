@@ -24,6 +24,7 @@ import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
 import { Card, CardContent } from '@/components/ui/card';
+import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
   // Use React Query to fetch quotations data
@@ -109,6 +110,12 @@ export default function QuotationsPage() {
     },
   ];
 
+  // State for bulk selection
+  const [selectedQuotations, setSelectedQuotations] = React.useState<
+    Quotation[]
+  >([]);
+  const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
+
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
     selectedQuotationForActions
@@ -118,6 +125,16 @@ export default function QuotationsPage() {
     setSelectedQuotation(quotation);
     setSelectedQuotationForActions(quotation);
     actions.view();
+  };
+
+  const handleRowSelectionChange = (selected: Quotation[]) => {
+    setSelectedQuotations(selected);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedQuotations([]);
+    // Force re-render of table to clear checkboxes
+    setRowSelectionKey((prev) => prev + 1);
   };
 
   const facetDefs: FacetDefinition[] = [
@@ -149,24 +166,30 @@ export default function QuotationsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statsCards.map((card) => {
           const Icon = card.icon;
           return (
-            <Card key={card.title} className="p-5">
+            <Card key={card.title} className="overflow-hidden p-5">
               <CardContent className="p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373] font-medium">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
                     {card.title}
                   </span>
                   <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
+                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
                   >
-                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                    <Icon
+                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
+                    />
                   </div>
                 </div>
-                <div className="text-3xl font-bold pt-2">{card.value}</div>
-                <div className={`text-sm font-normal ${card.descriptionColor}`}>
+                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
+                  {card.value}
+                </div>
+                <div
+                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
+                >
                   {card.description}
                 </div>
               </CardContent>
@@ -189,12 +212,22 @@ export default function QuotationsPage() {
           </div>
         ) : (
           <DataTableClient
+            key={rowSelectionKey}
             tableId="quotation_main_data_table"
             data={items ?? []}
             columns={quotationColumns}
             facetDefination={facetDefs}
             searchPlaceHolder="Search quotes..."
             onRowClick={handleRowClick}
+            enableRowSelection={true}
+            onRowSelectionChange={handleRowSelectionChange}
+            // bulkActions={true}
+            bulkActionsSlot={
+              <QuotationBulkActions
+                selectedQuotations={selectedQuotations}
+                onClearSelection={handleClearSelection}
+              />
+            }
           />
         )}
       </div>

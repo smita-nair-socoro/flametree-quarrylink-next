@@ -1,3 +1,5 @@
+import { QUOTE_STATUS as QuoteStatus, QUOTE_TYPE as QuoteType } from "@/lib/types/quotation-enums";
+
 export const mockQuotationData = {
   // Navbar data
   navbar: {
@@ -5,7 +7,7 @@ export const mockQuotationData = {
     dateIssued: '15th July, 2026',
     validUntil: '15th August, 2026',
     accountManager: 'Sarah Wilson',
-    status: 'PENDING' as const,
+    status: QuoteStatus.PENDING,
   },
 
   // Customer information
@@ -22,7 +24,7 @@ export const mockQuotationData = {
 
   // Project details
   project: {
-    type: 'DELIVERY' as const,
+    type: QuoteType.DELIVERY,
     projectName: 'Westfield Shopping Centre Extension',
     deliveryAddress: '543 Construction Access Road, Parramatta NSW 2150',
     deliveryDate: '23rd August, 2026',
@@ -79,23 +81,18 @@ export const mockQuotationData = {
     totalQuantity: '600 tonnes, 45 m³',
     estimatedDelivery: '23rd August, 2026',
     termsAndConditions: [
-      'Payment terms: Net 30 days',
       'Delivery subject to weather conditions',
       'Quote valid for 14 days from issue date',
     ],
     subtotal: 27010000.0,
     gst: 2843250.0,
     total: 31275750.0,
-    avatarUrl: undefined, // Can be added when available
-    avatarFallback: 'SW',
   },
 
   // Proceed actions
   proceedActions: {
     validUntil: '29th July, 2026',
     accountManager: 'Sarah Wilson',
-    avatarUrl: undefined, // Can be added when available
-    avatarFallback: 'SW',
   },
 
   // Footer

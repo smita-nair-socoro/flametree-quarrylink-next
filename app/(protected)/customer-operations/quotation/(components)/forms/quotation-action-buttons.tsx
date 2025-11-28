@@ -25,6 +25,7 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
+import { useAuth } from '@/hooks/use-auth';
 
 interface QuotationActionButtonsProps {
   quotation: Quotation | null | undefined;
@@ -36,6 +37,11 @@ export function QuotationActionButtons({
   layout = 'expanded',
 }: QuotationActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole = attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     quotation?.id,
@@ -110,10 +116,12 @@ export function QuotationActionButtons({
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.convertToJob}>
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Create Job
-                </DropdownMenuItem>
+                {!isEssentials && (
+                  <DropdownMenuItem onClick={actions.convertToJob}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Create Job
+                  </DropdownMenuItem>
+                )}
               </>
             )}
 
@@ -255,15 +263,17 @@ export function QuotationActionButtons({
               <ThumbsDown className="h-4 w-4 mr-2" />
               Decline
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.convertToJob}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
-            >
-              <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
-              Create Job
-            </Button>
+            {!isEssentials && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={actions.convertToJob}
+                className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+              >
+                <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
+                Create Job
+              </Button>
+            )}
           </>
         )}
 
