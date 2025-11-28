@@ -17,6 +17,8 @@ import {
   useReactTable,
   VisibilityState,
   Updater,
+  RowSelectionState,
+  Row,
 } from '@tanstack/react-table';
 
 import {
@@ -61,6 +63,7 @@ import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToolbarCompact } from '@/hooks/use-toolbar-compact';
 import Image from 'next/image';
+import { Checkbox } from './checkbox';
 import {
   Drawer,
   DrawerContent,
@@ -87,6 +90,10 @@ interface DataTableProps<TData, TValue> {
   useColumnSizing?: boolean; // Optional prop to enable column sizing
   onRowClick?: (row: TData) => void; // Optional row click handler
   isShowHideColumns?: boolean;
+  enableRowSelection?: boolean; // Enable row selection with checkboxes
+  onRowSelectionChange?: (selectedRows: TData[]) => void; // Callback when selection changes
+  rowSelectionFilter?: (row: TData) => boolean; // Filter which rows can be selected
+  bulkActionsSlot?: React.ReactNode; // Slot for bulk action buttons
   allowClicksInsideModal?: boolean; // Allow row clicks when table is inside a modal/dialog (default: false)
 }
 
@@ -114,6 +121,7 @@ const defaultColumnFilters: ColumnFiltersState = [];
 const defaultGlobalFilter = '';
 const defaultColumnVisibility: VisibilityState = {};
 const defaultPaginationSize = '10';
+const defaultRowSelection: RowSelectionState = {};
 
 export function DataTableClient<TData, TValue>({
   columns,
@@ -126,6 +134,10 @@ export function DataTableClient<TData, TValue>({
   onRowClick,
   isShowHideColumns = true,
   allowClicksInsideModal = false, // Default to false for safety
+  enableRowSelection = false,
+  onRowSelectionChange,
+  rowSelectionFilter,
+  bulkActionsSlot,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -188,12 +200,32 @@ export function DataTableClient<TData, TValue>({
   const [tempColumnFilters, setTempColumnFilters] =
     useState<ColumnFiltersState>([]);
 
+  const [rowSelection, setRowSelection] =
+    useState<RowSelectionState>(defaultRowSelection);
+
   // Sync temp filters when drawer opens
   useEffect(() => {
     if (drawerOpen) {
       setTempColumnFilters(columnFilters);
     }
   }, [drawerOpen, columnFilters]);
+
+  // Notify parent of selection changes
+  useEffect(() => {
+    if (enableRowSelection && onRowSelectionChange) {
+      const selectedRowIds = Object.keys(rowSelection).filter(
+        (key) => rowSelection[key]
+      );
+      const selectedRows = selectedRowIds
+        .map((id) => {
+          const index = parseInt(id);
+          return data[index];
+        })
+        .filter(Boolean);
+      onRowSelectionChange(selectedRows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection]);
 
   // Clear localStorage when switching to mobile or reset everything for mobile
   useEffect(() => {
@@ -289,6 +321,40 @@ export function DataTableClient<TData, TValue>({
     return found?.label ?? 'Select page size';
   }, [paginationSize]);
 
+  // Create columns with checkbox column if row selection is enabled
+  const tableColumns = useMemo(() => {
+    if (!enableRowSelection) return columns;
+
+    const checkboxColumn: ColumnDef<TData, TValue> = {
+      id: 'select',
+      size: 40,
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className={'data-[state=checked]:bg-[#1D2B41]'}
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+          disabled={!row.getCanSelect()}
+          className={'data-[state=checked]:bg-[#1D2B41]'}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    };
+
+    return [checkboxColumn, ...columns];
+  }, [columns, enableRowSelection]);
+
   // Define the filter function
   const arrIncludesSome: FilterFn<TData> = (row, columnId, filterValues) => {
     if (!Array.isArray(filterValues) || filterValues.length === 0) return true;
@@ -309,7 +375,7 @@ export function DataTableClient<TData, TValue>({
 
   const table = useReactTable({
     data,
-    columns,
+    columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -328,6 +394,14 @@ export function DataTableClient<TData, TValue>({
     onColumnFiltersChange: handleColumnFiltersChange,
     onGlobalFilterChange: handleGlobalFilterChange,
     onColumnVisibilityChange: handleColumnVisibilityChange,
+    onRowSelectionChange: setRowSelection,
+
+    enableRowSelection: enableRowSelection
+      ? (row: Row<TData>) => {
+          if (!rowSelectionFilter) return true;
+          return rowSelectionFilter(row.original);
+        }
+      : undefined,
 
     state: {
       sorting,
@@ -335,6 +409,7 @@ export function DataTableClient<TData, TValue>({
       columnFilters,
       globalFilter,
       columnVisibility,
+      rowSelection,
     },
   });
 
@@ -683,11 +758,16 @@ export function DataTableClient<TData, TValue>({
         </div>
       )}
 
+      {/* Bulk Actions Slot */}
+      {enableRowSelection && bulkActionsSlot && (
+        <div className="mb-3">{bulkActionsSlot}</div>
+      )}
+
       {/* Table Container with External Scroll */}
       <div className="overflow-x-auto">
         <div
           className={cn(
-            simpleTable ? '' : 'rounded-md border p-2',
+            simpleTable ? '' : 'rounded-md border pt-2',
             'bg-white',
             'min-w-fit'
           )}
@@ -705,6 +785,7 @@ export function DataTableClient<TData, TValue>({
                       className={cn(
                         'text-muted-foreground whitespace-nowrap',
                         simpleTable && 'border-b-0 font-medium',
+                        !simpleTable && 'first:pl-4 last:pr-4 py-2',
                         !simpleTable && headerIndex === 0 && 'rounded-tl-md',
                         !simpleTable &&
                           headerIndex === hg.headers.length - 1 &&
@@ -746,10 +827,11 @@ export function DataTableClient<TData, TValue>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
-                      simpleTable &&
-                        'border-b border-border hover:bg-transparent',
-                      !simpleTable && 'bg-white hover:bg-gray-100 ',
-                      onRowClick && !simpleTable && 'cursor-pointer'
+                      simpleTable
+                        ? 'border-b border-border hover:bg-transparent'
+                        : 'bg-white hover:bg-gray-100',
+                      !simpleTable && onRowClick && 'cursor-pointer',
+                      row.getIsSelected() && '!bg-[#EFF6FF] hover:!bg-blue-100'
                     )}
                     onClick={(e) => {
                       // Prevent row click if clicking on buttons or interactive elements
@@ -789,6 +871,7 @@ export function DataTableClient<TData, TValue>({
                         className={cn(
                           simpleTable && 'border-b-0',
                           'whitespace-nowrap',
+                          !simpleTable && 'first:pl-4 last:pr-4 py-2',
                           cellIndex === row.getVisibleCells().length - 1 &&
                             'w-auto text-right'
                         )}

@@ -18,7 +18,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
   // Headers configuration
   const headers: FormTableHeader[] = [
     { key: 'rate_type', label: 'Rate Type', className: 'w-30' },
-    { key: 'rate', label: 'Rate ($)', className: 'w-30' },
+    { key: 'rate', label: 'Rate ($)', className: 'w-30', tooltip: '(ex-GST)' },
     { key: 'unit', label: 'Unit', className: 'w-25' },
     {
       key: 'available',

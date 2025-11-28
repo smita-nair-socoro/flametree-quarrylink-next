@@ -79,6 +79,7 @@ export function ActionDialog({
           customWidth ? customWidth : 'w-[512px]',
           'max-w-full gap-6 max-h-[90vh] overflow-y-auto p-[24.62px]'
         )}
+        style={{ scrollbarGutter: 'auto' }}
       >
         <DialogHeader className={cn(title? '' : 'hidden')}>
           <DialogTitle>
