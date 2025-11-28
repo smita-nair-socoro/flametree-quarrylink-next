@@ -24,7 +24,7 @@ import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { CurrencyInput } from '@/components/ui/input-mask';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem } from '@/lib/api/quotation';
-import { notifyPromise } from '@/lib/toast';
+import { notifySuccess, notifyError } from '@/lib/toast';
 import { dollarsToCents } from '@/lib/utils/currency';
 import {
   Tooltip,
@@ -355,19 +355,15 @@ export default function QuoteLineItemForm({
       is_deleted: false,
     };
 
-    await notifyPromise(
-      createQuoteItem.mutateAsync(quoteItemData),
-      {
-        loading: 'Adding product...',
-        success: () => {
-          quotationLineItemForm.reset();
-          onCancel?.();
-          return 'Product added successfully!';
-        },
-        error: (err) =>
-          `Failed to add product: ${err instanceof Error ? err.message : 'Unknown error'}`,
-      }
-    );
+    try {
+      await createQuoteItem.mutateAsync(quoteItemData);
+      notifySuccess('Product Added');
+      quotationLineItemForm.reset();
+      onCancel?.();
+    } catch (error) {
+      console.error('Failed to add product:', error);
+      notifyError('Failed to Add Product');
+    }
   }
 
   return (

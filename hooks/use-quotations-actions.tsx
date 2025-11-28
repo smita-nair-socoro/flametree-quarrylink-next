@@ -18,7 +18,7 @@ import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions, useExtendExpiryDate } from '@/lib/api/quotation';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import { notifyPromise } from '@/lib/toast';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DialogConfig {
   title?: string;
@@ -662,7 +662,7 @@ export function useQuotationActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'sendToCustomer':
               console.log('Send to customer:', quotationId, resolvedQuotation);
@@ -683,22 +683,17 @@ export function useQuotationActions(
               break;
             case 'extendExpiry':
               if (quotationId) {
-                notifyPromise(
-                  extendExpiryMutation.mutateAsync({
+                try {
+                  await extendExpiryMutation.mutateAsync({
                     id: quotationId,
                     expiryDate: newExpiryDate,
-                  }),
-                  {
-                    loading: 'Extending expiry date...',
-                    success: () => {
-                      setActiveDialog(null);
-                      setSelectedAction(null);
-                      return 'Expiry date extended successfully!';
-                    },
-                    error: (err) =>
-                      `Failed to extend expiry date: ${err instanceof Error ? err.message : 'Unknown error'}`,
-                  }
-                );
+                  });
+                  notifySuccess('Expiry Date Extended');
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                } catch (error) {
+                  notifyError('Failed to Extend Expiry Date');
+                }
               }
               break;
             case 'archive':

@@ -31,10 +31,8 @@ import {
   useQuotationStore,
 } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
-import QuotationLineItemForm from './quotation-line-item-form';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import { DataTableClient } from '@/components/ui/data-table-client';
-import { Quotation, QuotationDTO } from '@/lib/types/quotation';
+import QuotationLineItemForm from './quotation-line-item-form';import { DataTableClient } from '@/components/ui/data-table-client';
+import { Quotation } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -47,7 +45,7 @@ import {
   generateNextQuoteNumber,
   calculateQuotationPricing,
 } from '@/lib/utils/quote-helpers';
-import { notifyPromise, notifyError } from '@/lib/toast';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface FormProps {
   id?: number;
@@ -87,19 +85,13 @@ export default function QuotationForm({
   // Convert QuotationDTO from API to Quotation format for the form
   const getDetailedQuotation = React.useMemo(() => {
     if (isEditing && quotationDetailData) {
-      // Convert to snake_case if needed
-      const convertedQuotation = convertKeysToSnakeCase(
-        quotationDetailData
-      ) as any;
-
-      // Transform to match Quotation interface (map quote_status → status, quote_items → line_items)
+      // Transform QuotationDTO to match Quotation interface
       const transformedQuotation = {
-        ...convertedQuotation,
-        quoteId: convertedQuotation.id,
-        status: convertedQuotation.quote_status,
-        line_items: convertedQuotation.quote_items || convertedQuotation.line_items || [],
+        ...quotationDetailData,
+        quoteId: quotationDetailData.id,
+        status: quotationDetailData.quote_status,
+        line_items: quotationDetailData.line_items || [],
       } as Quotation;
-
 
       return transformedQuotation;
     }
@@ -108,13 +100,6 @@ export default function QuotationForm({
 
   // Use detailed quotation for editing, or selected quotation for new
   const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
-
-  const convertedQuotationLineItem = convertKeysToSnakeCase(
-    currentQuotation?.line_items
-  );
-
-  React.useEffect(() => {
-  }, [currentQuotation, convertedQuotationLineItem]);
 
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
@@ -353,28 +338,19 @@ export default function QuotationForm({
         : 1,
     });
 
-    if (isEditing && currentQuotation?.id) {
-      await notifyPromise(
-        updateQuotation.mutateAsync({ id: currentQuotation.id, data: quoteData }),
-        {
-          loading: 'Updating quotation...',
-          success: (data) =>
-            `Quotation ${data.quote_number} updated successfully!`,
-          error: (err) =>
-            `Failed to update quotation: ${err instanceof Error ? err.message : 'Unknown error'}`,
-        }
-      );
-    } else {
-      await notifyPromise(createQuotation.mutateAsync(quoteData), {
-        loading: 'Creating quotation...',
-        success: (data) =>
-          `Quotation ${data.quote_number} created successfully!`,
-        error: (err) =>
-          `Failed to create quotation: ${err instanceof Error ? err.message : 'Unknown error'}`,
-      });
+    try {
+      if (isEditing && currentQuotation?.id) {
+        await updateQuotation.mutateAsync({ id: currentQuotation.id, data: quoteData });
+        notifySuccess('Quotation Updated');
+      } else {
+        await createQuotation.mutateAsync(quoteData);
+        notifySuccess('Quotation Added');
+      }
+      onCancel?.();
+    } catch (error) {
+      console.error('Failed to save quotation:', error);
+      notifyError(isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation');
     }
-
-    onCancel?.();
   }
 
   const today = React.useMemo(() => {
@@ -784,7 +760,7 @@ export default function QuotationForm({
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     <DataTableClient
                       columns={quotationLineItemColumns}
-                      data={convertedQuotationLineItem ?? []}
+                      data={currentQuotation?.line_items ?? []}
                       simpleTable={true}
                       useColumnSizing={true}
                     />
