@@ -472,6 +472,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               >
                 {isEditing && (
                   <Button
+                    type="button"
                     variant="outline"
                     className="flex items-center gap-1"
                     onClick={() => setIsCompareDialogOpen(true)}
