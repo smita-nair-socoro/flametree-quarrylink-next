@@ -26,6 +26,12 @@ import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem } from '@/lib/api/quotation';
 import { notifyPromise } from '@/lib/toast';
 import { dollarsToCents } from '@/lib/utils/currency';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 interface FormProps {
   id?: number;
@@ -297,6 +303,12 @@ export default function QuoteLineItemForm({
     quotationLineItemForm,
   ]);
 
+  // Calculate GST and Total Invoice(Inc GST)
+  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
+  const totalInvoiceIncGST = (
+    Number(pricingBreakdown.totalInvoice) + Number(gst)
+  ).toFixed(2);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -508,7 +520,17 @@ export default function QuoteLineItemForm({
                     name="product_cost_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cost Per Unit*</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Cost Per Unit*
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>(ex-GST)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="product_cost_price"
@@ -573,7 +595,17 @@ export default function QuoteLineItemForm({
                     name="product_sell_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sell Price Per Unit*</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Sell Price Per Unit*
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>(ex-GST)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="product_sell_price"
@@ -659,7 +691,17 @@ export default function QuoteLineItemForm({
                     name="truck_cost_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cost Per Unit*</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Cost Per Unit*
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>(ex-GST)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="truck_cost_price"
@@ -725,7 +767,17 @@ export default function QuoteLineItemForm({
                     name="truck_sell_price"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sell Price Per Unit*</FormLabel>
+                        <FormLabel className="flex items-center gap-1">
+                          Sell Price Per Unit*
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>(ex-GST)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </FormLabel>
                         <FormControl>
                           <CurrencyInput
                             id="truck_cost_price"
@@ -754,7 +806,7 @@ export default function QuoteLineItemForm({
                 </span>
                 <Separator />
               </div>
-              <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+              <div className="bg-gray-50 border-t px-2 border-[#E5E5E5] [&>div]:border-b [&>div]:border-dashed [&>div]:border-purple-300 [&>div:nth-child(1)]:border-b-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(5)]:border-b-0">
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
                     Product Cost (Total)
@@ -763,7 +815,7 @@ export default function QuoteLineItemForm({
                     ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between py-3">
+                <div className="flex justify-between py-3 -mt-3">
                   <span className="text-sm font-normal">
                     Truck Cost (Total):
                   </span>
@@ -779,7 +831,7 @@ export default function QuoteLineItemForm({
                     ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between py-3">
+                <div className="flex justify-between py-3 -mt-3">
                   <span className="text-sm font-normal">
                     Truck Sell (Total):
                   </span>
@@ -788,15 +840,29 @@ export default function QuoteLineItemForm({
                   </span>
                 </div>
                 <div className="flex justify-between py-3">
-                  <span className="text-sm font-semibold">Total Invoice:</span>
+                  <span className="text-sm font-normal">
+                    Subtotal (ex-GST):
+                  </span>
                   <span className="text-sm font-normal">
                     ${pricingBreakdown.totalInvoice.toFixed(2)}
                   </span>
                 </div>
+                <div className="flex justify-between py-3 -mt-3">
+                  <span className="text-sm font-normal">GST (10%):</span>
+                  <span className="text-sm font-normal">${gst}</span>
+                </div>
+                <div className="flex justify-between py-3">
+                  <span className="text-sm font-semibold">
+                    Total Invoice (Incl. GST):
+                  </span>
+                  <span className="text-sm font-semibold">
+                    ${totalInvoiceIncGST}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between py-3 px-2 bg-slate-200">
+              <div className="flex justify-between py-3 px-2 bg-slate-200 mt-3">
                 <span className="text-sm font-semibold">Gross Profit:</span>
-                <span className="text-sm font-normal">
+                <span className="text-sm font-semibold">
                   ${pricingBreakdown.grossProfit.toFixed(2)} (
                   {pricingBreakdown.grossProfitPercentage.toFixed(2)}%)
                 </span>

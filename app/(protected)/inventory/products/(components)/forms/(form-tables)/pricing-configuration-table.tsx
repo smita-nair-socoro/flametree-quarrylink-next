@@ -29,8 +29,18 @@ export function PricingConfigurationTable({
   // Headers configuration
   const headers: FormTableHeader[] = [
     { key: 'unit', label: 'Unit', className: 'w-15' },
-    { key: 'cost_price', label: 'Cost Price*', className: 'w-20' },
-    { key: 'sell_price', label: 'Sell Price*', className: 'w-20' },
+    {
+      key: 'cost_price',
+      label: 'Cost Price*',
+      className: 'w-20',
+      tooltip: '(ex-GST)',
+    },
+    {
+      key: 'sell_price',
+      label: 'Sell Price*',
+      className: 'w-20',
+      tooltip: '(ex-GST)',
+    },
     { key: 'margin', label: 'Margin %', className: 'w-25' },
     {
       key: 'available_for_sale',
