@@ -20,29 +20,27 @@ export function ProjectDetails({
   deliveryWindow,
 }: ProjectDetailsProps) {
   return (
-    <div className="px-8 py-4 pt-10 mb-4 bg-white">
-      <h2 className="font-semibold text-lg mb-3 text-[rgba(142,81,255,1)]">
+    <div className="bg-white px-8 py-4 pt-10 mb-4">
+      <h2 className="text-lg font-semibold text-[rgba(142,81,255,1)] mb-3">
         Project Details
       </h2>
       <Separator className="mb-4" />
-      <div className="mb-4">
-        <TableBadges names={[type]} />
+      <div className="mb-3">
+        <TableBadges names={[type]}></TableBadges>
       </div>
 
-      <div className="gap-8 grid grid-cols-1 md:grid-cols-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Project Name */}
         <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Project Name
           </h3>
-          <p className="text-sm text-gray-600">
-            {projectName}
-          </p>
+          <p className="text-sm text-gray-600">{projectName}</p>
         </div>
 
         {/* Delivery Address */}
         <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Address
           </h3>
           <p className="text-sm text-gray-600">
@@ -52,22 +50,18 @@ export function ProjectDetails({
 
         {/* Delivery Date */}
         <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Date
           </h3>
-          <p className="text-sm text-gray-600">
-            {deliveryDate}
-          </p>
+          <p className="text-sm text-gray-600">{deliveryDate}</p>
         </div>
 
         {/* Delivery Window */}
         <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
             Delivery Window
           </h3>
-          <p className="text-sm text-gray-600">
-            {deliveryWindow}
-          </p>
+          <p className="text-sm text-gray-60">{deliveryWindow}</p>
         </div>
       </div>
     </div>
