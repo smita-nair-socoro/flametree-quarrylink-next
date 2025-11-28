@@ -168,9 +168,9 @@ export function FormDialog({
   let finalThirdBadges = headerInfo?.thirdBadges;
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-    finalCustomId = selectedQuotation.quote_number;
+    finalCustomId = selectedQuotation.quoteNumber;
     finalPrimaryBadges = [selectedQuotation.status];
-    finalSecondaryBadges = [selectedQuotation.quote_type];
+    finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
@@ -187,9 +187,9 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
-    finalCustomId = selectedQuotationLineItem.product_name;
-    finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
-    finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
+    finalCustomId = selectedQuotationLineItem.productName;
+    finalPrimaryBadges = [selectedQuotationLineItem.quarryName];
+    finalSecondaryBadges = [selectedQuotationLineItem.supplierProductName];
   }
 
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
