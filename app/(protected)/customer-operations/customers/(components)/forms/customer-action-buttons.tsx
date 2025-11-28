@@ -12,6 +12,7 @@ import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { Customer } from '@/lib/types/customer';
+import { useAuth } from '@/hooks/use-auth';
 
 interface CustomerActionButtonsProps {
   customer: Customer | null | undefined;
@@ -24,6 +25,12 @@ export function CustomerActionButtons({
 }: CustomerActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isArchived = customer?.customer_status === 'ARCHIVED' ? true : false;
+
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
     customer?.id,
@@ -56,14 +63,18 @@ export function CustomerActionButtons({
           <DropdownMenuContent align="end" className="w-48">
             {!isArchived && (
               <>
-                <DropdownMenuItem onClick={actions.viewJobs}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Jobs
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.viewDockets}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Dockets
-                </DropdownMenuItem>
+                {!isEssentials && (
+                  <>
+                    <DropdownMenuItem onClick={actions.viewJobs}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Jobs
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={actions.viewDockets}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Dockets
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem onClick={actions.viewQuotations}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
@@ -100,15 +111,28 @@ export function CustomerActionButtons({
       {viewDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
+        {/* Primary button - conditional based on role */}
+
         <Button
           variant="ghost"
           size="sm"
-          onClick={actions.viewDockets}
-          className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200 "
+          onClick={actions.viewQuotations}
+          className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
         >
           <Eye className="h-4 w-4 mr-2" />
-          View Dockets
+          View Quotations
         </Button>
+        {!isEssentials && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={actions.viewDockets}
+            className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View Dockets
+          </Button>
+        )}
         {!isArchived && (
           <>
             <DropdownMenu>
@@ -122,10 +146,14 @@ export function CustomerActionButtons({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={actions.viewJobs}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Jobs
-                </DropdownMenuItem>
+                {!isEssentials && (
+                  <>
+                    <DropdownMenuItem onClick={actions.viewJobs}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Jobs
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuItem onClick={actions.viewQuotations}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
