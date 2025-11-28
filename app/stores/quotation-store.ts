@@ -95,7 +95,7 @@ export const useQuotationStore = create<QuotationStore>()(
           approved: quotations.filter((q) => q.status === 'APPROVED').length,
           draft: quotations.filter((q) => q.status === 'DRAFT').length,
           totalValue: quotations.reduce(
-            (sum, q) => sum + (q.total_sell_price || 0),
+            (sum, q) => sum + (q.totalSellPrice || 0),
             0
           ),
         };
