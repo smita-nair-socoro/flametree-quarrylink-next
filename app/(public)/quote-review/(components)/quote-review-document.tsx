@@ -14,15 +14,15 @@ import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
-import { downloadQuotePdf } from '@/lib/utils/pdf-download';
-import { notifyError } from '@/lib/toast';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
+  payloadParam?: string;
 };
 
 export default function QuoteReviewDocument({
   quoteId,
+  payloadParam, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
@@ -30,6 +30,13 @@ export default function QuoteReviewDocument({
     QuoteStatus.PENDING
   );
 
+  /**
+   * CURRENT STATE: Using hardcoded mock data for all quotes
+   * This is intentional for static site deployment (no dynamic data fetching during build)
+   *
+   * FUTURE BACKEND INTEGRATION:
+   * When backend API is ready, replace mock data with actual API call:
+   */
   const quotationData = mockQuotationData;
 
   // State for navbar status (will be updated when user approves/declines)
@@ -37,23 +44,10 @@ export default function QuoteReviewDocument({
     quotationData.navbar.status
   );
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = () => {
     console.log('Download PDF clicked for quote:', quoteId);
-    try {
-      await downloadQuotePdf(
-        quotationData,
-        quoteId,
-        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
-      );
-    } catch (error) {
-      notifyError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to download PDF. Please try again.'
-      );
-    }
+    window.print();
   };
-
 
   const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);

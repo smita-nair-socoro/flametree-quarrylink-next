@@ -1,7 +1,4 @@
-import {
-  QUOTE_STATUS as QuoteStatus,
-  QUOTE_TYPE as QuoteType,
-} from '@/lib/types/quotation-enums';
+import { QUOTE_STATUS as QuoteStatus, QUOTE_TYPE as QuoteType } from "@/lib/types/quotation-enums";
 
 export const mockQuotationData = {
   // Navbar data
@@ -36,46 +33,6 @@ export const mockQuotationData = {
 
   // Products and services
   products: [
-    {
-      name: 'Slate Stone E3',
-      code: 'P-1224446',
-      truckType: 'Semi + Trailer',
-      capacity: '18.7 tonnes per delivery',
-      quantity: '120 T',
-      totalPrice: 7920000.0,
-    },
-    {
-      name: 'Slate Stone E5',
-      code: 'P-1224445',
-      truckType: 'Tandem',
-      capacity: '85 T per delivery',
-      quantity: '120 T',
-      totalPrice: 5212500.0,
-    },
-    {
-      name: 'Marble Slab B2',
-      code: 'ABC-34332',
-      truckType: 'Semi + Trailer',
-      capacity: '75 T per delivery',
-      quantity: '120 T',
-      totalPrice: 4800000.0,
-    },
-    {
-      name: 'Sandstone Panel D4',
-      code: 'GH-232323',
-      truckType: 'B-Double',
-      capacity: '95 T per delivery',
-      quantity: '120 T',
-      totalPrice: 6850000.0,
-    },
-    {
-      name: 'Granite Block A1',
-      code: 'FF-443994',
-      truckType: 'Tandem',
-      capacity: '60 T per delivery',
-      quantity: '120 T',
-      totalPrice: 3650000.0,
-    },
     {
       name: 'Slate Stone E3',
       code: 'P-1224446',

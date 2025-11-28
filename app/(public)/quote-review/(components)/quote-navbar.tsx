@@ -23,19 +23,22 @@ export function QuoteNavbar({
   status,
   onDownloadPDF,
 }: QuoteNavbarProps) {
+
+
   return (
     <div className="bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 rounded-t-lg">
       {/* Top Row */}
       <div className="flex items-start justify-between mb-6">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Image
             src="/quarrylink-logo.png"
             alt="QuarryLink logo"
-            width={70}
-            height={70}
+            width={45}
+            height={45}
+            priority
           />
-          <h1 className="text-[60px] font-bold">QuarryLink</h1>
+          <h1 className="text-[39px] font-bold ">QuarryLink</h1>
         </div>
 
         {/* Download Button & Quote Number */}
@@ -51,8 +54,8 @@ export function QuoteNavbar({
           </Button>
 
           <div className="text-right">
-            <div className="font-bold text-[29px]">{quoteNumber}</div>
-            <div className="text-white text-sm">QUOTATION</div>
+            <div className="text-[29px] font-bold">{quoteNumber}</div>
+            <div className="text-sm text-white">QUOTATION</div>
           </div>
         </div>
       </div>
@@ -62,11 +65,11 @@ export function QuoteNavbar({
         {/* Left Column */}
         <div className="space-y-2">
           <div>
-            <div className="text-white text-sm">Date Issued</div>
+            <div className="text-sm text-white">Date Issued</div>
             <div className="text-[15px] font-medium">{dateIssued}</div>
           </div>
           <div>
-            <div className="text-white text-sm">Account Manager</div>
+            <div className="text-sm text-white">Account Manager</div>
             <div className="text-[15px] font-medium">{accountManager}</div>
           </div>
         </div>
@@ -74,14 +77,12 @@ export function QuoteNavbar({
         {/* Right Column */}
         <div className="space-y-2">
           <div>
-            <div className="text-white text-sm">Valid Until</div>
+            <div className="text-sm text-white">Valid Until</div>
             <div className="text-[15px] font-medium">{validUntil}</div>
           </div>
           <div>
-            <div className="text-white text-sm">Status</div>
-            <div>
-              <TableBadges names={status} visibleCount={1} />
-            </div>
+            <div className="text-sm text-white">Status</div>
+            <TableBadges names={status} visibleCount={1} />
           </div>
         </div>
       </div>
