@@ -105,9 +105,9 @@ export const useCreateQuoteItem = () => {
     mutationFn: async (data: Partial<QuotationLineItem>) => {
       const dataWithDefaults = {
         ...data,
-        product_id: data.product_id || 1,
-        quarry_id: data.quarry_id || 1,
-        quarry_product_id: data.quarry_product_id || 1,
+        productId: data.productId || 1,
+        quarryId: data.quarryId || 1,
+        quarryProductId: data.quarryProductId || 1,
       };
       const response = await APIClient.quotations.createQuoteItem(dataWithDefaults);
       return convertKeysToSnakeCase(response) as QuotationLineItem;
@@ -115,8 +115,8 @@ export const useCreateQuoteItem = () => {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
-      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quote_id) });
-      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quote_id), 'with-line-items'] });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quoteId) });
+      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'] });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
