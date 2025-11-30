@@ -256,7 +256,11 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     <>
       {selectedPlaceId !== '' || address.formattedAddress ? (
         <div className="flex items-center gap-2">
-          <Input value={address?.formattedAddress} disabled={readOnly} />
+          <Input
+            value={address?.formattedAddress}
+            readOnly
+            disabled={readOnly}
+          />
           <AddressDialog
             isLoading={detailsLoading}
             dialogTitle={dialogTitle}
