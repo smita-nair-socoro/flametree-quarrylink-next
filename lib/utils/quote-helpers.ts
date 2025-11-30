@@ -164,8 +164,8 @@ export const calculateQuotationPricing = (
     0
   );
 
-  const totalCostCents = totalProductCostCents + totalTruckCostCents;
-  const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
+  const totalCostCents = totalProductCostCents;
+  const totalInvoiceCents = totalProductSellCents;
   const grossProfitCents = totalInvoiceCents - totalCostCents;
   const grossProfitPercentage = totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
 

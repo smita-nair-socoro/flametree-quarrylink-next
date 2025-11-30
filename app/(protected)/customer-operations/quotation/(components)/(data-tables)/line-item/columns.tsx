@@ -30,7 +30,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     },
     cell: (info) => info.getValue(),
     meta: 'quarryName',
-    size: 160,
+    size: 200,
   },
   {
     id: 'totalProductCostPrice',

@@ -743,7 +743,7 @@ export default function QuotationForm({
                       dialogWidth="700px"
                       contentClass="-mt-5"
                     >
-                      <QuotationLineItemForm canEdit={true} />
+                      <QuotationLineItemForm canEdit={canEdit} />
                     </FormDialog>
                   </div>
                 )}

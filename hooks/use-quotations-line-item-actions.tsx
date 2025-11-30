@@ -7,6 +7,7 @@ import { ActionDialog } from '@/components/action-dialog';
 import { QuotationLineItemActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-line-item-action-buttons';
 import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
 
 interface DialogConfig {
   title?: string;
@@ -129,6 +130,12 @@ export function useQuotationLineItemActions(
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
+  // Get selected quotation to check status
+  const selectedQuotation = useSelectedQuotation();
+
+  // Only allow editing if quote status is DRAFT
+  const canEdit = selectedQuotation?.status === 'DRAFT';
+
   const dialogConfigs = getDialogConfigs(
     lineItemData,
     selectedAction || undefined
@@ -212,7 +219,7 @@ export function useQuotationLineItemActions(
         useSelectedLineItem: true,
       }}
     >
-      <QuotationLineItemForm />
+      <QuotationLineItemForm canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
