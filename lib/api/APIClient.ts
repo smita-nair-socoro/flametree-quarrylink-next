@@ -412,5 +412,11 @@ export const APIClient = {
       appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
         body: convertKeysToCamelCase(data),
       }),
+    updateQuoteItem: (id: number, data: Partial<QuotationLineItem>) =>
+      appClient.Put<QuotationLineItem>(`/socoro/quarrylink/api/quoteItem/${id}`, {
+        body: convertKeysToCamelCase(data),
+      }),
+    deleteQuoteItem: (id: number) =>
+      appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
   },
 };

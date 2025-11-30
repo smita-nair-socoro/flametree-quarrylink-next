@@ -128,3 +128,47 @@ export const useCreateQuoteItem = () => {
     },
   });
 };
+
+/**
+ * Mutation hook for updating an existing quote item.
+ * Automatically invalidates the quotations cache on success.
+ */
+export const useUpdateQuoteItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<QuotationLineItem> }) => {
+      const response = await APIClient.quotations.updateQuoteItem(id, data);
+      return convertKeysToCamelCase(response) as QuotationLineItem;
+    },
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quoteId) });
+      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'] });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for deleting a quote item.
+ * Automatically invalidates the quotations cache on success.
+ */
+export const useDeleteQuoteItem = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, quoteId }: { id: number; quoteId: number }) => {
+      await APIClient.quotations.deleteQuoteItem(id);
+      return { id, quoteId };
+    },
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quoteId) });
+      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'] });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
