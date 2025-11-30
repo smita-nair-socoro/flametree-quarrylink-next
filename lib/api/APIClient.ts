@@ -378,7 +378,6 @@ export const APIClient = {
             totalPages: number;
           }
       >(`/socoro/quarrylink/api/quote`);
-      console.log('📋 getAll Quotations API Response:', response);
       return response;
     },
     getById: (quotationId: number) =>
@@ -386,12 +385,10 @@ export const APIClient = {
         `/socoro/quarrylink/api/quote/${quotationId}`
       ),
     getWithQuoteItems: async (quotationId: number) => {
-      console.log('🔍 Fetching quotation with line items, ID:', quotationId);
       const response = await appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
       );
       console.log('📦 getWithQuoteItems API Response:', response);
-      console.log('📦 Line items in response:', response.quoteItems);
       return response;
     },
     create: (data: Partial<QuotationDTO>) =>

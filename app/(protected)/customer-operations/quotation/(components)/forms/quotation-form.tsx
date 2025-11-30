@@ -78,11 +78,6 @@ export default function QuotationForm({
     if (detailError) {
       console.error('❌ Error fetching quotation details:', detailError);
     }
-    if (quotationDetailData) {
-      console.log('✅ Quotation detail data fetched from API:', quotationDetailData);
-      console.log('✅ Line items from API:', quotationDetailData.quoteItems);
-      console.log('✅ Line items count:', quotationDetailData.quoteItems?.length || 0);
-    }
   }, [detailError, quotationDetailData]);
 
   // Convert QuotationDTO from API to Quotation format for the form
@@ -94,10 +89,6 @@ export default function QuotationForm({
         status: quotationDetailData.quoteStatus,
       } as Quotation;
 
-      console.log('🔄 Transformed quotation:', transformedQuotation);
-      console.log('🔄 Transformed line items:', transformedQuotation.quoteItems);
-      console.log('🔄 Transformed line items count:', transformedQuotation.quoteItems.length);
-
       return transformedQuotation;
     }
     return null;
@@ -105,13 +96,6 @@ export default function QuotationForm({
 
   // Use detailed quotation for editing, or selected quotation for new
   const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
-
-  // Log current quotation state
-  React.useEffect(() => {
-    console.log('🎯 Current quotation:', currentQuotation);
-    console.log('🎯 Current quotation line items:', currentQuotation?.quoteItems);
-    console.log('🎯 Current quotation line items count:', currentQuotation?.quoteItems?.length || 0);
-  }, [currentQuotation]);
 
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
@@ -773,13 +757,6 @@ export default function QuotationForm({
                     {(() => {
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
                       console.log('📊 DataTable rendering with line items:', quoteItemsData);
-                      console.log('📊 Line items count for table:', quoteItemsData.length);
-                      if (quoteItemsData.length > 0) {
-                        console.log('📊 First line item structure:', quoteItemsData[0]);
-                        console.log('📊 First line item keys:', Object.keys(quoteItemsData[0]));
-                        console.log('📊 productName:', quoteItemsData[0].productName);
-                        console.log('📊 quarryName:', quoteItemsData[0].quarryName);
-                      }
                       return (
                         <DataTableClient
                           columns={quotationLineItemColumns}
