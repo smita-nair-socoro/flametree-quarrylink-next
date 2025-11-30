@@ -38,13 +38,13 @@ export function ProceedActions({
           </h2>
 
           {/* Info Box */}
-          <p className="text-base text-center text-[#737373] font-[Geist] mb-4 max-w-[620px] mx-auto">
+          <p className="text-base text-center text-[#737373] mb-4 max-w-[620px] mx-auto">
             This quote has been approved and is now being processed. Your
             account manager will contact you with the next steps.
           </p>
 
           {/* Contact Text */}
-          <p className="text-sm text-[#737373] font-[Geist]">
+          <p className="text-sm text-[#737373]">
             Need to discuss this quote? Contact your account manager{' '}
             <span className="font-semibold text-[#8E51FF]">
               {accountManager}
@@ -73,7 +73,7 @@ export function ProceedActions({
           </h2>
 
           {/* Description */}
-          <p className="text-base text-[#737373] mb-4 max-w-[620px] mx-auto font-[Geist]">
+          <p className="text-base text-[#737373] mb-4 max-w-[620px] mx-auto">
             This quote has been declined. Your account manager will be in touch
             to discuss alternative options.
           </p>
