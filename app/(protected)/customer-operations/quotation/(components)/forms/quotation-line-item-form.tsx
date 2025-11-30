@@ -23,7 +23,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { CurrencyInput } from '@/components/ui/input-mask';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
-import { useCreateQuoteItem } from '@/lib/api/quotation';
+import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { dollarsToCents, centsToDollarsNum } from '@/lib/utils/currency';
 import {
@@ -61,6 +61,7 @@ export default function QuoteLineItemForm({
   const selectedLineItem = useSelectedLineItem();
   const selectedQuotation = useSelectedQuotation();
   const createQuoteItem = useCreateQuoteItem();
+  const updateQuoteItem = useUpdateQuoteItem();
 
   const quotationLineItemForm = useForm<
     z.infer<typeof NewQuotationLineItemFormSchema>
@@ -364,20 +365,32 @@ export default function QuoteLineItemForm({
     };
 
     try {
-      await createQuoteItem.mutateAsync(quoteItemData);
-      notifySuccess('Product Added');
+      if (isEditing && selectedLineItem?.id) {
+        // UPDATE: Send complete data with ID
+        await updateQuoteItem.mutateAsync({
+          id: selectedLineItem.id,
+          data: quoteItemData,
+        });
+        notifySuccess('Product Updated');
+      } else {
+        // CREATE: Send new item data
+        await createQuoteItem.mutateAsync(quoteItemData);
+        notifySuccess('Product Added');
+      }
       quotationLineItemForm.reset();
       onCancel?.();
     } catch (error) {
-      console.error('Failed to add product:', error);
-      notifyError('Failed to Add Product');
+      console.error('Failed to save product:', error);
+      notifyError(
+        isEditing ? 'Failed to Update Product' : 'Failed to Add Product'
+      );
     }
   }
 
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {createQuoteItem.isPending && (
+      {(createQuoteItem.isPending || updateQuoteItem.isPending) && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -387,7 +400,7 @@ export default function QuoteLineItemForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding Product...
+              {isEditing ? 'Updating Product...' : 'Adding Product...'}
             </p>
           </div>
         </div>
@@ -399,7 +412,8 @@ export default function QuoteLineItemForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            createQuoteItem.isPending && 'pointer-events-none'
+            (createQuoteItem.isPending || updateQuoteItem.isPending) &&
+              'pointer-events-none'
           )}
           onSubmit={handleSubmit}
         >
@@ -407,7 +421,8 @@ export default function QuoteLineItemForm({
             className={cn(
               'p-1 w-full flex flex-col',
               className,
-              createQuoteItem.isPending && 'pointer-events-none'
+              (createQuoteItem.isPending || updateQuoteItem.isPending) &&
+                'pointer-events-none'
             )}
           >
             {/* Product Information */}
@@ -940,7 +955,11 @@ export default function QuoteLineItemForm({
                 <Button
                   className="cursor-pointer"
                   type="button"
-                  disabled={createQuoteItem.isPending || !canEdit}
+                  disabled={
+                    createQuoteItem.isPending ||
+                    updateQuoteItem.isPending ||
+                    !canEdit
+                  }
                   onClick={() => quotationLineItemForm.handleSubmit(onSubmit)()}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
@@ -953,7 +972,11 @@ export default function QuoteLineItemForm({
                 <Button
                   type="button"
                   className="cursor-pointer"
-                  disabled={createQuoteItem.isPending || !canEdit}
+                  disabled={
+                    createQuoteItem.isPending ||
+                    updateQuoteItem.isPending ||
+                    !canEdit
+                  }
                   onClick={() => quotationLineItemForm.handleSubmit(onSubmit)()}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
