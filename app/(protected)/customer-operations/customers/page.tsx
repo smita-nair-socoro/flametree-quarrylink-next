@@ -13,6 +13,7 @@ import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { Card, CardContent } from '@/components/ui/card';
+import { useAuth } from '@/hooks/use-auth';
 
 import {
   DataTableClient,
@@ -70,6 +71,21 @@ export default function CustomersPage() {
     selectedCustomerForActions?.id,
     selectedCustomerForActions
   );
+
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
+
+  // Filter columns based on user role
+  const filteredColumns = React.useMemo(() => {
+    if (isEssentials) {
+      // Hide remaining_credit column for Essentials users
+      return customerColumns.filter((column) => column.id !== 'remaining_credit');
+    }
+    return customerColumns;
+  }, [isEssentials]);
 
   // Use React Query to fetch customers data
   const {
@@ -180,7 +196,7 @@ export default function CustomersPage() {
           <DataTableClient
             tableId="customer_main_data_table"
             data={items ?? []}
-            columns={customerColumns}
+            columns={filteredColumns}
             facetDefination={facetDefs}
             searchPlaceHolder="Search customers..."
             onRowClick={handleRowClick}
