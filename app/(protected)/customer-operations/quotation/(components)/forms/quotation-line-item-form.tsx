@@ -25,7 +25,7 @@ import { CurrencyInput } from '@/components/ui/input-mask';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { dollarsToCents } from '@/lib/utils/currency';
+import { dollarsToCents, centsToDollarsNum } from '@/lib/utils/currency';
 import {
   Tooltip,
   TooltipContent,
@@ -75,29 +75,37 @@ export default function QuoteLineItemForm({
         : '',
       productCostUom: isEditing ? selectedLineItem?.productCostUom : '',
       productCostQty: isEditing ? selectedLineItem?.productCostQty : 0,
-      productCostPrice: isEditing ? selectedLineItem?.productCostPrice : 0,
+      productCostPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.productCostPrice || 0)
+        : 0,
       productSellUom: isEditing ? selectedLineItem?.productSellUom : '',
       productSellQty: isEditing ? selectedLineItem?.productSellQty : 0,
-      productSellPrice: isEditing ? selectedLineItem?.productSellPrice : 0,
+      productSellPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.productSellPrice || 0)
+        : 0,
       truckType: isEditing ? selectedLineItem?.truckType : '',
       truckCostUom: isEditing ? selectedLineItem?.truckCostUom : '',
       truckCostQty: isEditing ? selectedLineItem?.truckCostQty : 0,
-      truckCostPrice: isEditing ? selectedLineItem?.truckCostPrice : 0,
+      truckCostPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.truckCostPrice || 0)
+        : 0,
       truckSellUom: isEditing ? selectedLineItem?.truckSellUom : '',
       truckSellQty: isEditing ? selectedLineItem?.truckSellQty : 0,
-      truckSellPrice: isEditing ? selectedLineItem?.truckSellPrice : 0,
+      truckSellPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.truckSellPrice || 0)
+        : 0,
       requiredLoads: isEditing ? selectedLineItem?.requiredLoads : 1,
       totalProductCostPrice: isEditing
-        ? selectedLineItem?.totalProductCostPrice
+        ? centsToDollarsNum(selectedLineItem?.totalProductCostPrice || 0)
         : 0,
       totalTruckCostPrice: isEditing
-        ? selectedLineItem?.totalTruckCostPrice
+        ? centsToDollarsNum(selectedLineItem?.totalTruckCostPrice || 0)
         : 0,
       totalProductSellPrice: isEditing
-        ? selectedLineItem?.totalProductSellPrice
+        ? centsToDollarsNum(selectedLineItem?.totalProductSellPrice || 0)
         : 0,
       totalTruckSellPrice: isEditing
-        ? selectedLineItem?.totalTruckSellPrice
+        ? centsToDollarsNum(selectedLineItem?.totalTruckSellPrice || 0)
         : 0,
       grossProfit: isEditing ? selectedLineItem?.grossProfit : 0,
     },
