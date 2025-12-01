@@ -410,6 +410,15 @@ export default function QuotationForm({
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
+          {isEditing && currentQuotation?.status === 'PENDING' && (
+            <div className="border border-[#FFD6A7] bg-[#FFF7ED] p-4 rounded-md mb-4">
+              <span className="text-[#664500] text-sm font-medium">
+                To edit this quote, please first decline the quote and then edit
+                the quote.
+              </span>
+            </div>
+          )}
+
           <div
             className={cn(
               'p-1 gap-1 w-full',
