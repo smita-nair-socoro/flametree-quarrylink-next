@@ -152,13 +152,12 @@ export function CustomerActionButtons({
                       <Eye className="h-4 w-4 mr-2" />
                       View Jobs
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={actions.viewQuotations}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Quotations
+                    </DropdownMenuItem>
                   </>
                 )}
-                <DropdownMenuItem onClick={actions.viewQuotations}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Quotations
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
