@@ -96,3 +96,21 @@ export const useUnarchiveQuarry = () => {
     },
   });
 };
+
+/**
+ * Mutation hook for deleting a quarry or supplier after eligibility check.
+ * Automatically invalidates the quarries list and detail cache on success.
+ */
+export const useDeleteQuarryAfterEligibilityCheck = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.quarries.deleteAfterEligibilityCheck(id),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuarryKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuarryKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: QuarryKeys.all });
+    },
+  });
+};

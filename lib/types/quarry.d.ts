@@ -63,3 +63,10 @@ export interface QuarriesWithProduct {
   supplier_product_code: string;
   price: QuarryProductPrice;
 }
+
+export interface ArchiveDeleteSummaryDto {
+  id: number;
+  message?: string;
+  deletedCount?: number;
+  affectedEntities?: string[];
+}

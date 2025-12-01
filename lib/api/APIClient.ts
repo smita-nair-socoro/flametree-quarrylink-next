@@ -3,7 +3,7 @@ import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
-import { Quarry } from '../types/quarry';
+import { Quarry, ArchiveDeleteSummaryDto } from '../types/quarry';
 import { QuotationDTO } from '../types/quotation';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 
@@ -324,13 +324,13 @@ const appClient = {
       ...config,
       method: 'PUT',
     }),
-  Patch: (endpoint: string, config: HttpConfig = {}) =>
-    HttpClient<void>(endpoint, {
+  Patch: <T = void>(endpoint: string, config: HttpConfig = {}) =>
+    HttpClient<T>(endpoint, {
       ...config,
       method: 'PATCH',
     }),
-  Delete: (endpoint: string, config: HttpConfig = {}) =>
-    HttpClient<void>(endpoint, {
+  Delete: <T = void>(endpoint: string, config: HttpConfig = {}) =>
+    HttpClient<T>(endpoint, {
       ...config,
       method: 'DELETE',
     }),
@@ -369,6 +369,10 @@ export const APIClient = {
     unarchive: (id: number) =>
       appClient.Put<Quarry>(
         `/socoro/quarrylink/api/quarries/${id}/unarchive`
+      ),
+    deleteAfterEligibilityCheck: (id: number) =>
+      appClient.Delete<ArchiveDeleteSummaryDto>(
+        `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`
       ),
     getSuburbs: () =>
       appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
