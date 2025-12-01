@@ -205,7 +205,7 @@ const getDialogConfigs = (
               <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
                 <li> Quote status changes from Pending to Approved</li>
                 <li> Customer is notified of approval</li>
-                <li> Quote becomes reqdy for job conversion</li>
+                <li> Quote becomes ready for job conversion</li>
                 <li> Pricing and terms are locked</li>
               </ul>
             </div>
@@ -507,7 +507,9 @@ export function useQuotationActions(
   const fallbackQuotation = useQuotationStore((state) =>
     quotationId ? state.getQuotationById(quotationId) : null
   );
-  const setSelectedQuotation = useQuotationStore((state) => state.setSelectedQuotation);
+  const setSelectedQuotation = useQuotationStore(
+    (state) => state.setSelectedQuotation
+  );
   const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -532,10 +534,9 @@ export function useQuotationActions(
   }, [selectedAction?.key]);
 
   // Fetch detailed quotation data with line items from backend
-  const {
-    data: quotationDetailData,
-    isLoading: isLoadingDetail,
-  } = useQuery(QuotationWithLineItemsQueryOptions(quotationId || 0));
+  const { data: quotationDetailData, isLoading: isLoadingDetail } = useQuery(
+    QuotationWithLineItemsQueryOptions(quotationId || 0)
+  );
 
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
