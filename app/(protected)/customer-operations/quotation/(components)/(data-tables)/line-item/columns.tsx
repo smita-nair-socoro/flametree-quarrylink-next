@@ -125,7 +125,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     },
     cell: ({ row }) => {
       const grossProfit = row.original.grossProfit;
-      return <div>{grossProfit}%</div>;
+      return <div>{grossProfit.toFixed(2)}%</div>;
     },
     meta: 'Gross Profit',
     size: 40,
