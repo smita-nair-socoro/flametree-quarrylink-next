@@ -79,7 +79,6 @@ export default function QuotationForm({
       console.log('✅ Fetched quotation details:', quotationDetailData);
     }
 
-
     if (detailError) {
       console.error('❌ Error fetching quotation details:', detailError);
     }
@@ -307,8 +306,10 @@ export default function QuotationForm({
   }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    const getCustomerNameById = useQuotationStore.getState().getCustomerNameById;
-    const getAccountManagerNameById = useQuotationStore.getState().getAccountManagerNameById;
+    const getCustomerNameById =
+      useQuotationStore.getState().getCustomerNameById;
+    const getAccountManagerNameById =
+      useQuotationStore.getState().getAccountManagerNameById;
     const quotations = useQuotationStore.getState().quotations;
 
     let customerName = getCustomerNameById(values.customerId);
@@ -316,7 +317,8 @@ export default function QuotationForm({
 
     if (isEditing && currentQuotation) {
       customerName = customerName || currentQuotation.customerName;
-      accountManagerName = accountManagerName || currentQuotation.accountManagerName;
+      accountManagerName =
+        accountManagerName || currentQuotation.accountManagerName;
     }
 
     if (!customerName || !accountManagerName) {
@@ -324,24 +326,28 @@ export default function QuotationForm({
       return;
     }
 
-    const quoteNumber = isEditing && currentQuotation?.quoteNumber
-      ? currentQuotation.quoteNumber
-      : generateNextQuoteNumber(quotations);
-
+    const quoteNumber =
+      isEditing && currentQuotation?.quoteNumber
+        ? currentQuotation.quoteNumber
+        : generateNextQuoteNumber(quotations);
 
     // address number is set to 1 by default, mock data since we currently don't have the address API
     const quoteData = transformFormDataToQuoteDto(values, {
       customerName,
       accountManagerName,
       quoteNumber,
-      deliveryAddressId: isEditing && currentQuotation?.deliveryAddressId
-        ? currentQuotation.deliveryAddressId
-        : 1,
+      deliveryAddressId:
+        isEditing && currentQuotation?.deliveryAddressId
+          ? currentQuotation.deliveryAddressId
+          : 1,
     });
 
     try {
       if (isEditing && currentQuotation?.id) {
-        await updateQuotation.mutateAsync({ id: currentQuotation.id, data: quoteData });
+        await updateQuotation.mutateAsync({
+          id: currentQuotation.id,
+          data: quoteData,
+        });
         notifySuccess('Quotation Updated');
       } else {
         await createQuotation.mutateAsync(quoteData);
@@ -350,7 +356,9 @@ export default function QuotationForm({
       onCancel?.();
     } catch (error) {
       console.error('Failed to save quotation:', error);
-      notifyError(isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation');
+      notifyError(
+        isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation'
+      );
     }
   }
 
@@ -432,7 +440,8 @@ export default function QuotationForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            (createQuotation.isPending || updateQuotation.isPending) && 'pointer-events-none'
+            (createQuotation.isPending || updateQuotation.isPending) &&
+              'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -443,7 +452,8 @@ export default function QuotationForm({
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',
               className,
-              (createQuotation.isPending || updateQuotation.isPending) && 'pointer-events-none'
+              (createQuotation.isPending || updateQuotation.isPending) &&
+                'pointer-events-none'
             )}
           >
             {/* Quote Type - Only show when creating new quote */}
@@ -761,7 +771,10 @@ export default function QuotationForm({
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
-                      console.log('📊 DataTable rendering with line items:', quoteItemsData);
+                      console.log(
+                        '📊 DataTable rendering with line items:',
+                        quoteItemsData
+                      );
                       return (
                         <DataTableClient
                           columns={quotationLineItemColumns}
@@ -780,7 +793,7 @@ export default function QuotationForm({
                           Product Cost (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductCostPrice}
+                          ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
@@ -788,7 +801,7 @@ export default function QuotationForm({
                           Truck Cost (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalTruckCostPrice}
+                          ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3">
@@ -796,7 +809,7 @@ export default function QuotationForm({
                           Product Sell (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductSellPrice}
+                          ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
@@ -804,7 +817,7 @@ export default function QuotationForm({
                           Truck Sell (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalTruckSellPrice}
+                          ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3">
@@ -812,7 +825,7 @@ export default function QuotationForm({
                           Subtotal (ex-GST):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalInvoice}
+                          ${pricingBreakdown.totalInvoice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
@@ -833,7 +846,7 @@ export default function QuotationForm({
                         Gross Profit:
                       </span>
                       <span className="text-sm font-semibold">
-                        ${pricingBreakdown.grossProfit} (
+                        ${pricingBreakdown.grossProfit.toFixed(2)} (
                         {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
                       </span>
                     </div>
@@ -858,8 +871,7 @@ export default function QuotationForm({
                         Last Modified By:
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {quotationForm.watch('lastModifiedBy') ||
-                          'Jaywoo Choi'}
+                        {quotationForm.watch('lastModifiedBy') || 'Jaywoo Choi'}
                       </p>
                     </div>
 
@@ -910,7 +922,11 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={createQuotation.isPending || updateQuotation.isPending || !canEdit}
+                  disabled={
+                    createQuotation.isPending ||
+                    updateQuotation.isPending ||
+                    !canEdit
+                  }
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>
@@ -923,7 +939,11 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
-                  disabled={createQuotation.isPending || updateQuotation.isPending || !canEdit}
+                  disabled={
+                    createQuotation.isPending ||
+                    updateQuotation.isPending ||
+                    !canEdit
+                  }
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
                 </Button>

@@ -70,7 +70,9 @@ export default function QuoteLineItemForm({
     mode: 'onChange',
     defaultValues: {
       productId: isEditing ? selectedLineItem?.productId : 0,
-      quarrySupplierId: isEditing && selectedLineItem ? selectedLineItem.quarrySupplierId : 0,
+        quarrySupplierId: isEditing
+        ? (selectedLineItem?.quarrySupplierId ?? 1)
+        : 0,  
       supplierProductName: isEditing
         ? selectedLineItem?.supplierProductName
         : '',
@@ -176,8 +178,7 @@ export default function QuoteLineItemForm({
     []
   );
 
-  // when product changes, set quarry and supplier product name empty
-  // Will change this once API is implemented
+
   const productId = quotationLineItemForm.watch('productId');
 
   React.useEffect(() => {
@@ -323,10 +324,6 @@ export default function QuoteLineItemForm({
     quotationLineItemForm.handleSubmit(onSubmit)(e);
   };
 
-  console.log(
-    'quarrySupplierId in form = ',
-    quotationLineItemForm.watch('quarrySupplierId')
-  );
   async function onSubmit(
     values: z.infer<typeof NewQuotationLineItemFormSchema>
   ) {
@@ -381,21 +378,21 @@ export default function QuoteLineItemForm({
           id: selectedLineItem.id,
           data: quoteItemData,
         });
-        notifySuccess('Product Updated');
+        notifySuccess('Line item Updated');
       } else {
         // CREATE: Send new item data
         console.log('➕ CREATE Mode - Sending request');
         console.log('📤 Request Body:', quoteItemData);
 
         await createQuoteItem.mutateAsync(quoteItemData);
-        notifySuccess('Product Added');
+        notifySuccess('Line item Added');
       }
       quotationLineItemForm.reset();
       onCancel?.();
     } catch (error) {
-      console.error('❌ Failed to save product:', error);
+      console.error('❌ Failed to save Line item:', error);
       notifyError(
-        isEditing ? 'Failed to Update Product' : 'Failed to Add Product'
+        isEditing ? 'Failed to Update Line item' : 'Failed to Add Line item'
       );
     }
   }

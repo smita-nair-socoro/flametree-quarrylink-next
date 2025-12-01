@@ -1,7 +1,11 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
-import type { QuotationDTO, QuoteType, QuotationLineItem } from '../types/quotation';
+import type {
+  QuotationDTO,
+  QuoteType,
+  QuotationLineItem,
+} from '../types/quotation';
 import { toLocalDateTime } from './date';
-import { centsToDollars } from './currency';
+import { centsToDollars, centsToDollarsNum } from './currency';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -31,7 +35,10 @@ export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   }
 };
 
-const combineDateAndTime = (date: Date | undefined, timeString: string): string | null => {
+const combineDateAndTime = (
+  date: Date | undefined,
+  timeString: string
+): string | null => {
   if (!date || !timeString) return null;
 
   const [hours, minutes] = timeString.split(':');
@@ -45,7 +52,9 @@ const combineDateAndTime = (date: Date | undefined, timeString: string): string 
  * Generates the next quote number based on existing quotes.
  * Format: Q#### (e.g., Q0001, Q0016, Q0017)
  */
-export const generateNextQuoteNumber = (existingQuotes: { quoteNumber: string }[]): string => {
+export const generateNextQuoteNumber = (
+  existingQuotes: { quoteNumber: string }[]
+): string => {
   if (!existingQuotes || existingQuotes.length === 0) {
     return 'Q0001';
   }
@@ -119,16 +128,16 @@ export const transformFormDataToQuoteDto = (
 /**
  * Quotation pricing breakdown interface
  */
+
 export interface QuotationPricingBreakdown {
-  totalProductCostPrice: string;
-  totalTruckCostPrice: string;
-  totalProductSellPrice: string;
-  totalTruckSellPrice: string;
-  totalInvoice: string;
-  grossProfit: string;
+  totalProductCostPrice: number;
+  totalTruckCostPrice: number;
+  totalProductSellPrice: number;
+  totalTruckSellPrice: number;
+  totalInvoice: number;
+  grossProfit: number;
   grossProfitPercentage: number;
 }
-
 
 export const calculateQuotationPricing = (
   lineItems: QuotationLineItem[] | undefined | null
@@ -136,12 +145,12 @@ export const calculateQuotationPricing = (
   // Handle empty or null line items
   if (!lineItems || lineItems.length === 0) {
     return {
-      totalProductCostPrice: '0.00',
-      totalTruckCostPrice: '0.00',
-      totalProductSellPrice: '0.00',
-      totalTruckSellPrice: '0.00',
-      totalInvoice: '0.00',
-      grossProfit: '0.00',
+      totalProductCostPrice: 0,
+      totalTruckCostPrice: 0,
+      totalProductSellPrice: 0,
+      totalTruckSellPrice: 0,
+      totalInvoice: 0,
+      grossProfit: 0,
       grossProfitPercentage: 0,
     };
   }
@@ -164,19 +173,25 @@ export const calculateQuotationPricing = (
     0
   );
 
-  const totalCostCents = totalProductCostCents;
-  const totalInvoiceCents = totalProductSellCents;
+  const totalCostCents = totalProductCostCents + totalTruckCostCents;
+  const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
   const grossProfitCents = totalInvoiceCents - totalCostCents;
-  const grossProfitPercentage = totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
+  const grossProfitPercentage =
+    totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
+
+  console.log('Quotation Pricing Calculation:');
+
+  console.log(`Total Invoice (cents): ${totalInvoiceCents}`);
+  console.log(`Total Invoice: ${centsToDollars(totalInvoiceCents)}`);
 
   // Convert cents to dollars for display
   return {
-    totalProductCostPrice: centsToDollars(totalProductCostCents),
-    totalTruckCostPrice: centsToDollars(totalTruckCostCents),
-    totalProductSellPrice: centsToDollars(totalProductSellCents),
-    totalTruckSellPrice: centsToDollars(totalTruckSellCents),
-    totalInvoice: centsToDollars(totalInvoiceCents),
-    grossProfit: centsToDollars(grossProfitCents),
+    totalProductCostPrice: centsToDollarsNum(totalProductCostCents),
+    totalTruckCostPrice: centsToDollarsNum(totalTruckCostCents),
+    totalProductSellPrice: centsToDollarsNum(totalProductSellCents),
+    totalTruckSellPrice: centsToDollarsNum(totalTruckSellCents),
+    totalInvoice: centsToDollarsNum(totalInvoiceCents),
+    grossProfit: centsToDollarsNum(grossProfitCents),
     grossProfitPercentage: grossProfitPercentage,
   };
 };
