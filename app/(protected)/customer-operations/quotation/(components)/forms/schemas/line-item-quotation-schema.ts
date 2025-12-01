@@ -2,7 +2,7 @@ import z from 'zod';
 
 export const NewQuotationLineItemFormSchema = z.object({
   productId: z.coerce.number().min(1, { message: 'Required' }),
-  quarryId: z.coerce.number().min(1, { message: 'Required' }),
+  quarrySupplierId: z.coerce.number().min(1, { message: 'Required' }),
   supplierProductName: z.string().nonempty({ message: 'Required' }),
   productCostUom: z.string().nonempty({ message: 'Required' }),
   productCostQty: z.coerce.number().min(1, { message: 'Required' }),

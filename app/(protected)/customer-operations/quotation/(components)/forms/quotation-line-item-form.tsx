@@ -70,7 +70,7 @@ export default function QuoteLineItemForm({
     mode: 'onChange',
     defaultValues: {
       productId: isEditing ? selectedLineItem?.productId : 0,
-      quarryId: isEditing ? selectedLineItem?.quarryId : 0,
+      quarrySupplierId: isEditing && selectedLineItem ? selectedLineItem.quarrySupplierId : 0,
       supplierProductName: isEditing
         ? selectedLineItem?.supplierProductName
         : '',
@@ -185,7 +185,7 @@ export default function QuoteLineItemForm({
     const initialProductId = isEditing ? selectedLineItem?.productId : 0;
 
     if (currentProductId !== initialProductId) {
-      quotationLineItemForm.setValue('quarryId', 0);
+      quotationLineItemForm.setValue('quarrySupplierId', 0);
       quotationLineItemForm.setValue('supplierProductName', '');
     }
   }, [
@@ -197,11 +197,11 @@ export default function QuoteLineItemForm({
 
   // Dynamically set supplier product name based on selected Product and Quarry
   // Will change this once API is implemented
-  const quarryId = quotationLineItemForm.watch('quarryId');
+  const quarryId = quotationLineItemForm.watch('quarrySupplierId');
 
   React.useEffect(() => {
     const currentProductId = quotationLineItemForm.getValues('productId');
-    const currentQuarryId = quotationLineItemForm.getValues('quarryId');
+    const currentQuarryId = quotationLineItemForm.getValues('quarrySupplierId');
 
     if (currentProductId && currentQuarryId) {
       const productLabel =
@@ -323,6 +323,10 @@ export default function QuoteLineItemForm({
     quotationLineItemForm.handleSubmit(onSubmit)(e);
   };
 
+  console.log(
+    'quarrySupplierId in form = ',
+    quotationLineItemForm.watch('quarrySupplierId')
+  );
   async function onSubmit(
     values: z.infer<typeof NewQuotationLineItemFormSchema>
   ) {
@@ -330,13 +334,14 @@ export default function QuoteLineItemForm({
       console.error('No quotation selected');
       return;
     }
-    // Prepare quote item data - convert dollars to cents for storage
+    // Prepare quote item data
     const quoteItemData = {
       id: selectedLineItem?.id,
       quoteId: selectedQuotation?.id || 1,
       productId: values.productId,
+      quarrySupplierId: values.quarrySupplierId,
       productName: productOptions.find(p => p.value === values.productId)?.label || '',
-      quarryName: quarryOptions.find(q => q.value === values.quarryId)?.label || '',
+      quarryName: quarryOptions.find(q => q.value === values.quarrySupplierId)?.label || '',
       supplierProductName: values.supplierProductName,
       productCostUom: values.productCostUom,
       productCostQty: values.productCostQty,
@@ -365,6 +370,7 @@ export default function QuoteLineItemForm({
     };
 
     console.log('🚀 Submitting Quote Item Data:', quoteItemData);
+
 
     try {
       if (isEditing && selectedLineItem?.id) {
@@ -455,7 +461,7 @@ export default function QuoteLineItemForm({
 
               <FormSelect
                 control={quotationLineItemForm.control}
-                name="quarryId"
+                name="quarrySupplierId"
                 label="Quarry/Supplier*"
                 searchLabel="Quarry/Supplier"
                 options={quarryOptions}

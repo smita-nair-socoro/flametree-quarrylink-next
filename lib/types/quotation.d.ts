@@ -79,7 +79,7 @@ export interface QuotationLineItem {
   id: number;
   quoteId: number;
   productId: number;
-  quarryId: number;
+  quarrySupplierId: number;
   quarryProductId: number;
   productName: string;
   quarryName: string;

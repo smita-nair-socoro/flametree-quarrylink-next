@@ -111,7 +111,7 @@ export const useCreateQuoteItem = () => {
       const dataWithDefaults = {
         ...data,
         productId: data.productId || 1,
-        quarryId: data.quarryId || 1,
+        quarrySupplierId: data.quarrySupplierId || 1,
         quarryProductId: data.quarryProductId || 1,
       };
       const response = await APIClient.quotations.createQuoteItem(
