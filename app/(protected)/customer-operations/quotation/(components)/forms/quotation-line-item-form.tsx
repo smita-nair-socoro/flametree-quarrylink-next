@@ -331,42 +331,47 @@ export default function QuoteLineItemForm({
       console.error('No quotation selected');
       return;
     }
-
     // Prepare quote item data - convert dollars to cents for storage
     const quoteItemData = {
-      quoteId: selectedQuotation.id,
-      product_name: productOptions.find(p => p.value === values.productId)?.label || '',
-      quarry_name: quarryOptions.find(q => q.value === values.quarryId)?.label || '',
+      id: selectedLineItem?.id,
+      quoteId: selectedQuotation?.id || 1,
+      productId: values.productId,
+      productName: productOptions.find(p => p.value === values.productId)?.label || '',
+      quarryName: quarryOptions.find(q => q.value === values.quarryId)?.label || '',
       supplierProductName: values.supplierProductName,
       productCostUom: values.productCostUom,
       productCostQty: values.productCostQty,
       productCostPrice: dollarsToCents(values.productCostPrice),
-      total_productCostPrice: dollarsToCents(values.totalProductCostPrice),
+      totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
       productSellUom: values.productSellUom,
       productSellQty: values.productSellQty,
       productSellPrice: dollarsToCents(values.productSellPrice),
-      total_productSellPrice: dollarsToCents(values.totalProductSellPrice),
+      totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
       truckType: values.truckType,
       truckCostUom: values.truckCostUom,
       truckCostQty: values.truckCostQty,
       truckCostPrice: dollarsToCents(values.truckCostPrice),
-      total_truckCostPrice: dollarsToCents(values.totalTruckCostPrice),
+      totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice),
       truckSellUom: values.truckSellUom,
       truckSellQty: values.truckSellQty,
       truckSellPrice: dollarsToCents(values.truckSellPrice),
-      total_truckSellPrice: dollarsToCents(values.totalTruckSellPrice),
+      totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice),
       grossProfit: values.grossProfit,
-      total_quantity_required: values.productSellQty,
-      allocated_quantity: 0,
-      remaining_quantity: values.productSellQty,
+      totalQuantityRequired: values.productSellQty,
+      allocatedQuantity: 0,
+      remainingQuantity: values.productSellQty,
       requiredLoads: values.requiredLoads,
       version: 1,
       is_deleted: false,
     };
 
+    console.log('🚀 Submitting Quote Item Data:', quoteItemData);
+
     try {
       if (isEditing && selectedLineItem?.id) {
         // UPDATE: Send complete data with ID
+        console.log('📤 Request Body:', { id: selectedLineItem.id, data: quoteItemData });
+
         await updateQuoteItem.mutateAsync({
           id: selectedLineItem.id,
           data: quoteItemData,
@@ -374,13 +379,16 @@ export default function QuoteLineItemForm({
         notifySuccess('Product Updated');
       } else {
         // CREATE: Send new item data
+        console.log('➕ CREATE Mode - Sending request');
+        console.log('📤 Request Body:', quoteItemData);
+
         await createQuoteItem.mutateAsync(quoteItemData);
         notifySuccess('Product Added');
       }
       quotationLineItemForm.reset();
       onCancel?.();
     } catch (error) {
-      console.error('Failed to save product:', error);
+      console.error('❌ Failed to save product:', error);
       notifyError(
         isEditing ? 'Failed to Update Product' : 'Failed to Add Product'
       );

@@ -8,6 +8,8 @@ import { QuotationLineItemActionButtons } from '@/app/(protected)/customer-opera
 import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useDeleteQuoteItem } from '@/lib/api/quotation';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DialogConfig {
   title?: string;
@@ -136,6 +138,9 @@ export function useQuotationLineItemActions(
   // Only allow editing if quote status is DRAFT
   const canEdit = selectedQuotation?.status === 'DRAFT';
 
+  // Delete mutation
+  const deleteQuoteItem = useDeleteQuoteItem();
+
   const dialogConfigs = getDialogConfigs(
     lineItemData,
     selectedAction || undefined
@@ -179,11 +184,26 @@ export function useQuotationLineItemActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'remove':
-              console.log('Remove quotation line item:', lineItemId);
-              // TODO: implement remove logic
+              if (!lineItemId || !selectedQuotation?.id) {
+                notifyError('Unable to delete line item');
+                return;
+              }
+
+              try {
+                await deleteQuoteItem.mutateAsync({
+                  id: lineItemId,
+                  quoteId: selectedQuotation.id,
+                });
+                notifySuccess('Line item removed successfully');
+                setActiveDialog(null);
+                setSelectedAction(null);
+              } catch (error) {
+                console.error('Failed to delete line item:', error);
+                notifyError('Failed to remove line item');
+              }
               break;
             case 'duplicate':
               console.log('Duplicate quotation line item:', lineItemId);
@@ -219,7 +239,7 @@ export function useQuotationLineItemActions(
         useSelectedLineItem: true,
       }}
     >
-      <QuotationLineItemForm canEdit={canEdit} />
+      <QuotationLineItemForm id={lineItemId} canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
