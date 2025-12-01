@@ -5,7 +5,7 @@ import type {
   QuotationLineItem,
 } from '../types/quotation';
 import { toLocalDateTime } from './date';
-import { centsToDollars, centsToDollarsNum } from './currency';
+import { centsToDollarsNum } from './currency';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
