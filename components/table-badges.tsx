@@ -139,3 +139,27 @@ export function TableBadges({
     </div>
   );
 }
+
+// Simplified badge component for PDF rendering
+// No tooltips, no array handling, just a single badge
+interface SimplePdfBadgeProps {
+  name: string;
+  variant?: 'default' | 'suburb';
+}
+
+export function SimplePdfBadge({
+  name,
+  variant = 'default',
+}: SimplePdfBadgeProps) {
+  return (
+    <div
+      className={cn(
+        'inline-block h-10 px-4 text-xl font-semibold border-2 rounded-lg uppercase',
+        getBadgeClassName(name, variant)
+      )}
+      style={{ lineHeight: '13.5px' }}
+    >
+      {name.replace(/_/g, ' ')}
+    </div>
+  );
+}

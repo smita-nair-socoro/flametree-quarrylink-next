@@ -1,3 +1,8 @@
+import {
+  QUOTE_STATUS as QuoteStatus,
+  QUOTE_TYPE as QuoteType,
+} from '@/lib/types/quotation-enums';
+
 export const mockQuotationData = {
   // Navbar data
   navbar: {
@@ -5,7 +10,7 @@ export const mockQuotationData = {
     dateIssued: '15th July, 2026',
     validUntil: '15th August, 2026',
     accountManager: 'Sarah Wilson',
-    status: 'PENDING' as const,
+    status: QuoteStatus.PENDING,
   },
 
   // Customer information
@@ -22,7 +27,7 @@ export const mockQuotationData = {
 
   // Project details
   project: {
-    type: 'DELIVERY' as const,
+    type: QuoteType.DELIVERY,
     projectName: 'Westfield Shopping Centre Extension',
     deliveryAddress: '543 Construction Access Road, Parramatta NSW 2150',
     deliveryDate: '23rd August, 2026',
@@ -71,6 +76,46 @@ export const mockQuotationData = {
       quantity: '120 T',
       totalPrice: 3650000.0,
     },
+    {
+      name: 'Slate Stone E3',
+      code: 'P-1224446',
+      truckType: 'Semi + Trailer',
+      capacity: '18.7 tonnes per delivery',
+      quantity: '120 T',
+      totalPrice: 7920000.0,
+    },
+    {
+      name: 'Slate Stone E5',
+      code: 'P-1224445',
+      truckType: 'Tandem',
+      capacity: '85 T per delivery',
+      quantity: '120 T',
+      totalPrice: 5212500.0,
+    },
+    {
+      name: 'Marble Slab B2',
+      code: 'ABC-34332',
+      truckType: 'Semi + Trailer',
+      capacity: '75 T per delivery',
+      quantity: '120 T',
+      totalPrice: 4800000.0,
+    },
+    {
+      name: 'Sandstone Panel D4',
+      code: 'GH-232323',
+      truckType: 'B-Double',
+      capacity: '95 T per delivery',
+      quantity: '120 T',
+      totalPrice: 6850000.0,
+    },
+    {
+      name: 'Granite Block A1',
+      code: 'FF-443994',
+      truckType: 'Tandem',
+      capacity: '60 T per delivery',
+      quantity: '120 T',
+      totalPrice: 3650000.0,
+    },
   ],
 
   // Summary and payment
@@ -79,23 +124,18 @@ export const mockQuotationData = {
     totalQuantity: '600 tonnes, 45 m³',
     estimatedDelivery: '23rd August, 2026',
     termsAndConditions: [
-      'Payment terms: Net 30 days',
       'Delivery subject to weather conditions',
       'Quote valid for 14 days from issue date',
     ],
     subtotal: 27010000.0,
     gst: 2843250.0,
     total: 31275750.0,
-    avatarUrl: undefined, // Can be added when available
-    avatarFallback: 'SW',
   },
 
   // Proceed actions
   proceedActions: {
     validUntil: '29th July, 2026',
     accountManager: 'Sarah Wilson',
-    avatarUrl: undefined, // Can be added when available
-    avatarFallback: 'SW',
   },
 
   // Footer

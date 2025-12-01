@@ -25,6 +25,9 @@ export const ClientFormSchema = z.object({
   phone: PhoneRequired,
   subscription: z.string().nonempty({ message: 'Required' }),
   subscription_payment_term: z.string().nonempty({ message: 'Required' }),
+  unit_subscription_price: z.coerce.number(), // Price per user
+  total_subscription_price: z.coerce.number(), // Total price (unit price * number of users)
+  number_of_users: z.coerce.number().min(10).max(20),
   abn: z
     .string()
     .trim()

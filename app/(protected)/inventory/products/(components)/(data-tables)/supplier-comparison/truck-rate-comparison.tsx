@@ -3,6 +3,12 @@
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { centsToDollars } from '@/lib/utils/currency';
 import { ColumnDef } from '@tanstack/react-table';
+import { HelpCircle } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -19,7 +25,20 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
     id: 'truck_tn_rate',
     accessorFn: (row) => row.price.truck_tn_rate,
     header: ({}) => {
-      return <div>TN Rate</div>;
+      return (
+        <div className="flex items-center gap-1">
+          TN Rate
+          <Tooltip>
+            {' '}
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.price.available_truck_tn_rate === false) {
@@ -32,13 +51,25 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'truck tn rate',
-    size: 120,
+    size: 130,
   },
   {
     id: 'truck_m3_rate',
     accessorFn: (row) => row.price.truck_m3_rate,
     header: ({}) => {
-      return <div>m³ Rate</div>;
+      return (
+        <div className="flex items-center gap-1">
+          m³ Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.price.available_truck_m3_rate === false) {
@@ -51,13 +82,25 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'truck m3 rate',
-    size: 120,
+    size: 130,
   },
   {
     id: 'truck_hourly_rate',
     accessorFn: (row) => row.price.truck_hourly_rate,
     header: ({}) => {
-      return <div>Hourly Rate</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Hourly Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.price.available_truck_hourly_rate === false) {
@@ -70,13 +113,25 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       }
     },
     meta: 'truck hourly rate',
-    size: 160,
+    size: 130,
   },
   {
     id: 'truck_load_rate',
     accessorFn: (row) => row.price.truck_load_rate,
     header: ({}) => {
-      return <div className="text-left">Load Rate</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Load Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
       if (row.original.price.available_truck_load_rate === false) {
