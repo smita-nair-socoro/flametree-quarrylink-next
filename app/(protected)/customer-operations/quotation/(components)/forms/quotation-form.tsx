@@ -336,10 +336,18 @@ export default function QuotationForm({
         isEditing && currentQuotation?.deliveryAddressId
           ? currentQuotation.deliveryAddressId
           : 1,
+      lineItemsCount: isEditing ? currentQuotation?.quoteItems?.length || 0 : 0,
     });
 
     try {
       if (isEditing && currentQuotation?.id) {
+        console.log('📤 Request Body:', { quoteData });
+
+        await updateQuotation.mutateAsync({
+          id: currentQuotation.id,
+          data: quoteData,
+        });
+
         await updateQuotation.mutateAsync({
           id: currentQuotation.id,
           data: quoteData,
@@ -915,9 +923,10 @@ export default function QuotationForm({
                   className="cursor-pointer"
                   type="submit"
                   disabled={
-                    createQuotation.isPending ||
-                    updateQuotation.isPending ||
-                    !canEdit
+                    isEditing &&
+                    (createQuotation.isPending ||
+                      updateQuotation.isPending ||
+                      !canEdit)
                   }
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
@@ -932,9 +941,10 @@ export default function QuotationForm({
                   type="submit"
                   className="cursor-pointer"
                   disabled={
-                    createQuotation.isPending ||
-                    updateQuotation.isPending ||
-                    !canEdit
+                    isEditing &&
+                    (createQuotation.isPending ||
+                      updateQuotation.isPending ||
+                      !canEdit)
                   }
                 >
                   {isEditing ? 'Save Changes' : 'Add Quote'}
