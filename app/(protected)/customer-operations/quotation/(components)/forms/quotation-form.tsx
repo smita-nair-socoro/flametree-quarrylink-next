@@ -39,6 +39,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import { Info } from 'lucide-react';
 
 interface FormProps {
   id?: number;
@@ -411,10 +412,13 @@ export default function QuotationForm({
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
           {isEditing && currentQuotation?.status === 'PENDING' && (
-            <div className="border border-[#FFD6A7] bg-[#FFF7ED] p-4 rounded-md mb-4">
-              <span className="text-[#664500] text-sm font-medium">
-                To edit this quote, please first decline the quote and then edit
-                the quote.
+            <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
+              <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
+                <Info className="h-4 w-4" />
+                <span>To edit, decline the quote....</span>
+              </div>
+              <span className="text-muted-foreground ml-6 text-sm">
+                Save your changes and it will return to Draft for sending
               </span>
             </div>
           )}
