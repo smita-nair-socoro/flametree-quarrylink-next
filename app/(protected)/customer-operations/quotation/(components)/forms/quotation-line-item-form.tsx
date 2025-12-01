@@ -264,10 +264,9 @@ export default function QuoteLineItemForm({
 
     // Calculate total invoice (product sell + truck sell)
     const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
-
+    const totalCost = totalProductCostPrice + totalTruckCostPrice;
     // Calculate gross profit (total invoice - total costs)
-    const totalCosts = totalProductCostPrice + totalTruckCostPrice;
-    const grossProfit = totalInvoice - totalCosts;
+    const grossProfit = totalInvoice - totalCost;
 
     const grossProfitPercentage =
       totalInvoice > 0 ? (grossProfit / totalInvoice) * 100 : 0;
@@ -356,7 +355,7 @@ export default function QuoteLineItemForm({
       truckSellQty: values.truckSellQty,
       truckSellPrice: dollarsToCents(values.truckSellPrice),
       totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice),
-      grossProfit: values.grossProfit,
+      grossProfit: dollarsToCents(String((values.grossProfit))),
       totalQuantityRequired: values.productSellQty,
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty,

@@ -193,7 +193,7 @@ export async function HttpClient<T = unknown>(
 
   const url = `${baseUrl()}${endpoint}`;
 
-  console.log(`API Request: ${url}`);
+  // console.log(`API Request: ${url}`);
 
   const response = await fetcher(url, init);
 
@@ -388,7 +388,6 @@ export const APIClient = {
       const response = await appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
       );
-      console.log('📦 getWithQuoteItems API Response:', response);
       return response;
     },
     create: (data: Partial<QuotationDTO>) =>
