@@ -16,7 +16,11 @@ import {
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
-import { QuotationWithLineItemsQueryOptions, useExtendExpiryDate } from '@/lib/api/quotation';
+import {
+  QuotationWithLineItemsQueryOptions,
+  useExtendExpiryDate,
+  useUpdateQuotation,
+} from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DialogConfig {
@@ -516,6 +520,7 @@ export function useQuotationActions(
   });
 
   const extendExpiryMutation = useExtendExpiryDate();
+  const updateQuotationMutation = useUpdateQuotation();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -581,6 +586,127 @@ export function useQuotationActions(
     };
   };
 
+  // Extracted action handlers
+  const handleSendToCustomer = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError('Unable to send quotation to customer');
+      return;
+    }
+
+    try {
+      // Keep all existing fields, update quoteStatus to PENDING
+      const { status, quoteItems, ...quotationData } = resolvedQuotation;
+      const quotationDTO: Partial<QuotationDTO> = {
+        ...quotationData,
+        quoteStatus: 'PENDING',
+      };
+
+      await updateQuotationMutation.mutateAsync({
+        id: quotationId,
+        data: quotationDTO,
+      });
+
+      // Open preview window after successful status update
+      openQuotePreviewWindow(quotationId, resolvedQuotation);
+      notifySuccess('Quotation sent to customer');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to send quotation to customer:', error);
+      notifyError('Failed to Send Quotation');
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError('Unable to approve quotation');
+      return;
+    }
+
+    try {
+      // Keep all existing fields, only update quoteStatus
+      const { status, quoteItems, ...quotationData } = resolvedQuotation;
+      const quotationDTO: Partial<QuotationDTO> = {
+        ...quotationData,
+        quoteStatus: 'APPROVED',
+      };
+
+      await updateQuotationMutation.mutateAsync({
+        id: quotationId,
+        data: quotationDTO,
+      });
+      notifySuccess('Quotation Approved');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to approve quotation:', error);
+      notifyError('Failed to Approve Quotation');
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError('Unable to decline quotation');
+      return;
+    }
+
+    try {
+      // Keep all existing fields, only update quoteStatus
+      const { status, quoteItems, ...quotationData } = resolvedQuotation;
+      const quotationDTO: Partial<QuotationDTO> = {
+        ...quotationData,
+        quoteStatus: 'DECLINED',
+      };
+
+      await updateQuotationMutation.mutateAsync({
+        id: quotationId,
+        data: quotationDTO,
+      });
+      notifySuccess('Quotation Declined');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to decline quotation:', error);
+      notifyError('Failed to Decline Quotation');
+    }
+  };
+
+  const handleConvertToJob = async () => {
+    console.log('Convert to job:', quotationId, resolvedQuotation);
+    // TODO: implement convert to job logic
+  };
+
+  const handleExtendExpiry = async () => {
+    if (!quotationId) return;
+
+    try {
+      await extendExpiryMutation.mutateAsync({
+        id: quotationId,
+        expiryDate: newExpiryDate,
+      });
+      notifySuccess('Expiry Date Extended');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      notifyError('Failed to Extend Expiry Date');
+    }
+  };
+
+  const handleArchive = async () => {
+    console.log('Archive quotation:', quotationId, resolvedQuotation);
+    // TODO: implement archive logic
+  };
+
+  // Map action keys to their handlers
+  const actionHandlers: Record<string, () => Promise<void>> = {
+    sendToCustomer: handleSendToCustomer,
+    approve: handleApprove,
+    decline: handleDecline,
+    convertToJob: handleConvertToJob,
+    extendExpiry: handleExtendExpiry,
+    archive: handleArchive,
+  };
+
   const actions = {
     duplicate: () => {
       console.log('Duplicate quotation:', quotationId);
@@ -638,53 +764,16 @@ export function useQuotationActions(
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
         onConfirmAction={async () => {
-          switch (key) {
-            case 'sendToCustomer':
-              console.log('Send to customer:', quotationId, resolvedQuotation);
-              openQuotePreviewWindow(quotationId, resolvedQuotation);
-              // TODO: implement send to customer mutation logic
-              break;
-            case 'approve':
-              console.log('Approve quotation:', quotationId, resolvedQuotation);
-              // TODO: implement approve logic
-              break;
-            case 'decline':
-              console.log('Decline quotation:', quotationId, resolvedQuotation);
-              // TODO: implement decline logic
-              break;
-            case 'convertToJob':
-              console.log('Convert to job:', quotationId, resolvedQuotation);
-              // TODO: implement convert to job logic
-              break;
-            case 'extendExpiry':
-              if (quotationId) {
-                try {
-                  await extendExpiryMutation.mutateAsync({
-                    id: quotationId,
-                    expiryDate: newExpiryDate,
-                  });
-                  notifySuccess('Expiry Date Extended');
-                  setActiveDialog(null);
-                  setSelectedAction(null);
-                } catch (error) {
-                  notifyError('Failed to Extend Expiry Date');
-                }
-              }
-              break;
-            case 'archive':
-              console.log('Archive quotation:', quotationId, resolvedQuotation);
-              // TODO: implement archive logic
-              break;
+          const handler = actionHandlers[key];
+          if (handler) {
+            await handler();
           }
         }}
       />
     );
   });
 
-  const canEdit =
-    resolvedQuotation?.status !== 'CONVERTED_TO_JOB' &&
-    resolvedQuotation?.status !== 'PENDING' &&
-    resolvedQuotation?.status !== 'APPROVED';
+  const canEdit = resolvedQuotation?.status === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
