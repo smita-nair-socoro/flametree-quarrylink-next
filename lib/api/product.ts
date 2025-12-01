@@ -69,7 +69,11 @@ export const useUpdateProduct = () => {
 
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<
+    { quotes?: string[]; jobs?: string[]; dockets?: string[] } | undefined,
+    Error,
+    number
+  >({
     mutationFn: (id: number) => APIClient.products.deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ProductKeys.list() });

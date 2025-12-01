@@ -328,8 +328,8 @@ const appClient = {
       ...config,
       method: 'PATCH',
     }),
-  Delete: (endpoint: string, config: HttpConfig = {}) =>
-    HttpClient<void>(endpoint, {
+  Delete: <T = void>(endpoint: string, config: HttpConfig = {}) =>
+    HttpClient<T>(endpoint, {
       ...config,
       method: 'DELETE',
     }),
@@ -358,7 +358,11 @@ export const APIClient = {
         body: data,
       }),
     deleteProduct: (id: number) =>
-      appClient.Delete(`/socoro/quarrylink/api/product/${id}`),
+      appClient.Delete<{
+        quotes?: string[];
+        jobs?: string[];
+        dockets?: string[];
+      }>(`/socoro/quarrylink/api/product/${id}`),
   },
 
   materials: {
