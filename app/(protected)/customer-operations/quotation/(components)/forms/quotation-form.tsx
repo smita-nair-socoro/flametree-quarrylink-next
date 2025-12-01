@@ -75,10 +75,6 @@ export default function QuotationForm({
 
   // Log API response for debugging
   React.useEffect(() => {
-    if (quotationDetailData) {
-      console.log('✅ Fetched quotation details:', quotationDetailData);
-    }
-
     if (detailError) {
       console.error('❌ Error fetching quotation details:', detailError);
     }
@@ -771,10 +767,6 @@ export default function QuotationForm({
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
-                      console.log(
-                        '📊 DataTable rendering with line items:',
-                        quoteItemsData
-                      );
                       return (
                         <DataTableClient
                           columns={quotationLineItemColumns}

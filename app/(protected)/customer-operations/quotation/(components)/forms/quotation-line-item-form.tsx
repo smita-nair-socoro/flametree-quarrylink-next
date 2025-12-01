@@ -70,9 +70,7 @@ export default function QuoteLineItemForm({
     mode: 'onChange',
     defaultValues: {
       productId: isEditing ? selectedLineItem?.productId : 0,
-        quarrySupplierId: isEditing
-        ? (selectedLineItem?.quarrySupplierId ?? 1)
-        : 0,  
+      quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 1 : 0,
       supplierProductName: isEditing
         ? selectedLineItem?.supplierProductName
         : '',
@@ -177,7 +175,6 @@ export default function QuoteLineItemForm({
     ],
     []
   );
-
 
   const productId = quotationLineItemForm.watch('productId');
 
@@ -287,18 +284,12 @@ export default function QuoteLineItemForm({
       'totalProductCostPrice',
       totalProductCostPrice
     );
-    quotationLineItemForm.setValue(
-      'totalTruckCostPrice',
-      totalTruckCostPrice
-    );
+    quotationLineItemForm.setValue('totalTruckCostPrice', totalTruckCostPrice);
     quotationLineItemForm.setValue(
       'totalProductSellPrice',
       totalProductSellPrice
     );
-    quotationLineItemForm.setValue(
-      'totalTruckSellPrice',
-      totalTruckSellPrice
-    );
+    quotationLineItemForm.setValue('totalTruckSellPrice', totalTruckSellPrice);
     quotationLineItemForm.setValue('grossProfit', grossProfit);
   }, [
     productCostQty,
@@ -337,8 +328,11 @@ export default function QuoteLineItemForm({
       quoteId: selectedQuotation?.id || 1,
       productId: values.productId,
       quarrySupplierId: values.quarrySupplierId,
-      productName: productOptions.find(p => p.value === values.productId)?.label || '',
-      quarryName: quarryOptions.find(q => q.value === values.quarrySupplierId)?.label || '',
+      productName:
+        productOptions.find((p) => p.value === values.productId)?.label || '',
+      quarryName:
+        quarryOptions.find((q) => q.value === values.quarrySupplierId)?.label ||
+        '',
       supplierProductName: values.supplierProductName,
       productCostUom: values.productCostUom,
       productCostQty: values.productCostQty,
@@ -357,7 +351,7 @@ export default function QuoteLineItemForm({
       truckSellQty: values.truckSellQty,
       truckSellPrice: dollarsToCents(values.truckSellPrice),
       totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice),
-      grossProfit: dollarsToCents(String((values.grossProfit))),
+      grossProfit: dollarsToCents(String(values.grossProfit)),
       totalQuantityRequired: values.productSellQty,
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty,
@@ -366,13 +360,12 @@ export default function QuoteLineItemForm({
       is_deleted: false,
     };
 
-    console.log('🚀 Submitting Quote Item Data:', quoteItemData);
-
-
     try {
       if (isEditing && selectedLineItem?.id) {
-        // UPDATE: Send complete data with ID
-        console.log('📤 Request Body:', { id: selectedLineItem.id, data: quoteItemData });
+        console.log('📤 Request Body:', {
+          id: selectedLineItem.id,
+          data: quoteItemData,
+        });
 
         await updateQuoteItem.mutateAsync({
           id: selectedLineItem.id,

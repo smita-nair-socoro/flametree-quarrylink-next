@@ -179,11 +179,6 @@ export const calculateQuotationPricing = (
   const grossProfitPercentage =
     totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
 
-  console.log('Quotation Pricing Calculation:');
-
-  console.log(`Total Invoice (cents): ${totalInvoiceCents}`);
-  console.log(`Total Invoice: ${centsToDollars(totalInvoiceCents)}`);
-
   // Convert cents to dollars for display
   return {
     totalProductCostPrice: centsToDollarsNum(totalProductCostCents),
