@@ -38,11 +38,12 @@ export default function QuoteReviewDocument({
   // Try to get quotation data from URL payload parameter
   const payloadParam = searchParams.get('payload');
   let currentQuoteStatus = quotationData.navbar.status;
+  let parsedPayload: any = null;
 
   if (payloadParam) {
     try {
       const decodedPayload = decodeURIComponent(payloadParam);
-      const parsedPayload = JSON.parse(decodedPayload);
+      parsedPayload = JSON.parse(decodedPayload);
       // Check for 'status' or 'quote_status' field in payload
       currentQuoteStatus =
         parsedPayload.status ||
@@ -64,7 +65,15 @@ export default function QuoteReviewDocument({
 
   // Check if quote is expired - show expired page
   if (currentQuoteStatus === QuoteStatus.EXPIRED) {
-    return <QuoteExpired />;
+    // Get account manager email from payload or mock data
+    const accountManagerEmail = parsedPayload?.account_manager_email;
+    const businessEmail = parsedPayload?.business_email;
+    return (
+      <QuoteExpired
+        accountManagerEmail={accountManagerEmail}
+        businessEmail={businessEmail}
+      />
+    );
   }
 
   // State for navbar status (will be updated when user approves/declines)
