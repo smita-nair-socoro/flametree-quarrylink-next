@@ -5,7 +5,7 @@ import { ActionDialog } from '@/components/action-dialog';
 import { Customer } from '@/lib/types/customer';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
-import { Archive, TriangleAlert, CircleAlert } from 'lucide-react';
+import { Archive, TriangleAlert, CircleAlert, ArchiveRestore, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface DialogConfig {
@@ -51,6 +51,12 @@ const PLACEHOLDER_PENDING_QUOTES = [
   },
 ];
 
+// Placeholder for duplicate customer scenario
+const PLACEHOLDER_DUPLICATE_CUSTOMER = {
+  name: 'Melbourne Constructions',
+  accNumber: 'ACC-2024-089',
+};
+
 const getDialogConfigs = (
   customerData?: Customer | null,
   selectedAction?: SelectedAction
@@ -77,18 +83,75 @@ const getDialogConfigs = (
   } else if (selectedAction?.key === 'unarchive') {
     return {
       unarchive: {
-        title: `Unarchive ${customerName}?`,
-        description: '',
-        confirmText: 'Unarchive Customer',
-        confirmCustomClass: 'bg-blue-600 hover:bg-blue-700 text-white',
-        titleIcon: (
-          <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-blue-100 rounded-full">
-            <span className="flex items-center justify-center">
-              <Archive className="h-5 w-5 text-blue-600" />
+        title: 'Unarchive Customer',
+        description: (
+          <div className="flex flex-col gap-3">
+            {/* Customer name with ACC and Archived badge */}
+            <div className="flex items-center gap-2">
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#DCFCE7] rounded-full">
+                <ArchiveRestore className="h-[21px] w-[21px] text-[#16A34A]" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-[17.4px]">{customerName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] text-[#6B7280]">ACC-2024-001</span>
+                  <Badge className="bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB] text-[11px] font-medium px-2 py-0">
+                    Archived
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Main message */}
+            <span className="text-[14px] text-[#364153]">
+              Are you sure you want to unarchive this customer?
             </span>
           </div>
         ),
-        confirmIcon: <Archive className="h-4 w-4" />,
+        content: (
+          <div className="flex flex-col gap-4">
+            {/* Green info box */}
+            <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-md p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <ArchiveRestore className="h-[16px] w-[16px] text-[#16A34A]" />
+                <span className="font-semibold text-[14px] text-[#166534]">
+                  Restore Customer Access
+                </span>
+              </div>
+              <p className="text-[13px] text-[#166534]">
+                This customer will be restored to active status and become available for normal business operations.
+              </p>
+            </div>
+
+            {/* What happens when unarchived */}
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                What happens when unarchived:
+              </span>
+              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+                <li>Restored to active customer lists</li>
+                <li>Available for new quotes and jobs</li>
+                <li>Contact information becomes visible</li>
+                <li>Synced with Xero as active contact</li>
+              </ul>
+            </div>
+
+            {/* What remains unchanged */}
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                What remains unchanged:
+              </span>
+              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+                <li>All historical data preserved</li>
+                <li>Previous quotes and jobs intact</li>
+                <li>Financial records maintained</li>
+                <li>Account number and details retained</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Unarchive Customer',
+        confirmCustomClass: 'bg-[#16A34A] hover:bg-[#15803D] text-white',
       },
     };
   } else if (selectedAction?.key === 'cannotArchive') {
@@ -171,6 +234,80 @@ const getDialogConfigs = (
         confirmActionNeeded: false,
       },
     };
+  } else if (selectedAction?.key === 'cannotUnarchive') {
+    return {
+      cannotUnarchive: {
+        title: 'Cannot Unarchive Customer',
+        description: (
+          <div className="flex flex-col gap-3">
+            {/* Customer name with ACC and Archived badge */}
+            <div className="flex items-center gap-2">
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FEE2E2] rounded-full">
+                <X className="h-[21px] w-[21px] text-[#DC2626]" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-[17.4px]">{customerName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] text-[#6B7280]">ACC-2023-015</span>
+                  <Badge className="bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB] text-[11px] font-medium px-2 py-0">
+                    Archived
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Main message */}
+            <span className="text-[14px] text-[#364153]">
+              This customer cannot be unarchived because another active customer with the same name already exists.
+            </span>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-4">
+            {/* Orange warning box */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <TriangleAlert className="h-[16px] w-[16px] text-[#F59E0B]" />
+                <span className="font-semibold text-[14px] text-[#EA580C]">
+                  Duplicate Customer Name Detected
+                </span>
+              </div>
+
+              <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-md p-4">
+                <p className="text-[13px] text-[#92400E] mb-3">
+                  An active customer with the name &quot;{PLACEHOLDER_DUPLICATE_CUSTOMER.name}&quot; already exists in the system. To maintain data integrity and prevent conflicts with Xero sync, duplicate active customer names are not allowed.
+                </p>
+
+                <div className="bg-white border border-[#FDE68A] rounded p-3">
+                  <div className="text-[12px] text-[#6B7280] mb-1">Existing Active Customer:</div>
+                  <div className="font-semibold text-[14px] text-[#EA580C]">
+                    {PLACEHOLDER_DUPLICATE_CUSTOMER.name}
+                  </div>
+                  <div className="text-[13px] text-[#6B7280]">
+                    Account: {PLACEHOLDER_DUPLICATE_CUSTOMER.accNumber}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Resolution options */}
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                Resolution options:
+              </span>
+              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+                <li>Archive the existing active customer first</li>
+                <li>Rename the existing active customer</li>
+                <li>Verify if they are the same entity</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Close',
+        confirmVariant: 'outline',
+        confirmActionNeeded: false,
+      },
+    };
   }
 
   // Return empty object if no action selected
@@ -222,7 +359,19 @@ export function useCustomerActions(
       setActiveDialog('cannotArchive');
     },
 
-    unarchive: createDialogAction('unarchive'),
+    unarchive: () => {
+      // Hardcoded: For demo, always show cannotUnarchive
+      // In the future, add logic here to check for duplicate names
+      // if (hasDuplicateActiveName(customerData)) {
+      //   setSelectedAction({ key: 'cannotUnarchive' });
+      //   setActiveDialog('cannotUnarchive');
+      // } else {
+      //   setSelectedAction({ key: 'unarchive' });
+      //   setActiveDialog('unarchive');
+      // }
+      setSelectedAction({ key: 'cannotUnarchive' });
+      setActiveDialog('cannotUnarchive');
+    },
   };
 
   // Render active dialog
@@ -260,6 +409,9 @@ export function useCustomerActions(
               // TODO: implement unarchive logic
               break;
             case 'cannotArchive':
+              // No action needed, just close the dialog
+              break;
+            case 'cannotUnarchive':
               // No action needed, just close the dialog
               break;
           }
