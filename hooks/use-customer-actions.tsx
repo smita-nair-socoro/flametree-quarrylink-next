@@ -5,8 +5,8 @@ import { ActionDialog } from '@/components/action-dialog';
 import { Customer } from '@/lib/types/customer';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
-import { Archive, TriangleAlert, CircleAlert, ArchiveRestore, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
+import { TableBadges } from '@/components/table-badges';
 
 interface DialogConfig {
   title?: string;
@@ -88,22 +88,19 @@ const getDialogConfigs = (
           <div className="flex flex-col gap-3">
             {/* Customer name with ACC and Archived badge */}
             <div className="flex items-center gap-2">
-              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#DCFCE7] rounded-full">
-                <ArchiveRestore className="h-[21px] w-[21px] text-[#16A34A]" />
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#F0FDF4] rounded-full">
+                <RotateCcw className="h-[21px] w-[21px] text-[#16A34A]" />
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-[17.4px]">{customerName}</span>
+                <span className="font-medium text-base">{customerName}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-[#6B7280]">ACC-2024-001</span>
-                  <Badge className="bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB] text-[11px] font-medium px-2 py-0">
-                    Archived
-                  </Badge>
+                  <span className="text-base text-[#6A7282]">ACC-2024-001</span>
+                  <TableBadges names="ARCHIVED" visibleCount={1} />
                 </div>
               </div>
             </div>
 
-            {/* Main message */}
-            <span className="text-[14px] text-[#364153]">
+            <span className="text-base text-[#364153]">
               Are you sure you want to unarchive this customer?
             </span>
           </div>
@@ -111,24 +108,25 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-4">
             {/* Green info box */}
-            <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-md p-4">
+            <div className="bg-[#F0FDF4] border border-[#B9F8CF] rounded-md p-4">
               <div className="flex items-center gap-2 mb-2">
-                <ArchiveRestore className="h-[16px] w-[16px] text-[#16A34A]" />
-                <span className="font-semibold text-[14px] text-[#166534]">
+                <RotateCcw className="h-[16px] w-[16px] text-[#008236]" />
+                <span className="font-medium text-base text-[#008236]">
                   Restore Customer Access
                 </span>
               </div>
-              <p className="text-[13px] text-[#166534]">
-                This customer will be restored to active status and become available for normal business operations.
+              <p className="text-sm text-[#166534]">
+                This customer will be restored to active status and become
+                available for normal business operations.
               </p>
             </div>
 
             {/* What happens when unarchived */}
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
+            <div className="flex flex-col gap-2 mt-3">
+              <span className="font-medium text-base text-[#101828]">
                 What happens when unarchived:
               </span>
-              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
                 <li>Restored to active customer lists</li>
                 <li>Available for new quotes and jobs</li>
                 <li>Contact information becomes visible</li>
@@ -137,11 +135,11 @@ const getDialogConfigs = (
             </div>
 
             {/* What remains unchanged */}
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
+            <div className="flex flex-col gap-2 mt-3">
+              <span className="font-medium text-base text-[#101828]">
                 What remains unchanged:
               </span>
-              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
                 <li>All historical data preserved</li>
                 <li>Previous quotes and jobs intact</li>
                 <li>Financial records maintained</li>
@@ -151,7 +149,7 @@ const getDialogConfigs = (
           </div>
         ),
         confirmText: 'Unarchive Customer',
-        confirmCustomClass: 'bg-[#16A34A] hover:bg-[#15803D] text-white',
+        confirmCustomClass: 'bg-[#008236] hover:bg-[#15803D] text-white',
       },
     };
   } else if (selectedAction?.key === 'cannotArchive') {
@@ -160,69 +158,74 @@ const getDialogConfigs = (
         title: 'Cannot Archive Customer',
         description: (
           <div className="flex flex-col gap-2">
-            {/* Customer name with ACC number and email */}
             <div className="flex items-center gap-2">
-              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FFEDD4] rounded-full">
-                <TriangleAlert className="h-[21px] w-[21px] text-[#F54900]" />
+              <div className="flex w-12 h-12 justify-center items-center bg-[#FFEDD4] rounded-full">
+                <TriangleAlert className="h-6 w-6 text-[#E7000B]" />
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-[17.4px]">{customerName}</span>
-                <span className="text-[13px] text-[#6B7280]">
-                  {PLACEHOLDER_CUSTOMER_DATA.accNumber} • {PLACEHOLDER_CUSTOMER_DATA.email}
+                <span className="font-medium text-base text-[#101828]">
+                  {customerName}
+                </span>
+                <span className="text-base text-[#6B7280] text-[#6A7282]">
+                  {PLACEHOLDER_CUSTOMER_DATA.accNumber} •{' '}
+                  {PLACEHOLDER_CUSTOMER_DATA.email}
                 </span>
               </div>
             </div>
 
-            {/* Main message */}
             <span className="text-[16px] text-[#364153] mt-3">
               This customer cannot be archived due to active quotes:
             </span>
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-5">
-            {/* Active Quotes Warning Box */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <CircleAlert className="h-[16px] w-[16px] text-[#FFFFFF] fill-[#F59E0B]" />
-                <span className="font-semibold text-[14px] text-[#101828]">
+          <div className="flex flex-col gap-4">
+            {/* Active Quotes Found section */}
+            <div className="flex items-start gap-2 p-4 bg-[#FFF7ED] border border-[#FFD6A7] rounded-md">
+              <TriangleAlert className="h-[18px] w-[18px] text-[#F54900] mt-0.5 flex-shrink-0" />
+              <div className="flex flex-col gap-1">
+                <span className="font-medium text-base text-[#F54900]">
                   Active Quotes Found
                 </span>
+                <span className="text-sm text-[#CA3500]">
+                  This customer has {PLACEHOLDER_PENDING_QUOTES.length} active
+                  quotes in Pending status that must be resolved before
+                  archiving.
+                </span>
               </div>
-
-              {/* Orange warning box with quote details */}
-              <div className="bg-[#FEFCEB] border border-[#FDE68A] rounded-md p-4 flex flex-col gap-3">
-                {PLACEHOLDER_PENDING_QUOTES.map((quote, index) => (
-                  <React.Fragment key={quote.id}>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-[14px] text-[#101828]">
-                          {quote.project_name}
-                        </span>
-                        <Badge
-                          className="bg-[#FEF3C7] text-[#92400E] border-[#FCD34D] text-[11px] font-semibold px-2 py-0.5"
-                        >
-                          PENDING
-                        </Badge>
-                      </div>
-                      <span className="text-[13px] text-[#6B7280]">
-                        {quote.quote_number}
-                      </span>
-                    </div>
-                    {index < PLACEHOLDER_PENDING_QUOTES.length - 1 && (
-                      <div className="border-t border-[#FDE68A]"></div>
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
+            </div>
+            <span>
+              <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
+              <span className="font-medium text-base text-[#101828]">
+                Pending Quotes ({PLACEHOLDER_PENDING_QUOTES.length}):
+              </span>
+            </span>
+            {/* Each quote in its own orange box */}
+            <div className="flex flex-col gap-3">
+              {PLACEHOLDER_PENDING_QUOTES.map((quote) => (
+                <div
+                  key={quote.id}
+                  className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium text-[14px] text-yellow-900">
+                      {quote.project_name}
+                    </span>
+                    <span className="text-xs text-yellow-600">
+                      {quote.quote_number}
+                    </span>
+                  </div>
+                  <TableBadges names={quote.status} visibleCount={1} />
+                </div>
+              ))}
             </div>
 
             {/* Instructions Section */}
             <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
+              <span className="font-medium text-base text-[#101828]">
                 To archive this customer:
               </span>
-              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
                 <li>Decline or archive all pending quotes</li>
                 <li>Then customer can be archived</li>
               </ul>
@@ -240,50 +243,52 @@ const getDialogConfigs = (
         title: 'Cannot Unarchive Customer',
         description: (
           <div className="flex flex-col gap-3">
-            {/* Customer name with ACC and Archived badge */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FEE2E2] rounded-full">
-                <X className="h-[21px] w-[21px] text-[#DC2626]" />
+                <RotateCcw className="h-[21px] w-[21px] text-[#DC2626]" />
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold text-[17.4px]">{customerName}</span>
+                <span className="font-medium text-base">{customerName}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-[#6B7280]">ACC-2023-015</span>
-                  <Badge className="bg-[#F3F4F6] text-[#6B7280] border-[#E5E7EB] text-[11px] font-medium px-2 py-0">
-                    Archived
-                  </Badge>
+                  <span className="text-base text-[#6A7282]">ACC-2024-001</span>
+                  <TableBadges names="ARCHIVED" visibleCount={1} />
                 </div>
               </div>
             </div>
 
             {/* Main message */}
-            <span className="text-[14px] text-[#364153]">
-              This customer cannot be unarchived because another active customer with the same name already exists.
+            <span className="text-base text-[#364153]">
+              This customer cannot be unarchived because another active customer
+              with the same name already exists.
             </span>
           </div>
         ),
         content: (
           <div className="flex flex-col gap-4">
             {/* Orange warning box */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <TriangleAlert className="h-[16px] w-[16px] text-[#F59E0B]" />
-                <span className="font-semibold text-[14px] text-[#EA580C]">
+            <div className="bg-[#FFF7ED] border border-[#FFD6A7] rounded-md p-4 flex items-start gap-3">
+              <TriangleAlert className="h-[18px] w-[18px] text-[#F54900] flex-shrink-0 mt-0.5" />
+              <div className="flex flex-col gap-3">
+                <span className="font-medium text-base text-[#F54900]">
                   Duplicate Customer Name Detected
                 </span>
-              </div>
 
-              <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-md p-4">
-                <p className="text-[13px] text-[#92400E] mb-3">
-                  An active customer with the name &quot;{PLACEHOLDER_DUPLICATE_CUSTOMER.name}&quot; already exists in the system. To maintain data integrity and prevent conflicts with Xero sync, duplicate active customer names are not allowed.
+                <p className="text-sm text-[#CA3500]">
+                  An active customer with the name &quot;
+                  {PLACEHOLDER_DUPLICATE_CUSTOMER.name}&quot; already exists in
+                  the system. To maintain data integrity and prevent conflicts
+                  with Xero sync, duplicate active customer names are not
+                  allowed.
                 </p>
 
                 <div className="bg-white border border-[#FDE68A] rounded p-3">
-                  <div className="text-[12px] text-[#6B7280] mb-1">Existing Active Customer:</div>
-                  <div className="font-semibold text-[14px] text-[#EA580C]">
+                  <div className="text-xs text-[#6A7282] mb-1">
+                    Existing Active Customer:
+                  </div>
+                  <div className="font-medium text-base text-[#CA3500]">
                     {PLACEHOLDER_DUPLICATE_CUSTOMER.name}
                   </div>
-                  <div className="text-[13px] text-[#6B7280]">
+                  <div className="text-sm text-[#6A7282]">
                     Account: {PLACEHOLDER_DUPLICATE_CUSTOMER.accNumber}
                   </div>
                 </div>
@@ -292,10 +297,10 @@ const getDialogConfigs = (
 
             {/* Resolution options */}
             <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
+              <span className="font-medium text-base text-[#101828]">
                 Resolution options:
               </span>
-              <ul className="text-[13px] text-[#4A5565] space-y-1.5 list-disc list-outside pl-5">
+              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
                 <li>Archive the existing active customer first</li>
                 <li>Rename the existing active customer</li>
                 <li>Verify if they are the same entity</li>
@@ -310,7 +315,6 @@ const getDialogConfigs = (
     };
   }
 
-  // Return empty object if no action selected
   return {};
 };
 
@@ -327,13 +331,6 @@ export function useCustomerActions(
     customerData,
     selectedAction || undefined
   );
-
-  const createDialogAction = (actionKey: string) => {
-    return () => {
-      setSelectedAction({ key: actionKey });
-      setActiveDialog(actionKey);
-    };
-  };
 
   const actions = {
     view: () => {
@@ -360,7 +357,7 @@ export function useCustomerActions(
     },
 
     unarchive: () => {
-      // Hardcoded: For demo, show successful unarchive modal
+      // Hardcoded: For demo, show cannot unarchive modal (duplicate name error)
       // In the future, add logic here to check for duplicate names
       // if (hasDuplicateActiveName(customerData)) {
       //   setSelectedAction({ key: 'cannotUnarchive' });
@@ -369,8 +366,8 @@ export function useCustomerActions(
       //   setSelectedAction({ key: 'unarchive' });
       //   setActiveDialog('unarchive');
       // }
-      setSelectedAction({ key: 'unarchive' });
-      setActiveDialog('unarchive');
+      setSelectedAction({ key: 'cannotUnarchive' });
+      setActiveDialog('cannotUnarchive');
     },
   };
 
