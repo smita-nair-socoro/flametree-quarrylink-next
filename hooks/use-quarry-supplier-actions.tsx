@@ -7,7 +7,7 @@ import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(
 import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
-import { useUnarchiveQuarry } from '@/lib/api/quarries';
+import { useUnarchiveQuarry, useDeleteQuarryAfterEligibilityCheck } from '@/lib/api/quarries';
 
 interface DialogConfig {
   title?: string;
@@ -31,15 +31,15 @@ interface SelectedAction {
   key: string;
 }
 
-const canArchive = (quarrySupplierData?: Quarry | null): boolean => {
-  // Can't archive if it's an ACTIVE SUPPLIER
+const canDelete = (quarrySupplierData?: Quarry | null): boolean => {
+  // Can't delete if it's an ACTIVE SUPPLIER
   if (
     quarrySupplierData?.status === 'ACTIVE' &&
     quarrySupplierData?.type === 'SUPPLIER'
   ) {
     return false;
   }
-  // Can archive if it's ACTIVE and NOT a SUPPLIER (i.e., QUARRY)
+  // Can delete if it's ACTIVE and NOT a SUPPLIER (i.e., QUARRY)
   return quarrySupplierData?.status === 'ACTIVE';
 };
 
@@ -62,10 +62,10 @@ const getDialogConfigs = (
   const name = quarrySupplierData?.name;
   const type = quarrySupplierData?.type;
 
-  if (selectedAction?.key === 'archive') {
+  if (selectedAction?.key === 'delete') {
     return {
-      archive: {
-        title: `Archive Supplier / Quarry`,
+      delete: {
+        title: `Delete Supplier / Quarry`,
         description: (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const getDialogConfigs = (
               <span className="font-semibold text-[17.4px]">{name}</span>
             </div>
             <span className="text-[14px] text-[#000000] mt-3">
-              Are you sure you want to archive this{' '}
+              Are you sure you want to delete this{' '}
               {type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}?
             </span>
           </div>
@@ -111,10 +111,10 @@ const getDialogConfigs = (
             </div>
           </div>
         ),
-        confirmText: `Archive ${type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}`,
-        confirmVariant: 'default',
-        confirmCustomColor: '#4B5563',
-        confirmCustomClass: 'bg-gray-600 hover:bg-gray-700 text-white',
+        confirmText: `Delete ${type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}`,
+        confirmVariant: 'destructive',
+        confirmCustomColor: '#DC2626',
+        confirmCustomClass: 'bg-red-600 hover:bg-red-700 text-white',
       },
     };
   } else if (selectedAction?.key === 'unarchive') {
@@ -189,10 +189,10 @@ const getDialogConfigs = (
           'bg-green-600 hover:bg-green-700 text-white font-medium leading-[24px]',
       },
     };
-  } else if (selectedAction?.key === 'cannotArchive') {
+  } else if (selectedAction?.key === 'cannotDelete') {
     return {
-      cannotArchive: {
-        title: 'Cannot Archive',
+      cannotDelete: {
+        title: 'Cannot Delete',
         description: (
           <div className="flex justify-start items-center gap-1">
             <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-4">
             <div className="text-[16px] text-[#364153]">
-              <div>Cannot archive while deliveries are pending.</div>
+              <div>Cannot delete while deliveries are pending.</div>
               <div>Complete all deliveries first, then try again.</div>
             </div>
             <div className="flex flex-col gap-2">
@@ -280,6 +280,7 @@ export function useQuarrySupplierActions(
     React.useState<SelectedAction | null>(null);
 
   const unarchiveMutation = useUnarchiveQuarry();
+  const deleteMutation = useDeleteQuarryAfterEligibilityCheck();
 
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
@@ -302,11 +303,11 @@ export function useQuarrySupplierActions(
       // TODO: Implement linked products functionality
     },
 
-    archive: () => {
-      if (canArchive(quarrySupplierData)) {
-        createDialogAction('archive')();
+    delete: () => {
+      if (canDelete(quarrySupplierData)) {
+        createDialogAction('delete')();
       } else {
-        createDialogAction('cannotArchive')();
+        createDialogAction('cannotDelete')();
       }
     },
 
@@ -345,14 +346,14 @@ export function useQuarrySupplierActions(
         confirmActionNeeded={config.confirmActionNeeded}
         onConfirmAction={() => {
           switch (key) {
-            case 'archive':
-              if (canArchive(quarrySupplierData)) {
+            case 'delete':
+              if (canDelete(quarrySupplierData)) {
                 console.log(
-                  'Archive quarry/supplier:',
+                  'Delete quarry/supplier:',
                   quarrySupplierId,
                   quarrySupplierData
                 );
-                // TODO: implement archive API call
+                // TODO: implement delete API call
               }
               break;
             case 'unarchive':
@@ -375,7 +376,7 @@ export function useQuarrySupplierActions(
                 });
               }
               break;
-            case 'cannotArchive':
+            case 'cannotDelete':
             case 'cannotUnarchive':
               // No action needed, just close the dialog
               break;
