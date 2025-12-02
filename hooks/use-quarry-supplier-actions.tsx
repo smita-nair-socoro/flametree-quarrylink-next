@@ -347,13 +347,24 @@ export function useQuarrySupplierActions(
         onConfirmAction={() => {
           switch (key) {
             case 'delete':
-              if (canDelete(quarrySupplierData)) {
-                console.log(
-                  'Delete quarry/supplier:',
-                  quarrySupplierId,
-                  quarrySupplierData
-                );
-                // TODO: implement delete API call
+              if (canDelete(quarrySupplierData) && quarrySupplierId) {
+                deleteMutation.mutate(quarrySupplierId, {
+                  onSuccess: (data) => {
+                    console.log(
+                      'Successfully deleted quarry/supplier:',
+                      quarrySupplierId,
+                      data
+                    );
+                    setActiveDialog(null);
+                    setSelectedAction(null);
+                  },
+                  onError: (error) => {
+                    console.error(
+                      'Failed to delete quarry/supplier:',
+                      error
+                    );
+                  },
+                });
               }
               break;
             case 'unarchive':
