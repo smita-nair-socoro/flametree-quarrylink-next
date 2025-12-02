@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -16,6 +17,7 @@ import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 import { notifyError } from '@/lib/toast';
+import QuoteExpired from './quote-expired';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -24,6 +26,7 @@ type QuoteReviewDocumentProps = {
 export default function QuoteReviewDocument({
   quoteId,
 }: QuoteReviewDocumentProps) {
+  const searchParams = useSearchParams();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
@@ -32,9 +35,26 @@ export default function QuoteReviewDocument({
 
   const quotationData = mockQuotationData;
 
+  // Get status from URL parameter for testing (e.g., ?status=expired)
+  // This allows testing different quote statuses without backend
+  const statusParam = searchParams.get('status');
+  let currentQuoteStatus = quotationData.navbar.status;
+
+  if (statusParam) {
+    const upperStatus = statusParam.toUpperCase();
+    if (Object.values(QuoteStatus).includes(upperStatus as QuoteStatus)) {
+      currentQuoteStatus = upperStatus as QuoteStatus;
+    }
+  }
+
+  // Check if quote is expired - show expired page
+  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+    return <QuoteExpired />;
+  }
+
   // State for navbar status (will be updated when user approves/declines)
   const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(
-    quotationData.navbar.status
+    currentQuoteStatus
   );
 
   const handleDownloadPDF = async () => {
