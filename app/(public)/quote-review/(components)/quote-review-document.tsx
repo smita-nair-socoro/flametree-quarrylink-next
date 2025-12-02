@@ -35,11 +35,26 @@ export default function QuoteReviewDocument({
 
   const quotationData = mockQuotationData;
 
-  // Get status from URL parameter for testing (e.g., ?status=expired)
-  // This allows testing different quote statuses without backend
-  const statusParam = searchParams.get('status');
+  // Try to get quotation data from URL payload parameter
+  const payloadParam = searchParams.get('payload');
   let currentQuoteStatus = quotationData.navbar.status;
 
+  if (payloadParam) {
+    try {
+      const decodedPayload = decodeURIComponent(payloadParam);
+      const parsedPayload = JSON.parse(decodedPayload);
+      // Check for 'status' or 'quote_status' field in payload
+      currentQuoteStatus =
+        parsedPayload.status ||
+        parsedPayload.quote_status ||
+        quotationData.navbar.status;
+    } catch (error) {
+      console.error('Failed to decode quotation payload:', error);
+    }
+  }
+
+  // Also allow manual override via ?status= parameter for testing
+  const statusParam = searchParams.get('status');
   if (statusParam) {
     const upperStatus = statusParam.toUpperCase();
     if (Object.values(QuoteStatus).includes(upperStatus as QuoteStatus)) {
@@ -53,9 +68,8 @@ export default function QuoteReviewDocument({
   }
 
   // State for navbar status (will be updated when user approves/declines)
-  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(
-    currentQuoteStatus
-  );
+  const [navbarStatus, setNavbarStatus] =
+    useState<QuoteStatus>(currentQuoteStatus);
 
   const handleDownloadPDF = async () => {
     console.log('Download PDF clicked for quote:', quoteId);
@@ -73,7 +87,6 @@ export default function QuoteReviewDocument({
       );
     }
   };
-
 
   const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);
