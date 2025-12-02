@@ -360,7 +360,7 @@ export function useCustomerActions(
     },
 
     unarchive: () => {
-      // Hardcoded: For demo, always show cannotUnarchive
+      // Hardcoded: For demo, show successful unarchive modal
       // In the future, add logic here to check for duplicate names
       // if (hasDuplicateActiveName(customerData)) {
       //   setSelectedAction({ key: 'cannotUnarchive' });
@@ -369,8 +369,8 @@ export function useCustomerActions(
       //   setSelectedAction({ key: 'unarchive' });
       //   setActiveDialog('unarchive');
       // }
-      setSelectedAction({ key: 'cannotUnarchive' });
-      setActiveDialog('cannotUnarchive');
+      setSelectedAction({ key: 'unarchive' });
+      setActiveDialog('unarchive');
     },
   };
 
