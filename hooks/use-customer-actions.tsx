@@ -32,8 +32,9 @@ interface SelectedAction {
 
 // Placeholder data for demonstration
 const PLACEHOLDER_CUSTOMER_DATA = {
-  accNumber: 'ACC-8891',
-  email: 'accounts@buildcorp.com.au',
+  name: 'Sydney Quarry Supplies',
+  accNumber: 'ACC-2024-045',
+  email: 'contact@sydneyquarry.com.au',
 };
 
 const PLACEHOLDER_PENDING_QUOTES = [
@@ -61,23 +62,88 @@ const getDialogConfigs = (
   customerData?: Customer | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  const customerName = customerData?.business_name;
+  // TODO: Replace with actual customer data from API
+  // Currently using hardcoded placeholder data for demonstration
+  const customerName = PLACEHOLDER_CUSTOMER_DATA.name;
+  const accountNumber = PLACEHOLDER_CUSTOMER_DATA.accNumber;
+  const customerEmail = PLACEHOLDER_CUSTOMER_DATA.email;
 
   if (selectedAction?.key === 'archive') {
     return {
       archive: {
-        title: `Archive ${customerName}?`,
-        description: '',
-        confirmText: 'Archive Customer',
-        confirmCustomClass: 'bg-[#475569] hover:bg-[#64748b] text-white',
-        titleIcon: (
-          <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
-            <span className="flex items-center justify-center">
-              <TriangleAlert className="h-5 w-5 text-[#F54900]" />
+        title: 'Archive Customer',
+        description: (
+          <div className="flex flex-col gap-3">
+            {/* Customer info with icon */}
+            <div className="flex items-center gap-3">
+              <div className="flex w-11 h-11 justify-center items-center bg-[#F3F4F6] rounded-full">
+                <Archive className="h-6 w-6 text-[#6B7280]" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-medium text-base text-[#101828]">
+                  {customerName}
+                </span>
+                <span className="text-base text-[#6A7282]">
+                  {accountNumber} • {customerEmail}
+                </span>
+              </div>
+            </div>
+
+            <span className="text-base text-[#364153]">
+              Are you sure you want to archive this customer?
             </span>
           </div>
         ),
-        confirmIcon: <Archive className="h-4 w-4" />,
+        content: (
+          <div className="flex flex-col gap-4">
+            {/* Gray info box */}
+            <div className="bg-[#F8F9FA] border border-[#E5E7EB] rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Archive className="h-[18px] w-[18px] text-[#6B7280] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-2">
+                  <span className="font-medium text-base text-[#374151]">
+                    Customer Archived
+                  </span>
+                  <p className="text-sm text-[#64748B]">
+                    This customer will be moved to archived status and removed
+                    from active customer lists. The customer will be marked as
+                    archived in Xero automatically.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* What happens when archived */}
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-base text-[#101828]">
+                What happens when customer is archived:
+              </span>
+              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
+                <li>Customer status changes to Archived</li>
+                <li>Customer is removed from active customer lists</li>
+                <li>Cannot create new quotes or jobs for this customer</li>
+                <li>Customer is synced to Xero as archived</li>
+                <li>Account number is reserved and cannot be reused</li>
+              </ul>
+            </div>
+
+            {/* What continues to work */}
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-base text-[#101828]">
+                What continues to work:
+              </span>
+              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
+                <li>Customer remains accessible in archived section</li>
+                <li>All customer data and history preserved</li>
+                <li>Existing quotes and jobs remain accessible</li>
+                <li>Reporting and analytics include archived data</li>
+                <li>Customer can be unarchived if needed</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Archive Customer',
+        confirmCustomClass: 'bg-[#6B7280] text-white',
       },
     };
   } else if (selectedAction?.key === 'unarchive') {
@@ -351,9 +417,17 @@ export function useCustomerActions(
     },
 
     archive: () => {
-      // Hardcoded: ALL customers cannot be archived for now
-      setSelectedAction({ key: 'cannotArchive' });
-      setActiveDialog('cannotArchive');
+      // Hardcoded: For demo, show cannot archive modal (active quotes error)
+      // In the future, add logic here to check for active quotes
+      // if (hasActiveQuotes(customerData)) {
+      //   setSelectedAction({ key: 'cannotArchive' });
+      //   setActiveDialog('cannotArchive');
+      // } else {
+      //   setSelectedAction({ key: 'archive' });
+      //   setActiveDialog('archive');
+      // }
+      setSelectedAction({ key: 'archive' });
+      setActiveDialog('archive');
     },
 
     unarchive: () => {
