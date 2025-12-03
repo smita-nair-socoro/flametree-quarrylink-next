@@ -46,54 +46,10 @@ export default function QuoteReviewDocument({
   const statusParam = searchParams.get('status');
   const currentQuoteStatus = parseStatusParam(statusParam, parsedStatus);
 
-  // Check if quote is expired - show expired page
-  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
-    // Get account manager email from payload or mock data
-    const accountManagerEmail = parsedPayload?.account_manager_email;
-    const businessEmail = parsedPayload?.business_email;
-    return (
-      <QuoteExpired
-        accountManagerEmail={accountManagerEmail}
-        businessEmail={businessEmail}
-      />
-    );
-  }
-
   // State for navbar status (will be updated when user approves/declines)
+  // Note: All hooks must be called before any conditional returns (React Hooks rules)
   const [navbarStatus, setNavbarStatus] =
     useState<QuoteStatus>(currentQuoteStatus);
-
-  const handleDownloadPDF = async () => {
-    console.log('Download PDF clicked for quote:', quoteId);
-    try {
-      await downloadQuotePdf(
-        quotationData,
-        quoteId,
-        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
-      );
-    } catch (error) {
-      notifyError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to download PDF. Please try again.'
-      );
-    }
-  };
-
-  const handleApprove = async () => {
-    console.log('Approve quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.APPROVED);
-    setNavbarStatus(QuoteStatus.APPROVED);
-
-    setApproveDialogOpen(false);
-  };
-
-  const handleDecline = async () => {
-    console.log('Decline quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.DECLINED);
-    setNavbarStatus(QuoteStatus.DECLINED);
-    setDeclineDialogOpen(false);
-  };
 
   const approveDialogDescription = useMemo(() => {
     const { project, navbar, customer, summary } = quotationData;
@@ -180,6 +136,7 @@ export default function QuoteReviewDocument({
       </div>
     );
   }, [quotationData]);
+
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
     const declineNotes = [
@@ -244,6 +201,51 @@ export default function QuoteReviewDocument({
       </div>
     );
   }, [quotationData]);
+
+  // Check if quote is expired - show expired page
+  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+    // Get account manager email from payload or mock data
+    const accountManagerEmail = parsedPayload?.account_manager_email;
+    const businessEmail = parsedPayload?.business_email;
+    return (
+      <QuoteExpired
+        accountManagerEmail={accountManagerEmail}
+        businessEmail={businessEmail}
+      />
+    );
+  }
+
+  const handleDownloadPDF = async () => {
+    console.log('Download PDF clicked for quote:', quoteId);
+    try {
+      await downloadQuotePdf(
+        quotationData,
+        quoteId,
+        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
+      );
+    } catch (error) {
+      notifyError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to download PDF. Please try again.'
+      );
+    }
+  };
+
+  const handleApprove = async () => {
+    console.log('Approve quotation:', quoteId);
+    setQuoteStatus(QuoteStatus.APPROVED);
+    setNavbarStatus(QuoteStatus.APPROVED);
+
+    setApproveDialogOpen(false);
+  };
+
+  const handleDecline = async () => {
+    console.log('Decline quotation:', quoteId);
+    setQuoteStatus(QuoteStatus.DECLINED);
+    setNavbarStatus(QuoteStatus.DECLINED);
+    setDeclineDialogOpen(false);
+  };
 
   return (
     <>
