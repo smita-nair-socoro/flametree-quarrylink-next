@@ -18,6 +18,7 @@ import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 import { notifyError } from '@/lib/toast';
 import QuoteExpired from './quote-expired';
+import { parseQuotePayload, parseStatusParam } from './types/quote-payload';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -35,33 +36,15 @@ export default function QuoteReviewDocument({
 
   const quotationData = mockQuotationData;
 
-  // Try to get quotation data from URL payload parameter
+  // Parse payload and status parameters
   const payloadParam = searchParams.get('payload');
-  let currentQuoteStatus = quotationData.navbar.status;
-  let parsedPayload: any = null;
+  const { currentQuoteStatus: parsedStatus, parsedPayload } = parseQuotePayload(
+    payloadParam,
+    quotationData.navbar.status
+  );
 
-  if (payloadParam) {
-    try {
-      const decodedPayload = decodeURIComponent(payloadParam);
-      parsedPayload = JSON.parse(decodedPayload);
-      // Check for 'status' or 'quote_status' field in payload
-      currentQuoteStatus =
-        parsedPayload.status ||
-        parsedPayload.quote_status ||
-        quotationData.navbar.status;
-    } catch (error) {
-      console.error('Failed to decode quotation payload:', error);
-    }
-  }
-
-  // Also allow manual override via ?status= parameter for testing
   const statusParam = searchParams.get('status');
-  if (statusParam) {
-    const upperStatus = statusParam.toUpperCase();
-    if (Object.values(QuoteStatus).includes(upperStatus as QuoteStatus)) {
-      currentQuoteStatus = upperStatus as QuoteStatus;
-    }
-  }
+  const currentQuoteStatus = parseStatusParam(statusParam, parsedStatus);
 
   // Check if quote is expired - show expired page
   if (currentQuoteStatus === QuoteStatus.EXPIRED) {
