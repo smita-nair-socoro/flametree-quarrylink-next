@@ -63,6 +63,9 @@
         padding: 20px;
         margin: 20px 0;
       }
+      .subscription-details-other {
+        background-color: #000000;
+      }
       .subscription-details p {
         margin: 8px 0;
         font-size: 15px;
@@ -75,6 +78,15 @@
       .button-container {
         margin: 30px 0;
         text-align: center;
+      }
+      .btn-primary {
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 6px;
+        background-color: #7c3aed;
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
       }
       .card-footer {
         margin-top: 20px;
@@ -119,7 +131,7 @@
   <body>
     <div class="container">
       <div class="navbar {navbarColorClass}">
-        <img src="{logoUrl}" alt="QuarryLink Logo" class="navbar-logo" />
+        {logoBlock}
         <div class="navbar-title">{BusinessName}</div>
       </div>
       <div class="card">
@@ -151,17 +163,7 @@
         </div>
 
         <div class="button-container">
-          <a
-            href="{subscriptionUrl}"
-            style="
-              display: inline-block;
-              padding: 12px 24px;
-              border-radius: 6px;
-              background-color: #7c3aed;
-              color: #ffffff;
-              font-weight: 600;
-              text-decoration: none;
-            "
+          <a href="{subscriptionUrl}" class="btn-primary"
             >View Subscription Details</a
           >
         </div>
