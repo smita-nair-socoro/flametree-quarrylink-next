@@ -28,6 +28,9 @@
       .navbar-other {
         background-color: #f5f5f5;
       }
+      .border-other {
+        border-left: 4px solid #000000;
+      }
       .navbar-logo {
         width: 40px;
         height: 40px;
@@ -56,6 +59,21 @@
         line-height: 1.6;
         color: #374151;
         margin-bottom: 20px;
+      }
+      .customer-info {
+        background-color: #f9fafb;
+        border-left: 4px solid #7c3aed;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .customer-info p {
+        margin: 5px 0;
+        font-size: 15px;
+        color: #374151;
+      }
+      .customer-info strong {
+        color: #111827;
+        font-weight: 600;
       }
       .customer-list {
         margin: 20px 0;
@@ -142,7 +160,9 @@
           <p>You are now the Account Manager for the following customers:</p>
         </div>
 
-        <div class="customer-list">{customerListHtml}</div>
+        <div class="customer-info {BorderColorClass}">
+          <div class="customer-list">{customerListHtml}</div>
+        </div>
 
         <div class="content">
           <p>

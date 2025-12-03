@@ -57,18 +57,18 @@
         color: #374151;
         margin-bottom: 20px;
       }
-      .quote-details {
+      .block-details {
         background-color: #f9fafb;
         border-left: 4px solid #7c3aed;
         padding: 20px;
         margin: 20px 0;
       }
-      .quote-details p {
+      .block-details p {
         margin: 8px 0;
         font-size: 15px;
         color: #374151;
       }
-      .quote-details strong {
+      .block-details strong {
         color: #111827;
         font-weight: 600;
       }
@@ -87,6 +87,9 @@
       }
       .btn-other {
         background-color: #000000;
+      }
+      .border-other {
+        border-left: 4px solid #000000;
       }
       .card-footer {
         margin-top: 20px;
@@ -141,7 +144,7 @@
           <p>A quote has been declined by the customer.</p>
         </div>
 
-        <div class="quote-details">
+        <div class="block-details {BorderColorClass}">
           <p><strong>Quote Number:</strong> {quoteNumber}</p>
           <p><strong>Customer:</strong> {customerName}</p>
           <p><strong>Project:</strong> {projectName}</p>
@@ -159,7 +162,9 @@
         </div>
 
         <div class="button-container">
-          <a href="{quoteUrl}" class="btn-primary {buttonColorClass}">View Quote Details</a>
+          <a href="{quoteUrl}" class="btn-primary {buttonColorClass}"
+            >View Quote Details</a
+          >
         </div>
 
         <div class="card-footer">
