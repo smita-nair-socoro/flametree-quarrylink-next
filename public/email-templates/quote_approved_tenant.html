@@ -102,32 +102,45 @@
       .card-footer p {
         margin: 0 0 0;
       }
+      .border-top {
+        border-top: 1px solid #ffffff33;
+        margin-bottom: 20px;
+        margin-top: 20px;
+      }
       .info-footer {
         background-color: #3f4e5f;
-        padding: 20px 30px;
-        display: flex;
-        gap: 30px;
-        justify-content: space-between;
-        align-items: center;
+        padding: 20px 30px 16px 30px;
         margin-top: 0;
         border-radius: 0 0 8px 8px;
       }
-      .footer-column {
-        flex: 1;
-        color: #ffffff;
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        color: #ffffffe5;
         font-size: 11px;
-        line-height: 1.5;
+      }
+      .footer-copyright {
+        text-align: center;
+        color: #ffffff99;
+        font-size: 10px;
+        margin: 10px;
+      }
+      .hidden-footer {
+        display: none;
+      }
+      .footer-column-left,
+      .footer-column-center,
+      .footer-column-right {
+        flex: 1;
+        line-height: 1.6;
+      }
+      .footer-column-center {
         text-align: center;
       }
-      .footer-column h4 {
-        font-size: 12px;
-        font-weight: 600;
-        margin: 0 0 8px 0;
-        color: #ffffff;
-      }
-      .footer-column p {
-        margin: 3px 0;
-        color: #e5e7eb;
+      .footer-column-right {
+        text-align: right;
       }
     </style>
   </head>
@@ -178,24 +191,39 @@
       </div>
 
       <div class="info-footer">
-        <div class="footer-column">
-          <h4>Contact Information</h4>
-          <p>{BusinessName}</p>
-          <p>1300 QUARRY (1300 782 779)</p>
-          <p>{businessEmail}</p>
+        <!-- Simple footer row for QuarryLink -->
+        <div class="footer-row {quarrylinkFooterClass}">
+          <div class="footer-column-left">
+            <div>(02) 7229 1427</div>
+          </div>
+          <div class="footer-column-center">
+            <div>www.quarrylink.com.au</div>
+          </div>
+          <div class="footer-column-right">
+            <div>support@quarrylink.com.au</div>
+          </div>
         </div>
-        <div class="footer-column">
-          <h4>Office Address</h4>
-          <p>{businessAddressLine1}</p>
-          <p>{businessAddressLine2}</p>
-          <p>ABN: {businessABN}</p>
+
+        <!-- Detailed footer row for other businesses -->
+        <div class="footer-row {otherFooterClass}">
+          <div class="footer-column-left">
+            <div>{TenantEmail}</div>
+            <div>{TenantPhone}</div>
+          </div>
+          <div class="footer-column-center">
+            <div>{TenantAddressLine1}</div>
+            <div>{TenantAddressLine2}</div>
+          </div>
+          <div class="footer-column-right">
+            <div>Website</div>
+            <div>{TenantWebsite}</div>
+          </div>
         </div>
-        <div class="footer-column">
-          <h4>Website</h4>
-          <p>{businessWebsite}</p>
-          <p>Customer Portal Available</p>
-          <p>24/7 Support</p>
-        </div>
+
+        <div class="border-top"></div>
+        <p class="footer-copyright">
+          © 2025 {BusinessName}. All rights reserved.
+        </p>
       </div>
     </div>
   </body>
