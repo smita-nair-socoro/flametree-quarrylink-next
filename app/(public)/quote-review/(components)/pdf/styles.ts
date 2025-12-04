@@ -217,6 +217,20 @@ export const pdfStyles = StyleSheet.create({
     textDecoration: 'none',
   },
 
+  footerSeparator: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+
+  footerCopyright: {
+    fontSize: fontSize.xs,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+
   // Main content area
   content: {
     flexGrow: 1,
