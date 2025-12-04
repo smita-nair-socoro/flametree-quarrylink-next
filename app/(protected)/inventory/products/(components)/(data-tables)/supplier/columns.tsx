@@ -20,13 +20,13 @@ export const supplierColumns = (
   QuarrySupplierProduct & { quarry_supplier?: { id: number } }
 >[] => [
   {
-    id: 'quarry_name',
-    accessorFn: (row) => row.quarry_name || 'N/A',
+    id: 'name',
+    accessorFn: (row) => row.quarry_supplier?.name || 'N/A',
     header: ({}) => {
       return <div>Supplier Name</div>;
     },
     cell: (info) => <div>{info.getValue() as string}</div>,
-    meta: 'Supplier Name',
+    meta: 'Name',
   },
   {
     id: 'supplier_product_name',

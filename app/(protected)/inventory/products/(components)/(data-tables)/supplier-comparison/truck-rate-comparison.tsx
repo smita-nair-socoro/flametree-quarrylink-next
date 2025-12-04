@@ -12,13 +12,13 @@ import {
 
 export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
-    id: 'quarry_name',
-    accessorFn: (row) => row.quarry_name,
+    id: 'name',
+    accessorFn: (row) => row.quarry_supplier?.name,
     header: ({}) => {
       return <div>Supplier</div>;
     },
     cell: (info) => <div>{info.getValue() as string}</div>,
-    meta: 'Quarry Name',
+    meta: 'Name',
     size: 180,
   },
   {

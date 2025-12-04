@@ -241,6 +241,12 @@ export async function HttpClient<T = unknown>(
     // We received a successful response
     if (response.status === 204) {
       // 204 contains no data, but indicates success
+      if ((init.method || 'GET') === 'DELETE') {
+        console.log('[HttpClient] DELETE success (204 No Content):', {
+          endpoint,
+          status: response.status,
+        });
+      }
       return Promise.resolve<T>({} as T);
     }
 
@@ -248,8 +254,22 @@ export async function HttpClient<T = unknown>(
     // otherwise, just resolve the Response object returned by window.fetch
     // and the consumer can call await response.text() if needed.
     if (isJson) {
-      return Promise.resolve<T>((await response.json()) as T);
+      const json = (await response.json()) as T;
+      if ((init.method || 'GET') === 'DELETE') {
+        console.log('[HttpClient] DELETE success (JSON):', {
+          endpoint,
+          status: response.status,
+          body: json,
+        });
+      }
+      return Promise.resolve<T>(json);
     } else {
+      if ((init.method || 'GET') === 'DELETE') {
+        console.log('[HttpClient] DELETE success (non-JSON):', {
+          endpoint,
+          status: response.status,
+        });
+      }
       return Promise.resolve<T>(response as T);
     }
   } else {
@@ -392,6 +412,34 @@ export const APIClient = {
           body: data,
         }
       ),
+    delete: (quarrySupplierId: number, productId: number) => {
+      console.log('[APIClient] quarrySupplierProducts.delete called with:', {
+        quarrySupplierId,
+        productId,
+      });
+      return appClient
+        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+          `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`
+        )
+        .then((res) => {
+          console.log(
+            '[APIClient] quarrySupplierProducts.delete response:',
+            res
+          );
+          const len = Array.isArray(res?.blockingQuoteDtos)
+            ? res!.blockingQuoteDtos!.length
+            : 0;
+          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          return res;
+        })
+        .catch((err) => {
+          console.error(
+            '[APIClient] quarrySupplierProducts.delete error:',
+            err
+          );
+          throw err;
+        });
+    },
   },
 
   quarries: {

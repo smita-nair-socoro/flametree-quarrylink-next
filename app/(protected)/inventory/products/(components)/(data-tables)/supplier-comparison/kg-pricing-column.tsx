@@ -13,13 +13,13 @@ import {
 
 export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
-    id: 'quarry_name',
-    accessorFn: (row) => row.quarry_name,
+    id: 'name',
+    accessorFn: (row) => row.quarry_supplier?.name,
     header: ({}) => {
       return <div>Supplier</div>;
     },
     cell: (info) => <div>{info.getValue() as string}</div>,
-    meta: 'Quarry Name',
+    meta: 'Name',
     size: 180,
   },
   {
@@ -96,6 +96,9 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return <div>Margin</div>;
     },
     cell: ({ row }) => {
+      if (row.original.available_for_sale20kg === false) {
+        return <div>0.00%</div>;
+      }
       const costPrice = row.original.per20kg_cost_price || 0;
       const sellPrice = row.original.per20kg_sell_price || 0;
 

@@ -5,6 +5,7 @@ import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ActionDialog } from '@/components/action-dialog';
 import SupplierForm from '@/app/(protected)/inventory/products/(components)/forms/supplier-form';
 import { TriangleAlert, CircleCheckBig } from 'lucide-react';
+import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
 
 interface DialogConfig {
   title?: string;
@@ -37,7 +38,7 @@ const getDialogConfigs = (
   const supplierName = quarryData?.supplier_product_name;
   const supplierProductCode = quarryData?.supplier_product_code;
 
-  if (selectedAction?.key === 'cannotDelete ') {
+  if (selectedAction?.key === 'cannotDelete') {
     return {
       delete: {
         title: `Delete Supplier`,
@@ -150,6 +151,8 @@ export function useSupplierActions(
   quarryId: number | undefined,
   quarryData?: QuarrySupplierProduct | null
 ) {
+  const { mutateAsync: deleteQuarrySupplierProduct } =
+    useDeleteQuarrySupplierProduct();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
@@ -207,17 +210,52 @@ export function useSupplierActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'delete':
               console.log('Delete supplier:', quarryId, quarryData);
-              // TODO: implement delete logic
-              break;
+              if (!quarryId || !quarryData?.product_id) {
+                setActiveDialog(null);
+                setSelectedAction(null);
+                break;
+              }
+              try {
+                console.log('[UI] Attempting delete with ids:', {
+                  quarrySupplierId: quarryId,
+                  productId: quarryData.product_id,
+                });
+                const res = await deleteQuarrySupplierProduct({
+                  quarrySupplierId: quarryId,
+                  productId: quarryData.product_id,
+                });
+                console.log('[UI] Delete mutation result:', res);
+                const blocked = Array.isArray(res?.blockingQuoteDtos)
+                  ? res.blockingQuoteDtos
+                  : [];
+                console.log('[UI] blockingQuoteDtos length:', blocked.length);
+                if (blocked.length > 0) {
+                  // Open cannotDelete modal to show info
+                  setSelectedAction({ key: 'cannotDelete' });
+                  setActiveDialog('cannotDelete');
+                } else {
+                  // Deleted successfully; close dialog
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                }
+              } catch (e: unknown) {
+                console.error('Failed to delete supplier:', {
+                  error: e,
+                });
+                setActiveDialog(null);
+                setSelectedAction(null);
+              }
+              return;
             case 'cannotDelete':
               console.log('Cannot delete supplier:', quarryId, quarryData);
               // TODO: implement cannot delete logic
               break;
           }
+          // default close
           setActiveDialog(null);
           setSelectedAction(null);
         }}
