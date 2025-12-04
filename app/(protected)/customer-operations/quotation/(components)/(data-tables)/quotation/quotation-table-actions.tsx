@@ -35,7 +35,8 @@ export function QuotationTableActions({
 
   // Role-based feature detection
   const { attributes } = useAuth();
-  const userRole = attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
@@ -159,7 +160,7 @@ export function QuotationTableActions({
 
           <DropdownMenuItem onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
-            Print Quote
+            Download PDF
           </DropdownMenuItem>
 
           {/* Always available: Duplicate */}
