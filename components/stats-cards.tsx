@@ -90,46 +90,50 @@ export function StatsCards({
           )}
         </div>
         {isExpanded && (
-          <div className="border-t">
+          <div className="border-t p-4">
             {isLoading ? (
-              <div className="p-4 space-y-3">
+              <div className="space-y-3">
                 {Array.from({ length: loadingCount }).map((_, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
-                    <Skeleton className="h-4 w-20" />
-                    <div className="ml-auto flex items-center gap-2">
-                      <Skeleton className="h-6 w-12" />
-                      <Skeleton className="h-4 w-16" />
+                  <Card key={index} className="p-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+                      <Skeleton className="h-4 w-20" />
+                      <div className="ml-auto flex items-center gap-2">
+                        <Skeleton className="h-6 w-12" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="space-y-3">
                 {cards.map((card) => {
                   const Icon = card.icon;
                   return (
-                    <div
+                    <Card
                       key={card.title}
-                      className="flex items-center gap-3 p-4"
+                      className="p-3 border shadow-sm"
                     >
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
-                      >
-                        <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
-                      </div>
-                      <span className="text-[#737373] text-base">
-                        {getShortTitle(card.title)}
-                      </span>
-                      <div className="ml-auto flex items-center gap-2">
-                        <span className="text-xl font-bold">{card.value}</span>
-                        <span
-                          className={`text-sm ${card.descriptionColor} whitespace-nowrap`}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
                         >
-                          {card.description}
+                          <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                        </div>
+                        <span className="text-[#737373] text-base">
+                          {getShortTitle(card.title)}
                         </span>
+                        <div className="ml-auto flex items-center gap-2">
+                          <span className="text-xl font-bold">{card.value}</span>
+                          <span
+                            className={`text-sm ${card.descriptionColor} whitespace-nowrap`}
+                          >
+                            {card.description}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
