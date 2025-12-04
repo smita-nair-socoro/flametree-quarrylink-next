@@ -25,15 +25,13 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
 
       {/* Table Header */}
       <View style={styles.tableHeader}>
-        <Text style={[styles.tableHeaderText, styles.colProduct]}>
-          Product
-        </Text>
+        <Text style={[styles.tableHeaderText, styles.colProduct]}>Product</Text>
         <Text style={[styles.tableHeaderText, styles.colTruck]}>
           Truck Configuration
         </Text>
         <Text style={[styles.tableHeaderText, styles.colQty]}>Quantity</Text>
         <Text style={[styles.tableHeaderText, styles.colPrice]}>
-          Total Price
+          Total Price (ex-GST)
         </Text>
       </View>
 
@@ -59,7 +57,9 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
 
           {/* Total Price Column */}
           <View style={styles.colPrice}>
-            <Text style={styles.price}>${centsToDollars(product.totalPrice)}</Text>
+            <Text style={styles.price}>
+              ${centsToDollars(product.totalPrice)}
+            </Text>
           </View>
         </View>
       ))}

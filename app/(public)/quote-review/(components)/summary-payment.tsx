@@ -70,10 +70,10 @@ export function SummaryPayment({
         {/* Right Column - Payment Breakdown */}
         <div>
           <Card className="border-2 border-[rgba(229,229,229,1)] shadow-lg w-full max-w-sm mx-auto">
-            <CardContent className="space-y-3 px-7">
+            <CardContent className="space-y-3 px-4">
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                  Subtotal:
+                  Subtotal (ex-GST):
                 </span>
                 <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
                   ${centsToDollars(subtotal)}
@@ -91,8 +91,8 @@ export function SummaryPayment({
               <Separator />
               <div className="border-t-2 border-[rgba(142,81,255,1)] pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-[rgba(142,81,255,1)] text-lg">
-                    TOTAL AMOUNT:
+                  <span className="font-bold text-[rgba(142,81,255,1)] text-base">
+                    TOTAL AMOUNT (Incl. GST):
                   </span>
                   <span className="font-bold text-[rgba(142,81,255,1)] text-lg">
                     ${centsToDollars(total)}
