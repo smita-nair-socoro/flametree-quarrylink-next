@@ -23,7 +23,7 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
-import { AlertTriangle, UserPlus } from 'lucide-react';
+import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { delay } from '@/lib/utils/time';
 
@@ -296,7 +296,14 @@ export default function InviteUserForm({
               className="flex-1 bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
               disabled={isSubmitting || (isOverLimit && !agreedToBilling)}
             >
-              {isOverLimit ? 'Confirm & Send Invitation' : 'Send Invitation'}
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSubmitting
+                ? 'Sending Invitation...'
+                : isOverLimit
+                ? 'Confirm & Send Invitation'
+                : 'Send Invitation'}
             </Button>
           </div>
         </form>
