@@ -34,40 +34,40 @@ Replace every `{placeholder}` before sending.
 
 ## Template-specific placeholders
 - `quote_sent_to_customer.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
   - `expiryDate`: Quote expiry date.
 - `quote_revision_sent.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
   - `expiryDate`: Current expiry date.
 - `quote_expiry_warning.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
   - `expiryDate`: Quote expiry date (also used in warning line).
 - `quote_expiry_extension.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
   - `previousExpiryDate`: Old expiry date.
   - `newExpiryDate`: Extended expiry date.
 - `quote_expired.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
   - `expiryDate`: Date the quote expired.
 - `quote_declined_customer.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
 - `quote_declined_tenant.html`
   - `accountManagerName`: Tenant user recipient name (already common but acts as salutation here).
   - `customerName`: Customer business name.
-  - `customerContactName`: Customer contact who declined.
+  - `customerContactFirstName`: Customer contact first name who declined.
   - `declineDate`: Decline timestamp/date.
 - `quote_approved_customer.html`
-  - `customerContactName`: Customer recipient name.
+  - `customerContactFirstName`: Customer recipient first name.
   - `quarryName`: Quarry sending the quote.
   - `expiryDate`: Quote expiry date.
 - `quote_approved_tenant.html`
   - `accountManagerName`: Tenant user recipient name (already common but acts as salutation here).
   - `customerName`: Customer business name.
-  - `customerContactName`: Customer contact who approved.
+  - `customerContactFirstName`: Customer contact first name who approved.
   - `approvalDate`: Approval timestamp/date.
