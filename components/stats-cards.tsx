@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 export interface StatsCardData {
@@ -33,6 +33,7 @@ export function StatsCards({
 }: StatsCardsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const loadingCount = skeletonCount ?? (cards.length || 4);
+  const [isExpanded, setIsExpanded] = React.useState(true);
 
   // Map numeric values to actual Tailwind classes
   const getGridCols = (cols: number) => {
@@ -49,6 +50,97 @@ export function StatsCards({
     ? getGridCols(desktopGridCols)
     : getGridCols(mobileGridCols);
 
+  // Helper to extract short title from full title
+  const getShortTitle = (title: string) => {
+    // Extract key words from titles
+    const titleMap: Record<string, string> = {
+      'Total Customers': 'Total',
+      'Active Customers': 'Active',
+      'Total Business Customers': 'Business',
+      'Total Individual Customers': 'Individual',
+      'Total Quotations': 'Total',
+      'Pending Approval': 'Pending',
+      'Total Quote Value': 'Value',
+      'Expiring Soon': 'Expiring',
+      'Most Quoted Product': 'Top Product',
+      'Unavailable Products': 'Unavailable',
+      'Average Product Margin': 'Avg Margin',
+      'Total Products': 'Total',
+      'Monthly Value - Suppliers': 'Suppliers',
+      'Top Supplier': 'Top Supplier',
+      'Monthly Value - Quarries': 'Quarries',
+      'Top Quarry': 'Top Quarry',
+    };
+    return titleMap[title] || title.split(' ')[0];
+  };
+
+  // Mobile view - Quick Insights collapsible list
+  if (!isDesktop) {
+    return (
+      <Card className="overflow-hidden">
+        <div
+          className="flex items-center justify-between p-4 cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <h3 className="text-lg font-semibold">Quick Insights</h3>
+          {isExpanded ? (
+            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+          )}
+        </div>
+        {isExpanded && (
+          <div className="border-t">
+            {isLoading ? (
+              <div className="p-4 space-y-3">
+                {Array.from({ length: loadingCount }).map((_, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+                    <Skeleton className="h-4 w-20" />
+                    <div className="ml-auto flex items-center gap-2">
+                      <Skeleton className="h-6 w-12" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="divide-y">
+                {cards.map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div
+                      key={card.title}
+                      className="flex items-center gap-3 p-4"
+                    >
+                      <div
+                        className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
+                      >
+                        <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                      </div>
+                      <span className="text-[#737373] text-base">
+                        {getShortTitle(card.title)}
+                      </span>
+                      <div className="ml-auto flex items-center gap-2">
+                        <span className="text-xl font-bold">{card.value}</span>
+                        <span
+                          className={`text-sm ${card.descriptionColor} whitespace-nowrap`}
+                        >
+                          {card.description}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+    );
+  }
+
+  // Desktop view - Grid of cards
   return (
     <div className={`grid ${gridColsClass} gap-4`}>
       {isLoading
@@ -67,34 +159,24 @@ export function StatsCards({
         : cards.map((card) => {
             const Icon = card.icon;
 
-            // Text sizes based on device
-            const titleTextSize = isDesktop ? 'text-sm' : 'text-xs';
-            const valueTextSize = isDesktop ? 'text-3xl' : 'text-2xl';
-            const descriptionTextSize = isDesktop ? 'text-sm' : 'text-xs';
-            const iconSize = isDesktop ? 'h-5 w-5' : 'h-4 w-4';
-
             return (
               <Card key={card.title} className="p-5 overflow-hidden">
                 <CardContent className="p-2 space-y-1">
                   <div className="flex justify-between gap-2 items-start">
-                    <span
-                      className={`font-medium leading-tight text-[#737373] ${titleTextSize} break-words`}
-                    >
+                    <span className="font-medium leading-tight text-[#737373] text-sm break-words">
                       {card.title}
                     </span>
                     <div
                       className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
                     >
-                      <Icon
-                        className={`opacity-70 ${card.iconColor} ${iconSize}`}
-                      />
+                      <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
                     </div>
                   </div>
-                  <div className={`font-bold ${valueTextSize} pt-1 break-all`}>
+                  <div className="text-3xl font-bold pt-1 break-all">
                     {card.value}
                   </div>
                   <div
-                    className={`font-normal ${card.descriptionColor} ${descriptionTextSize} truncate`}
+                    className={`text-sm font-normal ${card.descriptionColor} truncate`}
                   >
                     {card.description}
                   </div>
