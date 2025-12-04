@@ -20,6 +20,7 @@ import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Loader2 } from 'lucide-react';
 
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
@@ -802,7 +803,16 @@ export default function CustomerForm({
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isEditing ? 'Save Changes' : 'Add Customer'}
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Customer...'
+                  : isEditing
+                  ? 'Save Changes'
+                  : 'Add Customer'}
               </Button>
             </div>
           )}
@@ -814,8 +824,18 @@ export default function CustomerForm({
                 // form="add-new-customer-form"
                 type="submit"
                 className="cursor-pointer"
+                disabled={isSubmitting}
               >
-                {isEditing ? 'Save Changes' : 'Add Customer'}
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Customer...'
+                  : isEditing
+                  ? 'Save Changes'
+                  : 'Add Customer'}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

@@ -249,7 +249,6 @@ export const pdfStyles = StyleSheet.create({
     marginHorizontal: -40,
   },
 
-
   // Status banner
   statusBanner: {
     padding: 12,
@@ -291,6 +290,11 @@ export const pdfStyles = StyleSheet.create({
   column: {
     flex: 1,
     paddingRight: 24,
+  },
+
+  // Make the payment column a bit wider than the summary column
+  paymentColumn: {
+    flex: 1.2,
   },
 
   fourColumn: {
@@ -497,7 +501,8 @@ export const pdfStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.gray300,
     borderRadius: 8,
-    padding: 16,
+    width: '100%',
+    padding: 8,
     backgroundColor: colors.white,
   },
 
@@ -534,14 +539,14 @@ export const pdfStyles = StyleSheet.create({
   },
 
   totalLabel: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.base,
     fontFamily: 'Geist',
     fontWeight: 'bold',
     color: colors.purple,
   },
 
   totalAmount: {
-    fontSize: fontSize.lg,
+    fontSize: fontSize.base,
     fontFamily: 'Geist',
     fontWeight: 'bold',
     color: colors.purple,
