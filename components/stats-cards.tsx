@@ -77,12 +77,12 @@ export function StatsCards({
   // Mobile view - Quick Insights collapsible list
   if (!isDesktop) {
     return (
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden py-3 gap-3">
         <div
-          className="flex items-center justify-between p-4 cursor-pointer"
+          className="flex items-center justify-between px-6 mb-0 cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <h3 className="text-lg font-semibold">Quick Insights</h3>
+          <h3 className="text-base font-medium">Quick Insights</h3>
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-muted-foreground" />
           ) : (
@@ -90,7 +90,7 @@ export function StatsCards({
           )}
         </div>
         {isExpanded && (
-          <div className="border-t p-4">
+          <div className="border-t px-4 pt-3">
             {isLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: loadingCount }).map((_, index) => (
@@ -113,21 +113,25 @@ export function StatsCards({
                   return (
                     <Card
                       key={card.title}
-                      className="p-3 border shadow-sm"
+                      className="py-2 px-3 border shadow-sm bg-[#F9FAFB]"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
                         <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
+                          className={`flex h-7 w-7 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
                         >
-                          <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                          <Icon
+                            className={`h-3.5 w-3.5 opacity-70 ${card.iconColor}`}
+                          />
                         </div>
-                        <span className="text-[#737373] text-base">
+                        <span className="text-[#737373] text-xs flex-shrink-0">
                           {getShortTitle(card.title)}
                         </span>
-                        <div className="ml-auto flex items-center gap-2">
-                          <span className="text-xl font-bold">{card.value}</span>
+                        <div className="ml-auto flex items-center gap-1.5 min-w-0">
+                          <span className="text-sm font-bold flex-shrink-0">
+                            {card.value}
+                          </span>
                           <span
-                            className={`text-sm ${card.descriptionColor} whitespace-nowrap`}
+                            className={`text-xs ${card.descriptionColor} truncate`}
                           >
                             {card.description}
                           </span>
@@ -173,7 +177,9 @@ export function StatsCards({
                     <div
                       className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
                     >
-                      <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
+                      <Icon
+                        className={`h-5 w-5 opacity-70 ${card.iconColor}`}
+                      />
                     </div>
                   </div>
                   <div className="text-3xl font-bold pt-1 break-all">
