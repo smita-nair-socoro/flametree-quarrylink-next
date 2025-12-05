@@ -21,7 +21,6 @@ interface StatsCardsProps {
   isLoading?: boolean;
   mobileGridCols?: number;
   desktopGridCols?: number;
-  skeletonCount?: number;
 }
 
 export function StatsCards({
@@ -29,10 +28,9 @@ export function StatsCards({
   isLoading = false,
   mobileGridCols = 2,
   desktopGridCols = 4,
-  skeletonCount,
 }: StatsCardsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const loadingCount = skeletonCount ?? (cards.length || 4);
+  const loadingCount = cards.length || 4;
   const [isExpanded, setIsExpanded] = React.useState(true);
 
   // Map numeric values to actual Tailwind classes
