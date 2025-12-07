@@ -194,6 +194,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           country,
           lat,
           lng,
+          googlePlaceId: selectedPlaceId, // Store the Google Place ID
         };
 
         setAddress(formattedData);
@@ -244,6 +245,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       country: '',
       lat: 0,
       lng: 0,
+      googlePlaceId: '',
     };
     setAddress(resetAddress);
     // Notify react-hook-form of the change
