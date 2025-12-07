@@ -93,6 +93,14 @@ export default function QuarrySupplierForm({
   const [address, setAddress] = React.useState<AddressType>(() => {
     if (isEditing && selectedQuarrySupplier?.address) {
       const backendAddress = selectedQuarrySupplier.address;
+      console.log('=== Backend Address Data ===');
+      console.log('Full backend address:', backendAddress);
+      console.log('streetDetailsPrimary:', backendAddress.streetDetailsPrimary);
+      console.log(
+        'streetDetailsOptional:',
+        backendAddress.streetDetailsOptional
+      );
+      console.log('formattedAddress:', backendAddress.formattedAddress);
       return {
         address1: backendAddress.streetDetailsPrimary || '',
         address2: backendAddress.streetDetailsOptional || '',
@@ -248,27 +256,28 @@ export default function QuarrySupplierForm({
       setIsSubmitting(true);
 
       try {
-        // Use existing address when editing, otherwise generate mock address
-        let addressData: Address;
-        if (isEditing && selectedQuarrySupplier?.address) {
-          // Preserve the original address data completely when editing
-          addressData = selectedQuarrySupplier.address;
-        } else {
-          // For new addresses, use data from Google Places API
-          addressData = {
-            googlePlaceId: address.googlePlaceId || '',
-            formattedAddress: address.formattedAddress || '',
-            streetDetailsPrimary: address.address1 || '',
-            streetDetailsOptional: address.address2 || '',
-            city: address.city || '',
-            suburb: address.city || '',
-            state: address.region || '',
-            postcode: address.postalCode || '',
-            country: address.country || '',
-            latitude: address.lat || 0,
-            longitude: address.lng || 0,
-          } as Address;
-        }
+        // Build address data from current address state
+        const addressData: Address = {
+          // Include id and version only when editing with existing address
+          ...(isEditing && selectedQuarrySupplier?.address?.id
+            ? { id: selectedQuarrySupplier.address.id }
+            : {}),
+          ...(isEditing &&
+          selectedQuarrySupplier?.address?.version !== undefined
+            ? { version: selectedQuarrySupplier.address.version }
+            : {}),
+          googlePlaceId: address.googlePlaceId || '',
+          formattedAddress: address.formattedAddress || '',
+          streetDetailsPrimary: address.address1 || '',
+          streetDetailsOptional: address.address2 || '',
+          city: address.city || '',
+          suburb: address.city || '',
+          state: address.region || '',
+          postcode: address.postalCode || '',
+          country: address.country || '',
+          latitude: address.lat || 0,
+          longitude: address.lng || 0,
+        } as Address;
 
         const quarrySupplierData = {
           name: values.name,
@@ -359,7 +368,13 @@ export default function QuarrySupplierForm({
 
       await submitQuarrySupplier(values);
     },
-    [willExceedQuarryLimit, submitQuarrySupplier]
+    [
+      willExceedQuarryLimit,
+      submitQuarrySupplier,
+      quarrySupplierForm,
+      isEditing,
+      id,
+    ]
   );
 
   const handleSubscriptionConfirm = React.useCallback(() => {

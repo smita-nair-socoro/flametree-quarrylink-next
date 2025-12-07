@@ -71,9 +71,9 @@ const Base = z.object({
   weighbridge_info: z.string().trim().optional(),
   notes: z.string().trim().optional(),
 
-  // Audit fields
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
+  // Audit fields - these are managed by backend, so we accept any value
+  created_at: z.any().optional(),
+  updated_at: z.any().optional(),
   created_by: z.string().optional(),
   last_modified_by: z.string().optional(),
 });
