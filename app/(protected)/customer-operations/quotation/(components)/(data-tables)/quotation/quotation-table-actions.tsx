@@ -39,7 +39,7 @@ export function QuotationTableActions({
     attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } = useQuotationActions(
     quotation.id,
     quotation
   );
