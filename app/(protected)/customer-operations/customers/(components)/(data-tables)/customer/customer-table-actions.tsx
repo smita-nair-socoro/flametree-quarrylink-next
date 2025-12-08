@@ -1,12 +1,6 @@
 'use client';
 import * as React from 'react';
-import {
-  MoreHorizontal,
-  Eye,
-  Archive,
-  ArchiveRestore,
-  AlertCircle,
-} from 'lucide-react';
+import { MoreHorizontal, Eye, Archive, ArchiveRestore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -29,6 +23,9 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     customer.id,
     customer
   );
+
+  const isArchived = customer.customer_status === 'ARCHIVED';
+
   const setSelectedCustomer = useCustomerStore(
     (state) => state.setSelectedCustomer
   );
@@ -49,16 +46,6 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     actions.unarchive();
   };
 
-  const handleCannotArchive = () => {
-    setDropdownOpen(false); // Close dropdown before opening modal
-    actions.cannotArchive();
-  };
-
-  const handleCannotUnarchive = () => {
-    setDropdownOpen(false); // Close dropdown before opening modal
-    actions.cannotUnarchive();
-  };
-
   return (
     <div>
       {confirmDialogs}
@@ -74,40 +61,24 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-
-          {/* Temporarily show both options for testing */}
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleArchive}
-            className="text-destructive focus:text-destructive"
-          >
-            <Archive className="h-4 w-4 mr-2 text-red-600" />
-            Archive
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            onClick={handleUnarchive}
-            className="text-blue-600 focus:text-blue-600"
-          >
-            <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-            Unarchive
-          </DropdownMenuItem>
-
-          {/* Temporarily show both options for testing */}
-          <DropdownMenuItem
-            onClick={handleCannotArchive}
-            className="text-orange-600 focus:text-orange-600"
-          >
-            <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
-            Cannot Archive
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleCannotUnarchive}
-            className="text-orange-600 focus:text-orange-600"
-          >
-            <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
-            Cannot Unarchive
-          </DropdownMenuItem>
+          {!isArchived ? (
+            <DropdownMenuItem
+              onClick={handleArchive}
+              className="text-destructive focus:text-destructive"
+            >
+              <Archive className="h-4 w-4 mr-2 text-red-600" />
+              Archive
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              onClick={handleUnarchive}
+              className="text-blue-600 focus:text-blue-600"
+            >
+              <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
+              Unarchive
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
