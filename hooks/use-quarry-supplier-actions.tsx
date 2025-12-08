@@ -66,7 +66,7 @@ const getDialogConfigs = (
   if (selectedAction?.key === 'delete') {
     return {
       delete: {
-        title: `Delete Supplier / Quarry`,
+        title: `Delete ${type === 'QUARRY' ? 'Quarry' : 'Supplier'}`,
         description: (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-3">
+            {/* <div className="flex flex-col gap-3">
               <span className="font-semibold text-[14px] text-[#000000]">
                 Current Status:
               </span>
@@ -98,7 +98,7 @@ const getDialogConfigs = (
                   All associated dockets completed ✓
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#000000]">
@@ -363,12 +363,7 @@ export function useQuarrySupplierActions(
             case 'delete':
               if (canDelete(quarrySupplierData) && quarrySupplierId) {
                 deleteMutation.mutate(quarrySupplierId, {
-                  onSuccess: (data) => {
-                    console.log(
-                      'Successfully deleted quarry/supplier:',
-                      quarrySupplierId,
-                      data
-                    );
+                  onSuccess: () => {
                     setActiveDialog(null);
                     setSelectedAction(null);
                     setBlockingQuotes(undefined);
@@ -376,26 +371,9 @@ export function useQuarrySupplierActions(
                     setViewOpen(false);
                   },
                   onError: (error: any) => {
-                    console.error('Failed to delete quarry/supplier:', error);
-                    console.log('Error details:', {
-                      hasResponse: !!error?.response,
-                      status: error?.response?.status,
-                      data: error?.response?.data,
-                      fullError: error,
-                    });
-
                     // Check if it's a 409 Conflict error with blocking quotes
                     if (error?.response?.status === 409) {
                       const errorData = error.response.data;
-                      console.log('409 Error Response:', errorData);
-                      console.log(
-                        'Has blockingQuoteDtos?',
-                        !!errorData?.blockingQuoteDtos
-                      );
-                      console.log(
-                        'Is array?',
-                        Array.isArray(errorData?.blockingQuoteDtos)
-                      );
 
                       if (
                         errorData?.blockingQuoteDtos &&
@@ -412,9 +390,6 @@ export function useQuarrySupplierActions(
                             lineItemsCount: dto.lineItemsCount,
                           }));
 
-                        console.log('Blocking Quotes:', quotes);
-                        console.log('About to show cannotDelete dialog');
-
                         // Set blocking quotes and show cannotDelete dialog
                         setBlockingQuotes(quotes);
                         setActiveDialog(null);
@@ -422,20 +397,10 @@ export function useQuarrySupplierActions(
 
                         // Small delay to ensure dialog closes before opening new one
                         setTimeout(() => {
-                          console.log('Opening cannotDelete dialog now');
                           setSelectedAction({ key: 'cannotDelete' });
                           setActiveDialog('cannotDelete');
                         }, 100);
-                      } else {
-                        console.log(
-                          'blockingQuoteDtos not found or not an array'
-                        );
                       }
-                    } else {
-                      console.log(
-                        'Not a 409 error, status:',
-                        error?.response?.status
-                      );
                     }
                   },
                 });
@@ -445,20 +410,10 @@ export function useQuarrySupplierActions(
               if (canUnarchive(quarrySupplierData) && quarrySupplierId) {
                 unarchiveMutation.mutate(quarrySupplierId, {
                   onSuccess: () => {
-                    console.log(
-                      'Successfully unarchived quarry/supplier:',
-                      quarrySupplierId
-                    );
                     setActiveDialog(null);
                     setSelectedAction(null);
                     // Also close the view dialog if it's open
                     setViewOpen(false);
-                  },
-                  onError: (error) => {
-                    console.error(
-                      'Failed to unarchive quarry/supplier:',
-                      error
-                    );
                   },
                 });
               }

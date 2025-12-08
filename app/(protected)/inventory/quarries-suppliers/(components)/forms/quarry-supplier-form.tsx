@@ -93,14 +93,6 @@ export default function QuarrySupplierForm({
   const [address, setAddress] = React.useState<AddressType>(() => {
     if (isEditing && selectedQuarrySupplier?.address) {
       const backendAddress = selectedQuarrySupplier.address;
-      console.log('=== Backend Address Data ===');
-      console.log('Full backend address:', backendAddress);
-      console.log('streetDetailsPrimary:', backendAddress.streetDetailsPrimary);
-      console.log(
-        'streetDetailsOptional:',
-        backendAddress.streetDetailsOptional
-      );
-      console.log('formattedAddress:', backendAddress.formattedAddress);
       return {
         address1: backendAddress.streetDetailsPrimary || '',
         address2: backendAddress.streetDetailsOptional || '',
@@ -298,10 +290,6 @@ export default function QuarrySupplierForm({
             ? { version: selectedQuarrySupplier.version }
             : {}),
         } as unknown as Quarry;
-
-        console.log('=== Request Body ===');
-        console.log('Action:', isEditing ? 'UPDATE' : 'CREATE');
-        console.log('Quarry/Supplier Data:', JSON.stringify(quarrySupplierData, null, 2));
 
         if (isEditing && id) {
           // Update existing quarry/supplier
