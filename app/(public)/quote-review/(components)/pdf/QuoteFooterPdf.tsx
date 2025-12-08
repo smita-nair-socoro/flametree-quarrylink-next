@@ -25,29 +25,53 @@ export const QuoteFooterPdf: React.FC<QuoteFooterPdfProps> = ({
         {/* Three columns */}
         <View style={styles.footerGrid}>
           {/* Column 1: Email & Phone */}
-          <View style={styles.footerColumn}>
-            <Link src={`mailto:${email}`} style={styles.footerLink}>
-              {email}
-            </Link>
-            <Text style={styles.footerText}>{phone}</Text>
-          </View>
+          {businessName !== 'QuarryLink' && (
+            <View style={styles.footerLeftColumn}>
+              <Link src={`mailto:${email}`} style={styles.footerLink}>
+                {email}
+              </Link>
+              <Text style={styles.footerText}>{phone}</Text>
+            </View>
+          )}
+
+          {businessName === 'QuarryLink' && (
+            <View style={styles.footerLeftColumn}>
+              <Text style={styles.footerText}>{phone}</Text>
+            </View>
+          )}
 
           {/* Column 2: Address */}
-          <View style={styles.footerColumn}>
-            <Text style={styles.footerText}>{addressLine1}</Text>
-            <Text style={styles.footerText}>{addressLine2}</Text>
-          </View>
+          {businessName !== 'QuarryLink' && (
+            <View style={styles.footerColumn}>
+              <Text style={styles.footerText}>{addressLine1}</Text>
+              <Text style={styles.footerText}>{addressLine2}</Text>
+            </View>
+          )}
+          {businessName === 'QuarryLink' && (
+            <View style={styles.footerColumn}>
+              <Link src={`https://${website}`} style={styles.footerLink}>
+                {website}
+              </Link>
+            </View>
+          )}
 
           {/* Column 3: Website */}
-          <View style={styles.footerColumn}>
-            <Text style={styles.footerHeading}>Website</Text>
-            <Link src={`https://${website}`} style={styles.footerLink}>
-              {website}
-            </Link>
-          </View>
+          {businessName !== 'QuarryLink' && (
+            <View style={styles.footerRightColumn}>
+              <Text style={styles.footerText}>Website</Text>
+              <Link src={`https://${website}`} style={styles.footerLink}>
+                {website}
+              </Link>
+            </View>
+          )}
+          {businessName === 'QuarryLink' && (
+            <View style={styles.footerRightColumn}>
+              <Link src={`mailto:${email}`} style={styles.footerLink}>
+                {email}
+              </Link>
+            </View>
+          )}
         </View>
-
-        {/* Separator line */}
         <View style={styles.footerSeparator} />
 
         {/* Copyright */}

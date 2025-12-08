@@ -186,6 +186,8 @@ export const pdfStyles = StyleSheet.create({
   footerGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    width: '97%',
+    alignSelf: 'center',
   },
 
   footerColumn: {
@@ -194,13 +196,16 @@ export const pdfStyles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 
-  footerHeading: {
-    fontSize: fontSize.base,
-    fontFamily: 'Geist',
-    fontWeight: 'bold',
-    color: colors.white,
-    marginBottom: 6,
-    textAlign: 'center',
+  footerRightColumn: {
+    flex: 1,
+    alignItems: 'flex-end',
+    paddingHorizontal: 10,
+  },
+
+  footerLeftColumn: {
+    flex: 1,
+    alignItems: 'flex-start',
+    paddingHorizontal: 10,
   },
 
   footerText: {
@@ -208,6 +213,7 @@ export const pdfStyles = StyleSheet.create({
     color: colors.white,
     textAlign: 'center',
     marginBottom: 2,
+    opacity: 0.9,
   },
 
   footerLink: {
@@ -215,13 +221,17 @@ export const pdfStyles = StyleSheet.create({
     color: colors.white,
     textAlign: 'center',
     textDecoration: 'none',
+    opacity: 0.9,
   },
 
   footerSeparator: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 0.5,
+    borderColor: '#ffffff',
     marginTop: 12,
     marginBottom: 8,
+    opacity: 0.3,
+    width: '95%',
+    alignSelf: 'center',
   },
 
   footerCopyright: {
