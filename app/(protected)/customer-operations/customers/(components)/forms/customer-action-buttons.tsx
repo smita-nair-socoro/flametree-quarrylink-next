@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
+import { MoreHorizontal, Archive, Eye, ArchiveRestore, AlertCircle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { Customer } from '@/lib/types/customer';
@@ -98,6 +98,21 @@ export function CustomerActionButtons({
                 Unarchive
               </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={actions.cannotArchive}
+              className="text-orange-600 focus:text-orange-600"
+            >
+              <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+              Test: Cannot Archive
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={actions.cannotUnarchive}
+              className="text-orange-600 focus:text-orange-600"
+            >
+              <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+              Test: Cannot Unarchive
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -165,6 +180,21 @@ export function CustomerActionButtons({
                   <Archive className="h-4 w-4 mr-2 text-red-600" />
                   Archive
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={actions.cannotArchive}
+                  className="text-orange-600 focus:text-orange-600"
+                >
+                  <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+                  Test: Cannot Archive
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={actions.cannotUnarchive}
+                  className="text-orange-600 focus:text-orange-600"
+                >
+                  <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+                  Test: Cannot Unarchive
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
@@ -187,6 +217,21 @@ export function CustomerActionButtons({
               >
                 <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
                 Unarchive
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={actions.cannotArchive}
+                className="text-orange-600 focus:text-orange-600"
+              >
+                <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+                Test: Cannot Archive
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={actions.cannotUnarchive}
+                className="text-orange-600 focus:text-orange-600"
+              >
+                <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+                Test: Cannot Unarchive
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

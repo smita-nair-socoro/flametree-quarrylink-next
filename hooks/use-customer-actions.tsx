@@ -440,6 +440,17 @@ export function useCustomerActions(
       //   setSelectedAction({ key: 'unarchive' });
       //   setActiveDialog('unarchive');
       // }
+      setSelectedAction({ key: 'unarchive' });
+      setActiveDialog('unarchive');
+    },
+
+    // Test actions for UI/UX testing
+    cannotArchive: () => {
+      setSelectedAction({ key: 'cannotArchive' });
+      setActiveDialog('cannotArchive');
+    },
+
+    cannotUnarchive: () => {
       setSelectedAction({ key: 'cannotUnarchive' });
       setActiveDialog('cannotUnarchive');
     },
