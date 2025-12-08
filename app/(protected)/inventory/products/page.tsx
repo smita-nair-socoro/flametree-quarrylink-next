@@ -47,7 +47,7 @@ export default function ProductsPage() {
       description: '$287,450 this month',
       icon: Gem,
       iconBgColor: 'bg-[#FEF3C6]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#733E0A]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -56,7 +56,7 @@ export default function ProductsPage() {
       description: '8% of inventory',
       icon: PackageX,
       iconBgColor: 'bg-[#FFE2E2]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#9F0712]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -65,7 +65,7 @@ export default function ProductsPage() {
       description: '+2.3% vs last month',
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#00A63E]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -74,7 +74,7 @@ export default function ProductsPage() {
       description: '+8 added this month',
       icon: Package,
       iconBgColor: 'bg-[#CEFAFE]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#0891B2]',
       descriptionColor: 'text-[#00A63E]',
     },
   ];

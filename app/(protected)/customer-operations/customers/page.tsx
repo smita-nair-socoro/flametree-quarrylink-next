@@ -12,7 +12,7 @@ import {
   Users,
   UserCheck,
   Activity,
-  Briefcase,
+  Building2,
   Loader2,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -43,7 +43,7 @@ export default function CustomersPage() {
       description: '+12 this month',
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#193CB8]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -52,7 +52,7 @@ export default function CustomersPage() {
       description: '75% of total',
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#016630]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -61,16 +61,16 @@ export default function CustomersPage() {
       description: '45% requested quotes',
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#8E51FF]',
       descriptionColor: 'text-[#737373]',
     },
     {
       title: 'Total Individual Customers',
       value: 63,
       description: '45% requested quotes',
-      icon: Briefcase,
+      icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#DB2777]',
       descriptionColor: 'text-[#737373]',
     },
   ];

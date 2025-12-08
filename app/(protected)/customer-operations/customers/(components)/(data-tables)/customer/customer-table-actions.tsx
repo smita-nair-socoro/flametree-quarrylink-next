@@ -1,6 +1,12 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Archive, ArchiveRestore } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Eye,
+  Archive,
+  ArchiveRestore,
+  AlertCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -43,6 +49,16 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     actions.unarchive();
   };
 
+  const handleCannotArchive = () => {
+    setDropdownOpen(false); // Close dropdown before opening modal
+    actions.cannotArchive();
+  };
+
+  const handleCannotUnarchive = () => {
+    setDropdownOpen(false); // Close dropdown before opening modal
+    actions.cannotUnarchive();
+  };
+
   return (
     <div>
       {confirmDialogs}
@@ -75,6 +91,22 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
           >
             <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
             Unarchive
+          </DropdownMenuItem>
+
+          {/* Temporarily show both options for testing */}
+          <DropdownMenuItem
+            onClick={handleCannotArchive}
+            className="text-orange-600 focus:text-orange-600"
+          >
+            <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+            Cannot Archive
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleCannotUnarchive}
+            className="text-orange-600 focus:text-orange-600"
+          >
+            <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+            Cannot Unarchive
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
