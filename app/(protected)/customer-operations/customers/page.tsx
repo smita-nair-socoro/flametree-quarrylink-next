@@ -7,12 +7,21 @@ import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { Customer } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { customerColumns } from './(components)/(data-tables)/customer/columns';
-import { Plus, Users, UserCheck, Activity, Briefcase } from 'lucide-react';
+import {
+  Plus,
+  Users,
+  UserCheck,
+  Activity,
+  Briefcase,
+  Loader2,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { Card, CardContent } from '@/components/ui/card';
+import { TableSkeleton } from '@/components/table-skeleton';
+import { useAuth } from '@/hooks/use-auth';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 import {
   DataTableClient,
@@ -27,7 +36,7 @@ export default function CustomersPage() {
     React.useState<Customer | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Total Customers',
       value: 248,
@@ -71,10 +80,28 @@ export default function CustomersPage() {
     selectedCustomerForActions
   );
 
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
+
+  // Filter columns based on user role
+  const filteredColumns = React.useMemo(() => {
+    if (isEssentials) {
+      // Hide remaining_credit column for Essentials users
+      return customerColumns.filter(
+        (column) => column.id !== 'remaining_credit'
+      );
+    }
+    return customerColumns;
+  }, [isEssentials]);
+
   // Use React Query to fetch customers data
   const {
     data: customersData,
     isLoading,
+    isFetching,
     error,
     isError,
   } = useQuery(CustomersListQueryOptions());
@@ -132,59 +159,39 @@ export default function CustomersPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="overflow-hidden p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
-                    />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
-                  {card.value}
-                </div>
-                <div
-                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
-                >
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards
+        cards={statsCards}
+        isLoading={isLoading}
+        mobileGridCols={1}
+        desktopGridCols={4}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p>Loading customers...</p>
-            </div>
-          </div>
+          <TableSkeleton rows={10} columns={6} />
         ) : isError ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-center">Error loading customers</div>
+            <div className="text-center text-destructive">
+              Error loading customers
+            </div>
           </div>
         ) : (
-          <DataTableClient
-            tableId="customer_main_data_table"
-            data={items ?? []}
-            columns={customerColumns}
-            facetDefination={facetDefs}
-            searchPlaceHolder="Search customers..."
-            onRowClick={handleRowClick}
-          />
+          <div className="relative">
+            {/* Subtle loading indicator during background refresh */}
+            {isFetching && !isLoading && (
+              <div className="absolute top-2 right-2 z-10">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            <DataTableClient
+              tableId="customer_main_data_table"
+              data={items ?? []}
+              columns={filteredColumns}
+              facetDefination={facetDefs}
+              searchPlaceHolder="Search customers..."
+              onRowClick={handleRowClick}
+            />
+          </div>
         )}
       </div>
     </div>

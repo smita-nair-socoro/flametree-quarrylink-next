@@ -1,12 +1,16 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { RuntimeConfig, setRuntimeConfig } from '../../app/stores/runtimeConfigStore';
+import {
+  RuntimeConfig,
+  setRuntimeConfig,
+} from '../../app/stores/runtimeConfigStore';
+import { Loader2 } from 'lucide-react';
 
 const ConfigCtx = createContext<RuntimeConfig | null>(null);
 
 export function useConfig() {
   const cfg = useContext(ConfigCtx);
-  if (!cfg) throw new Error("Config not loaded yet");
+  if (!cfg) throw new Error('Config not loaded yet');
   return cfg;
 }
 
@@ -44,10 +48,10 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
 
   if (!cfg) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p>Loading configuration...</p>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg font-medium">Loading...</p>
         </div>
       </div>
     );

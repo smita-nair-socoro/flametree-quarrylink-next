@@ -8,6 +8,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Loader2 } from 'lucide-react';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
@@ -22,10 +23,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   if (auth.isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p>Loading...</p>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg font-medium">Loading...</p>
         </div>
       </div>
     );

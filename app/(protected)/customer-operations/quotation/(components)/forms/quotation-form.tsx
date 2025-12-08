@@ -39,6 +39,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import { Info } from 'lucide-react';
 
 interface FormProps {
   id?: number;
@@ -410,6 +411,18 @@ export default function QuotationForm({
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
+          {isEditing && currentQuotation?.status === 'PENDING' && (
+            <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
+              <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
+                <Info className="h-4 w-4" />
+                <span>To edit, decline the quote....</span>
+              </div>
+              <span className="text-muted-foreground ml-6 text-sm">
+                Save your changes and it will return to Draft for sending
+              </span>
+            </div>
+          )}
+
           <div
             className={cn(
               'p-1 gap-1 w-full',
@@ -808,12 +821,12 @@ export default function QuotationForm({
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-6 mt-10 mb-4">
                   <h2 className="text-2xl font-bold">Audit Information</h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                  <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-semibold text-foreground">
                         Created By:
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -822,7 +835,7 @@ export default function QuotationForm({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-semibold text-foreground">
                         Last Modified By:
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -832,7 +845,7 @@ export default function QuotationForm({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-semibold text-foreground">
                         Created Date:
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -849,7 +862,7 @@ export default function QuotationForm({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">
+                      <p className="text-sm font-semibold text-foreground">
                         Modified Date:
                       </p>
                       <p className="text-sm text-muted-foreground">

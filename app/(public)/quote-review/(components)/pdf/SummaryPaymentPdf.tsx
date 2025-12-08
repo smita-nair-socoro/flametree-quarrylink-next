@@ -62,16 +62,16 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
         </View>
 
         {/* Right Column - Payment Card */}
-        <View style={styles.column}>
+        <View style={[styles.column, styles.paymentColumn]}>
           <View style={styles.paymentCard}>
             {/* Subtotal */}
             <View style={styles.paymentRow}>
-              <Text style={styles.paymentLabel}>Subtotal:</Text>
+              <Text style={styles.paymentLabel}>Subtotal (ex-GST):</Text>
               <Text style={styles.paymentValue}>
                 ${centsToDollars(subtotal)}
               </Text>
             </View>
-            
+
             {/* GST */}
             <View style={styles.paymentRow}>
               <Text style={styles.paymentLabel}>GST (10%):</Text>
@@ -81,10 +81,8 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
             {/* Total */}
             <View style={styles.totalSeparator}>
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>TOTAL AMOUNT:</Text>
-                <Text style={styles.totalAmount}>
-                  ${centsToDollars(total)}
-                </Text>
+                <Text style={styles.totalLabel}>TOTAL AMOUNT (Incl. GST):</Text>
+                <Text style={styles.totalAmount}>${centsToDollars(total)}</Text>
               </View>
             </View>
           </View>

@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { QuarryListQueryOptions } from '@/lib/api/quarries';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 import {
   DataTableClient,
@@ -43,7 +43,7 @@ export default function QuarriesSuppliersPage() {
   }, [isError, error]);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Monthly Value - Suppliers',
       value: '$645,890',
@@ -154,37 +154,7 @@ export default function QuarriesSuppliersPage() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="overflow-hidden p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
-                    />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
-                  {card.value}
-                </div>
-                <div
-                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
-                >
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
