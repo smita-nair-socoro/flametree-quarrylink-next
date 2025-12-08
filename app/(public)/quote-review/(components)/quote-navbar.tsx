@@ -26,24 +26,25 @@ export function QuoteNavbar({
   return (
     <div className="bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 rounded-t-lg">
       {/* Top Row */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         {/* Logo */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <Image
             src="/quarrylink-logo.png"
             alt="QuarryLink logo"
             width={70}
             height={70}
+            className="flex-shrink-0"
           />
-          <h1 className="text-[60px] font-bold">QuarryLink</h1>
+          <h1 className="text-[60px] font-bold break-words">QuarryLink</h1>
         </div>
 
         {/* Download Button & Quote Number */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 justify-end">
           <Button
             onClick={onDownloadPDF}
             variant="secondary"
-            className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100"
+            className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100 whitespace-nowrap"
             size="default"
           >
             <Download className="w-4 h-4" />
@@ -51,14 +52,14 @@ export function QuoteNavbar({
           </Button>
 
           <div className="text-right">
-            <div className="font-bold text-[29px]">{quoteNumber}</div>
+            <div className="font-bold text-[29px] break-words">{quoteNumber}</div>
             <div className="text-white text-sm">QUOTATION</div>
           </div>
         </div>
       </div>
 
       {/* Bottom Row - Info Grid */}
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         {/* Left Column */}
         <div className="space-y-2">
           <div>
