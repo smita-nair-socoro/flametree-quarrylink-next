@@ -7,7 +7,11 @@ import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(
 import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
-import { useUnarchiveQuarry, useDeleteQuarryAfterEligibilityCheck } from '@/lib/api/quarries';
+import {
+  useUnarchiveQuarry,
+  useDeleteQuarryAfterEligibilityCheck,
+} from '@/lib/api/quarries';
+import { set } from 'date-fns';
 
 interface DialogConfig {
   title?: string;
@@ -357,12 +361,11 @@ export function useQuarrySupplierActions(
                     );
                     setActiveDialog(null);
                     setSelectedAction(null);
+                    // Also close the view dialog if it's open
+                    setViewOpen(false);
                   },
                   onError: (error) => {
-                    console.error(
-                      'Failed to delete quarry/supplier:',
-                      error
-                    );
+                    console.error('Failed to delete quarry/supplier:', error);
                   },
                 });
               }
@@ -377,6 +380,8 @@ export function useQuarrySupplierActions(
                     );
                     setActiveDialog(null);
                     setSelectedAction(null);
+                    // Also close the view dialog if it's open
+                    setViewOpen(false);
                   },
                   onError: (error) => {
                     console.error(

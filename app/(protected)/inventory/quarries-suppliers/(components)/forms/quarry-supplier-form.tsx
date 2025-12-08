@@ -299,6 +299,10 @@ export default function QuarrySupplierForm({
             : {}),
         } as unknown as Quarry;
 
+        console.log('=== Request Body ===');
+        console.log('Action:', isEditing ? 'UPDATE' : 'CREATE');
+        console.log('Quarry/Supplier Data:', JSON.stringify(quarrySupplierData, null, 2));
+
         if (isEditing && id) {
           // Update existing quarry/supplier
           await updateQuarryMutation.mutateAsync({
