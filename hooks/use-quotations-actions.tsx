@@ -210,7 +210,7 @@ const getDialogConfigs = (
               <div className="flex flex-col gap-1 px-4 py-2">
                 <div className="flex justify-between">
                   <span className="text-[14px] font-normal text-[#6A7282]">
-                    Quote Total:
+                    Quote Total (Incl. GST):
                   </span>
                   <span className="text-[16px] font-medium text-[#101828]">
                     ${totalSellPrice}
@@ -379,7 +379,7 @@ const getDialogConfigs = (
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[14px] font-normal text-[#6A7282]">
-                    Total Value
+                    Total Value (Incl. GST):
                   </span>
                   <span className="text-[16px] font-medium text-[#101828]">
                     ${totalSellPrice}

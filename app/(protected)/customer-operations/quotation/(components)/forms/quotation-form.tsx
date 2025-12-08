@@ -343,6 +343,12 @@ export default function QuotationForm({
       : 0,
   });
 
+  // Calculate GST and Total Invoice(Inc GST)
+  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
+  const totalInvoiceIncGST = (
+    Number(pricingBreakdown.totalInvoice) + Number(gst)
+  ).toFixed(2);
+
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {
     return (
@@ -407,6 +413,18 @@ export default function QuotationForm({
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
+          {isEditing && currentQuotation?.status === 'PENDING' && (
+            <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
+              <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
+                <Info className="h-4 w-4" />
+                <span>To edit, decline the quote....</span>
+              </div>
+              <span className="text-muted-foreground ml-6 text-sm">
+                Save your changes and it will return to Draft for sending
+              </span>
+            </div>
+          )}
+
           <div
             className={cn(
               'p-1 gap-1 w-full',
@@ -752,11 +770,12 @@ export default function QuotationForm({
                       columns={quotationLineItemColumns}
                       data={convertedQuotationLineItem ?? []}
                       simpleTable={true}
+                      useColumnSizing={true}
                     />
                   </div>
 
-                  <div className="flex flex-col gap-0">
-                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5]">
+                  <div className="flex flex-col gap-3">
+                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5] [&>div]:border-b [&>div]:border-dashed [&>div]:border-purple-300 [&>div:nth-child(1)]:border-b-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(5)]:border-b-0">
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-normal">
                           Product Cost (Total):
@@ -765,7 +784,7 @@ export default function QuotationForm({
                           ${pricingBreakdown.totalProductCostPrice}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3">
+                      <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">
                           Truck Cost (Total):
                         </span>
@@ -781,7 +800,7 @@ export default function QuotationForm({
                           ${pricingBreakdown.totalProductSellPrice}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3">
+                      <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">
                           Truck Sell (Total):
                         </span>
@@ -790,11 +809,23 @@ export default function QuotationForm({
                         </span>
                       </div>
                       <div className="flex justify-between py-3">
-                        <span className="text-sm font-semibold">
-                          Total Invoice:
+                        <span className="text-sm font-normal">
+                          Subtotal (ex-GST):
                         </span>
                         <span className="text-sm font-normal">
                           ${pricingBreakdown.totalInvoice}
+                        </span>
+                      </div>
+                      <div className="flex justify-between py-3 -mt-3">
+                        <span className="text-sm font-normal">GST (10%):</span>
+                        <span className="text-sm font-normal">${gst}</span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-sm font-semibold">
+                          Total Invoice (Incl. GST):
+                        </span>
+                        <span className="text-sm font-semibold">
+                          ${totalInvoiceIncGST}
                         </span>
                       </div>
                     </div>
@@ -802,7 +833,7 @@ export default function QuotationForm({
                       <span className="text-sm font-semibold">
                         Gross Profit:
                       </span>
-                      <span className="text-sm font-normal">
+                      <span className="text-sm font-semibold">
                         ${pricingBreakdown.grossProfit} (
                         {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
                       </span>
@@ -811,12 +842,12 @@ export default function QuotationForm({
                 </div>
 
                 {!isDuplicate && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 mt-10 mb-4">
                     <h2 className="text-2xl font-bold">Audit Information</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">
+                        <p className="text-sm font-semibold text-foreground">
                           Created By:
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -825,7 +856,7 @@ export default function QuotationForm({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">
+                        <p className="text-sm font-semibold text-foreground">
                           Last Modified By:
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -835,7 +866,7 @@ export default function QuotationForm({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">
+                        <p className="text-sm font-semibold text-foreground">
                           Created Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
@@ -852,7 +883,7 @@ export default function QuotationForm({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground">
+                        <p className="text-sm font-semibold text-foreground">
                           Modified Date:
                         </p>
                         <p className="text-sm text-muted-foreground">

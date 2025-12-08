@@ -23,7 +23,9 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
-import { AlertTriangle, UserPlus } from 'lucide-react';
+import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { delay } from '@/lib/utils/time';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -59,17 +61,32 @@ export default function InviteUserForm({
   const onSubmit = async (data: z.infer<typeof InviteUserFormSchema>) => {
     console.log('Invite user data:', data);
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simulate API call delay (remove this in production)
+      await delay(2000);
 
-    setIsSubmitting(false);
+      // Show success toast
+      notifySuccess('User Invited', {
+        description: `Invitation sent to ${data.email}`,
+      });
 
-    // TODO: Add actual API call here
-    // On success, call onSuccess to close the dialog
-    onSuccess?.();
+      // On success, call onSuccess to close the dialog
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error inviting user:', error);
+      notifyError('Invitation Failed');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // Handle form validation errors
+  function onError(errors: unknown) {
+    console.error('Invite User validation errors:', errors);
+    notifyError('Invitation Failed');
+  }
 
   return (
     <div className="w-full relative">
@@ -93,7 +110,7 @@ export default function InviteUserForm({
       <Form {...form}>
         <form
           id="invite-user-form"
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(onSubmit, onError)}
           className={cn(
             'space-y-1 px-2',
             isSubmitting && 'pointer-events-none'
@@ -155,11 +172,7 @@ export default function InviteUserForm({
               <FormItem>
                 <FormLabel>Email Address*</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="john.smith@company.com"
-                    {...field}
-                  />
+                  <Input placeholder="john.smith@company.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -283,7 +296,14 @@ export default function InviteUserForm({
               className="flex-1 bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
               disabled={isSubmitting || (isOverLimit && !agreedToBilling)}
             >
-              {isOverLimit ? 'Confirm & Send Invitation' : 'Send Invitation'}
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSubmitting
+                ? 'Sending Invitation...'
+                : isOverLimit
+                ? 'Confirm & Send Invitation'
+                : 'Send Invitation'}
             </Button>
           </div>
         </form>

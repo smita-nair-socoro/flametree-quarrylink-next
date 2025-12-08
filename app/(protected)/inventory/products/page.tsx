@@ -8,7 +8,7 @@ import { productColumns } from './(components)/(data-tables)/products/columns';
 import { Plus, Gem, PackageX, TrendingUp, Package } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 import {
   DataTableClient,
@@ -40,7 +40,7 @@ export default function ProductsPage() {
     React.useState<ProductDetails | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Most Quoted Product',
       value: 'Premium Granite',
@@ -114,31 +114,7 @@ export default function ProductsPage() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373] font-medium">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
-                  </div>
-                </div>
-                <div className="text-3xl font-bold pt-2">{card.value}</div>
-                <div className={`text-sm font-normal ${card.descriptionColor}`}>
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="product_main_data_table"

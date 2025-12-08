@@ -22,9 +22,13 @@ import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { getRelativeTime, formatDate } from '@/lib/utils/date';
 import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
 import { useSelectedTeamMember } from '@/app/stores/team-member-store';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TableBadges } from '@/components/table-badges';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
+
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
 type EditTeamMemberPayload = EditTeamMemberFormValues & {
@@ -59,6 +63,7 @@ export function EditTeamMemberForm({
 }: EditTeamMemberFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const initialData = useSelectedTeamMember();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const fullName = initialData?.full_name.trim() || 'Unnamed User';
 
@@ -117,30 +122,51 @@ export function EditTeamMemberForm({
   };
 
   const handleSubmit = async (values: EditTeamMemberFormValues) => {
-    const normalizedPhone = values.phone?.trim() || '';
+    try {
+      setIsSubmitting(true);
 
-    const payload: EditTeamMemberPayload = {
-      ...values,
-      id: initialData?.id,
-      client_id: initialData?.client_id,
-      phone: normalizedPhone,
-      created_at: initialData?.created_at,
-      last_login_at: initialData?.last_login_at,
-      total_logins: initialData?.total_logins,
-      quotation_created: initialData?.quotation_created,
-      jobs_managed: initialData?.jobs_managed,
-      invited_by: initialData?.invited_by,
-      deletion_reason: initialData?.deletion_reason,
-      isDeleted: initialData?.isDeleted,
-      updated_at: initialData?.updated_at,
-    };
+      const normalizedPhone = values.phone?.trim() || '';
 
-    await onSave?.(payload);
-    form.reset({
-      ...values,
-      phone: normalizedPhone,
-    });
-    onSuccess?.();
+      const payload: EditTeamMemberPayload = {
+        ...values,
+        id: initialData?.id,
+        client_id: initialData?.client_id,
+        phone: normalizedPhone,
+        created_at: initialData?.created_at,
+        last_login_at: initialData?.last_login_at,
+        total_logins: initialData?.total_logins,
+        quotation_created: initialData?.quotation_created,
+        jobs_managed: initialData?.jobs_managed,
+        invited_by: initialData?.invited_by,
+        deletion_reason: initialData?.deletion_reason,
+        isDeleted: initialData?.isDeleted,
+        updated_at: initialData?.updated_at,
+      };
+
+      // Simulate API call delay (remove this in production)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      await onSave?.(payload);
+      form.reset({
+        ...values,
+        phone: normalizedPhone,
+      });
+
+      // Show success toast
+      notifySuccess('User Updated');
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      notifyError('Update Failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle form validation errors
+  const handleError = (errors: unknown) => {
+    console.error('Team Member validation errors:', errors);
+    notifyError('Update Failed');
   };
 
   if (!initialData) {
@@ -152,7 +178,24 @@ export function EditTeamMemberForm({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10'
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              Updating User...
+            </p>
+          </div>
+        </div>
+      )}
+
       <header className="rounded-lg border border-border bg-[#F9FAFB] p-4 sm:p-5">
         <div
           className={
@@ -171,7 +214,9 @@ export function EditTeamMemberForm({
               {fullName}
             </span>
             <TableBadges names={initialData.status} visibleCount={1} />
-            <span className="text-[16px] text-[#4B5563]">{initialData.email}</span>
+            <span className="text-[16px] text-[#4B5563]">
+              {initialData.email}
+            </span>
             <span className="text-[14px] text-[#6B7280]">
               Joined: {formattedJoined}
             </span>
@@ -181,8 +226,11 @@ export function EditTeamMemberForm({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-2 mt-2"
+          onSubmit={form.handleSubmit(handleSubmit, handleError)}
+          className={cn(
+            'flex flex-col gap-2 mt-2',
+            isSubmitting && 'pointer-events-none'
+          )}
         >
           <section className="space-y-3">
             <div>
@@ -314,13 +362,23 @@ export function EditTeamMemberForm({
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+              </Button>
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col gap-3 mb-3">
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+              </Button>
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>

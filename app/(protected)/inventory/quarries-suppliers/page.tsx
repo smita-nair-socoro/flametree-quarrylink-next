@@ -10,7 +10,7 @@ import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/
 import { Plus, DollarSign, Building, Mountain, Factory } from 'lucide-react';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 import {
   DataTableClient,
@@ -33,7 +33,7 @@ export default function QuarriesSuppliersPage() {
   ] = React.useState<Quarry | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Monthly Value - Suppliers',
       value: '$645,890',
@@ -109,31 +109,7 @@ export default function QuarriesSuppliersPage() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373] font-medium">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
-                  </div>
-                </div>
-                <div className="text-3xl font-bold pt-2">{card.value}</div>
-                <div className={`text-sm font-normal ${card.descriptionColor}`}>
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="quarry_suppliers_table"

@@ -23,7 +23,8 @@ import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
   // Use React Query to fetch quotations data
@@ -70,7 +71,7 @@ export default function QuotationsPage() {
     React.useState<Quotation | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Total Quotations',
       value: 15,
@@ -109,6 +110,12 @@ export default function QuotationsPage() {
     },
   ];
 
+  // State for bulk selection
+  const [selectedQuotations, setSelectedQuotations] = React.useState<
+    Quotation[]
+  >([]);
+  const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
+
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
     selectedQuotationForActions
@@ -118,6 +125,16 @@ export default function QuotationsPage() {
     setSelectedQuotation(quotation);
     setSelectedQuotationForActions(quotation);
     actions.view();
+  };
+
+  const handleRowSelectionChange = (selected: Quotation[]) => {
+    setSelectedQuotations(selected);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedQuotations([]);
+    // Force re-render of table to clear checkboxes
+    setRowSelectionKey((prev) => prev + 1);
   };
 
   const facetDefs: FacetDefinition[] = [
@@ -149,31 +166,7 @@ export default function QuotationsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[#737373] font-medium">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon className={`h-5 w-5 opacity-70 ${card.iconColor}`} />
-                  </div>
-                </div>
-                <div className="text-3xl font-bold pt-2">{card.value}</div>
-                <div className={`text-sm font-normal ${card.descriptionColor}`}>
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards cards={statsCards} />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min mt-3">
         {isLoading ? (
@@ -189,12 +182,22 @@ export default function QuotationsPage() {
           </div>
         ) : (
           <DataTableClient
+            key={rowSelectionKey}
             tableId="quotation_main_data_table"
             data={items ?? []}
             columns={quotationColumns}
             facetDefination={facetDefs}
             searchPlaceHolder="Search quotes..."
             onRowClick={handleRowClick}
+            enableRowSelection={true}
+            onRowSelectionChange={handleRowSelectionChange}
+            // bulkActions={true}
+            bulkActionsSlot={
+              <QuotationBulkActions
+                selectedQuotations={selectedQuotations}
+                onClearSelection={handleClearSelection}
+              />
+            }
           />
         )}
       </div>

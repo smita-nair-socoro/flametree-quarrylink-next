@@ -13,12 +13,13 @@ interface ActionDialogProps {
   open: boolean;
   onOpenChangeAction: (open: boolean) => void;
   customWidth?: string;
-  title: string;
+  title?: string;
   titleIcon?: React.ReactNode;
   description?: React.ReactNode;
   content?: React.ReactNode;
   cancelText?: string;
   cancelButtonClass?: string;
+  cancelActionNeeded?:boolean;
   confirmText?: string;
   confirmVariant?:
     | 'default'
@@ -32,6 +33,8 @@ interface ActionDialogProps {
   onConfirmAction?: () => void;
   confirmActionNeeded?: boolean;
   confirmDisabled?: boolean;
+  textbelowbutton?: React.ReactNode;
+  hideSeparator?: boolean;
 }
 
 export function ActionDialog({
@@ -44,6 +47,7 @@ export function ActionDialog({
   content,
   cancelText = 'Cancel',
   cancelButtonClass,
+  cancelActionNeeded = true,
   confirmText,
   confirmVariant = 'default',
   confirmCustomColor,
@@ -52,6 +56,8 @@ export function ActionDialog({
   onConfirmAction,
   confirmActionNeeded = true,
   confirmDisabled = false,
+  textbelowbutton,
+  hideSeparator=false,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -73,8 +79,9 @@ export function ActionDialog({
           customWidth ? customWidth : 'w-[512px]',
           'max-w-full gap-6 max-h-[90vh] overflow-y-auto p-[24.62px]'
         )}
+        style={{ scrollbarGutter: 'auto' }}
       >
-        <DialogHeader>
+        <DialogHeader className={cn(title? '' : 'hidden')}>
           <DialogTitle>
             <div className="flex items-center gap-2">
               {titleIcon && titleIcon}
@@ -87,21 +94,30 @@ export function ActionDialog({
 
         {content && <>{content}</>}
 
-        <div className="border-t border-gray-200"></div>
-        <div className="grid grid-cols-2 space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChangeAction(false)}
-            className={cn(
-              confirmActionNeeded
-                ? 'h-10'
-                : cancelButtonClass
-                ? cancelButtonClass
-                : 'col-span-2 h-11'
+        {!hideSeparator && (<div className="border-t border-gray-200"></div>)}
+        <div 
+          className={cn(
+            'grid space-x-2', 
+            cancelActionNeeded 
+              ? 'grid-cols-2' 
+              : 'grid-cols-1'
+            )}>
+          {cancelActionNeeded &&(
+            <Button
+              variant="outline"
+              onClick={() => onOpenChangeAction(false)}
+              className={cn(
+                confirmActionNeeded
+                  ? 'h-10'
+                  : cancelButtonClass
+                  ? cancelButtonClass
+                  : 'col-span-2 h-11'
             )}
           >
             {cancelText}
           </Button>
+          )}
+          
           {confirmActionNeeded && (
             <Button
               variant={confirmCustomColor ? undefined : confirmVariant}
@@ -120,8 +136,9 @@ export function ActionDialog({
               )}
               {confirmText}
             </Button>
-          )}
+           )}
         </div>
+        {textbelowbutton && ( textbelowbutton)}
       </DialogContent>
     </Dialog>
   );

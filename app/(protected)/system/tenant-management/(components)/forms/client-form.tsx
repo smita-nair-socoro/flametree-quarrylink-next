@@ -9,50 +9,48 @@ import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
-
-import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { ABNInput } from '@/components/ui/input-mask';
-import { PhoneInput } from '@/components/ui/phone-input';
-import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
-import { FormSelect } from '@/components/ui/form-select';
-import { CircleCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import UserAccessTab from './tabs/user-access-tab';
 import UsageStatisticsTab from './tabs/usage-statistics-tab';
 import BillingHistoryTab from './tabs/billing-history-tab';
 import { Tab } from '@/components/ui/tabs';
-import ButtonRadio from '@/components/ui/button-radio';
-import { InputWithPlusMinusButtons } from '@/components/ui/input-with-plus-minus-buttons';
 import { Client } from '@/lib/types/client';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJsonWithClientWithUsers from '@/lib/tests/clientWithUsersResponseData.json';
 import { User } from '@/lib/types/user';
+import Step1CompanyDetails from './steps/step-1-company-details';
+import Step2Subscription from './steps/step-2-subscription';
+import Step3Summary from './steps/step-3-summary';
 
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
+  onClientAdded?: (clientName: string, clientEmail: string) => void;
   className?: string;
   onCancel?: () => void;
 }
 
-export default function ClientForm({ id, onCancel, className }: FormProps) {
+export default function ClientForm({
+  id,
+  onCancel,
+  onClientAdded,
+  className,
+}: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const selectedClient = useSelectedClient();
   const [selectedSubscription, setSelectedSubscription] =
     React.useState<string>(isEditing ? selectedClient?.subscription || '' : '');
+  const [numberOfUsers, setNumberOfUsers] = React.useState(10);
+  const [paymentTerm, setPaymentTerm] = React.useState<'Monthly' | 'Yearly'>(
+    'Monthly'
+  );
+  const [customPrice, setCustomPrice] = React.useState('');
   const [step, setStep] = React.useState(1);
   const [address, setAddress] = React.useState<AddressType>({
     address1: '',
@@ -79,6 +77,9 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
       subscription_payment_term: isEditing
         ? selectedClient?.subscription_payment_term || ''
         : '',
+      unit_subscription_price: 0,
+      total_subscription_price: 0,
+      number_of_users: 10,
       abn: isEditing ? selectedClient?.abn || '' : '',
       billing_address: '',
       created_by: isEditing ? selectedClient?.created_by || '' : '',
@@ -88,17 +89,12 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
   });
 
-  const subscriptionOptions = [
-    { label: 'Quarrylink ESSENTIAL', value: 'ESSENTIAL' },
-    { label: 'Quarrylink PLUS', value: 'PLUS' },
-    { label: 'Quarrylink PRO - Custom Pricing', value: 'PRO' },
-  ];
-
   // This will be changed so leave it as it is for now
   const subscriptionDetails = {
     ESSENTIAL: {
       name: 'ESSENTIAL',
-      price: '116.00',
+      monthlyPrice: '116.00',
+      yearlyPrice: '89.00',
       features: [
         'Customer Management',
         'Product Management',
@@ -110,7 +106,8 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
     PLUS: {
       name: 'PLUS',
-      price: '233.00',
+      monthlyPrice: '233.00',
+      yearlyPrice: '179.00',
       features: [
         'Customer Management',
         'Product Management',
@@ -127,7 +124,8 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
     PRO: {
       name: 'PRO',
-      price: '466.00',
+      monthlyPrice: 'Custom',
+      yearlyPrice: 'Custom',
       features: [
         'Customer Management',
         'Product Management',
@@ -148,16 +146,33 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     },
   };
 
-  const subscriptionPaymentTermOptions = [
-    { label: 'Monthly', value: 'Monthly' },
-    { label: 'Yearly', value: 'Yearly' },
-  ];
+  const formatCurrency = (value: number): string => {
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   const currentPlan = selectedSubscription
     ? subscriptionDetails[
         selectedSubscription as keyof typeof subscriptionDetails
       ]
     : null;
+
+  // Get the current unit price (price per user) based on payment term
+  const currentUnitPrice = React.useMemo(() => {
+    if (!currentPlan) return '0.00';
+
+    // For PRO plan, use custom pricing if available
+    if (selectedSubscription === 'PRO') {
+      return customPrice || '0.00';
+    }
+
+    // For ESSENTIAL and PLUS plans, use predefined pricing
+    return paymentTerm === 'Yearly'
+      ? currentPlan.yearlyPrice
+      : currentPlan.monthlyPrice;
+  }, [currentPlan, selectedSubscription, paymentTerm, customPrice]);
 
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
@@ -178,6 +193,30 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     setSelectedSubscription(watchedSubscription || '');
   }, [watchedSubscription]);
 
+  // Update unit and total subscription prices whenever they change
+  React.useEffect(() => {
+    if (currentUnitPrice && currentUnitPrice !== '0.00') {
+      const unitPrice = Number(currentUnitPrice);
+      if (!isNaN(unitPrice)) {
+        const totalPrice = unitPrice * numberOfUsers;
+        clientForm.setValue('unit_subscription_price', unitPrice);
+        clientForm.setValue('total_subscription_price', totalPrice);
+      }
+    }
+  }, [currentUnitPrice, numberOfUsers, clientForm]);
+
+  // Sync numberOfUsers with form
+  React.useEffect(() => {
+    clientForm.setValue('number_of_users', numberOfUsers);
+  }, [numberOfUsers, clientForm]);
+
+  // Clear custom price when payment term changes (PRO plan only)
+  React.useEffect(() => {
+    if (selectedSubscription === 'PRO') {
+      setCustomPrice('');
+    }
+  }, [paymentTerm, selectedSubscription]);
+
   async function onSubmit(values: z.infer<typeof ClientFormSchema>) {
     console.log('onSubmit function called!');
     console.log('Client Form Values:', values);
@@ -188,6 +227,16 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     setIsSubmitting(false);
+
+    // Close the form modal first
+    onCancel?.();
+
+    // Trigger success callback with client data
+    if (!isEditing) {
+      setTimeout(() => {
+        onClientAdded?.(values.name, values.email);
+      }, 300);
+    }
   }
 
   // Prepare user data for the UserAccessTab
@@ -262,232 +311,50 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
             />
           )}
           {!isEditing && step === 1 && (
-            <>
-              <FormField
-                control={clientForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Company Name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={clientForm.control}
-                name="abn"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ABN*</FormLabel>
-                    <FormControl>
-                      <ABNInput className="w-full" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={clientForm.control}
-                name="contact_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Contact Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter full name of main contact person"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={clientForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Email*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="contact@company.com.au"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={clientForm.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact Phone*</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        className="w-full"
-                        defaultCountry="AU"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={clientForm.control}
-                name="billing_address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Billing Address*</FormLabel>
-                    <FormControl>
-                      <AddressAutoComplete
-                        address={address}
-                        setAddress={handleAddressChange}
-                        searchInput={searchInput}
-                        setSearchInput={setSearchInput}
-                        dialogTitle="Search for Billing Address"
-                        placeholder="Search for Billing Address..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end space-x-2 mb-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  Cancel
-                </Button>
-                <Button
-                  className="cursor-pointer"
-                  type="button"
-                  onClick={async () => {
-                    // Validate step 1 fields
-                    const isValid = await clientForm.trigger([
-                      'name',
-                      'contact_name',
-                      'email',
-                      'phone',
-                      'billing_address',
-                    ]);
-                    if (isValid) {
-                      setStep(2);
-                    }
-                  }}
-                >
-                  Next
-                </Button>
-              </div>
-            </>
+            <Step1CompanyDetails
+              form={clientForm}
+              address={address}
+              searchInput={searchInput}
+              setSearchInput={setSearchInput}
+              handleAddressChange={handleAddressChange}
+              onCancel={onCancel}
+              onNext={() => setStep(2)}
+            />
           )}
 
           {!isEditing && step === 2 && (
-            <div className="flex flex-col gap-5">
-              <FormSelect
-                control={clientForm.control}
-                name="subscription"
-                label="Subscription Plan*"
-                options={subscriptionOptions}
-                placeholder="Select Subscription Plan"
-                showSearch={false}
-                showErrorMessage={false}
-              />
-
-              <InputWithPlusMinusButtons
-                label="Number of Users"
-                defaultValue={10}
-                minValue={10}
-                maxValue={20}
-                className="w-fit"
-              />
-
-              <ButtonRadio
-                options={subscriptionPaymentTermOptions}
-                defaultValue="Monthly"
-                value={clientForm.getValues('subscription_payment_term')}
-                onChange={(value) =>
-                  clientForm.setValue('subscription_payment_term', value)
-                }
-              />
-
-              {currentPlan && (
-                <div className="border border-green-600 bg-green-50 p-6 flex flex-col gap-5 rounded-lg">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <CircleCheck className="w-5 h-5 shrink-0 text-green-600" />
-                      <span className="font-semibold text-base">
-                        QuarryLink {currentPlan.name} Selected
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-600 pl-7">
-                      Here is an overview of modules:
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-1.5 text-sm text-gray-700 pl-7">
-                    {currentPlan.features.map((feature, index) => (
-                      <span key={index}>✓ {feature}</span>
-                    ))}
-                  </div>
-                  <div className="text-sm text-gray-700 font-medium pt-2 pl-7">
-                    Monthly Recurring Price:{' '}
-                    <span className="font-semibold">${currentPlan.price}</span>{' '}
-                    <span className="text-gray-500">(EX GST)</span>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-2 my-6">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setStep(1)}
-                >
-                  Back
-                </Button>
-                <Button
-                  className="cursor-pointer"
-                  type="button"
-                  onClick={async () => {
-                    // Validate subscription field
-                    const isValid = await clientForm.trigger(['subscription']);
-                    if (isValid && currentPlan) {
-                      setStep(3);
-                    }
-                  }}
-                  disabled={!currentPlan}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
+            <Step2Subscription
+              form={clientForm}
+              selectedSubscription={selectedSubscription}
+              numberOfUsers={numberOfUsers}
+              setNumberOfUsers={setNumberOfUsers}
+              paymentTerm={paymentTerm}
+              setPaymentTerm={setPaymentTerm}
+              currentPlan={currentPlan}
+              currentUnitPrice={currentUnitPrice}
+              customPrice={customPrice}
+              setCustomPrice={setCustomPrice}
+              onBack={() => setStep(1)}
+              onNext={() => setStep(3)}
+            />
           )}
 
-          {(step === 3 || isEditing) && (
-            <>
-              {!isEditing && (
-                <>
-                  <h1 className="text-xl font-semibold mb-1">Summary</h1>
-                  <Separator className="mb-4" />
-                </>
-              )}
+          {!isEditing && step === 3 && (
+            <Step3Summary
+              form={clientForm}
+              isDesktop={isDesktop}
+              isSubmitting={isSubmitting}
+              numberOfUsers={numberOfUsers}
+              paymentTerm={paymentTerm}
+              currentUnitPrice={currentUnitPrice}
+              onBack={() => setStep(2)}
+              onCancel={onCancel}
+            />
+          )}
 
+          {/* Editing Mode - Company & Subscription Details */}
+          {isEditing && (
+            <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="border border-[#E5E5E5] bg-white p-4 rounded-lg flex flex-col gap-2">
                   <span>Company Details</span>
@@ -522,17 +389,20 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 <div className="border-t border-b border-[#E5E5E5] overflow-hidden">
                   <div className="flex justify-between py-4 px-4 bg-slate-50 border-b border-[#E5E5E5]">
                     <span className="text-sm font-normal">
-                      QuarryLink {clientForm.getValues('subscription')}{' '}
-                      (Monthly)
+                      QuarryLink {clientForm.getValues('subscription')} (
+                      {paymentTerm})
                     </span>
                     <span className="text-sm font-normal">
-                      ${currentPlan?.price}
+                      ${(Number(currentUnitPrice) * numberOfUsers).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between py-4 px-4 bg-slate-50 border-b border-[#E5E5E5]">
                     <span className="text-sm font-normal">GST (10%)</span>
                     <span className="text-sm font-normal">
-                      ${(Number(currentPlan?.price) * 0.1).toFixed(2)}
+                      $
+                      {(Number(currentUnitPrice) * numberOfUsers * 0.1).toFixed(
+                        2
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between py-4 px-4 bg-slate-100">
@@ -541,46 +411,14 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                     </span>
                     <span className="text-sm font-semibold">
                       $
-                      {(
-                        Number(currentPlan?.price) +
-                        Number(currentPlan?.price) * 0.1
-                      ).toFixed(2)}
+                      {formatCurrency(
+                        Number(currentUnitPrice) * numberOfUsers +
+                          Number(currentUnitPrice) * numberOfUsers * 0.1
+                      )}
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Form Actions */}
-              {isDesktop && !isEditing && (
-                <div className="flex justify-end space-x-2 my-6">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => setStep(2)}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    form="add-new-client-form"
-                    className="cursor-pointer"
-                    type="submit"
-                    disabled={isSubmitting}
-                  >
-                    {isEditing ? 'Save Changes' : 'Add Client'}
-                  </Button>
-                </div>
-              )}
-
-              {!isDesktop && !isEditing && (
-                <div className="flex flex-col col-span-2 gap-3 mb-6">
-                  <Button type="submit" className="cursor-pointer">
-                    {isEditing ? 'Save Changes' : 'Add Client'}
-                  </Button>
-                  <Button variant="outline" type="button" onClick={onCancel}>
-                    {isEditing ? 'Close' : 'Cancel'}
-                  </Button>
-                </div>
-              )}
             </>
           )}
 
@@ -597,12 +435,12 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
 
           {/* Audit Information */}
           {isEditing && (
-            <div className="col-span-full space-y-6 mt-10">
+            <div className="col-span-full space-y-6 mt-10 mb-4">
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -611,7 +449,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -620,7 +458,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -638,7 +476,7 @@ export default function ClientForm({ id, onCancel, className }: FormProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">

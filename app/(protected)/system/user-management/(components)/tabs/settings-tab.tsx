@@ -26,6 +26,8 @@ import rawJson from '@/lib/tests/personalInformationResponseData.json';
 import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { User } from '@/lib/types/user';
 import { getRelativeTime } from '@/lib/utils/date';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { delay } from '@/lib/utils/time';
 
 const convertedJson = convertKeysToSnakeCase(rawJson);
 const { full_name, email, phone, created_at, last_login_at } =
@@ -71,12 +73,26 @@ export default function SettingsTab() {
     console.log('Form errors:', settingsForm.formState.errors);
     console.log('Form data:', values);
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simulate API call delay (remove this in production)
+      await delay(2000);
 
-    setIsSubmitting(false);
+      // Show success toast
+      notifySuccess('Profile Updated');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      notifyError('Update Failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Handle Personal Information form validation errors
+  function onErrorPersonalInformation(errors: unknown) {
+    console.error('Personal Information validation errors:', errors);
+    notifyError('Update Failed');
   }
 
   async function onSubmitChangePassword(
@@ -87,13 +103,31 @@ export default function SettingsTab() {
     console.log('Form errors:', changePasswordForm.formState.errors);
     console.log('Form data:', values);
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Simulate API call delay (remove this in production)
+      await delay(2000);
 
-    changePasswordForm.reset();
-    setIsSubmitting(false);
+      // Show success toast
+      notifySuccess('Password Changed');
+      changePasswordForm.reset();
+    } catch (error) {
+      console.error('Error changing password:', error);
+      notifyError('Password Change Failed', {
+        description: 'Check current password and try again',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Handle Change Password form validation errors
+  function onErrorChangePassword(errors: unknown) {
+    console.error('Change Password validation errors:', errors);
+    notifyError('Password Change Failed', {
+      description: 'Check current password and try again',
+    });
   }
 
   return (
@@ -133,7 +167,8 @@ export default function SettingsTab() {
                   isSubmitting && 'pointer-events-none'
                 )}
                 onSubmit={settingsForm.handleSubmit(
-                  onSubmitPersonalInformation
+                  onSubmitPersonalInformation,
+                  onErrorPersonalInformation
                 )}
               >
                 <div className="flex flex-col">
@@ -234,7 +269,8 @@ export default function SettingsTab() {
                 id="change-password-form"
                 className="w-full flex flex-col p-1"
                 onSubmit={changePasswordForm.handleSubmit(
-                  onSubmitChangePassword
+                  onSubmitChangePassword,
+                  onErrorChangePassword
                 )}
               >
                 <FormField
