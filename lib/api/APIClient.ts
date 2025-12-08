@@ -278,13 +278,13 @@ export async function HttpClient<T = unknown>(
       .get('Content-Type')
       ?.includes('application/json');
 
-    // Try to parse the JSON (but don’t blow up if it fails)
+    // Try to parse the JSON (but don't blow up if it fails)
     let parsedJson: unknown = null;
     if (isJson) {
       try {
         parsedJson = await response.json();
       } catch {
-        // ignore parse errors — we’ll fall back to statusText below
+        // ignore parse errors — we'll fall back to statusText below
       }
     }
 
@@ -304,7 +304,23 @@ export async function HttpClient<T = unknown>(
       response.statusText ||
       `HTTP request failed with status ${response.status}`;
 
-    return Promise.reject(new Error(errorMessage));
+    // Create error with response data attached
+    const error = new Error(errorMessage) as Error & {
+      response?: {
+        status: number;
+        statusText: string;
+        data: unknown;
+      };
+    };
+
+    // Attach response information to the error object
+    error.response = {
+      status: response.status,
+      statusText: response.statusText,
+      data: parsedJson,
+    };
+
+    return Promise.reject(error);
   }
 }
 

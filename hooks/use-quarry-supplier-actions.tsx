@@ -11,7 +11,15 @@ import {
   useUnarchiveQuarry,
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
-import { set } from 'date-fns';
+
+interface BlockingQuote {
+  id: number;
+  quoteNumber: string;
+  customerName: string;
+  projectName: string;
+  quoteStatus: string;
+  lineItemsCount: number;
+}
 
 interface DialogConfig {
   title?: string;
@@ -36,32 +44,21 @@ interface SelectedAction {
 }
 
 const canDelete = (quarrySupplierData?: Quarry | null): boolean => {
-  // Can't delete if it's an ACTIVE SUPPLIER
-  if (
-    quarrySupplierData?.status === 'ACTIVE' &&
-    quarrySupplierData?.type === 'SUPPLIER'
-  ) {
-    return false;
-  }
-  // Can delete if it's ACTIVE and NOT a SUPPLIER (i.e., QUARRY)
+  // Can delete if status is ACTIVE (both QUARRY and SUPPLIER)
+  // Backend will check for blocking quotes and return 409 if there are any
   return quarrySupplierData?.status === 'ACTIVE';
 };
 
 const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
-  // Can't unarchive if it's an ARCHIVED SUPPLIER
-  if (
-    quarrySupplierData?.status === 'ARCHIVED' &&
-    quarrySupplierData?.type === 'SUPPLIER'
-  ) {
-    return false;
-  }
-  // Can unarchive if it's ARCHIVED and NOT a SUPPLIER (i.e., QUARRY)
+  // Can unarchive if status is ARCHIVED (both QUARRY and SUPPLIER)
+  // Backend will check for conflicts and return error if needed
   return quarrySupplierData?.status === 'ARCHIVED';
 };
 
 const getDialogConfigs = (
   quarrySupplierData?: Quarry | null,
-  selectedAction?: SelectedAction
+  selectedAction?: SelectedAction,
+  blockingQuotes?: BlockingQuote[]
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
   const type = quarrySupplierData?.type;
@@ -194,6 +191,12 @@ const getDialogConfigs = (
       },
     };
   } else if (selectedAction?.key === 'cannotDelete') {
+    // Calculate total line items from blocking quotes
+    const totalLineItems =
+      blockingQuotes?.reduce((sum, quote) => sum + quote.lineItemsCount, 0) ||
+      8;
+    const quotesCount = blockingQuotes?.length || 2;
+
     return {
       cannotDelete: {
         title: 'Cannot Delete',
@@ -219,19 +222,19 @@ const getDialogConfigs = (
               </span>
               <div className="flex flex-col gap-2">
                 <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  8 line items with pending deliveries (3475 tonnes remaining)
+                  {totalLineItems} line items with pending deliveries
                 </div>
-                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                {/* <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
                   3 active dockets not yet delivered
-                </div>
+                </div> */}
                 <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  2 quotes with line items
+                  {quotesCount} quotes with line items
                 </div>
               </div>
             </div>
           </div>
         ),
-        confirmText: 'Cancel',
+        confirmText: 'OK',
         confirmVariant: 'outline',
         confirmCustomClass: 'border-[#E5E5E5]',
         confirmActionNeeded: false,
@@ -282,13 +285,17 @@ export function useQuarrySupplierActions(
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [blockingQuotes, setBlockingQuotes] = React.useState<
+    BlockingQuote[] | undefined
+  >(undefined);
 
   const unarchiveMutation = useUnarchiveQuarry();
   const deleteMutation = useDeleteQuarryAfterEligibilityCheck();
 
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
-    selectedAction || undefined
+    selectedAction || undefined,
+    blockingQuotes
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -308,19 +315,21 @@ export function useQuarrySupplierActions(
     },
 
     delete: () => {
+      // Always show delete dialog for ACTIVE items
+      // Backend will check for blocking quotes and return 409 if any exist
       if (canDelete(quarrySupplierData)) {
         createDialogAction('delete')();
-      } else {
-        createDialogAction('cannotDelete')();
       }
+      // If not ACTIVE (shouldn't happen as delete button is hidden), do nothing
     },
 
     unarchive: () => {
+      // Always show unarchive dialog for ARCHIVED items
+      // Backend will check for conflicts and return error if needed
       if (canUnarchive(quarrySupplierData)) {
         createDialogAction('unarchive')();
-      } else {
-        createDialogAction('cannotUnarchive')();
       }
+      // If not ARCHIVED (shouldn't happen as unarchive button is hidden), do nothing
     },
   };
 
@@ -336,6 +345,7 @@ export function useQuarrySupplierActions(
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
+            setBlockingQuotes(undefined);
           }
         }}
         title={config.title ?? ''}
@@ -361,11 +371,72 @@ export function useQuarrySupplierActions(
                     );
                     setActiveDialog(null);
                     setSelectedAction(null);
+                    setBlockingQuotes(undefined);
                     // Also close the view dialog if it's open
                     setViewOpen(false);
                   },
-                  onError: (error) => {
+                  onError: (error: any) => {
                     console.error('Failed to delete quarry/supplier:', error);
+                    console.log('Error details:', {
+                      hasResponse: !!error?.response,
+                      status: error?.response?.status,
+                      data: error?.response?.data,
+                      fullError: error,
+                    });
+
+                    // Check if it's a 409 Conflict error with blocking quotes
+                    if (error?.response?.status === 409) {
+                      const errorData = error.response.data;
+                      console.log('409 Error Response:', errorData);
+                      console.log(
+                        'Has blockingQuoteDtos?',
+                        !!errorData?.blockingQuoteDtos
+                      );
+                      console.log(
+                        'Is array?',
+                        Array.isArray(errorData?.blockingQuoteDtos)
+                      );
+
+                      if (
+                        errorData?.blockingQuoteDtos &&
+                        Array.isArray(errorData.blockingQuoteDtos)
+                      ) {
+                        // Transform backend blocking quotes to our format
+                        const quotes: BlockingQuote[] =
+                          errorData.blockingQuoteDtos.map((dto: any) => ({
+                            id: dto.id,
+                            quoteNumber: dto.quoteNumber,
+                            customerName: dto.customerName,
+                            projectName: dto.projectName,
+                            quoteStatus: dto.quoteStatus,
+                            lineItemsCount: dto.lineItemsCount,
+                          }));
+
+                        console.log('Blocking Quotes:', quotes);
+                        console.log('About to show cannotDelete dialog');
+
+                        // Set blocking quotes and show cannotDelete dialog
+                        setBlockingQuotes(quotes);
+                        setActiveDialog(null);
+                        setSelectedAction(null);
+
+                        // Small delay to ensure dialog closes before opening new one
+                        setTimeout(() => {
+                          console.log('Opening cannotDelete dialog now');
+                          setSelectedAction({ key: 'cannotDelete' });
+                          setActiveDialog('cannotDelete');
+                        }, 100);
+                      } else {
+                        console.log(
+                          'blockingQuoteDtos not found or not an array'
+                        );
+                      }
+                    } else {
+                      console.log(
+                        'Not a 409 error, status:',
+                        error?.response?.status
+                      );
+                    }
                   },
                 });
               }
