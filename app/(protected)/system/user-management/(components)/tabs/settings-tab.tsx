@@ -23,15 +23,13 @@ import { ChangePasswordSchema } from './schemas/change-password-schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import rawJson from '@/lib/tests/personalInformationResponseData.json';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { User } from '@/lib/types/user';
 import { getRelativeTime } from '@/lib/utils/date';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { delay } from '@/lib/utils/time';
 
-const convertedJson = convertKeysToSnakeCase(rawJson);
-const { full_name, email, phone, created_at, last_login_at } =
-  convertedJson as User;
+const convertedJson = rawJson as unknown as User;
+const { name, email, phone, createdAt, lastLoginAt } = convertedJson;
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -39,7 +37,7 @@ export default function SettingsTab() {
   const settingsForm = useForm<z.infer<typeof PersonalInformationSchema>>({
     resolver: zodResolver(PersonalInformationSchema),
     defaultValues: {
-      full_name: full_name,
+      full_name: name,
       phone: phone,
       created_at: '2025-10-29T13:00:00.000Z',
       last_login_at: '2025-10-29T13:00:00.000Z',
@@ -176,7 +174,7 @@ export default function SettingsTab() {
                   <div className="flex justify-start gap-2">
                     <div className="w-22 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center">
                       <span className="text-xl text-[#2563EB] font-medium">
-                        {getInitials(full_name)}
+                        {getInitials(name)}
                       </span>
                     </div>
                     <FormField
@@ -228,15 +226,17 @@ export default function SettingsTab() {
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-[#4B5563]">
                       Last Login:{' '}
-                      {last_login_at ? getRelativeTime(last_login_at) : 'Never'}
+                      {lastLoginAt ? getRelativeTime(lastLoginAt) : 'Never'}
                     </span>
                     <span className="text-sm text-[#4B5563]">
                       Created On:{' '}
-                      {new Date(created_at).toLocaleDateString('en-AU', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: '2-digit',
-                      })}
+                      {createdAt
+                        ? new Date(createdAt).toLocaleDateString('en-AU', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          })
+                        : 'N/A'}
                     </span>
                   </div>
                 </div>

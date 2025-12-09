@@ -1,6 +1,10 @@
 import { Role, UserStatus } from './user-enums';
 
-export interface User {
+/**
+ * Legacy User interface - kept for backward compatibility during migration
+ * @deprecated Use User interface instead after migration is complete
+ */
+export interface UserLegacy {
   id: number;
   tenant_id: string;
   client_id: number;
@@ -18,6 +22,25 @@ export interface User {
   created_at: string;
   updated_at: string;
   last_login_at: string | null;
+}
+
+/**
+ * User interface matching backend DTO structure
+ */
+export interface User {
+  id: number;
+  tenantId: number;
+  clientId?: number;
+  status: UserStatus;
+  name: string;
+  phone?: string;
+  email: string;
+  groups: string;
+  totalLogins?: number;
+  quotationCreated?: number;
+  lastLoginAt: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**

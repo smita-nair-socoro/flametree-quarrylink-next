@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { getRelativeTime } from '@/lib/utils/date';
 import { TeamMemberTableActions } from './team-member-table-actions';
 import { User } from '@/lib/types/user';
-import { Role, UserStatus } from '@/lib/types/user-enums';
+import { UserStatus } from '@/lib/types/user-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 export const createTeamMemberColumns = (
@@ -13,8 +13,8 @@ export const createTeamMemberColumns = (
   currentUserId?: number | string
 ): ColumnDef<User>[] => [
   {
-    id: 'full_name',
-    accessorFn: (row) => row.full_name,
+    id: 'name',
+    accessorFn: (row) => row.name,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Full Name" />;
     },
@@ -34,18 +34,19 @@ export const createTeamMemberColumns = (
   },
   {
     id: 'role',
-    accessorFn: (row) => row.role,
+    accessorFn: (row) => row.groups,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Role" />;
     },
     cell: ({ row }) => {
-      const role = row.original.role;
-      const formattedRole =
-        role === Role.ADMIN
-          ? 'Admin'
-          : role === Role.SUPERADMIN
-          ? 'Super Admin'
-          : 'User'; // TODO: Add other roles here
+      const groups = row.original.groups;
+      // groups is a string array like "[SUPERADMIN]" or "[USER]"
+      const groupsUpper = groups?.toUpperCase() || '';
+      const formattedRole = groupsUpper.includes('SUPERADMIN')
+        ? 'Super Admin'
+        : groupsUpper.includes('ADMIN')
+        ? 'Admin'
+        : 'User';
       return <div className="py-2">{formattedRole}</div>;
     },
     meta: 'Role',
@@ -77,13 +78,13 @@ export const createTeamMemberColumns = (
     size: 180,
   },
   {
-    id: 'last_login_at',
-    accessorFn: (row) => row.last_login_at,
+    id: 'lastLoginAt',
+    accessorFn: (row) => row.lastLoginAt,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Last Login" />;
     },
     cell: ({ row }) => {
-      const lastLogin = row.original.last_login_at;
+      const lastLogin = row.original.lastLoginAt;
       const displayText = lastLogin ? getRelativeTime(lastLogin) : 'Never';
       return <div className="py-2 text-left">{displayText}</div>;
     },

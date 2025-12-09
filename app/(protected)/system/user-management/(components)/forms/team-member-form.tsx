@@ -33,16 +33,12 @@ type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
 type EditTeamMemberPayload = EditTeamMemberFormValues & {
   id?: number;
-  client_id?: number;
-  created_at?: string | null;
-  last_login_at?: string | null;
-  total_logins?: number;
-  quotation_created?: number;
-  jobs_managed?: number;
-  invited_by?: number;
-  deletion_reason?: string;
-  isDeleted?: boolean;
-  updated_at?: string | null;
+  clientId?: number;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
+  totalLogins?: number;
+  quotationCreated?: number;
+  updatedAt?: string | null;
   status?: string | null;
 };
 
@@ -65,21 +61,21 @@ export function EditTeamMemberForm({
   const initialData = useSelectedTeamMember();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const fullName = initialData?.full_name.trim() || 'Unnamed User';
+  const fullName = initialData?.name.trim() || 'Unnamed User';
 
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(
     () => ({
       full_name: fullName,
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
-      role: initialData?.role ?? '',
+      role: initialData?.groups ?? '',
       status: initialData?.status,
     }),
     [
       fullName,
       initialData?.email,
       initialData?.phone,
-      initialData?.role,
+      initialData?.groups,
       initialData?.status,
     ]
   );
@@ -93,22 +89,22 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const joinedDate = initialData?.created_at || undefined;
+  const joinedDate = initialData?.createdAt || undefined;
   const formattedJoined = joinedDate
     ? formatDate(joinedDate, 'd MMM yyyy')
     : '—';
 
-  const lastLoginRelative = initialData?.last_login_at
-    ? getRelativeTime(initialData.last_login_at)
+  const lastLoginRelative = initialData?.lastLoginAt
+    ? getRelativeTime(initialData.lastLoginAt)
     : 'Never';
 
   const totalLogins =
-    typeof initialData?.total_logins === 'number'
-      ? initialData.total_logins
+    typeof initialData?.totalLogins === 'number'
+      ? initialData.totalLogins
       : 0;
   const quotations =
-    typeof initialData?.quotation_created === 'number'
-      ? initialData.quotation_created
+    typeof initialData?.quotationCreated === 'number'
+      ? initialData.quotationCreated
       : 0;
 
   const disableRoleChange =
@@ -130,17 +126,13 @@ export function EditTeamMemberForm({
       const payload: EditTeamMemberPayload = {
         ...values,
         id: initialData?.id,
-        client_id: initialData?.client_id,
+        clientId: initialData?.clientId,
         phone: normalizedPhone,
-        created_at: initialData?.created_at,
-        last_login_at: initialData?.last_login_at,
-        total_logins: initialData?.total_logins,
-        quotation_created: initialData?.quotation_created,
-        jobs_managed: initialData?.jobs_managed,
-        invited_by: initialData?.invited_by,
-        deletion_reason: initialData?.deletion_reason,
-        isDeleted: initialData?.isDeleted,
-        updated_at: initialData?.updated_at,
+        createdAt: initialData?.createdAt,
+        lastLoginAt: initialData?.lastLoginAt,
+        totalLogins: initialData?.totalLogins,
+        quotationCreated: initialData?.quotationCreated,
+        updatedAt: initialData?.updatedAt,
       };
 
       // Simulate API call delay (remove this in production)

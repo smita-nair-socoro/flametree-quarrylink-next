@@ -4,7 +4,14 @@ import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
 import { UserStatus } from '@/lib/types/user-enums';
-import { AlertTriangle, Users, Briefcase, Trash2, Key, RotateCcwSquare } from 'lucide-react';
+import {
+  AlertTriangle,
+  Users,
+  Briefcase,
+  Trash2,
+  Key,
+  RotateCcwSquare,
+} from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
@@ -104,7 +111,7 @@ export function useTeamMemberActions(
     value: member.id,
   }));
 
-  const userName = teamMemberData?.full_name;
+  const userName = teamMemberData?.name;
 
   // Check if delete button should be disabled
   const isDeleteButtonDisabled = React.useMemo(() => {
@@ -145,10 +152,10 @@ export function useTeamMemberActions(
             <span className="font-semibold text-base">{userName}</span>
             <span className="text-sm text-muted-foreground">
               {teamMemberData?.email}
-              {teamMemberData?.role && (
+              {teamMemberData?.groups && (
                 <>
                   {' • '}
-                  {formatRole(teamMemberData.role)}
+                  {formatRole(teamMemberData.groups)}
                 </>
               )}
             </span>
