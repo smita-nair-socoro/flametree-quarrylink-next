@@ -78,7 +78,7 @@ export default function QuotationsPage() {
       description: '+25% vs last month',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#193CB8]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -87,7 +87,7 @@ export default function QuotationsPage() {
       description: 'Need attention',
       icon: AlertCircle,
       iconBgColor: 'bg-[#FEF9C2]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#733E0A]',
       descriptionColor: 'text-[#E7000B]',
     },
     {
@@ -96,7 +96,7 @@ export default function QuotationsPage() {
       description: '+15% vs last month',
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#0D542B]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -105,7 +105,7 @@ export default function QuotationsPage() {
       description: 'Within 7 days',
       icon: Clock,
       iconBgColor: 'bg-[#FFE4E6]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#7E2A0C]',
       descriptionColor: 'text-[#737373]',
     },
   ];

@@ -50,7 +50,7 @@ export default function QuarriesSuppliersPage() {
       description: '+12% vs last month',
       icon: DollarSign,
       iconBgColor: 'bg-[#ECFCCA]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#016630]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -59,7 +59,7 @@ export default function QuarriesSuppliersPage() {
       description: '$198,750 this month',
       icon: Building,
       iconBgColor: 'bg-[#E0E7FF]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#193CB8]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -68,7 +68,7 @@ export default function QuarriesSuppliersPage() {
       description: '-3.5% vs last month',
       icon: Mountain,
       iconBgColor: 'bg-[#F1F5F9]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#71717B]',
       descriptionColor: 'text-[#F54900]',
     },
     {
@@ -76,8 +76,8 @@ export default function QuarriesSuppliersPage() {
       value: 'RedRock Quarry',
       description: '$156,420 this month',
       icon: Factory,
-      iconBgColor: 'bg-[#FFEDD4]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconBgColor: 'bg-[#FEF9C2]',
+      iconColor: 'text-[#D08700]',
       descriptionColor: 'text-[#737373]',
     },
   ];
