@@ -12,13 +12,9 @@ import {
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
 
-interface BlockingQuote {
-  id: number;
-  quoteNumber: string;
-  customerName: string;
-  projectName: string;
-  quoteStatus: string;
-  lineItemsCount: number;
+interface DeleteBlockingSummary {
+  totalLineItems: number;
+  quotesCount: number;
 }
 
 interface DialogConfig {
@@ -58,7 +54,7 @@ const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
 const getDialogConfigs = (
   quarrySupplierData?: Quarry | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: BlockingQuote[]
+  blockingSummary?: DeleteBlockingSummary
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
   const type = quarrySupplierData?.quarry_supplier_type;
@@ -191,11 +187,9 @@ const getDialogConfigs = (
       },
     };
   } else if (selectedAction?.key === 'cannotDelete') {
-    // Calculate total line items from blocking quotes
-    const totalLineItems =
-      blockingQuotes?.reduce((sum, quote) => sum + quote.lineItemsCount, 0) ||
-      8;
-    const quotesCount = blockingQuotes?.length || 2;
+    // Use the summary data directly
+    const totalLineItems = blockingSummary?.totalLineItems || 0;
+    const quotesCount = blockingSummary?.quotesCount || 0;
 
     return {
       cannotDelete: {
@@ -285,8 +279,8 @@ export function useQuarrySupplierActions(
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [blockingQuotes, setBlockingQuotes] = React.useState<
-    BlockingQuote[] | undefined
+  const [blockingSummary, setBlockingSummary] = React.useState<
+    DeleteBlockingSummary | undefined
   >(undefined);
 
   const unarchiveMutation = useUnarchiveQuarry();
@@ -295,7 +289,7 @@ export function useQuarrySupplierActions(
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
     selectedAction || undefined,
-    blockingQuotes
+    blockingSummary
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -345,7 +339,7 @@ export function useQuarrySupplierActions(
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
-            setBlockingQuotes(undefined);
+            setBlockingSummary(undefined);
           }
         }}
         title={config.title ?? ''}
@@ -366,32 +360,44 @@ export function useQuarrySupplierActions(
                   onSuccess: () => {
                     setActiveDialog(null);
                     setSelectedAction(null);
-                    setBlockingQuotes(undefined);
+                    setBlockingSummary(undefined);
                     // Also close the view dialog if it's open
                     setViewOpen(false);
                   },
-                  onError: (error: any) => {
+                  onError: (error: unknown) => {
                     // Check if it's a 409 Conflict error with blocking quotes
-                    if (error?.response?.status === 409) {
+                    if (
+                      error &&
+                      typeof error === 'object' &&
+                      'response' in error &&
+                      error.response &&
+                      typeof error.response === 'object' &&
+                      'status' in error.response &&
+                      error.response.status === 409 &&
+                      'data' in error.response
+                    ) {
                       const errorData = error.response.data;
 
                       if (
-                        errorData?.blockingQuoteDtos &&
+                        errorData &&
+                        typeof errorData === 'object' &&
+                        'blockingQuoteDtos' in errorData &&
                         Array.isArray(errorData.blockingQuoteDtos)
                       ) {
-                        // Transform backend blocking quotes to our format
-                        const quotes: BlockingQuote[] =
-                          errorData.blockingQuoteDtos.map((dto: any) => ({
-                            id: dto.id,
-                            quoteNumber: dto.quoteNumber,
-                            customerName: dto.customerName,
-                            projectName: dto.projectName,
-                            quoteStatus: dto.quoteStatus,
-                            lineItemsCount: dto.lineItemsCount,
-                          }));
+                        // Calculate summary from blocking quotes
+                        const totalLineItems = errorData.blockingQuoteDtos.reduce(
+                          (sum: number, dto: unknown) => {
+                            if (dto && typeof dto === 'object' && 'lineItemsCount' in dto) {
+                              return sum + (typeof dto.lineItemsCount === 'number' ? dto.lineItemsCount : 0);
+                            }
+                            return sum;
+                          },
+                          0
+                        );
+                        const quotesCount = errorData.blockingQuoteDtos.length;
 
-                        // Set blocking quotes and show cannotDelete dialog
-                        setBlockingQuotes(quotes);
+                        // Set blocking summary and show cannotDelete dialog
+                        setBlockingSummary({ totalLineItems, quotesCount });
                         setActiveDialog(null);
                         setSelectedAction(null);
 
