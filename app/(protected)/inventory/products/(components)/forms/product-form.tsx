@@ -341,17 +341,12 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
           {/* Audit Information */}
           {isEditing && (
-            <div
-              className={cn(
-                isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6'
-              )}
-            >
-              <h2 className="text-lg font-semibold">Audit Information</h2>
+            <div className="col-span-full space-y-6 mt-10 mb-4">
+              <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -359,8 +354,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex  flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -368,8 +363,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex  flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -386,8 +381,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">

@@ -53,21 +53,12 @@ export interface QuotationData {
     total: number;
   };
   footer: {
-    contactInfo: {
-      company: string;
-      phone: string;
-      email: string;
-    };
-    officeAddress: {
-      address: string;
-      city: string;
-      abn: string;
-    };
-    website: {
-      url: string;
-      portalInfo: string;
-      support: string;
-    };
+    email: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2: string;
+    website: string;
+    businessName: string;
   };
 }
 

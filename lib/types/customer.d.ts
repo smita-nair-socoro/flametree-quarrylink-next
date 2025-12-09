@@ -1,3 +1,5 @@
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
+
 export interface Customer {
   id: number;
   customer_type: CUSTOMER_TYPE;
