@@ -1,4 +1,7 @@
-import { QUOTE_STATUS as QuoteStatus, QUOTE_TYPE as QuoteType } from "@/lib/types/quotation-enums";
+import {
+  QUOTE_STATUS as QuoteStatus,
+  QUOTE_TYPE as QuoteType,
+} from '@/lib/types/quotation-enums';
 
 export const mockQuotationData = {
   // Navbar data
@@ -73,6 +76,46 @@ export const mockQuotationData = {
       quantity: '120 T',
       totalPrice: 3650000.0,
     },
+    {
+      name: 'Slate Stone E3',
+      code: 'P-1224446',
+      truckType: 'Semi + Trailer',
+      capacity: '18.7 tonnes per delivery',
+      quantity: '120 T',
+      totalPrice: 7920000.0,
+    },
+    {
+      name: 'Slate Stone E5',
+      code: 'P-1224445',
+      truckType: 'Tandem',
+      capacity: '85 T per delivery',
+      quantity: '120 T',
+      totalPrice: 5212500.0,
+    },
+    {
+      name: 'Marble Slab B2',
+      code: 'ABC-34332',
+      truckType: 'Semi + Trailer',
+      capacity: '75 T per delivery',
+      quantity: '120 T',
+      totalPrice: 4800000.0,
+    },
+    {
+      name: 'Sandstone Panel D4',
+      code: 'GH-232323',
+      truckType: 'B-Double',
+      capacity: '95 T per delivery',
+      quantity: '120 T',
+      totalPrice: 6850000.0,
+    },
+    {
+      name: 'Granite Block A1',
+      code: 'FF-443994',
+      truckType: 'Tandem',
+      capacity: '60 T per delivery',
+      quantity: '120 T',
+      totalPrice: 3650000.0,
+    },
   ],
 
   // Summary and payment
@@ -97,20 +140,11 @@ export const mockQuotationData = {
 
   // Footer
   footer: {
-    contactInfo: {
-      company: 'QuarryLink Australia Pty Ltd',
-      phone: '1300 QUARRY (1300 782 779)',
-      email: 'quotes@quarrylink.com.au',
-    },
-    officeAddress: {
-      address: 'Level 8, 123 Business Street',
-      city: 'Sydney NSW 2000',
-      abn: '12 345 678 901',
-    },
-    website: {
-      url: 'www.quarrylink.com.au',
-      portalInfo: 'Customer Portal Available',
-      support: '24/7 Support',
-    },
+    email: 'support@quarrylink.com.au',
+    phone: '(02) 7229 1427',
+    addressLine1: 'Suite 1102/132 Arthur St,',
+    addressLine2: 'North Sydney NSW 2060',
+    website: 'www.quarrylink.com.au',
+    businessName: 'QuarryLink',
   },
 };

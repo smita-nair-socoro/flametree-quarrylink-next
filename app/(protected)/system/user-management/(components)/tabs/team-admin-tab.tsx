@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus, RotateCcwSquare, Delete } from 'lucide-react';
+import { Plus, RotateCcwSquare, Delete, Loader2 } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
@@ -16,6 +16,7 @@ import { getRelativeTimeFuture } from '@/lib/utils/date';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { TableSkeleton } from '@/components/table-skeleton';
 
 // Mock data for team members
 const teamMemberMockData: User[] = [
@@ -267,6 +268,18 @@ const rolesOptions: readonly FormSelectOption[] = [
 ];
 
 export default function TeamAdminTab() {
+  // Simulate loading state (remove this when using real API)
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isFetching, setIsFetching] = React.useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
+
+  React.useEffect(() => {
+    // Simulate initial data loading
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
     (state) => state.setSelectedTeamMember
@@ -339,20 +352,32 @@ export default function TeamAdminTab() {
           </div>
 
           <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-            <DataTableClient
-              tableId="team_member_data_table"
-              data={teamMemberMockData.filter(
-                (member) =>
-                  member.status !== UserStatus.DELETED &&
-                  member.status !== UserStatus.INACTIVE
-              )}
-              columns={columns}
-              facetDefination={facetDefs}
-              searchPlaceHolder="Search team members..."
-              onRowClick={handleRowClick}
-              useColumnSizing={true}
-              isShowHideColumns={false}
-            />
+            {isLoading ? (
+              <TableSkeleton rows={8} columns={5} />
+            ) : (
+              <div className="relative">
+                {/* Subtle loading indicator during background refresh */}
+                {isFetching && !isLoading && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                <DataTableClient
+                  tableId="team_member_data_table"
+                  data={teamMemberMockData.filter(
+                    (member) =>
+                      member.status !== UserStatus.DELETED &&
+                      member.status !== UserStatus.INACTIVE
+                  )}
+                  columns={columns}
+                  facetDefination={facetDefs}
+                  searchPlaceHolder="Search team members..."
+                  onRowClick={handleRowClick}
+                  useColumnSizing={true}
+                  isShowHideColumns={false}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -374,9 +399,7 @@ export default function TeamAdminTab() {
                     <div className="text-[14px] text-[#4B5563] font-normal mt-1">
                       <span>
                         Role:{' '}
-                        {invitation.role === Role.USER
-                          ? 'User'
-                          : 'Super Admin'}
+                        {invitation.role === Role.USER ? 'User' : 'Super Admin'}
                       </span>
                       <span className="mx-2">•</span>
                       <span>Invited by: {invitation.invited_by}</span>

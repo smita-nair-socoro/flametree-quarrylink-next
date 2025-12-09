@@ -9,7 +9,7 @@ import {
   Briefcase,
   Archive,
   Timer,
-  Copy,
+  // Copy, used in duplicate action
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +35,8 @@ export function QuotationTableActions({
 
   // Role-based feature detection
   const { attributes } = useAuth();
-  const userRole = attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
@@ -159,16 +160,16 @@ export function QuotationTableActions({
 
           <DropdownMenuItem onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
-            Print Quote
+            Download PDF
           </DropdownMenuItem>
 
-          {/* Always available: Duplicate */}
-          <DropdownMenuSeparator />
-
+          {/* Hide Duplicate Quote at current stage*/}
+          {/* <DropdownMenuSeparator />
+          
           <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate Quote
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
 
           {/* Archive - always at the bottom for applicable statuses */}
           {quotation.status !== 'ARCHIVED' && (
