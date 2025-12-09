@@ -48,7 +48,7 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
       getQuarriesByType: (type) => {
         const state = get();
         return state.quarries.filter(
-          (q) => q.type === type || q.quarry_supplier_type === type
+          (q) => q.quarry_supplier_type === type
         );
       },
 
@@ -59,10 +59,10 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
         return {
           total: quarries.length,
           quarries: quarries.filter(
-            (q) => q.type === QuarryType.QUARRY || q.quarry_supplier_type === QuarryType.QUARRY
+            (q) => q.quarry_supplier_type === QuarryType.QUARRY
           ).length,
           suppliers: quarries.filter(
-            (q) => q.type === QuarryType.SUPPLIER || q.quarry_supplier_type === QuarryType.SUPPLIER
+            (q) => q.quarry_supplier_type === QuarryType.SUPPLIER
           ).length,
           active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE).length,
           archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED).length,
@@ -88,7 +88,7 @@ export const useQuarryById = (id: number) => {
 export const useQuarriesByType = (type: QuarryType) => {
   return useQuarrySupplierStore((state) =>
     state.quarries.filter(
-      (q) => q.type === type || q.quarry_supplier_type === type
+      (q) => q.quarry_supplier_type === type
     )
   );
 };
@@ -100,10 +100,10 @@ export const useQuarryStats = () => {
     return {
       total: quarries.length,
       quarries: quarries.filter(
-        (q) => q.type === QuarryType.QUARRY || q.quarry_supplier_type === QuarryType.QUARRY
+        (q) => q.quarry_supplier_type === QuarryType.QUARRY
       ).length,
       suppliers: quarries.filter(
-        (q) => q.type === QuarryType.SUPPLIER || q.quarry_supplier_type === QuarryType.SUPPLIER
+        (q) => q.quarry_supplier_type === QuarryType.SUPPLIER
       ).length,
       active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE).length,
       archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED).length,

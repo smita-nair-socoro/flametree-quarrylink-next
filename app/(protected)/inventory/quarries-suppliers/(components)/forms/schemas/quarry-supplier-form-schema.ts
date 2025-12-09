@@ -36,7 +36,7 @@ const EmailOptional = z
 
 // Base schema with common fields
 const Base = z.object({
-  type: z.enum(['QUARRY', 'SUPPLIER'], {
+  quarry_supplier_type: z.enum(['QUARRY', 'SUPPLIER'], {
     required_error: 'Type is required',
   }),
 
@@ -50,7 +50,9 @@ const Base = z.object({
       (v) =>
         !v ||
         v === '' ||
-        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(v),
+        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
+          v
+        ),
       {
         message: 'Invalid website URL',
       }
@@ -71,9 +73,8 @@ const Base = z.object({
   weighbridge_info: z.string().trim().optional(),
   notes: z.string().trim().optional(),
 
-  // Audit fields - these are managed by backend, so we accept any value
-  created_at: z.any().optional(),
-  updated_at: z.any().optional(),
+  created_at: z.date().optional(),
+  updated_at: z.date().optional(),
   created_by: z.string().optional(),
   last_modified_by: z.string().optional(),
 });
@@ -85,7 +86,10 @@ export const QuarrySupplierFormSchema = Base.superRefine((data, ctx) => {
     ctx.addIssue({
       path: ['name'],
       code: z.ZodIssueCode.custom,
-      message: data.type === 'QUARRY' ? 'Quarry name is required' : 'Supplier name is required',
+      message:
+        data.quarry_supplier_type === 'QUARRY'
+          ? 'Quarry name is required'
+          : 'Supplier name is required',
     });
   } else if (data.name.trim().length < 2) {
     ctx.addIssue({

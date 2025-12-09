@@ -22,13 +22,13 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     meta: 'Supplier / Quarry Name',
   },
   {
-    id: 'type',
-    accessorFn: (row) => row.type,
+    id: 'quarry_supplier_type',
+    accessorFn: (row) => row.quarry_supplier_type,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Type" />;
     },
     cell: ({ row }) => {
-      const type = row.original.type;
+      const type = row.original.quarry_supplier_type;
       return (
         <div className="py-2">
           <TableBadges names={[type]} visibleCount={1} />

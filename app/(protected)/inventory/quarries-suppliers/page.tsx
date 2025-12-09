@@ -93,15 +93,14 @@ export default function QuarriesSuppliersPage() {
       quarriesData?.map((quarry) => {
         const convertedQuarry = convertKeysToSnakeCase(quarry);
 
-        const quarryType = (convertedQuarry.quarry_supplier_type || convertedQuarry.type || 'QUARRY') as QuarryType;
+        const quarryType = (convertedQuarry.quarry_supplier_type || 'QUARRY') as QuarryType;
 
         // Check if is_active field exists (from API response)
         const isActive = 'is_active' in convertedQuarry ? (convertedQuarry as Record<string, unknown>).is_active : undefined;
 
         const transformed = {
           ...convertedQuarry,
-          type: quarryType,
-          quarry_supplier_type: quarryType, // Preserve for editing
+          quarry_supplier_type: quarryType,
           status: (isActive === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
           // Preserve address in original camelCase format (backend uses camelCase for Address)
           address: quarry.address,
@@ -130,7 +129,7 @@ export default function QuarriesSuppliersPage() {
   };
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'type', title: 'Type', icon: Plus },
+    { column: 'quarry_supplier_type', title: 'Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
     { column: 'suburb', title: 'Suburb', icon: Plus },
   ];

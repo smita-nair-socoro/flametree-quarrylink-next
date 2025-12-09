@@ -61,7 +61,7 @@ const getDialogConfigs = (
   blockingQuotes?: BlockingQuote[]
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
-  const type = quarrySupplierData?.type;
+  const type = quarrySupplierData?.quarry_supplier_type;
 
   if (selectedAction?.key === 'delete') {
     return {

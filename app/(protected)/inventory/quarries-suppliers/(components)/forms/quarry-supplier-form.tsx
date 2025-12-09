@@ -82,9 +82,7 @@ export default function QuarrySupplierForm({
 
   // Initialize states with selected quarry/supplier data
   const [selectedType, setSelectedType] = React.useState<QuarryType>(
-    selectedQuarrySupplier?.quarry_supplier_type ||
-      selectedQuarrySupplier?.type ||
-      QuarryType.QUARRY
+    selectedQuarrySupplier?.quarry_supplier_type || QuarryType.QUARRY
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -125,10 +123,8 @@ export default function QuarrySupplierForm({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
     defaultValues: {
-      type:
-        selectedQuarrySupplier?.quarry_supplier_type ||
-        selectedQuarrySupplier?.type ||
-        'QUARRY',
+      quarry_supplier_type:
+        selectedQuarrySupplier?.quarry_supplier_type || 'QUARRY',
       name: selectedQuarrySupplier?.name || '',
       website:
         selectedQuarrySupplier?.website === 'N/A'
@@ -179,7 +175,7 @@ export default function QuarrySupplierForm({
       setSelectedQuarrySupplier(null);
       // Reset form to empty values
       quarrySupplierForm.reset({
-        type: QuarryType.QUARRY,
+        quarry_supplier_type: QuarryType.QUARRY,
         name: '',
         website: '',
         email: '',
@@ -217,7 +213,7 @@ export default function QuarrySupplierForm({
   const handleTypeChange = (value: string) => {
     const quarryType = value as QuarryType;
     setSelectedType(quarryType);
-    quarrySupplierForm.setValue('type', quarryType);
+    quarrySupplierForm.setValue('quarry_supplier_type', quarryType);
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
   };
@@ -273,7 +269,7 @@ export default function QuarrySupplierForm({
 
         const quarrySupplierData = {
           name: values.name,
-          quarrySupplierType: values.type,
+          quarrySupplierType: values.quarry_supplier_type,
           email: values.email,
           phone: values.phone,
           isActive: true,
@@ -300,7 +296,7 @@ export default function QuarrySupplierForm({
 
           notifySuccess(
             `${
-              values.type === 'QUARRY' ? 'Quarry' : 'Supplier'
+              values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
             } updated successfully!`
           );
         } else {
@@ -309,7 +305,7 @@ export default function QuarrySupplierForm({
 
           notifySuccess(
             `${
-              values.type === 'QUARRY' ? 'Quarry' : 'Supplier'
+              values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
             } created successfully!`
           );
         }
@@ -323,7 +319,7 @@ export default function QuarrySupplierForm({
           error instanceof Error
             ? error.message
             : `Failed to ${isEditing ? 'update' : 'create'} ${
-                values.type === 'QUARRY' ? 'quarry' : 'supplier'
+                values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
               }`
         );
       } finally {
@@ -363,9 +359,6 @@ export default function QuarrySupplierForm({
     [
       willExceedQuarryLimit,
       submitQuarrySupplier,
-      quarrySupplierForm,
-      isEditing,
-      id,
     ]
   );
 
@@ -431,7 +424,7 @@ export default function QuarrySupplierForm({
           {/* Type Selection */}
           <FormField
             control={quarrySupplierForm.control}
-            name="type"
+            name="quarry_supplier_type"
             render={({ field }) => (
               <FormItem className="col-span-1 col-start-1">
                 <FormLabel className="mb-3">Type*</FormLabel>
