@@ -39,3 +39,40 @@ export interface BillingHistory {
   status: InvoiceStatus;
   stripe_link: string;
 }
+
+export interface Tenant {
+  subscriptions: {
+    stripeCustomerId: string;
+    subscriptions: [
+      {
+        subscriptionId: string;
+        status: string;
+        items: [
+          {
+            sbscriptionItemId: string;
+            productId: string;
+            productName?: string;
+            quantity: number;
+            unitAmountInCents: number;
+            currency: string;
+          }
+        ];
+      }
+    ];
+  };
+  invoices: [
+    {
+      invoiceId: string;
+      invoiceNumber?: string;
+      hostedInvoiceUrl?: string;
+      invoicePdfUrl?: string;
+      status: string;
+      amountDueInCents: number;
+      amountPaidInCents: number;
+      amountRemainingInCents: number;
+      createdAt: string;
+      createdAtEpochSeconds: number;
+      dueDateEpochSeconds?: number;
+    }
+  ];
+}

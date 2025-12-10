@@ -5,6 +5,8 @@ import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
 import { QuotationDTO } from '../types/quotation';
+import { Tenant } from '../types/client';
+import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -129,7 +131,7 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  // const tenantId = await getTenantId(); // ✅ Properly awaited
+  const tenantId = await getTenantId(); // ✅ Properly awaited
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -380,5 +382,15 @@ export const APIClient = {
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`
       ),
+  },
+
+  tenants: {
+    getAll: () => appClient.Get<Tenant[]>(`/socoro/quarrylink/api/tenants`),
+    getById: (tenantId: string) =>
+      appClient.Get<Tenant>(`/socoro/quarrylink/api/tenant/${tenantId}`),
+    create: (data: Tenant) =>
+      appClient.Post<Tenant>('/socoro/quarrylink/api/tenant', {
+        body: data,
+      }),
   },
 };
