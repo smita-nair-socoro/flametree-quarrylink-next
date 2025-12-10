@@ -3,10 +3,11 @@ import { handleLogout } from '../auth/authManager';
 import { ProductDetails } from '../types/product';
 import { Category } from '../types/category';
 import { Customer } from '../types/customer';
-import { Quarry } from '../types/quarry';
+import { Quarry, ArchiveDeleteSummaryDto } from '../types/quarry';
 import { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
+import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -279,13 +280,13 @@ export async function HttpClient<T = unknown>(
       .get('Content-Type')
       ?.includes('application/json');
 
-    // Try to parse the JSON (but don’t blow up if it fails)
+    // Try to parse the JSON (but don't blow up if it fails)
     let parsedJson: unknown = null;
     if (isJson) {
       try {
         parsedJson = await response.json();
       } catch {
-        // ignore parse errors — we’ll fall back to statusText below
+        // ignore parse errors — we'll fall back to statusText below
       }
     }
 
@@ -305,7 +306,23 @@ export async function HttpClient<T = unknown>(
       response.statusText ||
       `HTTP request failed with status ${response.status}`;
 
-    return Promise.reject(new Error(errorMessage));
+    // Create error with response data attached
+    const error = new Error(errorMessage) as Error & {
+      response?: {
+        status: number;
+        statusText: string;
+        data: unknown;
+      };
+    };
+
+    // Attach response information to the error object
+    error.response = {
+      status: response.status,
+      statusText: response.statusText,
+      data: parsedJson,
+    };
+
+    return Promise.reject(error);
   }
 }
 
@@ -325,13 +342,13 @@ const appClient = {
       ...config,
       method: 'PUT',
     }),
-  Patch: (endpoint: string, config: HttpConfig = {}) =>
-    HttpClient<void>(endpoint, {
+  Patch: <T = void>(endpoint: string, config: HttpConfig = {}) =>
+    HttpClient<T>(endpoint, {
       ...config,
       method: 'PATCH',
     }),
-  Delete: (endpoint: string, config: HttpConfig = {}) =>
-    HttpClient<void>(endpoint, {
+  Delete: <T = void>(endpoint: string, config: HttpConfig = {}) =>
+    HttpClient<T>(endpoint, {
       ...config,
       method: 'DELETE',
     }),
@@ -342,8 +359,41 @@ export const APIClient = {
     list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
   },
   quarries: {
-    getAll: () => appClient.Get<Quarry[]>(`/api/v1/quarries`),
+    getAll: async () => {
+      const quarries = await appClient.Get<Quarry[]>(
+        `/socoro/quarrylink/api/quarries`
+      );
 
+      const normalizedQuarries = quarries.map(normalizeObjectPhoneNumbers);
+
+      return normalizedQuarries;
+    },
+    getById: async (quarrySupplierId: number) => {
+      const quarry = await appClient.Get<Quarry>(
+        `/socoro/quarrylink/api/quarries/${quarrySupplierId}`
+      );
+
+      // Step 2: Normalize phone numbers to E.164 format
+      const normalizedQuarry = normalizeObjectPhoneNumbers(quarry);
+
+      return normalizedQuarry;
+    },
+    create: (quarry: Quarry) =>
+      appClient.Post<Quarry>('/socoro/quarrylink/api/quarries', {
+        body: quarry,
+      }),
+    update: (id: number, quarry: Quarry) =>
+      appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}`, {
+        body: quarry,
+      }),
+    unarchive: (id: number) =>
+      appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
+    deleteAfterEligibilityCheck: (id: number) =>
+      appClient.Delete<ArchiveDeleteSummaryDto>(
+        `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`
+      ),
+    getSuburbs: () =>
+      appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
@@ -412,9 +462,12 @@ export const APIClient = {
         body: convertKeysToCamelCase(data),
       }),
     updateQuoteItem: (id: number, data: Partial<QuotationLineItem>) =>
-      appClient.Put<QuotationLineItem>(`/socoro/quarrylink/api/quoteItem/${id}`, {
-        body: convertKeysToCamelCase(data),
-      }),
+      appClient.Put<QuotationLineItem>(
+        `/socoro/quarrylink/api/quoteItem/${id}`,
+        {
+          body: convertKeysToCamelCase(data),
+        }
+      ),
     deleteQuoteItem: (id: number) =>
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
   },

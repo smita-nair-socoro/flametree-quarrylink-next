@@ -195,7 +195,7 @@ export function FormDialog({
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
     finalCustomId = selectedQuarrySupplier.name;
     finalPrimaryBadges = [selectedQuarrySupplier.status];
-    finalSecondaryBadges = [selectedQuarrySupplier.type];
+    finalSecondaryBadges = [selectedQuarrySupplier.quarry_supplier_type];
   }
 
   if (headerInfo?.useSelectedClient && selectedClient) {

@@ -1,73 +1,71 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { Quarry } from '@/lib/types/quarry';
+import { QuarryType, QuarryStatus } from '@/lib/types/quarry-enums';
 
 interface QuarrySupplierStore {
-  quarriesSuppliers: Quarry[];
+  quarries: Quarry[];
   selectedQuarrySupplier: Quarry | null;
   isLoading: boolean;
 
   // Actions
-  setQuarriesSuppliers: (quarriesSuppliers: Quarry[]) => void;
-  setSelectedQuarrySupplier: (quarrySupplier: Quarry | null) => void;
+  setQuarries: (quarries: Quarry[]) => void;
+  setSelectedQuarrySupplier: (quarry: Quarry | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getQuarrySupplierById: (id: number) => Quarry | undefined;
-  getQuarriesSuppliersByStatus: (status: string) => Quarry[];
-  getQuarriesSuppliersByType: (type: string) => Quarry[];
+  getQuarryById: (id: number) => Quarry | undefined;
+  getQuarriesByType: (type: QuarryType) => Quarry[];
 
-  getQuarrySupplierStats: () => {
+  getQuarryStats: () => {
     total: number;
-    active: number;
-    archived: number;
     quarries: number;
     suppliers: number;
+    active: number;
+    archived: number;
   };
 }
 
 export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
   devtools(
     (set, get) => ({
-      quarriesSuppliers: [],
+      quarries: [],
       selectedQuarrySupplier: null,
       isLoading: false,
 
       // Actions
-      setQuarriesSuppliers: (quarriesSuppliers) => set({ quarriesSuppliers }),
+      setQuarries: (quarries) => set({ quarries }),
 
-      setSelectedQuarrySupplier: (quarrySupplier) =>
-        set({ selectedQuarrySupplier: quarrySupplier }),
+      setSelectedQuarrySupplier: (quarry) => set({ selectedQuarrySupplier: quarry }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 
       // Selectors
-      getQuarrySupplierById: (id) => {
+      getQuarryById: (id) => {
         const state = get();
-        return state.quarriesSuppliers.find((q) => q.id === id);
+        return state.quarries.find((q) => q.id === id);
       },
 
-      getQuarriesSuppliersByStatus: (status) => {
+      getQuarriesByType: (type) => {
         const state = get();
-        return state.quarriesSuppliers.filter((q) => q.status === status);
+        return state.quarries.filter(
+          (q) => q.quarry_supplier_type === type
+        );
       },
 
-      getQuarriesSuppliersByType: (type) => {
+      getQuarryStats: () => {
         const state = get();
-        return state.quarriesSuppliers.filter((q) => q.type === type);
-      },
-
-      getQuarrySupplierStats: () => {
-        const state = get();
-        const quarriesSuppliers = state.quarriesSuppliers;
+        const quarries = state.quarries;
 
         return {
-          total: quarriesSuppliers.length,
-          active: quarriesSuppliers.filter((q) => q.status === 'ACTIVE').length,
-          archived: quarriesSuppliers.filter((q) => q.status === 'ARCHIVED')
-            .length,
-          quarries: quarriesSuppliers.filter((q) => q.type === 'QUARRY').length,
-          suppliers: quarriesSuppliers.filter((q) => q.type === 'SUPPLIER')
-            .length,
+          total: quarries.length,
+          quarries: quarries.filter(
+            (q) => q.quarry_supplier_type === QuarryType.QUARRY
+          ).length,
+          suppliers: quarries.filter(
+            (q) => q.quarry_supplier_type === QuarryType.SUPPLIER
+          ).length,
+          active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE).length,
+          archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED).length,
         };
       },
     }),
@@ -78,67 +76,37 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
 export const useSelectedQuarrySupplier = () =>
   useQuarrySupplierStore((state) => state.selectedQuarrySupplier);
 
-export const useQuarriesSuppliers = () =>
-  useQuarrySupplierStore((state) => state.quarriesSuppliers);
+export const useQuarries = () => useQuarrySupplierStore((state) => state.quarries);
 
-export const useQuarrySupplierLoading = () =>
+export const useQuarryLoading = () =>
   useQuarrySupplierStore((state) => state.isLoading);
 
-export const useQuarrySupplierById = (id: number) => {
+export const useQuarryById = (id: number) => {
+  return useQuarrySupplierStore((state) => state.quarries.find((q) => q.id === id));
+};
+
+export const useQuarriesByType = (type: QuarryType) => {
   return useQuarrySupplierStore((state) =>
-    state.quarriesSuppliers.find((q) => q.id === id)
+    state.quarries.filter(
+      (q) => q.quarry_supplier_type === type
+    )
   );
 };
 
-export const useQuarriesSuppliersByStatus = (status: string) => {
-  return useQuarrySupplierStore((state) =>
-    state.quarriesSuppliers.filter((q) => q.status === status)
-  );
-};
-
-export const useQuarriesSuppliersByType = (type: string) => {
-  return useQuarrySupplierStore((state) =>
-    state.quarriesSuppliers.filter((q) => q.type === type)
-  );
-};
-
-// Get quarry/supplier stats
-export const useQuarrySupplierStats = () => {
+// Get quarry stats
+export const useQuarryStats = () => {
   return useQuarrySupplierStore((state) => {
-    const quarriesSuppliers = state.quarriesSuppliers;
+    const quarries = state.quarries;
     return {
-      total: quarriesSuppliers.length,
-      active: quarriesSuppliers.filter((q) => q.status === 'ACTIVE').length,
-      archived: quarriesSuppliers.filter((q) => q.status === 'ARCHIVED')
-        .length,
-      quarries: quarriesSuppliers.filter((q) => q.type === 'QUARRY').length,
-      suppliers: quarriesSuppliers.filter((q) => q.type === 'SUPPLIER').length,
+      total: quarries.length,
+      quarries: quarries.filter(
+        (q) => q.quarry_supplier_type === QuarryType.QUARRY
+      ).length,
+      suppliers: quarries.filter(
+        (q) => q.quarry_supplier_type === QuarryType.SUPPLIER
+      ).length,
+      active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE).length,
+      archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED).length,
     };
   });
-};
-
-import { useMemo } from 'react';
-
-export const useQuarrySupplierByIdOptimized = (id: number) => {
-  const quarriesSuppliers = useQuarriesSuppliers();
-
-  return useMemo(() => {
-    return quarriesSuppliers.find((q) => q.id === id);
-  }, [quarriesSuppliers, id]);
-};
-
-export const useQuarriesSuppliersByStatusOptimized = (status: string) => {
-  const quarriesSuppliers = useQuarriesSuppliers();
-
-  return useMemo(() => {
-    return quarriesSuppliers.filter((q) => q.status === status);
-  }, [quarriesSuppliers, status]);
-};
-
-export const useQuarriesSuppliersByTypeOptimized = (type: string) => {
-  const quarriesSuppliers = useQuarriesSuppliers();
-
-  return useMemo(() => {
-    return quarriesSuppliers.filter((q) => q.type === type);
-  }, [quarriesSuppliers, type]);
 };

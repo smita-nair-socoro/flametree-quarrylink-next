@@ -16,6 +16,7 @@ export const QuarryKeys = {
   all: ['quarries'] as const,
   list: () => [...QuarryKeys.all, 'list'] as const,
   detail: (id: number) => [...QuarryKeys.all, 'detail', id] as const,
+  suburbs: () => [...QuarryKeys.all, 'suburbs'] as const,
 };
 
 export const CategoryKeys = {

@@ -216,14 +216,12 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           streetDetailsOptional: streetDetailsOptional,
           formattedAddress,
           city,
-          state: region,
-          postcode: postcode,
-          country: country,
-          latitude: latitude,
-          longitude: longitude,
-          version: address.version || 0,
-          id: address.id || 0,
-          suburb: region,
+          region,
+          postalCode,
+          country,
+          lat,
+          lng,
+          googlePlaceId: selectedPlaceId, // Store the Google Place ID
         };
 
         setAddress(formattedData);
@@ -264,7 +262,19 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSelectedPlaceId('');
     setAdrAddress('');
     setSearchInput('');
-    setAddress(getClearedAddress());
+    const resetAddress = {
+      address1: '',
+      address2: '',
+      formattedAddress: '',
+      city: '',
+      region: '',
+      postalCode: '',
+      country: '',
+      lat: 0,
+      lng: 0,
+      googlePlaceId: '',
+    };
+    setAddress(resetAddress);
     // Notify react-hook-form of the change
     if (onChange) {
       onChange('');
