@@ -347,23 +347,23 @@ export default function QuotationForm({
         : generateNextQuoteNumber(quotations);
 
     try {
-      const quoteData = transformFormDataToQuoteDto(
-        values,
-        {
-          customerName,
-          accountManagerName,
-          quoteNumber,
-          deliveryAddressId:
-            isEditing && currentQuotation?.deliveryAddressId
-              ? currentQuotation.deliveryAddressId
-              : 1,
-          lineItemsCount: isEditing ? currentQuotation?.quoteItems?.length || 0 : 0,
-        },
-        deliveryAddress
-      );
+      const quoteData = transformFormDataToQuoteDto(values, {
+        customerName,
+        accountManagerName,
+        quoteNumber,
+        deliveryAddressId:
+          isEditing && currentQuotation?.deliveryAddressId
+            ? currentQuotation.deliveryAddressId
+            : 1,
+        lineItemsCount: isEditing
+          ? currentQuotation?.quoteItems?.length || 0
+          : 0,
+        deliveryAddress: deliveryAddress,
+      });
 
       if (!quoteData.deliveryAddressId) {
-        quoteData.deliveryAddressId = currentQuotation?.deliveryAddressId || undefined;
+        quoteData.deliveryAddressId =
+          currentQuotation?.deliveryAddressId || undefined;
       }
 
       console.log('[Quotation][submit] payload:', quoteData);

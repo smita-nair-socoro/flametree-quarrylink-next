@@ -4,6 +4,7 @@ import type { Address, AddressType } from '../types/address';
 import { toAddressPayload } from './address-helper';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
+import { de } from 'date-fns/locale';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -78,8 +79,8 @@ export const transformFormDataToQuoteDto = (
     quoteNumber: string;
     deliveryAddressId?: number;
     lineItemsCount?: number;
-  },
-  deliveryAddress: AddressType | null
+    deliveryAddress: AddressType | null;
+  }
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
   const expiryDate = formData.expiryDate as Date | undefined;
@@ -101,10 +102,11 @@ export const transformFormDataToQuoteDto = (
     accountManagerName: additionalData.accountManagerName,
     version: 1,
     lineItemsCount: additionalData.lineItemsCount ?? 0,
+    deliveryAddress: additionalData.deliveryAddress,
   };
 
   // Map UI address shape (AddressType) to backend Address payload
-  const mappedAddress = toAddressPayload(deliveryAddress);
+  const mappedAddress = toAddressPayload(additionalData.deliveryAddress);
   if (!mappedAddress) {
     throw new Error('Delivery address is required');
   }
