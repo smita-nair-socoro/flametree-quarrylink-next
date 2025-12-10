@@ -198,25 +198,25 @@ export function LoginForm({
     router.push(getSafeRedirectUrl());
   }
 
-  async function handleGoogleSignIn() {
-    try {
-      sessionStorage.setItem('oauth_redirect_url', getSafeRedirectUrl());
-      await signInWithRedirect({ provider: 'Google' });
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      notifyError('Failed to sign in with Google. Please try again.');
-    }
-  }
+  // async function handleGoogleSignIn() {
+  //   try {
+  //     sessionStorage.setItem('oauth_redirect_url', getSafeRedirectUrl());
+  //     await signInWithRedirect({ provider: 'Google' });
+  //   } catch (error) {
+  //     console.error('Google sign-in error:', error);
+  //     notifyError('Failed to sign in with Google. Please try again.');
+  //   }
+  // }
 
-  async function handleMicrosoftSignIn() {
-    try {
-      sessionStorage.setItem('oauth_redirect_url', getSafeRedirectUrl());
-      await signInWithRedirect({ provider: { custom: 'Microsoft' } });
-    } catch (error) {
-      console.error('Microsoft sign-in error:', error);
-      notifyError('Failed to sign in with Microsoft. Please try again.');
-    }
-  }
+  // async function handleMicrosoftSignIn() {
+  //   try {
+  //     sessionStorage.setItem('oauth_redirect_url', getSafeRedirectUrl());
+  //     await signInWithRedirect({ provider: { custom: 'Microsoft' } });
+  //   } catch (error) {
+  //     console.error('Microsoft sign-in error:', error);
+  //     notifyError('Failed to sign in with Microsoft. Please try again.');
+  //   }
+  // }
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -304,13 +304,13 @@ export function LoginForm({
                   Forgot password?
                 </Button>
 
-                <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                   <span className="bg-card text-muted-foreground relative z-10 px-2">
                     Or sign in with
                   </span>
-                </div>
+                </div> */}
 
-                <div className="flex flex-col gap-4">
+                {/* <div className="flex flex-col gap-4">
                   <Button
                     type="button"
                     variant="outline"
@@ -362,7 +362,7 @@ export function LoginForm({
                     </svg>
                     <span className="ml-2">Login with Microsoft</span>
                   </Button>
-                </div>
+                </div> */}
               </div>
             </form>
           </Form>
