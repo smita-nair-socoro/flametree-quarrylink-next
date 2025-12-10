@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { cn, toAddressType } from '@/lib/utils';
+import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -156,7 +157,7 @@ export default function QuotationForm({
           : undefined,
       deliveryAddress:
         currentQuotation?.deliveryAddress?.formattedAddress || '',
-      phone: currentQuotation?.customerPhone || '',
+      phone: normalizePhoneNumber(currentQuotation?.customerPhone),
       email: currentQuotation?.customerEmail || '',
       createdAt:
         isEditing && currentQuotation?.createdAt
@@ -216,8 +217,7 @@ export default function QuotationForm({
           : undefined,
         deliveryAddress:
           currentQuotation.deliveryAddress?.formattedAddress || '',
-        //currently just fill +61, it should be put in database in the
-        phone: '+61' + (currentQuotation.customerEmail || ''), // TODO: Add phone field to API
+        phone: normalizePhoneNumber(currentQuotation.customerPhone),
         email: currentQuotation.customerEmail || '',
         createdAt: currentQuotation.createdAt
           ? new Date(currentQuotation.createdAt)
