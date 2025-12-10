@@ -1,5 +1,7 @@
 import { QUOTE_STATUS, QUOTE_TYPE } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import type { Address, AddressType } from '../types/address';
+import { toAddressPayload } from './address-helper';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
 
@@ -76,7 +78,8 @@ export const transformFormDataToQuoteDto = (
     quoteNumber: string;
     deliveryAddressId?: number;
     lineItemsCount?: number;
-  }
+  },
+  deliveryAddress?: AddressType | null
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
   const expiryDate = formData.expiryDate as Date | undefined;
@@ -99,6 +102,12 @@ export const transformFormDataToQuoteDto = (
     version: 1,
     lineItemsCount: additionalData.lineItemsCount ?? 0,
   };
+
+  // Map UI address shape (AddressType) to backend Address payload
+  const mappedAddress = toAddressPayload(deliveryAddress as any);
+  if (mappedAddress) {
+    transformed.deliveryAddress = mappedAddress as Address;
+  }
 
   if (deliveryDate) {
     transformed.deliveryStartDate = toLocalDateTime(deliveryDate);

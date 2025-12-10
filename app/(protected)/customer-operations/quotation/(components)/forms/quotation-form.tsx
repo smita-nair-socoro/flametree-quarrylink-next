@@ -11,8 +11,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn, toAddressType } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { toAddressType } from '@/lib/utils/address-helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -345,16 +346,20 @@ export default function QuotationForm({
         ? currentQuotation.quoteNumber
         : generateNextQuoteNumber(quotations);
 
-    const quoteData = transformFormDataToQuoteDto(values, {
-      customerName,
-      accountManagerName,
-      quoteNumber,
-      deliveryAddressId:
-        isEditing && currentQuotation?.deliveryAddressId
-          ? currentQuotation.deliveryAddressId
-          : 1,
-      lineItemsCount: isEditing ? currentQuotation?.quoteItems?.length || 0 : 0,
-    });
+    const quoteData = transformFormDataToQuoteDto(
+      values,
+      {
+        customerName,
+        accountManagerName,
+        quoteNumber,
+        deliveryAddressId:
+          isEditing && currentQuotation?.deliveryAddressId
+            ? currentQuotation.deliveryAddressId
+            : 1,
+        lineItemsCount: isEditing ? currentQuotation?.quoteItems?.length || 0 : 0,
+      },
+      deliveryAddress
+    );
 
     try {
       if (isEditing && currentQuotation?.id) {
