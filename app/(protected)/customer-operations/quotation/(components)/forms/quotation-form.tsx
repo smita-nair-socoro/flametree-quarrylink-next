@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -37,19 +36,18 @@ import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { Quotation } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useQuery } from '@tanstack/react-query';
 import {
-  QuotationWithLineItemsQueryOptions,
   useCreateQuotation,
   useUpdateQuotation,
 } from '@/lib/api/quotation';
 import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
-  calculateQuotationPricing,
 } from '@/lib/utils/quote-helpers';
+import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
+import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
 
 interface FormProps {
   id?: number;
@@ -69,70 +67,32 @@ export default function QuotationForm({
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
 
-  // When editing, fetch detailed quotation data with line items from backend API
-  const {
-    data: quotationDetailData,
-    isLoading: isLoadingDetail,
-    error: detailError,
-  } = useQuery(QuotationWithLineItemsQueryOptions(selectedQuotation?.id || 0));
-
-  // Log API response for debugging
-  React.useEffect(() => {
-    if (detailError) {
-      console.error('❌ Error fetching quotation details:', detailError);
-    }
-  }, [detailError, quotationDetailData]);
-
-  // Convert QuotationDTO from API to Quotation format for the form
-  const getDetailedQuotation = React.useMemo(() => {
-    if (isEditing && quotationDetailData) {
-      const transformedQuotation = {
-        ...quotationDetailData,
-        status: quotationDetailData.quoteStatus,
-      } as Quotation;
-      console.log(
-        '🔍 Transformed Quotation for Editing:',
-        transformedQuotation
-      );
-      return transformedQuotation;
-    }
-    return null;
-  }, [isEditing, quotationDetailData]);
-
-  // Use detailed quotation for editing, or selected quotation for new
-  const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
-
-  const [deliveryAddress, setDeliveryAddress] = React.useState<AddressType>(
-    () => toAddressType(null)
-  );
-  const [searchInput, setSearchInput] = React.useState('');
-
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
     defaultValues: {
       quoteType:
-        isEditing && currentQuotation?.quoteType
-          ? currentQuotation.quoteType
+        isEditing && selectedQuotation?.quoteType
+          ? selectedQuotation.quoteType
           : 'DELIVERY',
       customerId:
-        isEditing && currentQuotation?.customerId
-          ? currentQuotation.customerId
+        isEditing && selectedQuotation?.customerId
+          ? selectedQuotation.customerId
           : 0,
       accountManager:
-        isEditing && currentQuotation?.accountManager
-          ? currentQuotation.accountManager
+        isEditing && selectedQuotation?.accountManager
+          ? selectedQuotation.accountManager
           : 0,
       projectName:
-        isEditing && currentQuotation?.projectName
-          ? currentQuotation.projectName
+        isEditing && selectedQuotation?.projectName
+          ? selectedQuotation.projectName
           : '',
       deliveryStartDate:
-        isEditing && currentQuotation?.deliveryStartDate
-          ? new Date(currentQuotation.deliveryStartDate)
+        isEditing && selectedQuotation?.deliveryStartDate
+          ? new Date(selectedQuotation.deliveryStartDate)
           : undefined,
       deliveryWindowStart:
-        isEditing && currentQuotation?.deliveryWindowStart
-          ? new Date(currentQuotation.deliveryWindowStart).toLocaleTimeString(
+        isEditing && selectedQuotation?.deliveryWindowStart
+          ? new Date(selectedQuotation.deliveryWindowStart).toLocaleTimeString(
               'en-US',
               {
                 hour12: false,
@@ -142,8 +102,8 @@ export default function QuotationForm({
             )
           : '',
       deliveryWindowEnd:
-        isEditing && currentQuotation?.deliveryWindowEnd
-          ? new Date(currentQuotation.deliveryWindowEnd).toLocaleTimeString(
+        isEditing && selectedQuotation?.deliveryWindowEnd
+          ? new Date(selectedQuotation.deliveryWindowEnd).toLocaleTimeString(
               'en-US',
               {
                 hour12: false,
@@ -153,34 +113,51 @@ export default function QuotationForm({
             )
           : '',
       expiryDate:
-        isEditing && currentQuotation?.expiryDate
-          ? new Date(currentQuotation.expiryDate)
+        isEditing && selectedQuotation?.expiryDate
+          ? new Date(selectedQuotation.expiryDate)
           : undefined,
       deliveryAddress:
-        currentQuotation?.deliveryAddress?.formattedAddress || '',
-      phone: normalizePhoneNumber(currentQuotation?.customerPhone),
-      email: currentQuotation?.customerEmail || '',
+        selectedQuotation?.deliveryAddress?.formattedAddress || '',
+      phone: normalizePhoneNumber(selectedQuotation?.customerPhone),
+      email: selectedQuotation?.customerEmail || '',
       createdAt:
-        isEditing && currentQuotation?.createdAt
-          ? new Date(currentQuotation.createdAt)
+        isEditing && selectedQuotation?.createdAt
+          ? new Date(selectedQuotation.createdAt)
           : new Date(),
       updatedAt:
-        isEditing && currentQuotation?.updatedAt
-          ? new Date(currentQuotation.updatedAt)
+        isEditing && selectedQuotation?.updatedAt
+          ? new Date(selectedQuotation.updatedAt)
           : new Date(),
       createdBy:
-        isEditing && currentQuotation?.createdBy
-          ? currentQuotation.createdBy
+        isEditing && selectedQuotation?.createdBy
+          ? selectedQuotation.createdBy
           : 'Jay Woo Choi',
       lastModifiedBy:
-        isEditing && currentQuotation?.lastModifiedBy
-          ? currentQuotation.lastModifiedBy
+        isEditing && selectedQuotation?.lastModifiedBy
+          ? selectedQuotation.lastModifiedBy
           : 'Armin Menhaji',
     },
   });
 
   const createQuotation = useCreateQuotation();
   const updateQuotation = useUpdateQuotation();
+
+  // All form state management: data fetching, labels, pricing, address, customer auto-fill
+  const {
+    currentQuotation,
+    isLoadingDetail,
+    detailError,
+    addressLabel,
+    dateLabel,
+    timeWindowLabel,
+    pricingBreakdown,
+    gst,
+    totalInvoiceIncGST,
+    deliveryAddress,
+    handleAddressChange,
+    searchInput,
+    setSearchInput,
+  } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -229,61 +206,8 @@ export default function QuotationForm({
         createdBy: currentQuotation.createdBy || 'Unknown',
         lastModifiedBy: currentQuotation.lastModifiedBy || 'Unknown',
       });
-
-      // Prefill the address autocomplete state when editing an existing quote
-      if (currentQuotation.deliveryAddress) {
-        setDeliveryAddress(toAddressType(currentQuotation.deliveryAddress));
-      }
     }
   }, [isEditing, currentQuotation, quotationForm]);
-
-  // Watch the quoteType field to make labels dynamic
-  const quoteType = quotationForm.watch('quoteType');
-
-  const addressLabel = React.useMemo(() => {
-    if (!quoteType) return 'Address';
-    return quoteType === 'DELIVERY' ? 'Delivery Address' : 'Collection Address';
-  }, [quoteType]);
-
-  const dateLabel = React.useMemo(() => {
-    if (!quoteType) return 'Delivery Date';
-    return quoteType === 'DELIVERY' ? 'Delivery Date' : 'Collection Date';
-  }, [quoteType]);
-
-  const timeWindowLabel = React.useMemo(() => {
-    if (!quoteType) return 'Delivery Time Window';
-    return quoteType === 'DELIVERY'
-      ? 'Delivery Time Window'
-      : 'Collection Time Window';
-  }, [quoteType]);
-
-  // Hydrate address state from the loaded quotation (editing mode)
-  React.useEffect(() => {
-    if (isEditing && currentQuotation?.deliveryAddress) {
-      const normalizedAddress = toAddressType(currentQuotation.deliveryAddress);
-      setDeliveryAddress(normalizedAddress);
-      quotationForm.setValue(
-        'deliveryAddress',
-        normalizedAddress.formattedAddress
-      );
-    }
-  }, [isEditing, currentQuotation, quotationForm]);
-
-  React.useEffect(() => {
-    if (deliveryAddress.formattedAddress) {
-      quotationForm.setValue(
-        'deliveryAddress',
-        deliveryAddress.formattedAddress
-      );
-      console.log('Setting address in form:', deliveryAddress.formattedAddress);
-    }
-  }, [deliveryAddress.formattedAddress, quotationForm]);
-  const handleAddressChange = React.useCallback((newAddress: AddressType) => {
-    setDeliveryAddress(newAddress);
-    if (newAddress.formattedAddress) {
-      setSearchInput('');
-    }
-  }, []);
 
   // Get unique customer names and account managers from quotations store
   const getUniqueCustomerNames = useQuotationStore(
@@ -302,23 +226,6 @@ export default function QuotationForm({
   const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
     return getUniqueAccountManagers();
   }, [getUniqueAccountManagers]);
-
-  const customerId = quotationForm.watch('customerId');
-
-  React.useEffect(() => {
-    if (customerId && customerId > 0) {
-      // Only set values if they're empty to avoid controlled/uncontrolled warning
-      const currentPhone = quotationForm.getValues('phone');
-      const currentEmail = quotationForm.getValues('email');
-      console.log('PHone and Email:', { currentPhone, currentEmail });
-      if (!currentPhone) {
-        quotationForm.setValue('phone', '+61444555777');
-      }
-      if (!currentEmail) {
-        quotationForm.setValue('email', 'customer@email.com');
-      }
-    }
-  }, [customerId, quotationForm]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     const getCustomerNameById =
@@ -398,19 +305,6 @@ export default function QuotationForm({
     const d = GetTodaysDate();
     return d;
   }, []);
-
-  const pricingBreakdown = React.useMemo(() => {
-    if (!isEditing || !currentQuotation) {
-      return calculateQuotationPricing(null);
-    }
-    return calculateQuotationPricing(currentQuotation.quoteItems);
-  }, [isEditing, currentQuotation]);
-
-  // Calculate GST and Total Invoice(Inc GST)
-  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
-  const totalInvoiceIncGST = (
-    Number(pricingBreakdown.totalInvoice) + Number(gst)
-  ).toFixed(2);
 
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {
