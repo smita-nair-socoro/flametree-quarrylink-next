@@ -4,6 +4,7 @@ import type { Address, AddressType } from '../types/address';
 import { toAddressPayload } from './address-helper';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
+import { notifyError } from '../toast';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -88,6 +89,11 @@ export const transformFormDataToQuoteDto = (
     throw new Error('Expiry date is required');
   }
 
+  console.log(
+    '🔄 [transformFormDataToQuoteDto] Input deliveryAddress:',
+    additionalData.deliveryAddress
+  );
+
   const transformed: Record<string, unknown> = {
     quoteNumber: additionalData.quoteNumber,
     quoteType: formData.quoteType as QUOTE_TYPE,
@@ -106,10 +112,21 @@ export const transformFormDataToQuoteDto = (
 
   // Map UI address shape (AddressType) to backend Address payload
   const mappedAddress = toAddressPayload(additionalData.deliveryAddress);
+  console.log(
+    '🔄 [transformFormDataToQuoteDto] Mapped address payload:',
+    mappedAddress
+  );
+
   if (!mappedAddress) {
-    throw new Error('Delivery address is required');
+    notifyError('⚠️ Address may be missing!');
+  } else {
+    transformed.deliveryAddress = mappedAddress as Address;
   }
-  transformed.deliveryAddress = mappedAddress as Address;
+
+  console.log(
+    '✅ [transformFormDataToQuoteDto] Final transformed data:',
+    transformed
+  );
 
   if (deliveryDate) {
     transformed.deliveryStartDate = toLocalDateTime(deliveryDate);

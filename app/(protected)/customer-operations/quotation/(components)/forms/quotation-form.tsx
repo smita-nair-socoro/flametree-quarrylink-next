@@ -141,6 +141,10 @@ export default function QuotationForm({
         : generateNextQuoteNumber(quotations);
 
     try {
+      console.log('🔍 [Quotation][onSubmit] Form Values:', values);
+      console.log('🔍 [Quotation][onSubmit] Delivery Address State:', deliveryAddress);
+      console.log('🔍 [Quotation][onSubmit] Current Quotation:', currentQuotation);
+
       const quoteData = transformFormDataToQuoteDto(values, {
         customerName,
         accountManagerName,
@@ -160,12 +164,11 @@ export default function QuotationForm({
           currentQuotation?.deliveryAddressId || undefined;
       }
 
-      console.log('[Quotation][submit] payload:', quoteData);
+      console.log('📦 [Quotation][submit] Transformed Quote Data:', quoteData);
+      console.log('🏠 [Quotation][submit] Address in Payload:', quoteData.deliveryAddress);
 
       if (isEditing && currentQuotation?.id) {
-        console.log('📤 Request Body:', { quoteData });
-
-        await updateQuotation.mutateAsync({
+        console.log('📤 [UPDATE] Sending Request Body:', {
           id: currentQuotation.id,
           data: quoteData,
         });
@@ -174,6 +177,7 @@ export default function QuotationForm({
           id: currentQuotation.id,
           data: quoteData,
         });
+
         notifySuccess('Quotation Updated');
       } else {
         await createQuotation.mutateAsync(quoteData);

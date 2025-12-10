@@ -450,7 +450,11 @@ export const APIClient = {
     update: (id: number, data: Partial<QuotationDTO>) =>
       appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${id}`, {
         body: (() => {
-          console.log('[Quotation][PUT] Request payload:', { id, ...data });
+          console.log('📡 [APIClient][PUT] Full Request Payload:', data);
+          console.log(
+            '📡 [APIClient][PUT] deliveryAddress field:',
+            data.deliveryAddress
+          );
           return data;
         })(),
       }),

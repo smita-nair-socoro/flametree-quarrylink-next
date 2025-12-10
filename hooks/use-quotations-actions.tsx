@@ -512,7 +512,6 @@ export function useQuotationActions(
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
-  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
@@ -572,8 +571,12 @@ export function useQuotationActions(
     }
   }, [detailedQuotation, setSelectedQuotation]);
 
-  // Use detailed data if available, otherwise fall back to list data
-  const quotationToUse = detailedQuotation || quotationData;
+  // Prefer detailed quotation (with deliveryAddress/line items), then provided prop, then store fallback
+  const resolvedQuotation =
+    detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
+
+  // Use detailed data if available, otherwise fall back to list/store data
+  const quotationToUse = resolvedQuotation;
 
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
@@ -589,6 +592,29 @@ export function useQuotationActions(
     };
   };
 
+  // Build a safe payload for update actions (keeps deliveryAddress + status)
+  const buildUpdatePayload = (
+    overrides: Partial<QuotationDTO>
+  ): Partial<QuotationDTO> | null => {
+    if (!resolvedQuotation) return null;
+
+    const { status, quoteItems, ...quotationData } = resolvedQuotation;
+
+    return {
+      ...quotationData,
+      quoteStatus: overrides.quoteStatus ?? status,
+      deliveryAddress:
+        overrides.deliveryAddress ??
+        detailedQuotation?.deliveryAddress ??
+        resolvedQuotation.deliveryAddress,
+      deliveryAddressId:
+        overrides.deliveryAddressId ??
+        detailedQuotation?.deliveryAddressId ??
+        resolvedQuotation.deliveryAddressId,
+      ...overrides,
+    };
+  };
+
   // Extracted action handlers
   const handleSendToCustomer = async () => {
     if (!quotationId || !resolvedQuotation) {
@@ -597,12 +623,14 @@ export function useQuotationActions(
     }
 
     try {
-      // Keep all existing fields, update quoteStatus to PENDING
-      const { status, quoteItems, ...quotationData } = resolvedQuotation;
-      const quotationDTO: Partial<QuotationDTO> = {
-        ...quotationData,
+      const quotationDTO = buildUpdatePayload({
         quoteStatus: QuoteStatus.PENDING,
-      };
+      });
+
+      if (!quotationDTO) {
+        notifyError('Missing quotation data for update');
+        return;
+      }
 
       await updateQuotationMutation.mutateAsync({
         id: quotationId,
@@ -627,12 +655,14 @@ export function useQuotationActions(
     }
 
     try {
-      // Keep all existing fields, only update quoteStatus
-      const { status, quoteItems, ...quotationData } = resolvedQuotation;
-      const quotationDTO: Partial<QuotationDTO> = {
-        ...quotationData,
+      const quotationDTO = buildUpdatePayload({
         quoteStatus: QuoteStatus.APPROVED,
-      };
+      });
+
+      if (!quotationDTO) {
+        notifyError('Missing quotation data for update');
+        return;
+      }
 
       await updateQuotationMutation.mutateAsync({
         id: quotationId,
@@ -654,12 +684,14 @@ export function useQuotationActions(
     }
 
     try {
-      // Keep all existing fields, only update quoteStatus
-      const { status, quoteItems, ...quotationData } = resolvedQuotation;
-      const quotationDTO: Partial<QuotationDTO> = {
-        ...quotationData,
+      const quotationDTO = buildUpdatePayload({
         quoteStatus: QuoteStatus.DECLINED,
-      };
+      });
+
+      if (!quotationDTO) {
+        notifyError('Missing quotation data for update');
+        return;
+      }
 
       await updateQuotationMutation.mutateAsync({
         id: quotationId,
