@@ -1,9 +1,5 @@
-import { QUOTE_STATUS } from '../types/quotation-enums';
-import type {
-  QuotationDTO,
-  QuoteType,
-  QuotationLineItem,
-} from '../types/quotation';
+import { QUOTE_STATUS, QUOTE_TYPE } from '../types/quotation-enums';
+import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
 
@@ -91,7 +87,7 @@ export const transformFormDataToQuoteDto = (
 
   const transformed: Record<string, unknown> = {
     quoteNumber: additionalData.quoteNumber,
-    quoteType: formData.quoteType as QuoteType,
+    quoteType: formData.quoteType as QUOTE_TYPE,
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,
     projectName: formData.projectName as string,

@@ -11,6 +11,7 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
+  Quote,
   Send,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
@@ -22,6 +23,7 @@ import {
   useUpdateQuotation,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface DialogConfig {
   title?: string;
@@ -599,7 +601,7 @@ export function useQuotationActions(
       const { status, quoteItems, ...quotationData } = resolvedQuotation;
       const quotationDTO: Partial<QuotationDTO> = {
         ...quotationData,
-        quoteStatus: 'PENDING',
+        quoteStatus: QuoteStatus.PENDING,
       };
 
       await updateQuotationMutation.mutateAsync({
@@ -629,7 +631,7 @@ export function useQuotationActions(
       const { status, quoteItems, ...quotationData } = resolvedQuotation;
       const quotationDTO: Partial<QuotationDTO> = {
         ...quotationData,
-        quoteStatus: 'APPROVED',
+        quoteStatus: QuoteStatus.APPROVED,
       };
 
       await updateQuotationMutation.mutateAsync({
@@ -656,7 +658,7 @@ export function useQuotationActions(
       const { status, quoteItems, ...quotationData } = resolvedQuotation;
       const quotationDTO: Partial<QuotationDTO> = {
         ...quotationData,
-        quoteStatus: 'DECLINED',
+        quoteStatus: QuoteStatus.DECLINED,
       };
 
       await updateQuotationMutation.mutateAsync({
