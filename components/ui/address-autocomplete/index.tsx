@@ -47,13 +47,13 @@ export const formatAddressFromComponents = (address: AddressType): string => {
   const parts = [];
 
   // Add address1 (street address)
-  if (address.streetDetailsPrimary?.trim()) {
-    parts.push(address.streetDetailsPrimary.trim());
+  if (address.address1?.trim()) {
+    parts.push(address.address1.trim());
   }
 
   // Add address2 if present
-  if (address.streetDetailsOptional?.trim()) {
-    parts.push(address.streetDetailsOptional.trim());
+  if (address.address2?.trim()) {
+    parts.push(address.address2.trim());
   }
 
   // Add city, region, postal code
@@ -61,11 +61,11 @@ export const formatAddressFromComponents = (address: AddressType): string => {
   if (address.city?.trim()) {
     locationParts.push(address.city.trim());
   }
-  if (address.state?.trim()) {
-    locationParts.push(address.state.trim());
+  if (address.region?.trim()) {
+    locationParts.push(address.region.trim());
   }
-  if (address.postcode?.trim()) {
-    locationParts.push(address.postcode.trim());
+  if (address.postalCode?.trim()) {
+    locationParts.push(address.postalCode.trim());
   }
 
   if (locationParts.length > 0) {
@@ -103,24 +103,22 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     ...address,
     googlePlaceId: '',
     formattedAddress: '',
-    streetDetailsPrimary: '',
-    streetDetailsOptional: '',
+    address1: '',
+    address2: '',
     city: '',
-    suburb: '',
-    state: '',
-    postcode: '',
+    region: '',
+    postalCode: '',
     country: '',
-    latitude: 0,
-    longitude: 0,
-    version: address.version || 0,
+    lat: 0,
+    lng: 0,
   });
 
   useEffect(() => {
     if (
-      address.streetDetailsPrimary ||
+      address.address1 ||
       address.city ||
-      address.state ||
-      address.postcode ||
+      address.region ||
+      address.postalCode ||
       address.country
     ) {
       const formatted = formatAddressFromComponents(address);
@@ -137,11 +135,11 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       }
     }
   }, [
-    address.streetDetailsPrimary,
-    address.streetDetailsOptional,
+    address.address1,
+    address.address2,
     address.city,
-    address.state,
-    address.postcode,
+    address.region,
+    address.postalCode,
     address.country,
     address,
     setAddress,
@@ -190,30 +188,19 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           return match ? match[1] : '';
         };
 
-        const streetDetailsPrimary = dataFinderRegx('street-address');
-        const streetDetailsOptional = '';
+        const address1 = dataFinderRegx('street-address');
+        const address2 = '';
         const city = dataFinderRegx('locality');
         const region = dataFinderRegx('region');
-        const postcode = dataFinderRegx('postal-code');
+        const postalCode = dataFinderRegx('postal-code');
         const country = dataFinderRegx('country-name');
-        const latitude = data.location?.latitude || 0;
-        const longitude = data.location?.longitude || 0;
+        const lat = data.location?.latitude || 0;
+        const lng = data.location?.longitude || 0;
         const formattedAddress = data.formattedAddress || '';
-        console.log('Fetched address details:', {
-          streetDetailsPrimary,
-          streetDetailsOptional,
-          city,
-          region,
-          postcode,
-          country,
-          latitude,
-          longitude,
-          formattedAddress,
-        });
+
         const formattedData: AddressType = {
-          googlePlaceId: selectedPlaceId,
-          streetDetailsPrimary: streetDetailsPrimary,
-          streetDetailsOptional: streetDetailsOptional,
+          address1,
+          address2,
           formattedAddress,
           city,
           region,
@@ -245,7 +232,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     if (searchInput.trim()) {
       const updatedAddress: AddressType = {
         ...address,
-        streetDetailsPrimary: searchInput.trim(),
+        address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
       };
       setAddress(updatedAddress);

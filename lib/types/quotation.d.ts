@@ -3,7 +3,7 @@ import {
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
 import { CustomerDTO } from './customer';
-import { DeliveryAddressDTO } from './address';
+import { Address } from './address';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -17,7 +17,7 @@ export interface QuotationDTO {
   accountManagerName: string;
   projectName: string;
   quoteStatus: QuoteStatus;
-  deliveryAddress: DeliveryAddressDTO;
+  deliveryAddress: Address;
   deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string | null;
@@ -53,7 +53,7 @@ export interface Quotation {
   accountManagerName: string;
   projectName: string;
   status: QuoteStatus;
-  deliveryAddress: DeliveryAddressDTO;
+  deliveryAddress: Address;
   deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string;

@@ -28,20 +28,3 @@ export interface AddressType {
   lng: number;
   googlePlaceId?: string; // Optional Google Place ID from Places API
 }
-
-// Delivery Address DTO nested in quotation
-export interface DeliveryAddressDTO {
-  id: number;
-  googlePlaceId: string;
-  formattedAddress: string;
-  streetDetailsPrimary: string;
-  streetDetailsOptional: string;
-  city: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-  version: number;
-}
