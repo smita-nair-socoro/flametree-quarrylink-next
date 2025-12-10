@@ -32,11 +32,11 @@ interface AddressDialogProps {
 }
 
 interface AddressFields {
-  address1?: string;
-  address2?: string;
+  streetDetailsPrimary?: string;
+  streetDetailsOptional?: string;
   city?: string;
-  region?: string;
-  postalCode?: string;
+  state?: string;
+  postcode?: string;
 }
 
 /**
@@ -47,10 +47,10 @@ interface AddressFields {
 export function createAddressSchema(address: AddressFields) {
   let schema = {};
 
-  if (address.address1 !== '') {
+  if (address.streetDetailsPrimary !== '') {
     schema = {
       ...schema,
-      address1: z
+      streetDetailsPrimary: z
         .string()
         .min(1, {
           message: 'Address line 1 is required',
@@ -62,7 +62,7 @@ export function createAddressSchema(address: AddressFields) {
 
   schema = {
     ...schema,
-    address2: z.string().optional(),
+    streetDetailsOptional: z.string().optional(),
   };
 
   if (address.city !== '') {
@@ -74,19 +74,19 @@ export function createAddressSchema(address: AddressFields) {
     };
   }
 
-  if (address.region !== '') {
+  if (address.state !== '') {
     schema = {
       ...schema,
-      region: z.string().min(1, {
+      state: z.string().min(1, {
         message: 'State is required',
       }),
     };
   }
 
-  if (address.postalCode !== '') {
+  if (address.postcode !== '') {
     schema = {
       ...schema,
-      postalCode: z
+      postcode: z
         .string()
         .min(1, {
           message: 'Postal code is required',
@@ -113,19 +113,19 @@ export default function AddressDialog(
     onChange,
   } = props;
 
-  const [address1, setAddress1] = useState('');
-  const [address2, setAddress2] = useState('');
+  const [streetDetailsPrimary, setStreetDetailsPrimary] = useState('');
+  const [streetDetailsOptional, setStreetDetailsOptional] = useState('');
   const [city, setCity] = useState('');
-  const [region, setRegion] = useState('');
-  const [postalCode, setPostalCode] = useState('');
+  const [stateValue, setStateValue] = useState('');
+  const [postcode, setPostcode] = useState('');
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   const addressSchema = createAddressSchema({
-    address1: address.address1,
-    address2: address.address2,
+    streetDetailsPrimary: address.streetDetailsPrimary,
+    streetDetailsOptional: address.streetDetailsOptional,
     city: address.city,
-    region: address.region,
-    postalCode: address.postalCode,
+    state: address.state,
+    postcode: address.postcode,
   });
 
   /**
@@ -144,15 +144,19 @@ export default function AddressDialog(
     // If no adrAddress (manual entry), use the formatAddressFromComponents function
     if (!addressString || addressString.trim() === '') {
       return formatAddressFromComponents({
-        address1: addressComponents['street-address'],
-        address2: addressComponents.address2,
+        id: address.id || 0,
+        googlePlaceId: address.googlePlaceId || '',
+        streetDetailsPrimary: addressComponents['street-address'],
+        streetDetailsOptional: addressComponents.address2,
         city: addressComponents.locality,
-        region: addressComponents.region,
-        postalCode: addressComponents['postal-code'],
+        state: addressComponents.region,
+        postcode: addressComponents['postal-code'],
         country: address.country || 'Australia',
         formattedAddress: '',
-        lat: address.lat || 0,
-        lng: address.lng || 0,
+        latitude: address.latitude || 0,
+        longitude: address.longitude || 0,
+        suburb: address.suburb || '',
+        version: address.version || 0,
       });
     }
 
@@ -201,49 +205,49 @@ export default function AddressDialog(
     e.stopPropagation();
     try {
       addressSchema.parse({
-        address1,
-        address2,
+        streetDetailsPrimary,
+        streetDetailsOptional,
         city,
-        region,
-        postalCode,
+        state: stateValue,
+        postcode,
       });
     } catch (error) {
       const zodError = error as ZodError;
       const errorMap = zodError.flatten().fieldErrors;
 
       setErrorMap({
-        address1: errorMap.address1?.[0] ?? '',
-        address2: errorMap.address2?.[0] ?? '',
+        streetDetailsPrimary: errorMap.streetDetailsPrimary?.[0] ?? '',
+        streetDetailsOptional: errorMap.streetDetailsOptional?.[0] ?? '',
         city: errorMap.city?.[0] ?? '',
-        region: errorMap.region?.[0] ?? '',
-        postalCode: errorMap.postalCode?.[0] ?? '',
+        state: errorMap.state?.[0] ?? '',
+        postcode: errorMap.postcode?.[0] ?? '',
       });
 
       return;
     }
 
     if (
-      address2 !== address.address2 ||
-      postalCode !== address.postalCode ||
-      address1 !== address.address1 ||
+      streetDetailsOptional !== address.streetDetailsOptional ||
+      postcode !== address.postcode ||
+      streetDetailsPrimary !== address.streetDetailsPrimary ||
       city !== address.city ||
-      region !== address.region
+      stateValue !== address.state
     ) {
       const newFormattedAddress = updateAndFormatAddress(adrAddress, {
-        'street-address': address1,
-        address2,
+        'street-address': streetDetailsPrimary,
+        address2: streetDetailsOptional,
         locality: city,
-        region,
-        'postal-code': postalCode,
+        region: stateValue,
+        'postal-code': postcode,
       });
 
       setAddress({
         ...address,
         city,
-        region,
-        address2,
-        address1,
-        postalCode,
+        state: stateValue,
+        streetDetailsOptional,
+        streetDetailsPrimary,
+        postcode,
         formattedAddress: newFormattedAddress,
       });
       // Notify react-hook-form of the change
@@ -255,11 +259,11 @@ export default function AddressDialog(
   };
 
   useEffect(() => {
-    setAddress1(address.address1);
-    setAddress2(address.address2 || '');
-    setPostalCode(address.postalCode);
+    setStreetDetailsPrimary(address.streetDetailsPrimary);
+    setStreetDetailsOptional(address.streetDetailsOptional || '');
+    setPostcode(address.postcode);
     setCity(address.city);
-    setRegion(address.region);
+    setStateValue(address.state);
 
     if (!open) {
       setErrorMap({});
@@ -288,18 +292,20 @@ export default function AddressDialog(
               <div className="flex flex-col gap-2">
                 <Label htmlFor="address1">Address line 1</Label>
                 <Input
-                  value={address1}
-                  onChange={(e) => setAddress1(e.currentTarget.value)}
+                  value={streetDetailsPrimary}
+                  onChange={(e) =>
+                    setStreetDetailsPrimary(e.currentTarget.value)
+                  }
                   disabled={isLoading}
                   id="address1"
                   name="address1"
                   placeholder="Address line 1"
                 />
-                {errorMap.address1 && (
+                {errorMap.streetDetailsPrimary && (
                   <FormMessages
                     type="error"
                     className="pt-1 text-sm"
-                    messages={[errorMap.address1]}
+                    messages={[errorMap.streetDetailsPrimary]}
                   />
                 )}
               </div>
@@ -312,8 +318,8 @@ export default function AddressDialog(
                   </span>
                 </Label>
                 <Input
-                  value={address2}
-                  onChange={(e) => setAddress2(e.currentTarget.value)}
+                  value={streetDetailsOptional}
+                  onChange={(e) => setStreetDetailsOptional(e.currentTarget.value)}
                   disabled={isLoading}
                   id="address2"
                   name="address2"
@@ -343,18 +349,18 @@ export default function AddressDialog(
                 <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="region">State / Province / Region</Label>
                   <Input
-                    value={region}
-                    onChange={(e) => setRegion(e.currentTarget.value)}
+                    value={stateValue}
+                    onChange={(e) => setStateValue(e.currentTarget.value)}
                     disabled={isLoading}
                     id="region"
                     name="region"
                     placeholder="Region"
                   />
-                  {errorMap.region && (
+                  {errorMap.state && (
                     <FormMessages
                       type="error"
                       className="pt-1 text-sm"
-                      messages={[errorMap.region]}
+                      messages={[errorMap.state]}
                     />
                   )}
                 </div>
@@ -364,18 +370,18 @@ export default function AddressDialog(
                 <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="postalCode">Postal Code</Label>
                   <Input
-                    value={postalCode}
-                    onChange={(e) => setPostalCode(e.currentTarget.value)}
+                    value={postcode}
+                    onChange={(e) => setPostcode(e.currentTarget.value)}
                     disabled={isLoading}
                     id="postalCode"
                     name="postalCode"
                     placeholder="Postal Code"
                   />
-                  {errorMap.postalCode && (
+                  {errorMap.postcode && (
                     <FormMessages
                       type="error"
                       className="pt-1 text-sm"
-                      messages={[errorMap.postalCode]}
+                      messages={[errorMap.postcode]}
                     />
                   )}
                 </div>

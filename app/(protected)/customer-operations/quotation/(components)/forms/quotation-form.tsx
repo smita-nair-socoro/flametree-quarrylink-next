@@ -84,12 +84,14 @@ export default function QuotationForm({
   // Convert QuotationDTO from API to Quotation format for the form
   const getDetailedQuotation = React.useMemo(() => {
     if (isEditing && quotationDetailData) {
-      // Transform QuotationDTO to match Quotation interface (both use camelCase now)
       const transformedQuotation = {
         ...quotationDetailData,
         status: quotationDetailData.quoteStatus,
       } as Quotation;
-
+      console.log(
+        '🔍 Transformed Quotation for Editing:',
+        transformedQuotation
+      );
       return transformedQuotation;
     }
     return null;
@@ -98,16 +100,20 @@ export default function QuotationForm({
   // Use detailed quotation for editing, or selected quotation for new
   const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
 
-  const [address, setAddress] = React.useState<AddressType>({
-    address1: '',
-    address2: '',
+  const [deliveryAddress, setDeliveryAddress] = React.useState<AddressType>({
+    id: 0,
+    googlePlaceId: '',
     formattedAddress: '',
+    streetDetailsPrimary: '',
+    streetDetailsOptional: '',
     city: '',
-    region: '',
-    postalCode: '',
+    suburb: '',
+    state: '',
+    postcode: '',
     country: '',
-    lat: 0,
-    lng: 0,
+    latitude: 0,
+    longitude: 0,
+    version: 0,
   });
   const [searchInput, setSearchInput] = React.useState('');
 
@@ -160,9 +166,10 @@ export default function QuotationForm({
         isEditing && currentQuotation?.expiryDate
           ? new Date(currentQuotation.expiryDate)
           : undefined,
-      deliveryAddress: '',
-      phone: '',
-      email: '',
+      deliveryAddress:
+        currentQuotation?.deliveryAddress?.formattedAddress || '',
+      phone: currentQuotation?.customerPhone || '',
+      email: currentQuotation?.customerEmail || '',
       createdAt:
         isEditing && currentQuotation?.createdAt
           ? new Date(currentQuotation.createdAt)
@@ -219,8 +226,10 @@ export default function QuotationForm({
         expiryDate: currentQuotation.expiryDate
           ? new Date(currentQuotation.expiryDate)
           : undefined,
-        deliveryAddress: currentQuotation.deliveryAddress?.formattedAddress || '',
-        phone: currentQuotation.customerPhone || '',
+        deliveryAddress:
+          currentQuotation.deliveryAddress?.formattedAddress || '',
+        //currently just fill +61, it should be put in database in the
+        phone: '+61' + (currentQuotation.customerPhone || ''),
         email: currentQuotation.customerEmail || '',
         createdAt: currentQuotation.createdAt
           ? new Date(currentQuotation.createdAt)
@@ -231,6 +240,11 @@ export default function QuotationForm({
         createdBy: currentQuotation.createdBy || 'Unknown',
         lastModifiedBy: currentQuotation.lastModifiedBy || 'Unknown',
       });
+
+      // Prefill the address autocomplete state when editing an existing quote
+      if (currentQuotation.deliveryAddress) {
+        setDeliveryAddress(currentQuotation.deliveryAddress);
+      }
     }
   }, [isEditing, currentQuotation, quotationForm]);
 
@@ -255,13 +269,16 @@ export default function QuotationForm({
   }, [quoteType]);
 
   React.useEffect(() => {
-    if (address.formattedAddress) {
-      quotationForm.setValue('deliveryAddress', address.formattedAddress);
+    if (deliveryAddress.formattedAddress) {
+      quotationForm.setValue(
+        'deliveryAddress',
+        deliveryAddress.formattedAddress
+      );
+      console.log('Setting address in form:', deliveryAddress.formattedAddress);
     }
-  }, [address.formattedAddress, quotationForm]);
-
+  }, [deliveryAddress.formattedAddress, quotationForm]);
   const handleAddressChange = React.useCallback((newAddress: AddressType) => {
-    setAddress(newAddress);
+    setDeliveryAddress(newAddress);
     if (newAddress.formattedAddress) {
       setSearchInput('');
     }
@@ -292,7 +309,7 @@ export default function QuotationForm({
       // Only set values if they're empty to avoid controlled/uncontrolled warning
       const currentPhone = quotationForm.getValues('phone');
       const currentEmail = quotationForm.getValues('email');
-
+      console.log('PHone and Email:', { currentPhone, currentEmail });
       if (!currentPhone) {
         quotationForm.setValue('phone', '+61444555777');
       }
@@ -328,7 +345,6 @@ export default function QuotationForm({
         ? currentQuotation.quoteNumber
         : generateNextQuoteNumber(quotations);
 
-    // address number is set to 1 by default, mock data since we currently don't have the address API
     const quoteData = transformFormDataToQuoteDto(values, {
       customerName,
       accountManagerName,
@@ -574,7 +590,7 @@ export default function QuotationForm({
                   <FormLabel>{addressLabel}*</FormLabel>
                   <FormControl>
                     <AddressAutoComplete
-                      address={address}
+                      address={deliveryAddress}
                       setAddress={handleAddressChange}
                       searchInput={searchInput}
                       setSearchInput={setSearchInput}

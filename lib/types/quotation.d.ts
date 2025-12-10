@@ -54,7 +54,7 @@ export interface Quotation {
   accountManagerName: string;
   projectName: string;
   status: QuoteStatus;
-  deliveryAddress: DeliveryAddressDTO;
+  deliveryAddress: AddressType;
   deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string;

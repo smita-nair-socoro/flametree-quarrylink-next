@@ -47,13 +47,13 @@ export const formatAddressFromComponents = (address: AddressType): string => {
   const parts = [];
 
   // Add address1 (street address)
-  if (address.address1?.trim()) {
-    parts.push(address.address1.trim());
+  if (address.streetDetailsPrimary?.trim()) {
+    parts.push(address.streetDetailsPrimary.trim());
   }
 
   // Add address2 if present
-  if (address.address2?.trim()) {
-    parts.push(address.address2.trim());
+  if (address.streetDetailsOptional?.trim()) {
+    parts.push(address.streetDetailsOptional.trim());
   }
 
   // Add city, region, postal code
@@ -61,11 +61,11 @@ export const formatAddressFromComponents = (address: AddressType): string => {
   if (address.city?.trim()) {
     locationParts.push(address.city.trim());
   }
-  if (address.region?.trim()) {
-    locationParts.push(address.region.trim());
+  if (address.state?.trim()) {
+    locationParts.push(address.state.trim());
   }
-  if (address.postalCode?.trim()) {
-    locationParts.push(address.postalCode.trim());
+  if (address.postcode?.trim()) {
+    locationParts.push(address.postcode.trim());
   }
 
   if (locationParts.length > 0) {
@@ -99,12 +99,28 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
 
+  const getClearedAddress = (): AddressType => ({
+    ...address,
+    googlePlaceId: '',
+    formattedAddress: '',
+    streetDetailsPrimary: '',
+    streetDetailsOptional: '',
+    city: '',
+    suburb: '',
+    state: '',
+    postcode: '',
+    country: '',
+    latitude: 0,
+    longitude: 0,
+    version: address.version || 0,
+  });
+
   useEffect(() => {
     if (
-      address.address1 ||
+      address.streetDetailsPrimary ||
       address.city ||
-      address.region ||
-      address.postalCode ||
+      address.state ||
+      address.postcode ||
       address.country
     ) {
       const formatted = formatAddressFromComponents(address);
@@ -121,11 +137,11 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       }
     }
   }, [
-    address.address1,
-    address.address2,
+    address.streetDetailsPrimary,
+    address.streetDetailsOptional,
     address.city,
-    address.region,
-    address.postalCode,
+    address.state,
+    address.postcode,
     address.country,
     address,
     setAddress,
@@ -174,26 +190,40 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           return match ? match[1] : '';
         };
 
-        const address1 = dataFinderRegx('street-address');
-        const address2 = '';
+        const streetDetailsPrimary = dataFinderRegx('street-address');
+        const streetDetailsOptional = '';
         const city = dataFinderRegx('locality');
         const region = dataFinderRegx('region');
-        const postalCode = dataFinderRegx('postal-code');
+        const postcode = dataFinderRegx('postal-code');
         const country = dataFinderRegx('country-name');
-        const lat = data.location?.latitude || 0;
-        const lng = data.location?.longitude || 0;
+        const latitude = data.location?.latitude || 0;
+        const longitude = data.location?.longitude || 0;
         const formattedAddress = data.formattedAddress || '';
-
-        const formattedData: AddressType = {
-          address1,
-          address2,
-          formattedAddress,
+        console.log('Fetched address details:', {
+          streetDetailsPrimary,
+          streetDetailsOptional,
           city,
           region,
-          postalCode,
+          postcode,
           country,
-          lat,
-          lng,
+          latitude,
+          longitude,
+          formattedAddress,
+        });
+        const formattedData: AddressType = {
+          googlePlaceId: selectedPlaceId,
+          streetDetailsPrimary: streetDetailsPrimary,
+          streetDetailsOptional: streetDetailsOptional,
+          formattedAddress,
+          city,
+          state: region,
+          postcode: postcode,
+          country: country,
+          latitude: latitude,
+          longitude: longitude,
+          version: address.version || 0,
+          id: address.id || 0,
+          suburb: region,
         };
 
         setAddress(formattedData);
@@ -215,9 +245,9 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const handleManualEntry = () => {
     // Pre-populate with search input if available
     if (searchInput.trim()) {
-      const updatedAddress = {
+      const updatedAddress: AddressType = {
         ...address,
-        address1: searchInput.trim(),
+        streetDetailsPrimary: searchInput.trim(),
         formattedAddress: searchInput.trim(),
       };
       setAddress(updatedAddress);
@@ -234,18 +264,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSelectedPlaceId('');
     setAdrAddress('');
     setSearchInput('');
-    const resetAddress = {
-      address1: '',
-      address2: '',
-      formattedAddress: '',
-      city: '',
-      region: '',
-      postalCode: '',
-      country: '',
-      lat: 0,
-      lng: 0,
-    };
-    setAddress(resetAddress);
+    setAddress(getClearedAddress());
     // Notify react-hook-form of the change
     if (onChange) {
       onChange('');
