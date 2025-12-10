@@ -442,11 +442,17 @@ export const APIClient = {
     },
     create: (data: Partial<QuotationDTO>) =>
       appClient.Post<QuotationDTO>('/socoro/quarrylink/api/quote', {
-        body: data,
+        body: (() => {
+          console.log('[Quotation][POST] Request payload:', data);
+          return data;
+        })(),
       }),
     update: (id: number, data: Partial<QuotationDTO>) =>
       appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${id}`, {
-        body: data,
+        body: (() => {
+          console.log('[Quotation][PUT] Request payload:', { id, ...data });
+          return data;
+        })(),
       }),
     extendExpiryDate: (id: number, expiryDate: Date) =>
       appClient.Put<QuotationDTO>(

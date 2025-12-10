@@ -79,7 +79,7 @@ export const transformFormDataToQuoteDto = (
     deliveryAddressId?: number;
     lineItemsCount?: number;
   },
-  deliveryAddress?: AddressType | null
+  deliveryAddress: AddressType | null
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
   const expiryDate = formData.expiryDate as Date | undefined;
@@ -104,10 +104,11 @@ export const transformFormDataToQuoteDto = (
   };
 
   // Map UI address shape (AddressType) to backend Address payload
-  const mappedAddress = toAddressPayload(deliveryAddress as any);
-  if (mappedAddress) {
-    transformed.deliveryAddress = mappedAddress as Address;
+  const mappedAddress = toAddressPayload(deliveryAddress);
+  if (!mappedAddress) {
+    throw new Error('Delivery address is required');
   }
+  transformed.deliveryAddress = mappedAddress as Address;
 
   if (deliveryDate) {
     transformed.deliveryStartDate = toLocalDateTime(deliveryDate);

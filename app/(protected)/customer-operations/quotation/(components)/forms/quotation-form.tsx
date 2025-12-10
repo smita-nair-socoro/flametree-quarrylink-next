@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { toAddressType } from '@/lib/utils/address-helper';
+import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -346,22 +346,28 @@ export default function QuotationForm({
         ? currentQuotation.quoteNumber
         : generateNextQuoteNumber(quotations);
 
-    const quoteData = transformFormDataToQuoteDto(
-      values,
-      {
-        customerName,
-        accountManagerName,
-        quoteNumber,
-        deliveryAddressId:
-          isEditing && currentQuotation?.deliveryAddressId
-            ? currentQuotation.deliveryAddressId
-            : 1,
-        lineItemsCount: isEditing ? currentQuotation?.quoteItems?.length || 0 : 0,
-      },
-      deliveryAddress
-    );
-
     try {
+      const quoteData = transformFormDataToQuoteDto(
+        values,
+        {
+          customerName,
+          accountManagerName,
+          quoteNumber,
+          deliveryAddressId:
+            isEditing && currentQuotation?.deliveryAddressId
+              ? currentQuotation.deliveryAddressId
+              : 1,
+          lineItemsCount: isEditing ? currentQuotation?.quoteItems?.length || 0 : 0,
+        },
+        deliveryAddress
+      );
+
+      if (!quoteData.deliveryAddressId) {
+        quoteData.deliveryAddressId = currentQuotation?.deliveryAddressId || undefined;
+      }
+
+      console.log('[Quotation][submit] payload:', quoteData);
+
       if (isEditing && currentQuotation?.id) {
         console.log('📤 Request Body:', { quoteData });
 
