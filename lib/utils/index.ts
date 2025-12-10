@@ -3,6 +3,7 @@ import { compareAsc, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import type { Address, AddressType } from '@/lib/types/address';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -111,3 +112,34 @@ export const BADGE_COLORS: Record<string, string> = {
   DUE_PAYMENT: 'bg-red-100 text-red-800 border-red-800',
   'DUE PAYMENT': 'bg-red-100 text-red-800 border-red-800',
 };
+
+// Normalize backend Address into AddressType used by the autocomplete component
+export function toAddressType(address?: Address | null): AddressType {
+  if (!address) {
+    return {
+      address1: '',
+      address2: '',
+      formattedAddress: '',
+      city: '',
+      region: '',
+      postalCode: '',
+      country: '',
+      lat: 0,
+      lng: 0,
+      googlePlaceId: '',
+    };
+  }
+
+  return {
+    address1: address.streetDetailsPrimary ?? '',
+    address2: address.streetDetailsOptional ?? '',
+    formattedAddress: address.formattedAddress ?? '',
+    city: address.city ?? '',
+    region: address.state ?? '',
+    postalCode: address.postcode ?? '',
+    country: address.country ?? '',
+    lat: address.latitude ?? 0,
+    lng: address.longitude ?? 0,
+    googlePlaceId: address.googlePlaceId ?? '',
+  };
+}

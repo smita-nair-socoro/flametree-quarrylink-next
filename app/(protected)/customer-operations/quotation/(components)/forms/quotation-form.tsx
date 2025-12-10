@@ -11,7 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
+import { cn, toAddressType } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -24,7 +24,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import { AddressType } from '@/lib/types/address';
+import type { AddressType } from '@/lib/types/address';
 import { Spinner } from '@/components/ui/spinner';
 import {
   useSelectedQuotation,
@@ -100,21 +100,9 @@ export default function QuotationForm({
   // Use detailed quotation for editing, or selected quotation for new
   const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
 
-  const [deliveryAddress, setDeliveryAddress] = React.useState<AddressType>({
-    id: 0,
-    googlePlaceId: '',
-    formattedAddress: '',
-    streetDetailsPrimary: '',
-    streetDetailsOptional: '',
-    city: '',
-    suburb: '',
-    state: '',
-    postcode: '',
-    country: '',
-    latitude: 0,
-    longitude: 0,
-    version: 0,
-  });
+  const [deliveryAddress, setDeliveryAddress] = React.useState<AddressType>(
+    () => toAddressType(null)
+  );
   const [searchInput, setSearchInput] = React.useState('');
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
@@ -226,7 +214,8 @@ export default function QuotationForm({
         expiryDate: currentQuotation.expiryDate
           ? new Date(currentQuotation.expiryDate)
           : undefined,
-        deliveryAddress: currentQuotation.deliveryAddress || '',
+        deliveryAddress:
+          currentQuotation.deliveryAddress?.formattedAddress || '',
         //currently just fill +61, it should be put in database in the
         phone: '+61' + (currentQuotation.customerEmail || ''), // TODO: Add phone field to API
         email: currentQuotation.customerEmail || '',
@@ -242,7 +231,7 @@ export default function QuotationForm({
 
       // Prefill the address autocomplete state when editing an existing quote
       if (currentQuotation.deliveryAddress) {
-        setDeliveryAddress(currentQuotation.deliveryAddress);
+        setDeliveryAddress(toAddressType(currentQuotation.deliveryAddress));
       }
     }
   }, [isEditing, currentQuotation, quotationForm]);
@@ -266,6 +255,18 @@ export default function QuotationForm({
       ? 'Delivery Time Window'
       : 'Collection Time Window';
   }, [quoteType]);
+
+  // Hydrate address state from the loaded quotation (editing mode)
+  React.useEffect(() => {
+    if (isEditing && currentQuotation?.deliveryAddress) {
+      const normalizedAddress = toAddressType(currentQuotation.deliveryAddress);
+      setDeliveryAddress(normalizedAddress);
+      quotationForm.setValue(
+        'deliveryAddress',
+        normalizedAddress.formattedAddress
+      );
+    }
+  }, [isEditing, currentQuotation, quotationForm]);
 
   React.useEffect(() => {
     if (deliveryAddress.formattedAddress) {

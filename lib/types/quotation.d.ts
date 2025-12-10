@@ -13,6 +13,8 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
+  customerDto: CustomerDTO;
   accountManager: number;
   accountManagerName: string;
   projectName: string;
@@ -49,6 +51,8 @@ export interface Quotation {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
+  customerDto: CustomerDTO;
   accountManager: number;
   accountManagerName: string;
   projectName: string;

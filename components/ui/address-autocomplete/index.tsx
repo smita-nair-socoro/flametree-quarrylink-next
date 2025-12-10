@@ -99,20 +99,6 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  const getClearedAddress = (): AddressType => ({
-    ...address,
-    googlePlaceId: '',
-    formattedAddress: '',
-    address1: '',
-    address2: '',
-    city: '',
-    region: '',
-    postalCode: '',
-    country: '',
-    lat: 0,
-    lng: 0,
-  });
-
   useEffect(() => {
     if (
       address.address1 ||
