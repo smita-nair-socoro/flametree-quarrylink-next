@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { signIn, signInWithRedirect } from 'aws-amplify/auth';
+import { signIn } from 'aws-amplify/auth';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { notifySuccess, notifyError } from '@/lib/toast';
