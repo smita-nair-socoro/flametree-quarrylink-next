@@ -137,6 +137,8 @@
       }
       .footer-column-center {
         text-align: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
       .footer-column-right {
         text-align: right;
@@ -187,8 +189,8 @@
 
         <div class="card-footer">
           <p>
-            You're receiving this because your quote from {quarryName} via
-            QuarryLink has expired.
+            You're receiving this because your quote from {tenantBussinessName}
+            via QuarryLink has expired.
           </p>
         </div>
       </div>
@@ -214,8 +216,7 @@
             <div>{TenantPhone}</div>
           </div>
           <div class="footer-column-center">
-            <div>{TenantAddressLine1}</div>
-            <div>{TenantAddressLine2}</div>
+            <div>{TenantAddress}</div>
           </div>
           <div class="footer-column-right">
             <div>Website</div>
@@ -224,9 +225,7 @@
         </div>
 
         <div class="border-top"></div>
-        <p class="footer-copyright">
-          © 2025 {BusinessName}. All rights reserved.
-        </p>
+        <p class="footer-copyright">© 2025 QuarryLink. All rights reserved.</p>
       </div>
     </div>
   </body>
