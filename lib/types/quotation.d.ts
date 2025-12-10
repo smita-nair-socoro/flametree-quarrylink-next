@@ -1,7 +1,9 @@
-import { QUOTE_TYPE, QUOTE_STATUS } from './quotation-enums';
-
-// Re-export the enums with PascalCase aliases for backward compatibility
-export { QUOTE_TYPE as QuoteType, QUOTE_STATUS as QuoteStatus };
+import {
+  QUOTE_TYPE as QuoteType,
+  QUOTE_STATUS as QuoteStatus,
+} from './quotation-enums';
+import { CustomerDTO } from './customer';
+import { DeliveryAddressDTO } from './address';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -11,11 +13,13 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
+  customerDto: CustomerDTO;
   accountManager: number;
   accountManagerName: string;
   projectName: string;
   quoteStatus: QuoteStatus;
-  deliveryAddress: string;
+  deliveryAddress: DeliveryAddressDTO;
   deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string | null;
@@ -26,17 +30,14 @@ export interface QuotationDTO {
   totalSellPrice: number;
   totalTruckSellPrice: number;
   totalTruckCostPrice: number;
-  grossProfit: number;
-  grossProfitPercentage: number;
   lineItemsCount: number;
-  convertedAt?: string;
+  quoteItems: QuotationLineItem[];
   version: number;
   isDeleted: boolean;
   createdBy: string;
   createdAt: string | null;
   updatedAt: string;
   lastModifiedBy: string;
-  quoteItems: QuotationLineItem[];
 }
 
 // Frontend type (same as DTO, uses camelCase)
@@ -47,11 +48,13 @@ export interface Quotation {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  customerPhone: string;
+  customerDto: CustomerDTO;
   accountManager: number;
   accountManagerName: string;
   projectName: string;
   status: QuoteStatus;
-  deliveryAddress: string;
+  deliveryAddress: DeliveryAddressDTO;
   deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string;
@@ -62,17 +65,14 @@ export interface Quotation {
   totalSellPrice: number;
   totalTruckSellPrice: number;
   totalTruckCostPrice: number;
-  grossProfit: number;
-  grossProfitPercentage: number;
   lineItemsCount: number;
-  convertedAt?: string;
+  quoteItems: QuotationLineItem[];
   version: number;
   isDeleted: boolean;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
-  quoteItems: QuotationLineItem[];
 }
 
 export interface QuotationLineItem {
@@ -80,7 +80,7 @@ export interface QuotationLineItem {
   quoteId: number;
   productId: number;
   quarrySupplierId: number;
-  quarryProductId: number;
+  quarryProductId?: number;
   productName: string;
   quarryName: string;
   supplierProductName: string;
@@ -106,6 +106,7 @@ export interface QuotationLineItem {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
+  version: number;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

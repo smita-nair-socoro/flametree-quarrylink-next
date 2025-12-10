@@ -11,6 +11,7 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
+  Quote,
   Send,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
@@ -22,6 +23,7 @@ import {
   useUpdateQuotation,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface DialogConfig {
   title?: string;
@@ -541,21 +543,9 @@ export function useQuotationActions(
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
-      // Generate mock email if backend doesn't provide customerEmail
-      let customerEmail = quotationDetailData.customerEmail;
-      if (!customerEmail && quotationDetailData.customerName) {
-        // Create mock email from customer name
-        const emailName = quotationDetailData.customerName
-          .toLowerCase()
-          .replace(/\s+/g, '.')
-          .replace(/[^a-z0-9.]/g, '');
-        customerEmail = `${emailName}@example.com`;
-      }
-
       const transformed = {
         ...quotationDetailData,
         status: quotationDetailData.quoteStatus,
-        customerEmail: customerEmail, // Use mock if backend doesn't provide
       } as Quotation;
 
       return transformed;
@@ -599,7 +589,7 @@ export function useQuotationActions(
       const { status, quoteItems, ...quotationData } = resolvedQuotation;
       const quotationDTO: Partial<QuotationDTO> = {
         ...quotationData,
-        quoteStatus: 'PENDING',
+        quoteStatus: QuoteStatus.PENDING,
       };
 
       await updateQuotationMutation.mutateAsync({
@@ -629,7 +619,7 @@ export function useQuotationActions(
       const { status, quoteItems, ...quotationData } = resolvedQuotation;
       const quotationDTO: Partial<QuotationDTO> = {
         ...quotationData,
-        quoteStatus: 'APPROVED',
+        quoteStatus: QuoteStatus.APPROVED,
       };
 
       await updateQuotationMutation.mutateAsync({
@@ -656,7 +646,7 @@ export function useQuotationActions(
       const { status, quoteItems, ...quotationData } = resolvedQuotation;
       const quotationDTO: Partial<QuotationDTO> = {
         ...quotationData,
-        quoteStatus: 'DECLINED',
+        quoteStatus: QuoteStatus.DECLINED,
       };
 
       await updateQuotationMutation.mutateAsync({

@@ -28,6 +28,30 @@ export interface Customer {
   last_modified_by: string;
 }
 
+// Customer DTO nested in quotation
+export interface CustomerDTO {
+  id: number;
+  customerType: CUSTOMER_TYPE;
+  businessName: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  billingAddressId: number;
+  creditLimit: number;
+  invoiceDueDate: number;
+  paymentTermType: string;
+  accountManager: string;
+  customerStatus: CUSTOMER_STATUS;
+  jobsCount: number;
+  paymentType: string;
+  legalName: string;
+  tradingName: string;
+  abn: string;
+  acn: string;
+  vatNumber: string;
+  version: number;
+}
+
 export interface CustomerDetails extends Customer {
   jobs: Job[];
 }

@@ -1,11 +1,8 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
-import type {
-  QuotationDTO,
-  QuoteType,
-  QuotationLineItem,
-} from '../types/quotation';
+import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
+import { QUOTE_TYPE as QuoteType } from '@/lib/types/quotation-enums';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {

@@ -219,8 +219,8 @@ export default function QuotationForm({
         expiryDate: currentQuotation.expiryDate
           ? new Date(currentQuotation.expiryDate)
           : undefined,
-        deliveryAddress: currentQuotation.deliveryAddress || '',
-        phone: currentQuotation.customerEmail || '', // TODO: Add phone field to API
+        deliveryAddress: currentQuotation.deliveryAddress?.formattedAddress || '',
+        phone: currentQuotation.customerPhone || '',
         email: currentQuotation.customerEmail || '',
         createdAt: currentQuotation.createdAt
           ? new Date(currentQuotation.createdAt)

@@ -367,7 +367,7 @@ export default function QuoteLineItemForm({
       remainingQuantity: values.productSellQty,
       requiredLoads: values.requiredLoads,
       version: 1,
-      is_deleted: false,
+      isDeleted: false,
     };
 
     try {

@@ -12,8 +12,13 @@ import { convertKeysToCamelCase } from '../utils/case-conversion';
 export const QuotationsListQueryOptions = () =>
   queryOptions({
     queryKey: QuotationKeys.list(),
-    queryFn: async () =>
-      convertKeysToCamelCase(await APIClient.quotations.getAll()),
+    queryFn: async () => {
+      const rawResponse = await APIClient.quotations.getAll();
+      console.log('[QuotationsList] Raw response from backend:', rawResponse);
+      const converted = convertKeysToCamelCase(rawResponse);
+      console.log('[QuotationsList] Converted to camelCase:', converted);
+      return converted;
+    },
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -21,8 +26,13 @@ export const QuotationsListQueryOptions = () =>
 export const QuotationDetailQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: QuotationKeys.detail(quotationId),
-    queryFn: async () =>
-      convertKeysToCamelCase(await APIClient.quotations.getById(quotationId)),
+    queryFn: async () => {
+      const rawResponse = await APIClient.quotations.getById(quotationId);
+      console.log(`[QuotationDetail] Raw response for ID ${quotationId}:`, rawResponse);
+      const converted = convertKeysToCamelCase(rawResponse);
+      console.log(`[QuotationDetail] Converted to camelCase for ID ${quotationId}:`, converted);
+      return converted;
+    },
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
@@ -30,10 +40,13 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
-    queryFn: async () =>
-      convertKeysToCamelCase(
-        await APIClient.quotations.getWithQuoteItems(quotationId)
-      ),
+    queryFn: async () => {
+      const rawResponse = await APIClient.quotations.getWithQuoteItems(quotationId);
+      console.log(`[QuotationWithLineItems] Raw response for ID ${quotationId}:`, rawResponse);
+      const converted = convertKeysToCamelCase(rawResponse);
+      console.log(`[QuotationWithLineItems] Converted to camelCase for ID ${quotationId}:`, converted);
+      return converted;
+    },
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
