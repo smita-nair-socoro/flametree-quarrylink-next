@@ -84,14 +84,14 @@ export default function BrandingTab() {
     }
   };
 
-  async function onSubmit(values: z.infer<typeof BrandingSchema>) {
+  async function onSubmit() {
     try {
       setIsSubmitting(true);
       // Simulate API call delay
       await delay(500);
       notifySuccess('Branding Updated');
     } catch (error) {
-      console.error('Error updating branding:', error);
+      console.log('Error updating branding:', error);
       notifyError('Update Failed');
     } finally {
       setIsSubmitting(false);
@@ -100,7 +100,7 @@ export default function BrandingTab() {
 
   // Handle form validation errors
   function onError(errors: unknown) {
-    console.error('Branding validation errors:', errors);
+    console.log('Branding validation errors:', errors);
     notifyError('Update Failed');
   }
 
