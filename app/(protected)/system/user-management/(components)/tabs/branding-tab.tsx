@@ -39,28 +39,28 @@ export default function BrandingTab() {
     },
   });
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      brandingForm.setValue('company_logo', file, { shouldValidate: true });
-      const isValid = await brandingForm.trigger('company_logo');
+      const validation = BrandingSchema.shape.company_logo.safeParse(file);
 
-      if (!isValid) {
+      if (!validation.success) {
         const message =
-          brandingForm.getFieldState('company_logo').error?.message ||
-          'Invalid file selected';
+          validation.error.issues?.[0]?.message || 'Invalid file selected';
         notifyError(message);
         setSelectedFileName(null);
         setLogoPreview(null);
         brandingForm.setValue('company_logo', undefined);
+        brandingForm.setError('company_logo', { type: 'manual', message });
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
         return;
       }
 
-      setSelectedFileName(file.name);
+      brandingForm.setValue('company_logo', file, { shouldValidate: true });
       brandingForm.clearErrors('company_logo');
+      setSelectedFileName(file.name);
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -217,12 +217,6 @@ export default function BrandingTab() {
                                 </>
                               )}
                             </div>
-
-                            {brandingForm.formState.errors.company_logo?.message && (
-                              <p className="text-xs text-destructive text-start">
-                                {brandingForm.formState.errors.company_logo?.message}
-                              </p>
-                            )}
 
                             {!logoPreview && (
                               <div className="text-xs text-gray-500 text-start">
