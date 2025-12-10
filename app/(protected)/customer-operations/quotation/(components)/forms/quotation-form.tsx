@@ -12,7 +12,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
-import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -25,7 +24,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import type { AddressType } from '@/lib/types/address';
 import { Spinner } from '@/components/ui/spinner';
 import {
   useSelectedQuotation,
@@ -34,7 +32,6 @@ import {
 import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { Quotation } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
   useCreateQuotation,
@@ -69,74 +66,7 @@ export default function QuotationForm({
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
-    defaultValues: {
-      quoteType:
-        isEditing && selectedQuotation?.quoteType
-          ? selectedQuotation.quoteType
-          : 'DELIVERY',
-      customerId:
-        isEditing && selectedQuotation?.customerId
-          ? selectedQuotation.customerId
-          : 0,
-      accountManager:
-        isEditing && selectedQuotation?.accountManager
-          ? selectedQuotation.accountManager
-          : 0,
-      projectName:
-        isEditing && selectedQuotation?.projectName
-          ? selectedQuotation.projectName
-          : '',
-      deliveryStartDate:
-        isEditing && selectedQuotation?.deliveryStartDate
-          ? new Date(selectedQuotation.deliveryStartDate)
-          : undefined,
-      deliveryWindowStart:
-        isEditing && selectedQuotation?.deliveryWindowStart
-          ? new Date(selectedQuotation.deliveryWindowStart).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-      deliveryWindowEnd:
-        isEditing && selectedQuotation?.deliveryWindowEnd
-          ? new Date(selectedQuotation.deliveryWindowEnd).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-      expiryDate:
-        isEditing && selectedQuotation?.expiryDate
-          ? new Date(selectedQuotation.expiryDate)
-          : undefined,
-      deliveryAddress:
-        selectedQuotation?.deliveryAddress?.formattedAddress || '',
-      phone: normalizePhoneNumber(selectedQuotation?.customerPhone),
-      email: selectedQuotation?.customerEmail || '',
-      createdAt:
-        isEditing && selectedQuotation?.createdAt
-          ? new Date(selectedQuotation.createdAt)
-          : new Date(),
-      updatedAt:
-        isEditing && selectedQuotation?.updatedAt
-          ? new Date(selectedQuotation.updatedAt)
-          : new Date(),
-      createdBy:
-        isEditing && selectedQuotation?.createdBy
-          ? selectedQuotation.createdBy
-          : 'Jay Woo Choi',
-      lastModifiedBy:
-        isEditing && selectedQuotation?.lastModifiedBy
-          ? selectedQuotation.lastModifiedBy
-          : 'Armin Menhaji',
-    },
+    defaultValues: quotationToFormValues(selectedQuotation, isEditing),
   });
 
   const createQuotation = useCreateQuotation();
@@ -162,50 +92,7 @@ export default function QuotationForm({
   // Update form values when API data loads
   React.useEffect(() => {
     if (isEditing && currentQuotation) {
-      quotationForm.reset({
-        quoteType: currentQuotation.quoteType || 'DELIVERY',
-        customerId: currentQuotation.customerId || 0,
-        accountManager: currentQuotation.accountManager || 0,
-        projectName: currentQuotation.projectName || '',
-        deliveryStartDate: currentQuotation.deliveryStartDate
-          ? new Date(currentQuotation.deliveryStartDate)
-          : undefined,
-        deliveryWindowStart: currentQuotation.deliveryWindowStart
-          ? new Date(currentQuotation.deliveryWindowStart).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-        deliveryWindowEnd: currentQuotation.deliveryWindowEnd
-          ? new Date(currentQuotation.deliveryWindowEnd).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-        expiryDate: currentQuotation.expiryDate
-          ? new Date(currentQuotation.expiryDate)
-          : undefined,
-        deliveryAddress:
-          currentQuotation.deliveryAddress?.formattedAddress || '',
-        phone: normalizePhoneNumber(currentQuotation.customerPhone),
-        email: currentQuotation.customerEmail || '',
-        createdAt: currentQuotation.createdAt
-          ? new Date(currentQuotation.createdAt)
-          : new Date(),
-        updatedAt: currentQuotation.updatedAt
-          ? new Date(currentQuotation.updatedAt)
-          : new Date(),
-        createdBy: currentQuotation.createdBy || 'Unknown',
-        lastModifiedBy: currentQuotation.lastModifiedBy || 'Unknown',
-      });
+      quotationForm.reset(quotationToFormValues(currentQuotation, true));
     }
   }, [isEditing, currentQuotation, quotationForm]);
 

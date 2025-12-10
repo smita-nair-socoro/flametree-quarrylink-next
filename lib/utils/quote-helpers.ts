@@ -4,7 +4,6 @@ import type { Address, AddressType } from '../types/address';
 import { toAddressPayload } from './address-helper';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
-import { de } from 'date-fns/locale';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
