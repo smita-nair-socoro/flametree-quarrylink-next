@@ -226,10 +226,9 @@ export default function QuotationForm({
         expiryDate: currentQuotation.expiryDate
           ? new Date(currentQuotation.expiryDate)
           : undefined,
-        deliveryAddress:
-          currentQuotation.deliveryAddress?.formattedAddress || '',
+        deliveryAddress: currentQuotation.deliveryAddress || '',
         //currently just fill +61, it should be put in database in the
-        phone: '+61' + (currentQuotation.customerPhone || ''),
+        phone: '+61' + (currentQuotation.customerEmail || ''), // TODO: Add phone field to API
         email: currentQuotation.customerEmail || '',
         createdAt: currentQuotation.createdAt
           ? new Date(currentQuotation.createdAt)
