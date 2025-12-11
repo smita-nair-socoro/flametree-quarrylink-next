@@ -22,7 +22,7 @@ export function QuarryLinkBranding({
           className="hover:bg-[#7138F533]  cursor-pointer"
           asChild
         >
-          <Link href="/dashboard">
+          <Link href="/customer-operations/customers">
             <div className="flex aspect-square size-8 items-center justify-center">
               <Image
                 src="/quarrylink-logo.png"
