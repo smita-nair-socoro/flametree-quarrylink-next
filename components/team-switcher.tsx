@@ -18,8 +18,8 @@ export function TeamSwitcher({
 }) {
   // Default to placeholder data until client module integration
   const defaultClient = {
-    name: 'One Quarry',
-    initials: 'OQ',
+    name: 'Acme Quarry',
+    initials: 'AQ',
   };
 
   const activeClient = client || defaultClient;
