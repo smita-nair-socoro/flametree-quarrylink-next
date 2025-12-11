@@ -16,7 +16,7 @@ export default function HomePage() {
         // If we're on the root path, redirect to dashboard
         // Otherwise, stay on the current path (this handles SPA fallback)
         if (pathname === '/') {
-          router.replace('/customer-operations/customers');
+          router.replace('/dashboard');
         }
       } else {
         router.replace('/login');
