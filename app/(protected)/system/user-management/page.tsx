@@ -63,7 +63,7 @@ export default function UserRolesPage() {
           tabs={tabs}
           className="w-full"
           tabsClassName="h-15 w-full flex flex-nowrap items-center justify-start overflow-x-auto px-2"
-          tabsTriggerClassName="h-10 w-auto flex-shrink-0 min-w-[250px] justify-center px-2"
+          tabsTriggerClassName="h-10 w-auto flex-shrink-0 min-w-[150px] justify-center px-2"
         />
       </div>
     </div>
