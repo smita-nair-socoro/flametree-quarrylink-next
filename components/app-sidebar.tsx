@@ -23,78 +23,60 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 
-export const navItems = [
-  {
-    title: 'Reports & Dashboard',
-    url: '/dashboard',
-    icon: LayoutDashboard,
-    plan: 'PLUS',
-  },
-  {
-    title: 'Customer Operations',
-    url: '/customer-operations',
-    icon: Users,
-    items: [
-      {
-        title: 'Customers',
-        url: '/customer-operations/customers',
-        plan: 'ESSENTIAL',
-      },
-      {
-        title: 'Quotations',
-        url: '/customer-operations/quotation',
-        plan: 'ESSENTIAL',
-      },
-      { title: 'Jobs', url: '/customer-operations/jobs', plan: 'PLUS' },
-      {
-        title: 'Dockets',
-        url: '/customer-operations/dockets',
-        plan: 'PLUS',
-      },
-    ],
-  },
-  {
-    title: 'Inventory & Production',
-    url: '/inventory',
-    icon: Package,
-    items: [
-      { title: 'Products', url: '/inventory/products', plan: 'ESSENTIAL' },
-      {
-        title: 'Quarries & Suppliers',
-        url: '/inventory/quarries-suppliers',
-        plan: 'ESSENTIAL',
-      },
-      { title: 'Stockpile', url: '/inventory/stockpile', plan: 'PRO' },
-      { title: 'Weighbridge', url: '/inventory/weigh-bridge', plan: 'PLUS' },
-      {
-        title: 'Production Planning',
-        url: '/inventory/production',
-        plan: 'PRO',
-      },
-    ],
-  },
-  {
-    title: 'Logistics',
-    url: '/logistics',
-    icon: Truck,
-    items: [
-      { title: 'Drivers', url: '/logistics/drivers', plan: 'PLUS' },
-      { title: 'Trucks', url: '/logistics/trucks', plan: 'PLUS' },
-      { title: 'Deliveries', url: '/logistics/deliveries', plan: 'PLUS' },
-      {
-        title: 'Site & Driver Sign-In',
-        url: '/logistics/sign-in',
-        plan: 'PRO',
-      },
-    ],
-  },
-  {
-    title: 'Tenant Management',
-    url: '/system/tenant-management',
-    icon: Settings2,
-    plan: 'ESSENTIAL',
-  },
-];
+const data = {
+  navMain: [
+    {
+      title: 'Reports & Dashboard',
+      url: '/dashboard',
+      icon: LayoutDashboard,
+    },
+    {
+      title: 'Customer Operations',
+      url: '/customer-operations',
+      icon: Users,
+      items: [
+        {
+          title: 'Customers',
+          url: '/customer-operations/customers',
+        },
+        { title: 'Quotations', url: '/customer-operations/quotation' },
+        { title: 'Jobs', url: '/customer-operations/jobs' },
+        {
+          title: 'Dockets',
+          url: '/customer-operations/dockets',
+        },
+      ],
+    },
+    {
+      title: 'Inventory & Production',
+      url: '/inventory',
+      icon: Package,
+      items: [
+        { title: 'Products', url: '/inventory/products' },
+        { title: 'Quarries & Suppliers', url: '/inventory/quarries-suppliers' },
+        { title: 'Stockpile', url: '/inventory/stockpile' },
+        { title: 'Weighbridge', url: '/inventory/weigh-bridge' },
+        { title: 'Production Planning', url: '/inventory/production' },
+      ],
+    },
+    {
+      title: 'Logistics',
+      url: '/logistics',
+      icon: Truck,
+      items: [
+        { title: 'Drivers', url: '/logistics/drivers' },
+        { title: 'Trucks', url: '/logistics/trucks' },
+        { title: 'Deliveries', url: '/logistics/deliveries' },
+        { title: 'Site & Driver Sign-In', url: '/logistics/sign-in' },
+      ],
+    },
+    {
+      title: 'Tenant Management',
+      url: '/system/tenant-management',
+      icon: Settings2,
+    },
+  ],
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
@@ -128,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
