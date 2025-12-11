@@ -18,3 +18,11 @@ export const TenantDetailQueryOptions = (tenantId: string) =>
     staleTime: 5_000,
     enabled: !!tenantId,
   });
+
+export const TenantSubscriptionsAndInvoicesQueryOptions = () =>
+  queryOptions({
+    queryKey: TenantKeys.list(),
+    queryFn: () => APIClient.tenants.getSubscriptionsAndInvoices(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });

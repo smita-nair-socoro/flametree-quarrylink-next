@@ -392,5 +392,9 @@ export const APIClient = {
       appClient.Post<Tenant>('/socoro/quarrylink/api/tenant', {
         body: data,
       }),
+    getSubscriptionsAndInvoices: () =>
+      appClient.Get<Tenant>(
+        `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`
+      ),
   },
 };
