@@ -27,18 +27,20 @@ export function toAddressType(address?: Address | null): AddressType {
     country: address.country ?? '',
     lat: address.latitude ?? 0,
     lng: address.longitude ?? 0,
-    googlePlaceId: address.googlePlaceId ?? '',
+    // googlePlaceId: address.googlePlaceId ?? '', temporary changed to number for backend testing
   };
 }
 
 // Convert legacy AddressType back to backend Address payload
-export function toAddressPayload(address?: AddressType | null): Address | undefined {
+export function toAddressPayload(
+  address?: AddressType | null
+): Address | undefined {
   if (!address) return undefined;
 
-  const googlePlaceId =
-    address.googlePlaceId !== undefined && address.googlePlaceId !== null
-      ? String(address.googlePlaceId)
-      : '';
+  const googlePlaceId = 123456789012; // TEMPORARY FIX FOR BACKEND
+  // address.googlePlaceId !== undefined && address.googlePlaceId !== null
+  //   ? String(address.googlePlaceId)
+  //   : '';
 
   return {
     googlePlaceId,

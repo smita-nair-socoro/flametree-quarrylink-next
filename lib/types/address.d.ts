@@ -11,7 +11,8 @@ export interface Address {
   formattedAddress: string;
   latitude: number;
   longitude: number;
-  googlePlaceId: string;
+  // googlePlaceId: string; temporary changed to number for backend testing
+  googlePlaceId: number;
   version: number;
 }
 

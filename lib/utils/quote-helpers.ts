@@ -106,6 +106,14 @@ export const transformFormDataToQuoteDto = (
     version: 1,
     lineItemsCount: additionalData.lineItemsCount ?? 0,
     deliveryAddress: additionalData.deliveryAddress,
+    // TEMPORARY: Mock data for backend testing
+    createdBy: 'admin',
+    createdAt: '2025-12-01T22:19:50.710',
+    updatedAt: '2025-12-01T22:19:50.710',
+    lastModifiedBy: 'admin',
+    totalCostPrice: 1200.0,
+    totalSellPrice: 1800.0,
+    jobId: 4,
   };
 
   // Map UI address shape (AddressType) to backend Address payload
