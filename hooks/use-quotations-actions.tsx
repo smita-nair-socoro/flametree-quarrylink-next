@@ -505,6 +505,7 @@ export function useQuotationActions(
   const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [duplicateOpen, setDuplicateOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
@@ -576,8 +577,7 @@ export function useQuotationActions(
 
   const actions = {
     duplicate: () => {
-      console.log('Duplicate quotation:', quotationId);
-      // TODO: implement duplicate logic
+      setDuplicateOpen(true);
     },
 
     sendToCustomer: createDialogAction('sendToCustomer', () => {
@@ -710,9 +710,36 @@ export function useQuotationActions(
     </FormDialog>
   ) : null;
 
+  const duplicateDialog = duplicateOpen ? (
+    <FormDialog
+      id={quotationId}
+      customTitle={
+        <span>
+          Duplicating Quote{' '}
+          <span className="text-purple-600">
+            {resolvedQuotation?.quote_number || ''}
+          </span>
+        </span>
+      }
+      open={duplicateOpen}
+      onOpenChangeAction={(open) => {
+        setDuplicateOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setDuplicateOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+    >
+      <QuotationForm canEdit={true} isDuplicate={true} />
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     confirmDialogs,
     viewDialog,
+    duplicateDialog,
   };
 }

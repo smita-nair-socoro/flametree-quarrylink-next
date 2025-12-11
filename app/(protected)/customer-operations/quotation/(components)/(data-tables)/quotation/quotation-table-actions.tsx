@@ -39,7 +39,7 @@ export function QuotationTableActions({
     attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } = useQuotationActions(
     quotation.id,
     quotation
   );
@@ -63,7 +63,9 @@ export function QuotationTableActions({
   );
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
-  const handleDuplicate = createHandler(actions.duplicate);
+  const handleDuplicate = createHandler(actions.duplicate, () =>
+    setSelectedQuotation(quotation)
+  );
   const handleExtendExpiry = createHandler(actions.extendExpiry);
   const handlePrint = createHandler(actions.print);
 
@@ -71,6 +73,7 @@ export function QuotationTableActions({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
