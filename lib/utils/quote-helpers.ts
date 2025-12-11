@@ -77,7 +77,6 @@ export const transformFormDataToQuoteDto = (
     customerName: string;
     accountManagerName: string;
     quoteNumber: string;
-    deliveryAddressId?: number;
     lineItemsCount?: number;
     deliveryAddress: AddressType | null;
   }
@@ -101,7 +100,6 @@ export const transformFormDataToQuoteDto = (
     customerName: additionalData.customerName,
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
-    deliveryAddressId: additionalData.deliveryAddressId || 1,
     expiryDate: toLocalDateTime(expiryDate),
     accountManager: formData.accountManager as number,
     accountManagerName: additionalData.accountManagerName,

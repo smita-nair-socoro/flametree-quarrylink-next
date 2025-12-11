@@ -11,7 +11,7 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
-  Quote,
+  // Quote,
   Send,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
@@ -562,7 +562,7 @@ export function useQuotationActions(
       return transformed;
     }
     return null;
-  }, [quotationDetailData, quotationId, isLoadingDetail]);
+  }, [quotationDetailData]);
 
   // Update store with detailed quotation that includes line items
   React.useEffect(() => {
@@ -598,8 +598,8 @@ export function useQuotationActions(
   ): Partial<QuotationDTO> | null => {
     if (!resolvedQuotation) return null;
 
-    const { status, quoteItems, ...quotationData } = resolvedQuotation;
-
+    const { status, ...quotationData } = resolvedQuotation;
+    // const { status, quoteItems, ...quotationData } = resolvedQuotation;
     return {
       ...quotationData,
       quoteStatus: overrides.quoteStatus ?? status,
@@ -607,10 +607,6 @@ export function useQuotationActions(
         overrides.deliveryAddress ??
         detailedQuotation?.deliveryAddress ??
         resolvedQuotation.deliveryAddress,
-      deliveryAddressId:
-        overrides.deliveryAddressId ??
-        detailedQuotation?.deliveryAddressId ??
-        resolvedQuotation.deliveryAddressId,
       ...overrides,
     };
   };
@@ -724,6 +720,7 @@ export function useQuotationActions(
       setSelectedAction(null);
     } catch (error) {
       notifyError('Failed to Extend Expiry Date');
+      console.log('Failed to extend expiry date:', error);
     }
   };
 

@@ -33,10 +33,7 @@ import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  useCreateQuotation,
-  useUpdateQuotation,
-} from '@/lib/api/quotation';
+import { useCreateQuotation, useUpdateQuotation } from '@/lib/api/quotation';
 import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
@@ -142,30 +139,31 @@ export default function QuotationForm({
 
     try {
       console.log('🔍 [Quotation][onSubmit] Form Values:', values);
-      console.log('🔍 [Quotation][onSubmit] Delivery Address State:', deliveryAddress);
-      console.log('🔍 [Quotation][onSubmit] Current Quotation:', currentQuotation);
+      console.log(
+        '🔍 [Quotation][onSubmit] Delivery Address State:',
+        deliveryAddress
+      );
+      console.log(
+        '🔍 [Quotation][onSubmit] Current Quotation:',
+        currentQuotation
+      );
 
       const quoteData = transformFormDataToQuoteDto(values, {
         customerName,
         accountManagerName,
         quoteNumber,
-        deliveryAddressId:
-          isEditing && currentQuotation?.deliveryAddressId
-            ? currentQuotation.deliveryAddressId
-            : 1,
+
         lineItemsCount: isEditing
           ? currentQuotation?.quoteItems?.length || 0
           : 0,
         deliveryAddress: deliveryAddress,
       });
 
-      if (!quoteData.deliveryAddressId) {
-        quoteData.deliveryAddressId =
-          currentQuotation?.deliveryAddressId || undefined;
-      }
-
       console.log('📦 [Quotation][submit] Transformed Quote Data:', quoteData);
-      console.log('🏠 [Quotation][submit] Address in Payload:', quoteData.deliveryAddress);
+      console.log(
+        '🏠 [Quotation][submit] Address in Payload:',
+        quoteData.deliveryAddress
+      );
 
       if (isEditing && currentQuotation?.id) {
         console.log('📤 [UPDATE] Sending Request Body:', {

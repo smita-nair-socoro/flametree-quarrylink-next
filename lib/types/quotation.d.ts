@@ -20,7 +20,6 @@ export interface QuotationDTO {
   projectName: string;
   quoteStatus: QuoteStatus;
   deliveryAddress: Address;
-  deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string | null;
   expiryDate: string | null;
@@ -58,7 +57,6 @@ export interface Quotation {
   projectName: string;
   status: QuoteStatus;
   deliveryAddress: Address;
-  deliveryAddressId: number;
   jobId: number;
   deliveryStartDate: string;
   expiryDate: string;

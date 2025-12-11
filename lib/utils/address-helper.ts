@@ -41,7 +41,6 @@ export function toAddressPayload(address?: AddressType | null): Address | undefi
       : '';
 
   return {
-    id: undefined,
     googlePlaceId,
     formattedAddress: address.formattedAddress || '',
     streetDetailsPrimary: address.address1 || '',

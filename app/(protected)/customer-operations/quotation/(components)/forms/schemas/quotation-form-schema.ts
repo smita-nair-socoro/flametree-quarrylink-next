@@ -14,13 +14,13 @@ export const NewQuotationFormSchema = z.object({
     .string()
     .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
-      message: 'Invalid time‑of‑day with timezone',
+      message: 'Invalid time of day with timezone',
     }),
   deliveryWindowEnd: z
     .string()
     .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
-      message: 'Invalid time‑of‑day with timezone',
+      message: 'Invalid time of day with timezone',
     }),
   expiryDate: z.date({ message: 'Required' }),
   deliveryAddress: z.string().trim().min(1, 'Required'),
