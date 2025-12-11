@@ -385,7 +385,8 @@ export const APIClient = {
   },
 
   tenants: {
-    getAll: () => appClient.Get<Tenant[]>(`/socoro/quarrylink/api/tenants`),
+    getTenantDetails: () =>
+      appClient.Get<Tenant>(`/socoro/quarrylink/api/tenant/tenant-details`),
     getById: (tenantId: string) =>
       appClient.Get<Tenant>(`/socoro/quarrylink/api/tenant/${tenantId}`),
     create: (data: Tenant) =>
