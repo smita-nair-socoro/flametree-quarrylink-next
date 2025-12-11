@@ -30,10 +30,12 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
-    queryFn: async () =>
-      convertKeysToCamelCase(
-        await APIClient.quotations.getWithQuoteItems(quotationId)
-      ),
+    queryFn: async () => {
+      const data = await APIClient.quotations.getWithQuoteItems(quotationId);
+      console.log('🔍 [QuotationWithLineItems] Raw API Response:', data);
+      const converted = convertKeysToCamelCase(data);
+      return converted;
+    },
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
@@ -69,8 +71,12 @@ export const useUpdateQuotation = () => {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
-      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.id) });
-      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'] });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
@@ -89,8 +95,12 @@ export const useExtendExpiryDate = () => {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
-      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.id) });
-      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'] });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
@@ -122,8 +132,12 @@ export const useCreateQuoteItem = () => {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
-      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quoteId) });
-      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'] });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.quoteId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'],
+      });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
@@ -137,15 +151,25 @@ export const useUpdateQuoteItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<QuotationLineItem> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<QuotationLineItem>;
+    }) => {
       const response = await APIClient.quotations.updateQuoteItem(id, data);
       return convertKeysToCamelCase(response) as QuotationLineItem;
     },
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
-      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quoteId) });
-      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'] });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.quoteId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'],
+      });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
@@ -166,8 +190,12 @@ export const useDeleteQuoteItem = () => {
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
-      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(data.quoteId) });
-      queryClient.invalidateQueries({ queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'] });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.quoteId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'],
+      });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });

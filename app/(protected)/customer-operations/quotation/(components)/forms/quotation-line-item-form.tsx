@@ -384,8 +384,10 @@ export default function QuoteLineItemForm({
         notifySuccess('Line item Updated');
       } else {
         // CREATE: Send new item data
-        console.log('➕ CREATE Mode - Sending request');
-        console.log('📤 Request Body:', quoteItemData);
+        console.log(
+          '➕ CREATE Mode - Sending request 📤 Request Body:',
+          quoteItemData
+        );
 
         await createQuoteItem.mutateAsync(quoteItemData);
         notifySuccess('Line item Added');

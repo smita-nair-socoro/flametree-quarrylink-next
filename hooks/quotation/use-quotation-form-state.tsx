@@ -99,9 +99,11 @@ export function useQuotationFormState(
 
   React.useEffect(() => {
     if (isEditing && currentQuotation?.deliveryAddress) {
-      console.log('🏠 [useQuotationFormState] Loading address from quotation:', currentQuotation.deliveryAddress);
       const normalizedAddress = toAddressType(currentQuotation.deliveryAddress);
-      console.log('🏠 [useQuotationFormState] Normalized address:', normalizedAddress);
+      console.log(
+        '🏠 [useQuotationFormState] Normalized address:',
+        normalizedAddress
+      );
       setDeliveryAddress(normalizedAddress);
       quotationForm.setValue(
         'deliveryAddress',
