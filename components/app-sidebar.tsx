@@ -123,7 +123,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarTrigger className="h-8 w-8 text-white" />
         </div>
         <div className="mb-1">
-          <QuarryLinkBranding subscriptionType="Enterprise" />
+          <QuarryLinkBranding subscriptionType="Essentials" />
         </div>
         <TeamSwitcher />
       </SidebarHeader>
