@@ -9,21 +9,17 @@ Replace every curly-brace placeholder with real values before sending.
 
 ## Common text/URL placeholders
 
+- `logoUrl`: URL for the logo image in the navbar.
+- `logoImageClass`: Class to control logo image visibility. Use `hidden-logo` if no logo URL is provided; leave empty otherwise.
+- `logoInitials`: Two-letter business initials (e.g., "OQ" for "One Quarry"). Displayed when no logo URL is provided.
+- `logoInitialClass`: Class to control logo initials visibility. Use `hidden-logo` if a logo URL is provided; leave empty otherwise.
 - `BusinessName`: Company name shown in navbar and footer copyright.
 - `tenantPrimaryContactName`: Tenant Primary Contact Name (from cognito/strip).
 - `userName`: User who added/removed the quarry.
 - `quarryName`: Name of the quarry added/removed.
-- `newTotal`: New monthly subscription total (template adds `$`; the “added” template also appends `ex-GST`).
-- `subscriptionUrl`: Link for the “View Subscription Details” button (quarry management page).
-- `TenantEmail`, `TenantPhone`, `TenantAddressLine1`, `TenantAddressLine2`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
-
-- `logoBlock`: HTML markup for the logo. For example:
-
-  - logoBlock = `<img src="${data.tenantLogoUrl}" alt="${data.businessName} Logo" class="navbar-logo" />`;
-
-  or
-
-  - logoBlock = `<div class="navbar-initials">${initials}</div>`;
+- `newTotal`: New monthly subscription total (template adds `$`; the "added" template also appends `ex-GST`).
+- `subscriptionUrl`: Link for the "View Subscription Details" button (quarry management page).
+- `TenantEmail`, `TenantPhone`, `TenantAddress`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
 
 ## Template-specific placeholders
 

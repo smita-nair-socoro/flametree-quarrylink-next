@@ -38,11 +38,9 @@ export function NavMain({
     url: string;
     icon?: LucideIcon;
     isActive?: boolean;
-    plan?: string;
     items?: {
       title: string;
       url: string;
-      plan?: string;
     }[];
   }[];
 }) {
@@ -53,9 +51,6 @@ export function NavMain({
     Record<string, boolean>
   >('nav-open-states', {});
   const [forceUpdate, setForceUpdate] = useState(0);
-
-  const isDisabled = (plan?: string) => plan === 'PRO' || plan === 'PLUS';
-  const getPlanLabel = (plan?: string) => (plan ? plan.toUpperCase() : '');
 
   useEffect(() => {
     if (pathname) {
@@ -88,29 +83,14 @@ export function NavMain({
 
           // If item has no subitems, render as plain link
           if (!item.items || item.items.length === 0) {
-            const itemIsDisabled = isDisabled(item.plan);
             return (
               <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isActive}
-                  aria-disabled={itemIsDisabled}
-                >
-                  <Link
-                    href={item.url}
-                    className="flex items-center justify-between gap-2 min-w-0"
-                  >
-                    <span className="flex items-center gap-2 min-w-0">
-                      {item.icon && <item.icon className="text-white" />}
-                      <span className="truncate whitespace-nowrap text-white">
-                        {item.title}
-                      </span>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <Link href={item.url}>
+                    {item.icon && <item.icon className="text-white" />}
+                    <span className="truncate whitespace-nowrap text-white">
+                      {item.title}
                     </span>
-                    {itemIsDisabled && (
-                      <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                        {getPlanLabel(item.plan)}
-                      </span>
-                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -149,25 +129,14 @@ export function NavMain({
                     {item.items.map((sub) => {
                       const subActive =
                         pathname === sub.url || pathname === `${sub.url}/`;
-                      const subDisabled = isDisabled(sub.plan);
                       return (
                         <Link
                           key={sub.url}
                           href={sub.url}
-                          aria-disabled={subDisabled}
-                          className={`flex items-center justify-between gap-2 min-w-0 px-3 py-2 text-sm rounded-md hover:bg-[#7138F533] hover:text-black transition-colors
-                            ${subActive ? 'text-white' : ''} ${
-                            subDisabled ? 'pointer-events-none opacity-50' : ''
-                          }`}
+                          className={`block px-3 py-2 text-sm rounded-md hover:bg-[#7138F533] hover:text-black transition-colors
+                            ${subActive ? 'bg-[#7138F5] text-white' : ''}`}
                         >
-                          <span className="truncate whitespace-nowrap overflow-hidden">
-                            {sub.title}
-                          </span>
-                          {subDisabled && (
-                            <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                              {getPlanLabel(sub.plan)}
-                            </span>
-                          )}
+                          {sub.title}
                         </Link>
                       );
                     })}
@@ -206,27 +175,15 @@ export function NavMain({
                     {item.items?.map((sub) => {
                       const subActive =
                         pathname === sub.url || pathname === `${sub.url}/`;
-                      const subDisabled = isDisabled(sub.plan);
                       return (
                         <SidebarMenuSubItem key={sub.url}>
                           <SidebarMenuSubButton
                             asChild
                             isActive={subActive}
-                            aria-disabled={subDisabled}
                             className="hover:bg-[#7138F533] data-[active=true]:!bg-[#7138F5]"
                           >
-                            <Link
-                              href={sub.url}
-                              className="flex items-center w-full justify-between gap-2 min-w-0"
-                            >
-                              <span className="text-white truncate whitespace-nowrap overflow-hidden">
-                                {sub.title}
-                              </span>
-                              {subDisabled && (
-                                <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                                  {getPlanLabel(sub.plan)}
-                                </span>
-                              )}
+                            <Link href={sub.url}>
+                              <span className="text-white">{sub.title}</span>
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
