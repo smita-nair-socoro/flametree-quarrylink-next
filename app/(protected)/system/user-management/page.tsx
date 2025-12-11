@@ -3,11 +3,18 @@
 import React from 'react';
 import Image from 'next/image';
 import { Tab } from '@/components/ui/tabs';
-import { CreditCard, SettingsIcon, Shield, UsersRound } from 'lucide-react';
+import {
+  CreditCard,
+  SettingsIcon,
+  Shield,
+  UsersRound,
+  Palette,
+} from 'lucide-react';
 import SettingsTab from './(components)/tabs/settings-tab';
 import TeamAdminTab from './(components)/tabs/team-admin-tab';
 import RolesTab from './(components)/tabs/roles-tab';
 import BillingTab from './(components)/tabs/billing-tab';
+import BrandingTab from './(components)/tabs/branding-tab';
 
 export default function UserRolesPage() {
   const tabs = [
@@ -31,6 +38,11 @@ export default function UserRolesPage() {
       content: <BillingTab />,
       icon: <CreditCard className="w-4 h-4" />,
     },
+    {
+      name: 'Branding',
+      content: <BrandingTab />,
+      icon: <Palette className="w-4 h-4" />,
+    },
   ];
 
   return (
@@ -46,7 +58,14 @@ export default function UserRolesPage() {
           />
         </div>
       </div>
-      <Tab tabs={tabs} tabsClassName="h-12" tabsTriggerClassName="h-10 " />
+      <div className="w-full flex">
+        <Tab
+          tabs={tabs}
+          className="w-full"
+          tabsClassName="h-15 w-full flex flex-nowrap items-center justify-start overflow-x-auto px-2"
+          tabsTriggerClassName="h-10 w-auto flex-shrink-0 min-w-[250px] justify-center px-2"
+        />
+      </div>
     </div>
   );
 }
