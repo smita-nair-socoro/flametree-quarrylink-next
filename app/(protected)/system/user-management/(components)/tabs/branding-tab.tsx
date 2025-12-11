@@ -107,7 +107,7 @@ export default function BrandingTab() {
   }
 
   return (
-    <div className="w-full relative">
+    <div className="py-3 relative">
       {isSubmitting && (
         <div
           className={cn(
