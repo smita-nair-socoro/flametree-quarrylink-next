@@ -28,16 +28,35 @@
       .navbar-other {
         background-color: #f5f5f5;
       }
+      .navbar-title-other {
+        color: #000000;
+      }
       .navbar-logo {
         width: 40px;
         height: 40px;
         object-fit: contain;
       }
+      .navbar-logo-initial {
+        width: 40px;
+        height: 40px;
+        border: 1.5px solid #000000;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        font-weight: 700;
+        color: #000000;
+        background-color: #ffffff;
+      }
+      .hidden-logo {
+        display: none;
+      }
       .navbar-title {
         font-size: 20px;
         font-weight: 600;
         color: #ffffff;
-        margin: 0;
+        margin: 0 0 0 20px;
       }
       .card {
         background-color: #ffffff;
@@ -162,6 +181,8 @@
       .footer-column-right {
         flex: 1;
         line-height: 1.6;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
       .footer-column-center {
         text-align: center;
@@ -174,8 +195,9 @@
   <body>
     <div class="container">
       <div class="navbar {navbarColorClass}">
-        {logoBlock}
-        <div class="navbar-title">{BusinessName}</div>
+        <img src="{logoUrl}" alt="Logo" class="navbar-logo {logoImageClass}" />
+        <div class="navbar-logo-initial {logoInitialClass}">{logoInitials}</div>
+        <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
       <div class="card">
         <div class="header">Hi {customerContactFirstName},</div>
@@ -226,7 +248,7 @@
         <div class="card-footer">
           <p>
             You're receiving this because you have a pending quote from
-            {quarryName} via QuarryLink.
+            {BusinessName} via QuarryLink.
           </p>
         </div>
       </div>
@@ -252,8 +274,7 @@
             <div>{TenantPhone}</div>
           </div>
           <div class="footer-column-center">
-            <div>{TenantAddressLine1}</div>
-            <div>{TenantAddressLine2}</div>
+            <div>{TenantAddress}</div>
           </div>
           <div class="footer-column-right">
             <div>Website</div>
@@ -262,9 +283,7 @@
         </div>
 
         <div class="border-top"></div>
-        <p class="footer-copyright">
-          © 2025 {BusinessName}. All rights reserved.
-        </p>
+        <p class="footer-copyright">© 2025 QuarryLink. All rights reserved.</p>
       </div>
     </div>
   </body>
