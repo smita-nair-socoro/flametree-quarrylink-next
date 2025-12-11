@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Customers reassigned to you in QuarryLink</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .navbar {
+        background-color: #7c3aed;
+        padding: 20px;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .navbar-other {
+        background-color: #f5f5f5;
+      }
+      .border-other {
+        border-left: 4px solid #000000;
+      }
+      .navbar-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+      }
+      .navbar-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #ffffff;
+        margin: 0;
+      }
+      .card {
+        background-color: #ffffff;
+        border-radius: 0 0 8px 8px;
+        padding: 30px 40px 16px 40px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        font-size: 24px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 20px;
+      }
+      .content {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #374151;
+        margin-bottom: 20px;
+      }
+      .customer-info {
+        background-color: #f9fafb;
+        border-left: 4px solid #7c3aed;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .customer-info p {
+        margin: 5px 0;
+        font-size: 15px;
+        color: #374151;
+      }
+      .customer-info strong {
+        color: #111827;
+        font-weight: 600;
+      }
+      .customer-list {
+        margin: 20px 0;
+        padding: 0;
+      }
+      .customer-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .customer-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 15px;
+        color: #374151;
+      }
+      .customer-list li:last-child {
+        border-bottom: none;
+      }
+      .customer-list a {
+        color: #7c3aed;
+        text-decoration: none;
+        font-weight: 500;
+        margin-left: 8px;
+      }
+      .customer-list a:hover {
+        text-decoration: underline;
+      }
+      .card-footer {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+      .card-footer p {
+        margin: 0 0 0;
+      }
+      .border-top {
+        border-top: 1px solid #ffffff33;
+        margin-bottom: 20px;
+        margin-top: 20px;
+      }
+      .info-footer {
+        background-color: #3f4e5f;
+        padding: 20px 30px 16px 30px;
+        margin-top: 0;
+        border-radius: 0 0 8px 8px;
+      }
+      .footer-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        color: #ffffffe5;
+        font-size: 11px;
+      }
+      .footer-copyright {
+        text-align: center;
+        color: #ffffff99;
+        font-size: 10px;
+        margin: 10px;
+      }
+      .hidden-footer {
+        display: none;
+      }
+      .footer-column-left,
+      .footer-column-center,
+      .footer-column-right {
+        flex: 1;
+        line-height: 1.6;
+      }
+      .footer-column-center {
+        text-align: center;
+      }
+      .footer-column-right {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="navbar {navbarColorClass}">
+        {logoBlock}
+        <div class="navbar-title">{BusinessName}</div>
+      </div>
+      <div class="card">
+        <div class="header">Hi {accountManagerName},</div>
+
+        <div class="content">
+          <p>
+            {previousAccountManagerName} has been removed from QuarryLink, and
+            their customers have been reassigned to you.
+          </p>
+
+          <p>You are now the Account Manager for the following customers:</p>
+        </div>
+
+        <div class="customer-info {BorderColorClass}">
+          <div class="customer-list">{customerListHtml}</div>
+        </div>
+
+        <div class="content">
+          <p>
+            Each customer link will take you to their profile where you can
+            review their account history, active quotes, and account details.
+          </p>
+        </div>
+
+        <div class="card-footer">
+          <p>
+            You're receiving this because customers have been reassigned to you
+            in QuarryLink.
+          </p>
+        </div>
+      </div>
+
+      <div class="info-footer">
+        <!-- Simple footer row for QuarryLink -->
+        <div class="footer-row {quarrylinkFooterClass}">
+          <div class="footer-column-left">
+            <div>(02) 7229 1427</div>
+          </div>
+          <div class="footer-column-center">
+            <div>www.quarrylink.com.au</div>
+          </div>
+          <div class="footer-column-right">
+            <div>support@quarrylink.com.au</div>
+          </div>
+        </div>
+
+        <!-- Detailed footer row for other businesses -->
+        <div class="footer-row {otherFooterClass}">
+          <div class="footer-column-left">
+            <div>{TenantEmail}</div>
+            <div>{TenantPhone}</div>
+          </div>
+          <div class="footer-column-center">
+            <div>{TenantAddressLine1}</div>
+            <div>{TenantAddressLine2}</div>
+          </div>
+          <div class="footer-column-right">
+            <div>Website</div>
+            <div>{TenantWebsite}</div>
+          </div>
+        </div>
+
+        <div class="border-top"></div>
+        <p class="footer-copyright">
+          © 2025 {BusinessName}. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
