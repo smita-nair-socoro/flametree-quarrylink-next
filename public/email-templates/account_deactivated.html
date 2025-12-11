@@ -28,6 +28,9 @@
       .navbar-other {
         background-color: #f5f5f5;
       }
+      .navbar-title-other {
+        color: #000000;
+      }
       .border-other {
         border-left: 4px solid #000000;
       }
@@ -126,11 +129,11 @@
       .footer-column-right {
         flex: 1;
         line-height: 1.6;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
       .footer-column-center {
         text-align: center;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
       }
       .footer-column-right {
         text-align: right;
@@ -142,7 +145,7 @@
       <div class="navbar {navbarColorClass}">
         <img src="{logoUrl}" alt="Logo" class="navbar-logo {logoImageClass}" />
         <div class="navbar-logo-initial {logoInitialClass}">{logoInitials}</div>
-        <div class="navbar-title">{BusinessName}</div>
+        <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
       <div class="card">
         <div class="header">Hi {userName},</div>
