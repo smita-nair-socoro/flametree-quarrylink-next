@@ -838,7 +838,7 @@ export function useQuotationActions(
         <span>
           Duplicating Quote{' '}
           <span className="text-purple-600">
-            {resolvedQuotation?.quote_number || ''}
+            {resolvedQuotation?.quoteNumber || ''}
           </span>
         </span>
       }

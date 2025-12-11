@@ -754,8 +754,9 @@ export default function QuotationForm({
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
             {isDesktop && (
               <div className="flex justify-end space-x-2 col-span-2 my-6">
