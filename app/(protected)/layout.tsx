@@ -1,8 +1,9 @@
 'use client';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
+import { navItems } from '@/components/app-sidebar';
 import {
   SidebarInset,
   SidebarProvider,
@@ -14,12 +15,63 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const router = useRouter();
 
+  // Build quick lookup for plan by path and first essential fallback
+  const { getPlanByPath, fallbackUrl } = useMemo(() => {
+    const pathToPlan = new Map<string, string>();
+    const customersPath = '/customer-operations/customers';
+
+    for (const item of navItems) {
+      if ('plan' in item && item.plan) {
+        pathToPlan.set(item.url, item.plan);
+      }
+      if (item.items) {
+        for (const sub of item.items) {
+          if (sub.plan) {
+            pathToPlan.set(sub.url, sub.plan);
+          }
+        }
+      }
+    }
+
+    return {
+      getPlanByPath: (path: string) => {
+        if (pathToPlan.has(path)) return pathToPlan.get(path);
+        let matchedBasePath: string | undefined;
+        for (const key of pathToPlan.keys()) {
+          if (path === key || path.startsWith(`${key}/`)) {
+            if (!matchedBasePath || key.length > matchedBasePath.length) {
+              matchedBasePath = key;
+            }
+          }
+        }
+        return matchedBasePath ? pathToPlan.get(matchedBasePath) : undefined;
+      },
+      fallbackUrl: customersPath,
+    };
+  }, []);
+
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       const currentPath = window.location.pathname + window.location.search;
       router.replace(`/login?returnTo=${encodeURIComponent(currentPath)}`);
     }
   }, [auth.isLoading, auth.isAuthenticated, router]);
+
+  // Block access to non-Essential pages (PRO/PLUS)
+  useEffect(() => {
+    if (auth.isLoading || !auth.isAuthenticated) return;
+    const path = window.location.pathname;
+    const plan = getPlanByPath(path);
+    if (plan === 'PRO' || plan === 'PLUS') {
+      router.replace(fallbackUrl);
+    }
+  }, [
+    auth.isLoading,
+    auth.isAuthenticated,
+    getPlanByPath,
+    fallbackUrl,
+    router,
+  ]);
 
   if (auth.isLoading) {
     return (
