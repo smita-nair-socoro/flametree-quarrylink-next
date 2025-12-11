@@ -1,5 +1,5 @@
 'use client';
-import { FormMessages } from '../form-messages';
+// import { FormMessages } from '../form-messages';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -324,9 +324,9 @@ interface CommonProps {
 function AddressAutoCompleteInput(props: CommonProps) {
   const {
     setSelectedPlaceId,
-    selectedPlaceId,
+    // selectedPlaceId,
     setIsOpenDialog,
-    showInlineError,
+    // showInlineError,
     searchInput,
     setSearchInput,
     placeholder,
@@ -441,13 +441,13 @@ function AddressAutoCompleteInput(props: CommonProps) {
           disabled={readOnly}
         />
       </div>
-      {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
+      {/* {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
         <FormMessages
           type="error"
           className="pt-1 text-sm"
           messages={['Select a valid address from the list']}
         />
-      )}
+      )} */}
       {isOpen && (
         <div className="relative animate-in fade-in-0 zoom-in-95 h-auto">
           <CommandList>

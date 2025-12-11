@@ -132,6 +132,8 @@ export default function CustomersPage() {
       };
     }) || [];
 
+  console.log('items', items);
+
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
     { column: 'customer_type', title: 'Customer Type', icon: Plus },

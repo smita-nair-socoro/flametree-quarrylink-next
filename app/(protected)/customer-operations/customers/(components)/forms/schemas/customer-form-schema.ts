@@ -2,18 +2,35 @@ import z from 'zod';
 import isValidABN from 'is-valid-abn';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
-const PhoneRequired = z
+// const PhoneRequired = z
+//   .string()
+//   .trim()
+//   .nonempty({ message: 'Phone number is required' })
+//   .refine((v) => !v || isValidPhoneNumber(v), {
+//     message: 'Invalid phone number',
+//   });
+
+const PhoneOptional = z
   .string()
   .trim()
-  .nonempty({ message: 'Phone number is required' })
+  .optional()
   .refine((v) => !v || isValidPhoneNumber(v), {
     message: 'Invalid phone number',
   });
-const EmailRequired = z
+
+// const EmailRequired = z
+//   .string()
+//   .trim()
+//   .nonempty({ message: 'Email is required' })
+//   .max(256, 'Maximum 256 characters')
+//   .refine((v) => !v || z.string().email().safeParse(v).success, {
+//     message: 'Invalid email format',
+//   });
+
+const EmailOptional = z
   .string()
   .trim()
-  .nonempty({ message: 'Email is required' })
-  .max(256, 'Maximum 256 characters')
+  .optional()
   .refine((v) => !v || z.string().email().safeParse(v).success, {
     message: 'Invalid email format',
   });
@@ -29,8 +46,8 @@ const Base = z.object({
     .max(256, 'Maximum 256 characters')
     .min(2, 'At least 2 characters')
     .regex(/^[a-zA-Z0-9\s,.&-]+$/, 'Invalid characters'),
-  contact_person_email: EmailRequired,
-  contact_person_phone: PhoneRequired,
+  contact_person_email: EmailOptional,
+  contact_person_phone: PhoneOptional,
 
   // Business fields are optional in base schema but conditionally validated
   business_name: z
@@ -54,7 +71,7 @@ const Base = z.object({
     .optional(),
   payment_terms: z.string().trim().optional(),
   account_manager: z.string().trim().min(1, 'Required'),
-  billing_address: z.string().trim().min(1, 'Required'),
+  billing_address: z.string().trim().optional(),
 
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
@@ -152,48 +169,49 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Business email is required for Business customers
-    if (!data.business_email || data.business_email.trim().length === 0) {
-      ctx.addIssue({
-        path: ['business_email'],
-        code: z.ZodIssueCode.custom,
-        message: 'Business email is required',
-      });
-    } else if (!z.string().email().safeParse(data.business_email).success) {
-      ctx.addIssue({
-        path: ['business_email'],
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid business email format',
-      });
-    } else if (data.business_email.trim().length > 256) {
-      ctx.addIssue({
-        path: ['business_email'],
-        code: z.ZodIssueCode.custom,
-        message: 'Maximum 256 characters',
-      });
-    }
+    // if (!data.business_email || data.business_email.trim().length === 0) {
+    //   ctx.addIssue({
+    //     path: ['business_email'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Business email is required',
+    //   });
+    // if (!z.string().email().safeParse(data.business_email).success) {
+    //   ctx.addIssue({
+    //     path: ['business_email'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Invalid business email format',
+    //   });
+    // }
+    // else if (data.business_email.trim().length > 256) {
+    //   ctx.addIssue({
+    //     path: ['business_email'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Maximum 256 characters',
+    //   });
+    // }
 
     // Business phone is required for Business customers
-    if (!data.business_phone || data.business_phone.trim().length === 0) {
-      ctx.addIssue({
-        path: ['business_phone'],
-        code: z.ZodIssueCode.custom,
-        message: 'Business phone is required',
-      });
-    } else if (!isValidPhoneNumber(data.business_phone)) {
-      ctx.addIssue({
-        path: ['business_phone'],
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid business phone format',
-      });
-    }
+    // if (!data.business_phone || data.business_phone.trim().length === 0) {
+    //   ctx.addIssue({
+    //     path: ['business_phone'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Business phone is required',
+    //   });
+    // } else if (!isValidPhoneNumber(data.business_phone)) {
+    //   ctx.addIssue({
+    //     path: ['business_phone'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Invalid business phone format',
+    //   });
+    // }
 
-    if (!data.payment_terms || data.payment_terms.trim().length === 0) {
-      ctx.addIssue({
-        path: ['payment_terms'],
-        code: z.ZodIssueCode.custom,
-        message: 'Payment terms is required',
-      });
-    }
+    // if (!data.payment_terms || data.payment_terms.trim().length === 0) {
+    //   ctx.addIssue({
+    //     path: ['payment_terms'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Payment terms is required',
+    //   });
+    // }
 
     // Credit limit validation for Business customers (only if not already validated by payment type)
     if (data.payment_type !== 'credit') {
@@ -220,17 +238,17 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Optional validation: if business email is provided, it should be valid
-    if (
-      data.business_email &&
-      data.business_email.trim() !== '' &&
-      !z.string().email().safeParse(data.business_email).success
-    ) {
-      ctx.addIssue({
-        path: ['business_email'],
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid business email format',
-      });
-    }
+    // if (
+    //   data.business_email &&
+    //   data.business_email.trim() !== '' &&
+    //   !z.string().email().safeParse(data.business_email).success
+    // ) {
+    //   ctx.addIssue({
+    //     path: ['business_email'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: 'Invalid business email format',
+    //   });
+    // }
 
     // Optional validation: if business phone is provided, it should be valid
     if (
