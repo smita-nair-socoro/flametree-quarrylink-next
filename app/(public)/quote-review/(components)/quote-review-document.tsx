@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -16,6 +17,8 @@ import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 import { notifyError } from '@/lib/toast';
+import QuoteExpired from './quote-expired';
+import { parseQuotePayload, parseStatusParam } from './types/quote-payload';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -24,6 +27,7 @@ type QuoteReviewDocumentProps = {
 export default function QuoteReviewDocument({
   quoteId,
 }: QuoteReviewDocumentProps) {
+  const searchParams = useSearchParams();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
@@ -32,43 +36,20 @@ export default function QuoteReviewDocument({
 
   const quotationData = mockQuotationData;
 
-  // State for navbar status (will be updated when user approves/declines)
-  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(
+  // Parse payload and status parameters
+  const payloadParam = searchParams.get('payload');
+  const { currentQuoteStatus: parsedStatus, parsedPayload } = parseQuotePayload(
+    payloadParam,
     quotationData.navbar.status
   );
 
-  const handleDownloadPDF = async () => {
-    console.log('Download PDF clicked for quote:', quoteId);
-    try {
-      await downloadQuotePdf(
-        quotationData,
-        quoteId,
-        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
-      );
-    } catch (error) {
-      notifyError(
-        error instanceof Error
-          ? error.message
-          : 'Failed to download PDF. Please try again.'
-      );
-    }
-  };
+  const statusParam = searchParams.get('status');
+  const currentQuoteStatus = parseStatusParam(statusParam, parsedStatus);
 
-
-  const handleApprove = async () => {
-    console.log('Approve quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.APPROVED);
-    setNavbarStatus(QuoteStatus.APPROVED);
-
-    setApproveDialogOpen(false);
-  };
-
-  const handleDecline = async () => {
-    console.log('Decline quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.DECLINED);
-    setNavbarStatus(QuoteStatus.DECLINED);
-    setDeclineDialogOpen(false);
-  };
+  // State for navbar status (will be updated when user approves/declines)
+  // Note: All hooks must be called before any conditional returns (React Hooks rules)
+  const [navbarStatus, setNavbarStatus] =
+    useState<QuoteStatus>(currentQuoteStatus);
 
   const approveDialogDescription = useMemo(() => {
     const { project, navbar, customer, summary } = quotationData;
@@ -155,6 +136,7 @@ export default function QuoteReviewDocument({
       </div>
     );
   }, [quotationData]);
+
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
     const declineNotes = [
@@ -219,6 +201,51 @@ export default function QuoteReviewDocument({
       </div>
     );
   }, [quotationData]);
+
+  // Check if quote is expired - show expired page
+  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+    // Get account manager email from payload or mock data
+    const accountManagerEmail = parsedPayload?.account_manager_email;
+    const businessEmail = parsedPayload?.business_email;
+    return (
+      <QuoteExpired
+        accountManagerEmail={accountManagerEmail}
+        businessEmail={businessEmail}
+      />
+    );
+  }
+
+  const handleDownloadPDF = async () => {
+    console.log('Download PDF clicked for quote:', quoteId);
+    try {
+      await downloadQuotePdf(
+        quotationData,
+        quoteId,
+        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
+      );
+    } catch (error) {
+      notifyError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to download PDF. Please try again.'
+      );
+    }
+  };
+
+  const handleApprove = async () => {
+    console.log('Approve quotation:', quoteId);
+    setQuoteStatus(QuoteStatus.APPROVED);
+    setNavbarStatus(QuoteStatus.APPROVED);
+
+    setApproveDialogOpen(false);
+  };
+
+  const handleDecline = async () => {
+    console.log('Decline quotation:', quoteId);
+    setQuoteStatus(QuoteStatus.DECLINED);
+    setNavbarStatus(QuoteStatus.DECLINED);
+    setDeclineDialogOpen(false);
+  };
 
   return (
     <>

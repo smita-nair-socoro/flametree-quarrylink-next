@@ -54,11 +54,17 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const convertedProduct = convertKeysToSnakeCase(selectedProduct);
 
   const materialTypeOptions = [
-    { label: 'Aggregate', value: 'AGGREGATE' },
-    { label: 'Crushed Rock', value: 'CRUSHED ROCK' },
-    { label: 'Dust', value: 'DUST' },
-    { label: 'Soil', value: 'SOIL' },
     { label: 'Sand', value: 'SAND' },
+    { label: 'Soil', value: 'SOIL' },
+    { label: 'Dust', value: 'DUST' },
+    { label: 'Crushed Rock', value: 'CRUSHED ROCK' },
+    { label: 'Roadbase', value: 'ROADBASE' },
+    { label: 'Aggregate', value: 'AGGREGATE' },
+    { label: 'Landscape Rock', value: 'LANDSCAPE ROCK' },
+    { label: 'Oversized Rock', value: 'OVERSIZED ROCK' },
+    { label: 'Ballast', value: 'BALLAST' },
+    { label: 'Stabilised Material', value: 'STABILISED MATERIAL' },
+    { label: 'Recycled Material', value: 'RECYCLED MATERIAL' },
   ];
 
   // TODO: Zod Validation
