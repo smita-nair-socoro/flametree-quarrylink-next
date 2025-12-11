@@ -22,9 +22,11 @@ import { delay } from '@/lib/utils/time';
 import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+
 export default function BrandingTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isNarrow = useMediaQuery('(max-width: 420px)');
+  const isNarrow = useMediaQuery('(max-width: 550px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = React.useState<string | null>(
@@ -175,7 +177,7 @@ export default function BrandingTab() {
                                 </div>
                               )}
                             </div>
-                            <input
+                            <Input
                               ref={fileInputRef}
                               type="file"
                               accept="image/jpeg,image/jpg,image/png,image/svg+xml"
