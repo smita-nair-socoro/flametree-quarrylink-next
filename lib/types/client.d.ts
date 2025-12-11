@@ -40,39 +40,47 @@ export interface BillingHistory {
   stripe_link: string;
 }
 
-export interface Tenant {
-  subscriptions: {
-    stripeCustomerId: string;
-    subscriptions: [
-      {
-        subscriptionId: string;
-        status: string;
-        items: [
-          {
-            sbscriptionItemId: string;
-            productId: string;
-            productName?: string;
-            quantity: number;
-            unitAmountInCents: number;
-            currency: string;
-          }
-        ];
-      }
-    ];
-  };
-  invoices: [
+export interface Subscriptions {
+  stripeCustomerId: string;
+  subscriptions: [
     {
-      invoiceId: string;
-      invoiceNumber?: string;
-      hostedInvoiceUrl?: string;
-      invoicePdfUrl?: string;
+      subscriptionId: string;
       status: string;
-      amountDueInCents: number;
-      amountPaidInCents: number;
-      amountRemainingInCents: number;
-      createdAt: string;
-      createdAtEpochSeconds: number;
-      dueDateEpochSeconds?: number;
+      items: [
+        {
+          sbscriptionItemId: string;
+          productId: string;
+          productName?: string;
+          quantity: number;
+          unitAmountInCents: number;
+          currency: string;
+        }
+      ];
     }
   ];
+}
+
+export interface Invoice {
+  invoiceId: string;
+  invoiceNumber?: string;
+  hostedInvoiceUrl?: string;
+  invoicePdfUrl?: string;
+  status: string;
+  amountDueInCents: number;
+  amountPaidInCents: number;
+  amountRemainingInCents: number;
+  createdAt: string;
+  createdAtEpochSeconds: number;
+  dueDateEpochSeconds?: number;
+}
+
+export interface SubscriptionsAndInvoices {
+  subscriptions: Subscriptions;
+  invoices: Invoice[];
+}
+
+export interface TenantDetails {
+  tenantName: string;
+  tenantInitials: string;
+  email: string;
 }

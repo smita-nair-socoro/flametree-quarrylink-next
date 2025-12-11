@@ -22,15 +22,18 @@ Replace every `{placeholder}` before sending.
   - Other brands: set `quarrylinkFooterClass` to `hidden-footer`; leave `otherFooterClass` unchanged to show the tenant footer.
 
 ## Common placeholders across templates
-- `logoBlock`: HTML for the logo inside the navbar.
+- `logoUrl`: URL for the logo image in the navbar.
+- `logoImageClass`: Class to control logo image visibility. Use `hidden-logo` if no logo URL is provided; leave empty otherwise.
+- `logoInitials`: Two-letter business initials (e.g., "OQ" for "One Quarry"). Displayed when no logo URL is provided.
+- `logoInitialClass`: Class to control logo initials visibility. Use `hidden-logo` if a logo URL is provided; leave empty otherwise.
 - `BusinessName`: Tenant/company name (navbar title and footer copyright).
 - `quoteNumber`: Quote identifier (used in title/body).
 - `projectName`: Project name tied to the quote.
 - `quoteType`: Type of quote.
-- `totalValue`: Quote total (number only; template adds `$` and “ex GST”).
-- `quoteUrl`: Link for “View Quote” (where present).
+- `totalValue`: Quote total (number only; template adds `$` and "ex GST").
+- `quoteUrl`: Link for "View Quote" (where present).
 - `accountManagerName`, `accountManagerEmail`: Contact info for the sender/owner (used in contact section).
-- `TenantEmail`, `TenantPhone`, `TenantAddressLine1`, `TenantAddressLine2`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
+- `TenantEmail`, `TenantPhone`, `TenantAddress`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
 
 ## Template-specific placeholders
 - `quote_sent_to_customer.html`

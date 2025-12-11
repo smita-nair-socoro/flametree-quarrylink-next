@@ -5,7 +5,7 @@ import { Category } from '../types/category';
 import { Customer } from '../types/customer';
 import { Quarry } from '../types/quarry';
 import { QuotationDTO } from '../types/quotation';
-import { Tenant } from '../types/client';
+import { SubscriptionsAndInvoices, TenantDetails } from '../types/client';
 import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
@@ -386,15 +386,11 @@ export const APIClient = {
 
   tenants: {
     getTenantDetails: () =>
-      appClient.Get<Tenant>(`/socoro/quarrylink/api/tenant/tenant-details`),
-    getById: (tenantId: string) =>
-      appClient.Get<Tenant>(`/socoro/quarrylink/api/tenant/${tenantId}`),
-    create: (data: Tenant) =>
-      appClient.Post<Tenant>('/socoro/quarrylink/api/tenant', {
-        body: data,
-      }),
+      appClient.Get<TenantDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-details`
+      ),
     getSubscriptionsAndInvoices: () =>
-      appClient.Get<Tenant>(
+      appClient.Get<SubscriptionsAndInvoices>(
         `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`
       ),
   },

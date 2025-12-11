@@ -7,14 +7,17 @@ Templates in `public/email-templates/`:
 Replace every `{placeholder}` before sending.
 
 ## Common placeholders
-- `logoBlock`: HTML for the logo in the navbar.
+- `logoUrl`: URL for the logo image in the navbar.
+- `logoImageClass`: Class to control logo image visibility. Use `hidden-logo` if no logo URL is provided; leave empty otherwise.
+- `logoInitials`: Two-letter business initials (e.g., "OQ" for "One Quarry"). Displayed when no logo URL is provided.
+- `logoInitialClass`: Class to control logo initials visibility. Use `hidden-logo` if a logo URL is provided; leave empty otherwise.
 - `BusinessName`: Tenant/company name (navbar title and footer copyright).
 - `accountManagerName`: Recipient account manager.
 - `customerName`: Customer involved in the reassignment (single-customer template).
 - `customerProfileUrl`: Link to the customer profile (single-customer template button).
 - `BorderColorClass`: Use `border-other` for non-QuarryLink brands; leave empty for QuarryLink (affects the customer info block).
 - `buttonColorClass`: Use `btn-orther` for non-QuarryLink brands; leave empty for QuarryLink.
-- `TenantEmail`, `TenantPhone`, `TenantAddressLine1`, `TenantAddressLine2`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
+- `TenantEmail`, `TenantPhone`, `TenantAddress`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
 
 ## Template-specific placeholders
 - `account_manager_bulk_reassignment.html`:

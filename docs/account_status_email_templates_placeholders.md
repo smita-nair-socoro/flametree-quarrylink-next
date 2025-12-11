@@ -7,12 +7,15 @@ Templates in `public/email-templates/`:
 Replace every `{placeholder}` before sending.
 
 ## Common placeholders
-- `logoBlock`: HTML for the logo in the navbar.
+- `logoUrl`: URL for the logo image in the navbar.
+- `logoImageClass`: Class to control logo image visibility. Use `hidden-logo` if no logo URL is provided; leave empty otherwise.
+- `logoInitials`: Two-letter business initials (e.g., "OQ" for "One Quarry"). Displayed when no logo URL is provided.
+- `logoInitialClass`: Class to control logo initials visibility. Use `hidden-logo` if a logo URL is provided; leave empty otherwise.
 - `BusinessName`: Tenant/company name (navbar title and footer copyright).
 - `userName`: Recipient name.
 - `superAdminName`: Admin who created/deactivated the account.
 - `tenantName`: Tenant name referenced in the body copy.
-- `TenantEmail`, `TenantPhone`, `TenantAddressLine1`, `TenantAddressLine2`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
+- `TenantEmail`, `TenantPhone`, `TenantAddress`, `TenantWebsite`: Footer contact details for non-QuarryLink tenants.
 
 ## Template-specific placeholders
 - `account_activation.html`:

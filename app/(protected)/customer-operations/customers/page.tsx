@@ -22,8 +22,6 @@ import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
-import { TenantsListQueryOptions } from '@/lib/api/tenant';
-import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
 
 import {
   DataTableClient,
@@ -107,13 +105,6 @@ export default function CustomersPage() {
     error,
     isError,
   } = useQuery(CustomersListQueryOptions());
-
-  console.log('customersData', customersData);
-
-  const { data: tenantSubscriptionsAndInvoices } = useQuery(
-    TenantSubscriptionsAndInvoicesQueryOptions()
-  );
-  console.log('tenantSubscriptionsAndInvoices', tenantSubscriptionsAndInvoices);
 
   React.useEffect(() => {
     if (isError && error) {
