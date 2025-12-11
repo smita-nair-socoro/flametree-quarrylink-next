@@ -9,6 +9,7 @@ import {
   Briefcase,
   Archive,
   Timer,
+  Copy,
   // Copy, used in duplicate action
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,10 +40,8 @@ export function QuotationTableActions({
     attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    quotation.id,
-    quotation
-  );
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } =
+    useQuotationActions(quotation.id, quotation);
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
@@ -63,7 +62,9 @@ export function QuotationTableActions({
   );
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
-  const handleDuplicate = createHandler(actions.duplicate);
+  const handleDuplicate = createHandler(actions.duplicate, () =>
+    setSelectedQuotation(quotation)
+  );
   const handleExtendExpiry = createHandler(actions.extendExpiry);
   const handlePrint = createHandler(actions.print);
 
@@ -71,6 +72,7 @@ export function QuotationTableActions({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -164,12 +166,12 @@ export function QuotationTableActions({
           </DropdownMenuItem>
 
           {/* Hide Duplicate Quote at current stage*/}
-          {/* <DropdownMenuSeparator />
-          
+          <DropdownMenuSeparator />
+
           <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate Quote
-          </DropdownMenuItem> */}
+          </DropdownMenuItem>
 
           {/* Archive - always at the bottom for applicable statuses */}
           {quotation.status !== 'ARCHIVED' && (

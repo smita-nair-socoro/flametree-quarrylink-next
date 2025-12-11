@@ -66,6 +66,9 @@ interface AddProductDrawerDialogProps {
   /** Override the header title */
   dialogTitle?: string;
 
+  /** Custom title component (overrides dialogTitle when provided) */
+  customTitle?: React.ReactNode;
+
   /** Override the trigger button text */
   buttonTitle?: string;
 
@@ -91,7 +94,7 @@ interface AddProductDrawerDialogProps {
   headerButtons?: React.ReactNode;
 
   /** Vertical alignment of header buttons relative to content on the left (default: "center") */
-  headerButtonsAlign?: "start" | "center";
+  headerButtonsAlign?: 'start' | 'center';
 
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
@@ -131,6 +134,7 @@ interface ChildFormProps {
 export function FormDialog({
   id,
   dialogTitle,
+  customTitle,
   dialogDescription,
   buttonTitle,
   trigger,
@@ -139,7 +143,7 @@ export function FormDialog({
   dialogWidth,
   hideTrigger,
   headerButtons,
-  headerButtonsAlign = "center",
+  headerButtonsAlign = 'center',
   headerInfo,
   headerSeparator,
   contentClass,
@@ -205,7 +209,7 @@ export function FormDialog({
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
-  const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
+  const headerTitle = customTitle ?? ((finalCustomId || dialogTitle) ?? defaultTitle);
   const triggerTitle = buttonTitle ?? defaultTitle;
 
   // Determine if we're in editing mode - true when we have a valid ID (> 0)
@@ -320,11 +324,13 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className={clsx(
-        "flex flex-row justify-between flex-shrink-0 px-5 pt-6",
-        headerButtonsAlign === "start" ? "items-start" : "items-center",
-        headerClassName || "pb-2"
-      )}>
+      <DialogHeader
+        className={clsx(
+          'flex flex-row justify-between flex-shrink-0 px-5 pt-6',
+          headerButtonsAlign === 'start' ? 'items-start' : 'items-center',
+          headerClassName || 'pb-2'
+        )}
+      >
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
@@ -340,7 +346,7 @@ export function FormDialog({
           </div>
         )}
       </DialogHeader>
-      {headerSeparator && <Separator />}
+      {headerSeparator && <Separator className="-mt-3" />}
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),

@@ -5,12 +5,12 @@
 /**
  * Safely validates and returns a redirect URL from various sources
  * @param searchParams - URLSearchParams, string, or undefined (will use window.location.search)
- * @param defaultUrl - Default URL to return if no valid redirect is found (default: '/dashboard')
+ * @param defaultUrl - Default URL to return if no valid redirect is found (default: '/customer-operations/customers')
  * @returns A safe redirect URL
  */
 export function getSafeRedirectUrl(
   searchParams?: URLSearchParams | string,
-  defaultUrl: string = '/dashboard'
+  defaultUrl: string = '/customer-operations/customers'
 ): string {
   let urlParams: URLSearchParams;
 

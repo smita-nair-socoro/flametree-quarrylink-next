@@ -44,10 +44,8 @@ export function QuotationActionButtons({
     attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    quotation?.id,
-    quotation
-  );
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } =
+    useQuotationActions(quotation?.id, quotation);
 
   // Early returns for null quotation or new quotation
   if (!quotation) {
@@ -65,6 +63,7 @@ export function QuotationActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
+        {duplicateDialog}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -184,6 +183,7 @@ export function QuotationActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {/* Current stage hide it Duplicate */}

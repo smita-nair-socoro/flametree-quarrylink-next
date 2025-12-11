@@ -49,6 +49,7 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
   canEdit?: boolean;
+  isDuplicate?: boolean;
 }
 
 export default function QuotationForm({
@@ -56,6 +57,7 @@ export default function QuotationForm({
   onCancel,
   className,
   canEdit,
+  isDuplicate,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -243,7 +245,7 @@ export default function QuotationForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              {isEditing ? 'Updating Quote...' : 'Adding Quote...'}
+              {isDuplicate ? 'Creating Duplicate Quote...' : 'Adding Quote...'}
             </p>
           </div>
         </div>
@@ -283,6 +285,24 @@ export default function QuotationForm({
                 'pointer-events-none'
             )}
           >
+            {/* Duplicate Info Banner */}
+            {isDuplicate && (
+              <div className="col-span-full mb-4">
+                <div className="flex items-start gap-3 p-4 bg-[#EFF6FF] border border-[#0075FF33] rounded-lg">
+                  <div className="flex-shrink-0 mt-0.5 text-[#0075FF]">
+                    <Info className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 text-sm text-[#09090B]">
+                    You can edit and adjust all information including customer
+                    details and line items. Once you&apos;re happy with the
+                    changes, create the duplicate and it will be marked as{' '}
+                    <strong>DRAFT</strong>. You can then update it further or
+                    send it to the customer.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Quote Type - Only show when creating new quote */}
             <FormField
               control={quotationForm.control}
@@ -676,8 +696,9 @@ export default function QuotationForm({
                   </div>
                 </div>
 
-                <div className="space-y-6 mt-10 mb-4">
-                  <h2 className="text-2xl font-bold">Audit Information</h2>
+                {!isDuplicate && (
+                  <div className="space-y-6 mt-10 mb-4">
+                    <h2 className="text-2xl font-bold">Audit Information</h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                     <div className="flex items-center gap-2">
@@ -752,7 +773,11 @@ export default function QuotationForm({
                       !canEdit)
                   }
                 >
-                  {isEditing ? 'Save Changes' : 'Add Quote'}
+                  {isDuplicate
+                    ? 'Create Duplicate'
+                    : isEditing
+                    ? 'Save Changes'
+                    : 'Add Quote'}
                 </Button>
               </div>
             )}
@@ -770,7 +795,11 @@ export default function QuotationForm({
                       !canEdit)
                   }
                 >
-                  {isEditing ? 'Save Changes' : 'Add Quote'}
+                  {isDuplicate
+                    ? 'Create Duplicate'
+                    : isEditing
+                    ? 'Save Changes'
+                    : 'Add Quote'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
