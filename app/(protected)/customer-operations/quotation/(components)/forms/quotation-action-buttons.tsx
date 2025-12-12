@@ -156,9 +156,9 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             </>
 
-            <>
-              <DropdownMenuSeparator />
-              {quotation.status !== 'ARCHIVED' && (
+            {quotation.status !== 'ARCHIVED' && (
+              <>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
@@ -166,8 +166,8 @@ export function QuotationActionButtons({
                   <Archive className="h-4 w-4 mr-2 text-destructive" />
                   Archive
                 </DropdownMenuItem>
-              )}
-            </>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -307,10 +307,9 @@ export function QuotationActionButtons({
               Download PDF
             </DropdownMenuItem>
 
-            <div>
-              <DropdownMenuSeparator />
-
-              {quotation.status !== 'ARCHIVED' && (
+            {quotation.status !== 'ARCHIVED' && (
+              <div>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
@@ -318,8 +317,8 @@ export function QuotationActionButtons({
                   <Archive className="h-4 w-4 mr-2 text-destructive" />
                   Archive
                 </DropdownMenuItem>
-              )}
-            </div>
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

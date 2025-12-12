@@ -706,8 +706,8 @@ export function useQuotationActions(
       }
 
       await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
         id: quotationId,
-        data: quotationDTO,
       });
 
       // Open preview window after successful status update
@@ -738,8 +738,8 @@ export function useQuotationActions(
       }
 
       await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
         id: quotationId,
-        data: quotationDTO,
       });
       notifySuccess('Quotation Approved');
       setActiveDialog(null);
@@ -767,8 +767,8 @@ export function useQuotationActions(
       }
 
       await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
         id: quotationId,
-        data: quotationDTO,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);
@@ -818,8 +818,8 @@ export function useQuotationActions(
       }
 
       await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
         id: quotationId,
-        data: quotationDTO,
       });
       notifySuccess('Quotation Archived');
       setActiveDialog(null);
