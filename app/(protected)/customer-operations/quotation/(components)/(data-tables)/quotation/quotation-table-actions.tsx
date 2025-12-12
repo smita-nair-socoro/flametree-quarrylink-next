@@ -9,7 +9,6 @@ import {
   Briefcase,
   Archive,
   Timer,
-  Copy,
   // Copy, used in duplicate action
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
