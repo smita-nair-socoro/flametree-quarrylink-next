@@ -9,7 +9,7 @@ import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery } from '@tanstack/react-query';
 import { ProductsListQueryOptions } from '@/lib/api/product';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 import {
   DataTableClient,
@@ -26,14 +26,14 @@ export default function ProductsPage() {
     React.useState<ProductDetails | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Most Quoted Product',
       value: 'Premium Granite',
       description: '$287,450 this month',
       icon: Gem,
       iconBgColor: 'bg-[#FEF3C6]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#733E0A]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -42,7 +42,7 @@ export default function ProductsPage() {
       description: '8% of inventory',
       icon: PackageX,
       iconBgColor: 'bg-[#FFE2E2]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#9F0712]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -51,7 +51,7 @@ export default function ProductsPage() {
       description: '+2.3% vs last month',
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#00A63E]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -60,7 +60,7 @@ export default function ProductsPage() {
       description: '+8 added this month',
       icon: Package,
       iconBgColor: 'bg-[#CEFAFE]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#0891B2]',
       descriptionColor: 'text-[#00A63E]',
     },
   ];
@@ -129,37 +129,7 @@ export default function ProductsPage() {
         </div>
       </div>
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="overflow-hidden p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
-                    />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
-                  {card.value}
-                </div>
-                <div
-                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
-                >
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">

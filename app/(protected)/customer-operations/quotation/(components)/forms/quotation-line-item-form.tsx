@@ -138,6 +138,16 @@ export default function QuoteLineItemForm({
       { label: 'Truck', value: 'Truck' },
       { label: 'Semi-Trailer', value: 'Semi-Trailer' },
       { label: 'Truck + Trailer', value: 'Truck + Trailer' },
+      { label: 'Rigid truck', value: 'Rigid truck' },
+      { label: 'B-Double', value: 'B-Double' },
+      { label: 'Road train', value: 'Road train' },
+      { label: 'Dog Truck', value: 'Dog Truck' },
+      { label: 'Flatbed', value: 'Flatbed' },
+      { label: 'Tipper', value: 'Tipper' },
+      { label: 'Semi-Tipper', value: 'Semi-Tipper' },
+      { label: 'Side-Tipper', value: 'Side-Tipper' },
+      { label: 'Truck and Dog', value: 'Truck and Dog' },
+      { label: 'Agitator truck', value: 'Agitator truck' },
     ],
     []
   );

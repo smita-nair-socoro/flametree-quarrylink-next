@@ -23,7 +23,7 @@ import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -71,14 +71,14 @@ export default function QuotationsPage() {
     React.useState<Quotation | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Total Quotations',
       value: 15,
       description: '+25% vs last month',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#193CB8]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -87,7 +87,7 @@ export default function QuotationsPage() {
       description: 'Need attention',
       icon: AlertCircle,
       iconBgColor: 'bg-[#FEF9C2]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#733E0A]',
       descriptionColor: 'text-[#E7000B]',
     },
     {
@@ -96,7 +96,7 @@ export default function QuotationsPage() {
       description: '+15% vs last month',
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#0D542B]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -105,7 +105,7 @@ export default function QuotationsPage() {
       description: 'Within 7 days',
       icon: Clock,
       iconBgColor: 'bg-[#FFE4E6]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#7E2A0C]',
       descriptionColor: 'text-[#737373]',
     },
   ];
@@ -166,37 +166,7 @@ export default function QuotationsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card key={card.title} className="overflow-hidden p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs sm:text-sm text-[#737373] font-medium leading-tight break-words">
-                    {card.title}
-                  </span>
-                  <div
-                    className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${card.iconBgColor}`}
-                  >
-                    <Icon
-                      className={`h-4 w-4 sm:h-5 sm:w-5 opacity-70 ${card.iconColor}`}
-                    />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold pt-1 break-all">
-                  {card.value}
-                </div>
-                <div
-                  className={`text-xs sm:text-sm font-normal ${card.descriptionColor} truncate`}
-                >
-                  {card.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <StatsCards cards={statsCards} />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min mt-3">
         {isLoading ? (

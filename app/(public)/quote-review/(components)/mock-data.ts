@@ -140,20 +140,11 @@ export const mockQuotationData = {
 
   // Footer
   footer: {
-    contactInfo: {
-      company: 'QuarryLink Australia Pty Ltd',
-      phone: '1300 QUARRY (1300 782 779)',
-      email: 'quotes@quarrylink.com.au',
-    },
-    officeAddress: {
-      address: 'Level 8, 123 Business Street',
-      city: 'Sydney NSW 2000',
-      abn: '12 345 678 901',
-    },
-    website: {
-      url: 'www.quarrylink.com.au',
-      portalInfo: 'Customer Portal Available',
-      support: '24/7 Support',
-    },
+    email: 'support@quarrylink.com.au',
+    phone: '(02) 7229 1427',
+    addressLine1: 'Suite 1102/132 Arthur St,',
+    addressLine2: 'North Sydney NSW 2060',
+    website: 'www.quarrylink.com.au',
+    businessName: 'QuarryLink',
   },
 };

@@ -76,8 +76,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     error: productError,
     isError: isProductError,
   } = useQuery({
-    ...ProductDetailWithQuarrySupplierProductQueryOptions(id!),
-    enabled: isEditing && !!id,
+    ...ProductDetailWithQuarrySupplierProductQueryOptions(activeProductId ?? 0),
+    enabled: !!activeProductId && (isEditing || productJustCreated),
   });
 
   // Fetch materials for the dropdown
@@ -575,9 +575,9 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             >
               <h2 className="text-lg font-semibold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -585,8 +585,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex  flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -594,8 +594,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex  flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -612,8 +612,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">

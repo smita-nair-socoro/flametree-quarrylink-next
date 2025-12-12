@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Plus,
+  // Plus, Used for duplicate action
   Send,
   MoreHorizontal,
   Printer,
@@ -40,13 +40,12 @@ export function QuotationActionButtons({
 
   // Role-based feature detection
   const { attributes } = useAuth();
-  const userRole = attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    quotation?.id,
-    quotation
-  );
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } =
+    useQuotationActions(quotation?.id, quotation);
 
   // Early returns for null quotation or new quotation
   if (!quotation) {
@@ -64,6 +63,7 @@ export function QuotationActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
+        {duplicateDialog}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -73,11 +73,11 @@ export function QuotationActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {/* Always available: Duplicate */}
-            <DropdownMenuItem onClick={actions.duplicate}>
+            {/* Current stage hide it: Duplicate */}
+            {/* <DropdownMenuItem onClick={actions.duplicate}>
               <Plus className="h-4 w-4 mr-2" />
               Duplicate
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
 
             {/* Status-specific actions */}
             {quotation.status === 'DRAFT' && (
@@ -156,7 +156,7 @@ export function QuotationActionButtons({
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={actions.print}>
                 <Printer className="h-4 w-4 mr-2" />
-                Print Quote
+                Download PDF
               </DropdownMenuItem>
             </>
 
@@ -183,10 +183,11 @@ export function QuotationActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Always visible: Duplicate */}
-        <Button
+        {/* Current stage hide it Duplicate */}
+        {/* <Button
           variant="ghost"
           size="sm"
           onClick={actions.duplicate}
@@ -194,7 +195,7 @@ export function QuotationActionButtons({
         >
           <Plus className="h-4 w-4 mr-2" />
           Duplicate
-        </Button>
+        </Button> */}
 
         {/* Status-specific primary actions */}
         {quotation.status === 'DRAFT' && (
@@ -316,7 +317,7 @@ export function QuotationActionButtons({
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem onClick={actions.print}>
               <Printer className="h-4 w-4 mr-2" />
-              Print Quote
+              Download PDF
             </DropdownMenuItem>
 
             <div>

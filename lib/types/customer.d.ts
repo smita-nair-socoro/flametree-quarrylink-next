@@ -1,3 +1,5 @@
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
+
 export interface Customer {
   id: number;
   customer_type: CUSTOMER_TYPE;
@@ -14,6 +16,8 @@ export interface Customer {
   remaining_credit: number;
   payment_type: string;
   payment_terms_day: number;
+  payment_term_type: string;
+  invoice_due_date: number;
   payment_terms: string;
   account_manager: string;
   customer_status: CUSTOMER_STATUS;

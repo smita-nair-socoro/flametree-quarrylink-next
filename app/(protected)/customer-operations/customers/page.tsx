@@ -12,17 +12,16 @@ import {
   Users,
   UserCheck,
   Activity,
-  Briefcase,
+  Building2,
   Loader2,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { Card, CardContent } from '@/components/ui/card';
 import { TableSkeleton } from '@/components/table-skeleton';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 import {
   DataTableClient,
@@ -37,14 +36,14 @@ export default function CustomersPage() {
     React.useState<Customer | null>(null);
 
   // Statistics cards data
-  const statsCards = [
+  const statsCards: StatsCardData[] = [
     {
       title: 'Total Customers',
       value: 248,
       description: '+12 this month',
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#193CB8]',
       descriptionColor: 'text-[#00A63E]',
     },
     {
@@ -53,7 +52,7 @@ export default function CustomersPage() {
       description: '75% of total',
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#016630]',
       descriptionColor: 'text-[#737373]',
     },
     {
@@ -62,16 +61,16 @@ export default function CustomersPage() {
       description: '45% requested quotes',
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#8E51FF]',
       descriptionColor: 'text-[#737373]',
     },
     {
       title: 'Total Individual Customers',
       value: 63,
       description: '45% requested quotes',
-      icon: Briefcase,
+      icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
-      iconColor: 'text-[#0A0A0AB2]',
+      iconColor: 'text-[#DB2777]',
       descriptionColor: 'text-[#737373]',
     },
   ];
@@ -133,6 +132,8 @@ export default function CustomersPage() {
       };
     }) || [];
 
+  console.log('items', items);
+
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
     { column: 'customer_type', title: 'Customer Type', icon: Plus },
@@ -160,49 +161,12 @@ export default function CustomersPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {isLoading
-          ? // Skeleton loading state for cards
-            Array.from({ length: 4 }).map((_, index) => (
-              <Card key={index} className="p-5">
-                <CardContent className="p-2 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <Skeleton className="h-4 w-[140px]" />
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                  </div>
-                  <Skeleton className="h-9 w-[100px] mt-4" />
-                  <Skeleton className="h-3 w-[120px] mt-2" />
-                </CardContent>
-              </Card>
-            ))
-          : statsCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <Card key={card.title} className="p-5">
-                  <CardContent className="p-2 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#737373] font-medium">
-                        {card.title}
-                      </span>
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full ${card.iconBgColor}`}
-                      >
-                        <Icon
-                          className={`h-5 w-5 opacity-70 ${card.iconColor}`}
-                        />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold pt-2">{card.value}</div>
-                    <div
-                      className={`text-sm font-normal ${card.descriptionColor}`}
-                    >
-                      {card.description}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-      </div>
+      <StatsCards
+        cards={statsCards}
+        isLoading={isLoading}
+        mobileGridCols={1}
+        desktopGridCols={4}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (

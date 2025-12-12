@@ -46,10 +46,12 @@ export default function QuarrySupplierForm({
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
     React.useState(false);
-  const [pendingSubmission, setPendingSubmission] =
-    React.useState<z.infer<typeof QuarrySupplierFormSchema> | null>(null);
-  const [mockBillingCycle, setMockBillingCycle] =
-    React.useState<'monthly' | 'yearly'>('monthly');
+  const [pendingSubmission, setPendingSubmission] = React.useState<z.infer<
+    typeof QuarrySupplierFormSchema
+  > | null>(null);
+  const [mockBillingCycle, setMockBillingCycle] = React.useState<
+    'monthly' | 'yearly'
+  >('monthly');
   const subscriptionMock = React.useMemo(
     () => ({
       billingCycle: mockBillingCycle,
@@ -257,15 +259,12 @@ export default function QuarrySupplierForm({
     });
   }, [pendingSubmission, submitQuarrySupplier]);
 
-  const handleSubscriptionDialogToggle = React.useCallback(
-    (open: boolean) => {
-      setIsSubscriptionDialogOpen(open);
-      if (!open) {
-        setPendingSubmission(null);
-      }
-    },
-    []
-  );
+  const handleSubscriptionDialogToggle = React.useCallback((open: boolean) => {
+    setIsSubscriptionDialogOpen(open);
+    if (!open) {
+      setPendingSubmission(null);
+    }
+  }, []);
 
   const watchedQuarryName = quarrySupplierForm.watch('name');
   const locationDescriptor =
@@ -644,18 +643,13 @@ export default function QuarrySupplierForm({
           <Separator className="col-span-full my-2 mb-5" />
           {/* Audit Information */}
           {isEditing && (
-            <div className="col-span-full space-y-6">
+            <div className="col-span-full space-y-6 mt-10 mb-4">
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div
-                className={cn(
-                  'grid gap-3',
-                  isDesktop ? 'grid-cols-2 gap-2 max-w-3xl' : 'grid-cols-1'
-                )}
-              >
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Create By:
+                  <p className="text-sm font-semibold text-foreground">
+                    Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {selectedQuarrySupplier?.created_by || 'N/A'}
@@ -663,7 +657,7 @@ export default function QuarrySupplierForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -672,8 +666,8 @@ export default function QuarrySupplierForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Create Date:
+                  <p className="text-sm font-semibold text-foreground">
+                    Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {selectedQuarrySupplier?.created_at
@@ -689,7 +683,7 @@ export default function QuarrySupplierForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">

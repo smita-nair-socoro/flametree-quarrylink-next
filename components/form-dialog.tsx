@@ -66,6 +66,9 @@ interface AddProductDrawerDialogProps {
   /** Override the header title */
   dialogTitle?: string;
 
+  /** Custom title component (overrides dialogTitle when provided) */
+  customTitle?: React.ReactNode;
+
   /** Override the trigger button text */
   buttonTitle?: string;
 
@@ -131,6 +134,7 @@ interface ChildFormProps {
 export function FormDialog({
   id,
   dialogTitle,
+  customTitle,
   dialogDescription,
   buttonTitle,
   trigger,
@@ -206,7 +210,7 @@ export function FormDialog({
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
-  const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
+  const headerTitle = customTitle ?? ((finalCustomId || dialogTitle) ?? defaultTitle);
   const triggerTitle = buttonTitle ?? defaultTitle;
 
   // Determine if we're in editing mode - true when we have a valid ID (> 0)
@@ -339,7 +343,7 @@ export function FormDialog({
           </div>
         )}
       </DialogHeader>
-      {headerSeparator && <Separator />}
+      {headerSeparator && <Separator className="-mt-3" />}
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),
