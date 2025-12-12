@@ -267,6 +267,7 @@ export default function QuarrySupplierForm({
           country: address.country || '',
           latitude: address.lat || 0,
           longitude: address.lng || 0,
+          version: selectedQuarrySupplier?.address?.version || 0,
         } as Address;
 
         const quarrySupplierData = {
@@ -287,10 +288,25 @@ export default function QuarrySupplierForm({
           ...(isEditing && selectedQuarrySupplier?.version !== undefined
             ? { version: selectedQuarrySupplier.version }
             : {}),
+          version: selectedQuarrySupplier?.version || 0,
         } as unknown as Quarry;
+
+        console.log('📍 [QuarrySupplier] Address Data:', addressData);
+        console.log(
+          '📍 [QuarrySupplier] Google Place ID:',
+          addressData.googlePlaceId
+        );
+        console.log(
+          '📦 [QuarrySupplier] Full Request Data:',
+          quarrySupplierData
+        );
 
         if (isEditing && id) {
           // Update existing quarry/supplier
+          console.log('📤 [QuarrySupplier][UPDATE] Request Body:', {
+            id,
+            data: quarrySupplierData,
+          });
           await updateQuarryMutation.mutateAsync({
             id,
             data: quarrySupplierData,
@@ -303,6 +319,10 @@ export default function QuarrySupplierForm({
           );
         } else {
           // Create new quarry/supplier
+          console.log(
+            '📤 [QuarrySupplier][CREATE] Request Body:',
+            quarrySupplierData
+          );
           await createQuarryMutation.mutateAsync(quarrySupplierData);
 
           notifySuccess(
