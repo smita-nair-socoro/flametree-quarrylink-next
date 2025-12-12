@@ -40,6 +40,40 @@ interface FormProps {
   canEdit?: boolean;
 }
 
+type QuoteItemRequest = {
+  quoteId: number;
+  productId: number;
+  quarrySupplierId: number;
+  productName: string;
+  quarryName: string;
+  supplierProductName: string;
+  productCostUom: string;
+  productCostQty: number;
+  productCostPrice: number;
+  totalProductCostPrice: number;
+  productSellUom: string;
+  productSellQty: number;
+  productSellPrice: number;
+  totalProductSellPrice: number;
+  truckType: string;
+  truckCostUom: string;
+  truckCostQty: number;
+  truckCostPrice: number;
+  totalTruckCostPrice: number;
+  truckSellUom: string;
+  truckSellQty: number;
+  truckSellPrice: number;
+  totalTruckSellPrice: number;
+  grossProfit: number;
+  totalQuantityRequired: number;
+  allocatedQuantity: number;
+  remainingQuantity: number;
+  requiredLoads: number;
+  version: number;
+  is_deleted: boolean;
+  id?: number;
+};
+
 export default function QuoteLineItemForm({
   id,
   onCancel,
@@ -333,9 +367,8 @@ export default function QuoteLineItemForm({
       return;
     }
     // Prepare quote item data
-    const quoteItemData = {
-      id: selectedLineItem?.id,
-      quoteId: selectedQuotation?.id || 1,
+    const quoteItemData: QuoteItemRequest = {
+      quoteId: selectedQuotation?.id || 0,
       productId: values.productId,
       quarrySupplierId: values.quarrySupplierId,
       productName:
@@ -369,6 +402,11 @@ export default function QuoteLineItemForm({
       version: 1,
       is_deleted: false,
     };
+
+    // Only include ID when editing an existing line item
+    if (isEditing && selectedLineItem?.id) {
+      quoteItemData.id = selectedLineItem.id;
+    }
 
     try {
       if (isEditing && selectedLineItem?.id) {
