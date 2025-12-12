@@ -24,6 +24,7 @@ import {
   useUpdateQuotation,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/errormessage-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface DialogConfig {
@@ -688,7 +689,9 @@ export function useQuotationActions(
   // Extracted action handlers
   const handleSendToCustomer = async () => {
     if (!quotationId || !resolvedQuotation) {
-      notifyError('Unable to send quotation to customer');
+      notifyError(
+        extractErrorMessage('Unable to send quotation to customer')
+      );
       return;
     }
 
@@ -698,7 +701,7 @@ export function useQuotationActions(
       });
 
       if (!quotationDTO) {
-        notifyError('Missing quotation data for update');
+        notifyError(extractErrorMessage('Missing quotation data for update'));
         return;
       }
 
@@ -714,13 +717,13 @@ export function useQuotationActions(
       setSelectedAction(null);
     } catch (error) {
       console.error('Failed to send quotation to customer:', error);
-      notifyError('Failed to Send Quotation');
+      notifyError(extractErrorMessage(error));
     }
   };
 
   const handleApprove = async () => {
     if (!quotationId || !resolvedQuotation) {
-      notifyError('Unable to approve quotation');
+      notifyError(extractErrorMessage('Unable to approve quotation'));
       return;
     }
 
@@ -730,7 +733,7 @@ export function useQuotationActions(
       });
 
       if (!quotationDTO) {
-        notifyError('Missing quotation data for update');
+        notifyError(extractErrorMessage('Missing quotation data for update'));
         return;
       }
 
@@ -743,13 +746,13 @@ export function useQuotationActions(
       setSelectedAction(null);
     } catch (error) {
       console.error('Failed to approve quotation:', error);
-      notifyError('Failed to Approve Quotation');
+      notifyError(extractErrorMessage(error));
     }
   };
 
   const handleDecline = async () => {
     if (!quotationId || !resolvedQuotation) {
-      notifyError('Unable to decline quotation');
+      notifyError(extractErrorMessage('Unable to decline quotation'));
       return;
     }
 
@@ -759,7 +762,7 @@ export function useQuotationActions(
       });
 
       if (!quotationDTO) {
-        notifyError('Missing quotation data for update');
+        notifyError(extractErrorMessage('Missing quotation data for update'));
         return;
       }
 
@@ -772,7 +775,7 @@ export function useQuotationActions(
       setSelectedAction(null);
     } catch (error) {
       console.error('Failed to decline quotation:', error);
-      notifyError('Failed to Decline Quotation');
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -793,14 +796,14 @@ export function useQuotationActions(
       setActiveDialog(null);
       setSelectedAction(null);
     } catch (error) {
-      notifyError('Failed to Extend Expiry Date');
+      notifyError(extractErrorMessage(error));
       console.log('Failed to extend expiry date:', error);
     }
   };
 
   const handleArchive = async () => {
     if (!quotationId || !resolvedQuotation) {
-      notifyError('Unable to archive quotation');
+      notifyError(extractErrorMessage('Unable to archive quotation'));
       return;
     }
 
@@ -810,7 +813,7 @@ export function useQuotationActions(
       });
 
       if (!quotationDTO) {
-        notifyError('Missing quotation data for update');
+        notifyError(extractErrorMessage('Missing quotation data for update'));
         return;
       }
 
@@ -823,7 +826,7 @@ export function useQuotationActions(
       setSelectedAction(null);
     } catch (error) {
       console.error('Failed to archive quotation:', error);
-      notifyError('Failed to Archive Quotation');
+      notifyError(extractErrorMessage(error));
     }
   };
 

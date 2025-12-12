@@ -135,7 +135,9 @@ export default function QuotationForm({
     }
 
     if (!customerName || !accountManagerName) {
-      notifyError('Missing customer or account manager information');
+      notifyError(
+        extractErrorMessage('Missing customer or account manager information')
+      );
       return;
     }
 
