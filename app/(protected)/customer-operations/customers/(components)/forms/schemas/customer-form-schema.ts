@@ -1,5 +1,5 @@
 import z from 'zod';
-import isValidABN from 'is-valid-abn';
+// import isValidABN from 'is-valid-abn';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
 // const PhoneRequired = z
@@ -143,13 +143,13 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
   // Customer type specific validations
   if (data.customer_type === 'BUSINESS') {
     // ABN must be valid for Business customers
-    if (!data.abn || !isValidABN(data.abn)) {
-      ctx.addIssue({
-        path: ['abn'],
-        code: z.ZodIssueCode.custom,
-        message: data.abn ? 'Invalid ABN' : 'ABN is required',
-      });
-    }
+    // if (!data.abn || !isValidABN(data.abn)) {
+    //   ctx.addIssue({
+    //     path: ['abn'],
+    //     code: z.ZodIssueCode.custom,
+    //     message: data.abn ? 'Invalid ABN' : 'ABN is required',
+    //   });
+    // }
 
     // Business name is required for Business customers
     if (!data.business_name || data.business_name.trim().length < 2) {
