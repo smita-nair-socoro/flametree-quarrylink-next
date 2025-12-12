@@ -44,6 +44,8 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
 import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
+import { useQuery } from '@tanstack/react-query';
+import { CustomersListQueryOptions } from '@/lib/api/customer';
 
 interface FormProps {
   id?: number;
@@ -100,18 +102,54 @@ export default function QuotationForm({
     }
   }, [isEditing, currentQuotation, quotationForm]);
 
-  // Get unique customer names and account managers from quotations store
-  const getUniqueCustomerNames = useQuotationStore(
-    (state) => state.getUniqueCustomerNames
-  );
+  // Fetch customers from API
+  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
+
+  console.log('👥 [QuotationForm] Customers from API:', customers);
+
+  // Get unique account managers from quotations store
   const getUniqueAccountManagers = useQuotationStore(
     (state) => state.getUniqueAccountManagers
   );
 
-  // Build customer options from quotations list
+  // Build customer options from API customers list
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
-    return getUniqueCustomerNames();
-  }, [getUniqueCustomerNames]);
+    const options = customers
+      .map((customer) => ({
+        label: customer.business_name,
+        value: customer.id,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    console.log('📋 [QuotationForm] Customer options:', options);
+    return options;
+  }, [customers]);
+
+  // Auto-fill phone and email when customer is selected
+  React.useEffect(() => {
+    const subscription = quotationForm.watch((value, { name }) => {
+      if (name === 'customerId' && value.customerId) {
+        const selectedCustomer = customers.find(
+          (c) => c.id === value.customerId
+        );
+
+        if (selectedCustomer) {
+          console.log('🔄 [QuotationForm] Auto-filling customer data:', {
+            customerId: selectedCustomer.id,
+            customerName: selectedCustomer.business_name,
+            phone: selectedCustomer.phone,
+            email: selectedCustomer.email,
+          });
+
+          // Update phone and email fields whenever customer changes
+          quotationForm.setValue('phone', selectedCustomer.phone || '');
+          quotationForm.setValue('email', selectedCustomer.email || '');
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [customers, quotationForm]);
 
   // Build account manager options from quotations list
   const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
@@ -119,13 +157,14 @@ export default function QuotationForm({
   }, [getUniqueAccountManagers]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    const getCustomerNameById =
-      useQuotationStore.getState().getCustomerNameById;
     const getAccountManagerNameById =
       useQuotationStore.getState().getAccountManagerNameById;
     const quotations = useQuotationStore.getState().quotations;
 
-    let customerName = getCustomerNameById(values.customerId);
+    // Get customer name from customers list
+    const selectedCustomer = customers.find((c) => c.id === values.customerId);
+    let customerName = selectedCustomer?.business_name;
+
     let accountManagerName = getAccountManagerNameById(values.accountManager);
 
     if (isEditing && currentQuotation) {
@@ -140,6 +179,13 @@ export default function QuotationForm({
       );
       return;
     }
+
+    console.log('📝 [QuotationForm][onSubmit] Customer Data:', {
+      customerId: values.customerId,
+      customerName,
+      phone: values.phone,
+      email: values.email,
+    });
 
     const quoteNumber =
       isEditing && currentQuotation?.quoteNumber
