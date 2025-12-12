@@ -38,6 +38,7 @@ import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
 } from '@/lib/utils/quote-helpers';
+import { extractErrorMessage } from '@/lib/utils/errormessage-helper';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
@@ -197,10 +198,13 @@ export default function QuotationForm({
         notifySuccess('Quotation Added');
       }
       onCancel?.();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to save quotation:', error);
+
+      const message = extractErrorMessage(error);
+
       notifyError(
-        isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation'
+        `${isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation'}: ${message}`
       );
     }
   }
