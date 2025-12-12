@@ -56,7 +56,8 @@ export function useQuotationFormState(
     return null;
   }, [isEditing, quotationDetailData]);
 
-  const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
+  // Only use selected quotation data when editing; keep new form empty otherwise
+  const currentQuotation = isEditing ? getDetailedQuotation : null;
 
   // ===== DYNAMIC LABELS =====
   const quoteType = quotationForm.watch('quoteType');

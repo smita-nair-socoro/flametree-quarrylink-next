@@ -66,7 +66,10 @@ export default function QuotationForm({
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
-    defaultValues: quotationToFormValues(selectedQuotation, isEditing),
+    defaultValues: quotationToFormValues(
+      isEditing ? selectedQuotation : null,
+      isEditing
+    ),
   });
 
   const createQuotation = useCreateQuotation();
