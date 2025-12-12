@@ -101,7 +101,8 @@ export default function QuarrySupplierForm({
         country: backendAddress.country || '',
         lat: backendAddress.latitude || 0,
         lng: backendAddress.longitude || 0,
-        googlePlaceId: backendAddress.googlePlaceId || '',
+        // googlePlaceId: backendAddress.googlePlaceId || '',
+        googlePlaceId: 123123123123, // TEMPORARY FIX FOR BACKEND
       };
     }
     return {
@@ -254,7 +255,8 @@ export default function QuarrySupplierForm({
           selectedQuarrySupplier?.address?.version !== undefined
             ? { version: selectedQuarrySupplier.address.version }
             : {}),
-          googlePlaceId: address.googlePlaceId || '',
+          // googlePlaceId: address.googlePlaceId || '',
+          googlePlaceId: 123123123123, // TEMPORARY FIX FOR BACKEND
           formattedAddress: address.formattedAddress || '',
           streetDetailsPrimary: address.address1 || '',
           streetDetailsOptional: address.address2 || '',
@@ -356,10 +358,7 @@ export default function QuarrySupplierForm({
 
       await submitQuarrySupplier(values);
     },
-    [
-      willExceedQuarryLimit,
-      submitQuarrySupplier,
-    ]
+    [willExceedQuarryLimit, submitQuarrySupplier]
   );
 
   const handleSubscriptionConfirm = React.useCallback(() => {
