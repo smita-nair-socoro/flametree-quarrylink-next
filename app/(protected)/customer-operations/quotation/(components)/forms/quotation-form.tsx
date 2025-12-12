@@ -42,6 +42,7 @@ import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
 interface FormProps {
   id?: number;
@@ -156,6 +157,24 @@ export default function QuotationForm({
         deliveryAddress: deliveryAddress,
       });
 
+      // Handle status when editing
+      if (isEditing && currentQuotation) {
+        if (currentQuotation.status === 'DECLINED') {
+          // If the quote was DECLINED, change it back to DRAFT when saving
+          quoteData.quoteStatus = QUOTE_STATUS.DRAFT;
+          console.log(
+            '🔄 [Quotation][submit] Changing DECLINED status to DRAFT'
+          );
+        } else {
+          // Preserve the original status for other statuses (PENDING, APPROVED, etc.)
+          quoteData.quoteStatus = currentQuotation.status;
+          console.log(
+            '🔄 [Quotation][submit] Preserving original status:',
+            currentQuotation.status
+          );
+        }
+      }
+
       console.log('📦 [Quotation][submit] Transformed Quote Data:', quoteData);
 
       if (isEditing && currentQuotation?.id) {
@@ -261,6 +280,19 @@ export default function QuotationForm({
               </div>
               <span className="text-muted-foreground ml-6 text-sm">
                 Save your changes and it will return to Draft for sending
+              </span>
+            </div>
+          )}
+
+          {isEditing && currentQuotation?.status === 'DECLINED' && (
+            <div className="border border-blue-600 bg-blue-50 p-4 rounded-md mb-4 flex flex-col">
+              <div className="flex items-center gap-2 text-blue-900 font-medium text-sm">
+                <Info className="h-4 w-4" />
+                <span>This quote was declined</span>
+              </div>
+              <span className="text-muted-foreground ml-6 text-sm">
+                You can edit and save changes. It will automatically return to
+                Draft status
               </span>
             </div>
           )}

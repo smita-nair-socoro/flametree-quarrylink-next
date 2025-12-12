@@ -7,6 +7,7 @@ import { QuotationActionButtons } from '@/app/(protected)/customer-operations/qu
 import { ActionDialog } from '@/components/action-dialog';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import {
+  Archive,
   ArrowRight,
   Calendar,
   CircleCheckBig,
@@ -498,6 +499,78 @@ const getDialogConfigs = (
         confirmCustomColor: '#F54900',
       },
     };
+  } else if (selectedAction?.key === 'archive') {
+    return {
+      archive: {
+        title: 'Archive Quote',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#F3F4F6] rounded-full">
+              <span className="flex items-center justify-center">
+                <Archive className="h-[20px] w-[20px] text-[#6B7280]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to archive this quote?
+            </span>
+            <div className="border-1 border-[#D1D5DB] rounded-md p-[16.625px] bg-[#F9FAFB]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <Archive className="h-[20px] w-[20px] text-[#6B7280] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#374151] font-medium">
+                    Quote Archived
+                  </span>
+                  <span className="text-[14px] font-normal text-[#6B7280]">
+                    This quote will be moved to archived status and removed from
+                    active quote lists for better organization.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when Quote is archived:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote status changes to Archived</li>
+                <li> Quote is removed from active quote lists section</li>
+                <li> Quote becomes read-only for reference</li>
+                <li> Historical data is preserved permanently</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What continues to work:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote remains accessible in archived section</li>
+                <li> All quote data and attachments preserved</li>
+                <li> Customer relationship history maintained</li>
+                <li> Reporting and analytics include archived data</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Archive Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#6B7280',
+      },
+    };
   }
   return {};
 };
@@ -829,7 +902,7 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit = resolvedQuotation?.status === 'DRAFT';
+  const canEdit = resolvedQuotation?.status === 'DRAFT' || resolvedQuotation?.status === 'DECLINED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
