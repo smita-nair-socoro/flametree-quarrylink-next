@@ -15,15 +15,17 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { useProductStore } from '@/app/stores/product-store';
+import {
+  useProductStore,
+  useSelectedProduct,
+} from '@/app/stores/product-store';
 import { useProductActions } from '@/hooks/use-product-actions';
 
 export default function ProductsPage() {
   const setSelectedProduct = useProductStore(
     (state) => state.setSelectedProduct
   );
-  const [selectedProductForActions, setSelectedProductForActions] =
-    React.useState<ProductDetails | null>(null);
+  const selectedProductForActions = useSelectedProduct();
 
   // Statistics cards data
   const statsCards: StatsCardData[] = [
@@ -87,7 +89,6 @@ export default function ProductsPage() {
   // Handle row click to open product details
   const handleRowClick = (product: ProductDetails) => {
     setSelectedProduct(product);
-    setSelectedProductForActions(product);
     actions.view();
   };
 

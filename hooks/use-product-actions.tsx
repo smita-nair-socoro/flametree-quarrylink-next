@@ -15,7 +15,10 @@ import {
 } from 'lucide-react';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { useDeleteProduct } from '@/lib/api/product';
+import { useDeleteProduct, useUpdateProduct } from '@/lib/api/product';
+import { convertKeysToCamelCase } from '@/lib/utils/case-conversion';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { useProductStore } from '@/app/stores/product-store';
 
 interface DialogConfig {
   title?: string;
@@ -46,9 +49,14 @@ export function useProductActions(
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [blockingItems, setBlockingItems] = React.useState<any>(null);
+  const [blockingItems, setBlockingItems] = React.useState<{
+    quotes?: string[];
+  } | null>(null);
 
   const deleteProductMutation = useDeleteProduct();
+  const updateProductMutation = useUpdateProduct();
+  const selectedProduct = useProductStore((s) => s.selectedProduct);
+  const setSelectedProduct = useProductStore((s) => s.setSelectedProduct);
 
   const getDialogConfigs = (
     productData?: ProductDetails | null,
@@ -356,7 +364,6 @@ export function useProductActions(
 
     unavailable: createDialogAction('unavailable', () => {
       console.log('Unavailable product:', productId);
-      // TODO: implement unavailable logic
     }),
 
     available: createDialogAction('available', () => {
@@ -434,20 +441,97 @@ export function useProductActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        confirmDisabled={key === 'delete' && deleteProductMutation.isPending}
+        confirmDisabled={
+          (key === 'delete' && deleteProductMutation.isPending) ||
+          ((key === 'unavailable' || key === 'available') &&
+            updateProductMutation.isPending)
+        }
         onConfirmAction={() => {
           switch (key) {
             case 'unavailable':
-              console.log('Unavailable product:', productId, productData);
-              // TODO: implement unavailable logic
-              setActiveDialog(null);
-              setSelectedAction(null);
+              (async () => {
+                try {
+                  if (!productId) throw new Error('Product ID is required');
+                  if (!productData) throw new Error('Product data is required');
+
+                  // Match ProductForm update payload, but set inactive.
+                  const payload = {
+                    product_name: productData.product_name,
+                    product_code: productData.product_code,
+                    material_id: productData.material.id,
+                    density_tonnage_per_m3: productData.density_tonnage_per_m3,
+                    product_description: productData.product_description,
+                    is_active: false,
+                    version: productData.version ?? 0,
+                  };
+
+                  console.log('productData', productData);
+                  console.log('payload', payload);
+
+                  const camelCasePayload = convertKeysToCamelCase(payload);
+
+                  await updateProductMutation.mutateAsync({
+                    id: productId,
+                    data: { ...camelCasePayload, id: productId },
+                  });
+
+                  // Keep the dialog header badges in sync (FormDialog reads from product-store)
+                  if (selectedProduct?.id === productId) {
+                    setSelectedProduct({
+                      ...selectedProduct,
+                      is_active: false,
+                    });
+                  }
+
+                  notifySuccess('Product marked as unavailable.');
+                } catch (err: unknown) {
+                  notifyError(
+                    (err as Error)?.message ?? 'Failed to update product'
+                  );
+                } finally {
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                }
+              })();
               break;
             case 'available':
-              console.log('Available product:', productId, productData);
-              // TODO: implement available logic
-              setActiveDialog(null);
-              setSelectedAction(null);
+              (async () => {
+                try {
+                  if (!productId) throw new Error('Product ID is required');
+                  if (!productData) throw new Error('Product data is required');
+
+                  const payload = {
+                    product_name: productData.product_name,
+                    product_code: productData.product_code,
+                    material_id: productData.material.id,
+                    density_tonnage_per_m3: productData.density_tonnage_per_m3,
+                    product_description: productData.product_description,
+                    is_active: true,
+                    version: productData.version ?? 0,
+                  };
+
+                  const camelCasePayload = convertKeysToCamelCase(payload);
+
+                  await updateProductMutation.mutateAsync({
+                    id: productId,
+                    data: { ...camelCasePayload, id: productId },
+                  });
+
+                  // Keep the dialog header badges in sync (FormDialog reads from product-store)
+                  if (selectedProduct?.id === productId) {
+                    setSelectedProduct({ ...selectedProduct, is_active: true });
+                  }
+
+                  notifySuccess('Product marked as available.');
+                } catch (err: unknown) {
+                  notifyError(
+                    (err as Error)?.message ?? 'Failed to update product'
+                  );
+                } finally {
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                }
+              })();
               break;
             case 'delete':
               handleDeleteProduct();

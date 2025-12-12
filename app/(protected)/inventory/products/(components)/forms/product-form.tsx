@@ -488,7 +488,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     dialogWidth="700px"
                     contentClass="-mt-5"
                   >
-                    <SupplierForm productId={activeProductId || undefined} />
+                    <SupplierForm productId={activeProductId ?? undefined} />
                   </FormDialog>
                 )}
               </div>
@@ -632,35 +632,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               </div>
             </div>
           )}
-
-          {/* Form Actions */}
-          {/* <div className={cn('mb-6', 'flex justify-end space-x-2')}>
-            {isDesktop && isEditing && (
-              <Button variant="outline" type="button" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
-
-            {isEditing && (
-              <Button
-                form="add-new-product-form"
-                type="submit"
-                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
-              >
-                Save Changes
-              </Button>
-            )}
-            {!isDesktop && isEditing && (
-              <Button
-                variant="outline"
-                type="button"
-                onClick={onCancel}
-                className="w-full"
-              >
-                Cancel
-              </Button>
-            )}
-          </div> */}
         </form>
       </Form>
     </div>

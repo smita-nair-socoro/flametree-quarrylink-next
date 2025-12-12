@@ -486,10 +486,6 @@ export default function SupplierForm({
         isActive: true,
         version: convertedQuarrySupplierProduct?.version || 0,
       };
-      console.log('========== PAYLOAD DEBUG ==========');
-      console.log('Payload (camelCase):', camelCasePayload);
-      console.log('JSON Payload:', JSON.stringify(camelCasePayload, null, 2));
-      console.log('===================================');
 
       if (isEditing && quarrySupplierId) {
         // Update existing quarry-supplier-product
