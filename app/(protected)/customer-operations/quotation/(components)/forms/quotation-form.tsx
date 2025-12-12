@@ -38,7 +38,7 @@ import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
 } from '@/lib/utils/quote-helpers';
-import { extractErrorMessage } from '@/lib/utils/errormessage-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';

@@ -24,7 +24,7 @@ import {
   useUpdateQuotation,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/errormessage-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface DialogConfig {
@@ -689,9 +689,7 @@ export function useQuotationActions(
   // Extracted action handlers
   const handleSendToCustomer = async () => {
     if (!quotationId || !resolvedQuotation) {
-      notifyError(
-        extractErrorMessage('Unable to send quotation to customer')
-      );
+      notifyError(extractErrorMessage('Unable to send quotation to customer'));
       return;
     }
 
@@ -905,7 +903,9 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit = resolvedQuotation?.status === 'DRAFT' || resolvedQuotation?.status === 'DECLINED';
+  const canEdit =
+    resolvedQuotation?.status === 'DRAFT' ||
+    resolvedQuotation?.status === 'DECLINED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
