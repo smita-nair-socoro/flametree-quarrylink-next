@@ -726,8 +726,32 @@ export function useQuotationActions(
   };
 
   const handleArchive = async () => {
-    console.log('Archive quotation:', quotationId, resolvedQuotation);
-    // TODO: implement archive logic
+    if (!quotationId || !resolvedQuotation) {
+      notifyError('Unable to archive quotation');
+      return;
+    }
+
+    try {
+      const quotationDTO = buildUpdatePayload({
+        quoteStatus: QuoteStatus.ARCHIVED,
+      });
+
+      if (!quotationDTO) {
+        notifyError('Missing quotation data for update');
+        return;
+      }
+
+      await updateQuotationMutation.mutateAsync({
+        id: quotationId,
+        data: quotationDTO,
+      });
+      notifySuccess('Quotation Archived');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to archive quotation:', error);
+      notifyError('Failed to Archive Quotation');
+    }
   };
 
   // Map action keys to their handlers
