@@ -11,7 +11,7 @@ export interface Address {
   formattedAddress: string;
   latitude: number;
   longitude: number;
-  googlePlaceId: string;
+  googlePlaceId: string | number; // Google Place ID from Places API
   version: number;
 }
 
@@ -26,5 +26,5 @@ export interface AddressType {
   country: string;
   lat: number;
   lng: number;
-  googlePlaceId?: string; // Optional Google Place ID from Places API
+  googlePlaceId?: string | number; // Optional Google Place ID from Places API
 }
