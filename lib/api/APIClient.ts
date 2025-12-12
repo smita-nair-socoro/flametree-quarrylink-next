@@ -447,8 +447,8 @@ export const APIClient = {
           return data;
         })(),
       }),
-    update: (id: number, data: Partial<QuotationDTO>) =>
-      appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${id}`, {
+    update: (data: Partial<QuotationDTO>) =>
+      appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${data.id}`, {
         body: (() => {
           console.log('📡 [APIClient][PUT] Full Request Payload:', data);
           return data;

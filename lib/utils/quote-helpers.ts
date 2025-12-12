@@ -93,6 +93,8 @@ export const transformFormDataToQuoteDto = (
     quoteType: formData.quoteType as QUOTE_TYPE,
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,
+    customerEmail: (formData.email as string) || '',
+    customerPhone: (formData.phone as string) || '',
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
     expiryDate: toLocalDateTime(expiryDate),

@@ -184,15 +184,10 @@ export default function QuotationForm({
       console.log('📦 [Quotation][submit] Transformed Quote Data:', quoteData);
 
       if (isEditing && currentQuotation?.id) {
-        console.log('📤 [UPDATE] Sending Request Body:', {
-          id: currentQuotation.id,
-          data: quoteData,
-        });
+        const updatePayload = { ...quoteData, id: currentQuotation.id };
+        console.log('📤 [UPDATE] Sending Request Body:', updatePayload);
 
-        await updateQuotation.mutateAsync({
-          id: currentQuotation.id,
-          data: quoteData,
-        });
+        await updateQuotation.mutateAsync(updatePayload);
 
         notifySuccess('Quotation Updated');
       } else {
@@ -206,7 +201,9 @@ export default function QuotationForm({
       const message = extractErrorMessage(error);
 
       notifyError(
-        `${isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation'}: ${message}`
+        `${
+          isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation'
+        }: ${message}`
       );
     }
   }

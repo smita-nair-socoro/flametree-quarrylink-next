@@ -66,8 +66,8 @@ export const useUpdateQuotation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<QuotationDTO> }) =>
-      APIClient.quotations.update(id, data),
+    mutationFn: (data: Partial<QuotationDTO>) =>
+      APIClient.quotations.update(data),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
