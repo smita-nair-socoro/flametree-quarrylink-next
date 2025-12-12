@@ -169,7 +169,8 @@ export default function QuotationForm({
 
     // Get customer name from customers list
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
-    let customerName = selectedCustomer?.business_name;
+    let customerName =
+      selectedCustomer?.business_name || selectedCustomer?.contact_name;
 
     let accountManagerName = getAccountManagerNameById(values.accountManager);
 
