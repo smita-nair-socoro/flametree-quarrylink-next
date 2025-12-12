@@ -46,6 +46,8 @@ import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-stat
 import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import { normalizeObjectPhoneNumbers } from '@/lib/utils/phone-helper';
 
 interface FormProps {
   id?: number;
@@ -103,9 +105,14 @@ export default function QuotationForm({
   }, [isEditing, currentQuotation, quotationForm]);
 
   // Fetch customers from API
-  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
+  const { data: customersRaw = [] } = useQuery(CustomersListQueryOptions());
 
-  console.log('👥 [QuotationForm] Customers from API:', customers);
+  // Convert API response from camelCase to snake_case and normalize phone numbers
+  const customers = React.useMemo(() => {
+    const converted = convertKeysToSnakeCase(customersRaw);
+    const normalized = converted.map(normalizeObjectPhoneNumbers);
+    return normalized;
+  }, [customersRaw]);
 
   // Get unique account managers from quotations store
   const getUniqueAccountManagers = useQuotationStore(
@@ -115,13 +122,12 @@ export default function QuotationForm({
   // Build customer options from API customers list
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
     const options = customers
+      .filter((customer) => customer.business_name || customer.contact_name) // Only include customers with name
       .map((customer) => ({
-        label: customer.business_name,
+        label: customer.business_name || customer.contact_name,
         value: customer.id,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-
-    console.log('📋 [QuotationForm] Customer options:', options);
     return options;
   }, [customers]);
 
