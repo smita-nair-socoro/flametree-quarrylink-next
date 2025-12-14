@@ -51,6 +51,13 @@ export interface CustomerDTO {
   acn: string;
   vatNumber: string;
   version: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+
+  // Come back to this; Currently below are not included in the DTO
+  remainingCredit: number;
 }
 
 export interface CustomerDetails extends Customer {

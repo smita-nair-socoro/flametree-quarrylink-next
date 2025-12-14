@@ -1,7 +1,7 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
-import { Customer } from '../types/customer';
+import { CustomerDTO } from '../types/customer';
 import {
   Quarry,
   ArchiveDeleteSummaryDto,
@@ -12,6 +12,7 @@ import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
+import { User } from '../types/user';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -141,7 +142,7 @@ export async function HttpClient<T = unknown>(
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
       ...init.headers,
-      Authorization: `Bearer ${authUser.access_token}`,
+      Authorization: `Bearer ${authUser.id_token}`,
       // 'access-token': authUser.access_token,
       // 'id-token': authUser.id_token,
       // 'tenant-id': tenantId || '',
@@ -507,9 +508,12 @@ export const APIClient = {
   },
 
   customers: {
-    getAll: () => appClient.Get<Customer[]>(`/socoro/quarrylink/api/customer`),
+    getAll: () =>
+      appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
-      appClient.Get<Customer>(`/socoro/quarrylink/api/customer/${customerId}`),
+      appClient.Get<CustomerDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}`
+      ),
   },
 
   quotations: {
@@ -570,5 +574,8 @@ export const APIClient = {
       ),
     deleteQuoteItem: (id: number) =>
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
+  },
+  users: {
+    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
   },
 };

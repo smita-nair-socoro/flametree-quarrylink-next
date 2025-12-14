@@ -110,7 +110,6 @@ export const transformFormDataToQuoteDto = (
     lastModifiedBy: 'admin',
     totalCostPrice: 1200.0,
     totalSellPrice: 1800.0,
-    jobId: 4,
   };
 
   // Map UI address shape (AddressType) to backend Address payload

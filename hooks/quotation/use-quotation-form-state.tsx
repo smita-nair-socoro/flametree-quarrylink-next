@@ -2,6 +2,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
+import { UsersListQueryOptions } from '@/lib/api/user';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
 import { toAddressType } from '@/lib/utils/address-helper';
 import type { AddressType } from '@/lib/types/address';
@@ -101,10 +102,6 @@ export function useQuotationFormState(
   React.useEffect(() => {
     if (isEditing && currentQuotation?.deliveryAddress) {
       const normalizedAddress = toAddressType(currentQuotation.deliveryAddress);
-      console.log(
-        '🏠 [useQuotationFormState] Normalized address:',
-        normalizedAddress
-      );
       setDeliveryAddress(normalizedAddress);
       quotationForm.setValue(
         'deliveryAddress',

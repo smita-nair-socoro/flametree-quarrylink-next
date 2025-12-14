@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Customer } from '@/lib/types/customer';
+import { CustomerDTO } from '@/lib/types/customer';
 
 interface CustomerStore {
-  customers: Customer[];
-  selectedCustomer: Customer | null;
+  customers: CustomerDTO[];
+  selectedCustomer: CustomerDTO | null;
   isLoading: boolean;
 
   // Actions
-  setCustomers: (customers: Customer[]) => void;
-  setSelectedCustomer: (customer: Customer | null) => void;
+  setCustomers: (customers: CustomerDTO[]) => void;
+  setSelectedCustomer: (customer: CustomerDTO | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getCustomerById: (id: number) => Customer | undefined;
-  getCustomersByStatus: (status: string) => Customer[];
+  getCustomerById: (id: number) => CustomerDTO | undefined;
+  getCustomersByStatus: (status: string) => CustomerDTO[];
 
   getCustomerStats: () => {
     total: number;
@@ -44,7 +44,7 @@ export const useCustomerStore = create<CustomerStore>()(
 
       getCustomersByStatus: (status) => {
         const state = get();
-        return state.customers.filter((c) => c.customer_status === status);
+        return state.customers.filter((c) => c.customerStatus === status);
       },
 
       getCustomerStats: () => {
@@ -53,9 +53,8 @@ export const useCustomerStore = create<CustomerStore>()(
 
         return {
           total: customers.length,
-          active: customers.filter((c) => c.customer_status === 'ACTIVE')
-            .length,
-          archived: customers.filter((c) => c.customer_status === 'ARCHIVED')
+          active: customers.filter((c) => c.customerStatus === 'ACTIVE').length,
+          archived: customers.filter((c) => c.customerStatus === 'ARCHIVED')
             .length,
         };
       },
@@ -78,7 +77,7 @@ export const useCustomerById = (id: number) => {
 
 export const useCustomersByStatus = (status: string) => {
   return useCustomerStore((state) =>
-    state.customers.filter((c) => c.customer_status === status)
+    state.customers.filter((c) => c.customerStatus === status)
   );
 };
 
@@ -88,9 +87,8 @@ export const useCustomerStats = () => {
     const customers = state.customers;
     return {
       total: customers.length,
-      active: customers.filter((c) => c.customer_status === 'ACTIVE').length,
-      archived: customers.filter((c) => c.customer_status === 'ARCHIVED')
-        .length,
+      active: customers.filter((c) => c.customerStatus === 'ACTIVE').length,
+      archived: customers.filter((c) => c.customerStatus === 'ARCHIVED').length,
     };
   });
 };
@@ -109,6 +107,6 @@ export const useCustomersByStatusOptimized = (status: string) => {
   const customers = useCustomers();
 
   return useMemo(() => {
-    return customers.filter((c) => c.customer_status === status);
+    return customers.filter((c) => c.customerStatus === status);
   }, [customers, status]);
 };

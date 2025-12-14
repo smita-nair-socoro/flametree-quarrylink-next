@@ -32,7 +32,6 @@ export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
     queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
     queryFn: async () => {
       const data = await APIClient.quotations.getWithQuoteItems(quotationId);
-      console.log('🔍 [QuotationWithLineItems] Raw API Response:', data);
       const converted = convertKeysToCamelCase(data);
       return converted;
     },

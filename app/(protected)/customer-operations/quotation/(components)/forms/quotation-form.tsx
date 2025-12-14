@@ -25,10 +25,7 @@ import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  useSelectedQuotation,
-  useQuotationStore,
-} from '@/app/stores/quotation-store';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
@@ -38,16 +35,13 @@ import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
 } from '@/lib/utils/quote-helpers';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
-import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import { normalizeObjectPhoneNumbers } from '@/lib/utils/phone-helper';
+import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
 interface FormProps {
   id?: number;
@@ -105,30 +99,14 @@ export default function QuotationForm({
   }, [isEditing, currentQuotation, quotationForm]);
 
   // Fetch customers from API
-  const { data: customersRaw = [] } = useQuery(CustomersListQueryOptions());
+  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
 
-  // Convert API response from camelCase to snake_case and normalize phone numbers
-  const customers = React.useMemo(() => {
-    const converted = convertKeysToSnakeCase(customersRaw);
-    const normalized = converted.map(normalizeObjectPhoneNumbers);
-    return normalized;
-  }, [customersRaw]);
-
-  // Get unique account managers from quotations store
-  const getUniqueAccountManagers = useQuotationStore(
-    (state) => state.getUniqueAccountManagers
-  );
-
-  // Build customer options from API customers list
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
-    const options = customers
-      .filter((customer) => customer.business_name || customer.contact_name) // Only include customers with name
-      .map((customer) => ({
-        label: customer.business_name || customer.contact_name,
-        value: customer.id,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-    return options;
+    if (!customers) return [];
+    return customers.map((customer) => ({
+      label: customer.businessName || customer.contactName,
+      value: customer.id,
+    }));
   }, [customers]);
 
   // Auto-fill phone and email when customer is selected
@@ -140,15 +118,11 @@ export default function QuotationForm({
         );
 
         if (selectedCustomer) {
-          console.log('🔄 [QuotationForm] Auto-filling customer data:', {
-            customerId: selectedCustomer.id,
-            customerName: selectedCustomer.business_name,
-            phone: selectedCustomer.phone,
-            email: selectedCustomer.email,
-          });
-
           // Update phone and email fields whenever customer changes
-          quotationForm.setValue('phone', selectedCustomer.phone || '');
+          quotationForm.setValue(
+            'phone',
+            normalizePhoneNumber(selectedCustomer.phone || '') || ''
+          );
           quotationForm.setValue('email', selectedCustomer.email || '');
         }
       }
@@ -158,106 +132,66 @@ export default function QuotationForm({
   }, [customers, quotationForm]);
 
   // Build account manager options from quotations list
+  const accountManagers = React.useMemo(
+    () => [
+      { name: 'Alice', id: 1 },
+      { name: 'Bob', id: 2 },
+      { name: 'Charlie', id: 3 },
+      { name: 'David', id: 4 },
+      { name: 'Jay', id: 5 },
+    ],
+    []
+  );
   const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
-    return getUniqueAccountManagers();
-  }, [getUniqueAccountManagers]);
+    return accountManagers.map((accountManager) => ({
+      label: accountManager.name,
+      value: accountManager.id,
+    }));
+  }, [accountManagers]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    const getAccountManagerNameById =
-      useQuotationStore.getState().getAccountManagerNameById;
-    const quotations = useQuotationStore.getState().quotations;
+    console.log(values);
+    const customerName =
+      customers.find((c) => c.id === values.customerId)?.businessName ||
+      customers.find((c) => c.id === values.customerId)?.contactName ||
+      '';
 
-    // Get customer name from customers list
-    const selectedCustomer = customers.find((c) => c.id === values.customerId);
-    let customerName =
-      selectedCustomer?.business_name || selectedCustomer?.contact_name;
+    const accountManagerName =
+      accountManagers.find(
+        (accountManager) => accountManager.id === values.accountManager
+      )?.name || '';
 
-    let accountManagerName = getAccountManagerNameById(values.accountManager);
-
-    if (isEditing && currentQuotation) {
-      customerName = customerName || currentQuotation.customerName;
-      accountManagerName =
-        accountManagerName || currentQuotation.accountManagerName;
-    }
-
-    if (!customerName || !accountManagerName) {
-      notifyError(
-        extractErrorMessage('Missing customer or account manager information')
-      );
-      return;
-    }
-
-    console.log('📝 [QuotationForm][onSubmit] Customer Data:', {
-      customerId: values.customerId,
+    const transformed = transformFormDataToQuoteDto(values, {
       customerName,
-      phone: values.phone,
-      email: values.email,
+      accountManagerName,
+      quoteNumber: generateNextQuoteNumber([
+        { quoteNumber: currentQuotation?.quoteNumber || '' },
+      ]),
+      lineItemsCount: 0,
+      deliveryAddress: deliveryAddress,
     });
 
-    const quoteNumber =
-      isEditing && currentQuotation?.quoteNumber
-        ? currentQuotation.quoteNumber
-        : generateNextQuoteNumber(quotations);
-
-    try {
-      console.log(
-        '🔍 [Quotation][onSubmit] Current Quotation:',
-        currentQuotation
-      );
-
-      const quoteData = transformFormDataToQuoteDto(values, {
-        customerName,
-        accountManagerName,
-        quoteNumber,
-
-        lineItemsCount: isEditing
-          ? currentQuotation?.quoteItems?.length || 0
-          : 0,
-        deliveryAddress: deliveryAddress,
-      });
-
-      // Handle status when editing
-      if (isEditing && currentQuotation) {
-        if (currentQuotation.status === 'DECLINED') {
-          // If the quote was DECLINED, change it back to DRAFT when saving
-          quoteData.quoteStatus = QUOTE_STATUS.DRAFT;
-          console.log(
-            '🔄 [Quotation][submit] Changing DECLINED status to DRAFT'
-          );
-        } else {
-          // Preserve the original status for other statuses (PENDING, APPROVED, etc.)
-          quoteData.quoteStatus = currentQuotation.status;
-          console.log(
-            '🔄 [Quotation][submit] Preserving original status:',
-            currentQuotation.status
-          );
-        }
+    if (!isEditing) {
+      try {
+        await createQuotation.mutateAsync(transformed);
+        notifySuccess('Quote created successfully');
+        onCancel?.();
+      } catch (error) {
+        notifyError('Failed to create quote');
+        console.error('Failed to create quote:', error);
       }
-
-      console.log('📦 [Quotation][submit] Transformed Quote Data:', quoteData);
-
-      if (isEditing && currentQuotation?.id) {
-        const updatePayload = { ...quoteData, id: currentQuotation.id };
-        console.log('📤 [UPDATE] Sending Request Body:', updatePayload);
-
-        await updateQuotation.mutateAsync(updatePayload);
-
-        notifySuccess('Quotation Updated');
-      } else {
-        await createQuotation.mutateAsync(quoteData);
-        notifySuccess('Quotation Added');
+    } else {
+      try {
+        await updateQuotation.mutateAsync({
+          id: id!,
+          ...transformed,
+        });
+        notifySuccess('Quote updated successfully');
+        onCancel?.();
+      } catch (error) {
+        notifyError('Failed to update quote');
+        console.error('Failed to update quote:', error);
       }
-      onCancel?.();
-    } catch (error: unknown) {
-      console.error('Failed to save quotation:', error);
-
-      const message = extractErrorMessage(error);
-
-      notifyError(
-        `${
-          isEditing ? 'Failed to Update Quotation' : 'Failed to Add Quotation'
-        }: ${message}`
-      );
     }
   }
 

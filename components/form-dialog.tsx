@@ -211,9 +211,9 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId = selectedCustomer.business_name;
-    finalPrimaryBadges = [selectedCustomer.customer_status];
-    finalSecondaryBadges = [selectedCustomer.customer_type];
+    finalCustomId = selectedCustomer.businessName;
+    finalPrimaryBadges = [selectedCustomer.customerStatus];
+    finalSecondaryBadges = [selectedCustomer.customerType];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
