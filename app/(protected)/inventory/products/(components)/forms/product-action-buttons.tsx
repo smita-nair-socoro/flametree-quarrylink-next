@@ -23,7 +23,7 @@ export function ProductActionButtons({
   layout = 'expanded',
 }: ProductActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isUnavailable = product?.is_active === false;
+  const isUnavailable = product?.isActive === false;
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     product?.id,
     product
