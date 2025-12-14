@@ -169,7 +169,7 @@ export function FormDialog({
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
   let finalSecondaryBadges = headerInfo?.secondaryBadges;
-  let finalThirdBadges = headerInfo?.thirdBadges;
+  const finalThirdBadges = headerInfo?.thirdBadges;
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quote_number;
@@ -185,9 +185,10 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
     finalCustomId = selectedProduct.product_name;
-    finalPrimaryBadges = [selectedProduct.material_type];
-    finalSecondaryBadges = [selectedProduct.status];
-    finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+    finalPrimaryBadges = [selectedProduct.material.name];
+    finalSecondaryBadges = [
+      selectedProduct.is_active ? 'Available' : 'Unavailable',
+    ];
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {

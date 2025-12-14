@@ -1,8 +1,8 @@
 'use client';
 
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
-import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
+// import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
 import { HelpCircle, TrendingDown, TrendingUp } from 'lucide-react';
@@ -13,15 +13,20 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
+// Allow passing the parent productId so actions can call detail APIs correctly
+export const supplierColumns = (
+  productId?: number
+): ColumnDef<
+  QuarrySupplierProduct & { quarry_supplier?: { id: number } }
+>[] => [
   {
-    id: 'quarry_name',
-    accessorFn: (row) => row.quarry_name,
+    id: 'name',
+    accessorFn: (row) => row.quarry_supplier?.name || 'N/A',
     header: ({}) => {
       return <div>Supplier Name</div>;
     },
     cell: (info) => <div>{info.getValue() as string}</div>,
-    meta: 'Quarry Name',
+    meta: 'Name',
   },
   {
     id: 'supplier_product_name',
@@ -29,17 +34,12 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
     header: ({}) => {
       return <div>Supplier Product Name</div>;
     },
-    cell: ({ row }) => (
-      <TableTwoDataInOneCell
-        primaryData={row.original.supplier_product_name}
-        secondaryData={row.original.supplier_product_code}
-      />
-    ),
-    meta: 'Supplier Product',
+    cell: ({ row }) => <div>{row.original.supplier_product_name}</div>,
+    meta: 'Supplier Product Name',
   },
   {
-    id: 'cost_price',
-    accessorFn: (row) => row.price.tn_cost_price,
+    id: 'per_tn_cost_price',
+    accessorFn: (row) => row.per_tn_cost_price,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -56,20 +56,14 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      return (
-        <div>
-          $
-          {row.original.price.tn_cost_price
-            ? centsToDollars(row.original.price.tn_cost_price)
-            : '0'}
-        </div>
-      );
+      const costPrice = row.original.per_tn_cost_price || 0;
+      return <div>${centsToDollars(costPrice)}</div>;
     },
-    meta: 'cost price',
+    meta: 'Cost Price per TN',
   },
   {
-    id: 'sell_price',
-    accessorFn: (row) => row.price.tn_sell_price,
+    id: 'per_tn_sell_price',
+    accessorFn: (row) => row.per_tn_sell_price,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -85,34 +79,44 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
         </div>
       );
     },
-    cell: ({ row }) => (
-      <div>
-        $
-        {row.original.price.tn_sell_price
-          ? centsToDollars(row.original.price.tn_sell_price)
-          : '0'}
-      </div>
-    ),
-    meta: 'sell price',
+    cell: ({ row }) => {
+      const sellPrice = row.original.per_tn_sell_price || 0;
+      return <div>${centsToDollars(sellPrice)}</div>;
+    },
+    meta: 'Sell Price per TN',
   },
   {
     id: 'margin',
-    accessorFn: (row) => row.price.margin_tn,
+    accessorFn: (row) => {
+      const costPrice = row.per_tn_cost_price || 0;
+      const sellPrice = row.per_tn_sell_price || 0;
+      if (costPrice === 0) return 0;
+      return (sellPrice - costPrice) / costPrice;
+    },
     header: ({}) => {
       return <div>Margin</div>;
     },
     cell: ({ row }) => {
-      const margin = row.original.price.margin_tn || 0;
+      const costPrice = row.original.per_tn_cost_price || 0;
+      const sellPrice = row.original.per_tn_sell_price || 0;
+
+      // Calculate margin: (Sell Price - Cost Price) / Cost Price
+      const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
+
       return (
         <div
           className={cn(
-            margin < 0 ? 'text-red-600' : 'text-green-600',
-            'flex justify-start gap-1'
+            margin < 0
+              ? 'text-red-600'
+              : margin > 0
+              ? 'text-green-600'
+              : 'text-gray-600',
+            'flex justify-start items-center gap-1'
           )}
         >
-          {margin < 0 && <TrendingDown className="w-4 h-4 text-red-600" />}
-          {margin > 0 && <TrendingUp className="w-4 h-4 text-green-600" />}
-          {((margin || 0) * 100).toFixed(2)}%
+          {margin < 0 && <TrendingDown className="w-4 h-4" />}
+          {margin > 0 && <TrendingUp className="w-4 h-4" />}
+          <span>{(margin * 100).toFixed(2)}%</span>
         </div>
       );
     },
@@ -120,11 +124,16 @@ export const supplierColumns: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'action',
-    accessorFn: (row) => row.id,
+    accessorFn: (row) => row.quarry_supplier_id,
     header: ({}) => {
       return <div></div>;
     },
-    cell: ({ row }) => <SupplierTableActions quarry={row.original} />,
+    cell: ({ row }) => (
+      <SupplierTableActions
+        quarry={row.original}
+        productId={productId ?? row.original.product_id}
+      />
+    ),
     meta: 'Action',
   },
 ];
