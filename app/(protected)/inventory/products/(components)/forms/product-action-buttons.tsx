@@ -11,9 +11,6 @@ import { MoreHorizontal, ArchiveRestore, Ban, Trash2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
-import { PRODUCT_STATUS } from '@/lib/types/product-enums';
-import { Quotation } from '@/lib/types/quotation';
-import { JobDetails } from '@/lib/types/job';
 import { Separator } from '@/components/ui/separator';
 
 interface ProductActionButtonsProps {
@@ -26,7 +23,7 @@ export function ProductActionButtons({
   layout = 'expanded',
 }: ProductActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isUnavailable = product?.status === PRODUCT_STATUS.UNAVAILABLE;
+  const isUnavailable = product?.is_active === false;
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     product?.id,
     product
@@ -41,33 +38,6 @@ export function ProductActionButtons({
   if (!product.id || product.id === 0) {
     return null;
   }
-
-  const canProductBeDeleted = () => {
-    // Check if there are active quotes that would prevent archiving
-    const hasActiveQuotes = product.quotes?.some(
-      (quote: Quotation) =>
-        quote.status !== 'ARCHIVED' &&
-        quote.status !== 'DRAFT' &&
-        quote.status !== 'CONVERTED_TO_JOB'
-    );
-
-    // Check if there are jobs with remaining quantities
-    const hasActiveJobs = product.jobs?.some((job: JobDetails) =>
-      job.job_items.some((jobItem) => jobItem.remaining_quantity > 0)
-    );
-
-    // Check if there are pending or delivering dockets
-    const hasPendingDockets = product.jobs?.some((job: JobDetails) =>
-      job.dockets.some(
-        (docket) =>
-          docket.docket_status == 'PENDING' ||
-          docket.docket_status == 'DELIVERING'
-      )
-    );
-
-    // Product CAN be archived if none of the blocking conditions are true
-    return !hasActiveQuotes && !hasActiveJobs && !hasPendingDockets;
-  };
 
   // Mobile or compact version - everything in dropdown
   if (!isDesktop || layout === 'compact') {
@@ -94,11 +64,7 @@ export function ProductActionButtons({
                 <Separator />
 
                 <DropdownMenuItem
-                  onClick={
-                    canProductBeDeleted()
-                      ? actions.delete
-                      : actions.cannotDelete
-                  }
+                  onClick={actions.delete}
                   className="text-destructive focus:text-destructive"
                 >
                   <Trash2 className="h-4 w-4 mr-2 text-destructive" />
@@ -159,11 +125,7 @@ export function ProductActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem
-              onClick={
-                canProductBeDeleted() ? actions.delete : actions.cannotDelete
-              }
-            >
+            <DropdownMenuItem onClick={actions.delete}>
               <Trash2 className="h-4 w-4 mr-2 text-destructive" />
               <span className="text-destructive">Delete</span>
             </DropdownMenuItem>

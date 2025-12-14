@@ -3,8 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import CustomerForm from './(components)/forms/customer-form';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import { Customer } from '@/lib/types/customer';
+import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { customerColumns } from './(components)/(data-tables)/customer/columns';
 import {
@@ -33,7 +32,7 @@ export default function CustomersPage() {
     (state) => state.setSelectedCustomer
   );
   const [selectedCustomerForActions, setSelectedCustomerForActions] =
-    React.useState<Customer | null>(null);
+    React.useState<CustomerDTO | null>(null);
 
   // Statistics cards data
   const statsCards: StatsCardData[] = [
@@ -113,24 +112,25 @@ export default function CustomersPage() {
   }, [isError, error]);
 
   // Handle row click to open customer details
-  const handleRowClick = (customer: Customer) => {
+  const handleRowClick = (customer: CustomerDTO) => {
     setSelectedCustomer(customer);
     setSelectedCustomerForActions(customer);
     actions.view();
   };
 
   // Transform the API data to match our component expectations
-  const items: Customer[] =
+  const items: CustomerDTO[] =
     customersData?.map((customer) => {
       // Convert API response to snake_case if needed
-      const convertedCustomer = convertKeysToSnakeCase(customer);
 
       return {
-        ...convertedCustomer,
-        customer_type: convertedCustomer.customer_type as CUSTOMER_TYPE,
-        customer_status: convertedCustomer.customer_status as CUSTOMER_STATUS,
+        ...customer,
+        customerType: customer.customerType as CUSTOMER_TYPE,
+        customerStatus: customer.customerStatus as CUSTOMER_STATUS,
       };
     }) || [];
+
+  console.log('items', items);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },

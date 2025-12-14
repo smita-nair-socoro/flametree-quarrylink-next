@@ -1,10 +1,11 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ActionDialog } from '@/components/action-dialog';
 import SupplierForm from '@/app/(protected)/inventory/products/(components)/forms/supplier-form';
 import { TriangleAlert, CircleCheckBig } from 'lucide-react';
+import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
 
 interface DialogConfig {
   title?: string;
@@ -29,14 +30,15 @@ interface SelectedAction {
 }
 
 const getDialogConfigs = (
-  quarryData?: QuarriesWithProduct | null,
+  quarryData?: QuarrySupplierProduct | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  const quarryName = quarryData?.quarry_name;
+  const quarryName =
+    quarryData?.quarry_name ?? quarryData?.supplier_product_name;
   const supplierName = quarryData?.supplier_product_name;
   const supplierProductCode = quarryData?.supplier_product_code;
 
-  if (selectedAction?.key === 'cannotDelete ') {
+  if (selectedAction?.key === 'cannotDelete') {
     return {
       delete: {
         title: `Delete Supplier`,
@@ -147,13 +149,15 @@ const getDialogConfigs = (
 
 export function useSupplierActions(
   quarryId: number | undefined,
-  quarryData?: QuarriesWithProduct | null
+  quarryData?: QuarrySupplierProduct | null
 ) {
+  const { mutateAsync: deleteQuarrySupplierProduct } =
+    useDeleteQuarrySupplierProduct();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-
+  console.log('quarryData', quarryData);
   const dialogConfigs = getDialogConfigs(
     quarryData,
     selectedAction || undefined
@@ -206,17 +210,52 @@ export function useSupplierActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'delete':
               console.log('Delete supplier:', quarryId, quarryData);
-              // TODO: implement delete logic
-              break;
+              if (!quarryId || !quarryData?.product_id) {
+                setActiveDialog(null);
+                setSelectedAction(null);
+                break;
+              }
+              try {
+                console.log('[UI] Attempting delete with ids:', {
+                  quarrySupplierId: quarryId,
+                  productId: quarryData.product_id,
+                });
+                const res = await deleteQuarrySupplierProduct({
+                  quarrySupplierId: quarryId,
+                  productId: quarryData.product_id,
+                });
+                console.log('[UI] Delete mutation result:', res);
+                const blocked = Array.isArray(res?.blockingQuoteDtos)
+                  ? res.blockingQuoteDtos
+                  : [];
+                console.log('[UI] blockingQuoteDtos length:', blocked.length);
+                if (blocked.length > 0) {
+                  // Open cannotDelete modal to show info
+                  setSelectedAction({ key: 'cannotDelete' });
+                  setActiveDialog('cannotDelete');
+                } else {
+                  // Deleted successfully; close dialog
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                }
+              } catch (e: unknown) {
+                console.error('Failed to delete supplier:', {
+                  error: e,
+                });
+                setActiveDialog(null);
+                setSelectedAction(null);
+              }
+              return;
             case 'cannotDelete':
               console.log('Cannot delete supplier:', quarryId, quarryData);
               // TODO: implement cannot delete logic
               break;
           }
+          // default close
           setActiveDialog(null);
           setSelectedAction(null);
         }}
@@ -227,7 +266,7 @@ export function useSupplierActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quarryId}
-      dialogTitle={`${quarryData?.quarry_name} - Detailed Information`}
+      dialogTitle={`${quarryData?.quarry_supplier?.name} - Detailed Information`}
       dialogWidth="700px"
       contentClass="-mt-5"
       open={viewOpen}
@@ -246,7 +285,11 @@ export function useSupplierActions(
         useSelectedSupplier: true,
       }}
     >
-      <SupplierForm />
+      <SupplierForm
+        quarrySupplierId={quarryData?.quarry_supplier?.id}
+        productId={quarryData?.product_id}
+        onCancel={() => setViewOpen(false)}
+      />
     </FormDialog>
   ) : null;
 

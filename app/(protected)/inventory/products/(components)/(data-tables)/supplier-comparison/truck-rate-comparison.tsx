@@ -12,18 +12,18 @@ import {
 
 export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
-    id: 'quarry_name',
-    accessorFn: (row) => row.quarry_name,
+    id: 'name',
+    accessorFn: (row) => row.quarry_supplier?.name,
     header: ({}) => {
       return <div>Supplier</div>;
     },
     cell: (info) => <div>{info.getValue() as string}</div>,
-    meta: 'Quarry Name',
+    meta: 'Name',
     size: 180,
   },
   {
     id: 'truck_tn_rate',
-    accessorFn: (row) => row.price.truck_tn_rate,
+    accessorFn: (row) => row.tn_truck_rate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -41,11 +41,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.price.available_truck_tn_rate === false) {
+      if (row.original.available_for_truck_rate_tn === false) {
         return <div>N/A</div>;
       } else {
-        const tnRate = row.original.price.truck_tn_rate
-          ? centsToDollars(row.original.price.truck_tn_rate)
+        const tnRate = row.original.tn_truck_rate
+          ? centsToDollars(row.original.tn_truck_rate)
           : '0';
         return <div>${tnRate}</div>;
       }
@@ -55,7 +55,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_m3_rate',
-    accessorFn: (row) => row.price.truck_m3_rate,
+    accessorFn: (row) => row.m3_truck_rate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -72,11 +72,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.price.available_truck_m3_rate === false) {
+      if (row.original.available_for_truck_rate_m3 === false) {
         return <div>N/A</div>;
       } else {
-        const m3Rate = row.original.price.truck_m3_rate
-          ? centsToDollars(row.original.price.truck_m3_rate)
+        const m3Rate = row.original.m3_truck_rate
+          ? centsToDollars(row.original.m3_truck_rate)
           : '0';
         return <div>${m3Rate}</div>;
       }
@@ -86,7 +86,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_hourly_rate',
-    accessorFn: (row) => row.price.truck_hourly_rate,
+    accessorFn: (row) => row.hourly_truck_rate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -103,11 +103,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.price.available_truck_hourly_rate === false) {
+      if (row.original.available_for_truck_rate_hour === false) {
         return <div>N/A</div>;
       } else {
-        const hourlyRate = row.original.price.truck_hourly_rate
-          ? centsToDollars(row.original.price.truck_hourly_rate)
+        const hourlyRate = row.original.hourly_truck_rate
+          ? centsToDollars(row.original.hourly_truck_rate)
           : '0';
         return <div>${hourlyRate}</div>;
       }
@@ -117,7 +117,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_load_rate',
-    accessorFn: (row) => row.price.truck_load_rate,
+    accessorFn: (row) => row.load_truck_rate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -134,11 +134,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.price.available_truck_load_rate === false) {
+      if (row.original.available_for_truck_rate_load === false) {
         return <div className="text-left">N/A</div>;
       } else {
-        const loadRate = row.original.price.truck_load_rate
-          ? centsToDollars(row.original.price.truck_load_rate)
+        const loadRate = row.original.load_truck_rate
+          ? centsToDollars(row.original.load_truck_rate)
           : '0';
         return <div className="text-left">${loadRate}</div>;
       }

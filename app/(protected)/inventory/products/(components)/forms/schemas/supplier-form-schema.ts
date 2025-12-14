@@ -1,7 +1,9 @@
 import z from 'zod';
 
 const Base = z.object({
-  supplier_name: z.string().trim().min(1, { message: 'Required' }),
+  quarry_supplier_id: z.coerce
+    .number({ required_error: 'Supplier is required' })
+    .min(1, { message: 'Supplier is required' }),
   supplier_product_name: z
     .string()
     .nonempty({ message: 'Required' })

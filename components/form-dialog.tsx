@@ -66,6 +66,9 @@ interface AddProductDrawerDialogProps {
   /** Override the header title */
   dialogTitle?: string;
 
+  /** Custom title component (overrides dialogTitle when provided) */
+  customTitle?: React.ReactNode;
+
   /** Override the trigger button text */
   buttonTitle?: string;
 
@@ -91,7 +94,7 @@ interface AddProductDrawerDialogProps {
   headerButtons?: React.ReactNode;
 
   /** Vertical alignment of header buttons relative to content on the left (default: "center") */
-  headerButtonsAlign?: "start" | "center";
+  headerButtonsAlign?: 'start' | 'center';
 
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
@@ -131,6 +134,7 @@ interface ChildFormProps {
 export function FormDialog({
   id,
   dialogTitle,
+  customTitle,
   dialogDescription,
   buttonTitle,
   trigger,
@@ -139,7 +143,7 @@ export function FormDialog({
   dialogWidth,
   hideTrigger,
   headerButtons,
-  headerButtonsAlign = "center",
+  headerButtonsAlign = 'center',
   headerInfo,
   headerSeparator,
   contentClass,
@@ -155,6 +159,39 @@ export function FormDialog({
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
+  /**
+   * Radix (Dialog/DropdownMenu) uses a "dismissable layer" stack that can set
+   * `document.body.style.pointerEvents = 'none'` while overlays are open.
+   * When multiple layers close in the same tick (e.g. Esc closes a dropdown
+   * and the dialog), we can occasionally end up with pointer-events left as
+   * 'none', making the next screen feel "frozen".
+   *
+   * This is a defensive cleanup: only touches pointerEvents if it's currently
+   * 'none'.
+   */
+  const unlockBodyPointerEvents = React.useCallback(() => {
+    if (typeof document === 'undefined') return;
+    if (document.body?.style?.pointerEvents === 'none') {
+      document.body.style.pointerEvents = '';
+    }
+  }, []);
+
+  // Cleanup on close (after Radix unmounts its layers)
+  React.useEffect(() => {
+    if (open) return;
+    const raf = window.requestAnimationFrame(() => {
+      unlockBodyPointerEvents();
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [open, unlockBodyPointerEvents]);
+
+  // Cleanup on unmount (e.g. route change while closing)
+  React.useEffect(() => {
+    return () => {
+      unlockBodyPointerEvents();
+    };
+  }, [unlockBodyPointerEvents]);
+
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
@@ -165,31 +202,32 @@ export function FormDialog({
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
   let finalSecondaryBadges = headerInfo?.secondaryBadges;
-  let finalThirdBadges = headerInfo?.thirdBadges;
+  const finalThirdBadges = headerInfo?.thirdBadges;
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-    finalCustomId = selectedQuotation.quote_number;
+    finalCustomId = selectedQuotation.quoteNumber;
     finalPrimaryBadges = [selectedQuotation.status];
-    finalSecondaryBadges = [selectedQuotation.quote_type];
+    finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId = selectedCustomer.business_name;
-    finalPrimaryBadges = [selectedCustomer.customer_status];
-    finalSecondaryBadges = [selectedCustomer.customer_type];
+    finalCustomId = selectedCustomer.businessName;
+    finalPrimaryBadges = [selectedCustomer.customerStatus];
+    finalSecondaryBadges = [selectedCustomer.customerType];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
     finalCustomId = selectedProduct.product_name;
-    finalPrimaryBadges = [selectedProduct.material_type];
-    finalSecondaryBadges = [selectedProduct.status];
-    finalThirdBadges = [`${selectedProduct.quarries.length} Suppliers`];
+    finalPrimaryBadges = [selectedProduct.material.name];
+    finalSecondaryBadges = [
+      selectedProduct.is_active ? 'Available' : 'Unavailable',
+    ];
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
-    finalCustomId = selectedQuotationLineItem.product_name;
-    finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
-    finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
+    finalCustomId = selectedQuotationLineItem.productName;
+    finalPrimaryBadges = [selectedQuotationLineItem.quarryName];
+    finalSecondaryBadges = [selectedQuotationLineItem.supplierProductName];
   }
 
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
@@ -205,7 +243,8 @@ export function FormDialog({
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
-  const headerTitle = (finalCustomId || dialogTitle) ?? defaultTitle;
+  const headerTitle =
+    customTitle ?? (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
 
   // Determine if we're in editing mode - true when we have a valid ID (> 0)
@@ -256,8 +295,12 @@ export function FormDialog({
       })
     : children;
 
-  const formatBadgeText = (text: string): string => {
-    return text.replace(/_/g, ' ');
+  const formatBadgeText = (text?: string | number | null): string => {
+    if (text === undefined || text === null) {
+      return '';
+    }
+    const stringValue = typeof text === 'string' ? text : String(text);
+    return stringValue.replace(/_/g, ' ');
   };
 
   const renderBadges = () => {
@@ -316,11 +359,13 @@ export function FormDialog({
 
   const dialogInner = (
     <>
-      <DialogHeader className={clsx(
-        "flex flex-row justify-between flex-shrink-0 px-5 pt-6",
-        headerButtonsAlign === "start" ? "items-start" : "items-center",
-        headerClassName || "pb-2"
-      )}>
+      <DialogHeader
+        className={clsx(
+          'flex flex-row justify-between flex-shrink-0 px-5 pt-6',
+          headerButtonsAlign === 'start' ? 'items-start' : 'items-center',
+          headerClassName || 'pb-2'
+        )}
+      >
         <div>
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
@@ -336,7 +381,7 @@ export function FormDialog({
           </div>
         )}
       </DialogHeader>
-      {headerSeparator && <Separator />}
+      {headerSeparator && <Separator className="-mt-3" />}
       <ScrollArea
         className={clsx(
           getScrollAreaMaxHeight(),

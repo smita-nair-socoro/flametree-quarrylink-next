@@ -7,6 +7,9 @@ import { ActionDialog } from '@/components/action-dialog';
 import { QuotationLineItemActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-line-item-action-buttons';
 import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useDeleteQuoteItem } from '@/lib/api/quotation';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DialogConfig {
   title?: string;
@@ -33,13 +36,13 @@ const getDialogConfigs = (
   lineItemData?: QuotationLineItem | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  const lineItemName = lineItemData?.product_name;
-  const productCode = lineItemData?.supplier_product_name;
+  const lineItemName = lineItemData?.productName;
+  const productCode = lineItemData?.supplierProductName;
   const totalSellPrice = centsToDollars(
-    lineItemData?.total_product_sell_price || 0
+    lineItemData?.totalProductSellPrice || 0
   );
-  const productQty = lineItemData?.product_sell_qty;
-  const productUom = lineItemData?.product_sell_uom;
+  const productQty = lineItemData?.productSellQty;
+  const productUom = lineItemData?.productSellUom;
 
   if (selectedAction?.key === 'remove') {
     return {
@@ -129,12 +132,23 @@ export function useQuotationLineItemActions(
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
+  // Get selected quotation to check status
+  const selectedQuotation = useSelectedQuotation();
+
+  // Only allow editing if quote status is DRAFT
+  const canEdit =
+    selectedQuotation?.status === 'DRAFT' ||
+    selectedQuotation?.status === 'DECLINED';
+
+  // Delete mutation
+  const deleteQuoteItem = useDeleteQuoteItem();
+
   const dialogConfigs = getDialogConfigs(
     lineItemData,
     selectedAction || undefined
   );
 
-  const createDialogAction = (actionKey: string, action: () => void) => {
+  const createDialogAction = (actionKey: string) => {
     return () => {
       setSelectedAction({ key: actionKey });
       setActiveDialog(actionKey);
@@ -145,14 +159,8 @@ export function useQuotationLineItemActions(
     view: () => {
       setViewOpen(true);
     },
-    remove: createDialogAction('remove', () => {
-      console.log('Remove quotation line item:', lineItemId);
-      // TODO: implement remove logic
-    }),
-    duplicate: createDialogAction('duplicate', () => {
-      console.log('Duplicate quotation line item:', lineItemId);
-      // TODO: implement duplicate logic
-    }),
+    remove: createDialogAction('remove'),
+    duplicate: createDialogAction('duplicate'),
   };
 
   // Render active dialog
@@ -178,11 +186,26 @@ export function useQuotationLineItemActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'remove':
-              console.log('Remove quotation line item:', lineItemId);
-              // TODO: implement remove logic
+              if (!lineItemId || !selectedQuotation?.id) {
+                notifyError('Unable to delete line item');
+                return;
+              }
+
+              try {
+                await deleteQuoteItem.mutateAsync({
+                  id: lineItemId,
+                  quoteId: selectedQuotation.id,
+                });
+                notifySuccess('Line item removed successfully');
+                setActiveDialog(null);
+                setSelectedAction(null);
+              } catch (error) {
+                console.error('Failed to delete line item:', error);
+                notifyError('Failed to remove line item');
+              }
               break;
             case 'duplicate':
               console.log('Duplicate quotation line item:', lineItemId);
@@ -218,7 +241,7 @@ export function useQuotationLineItemActions(
         useSelectedLineItem: true,
       }}
     >
-      <QuotationLineItemForm />
+      <QuotationLineItemForm id={lineItemId} canEdit={canEdit} />
     </FormDialog>
   ) : null;
 

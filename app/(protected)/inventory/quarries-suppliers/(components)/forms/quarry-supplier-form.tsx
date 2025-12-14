@@ -101,8 +101,7 @@ export default function QuarrySupplierForm({
         country: backendAddress.country || '',
         lat: backendAddress.latitude || 0,
         lng: backendAddress.longitude || 0,
-        // googlePlaceId: backendAddress.googlePlaceId || '',
-        googlePlaceId: 123123123123, // TEMPORARY FIX FOR BACKEND
+        googlePlaceId: backendAddress.googlePlaceId || '',
       };
     }
     return {
@@ -255,8 +254,7 @@ export default function QuarrySupplierForm({
           selectedQuarrySupplier?.address?.version !== undefined
             ? { version: selectedQuarrySupplier.address.version }
             : {}),
-          // googlePlaceId: address.googlePlaceId || '',
-          googlePlaceId: 123123123123, // TEMPORARY FIX FOR BACKEND
+          googlePlaceId: address.googlePlaceId || '',
           formattedAddress: address.formattedAddress || '',
           streetDetailsPrimary: address.address1 || '',
           streetDetailsOptional: address.address2 || '',
@@ -291,22 +289,9 @@ export default function QuarrySupplierForm({
           version: selectedQuarrySupplier?.version || 0,
         } as unknown as Quarry;
 
-        console.log('📍 [QuarrySupplier] Address Data:', addressData);
-        console.log(
-          '📍 [QuarrySupplier] Google Place ID:',
-          addressData.googlePlaceId
-        );
-        console.log(
-          '📦 [QuarrySupplier] Full Request Data:',
-          quarrySupplierData
-        );
-
         if (isEditing && id) {
           // Update existing quarry/supplier
-          console.log('📤 [QuarrySupplier][UPDATE] Request Body:', {
-            id,
-            data: quarrySupplierData,
-          });
+
           await updateQuarryMutation.mutateAsync({
             id,
             data: quarrySupplierData,
@@ -319,10 +304,6 @@ export default function QuarrySupplierForm({
           );
         } else {
           // Create new quarry/supplier
-          console.log(
-            '📤 [QuarrySupplier][CREATE] Request Body:',
-            quarrySupplierData
-          );
           await createQuarryMutation.mutateAsync(quarrySupplierData);
 
           notifySuccess(

@@ -5,25 +5,25 @@ const timeWithoutZoneRegex =
   /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
 
 export const NewQuotationFormSchema = z.object({
-  quote_type: z.string().nonempty({ message: 'Required' }),
-  customer_id: z.coerce.number().min(1, { message: 'Required' }),
-  account_manager: z.coerce.number().min(1, { message: 'Required' }),
-  project_name: z.string().min(2, { message: 'At least 2 characters' }),
-  delivery_start_date: z.date({ message: 'Required' }),
-  delivery_window_start: z
+  quoteType: z.string().nonempty({ message: 'Required' }),
+  customerId: z.coerce.number().min(1, { message: 'Required' }),
+  accountManager: z.coerce.number().min(1, { message: 'Required' }),
+  projectName: z.string().min(2, { message: 'At least 2 characters' }),
+  deliveryStartDate: z.date({ message: 'Required' }),
+  deliveryWindowStart: z
     .string()
     .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
-      message: 'Invalid time‑of‑day with timezone',
+      message: 'Invalid time of day with timezone',
     }),
-  delivery_window_end: z
+  deliveryWindowEnd: z
     .string()
     .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
-      message: 'Invalid time‑of‑day with timezone',
+      message: 'Invalid time of day with timezone',
     }),
-  expiry_date: z.date({ message: 'Required' }),
-  delivery_address: z.string().trim().min(1, 'Required'),
+  expiryDate: z.date({ message: 'Required' }),
+  deliveryAddress: z.string().trim().min(1, 'Required'),
   phone: z
     .string()
     .trim()
@@ -38,8 +38,8 @@ export const NewQuotationFormSchema = z.object({
     .refine((v) => !v || z.string().email().safeParse(v).success, {
       message: 'Invalid email format',
     }),
-  created_at: z.date(),
-  updated_at: z.date(),
-  created_by: z.string(),
-  last_modified_by: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  createdBy: z.string(),
+  lastModifiedBy: z.string(),
 });

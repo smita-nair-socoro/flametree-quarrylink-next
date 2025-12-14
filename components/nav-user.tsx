@@ -35,8 +35,6 @@ export function NavUser({
   const { signOut } = useAuth();
   const router = useRouter();
 
-  console.log(user);
-
   const handleLogout = async () => {
     try {
       await signOut();

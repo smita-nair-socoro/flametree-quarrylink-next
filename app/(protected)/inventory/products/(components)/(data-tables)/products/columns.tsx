@@ -28,31 +28,35 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
 
   {
     id: 'material_type',
-    accessorFn: (row) => row.material_type,
+    accessorFn: (row) => row.material?.name || '',
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Material Type" />
       );
     },
     cell: ({ row }) => {
-      const material_type = row.original.material_type;
+      const material_type = row.original.material?.name || '';
       return (
         <div className="py-2">
-          <TableBadges names={[material_type]} visibleCount={1} />
+          <TableBadges names={material_type} visibleCount={1} />
         </div>
       );
     },
     meta: 'Material Type',
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
   },
 
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => (row.is_active === true ? 'Available' : 'Unavailable'),
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status =
+        row.original.is_active === true ? 'Available' : 'Unavailable';
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />
@@ -60,6 +64,9 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
       );
     },
     meta: 'Status',
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
   },
 
   {
