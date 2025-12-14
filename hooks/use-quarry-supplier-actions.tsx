@@ -366,8 +366,11 @@ export function useQuarrySupplierActions(
                 await deleteQuarryAfterEligibilityCheck({
                   id: quarrySupplierId,
                 });
+
+                // Successfully deleted - close both dialogs
                 setActiveDialog(null);
                 setSelectedAction(null);
+                setViewOpen(false);
               } catch (e: unknown) {
                 console.error('Failed to delete quarry supplier:', {
                   error: e,
