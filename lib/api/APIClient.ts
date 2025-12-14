@@ -523,7 +523,17 @@ export const APIClient = {
   },
 
   quotations: {
-    getAll: async () => {
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      status?: string;
+      quoteType?: string;
+      customerId?: number;
+      accountManagerId?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
       const response = await appClient.Get<
         | QuotationDTO[]
         | {
@@ -531,7 +541,19 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/quote`);
+      >(`/socoro/quarrylink/api/quote`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          status: params?.status,
+          quoteType: params?.quoteType,
+          customerId: params?.customerId?.toString(),
+          accountManagerId: params?.accountManagerId?.toString(),
+          search: params?.search,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
       return response;
     },
     getById: (quotationId: number) =>
