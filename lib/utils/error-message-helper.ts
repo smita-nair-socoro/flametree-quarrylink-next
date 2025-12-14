@@ -1,4 +1,35 @@
 /**
+ * Safely extract error response data from unknown errors.
+ */
+export function extractErrorData(error: unknown): unknown {
+  // Try to extract from error.response.data
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'response' in error &&
+    typeof (error as { response?: unknown }).response === 'object' &&
+    (error as { response?: { data?: unknown } }).response
+  ) {
+    const response = (error as { response?: { data?: unknown } }).response;
+    if (response && 'data' in response) {
+      return response.data;
+    }
+  }
+
+  // Try to extract from error.data
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'data' in error &&
+    (error as { data?: unknown }).data
+  ) {
+    return (error as { data: unknown }).data;
+  }
+
+  return null;
+}
+
+/**
  * Safely extract a human-readable message from unknown errors.
  */
 export function extractErrorMessage(error: unknown): string {
