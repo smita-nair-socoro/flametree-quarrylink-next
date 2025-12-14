@@ -27,41 +27,41 @@ export interface Quarry {
 }
 
 export interface QuarrySupplierProduct {
-  quarry_supplier?: {
+  quarrySupplier?: {
     id: number;
     name: string;
   };
-  quarry_supplier_id: number;
-  product_id: number;
-  supplier_product_name: string;
-  supplier_product_code: string;
-  quarry_name?: string;
+  quarrySupplierId: number;
+  productId: number;
+  supplierProductName: string;
+  supplierProductCode: string;
+  quarryName?: string;
 
-  per_tn_cost_price: number;
-  per_tn_sell_price: number;
-  per_m3_cost_price: number;
-  per_m3_sell_price: number;
-  per20kg_cost_price: number;
-  per20kg_sell_price: number;
-  per_bulka_cost_price: number;
-  per_bulka_sell_price: number;
+  perTnCostPrice: number;
+  perTnSellPrice: number;
+  perM3CostPrice: number;
+  perM3SellPrice: number;
+  per20kgCostPrice: number;
+  per20kgSellPrice: number;
+  perBulkaCostPrice: number;
+  perBulkaSellPrice: number;
 
-  available_for_sale_tn: boolean;
-  available_for_sale_m3: boolean;
-  available_for_sale20kg: boolean;
-  available_for_sale_bulka: boolean;
+  availableForSaleTn: boolean;
+  availableForSaleM3: boolean;
+  availableForSale20kg: boolean;
+  availableForSaleBulka: boolean;
 
-  tn_truck_rate: number;
-  m3_truck_rate: number;
-  hourly_truck_rate: number;
-  load_truck_rate: number;
-  available_for_truck_rate_tn: boolean;
-  available_for_truck_rate_m3: boolean;
-  available_for_truck_rate_hour: boolean;
-  available_for_truck_rate_load: boolean;
+  tnTruckRate: number;
+  m3TruckRate: number;
+  hourlyTruckRate: number;
+  loadTruckRate: number;
+  availableForTruckRateTn: boolean;
+  availableForTruckRateM3: boolean;
+  availableForTruckRateHour: boolean;
+  availableForTruckRateLoad: boolean;
 
-  is_active: boolean;
-  available_units: string; // e.g. "[\"TN\", \"M3\"]"
+  isActive: boolean;
+  availableUnits: string[];
   version: number;
 }
 

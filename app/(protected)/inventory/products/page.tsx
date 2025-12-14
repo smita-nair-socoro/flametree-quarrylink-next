@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import { Plus, Gem, PackageX, TrendingUp, Package } from 'lucide-react';
@@ -96,13 +95,12 @@ export default function ProductsPage() {
   const items: ProductDetails[] =
     productsData?.map((product) => {
       // Convert API response to snake_case if needed
-      const convertedProduct = convertKeysToSnakeCase(product);
 
       return {
-        ...convertedProduct,
-        productId: convertedProduct.id,
+        ...product,
+        productId: product.id,
         // Ensure material is properly mapped for facet filtering
-        material: convertedProduct.material || { id: 0, name: '', version: 0 },
+        material: product.material || { id: 0, name: '', version: 0 },
       } as ProductDetails;
     }) || [];
 
