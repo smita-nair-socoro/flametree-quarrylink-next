@@ -605,5 +605,15 @@ export const APIClient = {
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
+    getById: (id: string) =>
+      appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`),
+    create: (data: Partial<User>) =>
+      appClient.Post<User>('/socoro/quarrylink/api/user', {
+        body: data,
+      }),
+    update: (id: string, data: Partial<User>) =>
+      appClient.Put<User>(`/socoro/quarrylink/api/users/${id}`, {
+        body: data,
+      }),
   },
 };
