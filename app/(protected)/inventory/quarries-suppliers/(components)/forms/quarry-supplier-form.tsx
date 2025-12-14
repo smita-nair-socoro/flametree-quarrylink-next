@@ -464,32 +464,6 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          <div className="col-span-full rounded-xl border border-dashed border-[#D0D5DD] bg-[#F9FAFB] p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-[#101828]">
-                  Subscription Billing Cycle (Mock)
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Toggle to preview the payment summary the customer would see.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                {(['monthly', 'yearly'] as const).map((cycle) => (
-                  <Button
-                    key={cycle}
-                    type="button"
-                    variant={mockBillingCycle === cycle ? 'default' : 'outline'}
-                    className="px-4"
-                    onClick={() => setMockBillingCycle(cycle)}
-                  >
-                    {cycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-
           <Separator className="col-span-full my-2 mb-5" />
 
           {/* Section: Basic Information */}
