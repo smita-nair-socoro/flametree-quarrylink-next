@@ -6,8 +6,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { Toaster } from '@/components/ui/sonner';
 import { AppAuthProviders } from '@/lib/providers/AuthProviders';
-import {ConfigProvider} from "@/lib/providers/ConfigProvider";
-import VersionLogger from "@/components/VersionLogger";
+import { ConfigProvider } from '@/lib/providers/ConfigProvider';
+import VersionLogger from '@/components/VersionLogger';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,39 +25,43 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="[scrollbar-gutter:stable]"
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-      <ConfigProvider>
-        <AppAuthProviders>
-          <VersionLogger />
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <div className="relative min-h-screen">
-              {/* TanstackQuery */}
-              <TanstackQueryProvider>
-                <ReactQueryDevtools initialIsOpen={false} />
-                <main>{children}</main>
-                <Toaster
-                  position="top-right"
-                  richColors
-                  toastOptions={{
-                    // global defaults
-                    duration: 4000,
-                    closeButton: true,
-                  }}
-                />
-              </TanstackQueryProvider>
-            </div>
-          </ThemeProvider>
-        </AppAuthProviders>
-      </ConfigProvider>
+        <ConfigProvider>
+          <AppAuthProviders>
+            <VersionLogger />
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <div className="relative min-h-screen">
+                {/* TanstackQuery */}
+                <TanstackQueryProvider>
+                  <ReactQueryDevtools initialIsOpen={false} />
+                  <main>{children}</main>
+                  <Toaster
+                    position="top-right"
+                    richColors
+                    toastOptions={{
+                      // global defaults
+                      duration: 4000,
+                      closeButton: true,
+                    }}
+                  />
+                </TanstackQueryProvider>
+              </div>
+            </ThemeProvider>
+          </AppAuthProviders>
+        </ConfigProvider>
       </body>
     </html>
   );

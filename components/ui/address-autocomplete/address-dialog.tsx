@@ -41,8 +41,6 @@ interface AddressFields {
 
 /**
  * Create a Zod schema for validating address fields.
- * Note that, different address vary from place to place.
- * This Schema makes sure that the required fields are filled.
  */
 export function createAddressSchema(address: AddressFields) {
   let schema = {};
@@ -117,7 +115,7 @@ export default function AddressDialog(
   const [address2, setAddress2] = useState('');
   const [city, setCity] = useState('');
   const [region, setRegion] = useState('');
-  const [postalCode, setPostalCode] = useState('');
+  const [postalCode, setPostcode] = useState('');
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   const addressSchema = createAddressSchema({
@@ -153,6 +151,7 @@ export default function AddressDialog(
         formattedAddress: '',
         lat: address.lat || 0,
         lng: address.lng || 0,
+        googlePlaceId: address.googlePlaceId || '',
       });
     }
 
@@ -257,7 +256,7 @@ export default function AddressDialog(
   useEffect(() => {
     setAddress1(address.address1);
     setAddress2(address.address2 || '');
-    setPostalCode(address.postalCode);
+    setPostcode(address.postalCode);
     setCity(address.city);
     setRegion(address.region);
 
@@ -365,7 +364,7 @@ export default function AddressDialog(
                   <Label htmlFor="postalCode">Postal Code</Label>
                   <Input
                     value={postalCode}
-                    onChange={(e) => setPostalCode(e.currentTarget.value)}
+                    onChange={(e) => setPostcode(e.currentTarget.value)}
                     disabled={isLoading}
                     id="postalCode"
                     name="postalCode"

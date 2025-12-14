@@ -87,8 +87,10 @@ export function TableBadges({
   variant = 'default',
 }: TableBadgesProps) {
   const all = Array.isArray(names) ? names : [names];
-  const visible = all.slice(0, visibleCount);
-  const hidden = all.slice(visibleCount);
+  // Filter out undefined, null, and empty strings
+  const filtered = all.filter((n) => n && typeof n === 'string' && n.trim());
+  const visible = filtered.slice(0, visibleCount);
+  const hidden = filtered.slice(visibleCount);
   return (
     <div className="flex items-center gap-1">
       {visible.map((n) => (

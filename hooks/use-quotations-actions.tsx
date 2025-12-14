@@ -7,17 +7,25 @@ import { QuotationActionButtons } from '@/app/(protected)/customer-operations/qu
 import { ActionDialog } from '@/components/action-dialog';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import {
+  Archive,
   ArrowRight,
   Calendar,
   CircleCheckBig,
   CircleX,
+  // Quote,
   Send,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
-import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
+import {
+  QuotationWithLineItemsQueryOptions,
+  useExtendExpiryDate,
+  useUpdateQuotation,
+} from '@/lib/api/quotation';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface DialogConfig {
   title?: string;
@@ -72,15 +80,15 @@ const getDialogConfigs = (
   newExpiryDate?: Date,
   setNewExpiryDate?: (date: Date) => void
 ): Record<string, DialogConfig> => {
-  const quotationNumber = quotationData?.quote_number;
-  const projectName = quotationData?.project_name;
-  const customerName = quotationData?.customer_name;
-  const customerEmail = quotationData?.customer_email;
-  const totalSellPrice = quotationData?.total_sell_price
-    ? centsToDollars(quotationData?.total_sell_price)
+  const quotationNumber = quotationData?.quoteNumber;
+  const projectName = quotationData?.projectName;
+  const customerName = quotationData?.customerName;
+  const customerEmail = quotationData?.customerEmail;
+  const totalSellPrice = quotationData?.totalSellPrice
+    ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
-  const lineItemsCount = quotationData?.line_items_count;
-  const expiryDate = quotationData?.expiry_date;
+  const lineItemsCount = quotationData?.lineItemsCount;
+  const expiryDate = quotationData?.expiryDate;
 
   if (selectedAction?.key === 'sendToCustomer') {
     return {
@@ -201,7 +209,7 @@ const getDialogConfigs = (
               <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
                 <li> Quote status changes from Pending to Approved</li>
                 <li> Customer is notified of approval</li>
-                <li> Quote becomes reqdy for job conversion</li>
+                <li> Quote becomes ready for job conversion</li>
                 <li> Pricing and terms are locked</li>
               </ul>
             </div>
@@ -469,7 +477,8 @@ const getDialogConfigs = (
                     setNewExpiryDate(date);
                   }
                 }}
-                disabled={{ before: new Date(expiryDate ?? '') }}
+                // Original: disabled={{ before: new Date(expiryDate ?? '') }}, update for test
+                disabled={{ before: new Date() }}
               />
             </div>
 
@@ -491,6 +500,78 @@ const getDialogConfigs = (
         confirmCustomColor: '#F54900',
       },
     };
+  } else if (selectedAction?.key === 'archive') {
+    return {
+      archive: {
+        title: 'Archive Quote',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#F3F4F6] rounded-full">
+              <span className="flex items-center justify-center">
+                <Archive className="h-[20px] w-[20px] text-[#6B7280]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to archive this quote?
+            </span>
+            <div className="border-1 border-[#D1D5DB] rounded-md p-[16.625px] bg-[#F9FAFB]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <Archive className="h-[20px] w-[20px] text-[#6B7280] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#374151] font-medium">
+                    Quote Archived
+                  </span>
+                  <span className="text-[14px] font-normal text-[#6B7280]">
+                    This quote will be moved to archived status and removed from
+                    active quote lists for better organization.
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What happens when Quote is archived:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote status changes to Archived</li>
+                <li> Quote is removed from active quote lists section</li>
+                <li> Quote becomes read-only for reference</li>
+                <li> Historical data is preserved permanently</li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="font-medium text-[14px] text-[#101828]">
+                What continues to work:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
+                <li> Quote remains accessible in archived section</li>
+                <li> All quote data and attachments preserved</li>
+                <li> Customer relationship history maintained</li>
+                <li> Reporting and analytics include archived data</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Archive Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#6B7280',
+      },
+    };
   }
   return {};
 };
@@ -502,9 +583,12 @@ export function useQuotationActions(
   const fallbackQuotation = useQuotationStore((state) =>
     quotationId ? state.getQuotationById(quotationId) : null
   );
-  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
+  const setSelectedQuotation = useQuotationStore(
+    (state) => state.setSelectedQuotation
+  );
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [duplicateOpen, setDuplicateOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
@@ -512,6 +596,9 @@ export function useQuotationActions(
     weekFromToday.setDate(weekFromToday.getDate() + 7);
     return weekFromToday;
   });
+
+  const extendExpiryMutation = useExtendExpiryDate();
+  const updateQuotationMutation = useUpdateQuotation();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -522,23 +609,19 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
-  // Fetch detailed quotation data from backend (same as view/edit modal)
+  // Fetch detailed quotation data with line items from backend
   const { data: quotationDetailData, isLoading: isLoadingDetail } = useQuery(
-    QuotationDetailQueryOptions(quotationId || 0)
+    QuotationWithLineItemsQueryOptions(quotationId || 0)
   );
 
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
-      const convertedQuotation = convertKeysToSnakeCase(
-        quotationDetailData
-      ) as QuotationDTO;
-
-      // Generate mock email if backend doesn't provide customer_email
-      let customerEmail = convertedQuotation.customer_email;
-      if (!customerEmail && convertedQuotation.customer_name) {
+      // Generate mock email if backend doesn't provide customerEmail
+      let customerEmail = quotationDetailData.customerEmail;
+      if (!customerEmail && quotationDetailData.customerName) {
         // Create mock email from customer name
-        const emailName = convertedQuotation.customer_name
+        const emailName = quotationDetailData.customerName
           .toLowerCase()
           .replace(/\s+/g, '.')
           .replace(/[^a-z0-9.]/g, '');
@@ -546,19 +629,29 @@ export function useQuotationActions(
       }
 
       const transformed = {
-        ...convertedQuotation,
-        quoteId: convertedQuotation.id,
-        status: convertedQuotation.quote_status,
-        customer_email: customerEmail, // Use mock if backend doesn't provide
+        ...quotationDetailData,
+        status: quotationDetailData.quoteStatus,
+        customerEmail: customerEmail, // Use mock if backend doesn't provide
       } as Quotation;
 
       return transformed;
     }
     return null;
-  }, [quotationDetailData, quotationId, isLoadingDetail]);
+  }, [quotationDetailData]);
 
-  // Use detailed data if available, otherwise fall back to list data
-  const quotationToUse = detailedQuotation || quotationData;
+  // Update store with detailed quotation that includes line items
+  React.useEffect(() => {
+    if (detailedQuotation) {
+      setSelectedQuotation(detailedQuotation);
+    }
+  }, [detailedQuotation, setSelectedQuotation]);
+
+  // Prefer detailed quotation (with deliveryAddress/line items), then provided prop, then store fallback
+  const resolvedQuotation =
+    detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
+
+  // Use detailed data if available, otherwise fall back to list/store data
+  const quotationToUse = resolvedQuotation;
 
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
@@ -567,43 +660,198 @@ export function useQuotationActions(
     setNewExpiryDate
   );
 
-  const createDialogAction = (actionKey: string, action: () => void) => {
+  const createDialogAction = (actionKey: string) => {
     return () => {
       setSelectedAction({ key: actionKey });
       setActiveDialog(actionKey);
     };
   };
 
+  // Build a safe payload for update actions (keeps deliveryAddress + status)
+  const buildUpdatePayload = (
+    overrides: Partial<QuotationDTO>
+  ): Partial<QuotationDTO> | null => {
+    if (!resolvedQuotation) return null;
+
+    const { status, ...quotationData } = resolvedQuotation;
+    // const { status, quoteItems, ...quotationData } = resolvedQuotation;
+    return {
+      ...quotationData,
+      quoteStatus: overrides.quoteStatus ?? status,
+      deliveryAddress:
+        overrides.deliveryAddress ??
+        detailedQuotation?.deliveryAddress ??
+        resolvedQuotation.deliveryAddress,
+      ...overrides,
+    };
+  };
+
+  // Extracted action handlers
+  const handleSendToCustomer = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError(extractErrorMessage('Unable to send quotation to customer'));
+      return;
+    }
+
+    try {
+      const quotationDTO = buildUpdatePayload({
+        quoteStatus: QuoteStatus.PENDING,
+      });
+
+      if (!quotationDTO) {
+        notifyError(extractErrorMessage('Missing quotation data for update'));
+        return;
+      }
+
+      await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
+        id: quotationId,
+      });
+
+      // Open preview window after successful status update
+      openQuotePreviewWindow(quotationId, resolvedQuotation);
+      notifySuccess('Quotation sent to customer');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to send quotation to customer:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError(extractErrorMessage('Unable to approve quotation'));
+      return;
+    }
+
+    try {
+      const quotationDTO = buildUpdatePayload({
+        quoteStatus: QuoteStatus.APPROVED,
+      });
+
+      if (!quotationDTO) {
+        notifyError(extractErrorMessage('Missing quotation data for update'));
+        return;
+      }
+
+      await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
+        id: quotationId,
+      });
+      notifySuccess('Quotation Approved');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to approve quotation:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError(extractErrorMessage('Unable to decline quotation'));
+      return;
+    }
+
+    try {
+      const quotationDTO = buildUpdatePayload({
+        quoteStatus: QuoteStatus.DECLINED,
+      });
+
+      if (!quotationDTO) {
+        notifyError(extractErrorMessage('Missing quotation data for update'));
+        return;
+      }
+
+      await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
+        id: quotationId,
+      });
+      notifySuccess('Quotation Declined');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to decline quotation:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleConvertToJob = async () => {
+    console.log('Convert to job:', quotationId, resolvedQuotation);
+    // TODO: implement convert to job logic
+  };
+
+  const handleExtendExpiry = async () => {
+    if (!quotationId) return;
+
+    try {
+      await extendExpiryMutation.mutateAsync({
+        id: quotationId,
+        expiryDate: newExpiryDate,
+      });
+      notifySuccess('Expiry Date Extended');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+      console.log('Failed to extend expiry date:', error);
+    }
+  };
+
+  const handleArchive = async () => {
+    if (!quotationId || !resolvedQuotation) {
+      notifyError(extractErrorMessage('Unable to archive quotation'));
+      return;
+    }
+
+    try {
+      const quotationDTO = buildUpdatePayload({
+        quoteStatus: QuoteStatus.ARCHIVED,
+      });
+
+      if (!quotationDTO) {
+        notifyError(extractErrorMessage('Missing quotation data for update'));
+        return;
+      }
+
+      await updateQuotationMutation.mutateAsync({
+        ...quotationDTO,
+        id: quotationId,
+      });
+      notifySuccess('Quotation Archived');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to archive quotation:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  // Map action keys to their handlers
+  const actionHandlers: Record<string, () => Promise<void>> = {
+    sendToCustomer: handleSendToCustomer,
+    approve: handleApprove,
+    decline: handleDecline,
+    convertToJob: handleConvertToJob,
+    extendExpiry: handleExtendExpiry,
+    archive: handleArchive,
+  };
+
   const actions = {
     duplicate: () => {
-      console.log('Duplicate quotation:', quotationId);
-      // TODO: implement duplicate logic
+      setDuplicateOpen(true);
     },
 
-    sendToCustomer: createDialogAction('sendToCustomer', () => {
-      console.log('Send to customer:', quotationId);
-      // TODO: implement send to customer mutation logic
-    }),
+    sendToCustomer: createDialogAction('sendToCustomer'),
 
-    approve: createDialogAction('approve', () => {
-      console.log('Approve quotation:', quotationId);
-      // TODO: implement approve logic
-    }),
+    approve: createDialogAction('approve'),
 
-    decline: createDialogAction('decline', () => {
-      console.log('Decline quotation:', quotationId);
-      // TODO: implement decline logic
-    }),
+    decline: createDialogAction('decline'),
 
-    convertToJob: createDialogAction('convertToJob', () => {
-      console.log('Convert to job:', quotationId);
-      // TODO: implement convert to job logic
-    }),
+    convertToJob: createDialogAction('convertToJob'),
 
-    extendExpiry: createDialogAction('extendExpiry', () => {
-      console.log('Extend expiry:', quotationId);
-      // TODO: implement extend expiry logic
-    }),
+    extendExpiry: createDialogAction('extendExpiry'),
 
     view: () => {
       setViewOpen(true);
@@ -619,10 +867,7 @@ export function useQuotationActions(
       // TODO: implement print logic
     },
 
-    archive: createDialogAction('archive', () => {
-      console.log('Archive quotation:', quotationId);
-      // TODO: implement delete logic
-    }),
+    archive: createDialogAction('archive'),
   };
 
   // Render active dialog
@@ -648,33 +893,10 @@ export function useQuotationActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
-          switch (key) {
-            case 'sendToCustomer':
-              console.log('Send to customer:', quotationId, resolvedQuotation);
-              openQuotePreviewWindow(quotationId, resolvedQuotation);
-              // TODO: implement send to customer mutation logic
-              break;
-            case 'approve':
-              console.log('Approve quotation:', quotationId, resolvedQuotation);
-              // TODO: implement approve logic
-              break;
-            case 'decline':
-              console.log('Decline quotation:', quotationId, resolvedQuotation);
-              // TODO: implement decline logic
-              break;
-            case 'convertToJob':
-              console.log('Convert to job:', quotationId, resolvedQuotation);
-              // TODO: implement convert to job logic
-              break;
-            case 'extendExpiry':
-              console.log('Extend expiry:', quotationId, resolvedQuotation);
-              // TODO: implement extend expiry logic
-              break;
-            case 'archive':
-              console.log('Archive quotation:', quotationId, resolvedQuotation);
-              // TODO: implement archive logic
-              break;
+        onConfirmAction={async () => {
+          const handler = actionHandlers[key];
+          if (handler) {
+            await handler();
           }
         }}
       />
@@ -682,9 +904,8 @@ export function useQuotationActions(
   });
 
   const canEdit =
-    resolvedQuotation?.status !== 'CONVERTED_TO_JOB' &&
-    resolvedQuotation?.status !== 'PENDING' &&
-    resolvedQuotation?.status !== 'APPROVED';
+    resolvedQuotation?.status === 'DRAFT' ||
+    resolvedQuotation?.status === 'DECLINED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
@@ -710,9 +931,36 @@ export function useQuotationActions(
     </FormDialog>
   ) : null;
 
+  const duplicateDialog = duplicateOpen ? (
+    <FormDialog
+      id={quotationId}
+      customTitle={
+        <span>
+          Duplicating Quote{' '}
+          <span className="text-purple-600">
+            {resolvedQuotation?.quoteNumber || ''}
+          </span>
+        </span>
+      }
+      open={duplicateOpen}
+      onOpenChangeAction={(open) => {
+        setDuplicateOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setDuplicateOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+    >
+      <QuotationForm canEdit={true} isDuplicate={true} />
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     confirmDialogs,
     viewDialog,
+    duplicateDialog,
   };
 }

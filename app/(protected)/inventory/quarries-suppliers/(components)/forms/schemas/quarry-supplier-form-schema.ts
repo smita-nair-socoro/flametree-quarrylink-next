@@ -36,7 +36,7 @@ const EmailOptional = z
 
 // Base schema with common fields
 const Base = z.object({
-  type: z.enum(['QUARRY', 'SUPPLIER'], {
+  quarry_supplier_type: z.enum(['QUARRY', 'SUPPLIER'], {
     required_error: 'Type is required',
   }),
 
@@ -47,13 +47,23 @@ const Base = z.object({
     .trim()
     .optional()
     .refine(
-      (v) =>
-        !v ||
-        v === '' ||
-        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(v),
-      {
-        message: 'Invalid website URL',
-      }
+      (v) => {
+        if (!v || v === '') return true;
+        try {
+          const candidate =
+            v.startsWith('http://') || v.startsWith('https://')
+              ? v
+              : `https://${v}`;
+          const url = new URL(candidate);
+          // Require a hostname with a TLD
+          return Boolean(
+            url.hostname && /\.[A-Za-z]{2,63}$/.test(url.hostname)
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: 'Invalid website URL' }
     ),
   email: EmailRequired,
   phone: PhoneRequired,
@@ -67,11 +77,10 @@ const Base = z.object({
   contact_person_email: EmailOptional,
 
   // Operational Information
-  opening_closing_times: z.string().trim().optional(),
+  opening_closing_info: z.string().trim().optional(),
   weighbridge_info: z.string().trim().optional(),
   notes: z.string().trim().optional(),
 
-  // Audit fields
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
   created_by: z.string().optional(),
@@ -85,7 +94,10 @@ export const QuarrySupplierFormSchema = Base.superRefine((data, ctx) => {
     ctx.addIssue({
       path: ['name'],
       code: z.ZodIssueCode.custom,
-      message: data.type === 'QUARRY' ? 'Quarry name is required' : 'Supplier name is required',
+      message:
+        data.quarry_supplier_type === 'QUARRY'
+          ? 'Quarry name is required'
+          : 'Supplier name is required',
     });
   } else if (data.name.trim().length < 2) {
     ctx.addIssue({

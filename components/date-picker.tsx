@@ -50,6 +50,7 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           disabled={readOnly}
           className={cn(
@@ -75,6 +76,8 @@ export function DatePicker({
           onSelect={handleDateSelect}
           disabled={disabled}
           required={required}
+          startMonth={new Date(2000, 0)}
+          endMonth={new Date(2050, 11)}
         />
       </PopoverContent>
     </Popover>
