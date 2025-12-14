@@ -6,18 +6,13 @@ export const NewProductFormSchema = z.object({
     .min(2, { message: 'Product Name must be at least 2 characters.' })
     .max(100, { message: "Product Name can't be more than 100 characters" }),
   product_code: z.string().nonempty({ message: 'Required' }),
-  material_type: z.string().trim().min(1, { message: 'Required' }),
+  material_id: z.coerce
+    .number({ required_error: 'Material Type is required' })
+    .min(1, { message: 'Material Type is required' }),
   product_description: z.string().optional(),
   density_tonnage_per_m3: z.coerce.number().nonnegative(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
-  created_by: z.string(),
-  last_modified_by: z.string(),
-  supplier_products: z.array(
-    z.object({
-      quarry_name: z.string().nonempty({ message: 'Required' }),
-      supplier_product_name: z.string().nonempty({ message: 'Required' }),
-      supplier_product_code: z.string().nonempty({ message: 'Required' }),
-    })
-  ),
+  created_by: z.string().optional(),
+  last_modified_by: z.string().optional(),
 });

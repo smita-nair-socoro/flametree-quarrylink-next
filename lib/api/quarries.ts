@@ -1,15 +1,12 @@
-import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { CategoryKeys, ProductKeys, QuarryKeys } from './keys';
+import { QuarryKeys } from './keys';
 import { Quarry } from '../types/quarry';
-
-export const ProductsListQueryOptions = () =>
-  queryOptions({
-    queryKey: ProductKeys.list(),
-    queryFn: () => APIClient.products.list(),
-    placeholderData: keepPreviousData,
-    staleTime: 5_000,
-  });
 
 export const QuarryListQueryOptions = () =>
   queryOptions({
@@ -34,15 +31,6 @@ export const SuburbsListQueryOptions = () =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
-
-export const CategoryListQueryOptions = () =>
-  queryOptions({
-    queryKey: CategoryKeys.list(),
-    queryFn: () => APIClient.categories.getAll(),
-    placeholderData: keepPreviousData,
-    staleTime: 5_000,
-  });
-
 /**
  * Mutation hook for creating a new quarry or supplier.
  * Automatically invalidates the quarries list cache on success.
@@ -105,7 +93,8 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => APIClient.quarries.deleteAfterEligibilityCheck(id),
+    mutationFn: (id: number) =>
+      APIClient.quarries.deleteAfterEligibilityCheck(id),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuarryKeys.list() });

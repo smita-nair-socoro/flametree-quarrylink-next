@@ -73,7 +73,9 @@ export default function CustomerForm({
     lat: 0,
     lng: 0,
   });
-  const [searchInput, setSearchInput] = React.useState('');
+  const [searchInput, setSearchInput] = React.useState(
+    isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : ''
+  );
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -88,24 +90,30 @@ export default function CustomerForm({
           ? selectedCustomer.payment_type
           : 'CREDIT',
       business_name: isEditing ? selectedCustomer?.business_name || '' : '',
-      business_email: isEditing ? selectedCustomer?.business_email || '' : '',
-      business_phone: isEditing ? selectedCustomer?.business_phone || '' : '',
+      business_email: isEditing
+        ? selectedCustomer?.business_email || 'buildpty@email.com'
+        : '',
+      business_phone: isEditing
+        ? selectedCustomer?.business_phone || '+61429384373'
+        : '',
       abn: isEditing ? selectedCustomer?.abn || '' : '',
       contact_person_name: isEditing
         ? selectedCustomer?.contact_name || ''
         : '',
       contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
-      contact_person_phone: isEditing ? selectedCustomer?.phone || '' : '',
+      contact_person_phone: isEditing
+        ? selectedCustomer?.business_phone || '+61429384373'
+        : '',
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.credit_limit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing
-        ? selectedCustomer?.payment_terms || 'of the following month'
+        ? selectedCustomer?.payment_term_type || 'of the following month'
         : 'of the following month',
       payment_terms_day: isEditing
-        ? selectedCustomer?.payment_terms_day || 0
+        ? selectedCustomer?.invoice_due_date || 0
         : 0,
       account_manager: isEditing ? selectedCustomer?.account_manager || '' : '',
-      billing_address: '', // Will be handled separately for address autocomplete
+      billing_address: isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : '',
       created_at: undefined,
       updated_at: undefined,
       created_by: 'current_user',
@@ -143,6 +151,7 @@ export default function CustomerForm({
         selectedCustomer.payment_type === 'PREPAID' ? 'PREPAID' : 'CREDIT';
       setSelectedCustomerType(selectedCustomer.customer_type);
       setSelectedPaymentType(paymentType);
+      setSearchInput('1 Scott Street Pyrmont, NSW, 2009');
 
       customerForm.reset({
         customer_type: selectedCustomer.customer_type,
@@ -153,7 +162,7 @@ export default function CustomerForm({
         abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
         contact_person_name: selectedCustomer.contact_name,
         contact_person_email: selectedCustomer.email,
-        contact_person_phone: selectedCustomer.phone,
+        contact_person_phone: selectedCustomer.business_phone,
         credit_limit:
           selectedCustomer.credit_limit === 0
             ? 0
@@ -164,7 +173,7 @@ export default function CustomerForm({
             ? ''
             : selectedCustomer.payment_terms,
         account_manager: selectedCustomer.account_manager,
-        billing_address: '', // Will be handled separately
+        billing_address: '1 Scott Street Pyrmont, NSW, 2009',
         created_at: selectedCustomer.created_at
           ? new Date(selectedCustomer.created_at)
           : undefined,
@@ -198,16 +207,16 @@ export default function CustomerForm({
   );
 
   const paymentTermsOptions = [
-    { label: 'of the following month', value: 'of the following month' },
+    { label: 'of the following month', value: 'OFFOLLOWINGMONTH' },
     {
       label: 'day(s) after the invoice date',
-      value: 'day(s) after the invoice date',
+      value: 'DAYSAFTERBILLDATE',
     },
     {
       label: 'day(s) after the invoice month',
-      value: 'day(s) after the invoice month',
+      value: 'DAYSAFTERBILLMONTH',
     },
-    { label: 'of the current month', value: 'of the current month' },
+    { label: 'of the current month', value: 'OFCURRENTMONTH' },
   ];
 
   const accountManagerOptions = [

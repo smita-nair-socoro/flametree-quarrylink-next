@@ -1,13 +1,17 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
-import { ProductDetails } from '../types/product';
-import { Category } from '../types/category';
+import { Product, ProductDetails } from '../types/product';
 import { Customer } from '../types/customer';
-import { Quarry, ArchiveDeleteSummaryDto } from '../types/quarry';
+import {
+  Quarry,
+  ArchiveDeleteSummaryDto,
+  QuarrySupplierProduct,
+} from '../types/quarry';
 import { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
+import { Material } from '../types/material';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -244,6 +248,12 @@ export async function HttpClient<T = unknown>(
     // We received a successful response
     if (response.status === 204) {
       // 204 contains no data, but indicates success
+      if ((init.method || 'GET') === 'DELETE') {
+        console.log('[HttpClient] DELETE success (204 No Content):', {
+          endpoint,
+          status: response.status,
+        });
+      }
       return Promise.resolve<T>({} as T);
     }
 
@@ -251,8 +261,22 @@ export async function HttpClient<T = unknown>(
     // otherwise, just resolve the Response object returned by window.fetch
     // and the consumer can call await response.text() if needed.
     if (isJson) {
-      return Promise.resolve<T>((await response.json()) as T);
+      const json = (await response.json()) as T;
+      if ((init.method || 'GET') === 'DELETE') {
+        console.log('[HttpClient] DELETE success (JSON):', {
+          endpoint,
+          status: response.status,
+          body: json,
+        });
+      }
+      return Promise.resolve<T>(json);
     } else {
+      if ((init.method || 'GET') === 'DELETE') {
+        console.log('[HttpClient] DELETE success (non-JSON):', {
+          endpoint,
+          status: response.status,
+        });
+      }
       return Promise.resolve<T>(response as T);
     }
   } else {
@@ -356,7 +380,32 @@ const appClient = {
 
 export const APIClient = {
   products: {
-    list: () => appClient.Get<ProductDetails[]>('/api/v1/products/all'),
+    getAll: () =>
+      appClient.Get<ProductDetails[]>(
+        `/socoro/quarrylink/api/product/material`
+      ),
+    getByIdWithMaterial: (productId: number) =>
+      appClient.Get<ProductDetails>(
+        `/socoro/quarrylink/api/product/${productId}/material`
+      ),
+    getByIdWithQuarrySupplierProduct: (productId: number) =>
+      appClient.Get<ProductDetails>(
+        `/socoro/quarrylink/api/product/${productId}/quarry-supplier`
+      ),
+    createProduct: (data: Partial<Product>) =>
+      appClient.Post<Product>('/socoro/quarrylink/api/product', {
+        body: data,
+      }),
+    updateProduct: (id: number, data: Partial<Product>) =>
+      appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
+        body: data,
+      }),
+    deleteProduct: (id: number) =>
+      appClient.Delete<{
+        quotes?: string[];
+        jobs?: string[];
+        dockets?: string[];
+      }>(`/socoro/quarrylink/api/product/${id}`),
   },
   quarries: {
     getAll: async () => {
@@ -398,18 +447,63 @@ export const APIClient = {
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
       ),
-    deletePrice: (priceId: number) =>
-      appClient.Delete(`/api/v1/quarries/quarry-product-prices/${priceId}`),
   },
 
-  categories: {
-    getAll: () => appClient.Get<Category[]>(`/api/v1/categories`),
-    new: (name: string) =>
-      appClient.Post<Category>('/api/v1/categories/new', {
-        body: {
-          name,
-        },
-      }),
+  materials: {
+    getAll: () => appClient.Get<Material[]>(`/socoro/quarrylink/api/materials`),
+  },
+
+  quarrySupplierProducts: {
+    getById: (quarrySupplierId: number, productId: number) =>
+      appClient.Get<QuarrySupplierProduct>(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`
+      ),
+    create: (data: Partial<QuarrySupplierProduct>) =>
+      appClient.Post<QuarrySupplierProduct>(
+        '/socoro/quarrylink/api/quarry-products',
+        {
+          body: data,
+        }
+      ),
+    update: (
+      quarrySupplierId: number,
+      productId: number,
+      data: Partial<QuarrySupplierProduct>
+    ) =>
+      appClient.Put<QuarrySupplierProduct>(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`,
+        {
+          body: data,
+        }
+      ),
+    delete: (quarrySupplierId: number, productId: number) => {
+      console.log('[APIClient] quarrySupplierProducts.delete called with:', {
+        quarrySupplierId,
+        productId,
+      });
+      return appClient
+        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+          `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`
+        )
+        .then((res) => {
+          console.log(
+            '[APIClient] quarrySupplierProducts.delete response:',
+            res
+          );
+          const len = Array.isArray(res?.blockingQuoteDtos)
+            ? res!.blockingQuoteDtos!.length
+            : 0;
+          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          return res;
+        })
+        .catch((err) => {
+          console.error(
+            '[APIClient] quarrySupplierProducts.delete error:',
+            err
+          );
+          throw err;
+        });
+    },
   },
 
   customers: {

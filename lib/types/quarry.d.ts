@@ -26,41 +26,43 @@ export interface Quarry {
   suburb?: string;
 }
 
-export interface QuarryProductPrice {
+export interface QuarrySupplierProduct {
+  quarry_supplier?: {
+    id: number;
+    name: string;
+  };
+  quarry_supplier_id: number;
   product_id: number;
-  quarry_id: number;
-  tn_cost_price: number;
-  tn_sell_price: number;
-  m3_cost_price: number;
-  m3_sell_price: number;
-  kg_cost_price: number;
-  kg_sell_price: number;
-  bulka_cost_price: number;
-  bulka_sell_price: number;
-  margin_tn: number;
-  margin_m3: number;
-  margin_kg: number;
-  margin_bulka: number;
-  available_for_sale_tn: boolean;
-  available_for_sale_m3: boolean;
-  available_for_sale_kg: boolean;
-  available_for_sale_bulka: boolean;
-  truck_tn_rate: number;
-  truck_m3_rate: number;
-  truck_hourly_rate: number;
-  truck_load_rate: number;
-  available_truck_tn_rate: boolean;
-  available_truck_m3_rate: boolean;
-  available_truck_hourly_rate: boolean;
-  available_truck_load_rate: boolean;
-}
-
-export interface QuarriesWithProduct {
-  id: number;
-  quarry_name: string;
   supplier_product_name: string;
   supplier_product_code: string;
-  price: QuarryProductPrice;
+  quarry_name?: string;
+
+  per_tn_cost_price: number;
+  per_tn_sell_price: number;
+  per_m3_cost_price: number;
+  per_m3_sell_price: number;
+  per20kg_cost_price: number;
+  per20kg_sell_price: number;
+  per_bulka_cost_price: number;
+  per_bulka_sell_price: number;
+
+  available_for_sale_tn: boolean;
+  available_for_sale_m3: boolean;
+  available_for_sale20kg: boolean;
+  available_for_sale_bulka: boolean;
+
+  tn_truck_rate: number;
+  m3_truck_rate: number;
+  hourly_truck_rate: number;
+  load_truck_rate: number;
+  available_for_truck_rate_tn: boolean;
+  available_for_truck_rate_m3: boolean;
+  available_for_truck_rate_hour: boolean;
+  available_for_truck_rate_load: boolean;
+
+  is_active: boolean;
+  available_units: string; // e.g. "[\"TN\", \"M3\"]"
+  version: number;
 }
 
 export interface ArchiveDeleteSummaryDto {
@@ -69,3 +71,4 @@ export interface ArchiveDeleteSummaryDto {
   deletedCount?: number;
   affectedEntities?: string[];
 }
+export type QuarriesWithProduct = QuarrySupplierProduct;
