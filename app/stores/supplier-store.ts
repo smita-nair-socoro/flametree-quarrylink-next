@@ -40,7 +40,7 @@ export const useSupplierStore = create<SupplierStore>()(
       // Selectors
       getSupplierById: (id) => {
         const state = get();
-        return state.suppliers.find((p) => p.quarry_supplier_id === id);
+        return state.suppliers.find((p) => p.quarrySupplierId === id);
       },
     }),
     { name: 'supplier-store' }
@@ -57,6 +57,6 @@ export const useSupplierLoading = () =>
 
 export const useSupplierById = (id: number) => {
   return useSupplierStore((state) =>
-    state.suppliers.find((p) => p.quarry_supplier_id === id)
+    state.suppliers.find((p) => p.quarrySupplierId === id)
   );
 };

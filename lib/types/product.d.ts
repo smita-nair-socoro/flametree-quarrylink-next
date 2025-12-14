@@ -33,7 +33,7 @@ export interface MaterialType {
 }
 
 export interface ProductDetails extends Product {
-  quarry_supplier_products: QuarrySupplierProduct[];
+  quarrySupplierProducts: QuarrySupplierProduct[];
   quotes: Quotation[];
   jobs: JobDetails[];
 }

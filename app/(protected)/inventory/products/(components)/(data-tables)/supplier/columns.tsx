@@ -21,7 +21,7 @@ export const supplierColumns = (
 >[] => [
   {
     id: 'name',
-    accessorFn: (row) => row.quarry_supplier?.name || 'N/A',
+    accessorFn: (row) => row.quarrySupplier?.name || 'N/A',
     header: ({}) => {
       return <div>Supplier Name</div>;
     },
@@ -30,16 +30,16 @@ export const supplierColumns = (
   },
   {
     id: 'supplier_product_name',
-    accessorFn: (row) => row.supplier_product_name,
+    accessorFn: (row) => row.supplierProductName,
     header: ({}) => {
       return <div>Supplier Product Name</div>;
     },
-    cell: ({ row }) => <div>{row.original.supplier_product_name}</div>,
+    cell: ({ row }) => <div>{row.original.supplierProductName}</div>,
     meta: 'Supplier Product Name',
   },
   {
     id: 'per_tn_cost_price',
-    accessorFn: (row) => row.per_tn_cost_price,
+    accessorFn: (row) => row.perTnCostPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -56,14 +56,14 @@ export const supplierColumns = (
       );
     },
     cell: ({ row }) => {
-      const costPrice = row.original.per_tn_cost_price || 0;
+      const costPrice = row.original.perTnCostPrice || 0;
       return <div>${centsToDollars(costPrice)}</div>;
     },
     meta: 'Cost Price per TN',
   },
   {
     id: 'per_tn_sell_price',
-    accessorFn: (row) => row.per_tn_sell_price,
+    accessorFn: (row) => row.perTnSellPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -80,7 +80,7 @@ export const supplierColumns = (
       );
     },
     cell: ({ row }) => {
-      const sellPrice = row.original.per_tn_sell_price || 0;
+      const sellPrice = row.original.perTnSellPrice || 0;
       return <div>${centsToDollars(sellPrice)}</div>;
     },
     meta: 'Sell Price per TN',
@@ -88,8 +88,8 @@ export const supplierColumns = (
   {
     id: 'margin',
     accessorFn: (row) => {
-      const costPrice = row.per_tn_cost_price || 0;
-      const sellPrice = row.per_tn_sell_price || 0;
+      const costPrice = row.perTnCostPrice || 0;
+      const sellPrice = row.perTnSellPrice || 0;
       if (costPrice === 0) return 0;
       return (sellPrice - costPrice) / costPrice;
     },
@@ -97,8 +97,8 @@ export const supplierColumns = (
       return <div>Margin</div>;
     },
     cell: ({ row }) => {
-      const costPrice = row.original.per_tn_cost_price || 0;
-      const sellPrice = row.original.per_tn_sell_price || 0;
+      const costPrice = row.original.perTnCostPrice || 0;
+      const sellPrice = row.original.perTnSellPrice || 0;
 
       // Calculate margin: (Sell Price - Cost Price) / Cost Price
       const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
@@ -124,14 +124,14 @@ export const supplierColumns = (
   },
   {
     id: 'action',
-    accessorFn: (row) => row.quarry_supplier_id,
+    accessorFn: (row) => row.quarrySupplierId,
     header: ({}) => {
       return <div></div>;
     },
     cell: ({ row }) => (
       <SupplierTableActions
         quarry={row.original}
-        productId={productId ?? row.original.product_id}
+        productId={productId ?? row.original.productId}
       />
     ),
     meta: 'Action',

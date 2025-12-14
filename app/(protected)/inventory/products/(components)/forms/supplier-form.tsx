@@ -33,7 +33,6 @@ import {
   useUpdateQuarrySupplierProduct,
 } from '@/lib/api/quarry-supplier-product';
 import { QuarriesListQueryOptions } from '@/lib/api/quarry';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 
 interface FormProps {
   productId?: number;
@@ -90,7 +89,7 @@ export default function SupplierForm({
   // Convert API response from camelCase to snake_case
   const convertedQuarrySupplierProduct = React.useMemo(() => {
     if (!quarrySupplierProductData) return null;
-    return convertKeysToSnakeCase(quarrySupplierProductData);
+    return quarrySupplierProductData;
   }, [quarrySupplierProductData]);
 
   // Map quarries to supplier options
@@ -98,10 +97,9 @@ export default function SupplierForm({
     if (!quarriesData) return [];
 
     return quarriesData.map((quarry) => {
-      const convertedQuarry = convertKeysToSnakeCase(quarry);
       return {
-        label: convertedQuarry.name,
-        value: convertedQuarry.id,
+        label: quarry.name,
+        value: quarry.id,
       };
     });
   }, [quarriesData]);
@@ -146,34 +144,33 @@ export default function SupplierForm({
       const data = convertedQuarrySupplierProduct;
 
       supplierForm.reset({
-        quarry_supplier_id: data.quarry_supplier_id,
-        supplier_product_name: data.supplier_product_name || '',
-        supplier_product_code: data.supplier_product_code || '',
-        cost_price_tn: (data.per_tn_cost_price || 0) / 100,
-        sell_price_tn: (data.per_tn_sell_price || 0) / 100,
-        cost_price_m3: (data.per_m3_cost_price || 0) / 100,
-        sell_price_m3: (data.per_m3_sell_price || 0) / 100,
-        cost_price_kg: (data.per20kg_cost_price || 0) / 100,
-        sell_price_kg: (data.per20kg_sell_price || 0) / 100,
-        cost_price_bulka: (data.per_bulka_cost_price || 0) / 100,
-        sell_price_bulka: (data.per_bulka_sell_price || 0) / 100,
+        quarry_supplier_id: data.quarrySupplierId,
+        supplier_product_name: data.supplierProductName || '',
+        supplier_product_code: data.supplierProductCode || '',
+        cost_price_tn: (data.perTnCostPrice || 0) / 100,
+        sell_price_tn: (data.perTnSellPrice || 0) / 100,
+        cost_price_m3: (data.perM3CostPrice || 0) / 100,
+        sell_price_m3: (data.perM3SellPrice || 0) / 100,
+        cost_price_kg: (data.per20kgCostPrice || 0) / 100,
+        sell_price_kg: (data.per20kgSellPrice || 0) / 100,
+        cost_price_bulka: (data.perBulkaCostPrice || 0) / 100,
+        sell_price_bulka: (data.perBulkaSellPrice || 0) / 100,
         margin_tn: 0, // Will be calculated
         margin_m3: 0,
         margin_kg: 0,
         margin_bulka: 0,
-        available_for_sale_tn: data.available_for_sale_tn ?? true,
-        available_for_sale_m3: data.available_for_sale_m3 ?? false,
-        available_for_sale_kg: data.available_for_sale20kg ?? false,
-        available_for_sale_bulka: data.available_for_sale_bulka ?? false,
-        truck_tn_rate: (data.tn_truck_rate || 0) / 100,
-        truck_m3_rate: (data.m3_truck_rate || 0) / 100,
-        truck_hourly_rate: (data.hourly_truck_rate || 0) / 100,
-        truck_load_rate: (data.load_truck_rate || 0) / 100,
-        available_truck_tn_rate: data.available_for_truck_rate_tn ?? true,
-        available_truck_m3_rate: data.available_for_truck_rate_m3 ?? false,
-        available_truck_hourly_rate:
-          data.available_for_truck_rate_hour ?? false,
-        available_truck_load_rate: data.available_for_truck_rate_load ?? false,
+        available_for_sale_tn: data.availableForSaleTn ?? true,
+        available_for_sale_m3: data.availableForSaleM3 ?? false,
+        available_for_sale_kg: data.availableForSale20kg ?? false,
+        available_for_sale_bulka: data.availableForSaleBulka ?? false,
+        truck_tn_rate: (data.tnTruckRate || 0) / 100,
+        truck_m3_rate: (data.m3TruckRate || 0) / 100,
+        truck_hourly_rate: (data.hourlyTruckRate || 0) / 100,
+        truck_load_rate: (data.loadTruckRate || 0) / 100,
+        available_truck_tn_rate: data.availableForTruckRateTn ?? true,
+        available_truck_m3_rate: data.availableForTruckRateM3 ?? false,
+        available_truck_hourly_rate: data.availableForTruckRateHour ?? false,
+        available_truck_load_rate: data.availableForTruckRateLoad ?? false,
       });
     }
   }, [isEditing, convertedQuarrySupplierProduct, supplierForm]);
@@ -456,8 +453,7 @@ export default function SupplierForm({
       if (processedValues.available_for_sale_bulka)
         availableUnits.push('BULKA');
 
-      // Prepare payload directly in camelCase format (API expects camelCase)
-      const camelCasePayload = {
+      const payload = {
         quarrySupplierId: processedValues.quarry_supplier_id, // Quarry ID from dropdown
         productId: productId,
         supplierProductName: processedValues.supplier_product_name,
@@ -492,12 +488,12 @@ export default function SupplierForm({
         await updateQuarrySupplierProduct.mutateAsync({
           quarrySupplierId,
           productId,
-          data: camelCasePayload,
+          data: payload,
         });
         console.log('Quarry Supplier Product updated successfully!');
       } else {
         // Create new quarry-supplier-product
-        await createQuarrySupplierProduct.mutateAsync(camelCasePayload);
+        await createQuarrySupplierProduct.mutateAsync(payload);
         console.log('Quarry Supplier Product created successfully!');
       }
 

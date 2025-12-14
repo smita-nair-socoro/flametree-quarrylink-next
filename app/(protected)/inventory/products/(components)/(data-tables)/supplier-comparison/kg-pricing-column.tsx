@@ -14,7 +14,7 @@ import {
 export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
     id: 'name',
-    accessorFn: (row) => row.quarry_supplier?.name,
+    accessorFn: (row) => row.quarrySupplier?.name,
     header: ({}) => {
       return <div>Supplier</div>;
     },
@@ -24,7 +24,7 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'cost_price',
-    accessorFn: (row) => row.per20kg_cost_price,
+    accessorFn: (row) => row.per20kgCostPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -41,11 +41,11 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_sale20kg === false) {
+      if (row.original.availableForSale20kg === false) {
         return <div>N/A</div>;
       } else {
-        const costPrice = row.original.per20kg_cost_price
-          ? centsToDollars(row.original.per20kg_cost_price)
+        const costPrice = row.original.per20kgCostPrice
+          ? centsToDollars(row.original.per20kgCostPrice)
           : '0';
         return <div>${costPrice}</div>;
       }
@@ -55,7 +55,7 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'sell_price',
-    accessorFn: (row) => row.per20kg_sell_price,
+    accessorFn: (row) => row.per20kgSellPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -72,11 +72,11 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_sale20kg === false) {
+      if (row.original.availableForSale20kg === false) {
         return <div>N/A</div>;
       } else {
-        const sellPrice = row.original.per20kg_sell_price
-          ? centsToDollars(row.original.per20kg_sell_price)
+        const sellPrice = row.original.per20kgSellPrice
+          ? centsToDollars(row.original.per20kgSellPrice)
           : '0';
         return <div>${sellPrice}</div>;
       }
@@ -87,8 +87,8 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
     id: 'margin',
     accessorFn: (row) => {
-      const costPrice = row.per20kg_cost_price || 0;
-      const sellPrice = row.per20kg_sell_price || 0;
+      const costPrice = row.per20kgCostPrice || 0;
+      const sellPrice = row.per20kgSellPrice || 0;
       if (costPrice === 0) return 0;
       return (sellPrice - costPrice) / costPrice;
     },
@@ -96,11 +96,11 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return <div>Margin</div>;
     },
     cell: ({ row }) => {
-      if (row.original.available_for_sale20kg === false) {
+      if (row.original.availableForSale20kg === false) {
         return <div>0.00%</div>;
       }
-      const costPrice = row.original.per20kg_cost_price || 0;
-      const sellPrice = row.original.per20kg_sell_price || 0;
+      const costPrice = row.original.per20kgCostPrice || 0;
+      const sellPrice = row.original.per20kgSellPrice || 0;
 
       // Calculate margin: (Sell Price - Cost Price) / Cost Price
       const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
@@ -126,13 +126,13 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'available_for_sale_kg',
-    accessorFn: (row) => row.available_for_sale20kg,
+    accessorFn: (row) => row.availableForSale20kg,
     header: ({}) => {
       return <div className="text-left">Available</div>;
     },
     cell: ({ row }) => {
       const availableForSale =
-        row.original.available_for_sale20kg === true ? 'Yes' : 'No';
+        row.original.availableForSale20kg === true ? 'Yes' : 'No';
       return <div className="text-left">{availableForSale}</div>;
     },
     meta: 'available for sale',

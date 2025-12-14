@@ -26,10 +26,6 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { ChartColumn } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
-import {
-  convertKeysToSnakeCase,
-  convertKeysToCamelCase,
-} from '@/lib/utils/case-conversion';
 import { ActionDialog } from '@/components/action-dialog';
 import { tnPricingColumn } from '../(data-tables)/supplier-comparison/tn-pricing-column';
 import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing-column';
@@ -100,9 +96,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   // Convert product data to snake_case (includes both product details and supplier info)
   const selectedProduct: ProductDetails | null = React.useMemo(() => {
     if (!productData) return null;
-    const converted = convertKeysToSnakeCase(productData) as ProductDetails;
-    console.log('Product Data (with suppliers):', converted);
-    return converted;
+    console.log('Product Data (with suppliers):', productData);
+    return productData;
   }, [productData]);
 
   console.log('selectedProduct', selectedProduct);
@@ -172,8 +167,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   // Update total supplier count when product data is loaded
   React.useEffect(() => {
-    if (selectedProduct?.quarry_supplier_products) {
-      setTotalSupplier(selectedProduct.quarry_supplier_products.length || 0);
+    if (selectedProduct?.quarrySupplierProducts) {
+      setTotalSupplier(selectedProduct.quarrySupplierProducts.length || 0);
     }
   }, [selectedProduct]);
 
@@ -187,24 +182,21 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
     try {
       const payload = {
-        product_name: values.product_name,
-        product_code: values.product_code,
-        material_id: values.material_id,
-        density_tonnage_per_m3: values.density_tonnage_per_m3,
-        product_description: values.product_description,
-        is_active: true,
+        productName: values.product_name,
+        productCode: values.product_code,
+        materialId: values.material_id,
+        densityTonnagePerM3: values.density_tonnage_per_m3,
+        productDescription: values.product_description,
+        isActive: true,
         version: selectedProduct?.version || 0,
       };
 
       // Convert to camelCase as API expects camelCase keys
-      const camelCasePayload = convertKeysToCamelCase(payload);
-      console.log('Converted Payload (camelCase):', camelCasePayload);
-
       if (isEditing && id) {
         // Update existing product
         await updateProduct.mutateAsync({
           id: id,
-          data: { ...camelCasePayload, id },
+          data: { ...payload, id },
         });
         console.log('Product updated successfully!');
 
@@ -214,9 +206,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         }
       } else {
         // Create new product
-        const createdProduct = await createProduct.mutateAsync(
-          camelCasePayload
-        );
+        const createdProduct = await createProduct.mutateAsync(payload);
         console.log('Product created successfully!', createdProduct);
 
         // Store the created product ID and mark as just created
@@ -508,14 +498,14 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   <span className="font-normal text-[#364153]">TN Pricing</span>
                   <DataTableClient
                     columns={tnPricingColumn}
-                    data={selectedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
                   <span className="font-normal text-[#364153]">m³ Pricing</span>
                   <DataTableClient
                     columns={m3PricingColumn}
-                    data={selectedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -524,7 +514,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={kgPricingColumn}
-                    data={selectedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -533,7 +523,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={bulkaPricingColumn}
-                    data={selectedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -542,7 +532,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                   </span>
                   <DataTableClient
                     columns={truckRateComparisonColumn}
-                    data={selectedProduct?.quarry_supplier_products || []}
+                    data={selectedProduct?.quarrySupplierProducts || []}
                     simpleTable={true}
                     useColumnSizing={true}
                   />
@@ -557,7 +547,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 columns={supplierColumns(selectedProduct?.id)}
                 data={
                   isEditing || productJustCreated
-                    ? selectedProduct?.quarry_supplier_products ?? []
+                    ? selectedProduct?.quarrySupplierProducts ?? []
                     : []
                 }
                 simpleTable={true}

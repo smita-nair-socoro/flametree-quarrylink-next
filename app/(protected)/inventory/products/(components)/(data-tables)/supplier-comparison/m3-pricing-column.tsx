@@ -14,7 +14,7 @@ import {
 export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
     id: 'name',
-    accessorFn: (row) => row.quarry_supplier?.name,
+    accessorFn: (row) => row.quarrySupplier?.name,
     header: ({}) => {
       return <div>Supplier</div>;
     },
@@ -24,7 +24,7 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'cost_price',
-    accessorFn: (row) => row.per_m3_cost_price,
+    accessorFn: (row) => row.perM3CostPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -41,11 +41,11 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_sale_m3 === false) {
+      if (row.original.availableForSaleM3 === false) {
         return <div>N/A</div>;
       } else {
-        const costPrice = row.original.per_m3_cost_price
-          ? centsToDollars(row.original.per_m3_cost_price)
+        const costPrice = row.original.perM3CostPrice
+          ? centsToDollars(row.original.perM3CostPrice)
           : '0';
         return <div>${costPrice}</div>;
       }
@@ -55,7 +55,7 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'sell_price',
-    accessorFn: (row) => row.per_m3_sell_price,
+    accessorFn: (row) => row.perM3SellPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -72,11 +72,11 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_sale_m3 === false) {
+      if (row.original.availableForSaleM3 === false) {
         return <div>N/A</div>;
       } else {
-        const sellPrice = row.original.per_m3_sell_price
-          ? centsToDollars(row.original.per_m3_sell_price)
+        const sellPrice = row.original.perM3SellPrice
+          ? centsToDollars(row.original.perM3SellPrice)
           : '0';
         return <div>${sellPrice}</div>;
       }
@@ -87,8 +87,8 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
     id: 'margin',
     accessorFn: (row) => {
-      const costPrice = row.per_m3_cost_price || 0;
-      const sellPrice = row.per_m3_sell_price || 0;
+      const costPrice = row.perM3CostPrice || 0;
+      const sellPrice = row.perM3SellPrice || 0;
       if (costPrice === 0) return 0;
       return (sellPrice - costPrice) / costPrice;
     },
@@ -96,11 +96,11 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return <div>Margin</div>;
     },
     cell: ({ row }) => {
-      if (row.original.available_for_sale_m3 === false) {
+      if (row.original.availableForSaleM3 === false) {
         return <div>0.00%</div>;
       }
-      const costPrice = row.original.per_m3_cost_price || 0;
-      const sellPrice = row.original.per_m3_sell_price || 0;
+      const costPrice = row.original.perM3CostPrice || 0;
+      const sellPrice = row.original.perM3SellPrice || 0;
 
       // Calculate margin: (Sell Price - Cost Price) / Cost Price
       const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
@@ -126,13 +126,13 @@ export const m3PricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'available_for_sale_m3',
-    accessorFn: (row) => row.available_for_sale_m3,
+    accessorFn: (row) => row.availableForSaleM3,
     header: ({}) => {
       return <div className="text-left">Available</div>;
     },
     cell: ({ row }) => {
       const availableForSale =
-        row.original.available_for_sale_m3 === true ? 'Yes' : 'No';
+        row.original.availableForSaleM3 === true ? 'Yes' : 'No';
       return <div className="text-left">{availableForSale}</div>;
     },
     meta: 'available for sale',

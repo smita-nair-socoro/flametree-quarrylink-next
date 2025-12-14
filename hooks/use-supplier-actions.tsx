@@ -33,10 +33,9 @@ const getDialogConfigs = (
   quarryData?: QuarrySupplierProduct | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-  const quarryName =
-    quarryData?.quarry_name ?? quarryData?.supplier_product_name;
-  const supplierName = quarryData?.supplier_product_name;
-  const supplierProductCode = quarryData?.supplier_product_code;
+  const quarryName = quarryData?.quarryName ?? quarryData?.supplierProductName;
+  const supplierName = quarryData?.supplierProductName;
+  const supplierProductCode = quarryData?.supplierProductCode;
 
   if (selectedAction?.key === 'cannotDelete') {
     return {
@@ -213,7 +212,7 @@ export function useSupplierActions(
           switch (key) {
             case 'delete':
               console.log('Delete supplier:', quarryId, quarryData);
-              if (!quarryId || !quarryData?.product_id) {
+              if (!quarryId || !quarryData?.productId) {
                 setActiveDialog(null);
                 setSelectedAction(null);
                 break;
@@ -221,7 +220,7 @@ export function useSupplierActions(
               try {
                 const res = await deleteQuarrySupplierProduct({
                   quarrySupplierId: quarryId,
-                  productId: quarryData.product_id,
+                  productId: quarryData.productId,
                 });
                 const blocked = Array.isArray(res?.blockingQuoteDtos)
                   ? res.blockingQuoteDtos
@@ -260,7 +259,7 @@ export function useSupplierActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quarryId}
-      dialogTitle={`${quarryData?.quarry_supplier?.name} - Detailed Information`}
+      dialogTitle={`${quarryData?.quarrySupplier?.name} - Detailed Information`}
       dialogWidth="700px"
       contentClass="-mt-5"
       open={viewOpen}
@@ -280,8 +279,8 @@ export function useSupplierActions(
       }}
     >
       <SupplierForm
-        quarrySupplierId={quarryData?.quarry_supplier?.id}
-        productId={quarryData?.product_id}
+        quarrySupplierId={quarryData?.quarrySupplier?.id}
+        productId={quarryData?.productId}
         onCancel={() => setViewOpen(false)}
       />
     </FormDialog>
