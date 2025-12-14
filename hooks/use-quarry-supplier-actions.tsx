@@ -370,6 +370,21 @@ export function useQuarrySupplierActions(
                   ? res.blockingQuoteDtos
                   : [];
                 if (blocked.length > 0) {
+                  // Calculate total line items from blocking quotes
+                  const totalLineItems = blocked.reduce<number>(
+                    (sum, quote) =>
+                      sum +
+                      ((quote as { lineItemsCount?: number }).lineItemsCount ||
+                        0),
+                    0
+                  );
+
+                  // Set the blocking summary data for the dialog
+                  setBlockingSummary({
+                    totalLineItems,
+                    quotesCount: blocked.length,
+                  });
+
                   setSelectedAction({ key: 'cannotDelete' });
                   setActiveDialog('cannotDelete');
                 } else {
