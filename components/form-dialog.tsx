@@ -217,10 +217,10 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
-    finalCustomId = selectedProduct.product_name;
+    finalCustomId = selectedProduct.productName;
     finalPrimaryBadges = [selectedProduct.material.name];
     finalSecondaryBadges = [
-      selectedProduct.is_active ? 'Available' : 'Unavailable',
+      selectedProduct.isActive ? 'Available' : 'Unavailable',
     ];
   }
 

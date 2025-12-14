@@ -122,19 +122,19 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     defaultValues:
       isEditing && selectedProduct
         ? {
-            product_name: selectedProduct.product_name || '',
-            product_code: selectedProduct.product_code || '',
-            material_id: selectedProduct.material_id,
-            product_description: selectedProduct.product_description || '',
-            density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
-            created_at: selectedProduct.created_at
-              ? new Date(selectedProduct.created_at)
+            product_name: selectedProduct.productName || '',
+            product_code: selectedProduct.productCode || '',
+            material_id: selectedProduct.materialId,
+            product_description: selectedProduct.productDescription || '',
+            density_tonnage_per_m3: selectedProduct.densityTonnagePerM3 || 0,
+            created_at: selectedProduct.createdAt
+              ? new Date(selectedProduct.createdAt)
               : undefined,
-            updated_at: selectedProduct.updated_at
-              ? new Date(selectedProduct.updated_at)
+            updated_at: selectedProduct.updatedAt
+              ? new Date(selectedProduct.updatedAt)
               : undefined,
-            created_by: selectedProduct.created_by || '',
-            last_modified_by: selectedProduct.last_modified_by || '',
+            created_by: selectedProduct.createdBy || '',
+            last_modified_by: selectedProduct.lastModifiedBy || '',
           }
         : {
             product_name: '',
@@ -153,19 +153,19 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   React.useEffect(() => {
     if (isEditing && selectedProduct) {
       productForm.reset({
-        product_name: selectedProduct.product_name || '',
-        product_code: selectedProduct.product_code || '',
-        material_id: selectedProduct.material_id,
-        product_description: selectedProduct.product_description || '',
-        density_tonnage_per_m3: selectedProduct.density_tonnage_per_m3 || 0,
-        created_at: selectedProduct.created_at
-          ? new Date(selectedProduct.created_at)
+        product_name: selectedProduct.productName || '',
+        product_code: selectedProduct.productCode || '',
+        material_id: selectedProduct.materialId,
+        product_description: selectedProduct.productDescription || '',
+        density_tonnage_per_m3: selectedProduct.densityTonnagePerM3 || 0,
+        created_at: selectedProduct.createdAt
+          ? new Date(selectedProduct.createdAt)
           : undefined,
-        updated_at: selectedProduct.updated_at
-          ? new Date(selectedProduct.updated_at)
+        updated_at: selectedProduct.updatedAt
+          ? new Date(selectedProduct.updatedAt)
           : undefined,
-        created_by: selectedProduct.created_by || '',
-        last_modified_by: selectedProduct.last_modified_by || '',
+        created_by: selectedProduct.createdBy || '',
+        last_modified_by: selectedProduct.lastModifiedBy || '',
       });
     }
   }, [isEditing, selectedProduct, productForm]);
@@ -581,7 +581,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.created_by || 'N/A'}
+                    {selectedProduct?.createdBy || 'N/A'}
                   </p>
                 </div>
 
@@ -590,7 +590,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.last_modified_by || 'N/A'}
+                    {selectedProduct?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
 
@@ -599,8 +599,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.created_at
-                      ? new Date(selectedProduct.created_at).toLocaleDateString(
+                    {selectedProduct?.createdAt
+                      ? new Date(selectedProduct.createdAt).toLocaleDateString(
                           'en-AU',
                           {
                             day: '2-digit',
@@ -617,8 +617,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.updated_at
-                      ? new Date(selectedProduct.updated_at).toLocaleDateString(
+                    {selectedProduct?.updatedAt
+                      ? new Date(selectedProduct.updatedAt).toLocaleDateString(
                           'en-AU',
                           {
                             day: '2-digit',
