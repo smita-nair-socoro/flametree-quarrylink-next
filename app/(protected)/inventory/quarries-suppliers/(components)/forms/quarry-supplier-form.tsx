@@ -101,7 +101,7 @@ export default function QuarrySupplierForm({
         country: backendAddress.country || '',
         lat: backendAddress.latitude || 0,
         lng: backendAddress.longitude || 0,
-        // googlePlaceId: backendAddress.googlePlaceId || '', temporary changed to number for backend testing
+        googlePlaceId: backendAddress.googlePlaceId || '',
       };
     }
     return {
@@ -242,6 +242,7 @@ export default function QuarrySupplierForm({
   const submitQuarrySupplier = React.useCallback(
     async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
       setIsSubmitting(true);
+      console.log('values are', values);
 
       try {
         // Build address data from current address state
@@ -254,8 +255,7 @@ export default function QuarrySupplierForm({
           selectedQuarrySupplier?.address?.version !== undefined
             ? { version: selectedQuarrySupplier.address.version }
             : {}),
-          // googlePlaceId: address.googlePlaceId || '',
-          googlePlaceId: 123123123123, // temporary changed to number for backend testing
+          googlePlaceId: address.googlePlaceId || '',
           formattedAddress: address.formattedAddress || '',
           streetDetailsPrimary: address.address1 || '',
           streetDetailsOptional: address.address2 || '',
@@ -266,6 +266,7 @@ export default function QuarrySupplierForm({
           country: address.country || '',
           latitude: address.lat || 0,
           longitude: address.lng || 0,
+          version: selectedQuarrySupplier?.address?.version || 0,
         } as Address;
 
         const quarrySupplierData = {
@@ -280,16 +281,24 @@ export default function QuarrySupplierForm({
           contactPersonName: values.contact_person_name || '',
           contactPersonPhone: values.contact_person_phone || '',
           contactPersonEmail: values.contact_person_email || '',
-          website: values.website || '',
+          ...(values.website && values.website.trim() !== ''
+            ? {
+                website: values.website.trim().startsWith('http')
+                  ? values.website.trim()
+                  : `https://${values.website.trim()}`,
+              }
+            : {}),
           address: addressData,
           // Only include version when editing (for optimistic locking)
           ...(isEditing && selectedQuarrySupplier?.version !== undefined
             ? { version: selectedQuarrySupplier.version }
             : {}),
+          version: selectedQuarrySupplier?.version || 0,
         } as unknown as Quarry;
 
         if (isEditing && id) {
           // Update existing quarry/supplier
+
           await updateQuarryMutation.mutateAsync({
             id,
             data: quarrySupplierData,
@@ -711,7 +720,7 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          {/* Weightbridge Info */}
+          {/* Weighbridge Info */}
           <FormField
             control={quarrySupplierForm.control}
             name="weighbridge_info"
@@ -719,11 +728,11 @@ export default function QuarrySupplierForm({
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'}
               >
-                <FormLabel>Weightbridge Info</FormLabel>
+                <FormLabel>Weighbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
                     className="w-full min-h-[80px]"
-                    placeholder="Enter weightbridge details"
+                    placeholder="Enter weighbridge details"
                     {...field}
                   />
                 </FormControl>

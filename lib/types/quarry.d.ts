@@ -65,10 +65,4 @@ export interface QuarrySupplierProduct {
   version: number;
 }
 
-export interface ArchiveDeleteSummaryDto {
-  id: number;
-  message?: string;
-  deletedCount?: number;
-  affectedEntities?: string[];
-}
 export type QuarriesWithProduct = QuarrySupplierProduct;

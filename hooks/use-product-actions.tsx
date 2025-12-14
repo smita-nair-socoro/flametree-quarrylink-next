@@ -16,7 +16,6 @@ import {
 import { BADGE_COLORS } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useDeleteProduct, useUpdateProduct } from '@/lib/api/product';
-import { convertKeysToCamelCase } from '@/lib/utils/case-conversion';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useProductStore } from '@/app/stores/product-store';
 
@@ -62,9 +61,9 @@ export function useProductActions(
     productData?: ProductDetails | null,
     selectedAction?: SelectedAction
   ): Record<string, DialogConfig> => {
-    const productName = productData?.product_name;
-    const productCode = productData?.product_code;
-    const productStatus = productData?.is_active ? 'Available' : 'Unavailable';
+    const productName = productData?.productName;
+    const productCode = productData?.productCode;
+    const productStatus = productData?.isActive ? 'Available' : 'Unavailable';
 
     if (selectedAction?.key === 'unavailable') {
       return {
@@ -456,30 +455,28 @@ export function useProductActions(
 
                   // Match ProductForm update payload, but set inactive.
                   const payload = {
-                    product_name: productData.product_name,
-                    product_code: productData.product_code,
-                    material_id: productData.material.id,
-                    density_tonnage_per_m3: productData.density_tonnage_per_m3,
-                    product_description: productData.product_description,
-                    is_active: false,
+                    productName: productData.productName,
+                    productCode: productData.productCode,
+                    materialId: productData.material.id,
+                    densityTonnagePerM3: productData.densityTonnagePerM3,
+                    productDescription: productData.productDescription,
+                    isActive: false,
                     version: productData.version ?? 0,
                   };
 
                   console.log('productData', productData);
                   console.log('payload', payload);
 
-                  const camelCasePayload = convertKeysToCamelCase(payload);
-
                   await updateProductMutation.mutateAsync({
                     id: productId,
-                    data: { ...camelCasePayload, id: productId },
+                    data: { ...payload, id: productId },
                   });
 
                   // Keep the dialog header badges in sync (FormDialog reads from product-store)
                   if (selectedProduct?.id === productId) {
                     setSelectedProduct({
                       ...selectedProduct,
-                      is_active: false,
+                      isActive: false,
                     });
                   }
 
@@ -501,25 +498,23 @@ export function useProductActions(
                   if (!productData) throw new Error('Product data is required');
 
                   const payload = {
-                    product_name: productData.product_name,
-                    product_code: productData.product_code,
-                    material_id: productData.material.id,
-                    density_tonnage_per_m3: productData.density_tonnage_per_m3,
-                    product_description: productData.product_description,
-                    is_active: true,
+                    productName: productData.productName,
+                    productCode: productData.productCode,
+                    materialId: productData.material.id,
+                    densityTonnagePerM3: productData.densityTonnagePerM3,
+                    productDescription: productData.productDescription,
+                    isActive: true,
                     version: productData.version ?? 0,
                   };
 
-                  const camelCasePayload = convertKeysToCamelCase(payload);
-
                   await updateProductMutation.mutateAsync({
                     id: productId,
-                    data: { ...camelCasePayload, id: productId },
+                    data: { ...payload, id: productId },
                   });
 
                   // Keep the dialog header badges in sync (FormDialog reads from product-store)
                   if (selectedProduct?.id === productId) {
-                    setSelectedProduct({ ...selectedProduct, is_active: true });
+                    setSelectedProduct({ ...selectedProduct, isActive: true });
                   }
 
                   notifySuccess('Product marked as available.');

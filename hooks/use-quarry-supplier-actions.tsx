@@ -284,7 +284,8 @@ export function useQuarrySupplierActions(
   >(undefined);
 
   const unarchiveMutation = useUnarchiveQuarry();
-  const deleteMutation = useDeleteQuarryAfterEligibilityCheck();
+  const { mutateAsync: deleteQuarryAfterEligibilityCheck } =
+    useDeleteQuarryAfterEligibilityCheck();
 
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
@@ -352,66 +353,40 @@ export function useQuarrySupplierActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'delete':
-              if (canDelete(quarrySupplierData) && quarrySupplierId) {
-                deleteMutation.mutate(quarrySupplierId, {
-                  onSuccess: () => {
-                    setActiveDialog(null);
-                    setSelectedAction(null);
-                    setBlockingSummary(undefined);
-                    // Also close the view dialog if it's open
-                    setViewOpen(false);
-                  },
-                  onError: (error: unknown) => {
-                    // Check if it's a 409 Conflict error with blocking quotes
-                    if (
-                      error &&
-                      typeof error === 'object' &&
-                      'response' in error &&
-                      error.response &&
-                      typeof error.response === 'object' &&
-                      'status' in error.response &&
-                      error.response.status === 409 &&
-                      'data' in error.response
-                    ) {
-                      const errorData = error.response.data;
-
-                      if (
-                        errorData &&
-                        typeof errorData === 'object' &&
-                        'blockingQuoteDtos' in errorData &&
-                        Array.isArray(errorData.blockingQuoteDtos)
-                      ) {
-                        // Calculate summary from blocking quotes
-                        const totalLineItems = errorData.blockingQuoteDtos.reduce(
-                          (sum: number, dto: unknown) => {
-                            if (dto && typeof dto === 'object' && 'lineItemsCount' in dto) {
-                              return sum + (typeof dto.lineItemsCount === 'number' ? dto.lineItemsCount : 0);
-                            }
-                            return sum;
-                          },
-                          0
-                        );
-                        const quotesCount = errorData.blockingQuoteDtos.length;
-
-                        // Set blocking summary and show cannotDelete dialog
-                        setBlockingSummary({ totalLineItems, quotesCount });
-                        setActiveDialog(null);
-                        setSelectedAction(null);
-
-                        // Small delay to ensure dialog closes before opening new one
-                        setTimeout(() => {
-                          setSelectedAction({ key: 'cannotDelete' });
-                          setActiveDialog('cannotDelete');
-                        }, 100);
-                      }
-                    }
-                  },
-                });
+              console.log('Delete qurry supplier:', quarrySupplierId);
+              if (!quarrySupplierId) {
+                setActiveDialog(null);
+                setSelectedAction(null);
+                break;
               }
-              break;
+              try {
+                const res = await deleteQuarryAfterEligibilityCheck({
+                  id: quarrySupplierId,
+                });
+                const blocked = Array.isArray(res?.blockingQuoteDtos)
+                  ? res.blockingQuoteDtos
+                  : [];
+                if (blocked.length > 0) {
+                  setSelectedAction({ key: 'cannotDelete' });
+                  setActiveDialog('cannotDelete');
+                } else {
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                  window.location.reload();
+                }
+              } catch (e: unknown) {
+                console.error('Failed to delete quarry supplier:', {
+                  error: e,
+                });
+                setActiveDialog(null);
+                setSelectedAction(null);
+              }
+
+              return;
+
             case 'unarchive':
               if (canUnarchive(quarrySupplierData) && quarrySupplierId) {
                 unarchiveMutation.mutate(quarrySupplierId, {

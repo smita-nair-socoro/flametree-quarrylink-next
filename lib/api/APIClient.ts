@@ -2,11 +2,7 @@ import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';
-import {
-  Quarry,
-  ArchiveDeleteSummaryDto,
-  QuarrySupplierProduct,
-} from '../types/quarry';
+import { Quarry, QuarrySupplierProduct } from '../types/quarry';
 import { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
@@ -438,10 +434,24 @@ export const APIClient = {
       }),
     unarchive: (id: number) =>
       appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
-    deleteAfterEligibilityCheck: (id: number) =>
-      appClient.Delete<ArchiveDeleteSummaryDto>(
-        `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`
-      ),
+    delete: (id: number) => {
+      return appClient
+        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+          `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`
+        )
+        .then((res) => {
+          console.log('[APIClient] quarries.delete response:', res);
+          const len = Array.isArray(res?.blockingQuoteDtos)
+            ? res!.blockingQuoteDtos!.length
+            : 0;
+          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          return res;
+        })
+        .catch((err) => {
+          console.error('[APIClient] quarries.delete error:', err);
+          throw err;
+        });
+    },
     getSuburbs: () =>
       appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
@@ -478,10 +488,6 @@ export const APIClient = {
         }
       ),
     delete: (quarrySupplierId: number, productId: number) => {
-      console.log('[APIClient] quarrySupplierProducts.delete called with:', {
-        quarrySupplierId,
-        productId,
-      });
       return appClient
         .Delete<{ blockingQuoteDtos?: unknown[] }>(
           `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`

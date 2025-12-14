@@ -47,15 +47,23 @@ const Base = z.object({
     .trim()
     .optional()
     .refine(
-      (v) =>
-        !v ||
-        v === '' ||
-        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(
-          v
-        ),
-      {
-        message: 'Invalid website URL',
-      }
+      (v) => {
+        if (!v || v === '') return true;
+        try {
+          const candidate =
+            v.startsWith('http://') || v.startsWith('https://')
+              ? v
+              : `https://${v}`;
+          const url = new URL(candidate);
+          // Require a hostname with a TLD
+          return Boolean(
+            url.hostname && /\.[A-Za-z]{2,63}$/.test(url.hostname)
+          );
+        } catch {
+          return false;
+        }
+      },
+      { message: 'Invalid website URL' }
     ),
   email: EmailRequired,
   phone: PhoneRequired,

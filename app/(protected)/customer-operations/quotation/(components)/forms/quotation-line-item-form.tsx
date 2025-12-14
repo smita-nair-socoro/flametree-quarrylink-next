@@ -24,6 +24,10 @@ import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { CurrencyInput } from '@/components/ui/input-mask';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
+import { ProductsListQueryOptions } from '@/lib/api/product';
+import { QuarryListQueryOptions } from '@/lib/api/quarries';
+import { useQuery } from '@tanstack/react-query';
+
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { dollarsToCents, centsToDollarsNum } from '@/lib/utils/currency';
 import {
@@ -146,40 +150,27 @@ export default function QuoteLineItemForm({
     },
   });
 
-  const productOptions: FormSelectOption[] = React.useMemo(
-    () => [
-      {
-        label: 'Rock',
-        value: 1,
-      },
-      {
-        label: 'Onyx',
-        value: 2,
-      },
-      {
-        label: 'Sand',
-        value: 3,
-      },
-      {
-        label: 'Soil',
-        value: 4,
-      },
-      {
-        label: 'Diamond',
-        value: 5,
-      },
-    ],
-    []
-  );
+  // Fetch products from API
+  const { data: products } = useQuery(ProductsListQueryOptions());
 
-  const quarryOptions: FormSelectOption[] = React.useMemo(
-    () => [
-      { label: 'Socoro', value: 1 },
-      { label: 'QuarryLink Internal Quarry', value: 2 },
-      { label: 'Quarry ABC', value: 3 },
-    ],
-    []
-  );
+  const productOptions: FormSelectOption[] = React.useMemo(() => {
+    if (!products) return [];
+    return products.map((product) => ({
+      label: product.productName,
+      value: product.id,
+    }));
+  }, [products]);
+
+  // Fetch quarries from API
+  const { data: quarries } = useQuery(QuarryListQueryOptions());
+
+  const quarryOptions: FormSelectOption[] = React.useMemo(() => {
+    if (!quarries) return [];
+    return quarries.map((quarry) => ({
+      label: quarry.name,
+      value: quarry.id,
+    }));
+  }, [quarries]);
 
   const truckTypeOptions: FormSelectOption[] = React.useMemo(
     () => [
