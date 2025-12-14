@@ -18,7 +18,6 @@ import { quotationColumns } from './(components)/(data-tables)/quotation/columns
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
@@ -36,23 +35,15 @@ export default function QuotationsPage() {
 
   // Transform the API data to match our component expectations
   const items: Quotation[] = React.useMemo(() => {
-    return (
-      (Array.isArray(quotationsData)
-        ? quotationsData
-        : quotationsData?.content || []
-      )?.map((quotation) => {
-        // Convert API response to snake_case if needed
-        const convertedQuotation = convertKeysToSnakeCase(
-          quotation
-        ) as QuotationDTO;
+    const list: QuotationDTO[] = Array.isArray(quotationsData)
+      ? (quotationsData as QuotationDTO[])
+      : (quotationsData?.content as QuotationDTO[]) || [];
 
-        return {
-          ...convertedQuotation,
-          quoteId: convertedQuotation.id,
-          status: convertedQuotation.quote_status, // Map quote_status to status for columns
-        } as Quotation;
-      }) || []
-    );
+    return list.map((quotation) => ({
+      ...quotation,
+      quoteId: quotation.id,
+      status: quotation.quoteStatus,
+    })) as Quotation[];
   }, [quotationsData]);
 
   const setSelectedQuotation = useQuotationStore(

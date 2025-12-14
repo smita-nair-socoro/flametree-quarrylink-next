@@ -159,6 +159,39 @@ export function FormDialog({
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
+  /**
+   * Radix (Dialog/DropdownMenu) uses a "dismissable layer" stack that can set
+   * `document.body.style.pointerEvents = 'none'` while overlays are open.
+   * When multiple layers close in the same tick (e.g. Esc closes a dropdown
+   * and the dialog), we can occasionally end up with pointer-events left as
+   * 'none', making the next screen feel "frozen".
+   *
+   * This is a defensive cleanup: only touches pointerEvents if it's currently
+   * 'none'.
+   */
+  const unlockBodyPointerEvents = React.useCallback(() => {
+    if (typeof document === 'undefined') return;
+    if (document.body?.style?.pointerEvents === 'none') {
+      document.body.style.pointerEvents = '';
+    }
+  }, []);
+
+  // Cleanup on close (after Radix unmounts its layers)
+  React.useEffect(() => {
+    if (open) return;
+    const raf = window.requestAnimationFrame(() => {
+      unlockBodyPointerEvents();
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [open, unlockBodyPointerEvents]);
+
+  // Cleanup on unmount (e.g. route change while closing)
+  React.useEffect(() => {
+    return () => {
+      unlockBodyPointerEvents();
+    };
+  }, [unlockBodyPointerEvents]);
+
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
@@ -172,15 +205,15 @@ export function FormDialog({
   const finalThirdBadges = headerInfo?.thirdBadges;
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
-    finalCustomId = selectedQuotation.quote_number;
+    finalCustomId = selectedQuotation.quoteNumber;
     finalPrimaryBadges = [selectedQuotation.status];
-    finalSecondaryBadges = [selectedQuotation.quote_type];
+    finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId = selectedCustomer.business_name;
-    finalPrimaryBadges = [selectedCustomer.customer_status];
-    finalSecondaryBadges = [selectedCustomer.customer_type];
+    finalCustomId = selectedCustomer.businessName;
+    finalPrimaryBadges = [selectedCustomer.customerStatus];
+    finalSecondaryBadges = [selectedCustomer.customerType];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -192,15 +225,15 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedLineItem && selectedQuotationLineItem) {
-    finalCustomId = selectedQuotationLineItem.product_name;
-    finalPrimaryBadges = [selectedQuotationLineItem.quarry_name];
-    finalSecondaryBadges = [selectedQuotationLineItem.supplier_product_name];
+    finalCustomId = selectedQuotationLineItem.productName;
+    finalPrimaryBadges = [selectedQuotationLineItem.quarryName];
+    finalSecondaryBadges = [selectedQuotationLineItem.supplierProductName];
   }
 
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
     finalCustomId = selectedQuarrySupplier.name;
     finalPrimaryBadges = [selectedQuarrySupplier.status];
-    finalSecondaryBadges = [selectedQuarrySupplier.type];
+    finalSecondaryBadges = [selectedQuarrySupplier.quarry_supplier_type];
   }
 
   if (headerInfo?.useSelectedClient && selectedClient) {
@@ -210,7 +243,8 @@ export function FormDialog({
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
-  const headerTitle = customTitle ?? ((finalCustomId || dialogTitle) ?? defaultTitle);
+  const headerTitle =
+    customTitle ?? (finalCustomId || dialogTitle) ?? defaultTitle;
   const triggerTitle = buttonTitle ?? defaultTitle;
 
   // Determine if we're in editing mode - true when we have a valid ID (> 0)
@@ -261,8 +295,12 @@ export function FormDialog({
       })
     : children;
 
-  const formatBadgeText = (text: string): string => {
-    return text.replace(/_/g, ' ');
+  const formatBadgeText = (text?: string | number | null): string => {
+    if (text === undefined || text === null) {
+      return '';
+    }
+    const stringValue = typeof text === 'string' ? text : String(text);
+    return stringValue.replace(/_/g, ' ');
   };
 
   const renderBadges = () => {

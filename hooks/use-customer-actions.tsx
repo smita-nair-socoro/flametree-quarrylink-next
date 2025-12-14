@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
-import { Customer } from '@/lib/types/customer';
+import { CustomerDTO } from '@/lib/types/customer';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
 import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
@@ -59,7 +59,7 @@ const PLACEHOLDER_DUPLICATE_CUSTOMER = {
 };
 
 const getDialogConfigs = (
-  customerData?: Customer | null,
+  customerData?: CustomerDTO | null,
   selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
   // TODO: Replace with actual customer data from API
@@ -386,7 +386,7 @@ const getDialogConfigs = (
 
 export function useCustomerActions(
   customerId: number | undefined,
-  customerData?: Customer | null
+  customerData?: CustomerDTO | null
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);

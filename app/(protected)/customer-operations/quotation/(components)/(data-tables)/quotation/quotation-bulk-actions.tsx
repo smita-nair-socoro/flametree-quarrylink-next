@@ -131,11 +131,11 @@ export function QuotationBulkActions({
                       >
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-base">
-                            {quotation.quote_number}
+                            {quotation.quoteNumber}
                           </span>
                           <span className="text-[#364153] text-base">•</span>
                           <span className="text-base text-[#364153]">
-                            {quotation.customer_name}
+                            {quotation.customerName}
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <TableBadges
@@ -177,11 +177,11 @@ export function QuotationBulkActions({
                       >
                         <div className="flex items-center gap-3">
                           <span className="font-medium text-base">
-                            {quotation.quote_number}
+                            {quotation.quoteNumber}
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <span className="text-base text-[#364153]">
-                            {quotation.customer_name}
+                            {quotation.customerName}
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <TableBadges

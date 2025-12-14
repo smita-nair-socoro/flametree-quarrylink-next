@@ -1,10 +1,18 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
-import { Customer } from '../types/customer';
-import { QuotationDTO } from '../types/quotation';
+import { CustomerDTO } from '../types/customer';
+import {
+  Quarry,
+  ArchiveDeleteSummaryDto,
+  QuarrySupplierProduct,
+} from '../types/quarry';
+import { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import { toLocalDateTime } from '../utils/date';
+import { convertKeysToCamelCase } from '../utils/case-conversion';
+import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { Quarry, QuarrySupplierProduct } from '../types/quarry';
+import { User } from '../types/user';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -134,7 +142,7 @@ export async function HttpClient<T = unknown>(
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
       ...init.headers,
-      Authorization: `Bearer ${authUser.access_token}`,
+      Authorization: `Bearer ${authUser.id_token}`,
       // 'access-token': authUser.access_token,
       // 'id-token': authUser.id_token,
       // 'tenant-id': tenantId || '',
@@ -191,7 +199,7 @@ export async function HttpClient<T = unknown>(
 
   const url = `${baseUrl()}${endpoint}`;
 
-  console.log(`API Request: ${url}`);
+  // console.log(`API Request: ${url}`);
 
   const response = await fetcher(url, init);
 
@@ -297,13 +305,13 @@ export async function HttpClient<T = unknown>(
       .get('Content-Type')
       ?.includes('application/json');
 
-    // Try to parse the JSON (but don’t blow up if it fails)
+    // Try to parse the JSON (but don't blow up if it fails)
     let parsedJson: unknown = null;
     if (isJson) {
       try {
         parsedJson = await response.json();
       } catch {
-        // ignore parse errors — we’ll fall back to statusText below
+        // ignore parse errors — we'll fall back to statusText below
       }
     }
 
@@ -323,7 +331,23 @@ export async function HttpClient<T = unknown>(
       response.statusText ||
       `HTTP request failed with status ${response.status}`;
 
-    return Promise.reject(new Error(errorMessage));
+    // Create error with response data attached
+    const error = new Error(errorMessage) as Error & {
+      response?: {
+        status: number;
+        statusText: string;
+        data: unknown;
+      };
+    };
+
+    // Attach response information to the error object
+    error.response = {
+      status: response.status,
+      statusText: response.statusText,
+      data: parsedJson,
+    };
+
+    return Promise.reject(error);
   }
 }
 
@@ -343,8 +367,8 @@ const appClient = {
       ...config,
       method: 'PUT',
     }),
-  Patch: (endpoint: string, config: HttpConfig = {}) =>
-    HttpClient<void>(endpoint, {
+  Patch: <T = void>(endpoint: string, config: HttpConfig = {}) =>
+    HttpClient<T>(endpoint, {
       ...config,
       method: 'PATCH',
     }),
@@ -383,6 +407,47 @@ export const APIClient = {
         jobs?: string[];
         dockets?: string[];
       }>(`/socoro/quarrylink/api/product/${id}`),
+  },
+  quarries: {
+    getAll: async () => {
+      const quarries = await appClient.Get<Quarry[]>(
+        `/socoro/quarrylink/api/quarries`
+      );
+
+      const normalizedQuarries = quarries.map(normalizeObjectPhoneNumbers);
+
+      return normalizedQuarries;
+    },
+    getById: async (quarrySupplierId: number) => {
+      const quarry = await appClient.Get<Quarry>(
+        `/socoro/quarrylink/api/quarries/${quarrySupplierId}`
+      );
+
+      // Step 2: Normalize phone numbers to E.164 format
+      const normalizedQuarry = normalizeObjectPhoneNumbers(quarry);
+
+      return normalizedQuarry;
+    },
+    create: (quarry: Quarry) =>
+      appClient.Post<Quarry>('/socoro/quarrylink/api/quarries', {
+        body: quarry,
+      }),
+    update: (id: number, quarry: Quarry) =>
+      appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}`, {
+        body: quarry,
+      }),
+    unarchive: (id: number) =>
+      appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
+    deleteAfterEligibilityCheck: (id: number) =>
+      appClient.Delete<ArchiveDeleteSummaryDto>(
+        `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`
+      ),
+    getSuburbs: () =>
+      appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
+    deleteProductFromQuarry: (quarryProductPriceId: number) =>
+      appClient.Delete(
+        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
+      ),
   },
 
   materials: {
@@ -442,29 +507,75 @@ export const APIClient = {
     },
   },
 
-  quarries: {
-    getAll: () => appClient.Get<Quarry[]>(`/socoro/quarrylink/api/quarries`),
-  },
-
   customers: {
-    getAll: () => appClient.Get<Customer[]>(`/socoro/quarrylink/api/customer`),
+    getAll: () =>
+      appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
-      appClient.Get<Customer>(`/socoro/quarrylink/api/customer/${customerId}`),
+      appClient.Get<CustomerDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}`
+      ),
   },
 
   quotations: {
-    getAll: () =>
-      appClient.Get<
+    getAll: async () => {
+      const response = await appClient.Get<
         | QuotationDTO[]
         | {
             content: QuotationDTO[];
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/quote`),
+      >(`/socoro/quarrylink/api/quote`);
+      return response;
+    },
     getById: (quotationId: number) =>
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`
       ),
+    getWithQuoteItems: async (quotationId: number) => {
+      const response = await appClient.Get<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
+      );
+      return response;
+    },
+    create: (data: Partial<QuotationDTO>) =>
+      appClient.Post<QuotationDTO>('/socoro/quarrylink/api/quote', {
+        body: (() => {
+          console.log('[Quotation][POST] Request payload:', data);
+          return data;
+        })(),
+      }),
+    update: (data: Partial<QuotationDTO>) =>
+      appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${data.id}`, {
+        body: (() => {
+          console.log('📡 [APIClient][PUT] Full Request Payload:', data);
+          return data;
+        })(),
+      }),
+    extendExpiryDate: (id: number, expiryDate: Date) =>
+      appClient.Put<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/extend-expiry-date`,
+        {
+          body: {
+            expiryDate: toLocalDateTime(expiryDate),
+          },
+        }
+      ),
+    createQuoteItem: (data: Partial<QuotationLineItem>) =>
+      appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
+        body: convertKeysToCamelCase(data),
+      }),
+    updateQuoteItem: (id: number, data: Partial<QuotationLineItem>) =>
+      appClient.Put<QuotationLineItem>(
+        `/socoro/quarrylink/api/quoteItem/${id}`,
+        {
+          body: convertKeysToCamelCase(data),
+        }
+      ),
+    deleteQuoteItem: (id: number) =>
+      appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
+  },
+  users: {
+    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
   },
 };

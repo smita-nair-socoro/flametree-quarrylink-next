@@ -10,11 +10,11 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { Customer } from '@/lib/types/customer';
+import { CustomerDTO } from '@/lib/types/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 
 interface CustomerTableActionsProps {
-  customer: Customer;
+  customer: CustomerDTO;
 }
 
 export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
@@ -24,7 +24,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     customer
   );
 
-  const isArchived = customer.customer_status === 'ARCHIVED';
+  const isArchived = customer.customerStatus === 'ARCHIVED';
 
   const setSelectedCustomer = useCustomerStore(
     (state) => state.setSelectedCustomer

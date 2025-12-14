@@ -7,6 +7,15 @@ import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(
 import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
+import {
+  useUnarchiveQuarry,
+  useDeleteQuarryAfterEligibilityCheck,
+} from '@/lib/api/quarries';
+
+interface DeleteBlockingSummary {
+  totalLineItems: number;
+  quotesCount: number;
+}
 
 interface DialogConfig {
   title?: string;
@@ -30,41 +39,30 @@ interface SelectedAction {
   key: string;
 }
 
-const canArchive = (quarrySupplierData?: Quarry | null): boolean => {
-  // Can't archive if it's an ACTIVE SUPPLIER
-  if (
-    quarrySupplierData?.status === 'ACTIVE' &&
-    quarrySupplierData?.type === 'SUPPLIER'
-  ) {
-    return false;
-  }
-  // Can archive if it's ACTIVE and NOT a SUPPLIER (i.e., QUARRY)
+const canDelete = (quarrySupplierData?: Quarry | null): boolean => {
+  // Can delete if status is ACTIVE (both QUARRY and SUPPLIER)
+  // Backend will check for blocking quotes and return 409 if there are any
   return quarrySupplierData?.status === 'ACTIVE';
 };
 
 const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
-  // Can't unarchive if it's an ARCHIVED SUPPLIER
-  if (
-    quarrySupplierData?.status === 'ARCHIVED' &&
-    quarrySupplierData?.type === 'SUPPLIER'
-  ) {
-    return false;
-  }
-  // Can unarchive if it's ARCHIVED and NOT a SUPPLIER (i.e., QUARRY)
+  // Can unarchive if status is ARCHIVED (both QUARRY and SUPPLIER)
+  // Backend will check for conflicts and return error if needed
   return quarrySupplierData?.status === 'ARCHIVED';
 };
 
 const getDialogConfigs = (
   quarrySupplierData?: Quarry | null,
-  selectedAction?: SelectedAction
+  selectedAction?: SelectedAction,
+  blockingSummary?: DeleteBlockingSummary
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
-  const type = quarrySupplierData?.type;
+  const type = quarrySupplierData?.quarry_supplier_type;
 
-  if (selectedAction?.key === 'archive') {
+  if (selectedAction?.key === 'delete') {
     return {
-      archive: {
-        title: `Archive Supplier / Quarry`,
+      delete: {
+        title: `Delete ${type === 'QUARRY' ? 'Quarry' : 'Supplier'}`,
         description: (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -74,14 +72,14 @@ const getDialogConfigs = (
               <span className="font-semibold text-[17.4px]">{name}</span>
             </div>
             <span className="text-[14px] text-[#000000] mt-3">
-              Are you sure you want to archive this{' '}
+              Are you sure you want to delete this{' '}
               {type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}?
             </span>
           </div>
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-3">
+            {/* <div className="flex flex-col gap-3">
               <span className="font-semibold text-[14px] text-[#000000]">
                 Current Status:
               </span>
@@ -96,7 +94,7 @@ const getDialogConfigs = (
                   All associated dockets completed ✓
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#000000]">
@@ -110,10 +108,10 @@ const getDialogConfigs = (
             </div>
           </div>
         ),
-        confirmText: `Archive ${type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}`,
-        confirmVariant: 'default',
-        confirmCustomColor: '#4B5563',
-        confirmCustomClass: 'bg-gray-600 hover:bg-gray-700 text-white',
+        confirmText: `Delete ${type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}`,
+        confirmVariant: 'destructive',
+        confirmCustomColor: '#DC2626',
+        confirmCustomClass: 'bg-red-600 hover:bg-red-700 text-white',
       },
     };
   } else if (selectedAction?.key === 'unarchive') {
@@ -188,10 +186,14 @@ const getDialogConfigs = (
           'bg-green-600 hover:bg-green-700 text-white font-medium leading-[24px]',
       },
     };
-  } else if (selectedAction?.key === 'cannotArchive') {
+  } else if (selectedAction?.key === 'cannotDelete') {
+    // Use the summary data directly
+    const totalLineItems = blockingSummary?.totalLineItems || 0;
+    const quotesCount = blockingSummary?.quotesCount || 0;
+
     return {
-      cannotArchive: {
-        title: 'Cannot Archive',
+      cannotDelete: {
+        title: 'Cannot Delete',
         description: (
           <div className="flex justify-start items-center gap-1">
             <div className="flex items-center gap-2">
@@ -205,7 +207,7 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-4">
             <div className="text-[16px] text-[#364153]">
-              <div>Cannot archive while deliveries are pending.</div>
+              <div>Cannot delete while deliveries are pending.</div>
               <div>Complete all deliveries first, then try again.</div>
             </div>
             <div className="flex flex-col gap-2">
@@ -214,19 +216,19 @@ const getDialogConfigs = (
               </span>
               <div className="flex flex-col gap-2">
                 <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  8 line items with pending deliveries (3475 tonnes remaining)
+                  {totalLineItems} line items with pending deliveries
                 </div>
-                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                {/* <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
                   3 active dockets not yet delivered
-                </div>
+                </div> */}
                 <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  2 quotes with line items
+                  {quotesCount} quotes with line items
                 </div>
               </div>
             </div>
           </div>
         ),
-        confirmText: 'Cancel',
+        confirmText: 'OK',
         confirmVariant: 'outline',
         confirmCustomClass: 'border-[#E5E5E5]',
         confirmActionNeeded: false,
@@ -277,10 +279,17 @@ export function useQuarrySupplierActions(
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [blockingSummary, setBlockingSummary] = React.useState<
+    DeleteBlockingSummary | undefined
+  >(undefined);
+
+  const unarchiveMutation = useUnarchiveQuarry();
+  const deleteMutation = useDeleteQuarryAfterEligibilityCheck();
 
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
-    selectedAction || undefined
+    selectedAction || undefined,
+    blockingSummary
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -299,20 +308,22 @@ export function useQuarrySupplierActions(
       // TODO: Implement linked products functionality
     },
 
-    archive: () => {
-      if (canArchive(quarrySupplierData)) {
-        createDialogAction('archive')();
-      } else {
-        createDialogAction('cannotArchive')();
+    delete: () => {
+      // Always show delete dialog for ACTIVE items
+      // Backend will check for blocking quotes and return 409 if any exist
+      if (canDelete(quarrySupplierData)) {
+        createDialogAction('delete')();
       }
+      // If not ACTIVE (shouldn't happen as delete button is hidden), do nothing
     },
 
     unarchive: () => {
+      // Always show unarchive dialog for ARCHIVED items
+      // Backend will check for conflicts and return error if needed
       if (canUnarchive(quarrySupplierData)) {
         createDialogAction('unarchive')();
-      } else {
-        createDialogAction('cannotUnarchive')();
       }
+      // If not ARCHIVED (shouldn't happen as unarchive button is hidden), do nothing
     },
   };
 
@@ -328,6 +339,7 @@ export function useQuarrySupplierActions(
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
+            setBlockingSummary(undefined);
           }
         }}
         title={config.title ?? ''}
@@ -342,27 +354,77 @@ export function useQuarrySupplierActions(
         confirmActionNeeded={config.confirmActionNeeded}
         onConfirmAction={() => {
           switch (key) {
-            case 'archive':
-              if (canArchive(quarrySupplierData)) {
-                console.log(
-                  'Archive quarry/supplier:',
-                  quarrySupplierId,
-                  quarrySupplierData
-                );
-                // TODO: implement archive API call
+            case 'delete':
+              if (canDelete(quarrySupplierData) && quarrySupplierId) {
+                deleteMutation.mutate(quarrySupplierId, {
+                  onSuccess: () => {
+                    setActiveDialog(null);
+                    setSelectedAction(null);
+                    setBlockingSummary(undefined);
+                    // Also close the view dialog if it's open
+                    setViewOpen(false);
+                  },
+                  onError: (error: unknown) => {
+                    // Check if it's a 409 Conflict error with blocking quotes
+                    if (
+                      error &&
+                      typeof error === 'object' &&
+                      'response' in error &&
+                      error.response &&
+                      typeof error.response === 'object' &&
+                      'status' in error.response &&
+                      error.response.status === 409 &&
+                      'data' in error.response
+                    ) {
+                      const errorData = error.response.data;
+
+                      if (
+                        errorData &&
+                        typeof errorData === 'object' &&
+                        'blockingQuoteDtos' in errorData &&
+                        Array.isArray(errorData.blockingQuoteDtos)
+                      ) {
+                        // Calculate summary from blocking quotes
+                        const totalLineItems = errorData.blockingQuoteDtos.reduce(
+                          (sum: number, dto: unknown) => {
+                            if (dto && typeof dto === 'object' && 'lineItemsCount' in dto) {
+                              return sum + (typeof dto.lineItemsCount === 'number' ? dto.lineItemsCount : 0);
+                            }
+                            return sum;
+                          },
+                          0
+                        );
+                        const quotesCount = errorData.blockingQuoteDtos.length;
+
+                        // Set blocking summary and show cannotDelete dialog
+                        setBlockingSummary({ totalLineItems, quotesCount });
+                        setActiveDialog(null);
+                        setSelectedAction(null);
+
+                        // Small delay to ensure dialog closes before opening new one
+                        setTimeout(() => {
+                          setSelectedAction({ key: 'cannotDelete' });
+                          setActiveDialog('cannotDelete');
+                        }, 100);
+                      }
+                    }
+                  },
+                });
               }
               break;
             case 'unarchive':
-              if (canUnarchive(quarrySupplierData)) {
-                console.log(
-                  'Unarchive quarry/supplier:',
-                  quarrySupplierId,
-                  quarrySupplierData
-                );
-                // TODO: implement unarchive API call
+              if (canUnarchive(quarrySupplierData) && quarrySupplierId) {
+                unarchiveMutation.mutate(quarrySupplierId, {
+                  onSuccess: () => {
+                    setActiveDialog(null);
+                    setSelectedAction(null);
+                    // Also close the view dialog if it's open
+                    setViewOpen(false);
+                  },
+                });
               }
               break;
-            case 'cannotArchive':
+            case 'cannotDelete':
             case 'cannotUnarchive':
               // No action needed, just close the dialog
               break;

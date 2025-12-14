@@ -1,19 +1,20 @@
 import { QuarryStatus, QuarryType } from './quarry-enums';
+import { Address } from './address';
 
 export interface Quarry {
   id: number;
   name: string;
   status: QuarryStatus;
-  type: QuarryType;
+  quarry_supplier_type: QuarryType;
   website: string;
   email: string;
   phone: string;
-  // address: number; // FK to Address.id - to be implemented
+  address: Address;
   contact_person_name: string;
   contact_person_email: string;
   contact_person_phone: string;
-  opening_closing_times: string;
-  // weighbridge_info: string;
+  opening_closing_info: string;
+  weighbridge_info: string;
   notes: string;
   version: number;
   is_deleted: boolean;
@@ -21,7 +22,8 @@ export interface Quarry {
   created_at: string;
   updated_at: string;
   last_modified_by: string;
-  suburb: string;
+  // Computed property for table display (extracted from address.suburb)
+  suburb?: string;
 }
 
 export interface QuarrySupplierProduct {
@@ -63,4 +65,10 @@ export interface QuarrySupplierProduct {
   version: number;
 }
 
+export interface ArchiveDeleteSummaryDto {
+  id: number;
+  message?: string;
+  deletedCount?: number;
+  affectedEntities?: string[];
+}
 export type QuarriesWithProduct = QuarrySupplierProduct;

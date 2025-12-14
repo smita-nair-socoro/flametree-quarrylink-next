@@ -194,6 +194,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           country,
           lat,
           lng,
+          googlePlaceId: selectedPlaceId, // Store the Google Place ID
         };
 
         setAddress(formattedData);
@@ -215,7 +216,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const handleManualEntry = () => {
     // Pre-populate with search input if available
     if (searchInput.trim()) {
-      const updatedAddress = {
+      const updatedAddress: AddressType = {
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
@@ -244,6 +245,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       country: '',
       lat: 0,
       lng: 0,
+      googlePlaceId: '',
     };
     setAddress(resetAddress);
     // Notify react-hook-form of the change

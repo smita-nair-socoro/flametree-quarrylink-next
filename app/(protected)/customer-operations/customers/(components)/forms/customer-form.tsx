@@ -30,6 +30,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { delay } from '@/lib/utils/time';
+import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
 interface FormProps {
   id?: number;
@@ -51,13 +52,13 @@ export default function CustomerForm({
   // Initialize states with selected customer data only when editing, defaults otherwise
   const [selectedCustomerType, setSelectedCustomerType] =
     React.useState<string>(
-      isEditing && selectedCustomer?.customer_type
-        ? selectedCustomer.customer_type
+      isEditing && selectedCustomer?.customerType
+        ? selectedCustomer.customerType
         : 'BUSINESS'
     );
   const [selectedPaymentType, setSelectedPaymentType] = React.useState<string>(
-    isEditing && selectedCustomer?.payment_type
-      ? selectedCustomer.payment_type
+    isEditing && selectedCustomer?.paymentType
+      ? selectedCustomer.paymentType
       : 'CREDIT'
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -82,37 +83,33 @@ export default function CustomerForm({
     mode: 'onChange',
     defaultValues: {
       customer_type:
-        isEditing && selectedCustomer?.customer_type
-          ? selectedCustomer.customer_type
+        isEditing && selectedCustomer?.customerType
+          ? selectedCustomer.customerType
           : 'BUSINESS',
       payment_type:
-        isEditing && selectedCustomer?.payment_type
-          ? selectedCustomer.payment_type
+        isEditing && selectedCustomer?.paymentType
+          ? selectedCustomer.paymentType
           : 'CREDIT',
-      business_name: isEditing ? selectedCustomer?.business_name || '' : '',
+      business_name: isEditing ? selectedCustomer?.businessName || '' : '',
       business_email: isEditing
-        ? selectedCustomer?.business_email || 'buildpty@email.com'
+        ? selectedCustomer?.email || 'buildpty@email.com'
         : '',
       business_phone: isEditing
-        ? selectedCustomer?.business_phone || '+61429384373'
+        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
         : '',
       abn: isEditing ? selectedCustomer?.abn || '' : '',
-      contact_person_name: isEditing
-        ? selectedCustomer?.contact_name || ''
-        : '',
+      contact_person_name: isEditing ? selectedCustomer?.contactName || '' : '',
       contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
       contact_person_phone: isEditing
-        ? selectedCustomer?.business_phone || '+61429384373'
+        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
         : '',
       credit_limit:
-        isEditing && selectedCustomer ? selectedCustomer.credit_limit / 100 : 0, // Convert from cents to dollars
+        isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing
-        ? selectedCustomer?.payment_term_type || 'of the following month'
+        ? selectedCustomer?.paymentTermType || 'of the following month'
         : 'of the following month',
-      payment_terms_day: isEditing
-        ? selectedCustomer?.invoice_due_date || 0
-        : 0,
-      account_manager: isEditing ? selectedCustomer?.account_manager || '' : '',
+      payment_terms_day: isEditing ? selectedCustomer?.invoiceDueDate || 0 : 0,
+      account_manager: isEditing ? selectedCustomer?.accountManager || '' : '',
       billing_address: isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : '',
       created_at: undefined,
       updated_at: undefined,
@@ -148,40 +145,41 @@ export default function CustomerForm({
   React.useEffect(() => {
     if (selectedCustomer && isEditing) {
       const paymentType =
-        selectedCustomer.payment_type === 'PREPAID' ? 'PREPAID' : 'CREDIT';
-      setSelectedCustomerType(selectedCustomer.customer_type);
+        selectedCustomer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
+      setSelectedCustomerType(selectedCustomer.customerType);
       setSelectedPaymentType(paymentType);
       setSearchInput('1 Scott Street Pyrmont, NSW, 2009');
 
       customerForm.reset({
-        customer_type: selectedCustomer.customer_type,
+        customer_type: selectedCustomer.customerType,
         payment_type: paymentType,
-        business_name: selectedCustomer.business_name,
-        business_email: selectedCustomer.business_email,
-        business_phone: selectedCustomer.business_phone,
+        business_name: selectedCustomer.businessName,
+        business_email: selectedCustomer.email,
+        business_phone: normalizePhoneNumber(selectedCustomer.phone) || '',
         abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
-        contact_person_name: selectedCustomer.contact_name,
+        contact_person_name: selectedCustomer.contactName,
         contact_person_email: selectedCustomer.email,
-        contact_person_phone: selectedCustomer.business_phone,
+        contact_person_phone:
+          normalizePhoneNumber(selectedCustomer.phone) || '',
         credit_limit:
-          selectedCustomer.credit_limit === 0
+          selectedCustomer.creditLimit === 0
             ? 0
-            : selectedCustomer.credit_limit / 100, // Convert from cents to dollars
-        payment_terms_day: selectedCustomer.payment_terms_day,
+            : selectedCustomer.creditLimit / 100, // Convert from cents to dollars
+        payment_terms_day: selectedCustomer.invoiceDueDate,
         payment_terms:
-          selectedCustomer.payment_terms === 'N/A'
+          selectedCustomer.paymentTermType === 'N/A'
             ? ''
-            : selectedCustomer.payment_terms,
-        account_manager: selectedCustomer.account_manager,
+            : selectedCustomer.paymentTermType,
+        account_manager: selectedCustomer.accountManager,
         billing_address: '1 Scott Street Pyrmont, NSW, 2009',
-        created_at: selectedCustomer.created_at
-          ? new Date(selectedCustomer.created_at)
+        created_at: selectedCustomer.createdAt
+          ? new Date(selectedCustomer.createdAt)
           : undefined,
-        updated_at: selectedCustomer.updated_at
-          ? new Date(selectedCustomer.updated_at)
+        updated_at: selectedCustomer.updatedAt
+          ? new Date(selectedCustomer.updatedAt)
           : undefined,
-        created_by: selectedCustomer.created_by,
-        last_modified_by: selectedCustomer.last_modified_by,
+        created_by: selectedCustomer.createdBy,
+        last_modified_by: selectedCustomer.lastModifiedBy,
       });
     }
   }, [selectedCustomer, isEditing, customerForm]);
@@ -750,7 +748,7 @@ export default function CustomerForm({
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.created_by || 'N/A'}
+                    {selectedCustomer?.createdBy || 'N/A'}
                   </p>
                 </div>
 
@@ -759,7 +757,7 @@ export default function CustomerForm({
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.last_modified_by || 'N/A'}
+                    {selectedCustomer?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
 
@@ -768,14 +766,15 @@ export default function CustomerForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.created_at
-                      ? new Date(
-                          selectedCustomer.created_at
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
+                    {selectedCustomer?.createdAt
+                      ? new Date(selectedCustomer.createdAt).toLocaleDateString(
+                          'en-AU',
+                          {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          }
+                        )
                       : 'N/A'}
                   </p>
                 </div>
@@ -785,14 +784,15 @@ export default function CustomerForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.updated_at
-                      ? new Date(
-                          selectedCustomer.updated_at
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
+                    {selectedCustomer?.updatedAt
+                      ? new Date(selectedCustomer.updatedAt).toLocaleDateString(
+                          'en-AU',
+                          {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          }
+                        )
                       : 'N/A'}
                   </p>
                 </div>
