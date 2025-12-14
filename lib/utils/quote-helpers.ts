@@ -48,27 +48,60 @@ const combineDateAndTime = (
 };
 
 /**
- * Generates the next quote number based on existing quotes.
+ * Generates the next quote number based on the latest quote number.
  * Format: Q#### (e.g., Q0001, Q0016, Q0017)
+ *
+ * @param latestQuoteNumber - The current latest quote number (e.g., "Q0015")
+ * @returns The next quote number (e.g., "Q0016")
  */
 export const generateNextQuoteNumber = (
-  existingQuotes: { quoteNumber: string }[]
+  latestQuoteNumber?: string | null
 ): string => {
-  if (!existingQuotes || existingQuotes.length === 0) {
+  if (!latestQuoteNumber) {
     return 'Q0001';
+  }
+
+  const match = latestQuoteNumber.match(/Q(\d+)/);
+  if (!match) {
+    return 'Q0001';
+  }
+
+  const currentNumber = parseInt(match[1], 10);
+  const nextNumber = currentNumber + 1;
+
+  return `Q${String(nextNumber).padStart(4, '0')}`;
+};
+
+/**
+ * Extracts the maximum quote number from a list of quotations.
+ * This is a helper function for backwards compatibility.
+ *
+ * @param existingQuotes - Array of quotations with quoteNumber field
+ * @returns The latest/maximum quote number string
+ */
+export const getLatestQuoteNumber = (
+  existingQuotes: { quoteNumber: string }[]
+): string | null => {
+  if (!existingQuotes || existingQuotes.length === 0) {
+    return null;
   }
 
   const numbers = existingQuotes
     .map((q) => {
       const match = q.quoteNumber.match(/Q(\d+)/);
-      return match ? parseInt(match[1], 10) : 0;
+      return match ? { num: parseInt(match[1], 10), original: q.quoteNumber } : null;
     })
-    .filter((n) => !isNaN(n));
+    .filter((n): n is { num: number; original: string } => n !== null && !isNaN(n.num));
 
-  const maxNumber = Math.max(...numbers, 0);
-  const nextNumber = maxNumber + 1;
+  if (numbers.length === 0) {
+    return null;
+  }
 
-  return `Q${String(nextNumber).padStart(4, '0')}`;
+  const maxEntry = numbers.reduce((max, current) =>
+    current.num > max.num ? current : max
+  );
+
+  return maxEntry.original;
 };
 
 export const transformFormDataToQuoteDto = (

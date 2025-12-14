@@ -34,14 +34,17 @@ import { useCreateQuotation, useUpdateQuotation } from '@/lib/api/quotation';
 import {
   transformFormDataToQuoteDto,
   generateNextQuoteNumber,
+  getLatestQuoteNumber,
 } from '@/lib/utils/quote-helpers';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { QuotationsListQueryOptions } from '@/lib/api/quotation';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   id?: number;
@@ -62,6 +65,7 @@ export default function QuotationForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
+  const queryClient = useQueryClient();
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
@@ -161,26 +165,87 @@ export default function QuotationForm({
         (accountManager) => accountManager.id === values.accountManager
       )?.name || '';
 
-    const transformed = transformFormDataToQuoteDto(values, {
-      customerName,
-      accountManagerName,
-      quoteNumber: generateNextQuoteNumber([
-        { quoteNumber: currentQuotation?.quoteNumber || '' },
-      ]),
-      lineItemsCount: 0,
-      deliveryAddress: deliveryAddress,
-    });
-
     if (!isEditing) {
-      try {
-        await createQuotation.mutateAsync(transformed);
-        notifySuccess('Quote created successfully');
-        onCancel?.();
-      } catch (error) {
-        notifyError('Failed to create quote');
-        console.error('Failed to create quote:', error);
+      // Retry logic for handling duplicate quote number (409 conflict)
+      const MAX_RETRIES = 3;
+      let attempt = 0;
+      let lastError: unknown = null;
+
+      while (attempt < MAX_RETRIES) {
+        try {
+          // Re-fetch latest quotations on each attempt to get the most up-to-date number
+          const freshQuotations = await queryClient.fetchQuery(
+            QuotationsListQueryOptions()
+          );
+
+          // Handle both array response and paginated response
+          const quotationsList = Array.isArray(freshQuotations)
+            ? freshQuotations
+            : freshQuotations.content || [];
+
+          const latestQuoteNumber = getLatestQuoteNumber(quotationsList);
+          const nextQuoteNumber = generateNextQuoteNumber(latestQuoteNumber);
+
+          console.log(
+            `[QuotationForm] Creating quote with number ${nextQuoteNumber} (attempt ${attempt + 1}/${MAX_RETRIES})`
+          );
+
+          const transformed = transformFormDataToQuoteDto(values, {
+            customerName,
+            accountManagerName,
+            quoteNumber: nextQuoteNumber,
+            lineItemsCount: 0,
+            deliveryAddress: deliveryAddress,
+          });
+
+          await createQuotation.mutateAsync(transformed);
+          notifySuccess('Quote created successfully');
+          onCancel?.();
+          return; // Success - exit the function
+        } catch (error) {
+          lastError = error;
+
+          // Check if error is a 409 Conflict (duplicate quote number)
+          const is409Error =
+            error &&
+            typeof error === 'object' &&
+            'response' in error &&
+            error.response &&
+            typeof error.response === 'object' &&
+            'status' in error.response &&
+            error.response.status === 409;
+
+          if (is409Error && attempt < MAX_RETRIES - 1) {
+            console.log(
+              `[QuotationForm] Quote number conflict detected, retrying... (attempt ${attempt + 1}/${MAX_RETRIES})`
+            );
+            attempt++;
+            // Wait a bit before retrying (exponential backoff)
+            await new Promise((resolve) =>
+              setTimeout(resolve, 100 * Math.pow(2, attempt))
+            );
+            continue;
+          } else {
+            // Not a 409 error, or max retries reached
+            break;
+          }
+        }
       }
+
+      // If we get here, all retries failed
+      const errorMessage = extractErrorMessage(lastError);
+      notifyError(`Failed to create quote: ${errorMessage}`);
+      console.error('Failed to create quote after retries:', lastError);
     } else {
+      // Update existing quotation - keep the original quote number
+      const transformed = transformFormDataToQuoteDto(values, {
+        customerName,
+        accountManagerName,
+        quoteNumber: currentQuotation?.quoteNumber || '',
+        lineItemsCount: 0,
+        deliveryAddress: deliveryAddress,
+      });
+
       try {
         await updateQuotation.mutateAsync({
           id: id!,
@@ -189,7 +254,8 @@ export default function QuotationForm({
         notifySuccess('Quote updated successfully');
         onCancel?.();
       } catch (error) {
-        notifyError('Failed to update quote');
+        const errorMessage = extractErrorMessage(error);
+        notifyError(`Failed to update quote: ${errorMessage}`);
         console.error('Failed to update quote:', error);
       }
     }
