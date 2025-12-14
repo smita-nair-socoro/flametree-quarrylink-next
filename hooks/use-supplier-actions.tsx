@@ -157,7 +157,6 @@ export function useSupplierActions(
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  console.log('quarryData', quarryData);
   const dialogConfigs = getDialogConfigs(
     quarryData,
     selectedAction || undefined
@@ -220,19 +219,14 @@ export function useSupplierActions(
                 break;
               }
               try {
-                console.log('[UI] Attempting delete with ids:', {
-                  quarrySupplierId: quarryId,
-                  productId: quarryData.product_id,
-                });
                 const res = await deleteQuarrySupplierProduct({
                   quarrySupplierId: quarryId,
                   productId: quarryData.product_id,
                 });
-                console.log('[UI] Delete mutation result:', res);
                 const blocked = Array.isArray(res?.blockingQuoteDtos)
                   ? res.blockingQuoteDtos
                   : [];
-                console.log('[UI] blockingQuoteDtos length:', blocked.length);
+
                 if (blocked.length > 0) {
                   // Open cannotDelete modal to show info
                   setSelectedAction({ key: 'cannotDelete' });

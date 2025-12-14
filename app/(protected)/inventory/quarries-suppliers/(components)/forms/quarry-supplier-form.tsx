@@ -242,6 +242,7 @@ export default function QuarrySupplierForm({
   const submitQuarrySupplier = React.useCallback(
     async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
       setIsSubmitting(true);
+      console.log('values are', values);
 
       try {
         // Build address data from current address state
@@ -280,7 +281,13 @@ export default function QuarrySupplierForm({
           contactPersonName: values.contact_person_name || '',
           contactPersonPhone: values.contact_person_phone || '',
           contactPersonEmail: values.contact_person_email || '',
-          website: values.website || '',
+          ...(values.website && values.website.trim() !== ''
+            ? {
+                website: values.website.trim().startsWith('http')
+                  ? values.website.trim()
+                  : `https://${values.website.trim()}`,
+              }
+            : {}),
           address: addressData,
           // Only include version when editing (for optimistic locking)
           ...(isEditing && selectedQuarrySupplier?.version !== undefined
@@ -713,7 +720,7 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          {/* Weightbridge Info */}
+          {/* Weighbridge Info */}
           <FormField
             control={quarrySupplierForm.control}
             name="weighbridge_info"
@@ -721,11 +728,11 @@ export default function QuarrySupplierForm({
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'}
               >
-                <FormLabel>Weightbridge Info</FormLabel>
+                <FormLabel>Weighbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
                     className="w-full min-h-[80px]"
-                    placeholder="Enter weightbridge details"
+                    placeholder="Enter weighbridge details"
                     {...field}
                   />
                 </FormControl>
