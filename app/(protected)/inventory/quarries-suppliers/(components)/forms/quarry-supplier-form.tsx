@@ -66,9 +66,7 @@ export default function QuarrySupplierForm({
   const [pendingSubmission, setPendingSubmission] = React.useState<z.infer<
     typeof QuarrySupplierFormSchema
   > | null>(null);
-  const [mockBillingCycle, setMockBillingCycle] = React.useState<
-    'monthly' | 'yearly'
-  >('monthly');
+  const [mockBillingCycle] = React.useState<'monthly' | 'yearly'>('monthly');
   const subscriptionMock = React.useMemo(
     () => ({
       billingCycle: mockBillingCycle,
