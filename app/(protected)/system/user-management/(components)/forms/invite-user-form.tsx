@@ -27,6 +27,7 @@ import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useCreateUser } from '@/lib/api/user';
 import { UserCreateDTO } from '@/lib/types/user';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -97,10 +98,8 @@ export default function InviteUserForm({
       onSuccess?.();
     } catch (error) {
       console.error('Error inviting user:', error);
-      notifyError('Invitation Failed', {
-        description:
-          error instanceof Error ? error.message : 'Please try again',
-      });
+      const errorMessage = extractErrorMessage(error);
+      notifyError('Invitation Failed', { description: errorMessage });
     }
   };
 
