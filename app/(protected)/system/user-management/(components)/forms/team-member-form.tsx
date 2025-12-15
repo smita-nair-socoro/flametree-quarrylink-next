@@ -134,22 +134,6 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const joinedDate = initialData?.createdAt || undefined;
-  const formattedJoined = joinedDate
-    ? formatDate(joinedDate, 'd MMM yyyy')
-    : '—';
-
-  const lastLoginRelative = initialData?.lastLoginAt
-    ? getRelativeTime(initialData.lastLoginAt)
-    : 'Never';
-
-  const totalLogins =
-    typeof initialData?.totalLogins === 'number' ? initialData.totalLogins : 0;
-  const quotations =
-    typeof initialData?.quotationCreated === 'number'
-      ? initialData.quotationCreated
-      : 0;
-
   const disableRoleChange =
     currentUserId !== undefined &&
     initialData?.sub !== undefined &&
