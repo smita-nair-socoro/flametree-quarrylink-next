@@ -607,37 +607,16 @@ export const APIClient = {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
     getById: (id: string) => {
       console.log('[APIClient] 🔍 getById called with ID:', id);
-      console.log('[APIClient] 📡 Endpoint:', `/socoro/quarrylink/api/users/${id}`);
-      return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`).then(
-        (response) => {
-          console.log('[APIClient] ✅ getById response:', response);
-          return response;
-        },
-        (error) => {
-          console.error('[APIClient] ❌ getById error:', error);
-          throw error;
-        }
-      );
+      return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
     create: (data: UserCreateDTO) =>
       appClient.Post<User>('/socoro/quarrylink/api/users', {
         body: data,
       }),
     update: (id: string, data: UserUpdateDTO) => {
-      console.log('[APIClient] 📝 update called with ID:', id);
-      console.log('[APIClient] 📝 update data:', data);
       return appClient.Put<User>(`/socoro/quarrylink/api/users/${id}`, {
         body: data,
-      }).then(
-        (response) => {
-          console.log('[APIClient] ✅ update response:', response);
-          return response;
-        },
-        (error) => {
-          console.error('[APIClient] ❌ update error:', error);
-          throw error;
-        }
-      );
+      });
     },
   },
 };
