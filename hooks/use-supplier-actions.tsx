@@ -30,13 +30,17 @@ interface SelectedAction {
   key: string;
 }
 
+interface BlockingQuote {
+  quoteNumber: string;
+  lineItemsCount: number;
+}
+
 const getDialogConfigs = (
   quarryData?: QuarrySupplierProduct | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: unknown[]
+  blockingQuotes?: BlockingQuote[]
 ): Record<string, DialogConfig> => {
   const quarryName = quarryData?.quarryName ?? quarryData?.supplierProductName;
-  const supplierName = quarryData?.supplierProductName;
   const supplierProductCode = quarryData?.supplierProductCode;
   const blockingQuoteLength = blockingQuotes?.length ?? 0;
 
@@ -186,7 +190,9 @@ export function useSupplierActions(
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const [blockingQuotes, setBlockingQuotes] = React.useState<unknown[]>([]);
+  const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
+    []
+  );
 
   const dialogConfigs = getDialogConfigs(
     quarryData,
@@ -266,15 +272,15 @@ export function useSupplierActions(
 
                 // Backend returns 409 with blockingQuoteDtos when deletion is blocked
                 const errorData = extractErrorData(e);
-                const blocked =
+                const blocked: BlockingQuote[] =
                   errorData &&
                   typeof errorData === 'object' &&
                   'blockingQuoteDtos' in errorData &&
                   Array.isArray(
-                    (errorData as { blockingQuoteDtos?: unknown })
+                    (errorData as { blockingQuoteDtos?: BlockingQuote[] })
                       .blockingQuoteDtos
                   )
-                    ? (errorData as { blockingQuoteDtos: unknown[] })
+                    ? (errorData as { blockingQuoteDtos: BlockingQuote[] })
                         .blockingQuoteDtos
                     : [];
 

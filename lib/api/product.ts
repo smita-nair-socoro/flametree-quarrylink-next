@@ -69,15 +69,22 @@ export const useUpdateProduct = () => {
 
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
-  return useMutation<
-    { quotes?: string[]; jobs?: string[]; dockets?: string[] } | undefined,
-    Error,
-    number
-  >({
+  return useMutation<unknown, Error, number>({
     mutationFn: (id: number) => APIClient.products.deleteProduct(id),
-    onSuccess: () => {
+    onMutate: (variables) => {
+      console.log('[Mutation] Delete product vars:', { id: variables });
+    },
+    onSuccess: (response, variables) => {
+      console.log('[Mutation] Delete product response:', response);
+      console.log('[Mutation] Delete product variables:', { id: variables });
       queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
       queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: ProductKeys.detailWithMaterial(variables),
+      });
+      queryClient.invalidateQueries({
+        queryKey: ProductKeys.detailWithQuarrySupplierProduct(variables),
+      });
     },
     onError: (error) => {
       console.error('Error deleting product:', error);

@@ -397,12 +397,47 @@ export const APIClient = {
       appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
         body: data,
       }),
-    deleteProduct: (id: number) =>
-      appClient.Delete<{
-        quotes?: string[];
-        jobs?: string[];
-        dockets?: string[];
-      }>(`/socoro/quarrylink/api/product/${id}`),
+    deleteProduct: (id: number) => {
+      return appClient
+        .Delete<
+          | {
+              quotes?: string[];
+              jobs?: string[];
+              dockets?: string[];
+            }
+          | unknown
+        >(`/socoro/quarrylink/api/product/${id}`)
+        .then((res) => {
+          console.log('[APIClient] products.deleteProduct response:', res);
+          return res;
+        })
+        .catch((err) => {
+          const status =
+            err &&
+            typeof err === 'object' &&
+            'response' in err &&
+            (err as { response?: { status?: unknown } }).response &&
+            typeof (err as { response?: { status?: unknown } }).response
+              ?.status === 'number'
+              ? (err as { response: { status: number } }).response.status
+              : undefined;
+
+          const data =
+            err &&
+            typeof err === 'object' &&
+            'response' in err &&
+            (err as { response?: { data?: unknown } }).response
+              ? (err as { response?: { data?: unknown } }).response?.data
+              : undefined;
+
+          console.error('[APIClient] products.deleteProduct error:', {
+            status,
+            data,
+            error: err,
+          });
+          throw err;
+        });
+    },
   },
   quarries: {
     getAll: async () => {
