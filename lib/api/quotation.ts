@@ -6,7 +6,11 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { QuotationKeys } from './keys';
-import { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import {
+  PublicQuoteLinkResponse,
+  QuotationDTO,
+  QuotationLineItem,
+} from '../types/quotation';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 
 export const QuotationsListQueryOptions = () =>
@@ -26,6 +30,14 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
+
+export const fetchPublicQuoteByToken = async (
+  token: string
+): Promise<PublicQuoteLinkResponse> => {
+  const response = await APIClient.quotations.getByPublicLinkToken(token);
+  console.log('[Quotation][public link] response:', response);
+  return response;
+};
 
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({

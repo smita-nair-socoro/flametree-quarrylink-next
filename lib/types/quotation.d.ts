@@ -115,3 +115,14 @@ export interface QuotationLineItem {
   updatedAt: string;
   lastModifiedBy: string;
 }
+
+export interface StripeTenantDetailsSnapshot {
+  tenantName: string;
+  businessName: string;
+  email: string;
+}
+
+export interface PublicQuoteLinkResponse {
+  quoteDto: QuotationDTO;
+  stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
+}

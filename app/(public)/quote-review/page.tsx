@@ -1,18 +1,64 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import QuoteReviewDocument from './(components)/quote-review-document';
-
+import { fetchPublicQuoteByToken } from '@/lib/api/quotation';
+import { Spinner } from '@/components/ui/spinner';
 
 function QuoteReviewContent() {
   const searchParams = useSearchParams();
   const quoteId = searchParams.get('quoteId') || '0';
+  const token = searchParams.get('token');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!token) {
+      setError('Link token is missing.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    fetchPublicQuoteByToken(token)
+      .then((res) => {
+        console.log('[QuoteReview] public link payload:', res);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch public quote link:', err);
+        setError(' Link is invalid or has expired.');
+      })
+      .finally(() => setIsLoading(false));
+  }, [token]);
+
+  if (!token) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-red-600 text-center px-4">
+          Invalid quote link (missing token).
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <QuoteReviewDocument
-      quoteId={quoteId}
-    />
+    <>
+      {isLoading && (
+        <div className="flex items-center justify-center py-6">
+          <Spinner className="mr-2" />
+          <div className="text-sm text-gray-600">Loading quotation...</div>
+        </div>
+      )}
+      {error && (
+        <div className="flex items-center justify-center py-6">
+          <div className="text-sm text-red-600 text-center px-4">{error}</div>
+        </div>
+      )}
+      <QuoteReviewDocument quoteId={quoteId} />
+    </>
   );
 }
 

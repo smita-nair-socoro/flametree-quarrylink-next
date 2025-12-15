@@ -3,7 +3,11 @@ import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';
 import { Quarry, QuarrySupplierProduct } from '../types/quarry';
-import { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import {
+  PublicQuoteLinkResponse,
+  QuotationDTO,
+  QuotationLineItem,
+} from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
@@ -523,6 +527,37 @@ export const APIClient = {
   },
 
   quotations: {
+    /**
+     * Public quotation retrieval using token from quote email link.
+     * This endpoint must remain unauthenticated because customers are not logged in.
+     */
+    getByPublicLinkToken: async (token: string) => {
+      const apiBase = baseUrl();
+      if (!apiBase) {
+        throw new Error('Missing API base URL for public quote link request');
+      }
+
+      const url = `${apiBase}/socoro/quarrylink/api/quote/public/link?token=${encodeURIComponent(
+        token
+      )}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Accept: '*/*',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(
+          `Failed to fetch public quote link: ${response.status} ${response.statusText} ${errorText}`
+        );
+      }
+
+      const data = (await response.json()) as PublicQuoteLinkResponse;
+      return data;
+    },
     getAll: async (params?: {
       page?: number;
       pageSize?: number;
