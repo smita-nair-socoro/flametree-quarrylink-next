@@ -24,8 +24,10 @@ import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { CurrencyInput } from '@/components/ui/input-mask';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
-import { ProductsListQueryOptions } from '@/lib/api/product';
-import { QuarryListQueryOptions } from '@/lib/api/quarries';
+import {
+  ProductsListQueryOptions,
+  ProductDetailWithQuarrySupplierProductQueryOptions,
+} from '@/lib/api/product';
 import { useQuery } from '@tanstack/react-query';
 
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -108,7 +110,7 @@ export default function QuoteLineItemForm({
     mode: 'onChange',
     defaultValues: {
       productId: isEditing ? selectedLineItem?.productId : 0,
-      quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 1 : 0,
+      quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
       supplierProductName: isEditing
         ? selectedLineItem?.supplierProductName
         : '',
@@ -160,17 +162,130 @@ export default function QuoteLineItemForm({
       value: product.id,
     }));
   }, [products]);
+  console.log('products', products);
 
-  // Fetch quarries from API
-  const { data: quarries } = useQuery(QuarryListQueryOptions());
+  // Normalize the selected product id (FormSelect may store it as a string)
+  const selectedProductId = Number(
+    quotationLineItemForm.watch('productId') || 0
+  );
 
-  const quarryOptions: FormSelectOption[] = React.useMemo(() => {
-    if (!quarries) return [];
-    return quarries.map((quarry) => ({
-      label: quarry.name,
-      value: quarry.id,
-    }));
-  }, [quarries]);
+  const productDetailsQuery = useQuery(
+    ProductDetailWithQuarrySupplierProductQueryOptions(selectedProductId)
+  );
+
+  React.useEffect(() => {
+    if (!selectedProductId) return;
+    console.log('[Query] ProductDetailWithQuarrySupplierProduct vars:', {
+      productId: selectedProductId,
+    });
+  }, [selectedProductId]);
+
+  React.useEffect(() => {
+    if (productDetailsQuery.isSuccess) {
+      console.log(
+        '[Query] ProductDetailWithQuarrySupplierProduct response:',
+        productDetailsQuery.data
+      );
+    }
+    if (productDetailsQuery.isError) {
+      console.error(
+        '[Query] ProductDetailWithQuarrySupplierProduct error:',
+        productDetailsQuery.error
+      );
+    }
+  }, [
+    productDetailsQuery.isSuccess,
+    productDetailsQuery.isError,
+    productDetailsQuery.data,
+    productDetailsQuery.error,
+  ]);
+
+  // Quarry/Supplier list comes from the selected product details response
+  // (this is the array of ids + names you mentioned)
+  const quarrySuppliers = React.useMemo(() => {
+    const details = productDetailsQuery.data;
+    if (!details || details.id !== selectedProductId) return [];
+
+    const qsps = Array.isArray(details.quarrySupplierProducts)
+      ? details.quarrySupplierProducts
+      : [];
+
+    const byId = new Map<number, { id: number; name: string }>();
+
+    for (const qsp of qsps) {
+      const quarrySupplierId = Number(qsp?.quarrySupplierId || 0);
+      if (!quarrySupplierId) continue;
+      if (qsp?.isActive === false) continue;
+
+      const name =
+        qsp?.quarrySupplier?.name ||
+        qsp?.quarryName ||
+        `Quarry/Supplier ${quarrySupplierId}`;
+
+      byId.set(quarrySupplierId, { id: quarrySupplierId, name });
+    }
+
+    return Array.from(byId.values()).sort((a, b) =>
+      String(a.name).localeCompare(String(b.name))
+    );
+  }, [productDetailsQuery.data, selectedProductId]);
+
+  const quarryOptions: FormSelectOption[] = React.useMemo(
+    () => quarrySuppliers.map((q) => ({ label: q.name, value: q.id })),
+    [quarrySuppliers]
+  );
+
+  React.useEffect(() => {
+    const currentProductId = Number(
+      quotationLineItemForm.getValues('productId') || 0
+    );
+    const initialProductId = Number(
+      isEditing ? selectedLineItem?.productId : 0
+    );
+
+    if (currentProductId !== initialProductId) {
+      quotationLineItemForm.setValue('quarrySupplierId', 0);
+      quotationLineItemForm.setValue('supplierProductName', '');
+    }
+  }, [
+    selectedProductId,
+    isEditing,
+    selectedLineItem?.productId,
+    quotationLineItemForm,
+  ]);
+
+  // Dynamically set supplier product name based on selected Product and Quarry
+  // Will change this once API is implemented
+  const quarryId = quotationLineItemForm.watch('quarrySupplierId');
+
+  React.useEffect(() => {
+    const currentProductId = Number(
+      quotationLineItemForm.getValues('productId') || 0
+    );
+    const currentQuarryId = Number(
+      quotationLineItemForm.getValues('quarrySupplierId') || 0
+    );
+
+    if (currentProductId && currentQuarryId) {
+      const productLabel =
+        productOptions.find((option) => option.value === currentProductId)
+          ?.label || '';
+      const quarryLabel =
+        quarryOptions.find((option) => option.value === currentQuarryId)
+          ?.label || '';
+
+      quotationLineItemForm.setValue(
+        'supplierProductName',
+        productLabel + ' ' + quarryLabel
+      );
+    }
+  }, [
+    quarryId,
+    selectedProductId,
+    productOptions,
+    quarryOptions,
+    quotationLineItemForm,
+  ]);
 
   const truckTypeOptions: FormSelectOption[] = React.useMemo(
     () => [
@@ -210,46 +325,6 @@ export default function QuoteLineItemForm({
     ],
     []
   );
-
-  const productId = quotationLineItemForm.watch('productId');
-
-  React.useEffect(() => {
-    const currentProductId = quotationLineItemForm.getValues('productId');
-    const initialProductId = isEditing ? selectedLineItem?.productId : 0;
-
-    if (currentProductId !== initialProductId) {
-      quotationLineItemForm.setValue('quarrySupplierId', 0);
-      quotationLineItemForm.setValue('supplierProductName', '');
-    }
-  }, [
-    productId,
-    isEditing,
-    selectedLineItem?.productId,
-    quotationLineItemForm,
-  ]);
-
-  // Dynamically set supplier product name based on selected Product and Quarry
-  // Will change this once API is implemented
-  const quarryId = quotationLineItemForm.watch('quarrySupplierId');
-
-  React.useEffect(() => {
-    const currentProductId = quotationLineItemForm.getValues('productId');
-    const currentQuarryId = quotationLineItemForm.getValues('quarrySupplierId');
-
-    if (currentProductId && currentQuarryId) {
-      const productLabel =
-        productOptions.find((option) => option.value === currentProductId)
-          ?.label || '';
-      const quarryLabel =
-        quarryOptions.find((option) => option.value === currentQuarryId)
-          ?.label || '';
-
-      quotationLineItemForm.setValue(
-        'supplierProductName',
-        productLabel + ' ' + quarryLabel
-      );
-    }
-  }, [quarryId, productOptions, quarryOptions, quotationLineItemForm]);
 
   // When truck type changes, set truck cost and sell UOM fields to empty
   // Will change this once API is implemented
@@ -500,10 +575,7 @@ export default function QuoteLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={
-                  !quotationLineItemForm.watch('productId') ||
-                  (isEditing && !canEdit)
-                }
+                disabled={!selectedProductId || (isEditing && !canEdit)}
               />
 
               <FormField
