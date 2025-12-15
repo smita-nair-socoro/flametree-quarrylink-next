@@ -17,176 +17,8 @@ import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
-
-// Mock data for team members
-const teamMemberMockData: User[] = [
-  {
-    id: 1,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Armin Menhaji',
-    phone: '+61412345678',
-    email: 'armin@terminco.com.au',
-    groups: '[SUPERADMIN]',
-    status: UserStatus.ACTIVE,
-    totalLogins: 120,
-    quotationCreated: 15,
-    lastLoginAt: '2025-10-29T13:00:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 2,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Sarah Johnson',
-    phone: '+61412345679',
-    email: 'sarah@terminco.com.au',
-    groups: '[SUPERADMIN]',
-    status: UserStatus.DELETED,
-    totalLogins: 0,
-    quotationCreated: 0,
-    lastLoginAt: null,
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 3,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Mike Chen',
-    phone: '+61412345680',
-    email: 'mike@terminco.com.au',
-    groups: '[SUPERADMIN]',
-    status: UserStatus.PENDING,
-    totalLogins: 5,
-    quotationCreated: 2,
-    lastLoginAt: '2025-10-30T19:11:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 4,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Emma Wilson',
-    phone: '+61412345681',
-    email: 'emma.wilson@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.INACTIVE,
-    totalLogins: 45,
-    quotationCreated: 8,
-    lastLoginAt: '2025-10-30T23:11:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 5,
-    tenantId: 1,
-    clientId: 1,
-    name: 'David Martinez',
-    phone: '+61412345682',
-    email: 'david.martinez@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.ACTIVE,
-    totalLogins: 32,
-    quotationCreated: 5,
-    lastLoginAt: '2025-10-24T22:00:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 6,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Lisa Anderson',
-    phone: '+61412345683',
-    email: 'lisa.anderson@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.ACTIVE,
-    totalLogins: 78,
-    quotationCreated: 12,
-    lastLoginAt: '2025-10-30T13:00:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 7,
-    tenantId: 1,
-    clientId: 1,
-    name: 'James Brown',
-    phone: '+61412345684',
-    email: 'james.brown@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.ACTIVE,
-    totalLogins: 25,
-    quotationCreated: 3,
-    lastLoginAt: '2025-10-30T13:00:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 8,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Maria Garcia',
-    phone: '+61412345685',
-    email: 'maria.garcia@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.ACTIVE,
-    totalLogins: 15,
-    quotationCreated: 4,
-    lastLoginAt: '2025-10-30T00:00:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 9,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Tom Rodriguez',
-    phone: '+61412345686',
-    email: 'tom.rodriguez@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.PENDING,
-    totalLogins: 0,
-    quotationCreated: 0,
-    lastLoginAt: null,
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 10,
-    tenantId: 1,
-    clientId: 1,
-    name: 'Jessica Lee',
-    phone: '+61412345687',
-    email: 'jessica.lee@terminco.com.au',
-    groups: '[SUPERADMIN]',
-    status: UserStatus.ACTIVE,
-    totalLogins: 95,
-    quotationCreated: 10,
-    lastLoginAt: '2025-09-28T22:00:00.000Z',
-    createdAt: '2025-10-30T13:00:00.000Z',
-    updatedAt: '2025-10-30T13:00:00.000Z',
-  },
-  {
-    id: 11,
-    tenantId: 1,
-    clientId: 1,
-    name: 'John Deleted',
-    phone: '+61412345688',
-    email: 'john.deleted@terminco.com.au',
-    groups: '[USER]',
-    status: UserStatus.DELETED,
-    totalLogins: 50,
-    quotationCreated: 5,
-    lastLoginAt: '2025-09-15T10:00:00.000Z',
-    createdAt: '2025-08-01T13:00:00.000Z',
-    updatedAt: '2025-09-20T13:00:00.000Z',
-  },
-];
-
+import { useQuery } from '@tanstack/react-query';
+import { UsersListQueryOptions } from '@/lib/api/user';
 // Mock data for pending invitations
 const pendingInvitationsMockData: PendingInvitation[] = [
   {
@@ -224,17 +56,37 @@ const rolesOptions: readonly FormSelectOption[] = [
 ];
 
 export default function TeamAdminTab() {
-  // Simulate loading state (remove this when using real API)
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [isFetching, setIsFetching] = React.useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
+  // Fetch users from API
+  const {
+    data: users = [],
+    isLoading,
+    isFetching,
+    error,
+  } = useQuery({
+    ...UsersListQueryOptions(),
+    retry: false, // Don't retry on failure to prevent multiple logout attempts
+  });
 
   React.useEffect(() => {
-    // Simulate initial data loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (error) {
+      console.error('[TeamAdminTab] API Error', {
+        message: (error as Error).message,
+        error: error,
+      });
+    }
+  }, [error]);
+
+  React.useEffect(() => {
+    if (users && users.length > 0) {
+      console.log('[TeamAdminTab] ✅ Users fetched successfully!');
+      console.log('[TeamAdminTab] Total users:', users.length);
+      console.log('[TeamAdminTab] Sample user data:', users[0]);
+      console.log('[TeamAdminTab] Groups field type:', typeof users[0]?.groups);
+      console.log('[TeamAdminTab] Groups field value:', users[0]?.groups);
+    } else if (users && users.length === 0) {
+      console.log('[TeamAdminTab] ⚠️ No users returned from API');
+    }
+  }, [users]);
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
@@ -260,7 +112,7 @@ export default function TeamAdminTab() {
   };
 
   // Calculate team member count based on actual data
-  const teamMemberCount = teamMemberMockData.length;
+  const teamMemberCount = users.length;
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
@@ -320,7 +172,7 @@ export default function TeamAdminTab() {
                 )}
                 <DataTableClient
                   tableId="team_member_data_table"
-                  data={teamMemberMockData.filter(
+                  data={users.filter(
                     (member) =>
                       member.status !== UserStatus.DELETED &&
                       member.status !== UserStatus.INACTIVE

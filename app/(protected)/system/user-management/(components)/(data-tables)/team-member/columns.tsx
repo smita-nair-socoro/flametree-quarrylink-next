@@ -40,13 +40,19 @@ export const createTeamMemberColumns = (
     },
     cell: ({ row }) => {
       const groups = row.original.groups;
-      // groups is a string array like "[SUPERADMIN]" or "[USER]"
-      const groupsUpper = groups?.toUpperCase() || '';
-      const formattedRole = groupsUpper.includes('SUPERADMIN')
-        ? 'Super Admin'
-        : groupsUpper.includes('ADMIN')
-        ? 'Admin'
-        : 'User';
+      // Handle cases where groups might be null, undefined, or not an array
+      if (!groups || !Array.isArray(groups) || groups.length === 0) {
+        return <div className="py-2">User</div>;
+      }
+
+      // Join groups and check for role types
+      const groupsStr = groups.join(',').toUpperCase();
+      const formattedRole =
+        groupsStr.includes('SUPER_ADMIN') || groupsStr.includes('SUPERADMIN')
+          ? 'Super Admin'
+          : groupsStr.includes('ADMIN')
+          ? 'Admin'
+          : 'User';
       return <div className="py-2">{formattedRole}</div>;
     },
     meta: 'Role',

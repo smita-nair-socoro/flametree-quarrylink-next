@@ -35,7 +35,7 @@ export interface User {
   name: string;
   phone?: string;
   email: string;
-  groups: string;
+  groups: string[]; // Array of group names like ["super_admin", "admin"]
   totalLogins?: number;
   quotationCreated?: number;
   lastLoginAt: string | null;

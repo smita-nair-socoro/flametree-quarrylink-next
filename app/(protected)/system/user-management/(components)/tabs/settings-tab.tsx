@@ -29,7 +29,7 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { delay } from '@/lib/utils/time';
 
 const convertedJson = rawJson as unknown as User;
-const { name, email, phone, createdAt, lastLoginAt } = convertedJson;
+const { name = '', email, phone, createdAt, lastLoginAt } = convertedJson;
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -54,9 +54,10 @@ export default function SettingsTab() {
   });
 
   const getInitials = (fullName: string) => {
+    if (!fullName || fullName.trim() === '') return 'NA';
     return fullName
       .split(' ')
-      .map((name) => name[0].toUpperCase())
+      .map((name) => name[0]?.toUpperCase() || '')
       .join('')
       .slice(0, 2);
   };

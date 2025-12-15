@@ -133,9 +133,23 @@ export function useTeamMemberActions(
   ]);
 
   // Helper function to format role for display
-  const formatRole = (role: string | undefined) => {
-    if (!role) return '';
-    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+  // groups is an array like ["super_admin", "admin"] containing role names
+  const formatRole = (groups: string[] | undefined) => {
+    if (!groups || !Array.isArray(groups) || groups.length === 0) {
+      return 'User';
+    }
+
+    // Check for roles in priority order (highest to lowest)
+    const groupsStr = groups.join(',').toLowerCase();
+
+    if (groupsStr.includes('super_admin') || groupsStr.includes('superadmin')) {
+      return 'Super Admin';
+    }
+    if (groupsStr.includes('admin')) {
+      return 'Admin';
+    }
+
+    return 'User';
   };
 
   // Single delete dialog config - same structure for both cases

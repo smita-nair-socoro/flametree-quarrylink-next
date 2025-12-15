@@ -1,4 +1,4 @@
-import { baseUrl, getUser } from '../utils';
+import { baseUrl, getUser, getTenantId } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';
@@ -604,11 +604,11 @@ export const APIClient = {
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
   },
   users: {
-    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
+    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
     getById: (id: string) =>
       appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`),
     create: (data: Partial<User>) =>
-      appClient.Post<User>('/socoro/quarrylink/api/user', {
+      appClient.Post<User>('/socoro/quarrylink/api/users', {
         body: data,
       }),
     update: (id: string, data: Partial<User>) =>
