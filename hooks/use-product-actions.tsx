@@ -399,15 +399,17 @@ export function useProductActions(
       // Check if response contains blocking items
       if (response && response.quotes && response.quotes.length > 0) {
         // Product cannot be deleted, show cannot delete modal
+        console.log('response', response);
         setBlockingItems(response);
         setActiveDialog('cannotDelete');
         setSelectedAction({ key: 'cannotDelete' });
       } else {
+        console.log('response', response);
         // Product deleted successfully (empty response)
         setActiveDialog(null);
         setSelectedAction(null);
         // Refresh or redirect as needed
-        window.location.reload();
+        // window.location.reload();
       }
     } catch (error: unknown) {
       console.error('Error deleting product:', error);
