@@ -24,22 +24,27 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import { AddressType } from '@/lib/types/address';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  useSelectedQuotation,
-  useQuotationStore,
-} from '@/app/stores/quotation-store';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { centsToDollars } from '@/lib/utils/currency';
-import { useQuery } from '@tanstack/react-query';
-import { QuotationDetailQueryOptions } from '@/lib/api/quotation';
+import { useCreateQuotation, useUpdateQuotation } from '@/lib/api/quotation';
+import {
+  transformFormDataToQuoteDto,
+  generateNextQuoteNumber,
+  getLatestQuoteNumber,
+} from '@/lib/utils/quote-helpers';
+import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
+import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info } from 'lucide-react';
+import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { QuotationsListQueryOptions } from '@/lib/api/quotation';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   id?: number;
@@ -60,294 +65,206 @@ export default function QuotationForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedQuotation = useSelectedQuotation();
-
-  // When editing, fetch detailed quotation data with line items from backend API
-  const {
-    data: quotationDetailData,
-    isLoading: isLoadingDetail,
-    error: detailError,
-  } = useQuery(QuotationDetailQueryOptions(selectedQuotation?.id || 0));
-
-  // Log API response for debugging
-  React.useEffect(() => {
-    if (detailError) {
-      console.error('❌ Error fetching quotation details:', detailError);
-    }
-  }, [detailError]);
-
-  // Convert QuotationDTO from API to Quotation format for the form
-  const getDetailedQuotation = React.useMemo(() => {
-    if (isEditing && quotationDetailData) {
-      // Convert to snake_case if needed
-      const convertedQuotation = convertKeysToSnakeCase(
-        quotationDetailData
-      ) as QuotationDTO;
-
-      // Transform to match Quotation interface (map quote_status → status)
-      const transformedQuotation = {
-        ...convertedQuotation,
-        quoteId: convertedQuotation.id,
-        status: convertedQuotation.quote_status,
-      } as Quotation;
-
-      return transformedQuotation;
-    }
-    return null;
-  }, [isEditing, quotationDetailData]);
-
-  // Use detailed quotation for editing, or selected quotation for new
-  const currentQuotation = isEditing ? getDetailedQuotation : selectedQuotation;
-
-  const convertedQuotationLineItem = convertKeysToSnakeCase(
-    currentQuotation?.line_items
-  );
-
-  const [address, setAddress] = React.useState<AddressType>({
-    address1: '',
-    address2: '',
-    formattedAddress: '',
-    city: '',
-    region: '',
-    postalCode: '',
-    country: '',
-    lat: 0,
-    lng: 0,
-  });
-  const [searchInput, setSearchInput] = React.useState('');
+  const queryClient = useQueryClient();
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
     resolver: zodResolver(NewQuotationFormSchema),
-    defaultValues: {
-      quote_type:
-        isEditing && currentQuotation?.quote_type
-          ? currentQuotation.quote_type
-          : 'DELIVERY',
-      customer_id:
-        isEditing && currentQuotation?.customer_id
-          ? currentQuotation.customer_id
-          : 0,
-      account_manager:
-        isEditing && currentQuotation?.account_manager
-          ? currentQuotation.account_manager
-          : 0,
-      project_name:
-        isEditing && currentQuotation?.project_name
-          ? currentQuotation.project_name
-          : '',
-      delivery_start_date:
-        isEditing && currentQuotation?.delivery_start_date
-          ? new Date(currentQuotation.delivery_start_date)
-          : undefined,
-      delivery_window_start:
-        isEditing && currentQuotation?.delivery_window_start
-          ? new Date(currentQuotation.delivery_window_start).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-      delivery_window_end:
-        isEditing && currentQuotation?.delivery_window_end
-          ? new Date(currentQuotation.delivery_window_end).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-      expiry_date:
-        isEditing && currentQuotation?.expiry_date
-          ? new Date(currentQuotation.expiry_date)
-          : undefined,
-      delivery_address: '',
-      phone: '',
-      email: '',
-      created_at:
-        isEditing && currentQuotation?.created_at
-          ? new Date(currentQuotation.created_at)
-          : new Date(),
-      updated_at:
-        isEditing && currentQuotation?.updated_at
-          ? new Date(currentQuotation.updated_at)
-          : new Date(),
-      created_by:
-        isEditing && currentQuotation?.created_by
-          ? currentQuotation.created_by
-          : 'Jay Woo Choi',
-      last_modified_by:
-        isEditing && currentQuotation?.last_modified_by
-          ? currentQuotation.last_modified_by
-          : 'Armin Menhaji',
-    },
+    defaultValues: quotationToFormValues(
+      isEditing ? selectedQuotation : null,
+      isEditing
+    ),
   });
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const createQuotation = useCreateQuotation();
+  const updateQuotation = useUpdateQuotation();
+
+  // All form state management: data fetching, labels, pricing, address, customer auto-fill
+  const {
+    currentQuotation,
+    isLoadingDetail,
+    detailError,
+    addressLabel,
+    dateLabel,
+    timeWindowLabel,
+    pricingBreakdown,
+    gst,
+    totalInvoiceIncGST,
+    deliveryAddress,
+    handleAddressChange,
+    searchInput,
+    setSearchInput,
+  } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
 
   // Update form values when API data loads
   React.useEffect(() => {
     if (isEditing && currentQuotation) {
-      quotationForm.reset({
-        quote_type: currentQuotation.quote_type || 'DELIVERY',
-        customer_id: currentQuotation.customer_id || 0,
-        account_manager: currentQuotation.account_manager || 0,
-        project_name: currentQuotation.project_name || '',
-        delivery_start_date: currentQuotation.delivery_start_date
-          ? new Date(currentQuotation.delivery_start_date)
-          : undefined,
-        delivery_window_start: currentQuotation.delivery_window_start
-          ? new Date(currentQuotation.delivery_window_start).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-        delivery_window_end: currentQuotation.delivery_window_end
-          ? new Date(currentQuotation.delivery_window_end).toLocaleTimeString(
-              'en-US',
-              {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-              }
-            )
-          : '',
-        expiry_date: currentQuotation.expiry_date
-          ? new Date(currentQuotation.expiry_date)
-          : undefined,
-        delivery_address: currentQuotation.delivery_address || '',
-        phone: currentQuotation.customer_email || '', // TODO: Add phone field to API
-        email: currentQuotation.customer_email || '',
-        created_at: currentQuotation.created_at
-          ? new Date(currentQuotation.created_at)
-          : new Date(),
-        updated_at: currentQuotation.updated_at
-          ? new Date(currentQuotation.updated_at)
-          : new Date(),
-        created_by: currentQuotation.created_by || 'Unknown',
-        last_modified_by: currentQuotation.last_modified_by || 'Unknown',
-      });
+      quotationForm.reset(quotationToFormValues(currentQuotation, true));
     }
   }, [isEditing, currentQuotation, quotationForm]);
 
-  // Watch the quote_type field to make labels dynamic
-  const quoteType = quotationForm.watch('quote_type');
+  // Fetch customers from API
+  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
 
-  const addressLabel = React.useMemo(() => {
-    if (!quoteType) return 'Address';
-    return quoteType === 'DELIVERY' ? 'Delivery Address' : 'Collection Address';
-  }, [quoteType]);
-
-  const dateLabel = React.useMemo(() => {
-    if (!quoteType) return 'Delivery Date';
-    return quoteType === 'DELIVERY' ? 'Delivery Date' : 'Collection Date';
-  }, [quoteType]);
-
-  const timeWindowLabel = React.useMemo(() => {
-    if (!quoteType) return 'Delivery Time Window';
-    return quoteType === 'DELIVERY'
-      ? 'Delivery Time Window'
-      : 'Collection Time Window';
-  }, [quoteType]);
-
-  React.useEffect(() => {
-    if (address.formattedAddress) {
-      quotationForm.setValue('delivery_address', address.formattedAddress);
-    }
-  }, [address.formattedAddress, quotationForm]);
-
-  const handleAddressChange = React.useCallback((newAddress: AddressType) => {
-    setAddress(newAddress);
-    if (newAddress.formattedAddress) {
-      setSearchInput('');
-    }
-  }, []);
-
-  // Get unique customer names and account managers from quotations store
-  const getUniqueCustomerNames = useQuotationStore(
-    (state) => state.getUniqueCustomerNames
-  );
-  const getUniqueAccountManagers = useQuotationStore(
-    (state) => state.getUniqueAccountManagers
-  );
-
-  // Build customer options from quotations list
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
-    return getUniqueCustomerNames();
-  }, [getUniqueCustomerNames]);
+    if (!customers) return [];
+    return customers.map((customer) => ({
+      label: customer.businessName || customer.contactName,
+      value: customer.id,
+    }));
+  }, [customers]);
+
+  // Auto-fill phone and email when customer is selected
+  React.useEffect(() => {
+    const subscription = quotationForm.watch((value, { name }) => {
+      if (name === 'customerId' && value.customerId) {
+        const selectedCustomer = customers.find(
+          (c) => c.id === value.customerId
+        );
+
+        if (selectedCustomer) {
+          // Update phone and email fields whenever customer changes
+          quotationForm.setValue(
+            'phone',
+            normalizePhoneNumber(selectedCustomer.phone || '') || ''
+          );
+          quotationForm.setValue('email', selectedCustomer.email || '');
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [customers, quotationForm]);
 
   // Build account manager options from quotations list
+  const accountManagers = React.useMemo(
+    () => [
+      { name: 'Alice', id: 1 },
+      { name: 'Bob', id: 2 },
+      { name: 'Charlie', id: 3 },
+      { name: 'David', id: 4 },
+      { name: 'Jay', id: 5 },
+    ],
+    []
+  );
   const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
-    return getUniqueAccountManagers();
-  }, [getUniqueAccountManagers]);
-
-  const customerId = quotationForm.watch('customer_id');
-
-  React.useEffect(() => {
-    if (customerId && customerId > 0) {
-      // Only set values if they're empty to avoid controlled/uncontrolled warning
-      const currentPhone = quotationForm.getValues('phone');
-      const currentEmail = quotationForm.getValues('email');
-
-      if (!currentPhone) {
-        quotationForm.setValue('phone', '+61444555777');
-      }
-      if (!currentEmail) {
-        quotationForm.setValue('email', 'customer@email.com');
-      }
-    }
-  }, [customerId, quotationForm]);
+    return accountManagers.map((accountManager) => ({
+      label: accountManager.name,
+      value: accountManager.id,
+    }));
+  }, [accountManagers]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    setIsSubmitting(true);
+    console.log(values);
+    const customerName =
+      customers.find((c) => c.id === values.customerId)?.businessName ||
+      customers.find((c) => c.id === values.customerId)?.contactName ||
+      '';
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log('Form submitted with values:', values);
-    setIsSubmitting(false);
+    const accountManagerName =
+      accountManagers.find(
+        (accountManager) => accountManager.id === values.accountManager
+      )?.name || '';
+
+    if (!isEditing) {
+      // Retry logic for handling duplicate quote number (409 conflict)
+      const MAX_RETRIES = 3;
+      let attempt = 0;
+      let lastError: unknown = null;
+
+      while (attempt < MAX_RETRIES) {
+        try {
+          // Re-fetch latest quotations on each attempt to get the most up-to-date number
+          const freshQuotations = await queryClient.fetchQuery(
+            QuotationsListQueryOptions()
+          );
+
+          // Handle both array response and paginated response
+          const quotationsList = Array.isArray(freshQuotations)
+            ? freshQuotations
+            : freshQuotations.content || [];
+
+          const latestQuoteNumber = getLatestQuoteNumber(quotationsList);
+          const nextQuoteNumber = generateNextQuoteNumber(latestQuoteNumber);
+
+          console.log(
+            `[QuotationForm] Creating quote with number ${nextQuoteNumber} (attempt ${attempt + 1}/${MAX_RETRIES})`
+          );
+
+          const transformed = transformFormDataToQuoteDto(values, {
+            customerName,
+            accountManagerName,
+            quoteNumber: nextQuoteNumber,
+            lineItemsCount: 0,
+            deliveryAddress: deliveryAddress,
+          });
+
+          await createQuotation.mutateAsync(transformed);
+          notifySuccess('Quote created successfully');
+          onCancel?.();
+          return; // Success - exit the function
+        } catch (error) {
+          lastError = error;
+
+          // Check if error is a 409 Conflict (duplicate quote number)
+          const is409Error =
+            error &&
+            typeof error === 'object' &&
+            'response' in error &&
+            error.response &&
+            typeof error.response === 'object' &&
+            'status' in error.response &&
+            error.response.status === 409;
+
+          if (is409Error && attempt < MAX_RETRIES - 1) {
+            console.log(
+              `[QuotationForm] Quote number conflict detected, retrying... (attempt ${attempt + 1}/${MAX_RETRIES})`
+            );
+            attempt++;
+            // Wait a bit before retrying (exponential backoff)
+            await new Promise((resolve) =>
+              setTimeout(resolve, 100 * Math.pow(2, attempt))
+            );
+            continue;
+          } else {
+            // Not a 409 error, or max retries reached
+            break;
+          }
+        }
+      }
+
+      // If we get here, all retries failed
+      const errorMessage = extractErrorMessage(lastError);
+      notifyError(`Failed to create quote: ${errorMessage}`);
+      console.error('Failed to create quote after retries:', lastError);
+    } else {
+      // Update existing quotation - keep the original quote number
+      const transformed = transformFormDataToQuoteDto(values, {
+        customerName,
+        accountManagerName,
+        quoteNumber: currentQuotation?.quoteNumber || '',
+        lineItemsCount: 0,
+        deliveryAddress: deliveryAddress,
+      });
+
+      try {
+        await updateQuotation.mutateAsync({
+          id: id!,
+          ...transformed,
+        });
+        notifySuccess('Quote updated successfully');
+        onCancel?.();
+      } catch (error) {
+        const errorMessage = extractErrorMessage(error);
+        notifyError(`Failed to update quote: ${errorMessage}`);
+        console.error('Failed to update quote:', error);
+      }
+    }
   }
 
   const today = React.useMemo(() => {
     const d = GetTodaysDate();
     return d;
   }, []);
-
-  const [pricingBreakdown] = React.useState({
-    totalProductCostPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_cost_price || 0)
-      : 0,
-    totalTruckCostPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_truck_cost_price || 0)
-      : 0,
-    totalProductSellPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_sell_price || 0)
-      : 0,
-    totalTruckSellPrice: isEditing
-      ? centsToDollars(currentQuotation?.total_truck_sell_price || 0)
-      : 0,
-    totalInvoice: isEditing
-      ? centsToDollars(currentQuotation?.total_sell_price || 0)
-      : 0,
-    grossProfit: isEditing
-      ? centsToDollars(currentQuotation?.gross_profit || 0)
-      : 0,
-    grossProfitPercentage: isEditing
-      ? currentQuotation?.gross_profit_percentage
-      : 0,
-  });
-
-  // Calculate GST and Total Invoice(Inc GST)
-  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
-  const totalInvoiceIncGST = (
-    Number(pricingBreakdown.totalInvoice) + Number(gst)
-  ).toFixed(2);
 
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {
@@ -387,7 +304,7 @@ export default function QuotationForm({
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {isSubmitting && (
+      {(createQuotation.isPending || updateQuotation.isPending) && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -409,7 +326,8 @@ export default function QuotationForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            isSubmitting && 'pointer-events-none'
+            (createQuotation.isPending || updateQuotation.isPending) &&
+              'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -425,6 +343,19 @@ export default function QuotationForm({
             </div>
           )}
 
+          {isEditing && currentQuotation?.status === 'DECLINED' && (
+            <div className="border border-blue-600 bg-blue-50 p-4 rounded-md mb-4 flex flex-col">
+              <div className="flex items-center gap-2 text-blue-900 font-medium text-sm">
+                <Info className="h-4 w-4" />
+                <span>This quote was declined</span>
+              </div>
+              <span className="text-muted-foreground ml-6 text-sm">
+                You can edit and save changes. It will automatically return to
+                Draft status
+              </span>
+            </div>
+          )}
+
           <div
             className={cn(
               'p-1 gap-1 w-full',
@@ -432,7 +363,8 @@ export default function QuotationForm({
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',
               className,
-              isSubmitting && 'pointer-events-none'
+              (createQuotation.isPending || updateQuotation.isPending) &&
+                'pointer-events-none'
             )}
           >
             {/* Duplicate Info Banner */}
@@ -456,7 +388,7 @@ export default function QuotationForm({
             {/* Quote Type - Only show when creating new quote */}
             <FormField
               control={quotationForm.control}
-              name="quote_type"
+              name="quoteType"
               render={({ field }) => (
                 <FormItem className="col-span-1 col-start-1 gap-3">
                   <FormLabel>Quote Type*</FormLabel>
@@ -491,7 +423,7 @@ export default function QuotationForm({
 
             <FormSelect
               control={quotationForm.control}
-              name="customer_id"
+              name="customerId"
               label="Customer*"
               searchLabel="Customer"
               options={customerOptions}
@@ -504,7 +436,7 @@ export default function QuotationForm({
 
             <FormSelect
               control={quotationForm.control}
-              name="account_manager"
+              name="accountManager"
               label="Account Manager*"
               searchLabel="Account Managers"
               options={accountManagerOptions}
@@ -517,7 +449,7 @@ export default function QuotationForm({
 
             <FormField
               control={quotationForm.control}
-              name="project_name"
+              name="projectName"
               render={({ field }) => (
                 <FormItem
                   className={
@@ -542,7 +474,7 @@ export default function QuotationForm({
 
             <FormField
               control={quotationForm.control}
-              name="delivery_address"
+              name="deliveryAddress"
               render={({ field }) => (
                 <FormItem
                   className={
@@ -554,7 +486,7 @@ export default function QuotationForm({
                   <FormLabel>{addressLabel}*</FormLabel>
                   <FormControl>
                     <AddressAutoComplete
-                      address={address}
+                      address={deliveryAddress}
                       setAddress={handleAddressChange}
                       searchInput={searchInput}
                       setSearchInput={setSearchInput}
@@ -599,7 +531,7 @@ export default function QuotationForm({
 
             <FormField
               control={quotationForm.control}
-              name="delivery_start_date"
+              name="deliveryStartDate"
               render={({ field }) => (
                 <FormItem
                   className={
@@ -659,7 +591,7 @@ export default function QuotationForm({
               <h3 className="font-bold col-span-2">{timeWindowLabel}</h3>
               <FormField
                 control={quotationForm.control}
-                name="delivery_window_start"
+                name="deliveryWindowStart"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Start Time Window</FormLabel>
@@ -680,7 +612,7 @@ export default function QuotationForm({
 
               <FormField
                 control={quotationForm.control}
-                name="delivery_window_end"
+                name="deliveryWindowEnd"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>End Time Window</FormLabel>
@@ -701,7 +633,7 @@ export default function QuotationForm({
             </div>
             <FormField
               control={quotationForm.control}
-              name="expiry_date"
+              name="expiryDate"
               render={({ field }) => (
                 <FormItem
                   className={
@@ -755,7 +687,7 @@ export default function QuotationForm({
                       dialogWidth="700px"
                       contentClass="-mt-5"
                     >
-                      <QuotationLineItemForm />
+                      <QuotationLineItemForm canEdit={canEdit} />
                     </FormDialog>
                   </div>
                 )}
@@ -766,12 +698,17 @@ export default function QuotationForm({
               <div className="col-span-full space-y-10">
                 <div className="flex flex-col gap-0">
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                    <DataTableClient
-                      columns={quotationLineItemColumns}
-                      data={convertedQuotationLineItem ?? []}
-                      simpleTable={true}
-                      useColumnSizing={true}
-                    />
+                    {(() => {
+                      const quoteItemsData = currentQuotation?.quoteItems ?? [];
+                      return (
+                        <DataTableClient
+                          columns={quotationLineItemColumns}
+                          data={quoteItemsData}
+                          simpleTable={true}
+                          useColumnSizing={true}
+                        />
+                      );
+                    })()}
                   </div>
 
                   <div className="flex flex-col gap-3">
@@ -781,7 +718,7 @@ export default function QuotationForm({
                           Product Cost (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductCostPrice}
+                          ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
@@ -789,7 +726,7 @@ export default function QuotationForm({
                           Truck Cost (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalTruckCostPrice}
+                          ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3">
@@ -797,7 +734,7 @@ export default function QuotationForm({
                           Product Sell (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductSellPrice}
+                          ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
@@ -805,7 +742,7 @@ export default function QuotationForm({
                           Truck Sell (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalTruckSellPrice}
+                          ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3">
@@ -813,7 +750,7 @@ export default function QuotationForm({
                           Subtotal (ex-GST):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalInvoice}
+                          ${pricingBreakdown.totalInvoice.toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
@@ -834,7 +771,7 @@ export default function QuotationForm({
                         Gross Profit:
                       </span>
                       <span className="text-sm font-semibold">
-                        ${pricingBreakdown.grossProfit} (
+                        ${pricingBreakdown.grossProfit.toFixed(2)} (
                         {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
                       </span>
                     </div>
@@ -851,7 +788,7 @@ export default function QuotationForm({
                           Created By:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('created_by') || 'Jay Woo Choi'}
+                          {quotationForm.watch('createdBy') || 'Jay Woo Choi'}
                         </p>
                       </div>
 
@@ -860,7 +797,7 @@ export default function QuotationForm({
                           Last Modified By:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('last_modified_by') ||
+                          {quotationForm.watch('lastModifiedBy') ||
                             'Jaywoo Choi'}
                         </p>
                       </div>
@@ -870,9 +807,9 @@ export default function QuotationForm({
                           Created Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('created_at')
+                          {quotationForm.watch('createdAt')
                             ? new Date(
-                                quotationForm.watch('created_at')
+                                quotationForm.watch('createdAt')
                               ).toLocaleDateString('en-AU', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -887,9 +824,9 @@ export default function QuotationForm({
                           Modified Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('updated_at')
+                          {quotationForm.watch('updatedAt')
                             ? new Date(
-                                quotationForm.watch('updated_at')
+                                quotationForm.watch('updatedAt')
                               ).toLocaleDateString('en-AU', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -913,7 +850,12 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   className="cursor-pointer"
                   type="submit"
-                  disabled={isSubmitting || !canEdit}
+                  disabled={
+                    isEditing &&
+                    (createQuotation.isPending ||
+                      updateQuotation.isPending ||
+                      !canEdit)
+                  }
                 >
                   {isDuplicate
                     ? 'Create Duplicate'
@@ -930,7 +872,12 @@ export default function QuotationForm({
                   form="add-new-quote-form"
                   type="submit"
                   className="cursor-pointer"
-                  disabled={isSubmitting || !canEdit}
+                  disabled={
+                    isEditing &&
+                    (createQuotation.isPending ||
+                      updateQuotation.isPending ||
+                      !canEdit)
+                  }
                 >
                   {isDuplicate
                     ? 'Create Duplicate'

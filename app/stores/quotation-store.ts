@@ -27,6 +27,8 @@ interface QuotationStore {
   };
   getUniqueCustomerNames: () => Array<{ label: string; value: number }>;
   getUniqueAccountManagers: () => Array<{ label: string; value: number }>;
+  getCustomerNameById: (customerId: number) => string | null;
+  getAccountManagerNameById: (managerId: number) => string | null;
 }
 
 export const useQuotationStore = create<QuotationStore>()(
@@ -93,7 +95,7 @@ export const useQuotationStore = create<QuotationStore>()(
           approved: quotations.filter((q) => q.status === 'APPROVED').length,
           draft: quotations.filter((q) => q.status === 'DRAFT').length,
           totalValue: quotations.reduce(
-            (sum, q) => sum + (q.total_sell_price || 0),
+            (sum, q) => sum + (q.totalSellPrice || 0),
             0
           ),
         };
@@ -104,8 +106,8 @@ export const useQuotationStore = create<QuotationStore>()(
         const customerMap = new Map<number, string>();
 
         state.quotations.forEach((quotation) => {
-          if (quotation.customer_id && quotation.customer_name) {
-            customerMap.set(quotation.customer_id, quotation.customer_name);
+          if (quotation.customerId && quotation.customerName) {
+            customerMap.set(quotation.customerId, quotation.customerName);
           }
         });
 
@@ -119,10 +121,10 @@ export const useQuotationStore = create<QuotationStore>()(
         const managerMap = new Map<number, string>();
 
         state.quotations.forEach((quotation) => {
-          if (quotation.account_manager && quotation.account_manager_name) {
+          if (quotation.accountManager && quotation.accountManagerName) {
             managerMap.set(
-              quotation.account_manager,
-              quotation.account_manager_name
+              quotation.accountManager,
+              quotation.accountManagerName
             );
           }
         });
@@ -130,6 +132,22 @@ export const useQuotationStore = create<QuotationStore>()(
         return Array.from(managerMap.entries())
           .map(([value, label]) => ({ label, value }))
           .sort((a, b) => a.label.localeCompare(b.label));
+      },
+
+      getCustomerNameById: (customerId) => {
+        const state = get();
+        const quotation = state.quotations.find(
+          (q) => q.customerId === customerId
+        );
+        return quotation?.customerName || null;
+      },
+
+      getAccountManagerNameById: (managerId) => {
+        const state = get();
+        const quotation = state.quotations.find(
+          (q) => q.accountManager === managerId
+        );
+        return quotation?.accountManagerName || null;
       },
     }),
     { name: 'quotation-store' }

@@ -9,7 +9,7 @@ import { ProductTableActions } from './product-table-actions';
 export const productColumns: ColumnDef<ProductDetails>[] = [
   {
     id: 'product_code',
-    accessorFn: (row) => row.product_code,
+    accessorFn: (row) => row.productCode,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product Code" />;
     },
@@ -18,7 +18,7 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
   },
   {
     id: 'product_name',
-    accessorFn: (row) => row.product_name,
+    accessorFn: (row) => row.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product Name" />;
     },
@@ -50,13 +50,13 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
 
   {
     id: 'status',
-    accessorFn: (row) => (row.is_active === true ? 'Available' : 'Unavailable'),
+    accessorFn: (row) => (row.isActive === true ? 'Available' : 'Unavailable'),
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
       const status =
-        row.original.is_active === true ? 'Available' : 'Unavailable';
+        row.original.isActive === true ? 'Available' : 'Unavailable';
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />

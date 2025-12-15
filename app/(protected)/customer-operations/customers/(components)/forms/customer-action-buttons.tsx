@@ -11,11 +11,11 @@ import {
 import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { Customer } from '@/lib/types/customer';
+import { CustomerDTO } from '@/lib/types/customer';
 import { useAuth } from '@/hooks/use-auth';
 
 interface CustomerActionButtonsProps {
-  customer: Customer | null | undefined;
+  customer: CustomerDTO | null | undefined;
   layout?: 'compact' | 'expanded';
 }
 
@@ -24,7 +24,7 @@ export function CustomerActionButtons({
   layout = 'expanded',
 }: CustomerActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isArchived = customer?.customer_status === 'ARCHIVED' ? true : false;
+  const isArchived = customer?.customerStatus === 'ARCHIVED' ? true : false;
 
   // Role-based feature detection
   const { attributes } = useAuth();

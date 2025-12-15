@@ -46,9 +46,9 @@ export function QuarrySupplierTableActions({
     actions.linkedProducts();
   };
 
-  const handleArchive = () => {
+  const handleDelete = () => {
     setDropdownOpen(false);
-    actions.archive();
+    actions.delete();
   };
 
   const handleUnarchive = () => {
@@ -83,7 +83,7 @@ export function QuarrySupplierTableActions({
 
           <DropdownMenuSeparator />
 
-          {/* Conditional: Archive or Unarchive based on status */}
+          {/* Conditional: Delete or Unarchive based on status */}
           {isArchived ? (
             <DropdownMenuItem
               onClick={handleUnarchive}
@@ -94,11 +94,11 @@ export function QuarrySupplierTableActions({
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
-              onClick={handleArchive}
+              onClick={handleDelete}
               className="text-destructive focus:text-destructive"
             >
               <Archive className="h-4 w-4 mr-2 text-destructive" />
-              Archive
+              Delete
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

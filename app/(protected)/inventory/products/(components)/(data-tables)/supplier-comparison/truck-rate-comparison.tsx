@@ -13,7 +13,7 @@ import {
 export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
     id: 'name',
-    accessorFn: (row) => row.quarry_supplier?.name,
+    accessorFn: (row) => row.quarrySupplier?.name,
     header: ({}) => {
       return <div>Supplier</div>;
     },
@@ -23,7 +23,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_tn_rate',
-    accessorFn: (row) => row.tn_truck_rate,
+    accessorFn: (row) => row.tnTruckRate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -41,11 +41,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_truck_rate_tn === false) {
+      if (row.original.availableForTruckRateTn === false) {
         return <div>N/A</div>;
       } else {
-        const tnRate = row.original.tn_truck_rate
-          ? centsToDollars(row.original.tn_truck_rate)
+        const tnRate = row.original.tnTruckRate
+          ? centsToDollars(row.original.tnTruckRate)
           : '0';
         return <div>${tnRate}</div>;
       }
@@ -55,7 +55,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_m3_rate',
-    accessorFn: (row) => row.m3_truck_rate,
+    accessorFn: (row) => row.m3TruckRate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -72,11 +72,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_truck_rate_m3 === false) {
+      if (row.original.availableForTruckRateM3 === false) {
         return <div>N/A</div>;
       } else {
-        const m3Rate = row.original.m3_truck_rate
-          ? centsToDollars(row.original.m3_truck_rate)
+        const m3Rate = row.original.m3TruckRate
+          ? centsToDollars(row.original.m3TruckRate)
           : '0';
         return <div>${m3Rate}</div>;
       }
@@ -86,7 +86,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_hourly_rate',
-    accessorFn: (row) => row.hourly_truck_rate,
+    accessorFn: (row) => row.hourlyTruckRate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -103,11 +103,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_truck_rate_hour === false) {
+      if (row.original.availableForTruckRateHour === false) {
         return <div>N/A</div>;
       } else {
-        const hourlyRate = row.original.hourly_truck_rate
-          ? centsToDollars(row.original.hourly_truck_rate)
+        const hourlyRate = row.original.hourlyTruckRate
+          ? centsToDollars(row.original.hourlyTruckRate)
           : '0';
         return <div>${hourlyRate}</div>;
       }
@@ -117,7 +117,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_load_rate',
-    accessorFn: (row) => row.load_truck_rate,
+    accessorFn: (row) => row.loadTruckRate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -134,11 +134,11 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.available_for_truck_rate_load === false) {
+      if (row.original.availableForTruckRateLoad === false) {
         return <div className="text-left">N/A</div>;
       } else {
-        const loadRate = row.original.load_truck_rate
-          ? centsToDollars(row.original.load_truck_rate)
+        const loadRate = row.original.loadTruckRate
+          ? centsToDollars(row.original.loadTruckRate)
           : '0';
         return <div className="text-left">${loadRate}</div>;
       }

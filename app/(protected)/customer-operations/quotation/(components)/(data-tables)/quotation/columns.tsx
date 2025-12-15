@@ -17,7 +17,7 @@ import { HelpCircle } from 'lucide-react';
 export const quotationColumns: ColumnDef<Quotation>[] = [
   {
     id: 'quote_number',
-    accessorFn: (row) => row.quote_number,
+    accessorFn: (row) => row.quoteNumber,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quotation" />;
     },
@@ -26,7 +26,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'customer_name',
-    accessorFn: (row) => row.customer_name,
+    accessorFn: (row) => row.customerName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -35,12 +35,12 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'quote_type',
-    accessorFn: (row) => row.quote_type,
+    accessorFn: (row) => row.quoteType,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quote Type" />;
     },
     cell: ({ row }) => {
-      const quote_type = row.original.quote_type;
+      const quote_type = row.original.quoteType;
       if (!quote_type) return <span className="text-muted-foreground">-</span>;
       return <TableBadges names={[quote_type]} visibleCount={1} />;
     },
@@ -48,7 +48,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'created_at',
-    accessorFn: (row) => row.created_at,
+    accessorFn: (row) => row.createdAt,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Date Issued" />;
     },
@@ -60,7 +60,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'expiry_date',
-    accessorFn: (row) => row.expiry_date,
+    accessorFn: (row) => row.expiryDate,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Expiry Date" />;
     },
@@ -72,7 +72,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'total_sell_price',
-    accessorFn: (row) => row.total_sell_price,
+    accessorFn: (row) => row.totalSellPrice,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1">
@@ -89,8 +89,8 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
       );
     },
     cell: ({ row }) => {
-      const total_sell_price = row.original.total_sell_price
-        ? centsToDollars(row.original.total_sell_price)
+      const total_sell_price = row.original.totalSellPrice
+        ? centsToDollars(row.original.totalSellPrice)
         : '0';
       return <div>${total_sell_price}</div>;
     },
@@ -98,7 +98,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'account_manager',
-    accessorFn: (row) => row.account_manager_name,
+    accessorFn: (row) => row.accountManagerName,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Account Manager" />

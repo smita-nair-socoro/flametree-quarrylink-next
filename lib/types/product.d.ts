@@ -5,25 +5,25 @@ import { QuarrySupplierProduct } from './quarry';
 
 export interface Product {
   id: number;
-  product_name: string;
-  product_code: string;
+  productName: string;
+  productCode: string;
   material: MaterialType;
-  material_id: number;
-  density_tonnage_per_m3: number;
-  product_description: string;
-  base_unit: BASE_UNIT;
-  measure_unit: MEASURE_UNIT[];
-  is_active: boolean;
-  cost_price: number;
-  sell_price: number;
+  materialId: number;
+  densityTonnagePerM3: number;
+  productDescription: string;
+  baseUnit: BASE_UNIT;
+  measureUnit: MEASURE_UNIT[];
+  isActive: boolean;
+  costPrice: number;
+  sellPrice: number;
   margin: number;
   status: PRODUCT_STATUS;
   version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
 }
 
 export interface MaterialType {
@@ -33,7 +33,7 @@ export interface MaterialType {
 }
 
 export interface ProductDetails extends Product {
-  quarry_supplier_products: QuarrySupplierProduct[];
+  quarrySupplierProducts: QuarrySupplierProduct[];
   quotes: Quotation[];
   jobs: JobDetails[];
 }

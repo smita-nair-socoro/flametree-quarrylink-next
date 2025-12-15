@@ -30,6 +30,36 @@ export interface Customer {
   last_modified_by: string;
 }
 
+export interface CustomerDTO {
+  id: number;
+  customerType: CUSTOMER_TYPE;
+  businessName: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  billingAddressId: number;
+  creditLimit: number;
+  invoiceDueDate: number;
+  paymentTermType: string;
+  accountManager: string;
+  customerStatus: CUSTOMER_STATUS;
+  jobsCount: number;
+  paymentType: string;
+  legalName: string;
+  tradingName: string;
+  abn: string;
+  acn: string;
+  vatNumber: string;
+  version: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+
+  // Come back to this; Currently below are not included in the DTO
+  remainingCredit: number;
+}
+
 export interface CustomerDetails extends Customer {
   jobs: Job[];
 }

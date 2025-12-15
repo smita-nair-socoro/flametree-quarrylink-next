@@ -28,14 +28,14 @@ export function SupplierTableActions({
   const quarryWithProductId = React.useMemo(
     () => ({
       ...quarry,
-      product_id: productId || quarry.product_id,
+      productId: productId || quarry.productId,
     }),
     [quarry, productId]
   );
 
   // Support both direct id and nested quarry_supplier.id
   const quarrySupplierId =
-    quarry?.quarry_supplier_id ?? quarry?.quarry_supplier?.id;
+    quarry?.quarrySupplierId ?? quarry?.quarrySupplier?.id;
 
   const { actions, confirmDialogs, viewDialog } = useSupplierActions(
     quarrySupplierId,
