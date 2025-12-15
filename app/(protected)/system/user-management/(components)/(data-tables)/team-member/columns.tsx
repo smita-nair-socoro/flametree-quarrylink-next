@@ -30,7 +30,7 @@ export const createTeamMemberColumns = (
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Email',
-    size: 240,
+    size: 300,
   },
   {
     id: 'role',
@@ -81,23 +81,22 @@ export const createTeamMemberColumns = (
       );
     },
     meta: 'Status',
-    size: 180,
+    size: 10,
   },
-  {
-    id: 'lastLoginAt',
-    accessorFn: (row) => row.lastLoginAt,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Last Login" />;
-    },
-    cell: ({ row }) => {
-      const lastLogin = row.original.lastLoginAt;
-      const displayText = lastLogin ? getRelativeTime(lastLogin) : 'Never';
-      return <div className="py-2 text-left">{displayText}</div>;
-    },
-    meta: 'Last Login',
-    size: 80,
-  },
-
+  // {
+  //   id: 'lastLoginAt',
+  //   accessorFn: (row) => row.lastLoginAt,
+  //   header: ({ column }) => {
+  //     return <TableClientSortableHeader column={column} title="Last Login" />;
+  //   },
+  //   cell: ({ row }) => {
+  //     const lastLogin = row.original.lastLoginAt;
+  //     const displayText = lastLogin ? getRelativeTime(lastLogin) : 'Never';
+  //     return <div className="py-2 text-left">{displayText}</div>;
+  //   },
+  //   meta: 'Last Login',
+  //   size: 80,
+  // },
   {
     id: 'actions',
     header: () => {

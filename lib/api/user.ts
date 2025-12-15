@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { UserKeys } from './keys';
-import { User } from '../types/user';
+import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
 
 export const UsersListQueryOptions = () =>
   queryOptions({
@@ -32,7 +32,7 @@ export const useCreateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<User>) => APIClient.users.create(data),
+    mutationFn: (data: UserCreateDTO) => APIClient.users.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: UserKeys.list() });
@@ -49,7 +49,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
+    mutationFn: ({ id, data }: { id: string; data: UserUpdateDTO }) =>
       APIClient.users.update(id, data),
 
     onSuccess: (data, variables) => {

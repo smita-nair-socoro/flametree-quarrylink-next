@@ -28,6 +28,8 @@ import { TableBadges } from '@/components/table-badges';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
+import { useQuery } from '@tanstack/react-query';
+import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
 
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
@@ -58,27 +60,70 @@ export function EditTeamMemberForm({
   onSuccess,
 }: EditTeamMemberFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const initialData = useSelectedTeamMember();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const selectedUser = useSelectedTeamMember(); // User from store (basic data from list)
 
-  const fullName = initialData?.name.trim() || 'Unnamed User';
+  // Use the update user mutation
+  const updateUserMutation = useUpdateUser();
 
-  const defaultValues = React.useMemo<EditTeamMemberFormValues>(
-    () => ({
+  // Fetch detailed user data by ID (using sub as the ID)
+  const {
+    data: detailedUser,
+    isLoading: isLoadingDetails,
+    error: detailsError,
+  } = useQuery({
+    ...UserDetailQueryOptions(selectedUser?.sub || ''),
+    enabled: !!selectedUser?.sub, // Only fetch if we have a sub (user ID)
+  });
+
+  console.log('[TeamMemberForm] 📦 API Response - detailedUser:', detailedUser);
+
+  // Use detailed data if available, fallback to store data
+  const initialData = detailedUser || selectedUser;
+
+  const fullName = initialData?.name?.trim() || 'Unnamed User';
+
+  // Convert groups array to role string for form
+  const getRoleFromGroups = React.useCallback(
+    (groups: string[] | undefined): string => {
+      if (!groups || !Array.isArray(groups) || groups.length === 0) {
+        return '';
+      }
+
+      const groupsStr = groups.join(',').toLowerCase();
+
+      // Check in priority order
+      if (
+        groupsStr.includes('super_admin') ||
+        groupsStr.includes('superadmin')
+      ) {
+        return 'SUPERADMIN';
+      }
+      if (groupsStr.includes('admin')) {
+        return 'ADMIN';
+      }
+      return 'USER';
+    },
+    []
+  );
+
+  const defaultValues = React.useMemo<EditTeamMemberFormValues>(() => {
+    const role = getRoleFromGroups(initialData?.groups);
+
+    return {
       full_name: fullName,
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
-      role: initialData?.groups ?? '',
+      role: role,
       status: initialData?.status,
-    }),
-    [
-      fullName,
-      initialData?.email,
-      initialData?.phone,
-      initialData?.groups,
-      initialData?.status,
-    ]
-  );
+    };
+  }, [
+    fullName,
+    initialData?.email,
+    initialData?.phone,
+    initialData?.groups,
+    initialData?.status,
+    getRoleFromGroups,
+  ]);
 
   const form = useForm<EditTeamMemberFormValues>({
     resolver: zodResolver(EditTeamMemberFormSchema),
@@ -99,9 +144,7 @@ export function EditTeamMemberForm({
     : 'Never';
 
   const totalLogins =
-    typeof initialData?.totalLogins === 'number'
-      ? initialData.totalLogins
-      : 0;
+    typeof initialData?.totalLogins === 'number' ? initialData.totalLogins : 0;
   const quotations =
     typeof initialData?.quotationCreated === 'number'
       ? initialData.quotationCreated
@@ -109,8 +152,8 @@ export function EditTeamMemberForm({
 
   const disableRoleChange =
     currentUserId !== undefined &&
-    initialData?.id !== undefined &&
-    String(currentUserId) === String(initialData.id);
+    initialData?.sub !== undefined &&
+    String(currentUserId) === String(initialData.sub);
 
   const handleCancel = () => {
     form.reset();
@@ -118,27 +161,34 @@ export function EditTeamMemberForm({
   };
 
   const handleSubmit = async (values: EditTeamMemberFormValues) => {
+    if (!initialData?.sub) {
+      notifyError('No user ID found');
+      return;
+    }
+
     try {
-      setIsSubmitting(true);
+      // Convert frontend role to backend format
+      const roleToBackend = (role: string): string => {
+        if (role === 'SUPERADMIN') return 'SUPER_ADMIN';
+        return role; // USER and ADMIN remain the same
+      };
 
       const normalizedPhone = values.phone?.trim() || '';
 
-      const payload: EditTeamMemberPayload = {
-        ...values,
-        id: initialData?.id,
-        clientId: initialData?.clientId,
-        phone: normalizedPhone,
-        createdAt: initialData?.createdAt,
-        lastLoginAt: initialData?.lastLoginAt,
-        totalLogins: initialData?.totalLogins,
-        quotationCreated: initialData?.quotationCreated,
-        updatedAt: initialData?.updatedAt,
+      // Create UserUpdateDTO matching backend structure
+      const updateData = {
+        name: values.full_name,
+        phone: normalizedPhone || undefined,
+        role: roleToBackend(values.role),
       };
 
-      // Simulate API call delay (remove this in production)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Call the API to update user (use sub as the ID)
+      await updateUserMutation.mutateAsync({
+        id: initialData.sub, // sub is already a string
+        data: updateData,
+      });
 
-      await onSave?.(payload);
+      // Reset form with updated values
       form.reset({
         ...values,
         phone: normalizedPhone,
@@ -149,9 +199,10 @@ export function EditTeamMemberForm({
       onSuccess?.();
     } catch (error) {
       console.error('Error updating team member:', error);
-      notifyError('Update Failed');
-    } finally {
-      setIsSubmitting(false);
+      notifyError('Update Failed', {
+        description:
+          error instanceof Error ? error.message : 'Please try again',
+      });
     }
   };
 
@@ -161,6 +212,34 @@ export function EditTeamMemberForm({
     notifyError('Update Failed');
   };
 
+  // Use mutation's pending state for loading indicator
+  const isSubmitting = updateUserMutation.isPending;
+
+  // Show loading state while fetching details
+  if (isLoadingDetails) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4">
+        <Spinner size="medium" />
+        <p className="text-lg text-muted-foreground">Loading user details...</p>
+      </div>
+    );
+  }
+
+  // Show error if details fetch failed
+  if (detailsError) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load user details. Please try again.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Show message if no user selected
   if (!initialData) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -209,9 +288,9 @@ export function EditTeamMemberForm({
             <span className="text-[16px] text-[#4B5563]">
               {initialData.email}
             </span>
-            <span className="text-[14px] text-[#6B7280]">
+            {/* <span className="text-[14px] text-[#6B7280]">
               Joined: {formattedJoined}
-            </span>
+            </span> */}
           </div>
         </div>
       </header>
@@ -316,7 +395,7 @@ export function EditTeamMemberForm({
             ) : null}
           </section>
 
-          <section className="space-y-4">
+          {/* <section className="space-y-4">
             <div
               className={
                 isDesktop
@@ -345,7 +424,7 @@ export function EditTeamMemberForm({
                 </p>
               </div>
             </div>
-          </section>
+          </section> */}
 
           {isDesktop && <Separator />}
 

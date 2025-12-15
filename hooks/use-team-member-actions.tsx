@@ -17,15 +17,6 @@ import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(co
 import { FormSelectOption } from '@/components/ui/form-select';
 import { Button } from '@/components/ui/button';
 
-// Mock data for team members
-const MOCK_TEAM_MEMBERS = [
-  { id: '1', name: 'Sarah Johnson' },
-  { id: '2', name: 'Michael Chen' },
-  { id: '3', name: 'Emily Rodriguez' },
-  { id: '4', name: 'David Kim' },
-  { id: '5', name: 'Jessica Williams' },
-];
-
 interface DialogConfig {
   title?: string;
   titleIcon?: React.ReactNode;
@@ -46,7 +37,7 @@ interface DialogConfig {
 }
 
 export function useTeamMemberActions(
-  teamMemberId: number | undefined,
+  teamMemberId: string | undefined, // Changed from number to string (sub is UUID)
   teamMemberData?: User | null,
   roles?: readonly FormSelectOption[],
   currentUserId?: number | string
@@ -68,48 +59,16 @@ export function useTeamMemberActions(
     reason?: string;
   }>({});
 
-  // Mock data - in real implementation, these would come from API
-  // Simulate different dependency scenarios based on team member ID
-  const getMockDependencies = (id: number | undefined) => {
-    if (!id) return { customerCount: 0, activeJobsCount: 0 };
-
-    // Different scenarios for testing both flows
-    switch (id) {
-      case 1: // Armin - Full dependencies
-        return { customerCount: 8, activeJobsCount: 3 };
-      case 2: // Sarah - Only customers
-        return { customerCount: 5, activeJobsCount: 0 };
-      case 3: // Mike - No dependencies (pending user)
-        return { customerCount: 0, activeJobsCount: 0 };
-      case 4: // Emma - Customers and jobs
-        return { customerCount: 3, activeJobsCount: 2 };
-      case 5: // David - Only jobs
-        return { customerCount: 0, activeJobsCount: 2 };
-      case 6: // Lisa - Both types
-        return { customerCount: 12, activeJobsCount: 5 };
-      case 7: // James - No dependencies
-        return { customerCount: 0, activeJobsCount: 0 };
-      case 8: // Maria - Only customers
-        return { customerCount: 4, activeJobsCount: 0 };
-      case 9: // Tom - No dependencies (pending)
-        return { customerCount: 0, activeJobsCount: 0 };
-      case 10: // Jessica - No dependencies (inactive)
-        return { customerCount: 0, activeJobsCount: 0 };
-      default:
-        return { customerCount: 0, activeJobsCount: 0 };
-    }
-  };
-
-  const { customerCount, activeJobsCount } = getMockDependencies(teamMemberId);
+  // TODO: Replace with real API data
+  // For now, assume no dependencies until backend provides this data
+  const customerCount = 0;
+  const activeJobsCount = 0;
 
   // Check if user has dependencies that need reassignment
   const hasDependencies = customerCount > 0 || activeJobsCount > 0;
 
-  // Convert mock data to SelectOption format
-  const teamMemberOptions = MOCK_TEAM_MEMBERS.map((member) => ({
-    label: member.name,
-    value: member.id,
-  }));
+  // TODO: Fetch real team members from API for reassignment dropdowns
+  const teamMemberOptions: { label: string; value: string }[] = [];
 
   const userName = teamMemberData?.name;
 
@@ -381,7 +340,6 @@ export function useTeamMemberActions(
   // Render view/edit dialog
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={teamMemberId}
       dialogTitle="Edit Team Member"
       open={viewOpen}
       onOpenChangeAction={(open) => {

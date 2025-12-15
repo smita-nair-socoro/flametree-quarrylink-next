@@ -8,7 +8,7 @@ import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { User } from '../types/user';
+import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -605,15 +605,39 @@ export const APIClient = {
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
-    getById: (id: string) =>
-      appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`),
-    create: (data: Partial<User>) =>
+    getById: (id: string) => {
+      console.log('[APIClient] 🔍 getById called with ID:', id);
+      console.log('[APIClient] 📡 Endpoint:', `/socoro/quarrylink/api/users/${id}`);
+      return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`).then(
+        (response) => {
+          console.log('[APIClient] ✅ getById response:', response);
+          return response;
+        },
+        (error) => {
+          console.error('[APIClient] ❌ getById error:', error);
+          throw error;
+        }
+      );
+    },
+    create: (data: UserCreateDTO) =>
       appClient.Post<User>('/socoro/quarrylink/api/users', {
         body: data,
       }),
-    update: (id: string, data: Partial<User>) =>
-      appClient.Put<User>(`/socoro/quarrylink/api/users/${id}`, {
+    update: (id: string, data: UserUpdateDTO) => {
+      console.log('[APIClient] 📝 update called with ID:', id);
+      console.log('[APIClient] 📝 update data:', data);
+      return appClient.Put<User>(`/socoro/quarrylink/api/users/${id}`, {
         body: data,
-      }),
+      }).then(
+        (response) => {
+          console.log('[APIClient] ✅ update response:', response);
+          return response;
+        },
+        (error) => {
+          console.error('[APIClient] ❌ update error:', error);
+          throw error;
+        }
+      );
+    },
   },
 };

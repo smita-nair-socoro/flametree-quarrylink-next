@@ -1,46 +1,52 @@
 import { Role, UserStatus } from './user-enums';
 
 /**
- * Legacy User interface - kept for backward compatibility during migration
- * @deprecated Use User interface instead after migration is complete
- */
-export interface UserLegacy {
-  id: number;
-  tenant_id: string;
-  client_id: number;
-  status: UserStatus;
-  full_name: string;
-  phone: string;
-  email: string;
-  role: Role;
-  total_logins: number;
-  quotation_created: number;
-  jobs_managed: number;
-  invited_by: number;
-  deletion_reason: string;
-  isDeleted: boolean;
-  created_at: string;
-  updated_at: string;
-  last_login_at: string | null;
-}
-
-/**
  * User interface matching backend DTO structure
  */
 export interface User {
-  id: number;
-  tenantId: number;
-  clientId?: number;
-  status: UserStatus;
-  name: string;
-  phone?: string;
+  sub: string; // AWS Cognito user ID (UUID) - this is the primary user identifier
+  username: string; // Same as sub
   email: string;
+  enabled: boolean;
+  status: string; // "ACTIVE", "INACTIVE", "PENDING", etc.
+  name: string;
+  tenantId?: string;
+  phone?: string;
   groups: string[]; // Array of group names like ["super_admin", "admin"]
+
+  // Optional fields
+  id?: number; // For backward compatibility
+  clientId?: number;
+  deletedReason?: string;
+  isDeleted?: boolean;
+  jobsManaged?: number;
   totalLogins?: number;
   quotationCreated?: number;
-  lastLoginAt: string | null;
+  lastLoginAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
+}
+
+/**
+ * DTO for creating a new user (invite user)
+ * Backend expects this structure for POST /api/users
+ */
+export interface UserCreateDTO {
+  email: string;
+  name: string;
+  phone?: string;
+  role: string; // "USER", "ADMIN", or "SUPER_ADMIN"
+  confirmed: boolean; // false for new invitations
+}
+
+/**
+ * DTO for updating an existing user
+ * Backend expects this structure for PUT /api/users/:id
+ */
+export interface UserUpdateDTO {
+  name: string;
+  phone?: string;
+  role: string; // "USER", "ADMIN", or "SUPER_ADMIN"
 }
 
 /**
