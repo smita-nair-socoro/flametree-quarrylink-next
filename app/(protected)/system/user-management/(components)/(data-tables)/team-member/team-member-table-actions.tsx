@@ -26,7 +26,7 @@ export function TeamMemberTableActions({
 }: TeamMemberTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
-    teamMember.id,
+    teamMember.sub,
     teamMember,
     roles,
     currentUserId

@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 
 import {
   SidebarMenu,
@@ -16,13 +18,30 @@ export function TeamSwitcher({
     initials: string;
   };
 }) {
-  // Default to placeholder data until client module integration
-  const defaultClient = {
-    name: 'Acme Quarry',
-    initials: 'AQ',
-  };
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantCompleteDetailsQueryOptions()
+  );
 
-  const activeClient = client || defaultClient;
+  React.useEffect(() => {
+    if (tenantCompleteDetails) {
+      console.log('🏢 [TeamSwitcher] Tenant Complete Details:', tenantCompleteDetails);
+      console.log('🏷️ [TeamSwitcher] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
+    }
+  }, [tenantCompleteDetails]);
+
+  const tenantName =
+    tenantCompleteDetails?.tenantDetails?.tenantName || 'Acme Quarry';
+
+  const tenantInitials = React.useMemo(() => {
+    const parts = tenantName.trim().split(/\s+/);
+    const letters = parts
+      .slice(0, 2)
+      .map((p: string) => p[0]?.toUpperCase() || '')
+      .join('');
+    return letters || 'AQ';
+  }, [tenantName]);
+
+  const activeClient = client || { name: tenantName, initials: tenantInitials };
 
   return (
     <SidebarMenu>

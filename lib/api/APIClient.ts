@@ -12,7 +12,13 @@ import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { User } from '../types/user';
+import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
+import {
+  SubscriptionsAndInvoices,
+  TenantDetails,
+  TenantCompleteDetails,
+} from '../types/client';
+// import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -401,12 +407,24 @@ export const APIClient = {
       appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
         body: data,
       }),
-    deleteProduct: (id: number) =>
-      appClient.Delete<{
-        quotes?: string[];
-        jobs?: string[];
-        dockets?: string[];
-      }>(`/socoro/quarrylink/api/product/${id}`),
+    deleteProduct: (id: number) => {
+      return appClient
+        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`
+        )
+        .then((res) => {
+          console.log('[APIClient] products.delete response:', res);
+          const len = Array.isArray(res?.blockingQuoteDtos)
+            ? res!.blockingQuoteDtos!.length
+            : 0;
+          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          return res;
+        })
+        .catch((err) => {
+          console.error('[APIClient] products.delete error:', err);
+          throw err;
+        });
+    },
   },
   quarries: {
     getAll: async () => {
@@ -639,6 +657,34 @@ export const APIClient = {
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
   },
   users: {
-    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
+    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
+    getById: (id: string) => {
+      console.log('[APIClient] 🔍 getById called with ID:', id);
+      return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
+    },
+    create: (data: UserCreateDTO) =>
+      appClient.Post<User>('/socoro/quarrylink/api/users', {
+        body: data,
+      }),
+    update: (id: string, data: UserUpdateDTO) => {
+      return appClient.Put<User>(`/socoro/quarrylink/api/users/${id}`, {
+        body: data,
+      });
+    },
+  },
+
+  tenants: {
+    getTenantDetails: () =>
+      appClient.Get<TenantDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-details`
+      ),
+    getSubscriptionsAndInvoices: () =>
+      appClient.Get<SubscriptionsAndInvoices>(
+        `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`
+      ),
+    getTenantCompleteDetails: () =>
+      appClient.Get<TenantCompleteDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-complete-details`
+      ),
   },
 };

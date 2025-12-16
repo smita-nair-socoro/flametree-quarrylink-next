@@ -25,7 +25,11 @@ import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
 import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { delay } from '@/lib/utils/time';
+import { useCreateUser } from '@/lib/api/user';
+import { UserCreateDTO } from '@/lib/types/user';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useQuery } from '@tanstack/react-query';
+import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -41,12 +45,41 @@ export default function InviteUserForm({
   roleOptions,
 }: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [agreedToBilling, setAgreedToBilling] = React.useState(false);
 
-  const isOverLimit = teamMemberCount >= 10;
-  const PLAN_LIMIT = 10;
-  const ADDITIONAL_USER_COST = 116;
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantSubscriptionsAndInvoicesQueryOptions()
+  );
+
+  console.log('tenantCompleteDetails', tenantCompleteDetails);
+
+  // Derive plan limit and additional user cost from subscription items (productName === "USER")
+  const userSubscriptionItem = React.useMemo(() => {
+    const subs = tenantCompleteDetails?.subscriptions?.subscriptions;
+    if (!subs || !Array.isArray(subs)) return null;
+    for (const sub of subs) {
+      if (Array.isArray(sub.items)) {
+        const found = sub.items.find((it) => it && it.productName === 'USER');
+        if (found) return found;
+      }
+    }
+    return null;
+  }, [tenantCompleteDetails]);
+
+  const PLAN_LIMIT =
+    typeof userSubscriptionItem?.quantity === 'number'
+      ? userSubscriptionItem.quantity
+      : 10;
+
+  const ADDITIONAL_USER_COST =
+    typeof userSubscriptionItem?.unitAmountInCents === 'number'
+      ? userSubscriptionItem.unitAmountInCents / 100
+      : 116;
+
+  const isOverLimit = teamMemberCount >= PLAN_LIMIT;
+
+  // Use the create user mutation
+  const createUserMutation = useCreateUser();
 
   const form = useForm<z.infer<typeof InviteUserFormSchema>>({
     resolver: zodResolver(InviteUserFormSchema),
@@ -62,23 +95,40 @@ export default function InviteUserForm({
     console.log('Invite user data:', data);
 
     try {
-      setIsSubmitting(true);
+      // Convert frontend Role enum to backend format
+      const roleToBackend = (role: string): string => {
+        if (role === 'SUPERADMIN') return 'SUPER_ADMIN';
+        return role; // USER and ADMIN remain the same
+      };
 
-      // Simulate API call delay (remove this in production)
-      await delay(2000);
+      // Map form data to backend API structure
+      const userData: UserCreateDTO = {
+        email: data.email,
+        name: data.full_name,
+        phone: data.phone || undefined,
+        role: roleToBackend(data.role), // Backend expects: "USER", "ADMIN", "SUPER_ADMIN"
+        confirmed: false, // New users are unconfirmed/pending until they accept invitation
+      };
+
+      console.log('Creating user with data:', userData);
+
+      // Call the API to create user
+      await createUserMutation.mutateAsync(userData);
 
       // Show success toast
       notifySuccess('User Invited', {
         description: `Invitation sent to ${data.email}`,
       });
 
+      // Reset form
+      form.reset();
+
       // On success, call onSuccess to close the dialog
       onSuccess?.();
     } catch (error) {
       console.error('Error inviting user:', error);
-      notifyError('Invitation Failed');
-    } finally {
-      setIsSubmitting(false);
+      const errorMessage = extractErrorMessage(error);
+      notifyError('Invitation Failed', { description: errorMessage });
     }
   };
 
@@ -87,6 +137,8 @@ export default function InviteUserForm({
     console.error('Invite User validation errors:', errors);
     notifyError('Invitation Failed');
   }
+
+  const isSubmitting = createUserMutation.isPending;
 
   return (
     <div className="w-full relative">

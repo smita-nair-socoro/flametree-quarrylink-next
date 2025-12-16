@@ -80,11 +80,11 @@ export interface Quotation {
 }
 
 export interface QuotationLineItem {
-  id: number;
+  id?: number;
   quoteId: number;
   productId: number;
   quarrySupplierId: number;
-  quarryProductId: number;
+  quarryProductId?: number;
   productName: string;
   quarryName: string;
   supplierProductName: string;
@@ -110,10 +110,31 @@ export interface QuotationLineItem {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
+  version?: number;
+  isDeleted?: boolean;
+}
+
+export interface quarrySupplierProductDetail {
+  availableForSaleTn: boolean;
+  availableForSaleM3: boolean;
+  availableForSale20kg: boolean;
+  availableForSaleBulka: boolean;
+  perTnCostPrice: number;
+  perM3CostPrice: number;
+  per20kgCostPrice: number;
+  perBulkaCostPrice: number;
+  tnTruckRate: number;
+  m3TruckRate: number;
+  hourlyTruckRate: number;
+  loadTruckRate: number;
+  quarryName: string;
+  quarrySupplierId: number;
+  supplierProductName: string;
+  supplierProductCode: string;
 }
 
 export interface StripeTenantDetailsSnapshot {

@@ -33,6 +33,11 @@ import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing
 import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
 import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
 import { useQuery } from '@tanstack/react-query';
+import { notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -100,8 +105,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     return productData;
   }, [productData]);
 
-  console.log('selectedProduct', selectedProduct);
-
   // Map materials to options
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
@@ -146,7 +149,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   // Update form values when product data is loaded (for editing mode)
   React.useEffect(() => {
-    if (isEditing && selectedProduct) {
+    if ((isEditing || productJustCreated) && selectedProduct) {
       productForm.reset({
         product_name: selectedProduct.productName || '',
         product_code: selectedProduct.productCode || '',
@@ -163,7 +166,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         last_modified_by: selectedProduct.lastModifiedBy || '',
       });
     }
-  }, [isEditing, selectedProduct, productForm]);
+  }, [isEditing, productJustCreated, selectedProduct, productForm]);
 
   // Update total supplier count when product data is loaded
   React.useEffect(() => {
@@ -228,14 +231,40 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         `Error ${isEditing ? 'updating' : 'creating'} product:`,
         error
       );
-      // You might want to show a toast notification here
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Duplicate product code (HTTP 409) — match the product_code in backend message
+      const duplicateKeyPhrase = `Key (product_code)=(${values.product_code}) already exists`;
+      const isDuplicateProductCode =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateKeyPhrase);
+
+      if (isDuplicateProductCode) {
+        const msg = `Duplicate product code "${values.product_code}" already exists.`;
+        notifyError(msg, { duration: 2000 });
+        productForm.setError('product_code', { type: 'manual', message: msg });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError(
+        messageFromErr || 'Failed to save product. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
   // Show loading state when fetching product details or materials
-  if (isLoadingMaterials || (isEditing && isLoadingProduct)) {
+  if (
+    isLoadingMaterials ||
+    ((isEditing || productJustCreated) && isLoadingProduct)
+  ) {
     return (
       <div className="w-full flex items-center justify-center h-96">
         <div className="flex flex-col items-center space-y-4">
@@ -251,7 +280,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   }
 
   // Show error state
-  if (isMaterialsError || (isEditing && isProductError)) {
+  if (
+    isMaterialsError ||
+    ((isEditing || productJustCreated) && isProductError)
+  ) {
     return (
       <div className="w-full flex items-center justify-center h-96">
         <div className="text-center">
@@ -466,6 +498,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     variant="outline"
                     className="flex items-center gap-1"
                     onClick={() => setIsCompareDialogOpen(true)}
+                    disabled={
+                      totalSupplier === 0 ||
+                      !selectedProduct?.quarrySupplierProducts ||
+                      selectedProduct.quarrySupplierProducts.length === 0
+                    }
                   >
                     <ChartColumn className="mr-3" />
                     Compare All
@@ -556,7 +593,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           </div>
 
           {/* Audit Information */}
-          {isEditing && (
+          {(isEditing || productJustCreated) && (
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',

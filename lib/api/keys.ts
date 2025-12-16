@@ -38,6 +38,11 @@ export const QuotationKeys = {
   detail: (id: number) => [...QuotationKeys.all, 'detail', id] as const,
 };
 
+export const TenantKeys = {
+  all: ['tenants'] as const,
+  list: () => [...TenantKeys.all, 'list'] as const,
+  detail: (id: string) => [...TenantKeys.all, 'detail', id] as const,
+};
 export const MaterialsKeys = {
   all: ['materials'] as const,
   list: () => [...MaterialsKeys.all, 'list'] as const,
@@ -58,4 +63,5 @@ export const QuarrySupplierProductKeys = {
 export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
+  detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
 };
