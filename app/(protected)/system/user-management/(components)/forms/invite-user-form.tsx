@@ -28,6 +28,8 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { useCreateUser } from '@/lib/api/user';
 import { UserCreateDTO } from '@/lib/types/user';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useQuery } from '@tanstack/react-query';
+import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -45,9 +47,36 @@ export default function InviteUserForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [agreedToBilling, setAgreedToBilling] = React.useState(false);
 
-  const isOverLimit = teamMemberCount >= 10;
-  const PLAN_LIMIT = 10;
-  const ADDITIONAL_USER_COST = 116;
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantSubscriptionsAndInvoicesQueryOptions()
+  );
+
+  console.log('tenantCompleteDetails', tenantCompleteDetails);
+
+  // Derive plan limit and additional user cost from subscription items (productName === "USER")
+  const userSubscriptionItem = React.useMemo(() => {
+    const subs = tenantCompleteDetails?.subscriptions?.subscriptions;
+    if (!subs || !Array.isArray(subs)) return null;
+    for (const sub of subs) {
+      if (Array.isArray(sub.items)) {
+        const found = sub.items.find((it) => it && it.productName === 'USER');
+        if (found) return found;
+      }
+    }
+    return null;
+  }, [tenantCompleteDetails]);
+
+  const PLAN_LIMIT =
+    typeof userSubscriptionItem?.quantity === 'number'
+      ? userSubscriptionItem.quantity
+      : 10;
+
+  const ADDITIONAL_USER_COST =
+    typeof userSubscriptionItem?.unitAmountInCents === 'number'
+      ? userSubscriptionItem.unitAmountInCents / 100
+      : 116;
+
+  const isOverLimit = teamMemberCount >= PLAN_LIMIT;
 
   // Use the create user mutation
   const createUserMutation = useCreateUser();
