@@ -100,8 +100,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
     return productData;
   }, [productData]);
 
-  console.log('selectedProduct', selectedProduct);
-
   // Map materials to options
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
@@ -466,6 +464,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                     variant="outline"
                     className="flex items-center gap-1"
                     onClick={() => setIsCompareDialogOpen(true)}
+                    disabled={
+                      totalSupplier === 0 ||
+                      !selectedProduct?.quarrySupplierProducts ||
+                      selectedProduct.quarrySupplierProducts.length === 0
+                    }
                   >
                     <ChartColumn className="mr-3" />
                     Compare All
