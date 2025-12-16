@@ -617,21 +617,16 @@ export function useQuotationActions(
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
-      // Generate mock email if backend doesn't provide customerEmail
+      // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
       let customerEmail = quotationDetailData.customerEmail;
-      if (!customerEmail && quotationDetailData.customerName) {
-        // Create mock email from customer name
-        const emailName = quotationDetailData.customerName
-          .toLowerCase()
-          .replace(/\s+/g, '.')
-          .replace(/[^a-z0-9.]/g, '');
-        customerEmail = `${emailName}@example.com`;
+      if (!customerEmail) {
+        customerEmail = 'charlie.peng@socoro.com.au';
       }
 
       const transformed = {
         ...quotationDetailData,
         status: quotationDetailData.quoteStatus,
-        customerEmail: customerEmail, // Use mock if backend doesn't provide
+        customerEmail: customerEmail,
       } as Quotation;
 
       return transformed;
@@ -708,8 +703,6 @@ export function useQuotationActions(
         id: quotationId,
       });
 
-      // Open preview window after successful status update
-      openQuotePreviewWindow(quotationId, resolvedQuotation);
       notifySuccess('Quotation sent to customer');
       setActiveDialog(null);
       setSelectedAction(null);

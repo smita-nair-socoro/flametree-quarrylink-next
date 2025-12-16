@@ -34,9 +34,6 @@ export default function QuoteReviewDocument({
     QuoteStatus.PENDING
   );
 
-  // TEMPORARY: State to force showing expired page for UI/UX testing
-  const [showExpiredPage, setShowExpiredPage] = useState(false);
-
   const quotationData = mockQuotationData;
 
   // Parse payload and status parameters
@@ -206,8 +203,7 @@ export default function QuoteReviewDocument({
   }, [quotationData]);
 
   // Check if quote is expired - show expired page
-  // TEMPORARY: Also check showExpiredPage state for UI/UX testing
-  if (currentQuoteStatus === QuoteStatus.EXPIRED || showExpiredPage) {
+  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
     // Get account manager email from payload or mock data
     const accountManagerEmail = parsedPayload?.account_manager_email;
     const businessEmail = parsedPayload?.business_email;
