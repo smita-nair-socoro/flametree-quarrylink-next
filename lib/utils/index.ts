@@ -75,6 +75,22 @@ export function dateSortingFn(
   return compareAsc(da, db);
 }
 
+// Material Type Badge Colors
+export const MATERIAL_TYPE_COLORS: Record<string, string> = {
+  AGGREGATE: 'bg-orange-100 text-orange-900 border-orange-900',
+  'CRUSHED ROCK': 'bg-gray-100 text-gray-900 border-gray-900',
+  DUST: 'bg-yellow-100 text-yellow-900 border-yellow-900',
+  ROCK: 'bg-slate-100 text-slate-900 border-slate-900',
+  SOIL: 'bg-green-100 text-green-900 border-green-900',
+  SAND: 'bg-blue-100 text-blue-800 border-blue-800',
+  ROADBASE: 'bg-purple-100 text-purple-900 border-purple-900',
+  'LANDSCAPE ROCK': 'bg-red-100 text-red-900 border-red-900',
+  'OVERSIZED ROCK': 'bg-indigo-100 text-indigo-900 border-indigo-900',
+  BALLAST: 'bg-pink-100 text-pink-900 border-pink-900',
+  'STABILISED MATERIAL': 'bg-lime-100 text-lime-900 border-lime-900',
+  'RECYCLED MATERIAL': 'bg-cyan-100 text-cyan-900 border-cyan-900',
+};
+
 export const BADGE_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-100 text-gray-800 border-gray-800',
   PENDING: 'bg-yellow-100 text-yellow-900 border-yellow-900',
@@ -97,12 +113,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'NET 7': 'bg-green-100 text-green-800 border-green-800',
   'NET 14': 'bg-blue-100 text-blue-800 border-blue-800',
   'NET 30': 'bg-orange-100 text-orange-800 border-orange-800',
-  AGGREGATE: 'bg-orange-100 text-orange-900 border-orange-900',
-  'CRUSHED ROCK': 'bg-gray-100 text-gray-900 border-gray-900',
-  DUST: 'bg-yellow-100 text-yellow-900 border-yellow-900',
-  ROCK: 'bg-gray-100 text-gray-900 border-gray-900',
-  SOIL: 'bg-green-100 text-green-900 border-green-900',
-  SAND: 'bg-blue-100 text-blue-800 border-blue-800',
+  ...MATERIAL_TYPE_COLORS,
   QUARRY: 'bg-orange-100 text-orange-900 border-orange-900',
   SUPPLIER: 'bg-blue-100 text-blue-800 border-blue-800',
   SUSPENDED: 'bg-red-100 text-red-900 border-red-900',

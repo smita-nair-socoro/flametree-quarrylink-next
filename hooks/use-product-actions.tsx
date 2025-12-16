@@ -63,7 +63,7 @@ export function useProductActions(
   ): Record<string, DialogConfig> => {
     const productName = productData?.productName;
     const productCode = productData?.productCode;
-    const productStatus = productData?.isActive ? 'Available' : 'Unavailable';
+    const productStatus = productData?.isActive ? 'AVAILABLE' : 'UNAVAILABLE';
 
     if (selectedAction?.key === 'unavailable') {
       return {

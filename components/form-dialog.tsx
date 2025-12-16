@@ -218,9 +218,9 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
     finalCustomId = selectedProduct.productName;
-    finalPrimaryBadges = [selectedProduct.material.name];
+    finalPrimaryBadges = [selectedProduct.material.name.toUpperCase()];
     finalSecondaryBadges = [
-      selectedProduct.isActive ? 'Available' : 'Unavailable',
+      selectedProduct.isActive ? 'AVAILABLE' : 'UNAVAILABLE',
     ];
   }
 
