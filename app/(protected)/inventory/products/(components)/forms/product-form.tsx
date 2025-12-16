@@ -33,6 +33,11 @@ import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing
 import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
 import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
 import { useQuery } from '@tanstack/react-query';
+import { notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -226,7 +231,30 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         `Error ${isEditing ? 'updating' : 'creating'} product:`,
         error
       );
-      // You might want to show a toast notification here
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Duplicate product code (HTTP 409) — match the product_code in backend message
+      const duplicateKeyPhrase = `Key (product_code)=(${values.product_code}) already exists`;
+      const isDuplicateProductCode =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateKeyPhrase);
+
+      if (isDuplicateProductCode) {
+        const msg = `Duplicate product code "${values.product_code}" already exists.`;
+        notifyError(msg, { duration: 2000 });
+        productForm.setError('product_code', { type: 'manual', message: msg });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError(
+        messageFromErr || 'Failed to save product. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
