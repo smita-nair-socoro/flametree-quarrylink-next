@@ -118,6 +118,29 @@ export const useExtendExpiryDate = () => {
 };
 
 /**
+ * Mutation hook for sending a quotation to customer.
+ * Automatically invalidates the quotations list and detail cache on success.
+ */
+export const useSendToCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.quotations.sendToCustomer(id),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
  * Mutation hook for creating a new quote item.
  * Automatically invalidates the quotations cache on success.
  *

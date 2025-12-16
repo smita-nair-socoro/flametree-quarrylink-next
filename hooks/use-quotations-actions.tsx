@@ -22,6 +22,7 @@ import {
   QuotationWithLineItemsQueryOptions,
   useExtendExpiryDate,
   useUpdateQuotation,
+  useSendToCustomer,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -599,6 +600,7 @@ export function useQuotationActions(
 
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
+  const sendToCustomerMutation = useSendToCustomer();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -683,25 +685,13 @@ export function useQuotationActions(
 
   // Extracted action handlers
   const handleSendToCustomer = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId) {
       notifyError(extractErrorMessage('Unable to send quotation to customer'));
       return;
     }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.PENDING,
-      });
-
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
-        id: quotationId,
-      });
+      await sendToCustomerMutation.mutateAsync(quotationId);
 
       notifySuccess('Quotation sent to customer');
       setActiveDialog(null);
