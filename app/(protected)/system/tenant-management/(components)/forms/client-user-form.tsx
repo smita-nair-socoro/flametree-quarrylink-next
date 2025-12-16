@@ -61,12 +61,36 @@ export function EditClientUserForm({
 
   const fullName = initialData?.name.trim() || 'Unnamed User';
 
+  // Convert groups array to role string
+  const getRoleFromGroups = React.useCallback(
+    (groups: string[] | undefined): string => {
+      if (!groups || !Array.isArray(groups) || groups.length === 0) {
+        return '';
+      }
+
+      const groupsStr = groups.join(',').toLowerCase();
+
+      // Check in priority order
+      if (
+        groupsStr.includes('super_admin') ||
+        groupsStr.includes('superadmin')
+      ) {
+        return 'SUPERADMIN';
+      }
+      if (groupsStr.includes('admin')) {
+        return 'ADMIN';
+      }
+      return 'USER';
+    },
+    []
+  );
+
   const defaultValues = React.useMemo<EditClientUserFormValues>(
     () => ({
       full_name: fullName,
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
-      role: initialData?.groups ?? '',
+      role: getRoleFromGroups(initialData?.groups),
       status: normalizeStatus(initialData?.status),
     }),
     [
@@ -75,6 +99,7 @@ export function EditClientUserForm({
       initialData?.phone,
       initialData?.groups,
       initialData?.status,
+      getRoleFromGroups,
     ]
   );
 

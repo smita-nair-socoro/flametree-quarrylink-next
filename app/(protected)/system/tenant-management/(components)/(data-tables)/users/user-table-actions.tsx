@@ -30,7 +30,7 @@ export function UserTableActions({
   const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
 
   const { actions, deleteDialog, viewDialog } = useClientUserActions(
-    user?.id,
+    user?.sub,
     user,
     roles,
     currentUserId
