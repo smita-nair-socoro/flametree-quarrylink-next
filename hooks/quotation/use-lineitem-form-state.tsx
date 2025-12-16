@@ -1,0 +1,584 @@
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import z from 'zod';
+import { useQuery } from '@tanstack/react-query';
+
+import { NewQuotationLineItemFormSchema } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/line-item-quotation-schema';
+import {
+  ProductsListQueryOptions,
+  ProductDetailWithQuarrySupplierProductQueryOptions,
+} from '@/lib/api/product';
+import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import {
+  centsToDollars,
+  centsToDollarsNum,
+  dollarsToCents,
+} from '@/lib/utils/currency';
+import {
+  QuotationLineItem,
+  quarrySupplierProductDetail,
+} from '@/lib/types/quotation';
+
+type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
+
+export type SelectOption = { label: string; value: number | string };
+
+type Props = {
+  id?: number;
+  canEdit?: boolean;
+  onCancel?: () => void;
+};
+
+type PricingBreakdown = {
+  totalProductCostPrice: number;
+  totalTruckCostPrice: number;
+  totalProductSellPrice: number;
+  totalTruckSellPrice: number;
+  totalInvoice: number;
+  grossProfit: number;
+  grossProfitPercentage: number;
+};
+
+type QuarrySupplierProductDetailExt = quarrySupplierProductDetail & {
+  perTnSellPrice?: number;
+  perM3SellPrice?: number;
+  per20kgSellPrice?: number;
+  perBulkaSellPrice?: number;
+  availableForTruckRateTn?: boolean;
+  availableForTruckRateM3?: boolean;
+  availableForTruckRateHour?: boolean;
+  availableForTruckRateLoad?: boolean;
+  isActive?: boolean;
+};
+
+export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
+  const [isEditing] = React.useState(Boolean(id));
+  const isReadOnly = isEditing && !canEdit;
+
+  const selectedLineItem = useSelectedLineItem();
+  const selectedQuotation = useSelectedQuotation();
+  const createQuoteItem = useCreateQuoteItem();
+  const updateQuoteItem = useUpdateQuoteItem();
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(NewQuotationLineItemFormSchema),
+    mode: 'onChange',
+    defaultValues: {
+      productId: isEditing ? selectedLineItem?.productId : 0,
+      quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
+      supplierProductName: isEditing
+        ? selectedLineItem?.supplierProductName
+        : '',
+      productCostUom: isEditing ? selectedLineItem?.productCostUom : '',
+      productCostQty: isEditing ? selectedLineItem?.productCostQty : 0,
+      productCostPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.productCostPrice || 0)
+        : 0,
+      productSellUom: isEditing ? selectedLineItem?.productSellUom : '',
+      productSellQty: isEditing ? selectedLineItem?.productSellQty : 0,
+      productSellPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.productSellPrice || 0)
+        : 0,
+      truckType: isEditing ? selectedLineItem?.truckType : '',
+      truckCostUom: isEditing ? selectedLineItem?.truckCostUom : '',
+      truckCostQty: isEditing ? selectedLineItem?.truckCostQty : 0,
+      truckCostPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.truckCostPrice || 0)
+        : 0,
+      truckSellUom: isEditing ? selectedLineItem?.truckSellUom : '',
+      truckSellQty: isEditing ? selectedLineItem?.truckSellQty : 0,
+      truckSellPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.truckSellPrice || 0)
+        : 0,
+      requiredLoads: isEditing ? selectedLineItem?.requiredLoads : 1,
+      totalProductCostPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.totalProductCostPrice || 0)
+        : 0,
+      totalTruckCostPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.totalTruckCostPrice || 0)
+        : 0,
+      totalProductSellPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.totalProductSellPrice || 0)
+        : 0,
+      totalTruckSellPrice: isEditing
+        ? centsToDollarsNum(selectedLineItem?.totalTruckSellPrice || 0)
+        : 0,
+      grossProfit: isEditing ? selectedLineItem?.grossProfit : 0,
+    },
+  });
+
+  // Products
+  const { data: products } = useQuery(ProductsListQueryOptions());
+  const productOptions: SelectOption[] = React.useMemo(() => {
+    if (!products) return [];
+    return products.map((product) => ({
+      label: product.productName,
+      value: product.id,
+    }));
+  }, [products]);
+
+  // Selected product id
+  const selectedProductId = Number(form.watch('productId') || 0);
+
+  // Product details (to get quarry/supplier list and QSPs)
+  const productDetailsQuery = useQuery(
+    ProductDetailWithQuarrySupplierProductQueryOptions(selectedProductId)
+  );
+
+  // Quarry/supplier options
+  const quarrySuppliers = React.useMemo(() => {
+    const details = productDetailsQuery.data;
+    if (!details || details.id !== selectedProductId) return [];
+    const qsps = Array.isArray(details.quarrySupplierProducts)
+      ? details.quarrySupplierProducts
+      : [];
+    const byId = new Map<number, { id: number; name: string }>();
+    for (const qsp of qsps) {
+      const quarrySupplierId = Number(qsp?.quarrySupplierId || 0);
+      if (!quarrySupplierId) continue;
+      if (qsp?.isActive === false) continue;
+      const name = qsp?.quarrySupplier?.name || '';
+      byId.set(quarrySupplierId, { id: quarrySupplierId, name });
+    }
+    return Array.from(byId.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [productDetailsQuery.data, selectedProductId]);
+
+  const quarryOptions: SelectOption[] = React.useMemo(
+    () => quarrySuppliers.map((q) => ({ label: q.name, value: q.id })),
+    [quarrySuppliers]
+  );
+
+  // Selected QSP (product + quarry)
+  const watchedQuarrySupplierId = form.watch('quarrySupplierId');
+  const selectedQuarrySupplierProduct = React.useMemo(() => {
+    const details = productDetailsQuery.data;
+    const currentProductId = Number(form.getValues('productId') || 0);
+    const currentQuarryId = Number(watchedQuarrySupplierId || 0);
+    if (!details || details.id !== currentProductId || !currentQuarryId)
+      return undefined;
+    const qsps: QuarrySupplierProductDetailExt[] = Array.isArray(
+      details.quarrySupplierProducts
+    )
+      ? (details.quarrySupplierProducts as QuarrySupplierProductDetailExt[])
+      : [];
+    return qsps.find(
+      (qsp: QuarrySupplierProductDetailExt) =>
+        Number(qsp?.quarrySupplierId || 0) === currentQuarryId
+    );
+  }, [
+    productDetailsQuery.data,
+    selectedProductId,
+    watchedQuarrySupplierId,
+    form,
+  ]);
+
+  // Reset dependent fields when product changes
+  React.useEffect(() => {
+    const currentProductId = Number(form.getValues('productId') || 0);
+    const initialProductId = Number(
+      isEditing ? selectedLineItem?.productId : 0
+    );
+    if (currentProductId !== initialProductId) {
+      form.setValue('quarrySupplierId', 0);
+      form.setValue('supplierProductName', '');
+      form.setValue('productCostUom', '');
+      form.setValue('productCostQty', 0);
+      form.setValue('productCostPrice', 0);
+      form.setValue('productSellUom', '');
+      form.setValue('productSellQty', 0);
+      form.setValue('productSellPrice', 0);
+      form.setValue('truckType', '');
+      form.setValue('truckCostUom', '');
+      form.setValue('truckCostQty', 0);
+      form.setValue('truckCostPrice', 0);
+      form.setValue('truckSellUom', '');
+      form.setValue('truckSellQty', 0);
+      form.setValue('truckSellPrice', 0);
+    }
+  }, [selectedProductId, isEditing, selectedLineItem?.productId, form]);
+
+  // Reset pricing when quarry changes
+  const quarryId = form.watch('quarrySupplierId');
+  React.useEffect(() => {
+    const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
+    const initialQuarryId = Number(
+      isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0
+    );
+    if (currentQuarryId !== initialQuarryId) {
+      form.setValue('supplierProductName', '');
+      form.setValue('productCostUom', '');
+      form.setValue('productCostQty', 0);
+      form.setValue('productCostPrice', 0);
+      form.setValue('productSellUom', '');
+      form.setValue('productSellQty', 0);
+      form.setValue('productSellPrice', 0);
+      form.setValue('truckType', '');
+      form.setValue('truckCostUom', '');
+      form.setValue('truckCostQty', 0);
+      form.setValue('truckCostPrice', 0);
+      form.setValue('truckSellUom', '');
+      form.setValue('truckSellQty', 0);
+      form.setValue('truckSellPrice', 0);
+    }
+  }, [quarryId, isEditing, selectedLineItem?.quarrySupplierId, form]);
+
+  // Populate supplierProductName from product details response
+  React.useEffect(() => {
+    const currentProductId = Number(form.getValues('productId') || 0);
+    const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
+    const details = productDetailsQuery.data;
+    if (
+      !details ||
+      !currentProductId ||
+      details.id !== currentProductId ||
+      !currentQuarryId
+    ) {
+      return;
+    }
+    const qsps: QuarrySupplierProductDetailExt[] = Array.isArray(
+      details.quarrySupplierProducts
+    )
+      ? (details.quarrySupplierProducts as QuarrySupplierProductDetailExt[])
+      : [];
+    const matched = qsps.find(
+      (qsp: QuarrySupplierProductDetailExt) =>
+        Number(qsp?.quarrySupplierId || 0) === currentQuarryId
+    );
+    const supplierProductName = matched?.supplierProductName || '';
+    if (supplierProductName) {
+      form.setValue('supplierProductName', supplierProductName);
+    }
+  }, [quarryId, selectedProductId, productDetailsQuery.data, form]);
+
+  // Static options
+  const truckTypeOptions: SelectOption[] = React.useMemo(
+    () => [
+      { label: 'Truck', value: 'Truck' },
+      { label: 'Semi-Trailer', value: 'Semi-Trailer' },
+      { label: 'Truck + Trailer', value: 'Truck + Trailer' },
+      { label: 'Rigid truck', value: 'Rigid truck' },
+      { label: 'B-Double', value: 'B-Double' },
+      { label: 'Road train', value: 'Road train' },
+      { label: 'Dog Truck', value: 'Dog Truck' },
+      { label: 'Flatbed', value: 'Flatbed' },
+      { label: 'Tipper', value: 'Tipper' },
+      { label: 'Semi-Tipper', value: 'Semi-Tipper' },
+      { label: 'Side-Tipper', value: 'Side-Tipper' },
+      { label: 'Truck and Dog', value: 'Truck and Dog' },
+      { label: 'Agitator truck', value: 'Agitator truck' },
+    ],
+    []
+  );
+
+  // UOM options derived from QSP
+  const productUnitOptions: SelectOption[] = React.useMemo(() => {
+    const opts: SelectOption[] = [];
+    const qsp = selectedQuarrySupplierProduct as
+      | QuarrySupplierProductDetailExt
+      | undefined;
+    if (qsp?.availableForSaleTn) opts.push({ label: 'TN', value: 'TN' });
+    if (qsp?.availableForSaleM3) opts.push({ label: 'm³', value: 'M3' });
+    if (qsp?.availableForSale20kg) opts.push({ label: '20kg', value: 'KG_20' });
+    if (qsp?.availableForSaleBulka)
+      opts.push({ label: 'Bulka', value: 'BULKA' });
+    return opts;
+  }, [selectedQuarrySupplierProduct]);
+
+  const truckUnitOptions: SelectOption[] = React.useMemo(() => {
+    const opts: SelectOption[] = [];
+    const qsp = selectedQuarrySupplierProduct as
+      | QuarrySupplierProductDetailExt
+      | undefined;
+    if (qsp?.availableForTruckRateTn) opts.push({ label: 'TN', value: 'TN' });
+    if (qsp?.availableForTruckRateM3) opts.push({ label: 'm³', value: 'M3' });
+    if (qsp?.availableForTruckRateHour)
+      opts.push({ label: 'Hourly', value: 'HOURLY' });
+    if (qsp?.availableForTruckRateLoad)
+      opts.push({ label: 'Load', value: 'LOAD' });
+    return opts;
+  }, [selectedQuarrySupplierProduct]);
+
+  // Auto-fill product pricing on UOM changes
+  const productCostUom = form.watch('productCostUom');
+  const productSellUom = form.watch('productSellUom');
+
+  React.useEffect(() => {
+    const qsp = selectedQuarrySupplierProduct as
+      | QuarrySupplierProductDetailExt
+      | undefined;
+    if (!qsp) return;
+    let price = 0;
+    switch (productCostUom) {
+      case 'TN':
+        price = Number(centsToDollars(qsp.perTnCostPrice || 0));
+        break;
+      case 'M3':
+        price = Number(centsToDollars(qsp.perM3CostPrice || 0));
+        break;
+      case 'KG_20':
+        price = Number(centsToDollars(qsp.per20kgCostPrice || 0));
+        break;
+      case 'BULKA':
+        price = Number(centsToDollars(qsp.perBulkaCostPrice || 0));
+        break;
+      default:
+        price = 0;
+    }
+    form.setValue('productCostPrice', price || 0);
+  }, [productCostUom, selectedQuarrySupplierProduct, form]);
+
+  React.useEffect(() => {
+    const qsp = selectedQuarrySupplierProduct as
+      | QuarrySupplierProductDetailExt
+      | undefined;
+    if (!qsp) return;
+    let price = 0;
+    switch (productSellUom) {
+      case 'TN':
+        price = Number(centsToDollars(qsp.perTnSellPrice || 0));
+        break;
+      case 'M3':
+        price = Number(centsToDollars(qsp.perM3SellPrice || 0));
+        break;
+      case 'KG_20':
+        price = Number(centsToDollars(qsp.per20kgSellPrice || 0));
+        break;
+      case 'BULKA':
+        price = Number(centsToDollars(qsp.perBulkaSellPrice || 0));
+        break;
+      default:
+        price = 0;
+    }
+    form.setValue('productSellPrice', price || 0);
+  }, [productSellUom, selectedQuarrySupplierProduct, form]);
+
+  // Auto-fill truck pricing on UOM changes
+  const truckCostUom = form.watch('truckCostUom');
+  const truckSellUom = form.watch('truckSellUom');
+
+  React.useEffect(() => {
+    const qsp = selectedQuarrySupplierProduct as
+      | QuarrySupplierProductDetailExt
+      | undefined;
+    if (!qsp) return;
+    let rate = 0;
+    switch (truckCostUom) {
+      case 'TN':
+        rate = Number(centsToDollars(qsp.tnTruckRate || 0));
+        break;
+      case 'M3':
+        rate = Number(centsToDollars(qsp.m3TruckRate || 0));
+        break;
+      case 'HOURLY':
+        rate = Number(centsToDollars(qsp.hourlyTruckRate || 0));
+        break;
+      case 'LOAD':
+        rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        break;
+      default:
+        rate = 0;
+    }
+    form.setValue('truckCostPrice', rate || 0);
+  }, [truckCostUom, selectedQuarrySupplierProduct, form]);
+
+  React.useEffect(() => {
+    const qsp = selectedQuarrySupplierProduct as
+      | QuarrySupplierProductDetailExt
+      | undefined;
+    if (!qsp) return;
+    let rate = 0;
+    switch (truckSellUom) {
+      case 'TN':
+        rate = Number(centsToDollars(qsp.tnTruckRate || 0));
+        break;
+      case 'M3':
+        rate = Number(centsToDollars(qsp.m3TruckRate || 0));
+        break;
+      case 'HOURLY':
+        rate = Number(centsToDollars(qsp.hourlyTruckRate || 0));
+        break;
+      case 'LOAD':
+        rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        break;
+      default:
+        rate = 0;
+    }
+    form.setValue('truckSellPrice', rate || 0);
+  }, [truckSellUom, selectedQuarrySupplierProduct, form]);
+
+  // Reset truck UOMs when truck type changes
+  const truckType = form.watch('truckType');
+  React.useEffect(() => {
+    const currentTruckType = form.getValues('truckType');
+    const initialTruckType = isEditing ? selectedLineItem?.truckType : '';
+    if (currentTruckType !== initialTruckType) {
+      form.setValue('truckCostUom', '');
+      form.setValue('truckSellUom', '');
+    }
+  }, [truckType, isEditing, selectedLineItem?.truckType, form]);
+
+  // Pricing breakdown calculations
+  const [pricingBreakdown, setPricingBreakdown] =
+    React.useState<PricingBreakdown>({
+      totalProductCostPrice: 0,
+      totalTruckCostPrice: 0,
+      totalProductSellPrice: 0,
+      totalTruckSellPrice: 0,
+      totalInvoice: 0,
+      grossProfit: 0,
+      grossProfitPercentage: 0,
+    });
+  const productCostQty = form.watch('productCostQty');
+  const productCostPrice = form.watch('productCostPrice');
+  const truckCostQty = form.watch('truckCostQty');
+  const truckCostPrice = form.watch('truckCostPrice');
+  const productSellQty = form.watch('productSellQty');
+  const productSellPrice = form.watch('productSellPrice');
+  const truckSellQty = form.watch('truckSellQty');
+  const truckSellPrice = form.watch('truckSellPrice');
+  React.useEffect(() => {
+    const values = form.getValues();
+    const totalProductCostPrice =
+      (values.productCostQty || 0) * (values.productCostPrice || 0);
+    const totalTruckCostPrice =
+      (values.truckCostQty || 0) * (values.truckCostPrice || 0);
+    const totalProductSellPrice =
+      (values.productSellQty || 0) * (values.productSellPrice || 0);
+    const totalTruckSellPrice =
+      (values.truckSellQty || 0) * (values.truckSellPrice || 0);
+    const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
+    const totalCost = totalProductCostPrice + totalTruckCostPrice;
+    const grossProfit = totalInvoice - totalCost;
+    const grossProfitPercentage =
+      totalInvoice > 0 ? (grossProfit / totalInvoice) * 100 : 0;
+
+    setPricingBreakdown({
+      totalProductCostPrice,
+      totalTruckCostPrice,
+      totalProductSellPrice,
+      totalTruckSellPrice,
+      totalInvoice,
+      grossProfit,
+      grossProfitPercentage,
+    });
+
+    form.setValue('totalProductCostPrice', totalProductCostPrice);
+    form.setValue('totalTruckCostPrice', totalTruckCostPrice);
+    form.setValue('totalProductSellPrice', totalProductSellPrice);
+    form.setValue('totalTruckSellPrice', totalTruckSellPrice);
+    form.setValue('grossProfit', grossProfit);
+  }, [
+    productCostQty,
+    productCostPrice,
+    truckCostQty,
+    truckCostPrice,
+    productSellQty,
+    productSellPrice,
+    truckSellQty,
+    truckSellPrice,
+    form,
+  ]);
+
+  // GST
+  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
+  const totalInvoiceIncGST = (
+    Number(pricingBreakdown.totalInvoice) + Number(gst)
+  ).toFixed(2);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    form.handleSubmit(onSubmit)(e);
+  };
+
+  async function onSubmit(values: FormValues) {
+    if (!selectedQuotation?.id) {
+      console.error('No quotation selected');
+      return;
+    }
+    const quoteItemData: QuotationLineItem = {
+      quoteId: selectedQuotation?.id || 0,
+      productId: values.productId,
+      quarrySupplierId: values.quarrySupplierId,
+      productName:
+        (productOptions.find((p) => p.value === values.productId)
+          ?.label as string) || '',
+      quarryName:
+        (quarryOptions.find((q) => q.value === values.quarrySupplierId)
+          ?.label as string) || '',
+      supplierProductName: values.supplierProductName,
+      productCostUom: values.productCostUom,
+      productCostQty: values.productCostQty,
+      productCostPrice: dollarsToCents(values.productCostPrice),
+      totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
+      productSellUom: values.productSellUom,
+      productSellQty: values.productSellQty,
+      productSellPrice: dollarsToCents(values.productSellPrice),
+      totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
+      truckType: values.truckType,
+      truckCostUom: values.truckCostUom,
+      truckCostQty: values.truckCostQty,
+      truckCostPrice: dollarsToCents(values.truckCostPrice),
+      totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice),
+      truckSellUom: values.truckSellUom,
+      truckSellQty: values.truckSellQty,
+      truckSellPrice: dollarsToCents(values.truckSellPrice),
+      totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice),
+      grossProfit: dollarsToCents(values.grossProfit || 0),
+      totalQuantityRequired: values.productSellQty,
+      allocatedQuantity: 0,
+      remainingQuantity: values.productSellQty,
+      requiredLoads: values.requiredLoads,
+      version: 1,
+    };
+
+    if (isEditing && selectedLineItem?.id) {
+      quoteItemData.id = selectedLineItem.id;
+    }
+
+    try {
+      if (isEditing && selectedLineItem?.id) {
+        await updateQuoteItem.mutateAsync({
+          id: selectedLineItem.id,
+          data: quoteItemData,
+        });
+        notifySuccess('Line item Updated');
+      } else {
+        await createQuoteItem.mutateAsync(quoteItemData);
+        notifySuccess('Line item Added');
+      }
+      form.reset();
+      onCancel?.();
+    } catch (error) {
+      console.error('❌ Failed to save Line item:', error);
+      notifyError(
+        isEditing ? 'Failed to Update Line item' : 'Failed to Add Line item'
+      );
+    }
+  }
+
+  return {
+    isEditing,
+    isReadOnly,
+    form,
+    selectedLineItem,
+    productOptions,
+    quarryOptions,
+    truckTypeOptions,
+    productUnitOptions,
+    truckUnitOptions,
+    selectedProductId,
+    pricingBreakdown,
+    gst,
+    totalInvoiceIncGST,
+    handleSubmit,
+    onSubmit,
+    isPending: createQuoteItem.isPending || updateQuoteItem.isPending,
+  };
+}

@@ -99,3 +99,54 @@ export function extractErrorMessage(error: unknown): string {
 
   return 'Unknown error occurred';
 }
+
+/**
+ * Extract a normalized error response shape from unknown errors.
+ * Attempts to read `{ code, status, message }` directly or from the first entry of `.errors[]`.
+ */
+export function extractErrorResponse(
+  error: unknown
+): { code?: string; status?: string; message?: string } | null {
+  const data = extractErrorData(error);
+  if (!data || typeof data !== 'object') return null;
+
+  const record = data as Record<string, unknown>;
+
+  // Prefer top-level fields
+  const topCode =
+    typeof record.code === 'string'
+      ? record.code
+      : typeof record.code === 'number'
+      ? String(record.code)
+      : undefined;
+  const topStatus =
+    typeof record.status === 'string' ? record.status : undefined;
+  const topMessage =
+    typeof record.message === 'string' ? record.message : undefined;
+
+  // Fallback to first errors[] entry
+  let nestedCode: string | undefined;
+  let nestedMessage: string | undefined;
+  if (Array.isArray(record.errors) && record.errors.length > 0) {
+    const first = record.errors[0];
+    if (first && typeof first === 'object') {
+      const e = first as Record<string, unknown>;
+      nestedCode =
+        typeof e.code === 'string'
+          ? e.code
+          : typeof e.code === 'number'
+          ? String(e.code)
+          : undefined;
+      nestedMessage = typeof e.message === 'string' ? e.message : undefined;
+    }
+  }
+
+  const code = topCode ?? nestedCode;
+  const status = topStatus;
+  const message = topMessage ?? nestedMessage;
+
+  if (code || status || message) {
+    return { code, status, message };
+  }
+  return null;
+}

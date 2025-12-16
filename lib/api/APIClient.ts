@@ -403,12 +403,24 @@ export const APIClient = {
       appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
         body: data,
       }),
-    deleteProduct: (id: number) =>
-      appClient.Delete<{
-        quotes?: string[];
-        jobs?: string[];
-        dockets?: string[];
-      }>(`/socoro/quarrylink/api/product/${id}`),
+    deleteProduct: (id: number) => {
+      return appClient
+        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`
+        )
+        .then((res) => {
+          console.log('[APIClient] products.delete response:', res);
+          const len = Array.isArray(res?.blockingQuoteDtos)
+            ? res!.blockingQuoteDtos!.length
+            : 0;
+          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          return res;
+        })
+        .catch((err) => {
+          console.error('[APIClient] products.delete error:', err);
+          throw err;
+        });
+    },
   },
   quarries: {
     getAll: async () => {

@@ -16,18 +16,38 @@ import { Separator } from '@/components/ui/separator';
 interface ProductActionButtonsProps {
   product: ProductDetails | null | undefined;
   layout?: 'compact' | 'expanded';
+  /**
+   * When provided, these actions will be used instead of creating a new
+   * `useProductActions` instance. This lets the header buttons operate on the
+   * same dialog state as the parent (so closing actions affect the same dialog).
+   */
+  actionsOverride?: {
+    view: () => void;
+    unavailable: () => void;
+    available: () => void;
+    delete: () => void;
+    cannotDelete: () => void;
+    removeSupplier: () => void;
+  };
+  /**
+   * When true, this component will not render its own confirm/view dialogs.
+   * Useful when the parent already renders them to avoid duplication.
+   */
+  suppressDialogs?: boolean;
 }
 
 export function ProductActionButtons({
   product,
   layout = 'expanded',
+  actionsOverride,
+  suppressDialogs = false,
 }: ProductActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isUnavailable = product?.isActive === false;
-  const { actions, confirmDialogs, viewDialog } = useProductActions(
-    product?.id,
-    product
-  );
+  const internal = useProductActions(product?.id, product);
+  const actions = actionsOverride ?? internal.actions;
+  const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
+  const viewDialog = suppressDialogs ? null : internal.viewDialog;
 
   // Early returns for null quotation or new quotation
   if (!product) {

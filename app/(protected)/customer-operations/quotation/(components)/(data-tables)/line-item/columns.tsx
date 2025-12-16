@@ -94,7 +94,10 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     },
     cell: ({ row }) => {
       const productSellQty = row.original.productSellQty;
-      const productSellUom = row.original.productSellUom;
+      const productSellUom =
+        row.original.productSellUom === 'KG_20'
+          ? 'x 20kg'
+          : row.original.productSellUom;
       return (
         <div>
           {productSellQty} {productSellUom}
