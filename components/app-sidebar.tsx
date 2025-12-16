@@ -104,6 +104,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     TenantCompleteDetailsQueryOptions()
   );
 
+  React.useEffect(() => {
+    if (tenantCompleteDetails) {
+      console.log('🏢 [AppSidebar] Tenant Complete Details:', tenantCompleteDetails);
+      console.log('🏷️ [AppSidebar] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
+      console.log('📋 [AppSidebar] Subscription Plan:', tenantCompleteDetails.subscriptionAndInvoices?.subscriptions?.subscriptions?.[0]?.subscriptionPlan);
+    }
+  }, [tenantCompleteDetails]);
+
   const displayName =
     attributes?.name ||
     amplifyUser?.signInDetails?.loginId ||
