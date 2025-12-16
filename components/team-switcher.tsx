@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-// import { useQuery } from '@tanstack/react-query';
-// import { TenantsGetDetailQueryOptions } from '@/lib/api/tenant';
+import { useQuery } from '@tanstack/react-query';
+import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 
 import {
   SidebarMenu,
@@ -18,20 +18,23 @@ export function TeamSwitcher({
     initials: string;
   };
 }) {
-  // const { data: tenantDetails } = useQuery(TenantsGetDetailQueryOptions());
-  // console.log('tenantDetails', tenantDetails);
-  // const tenantName = tenantDetails?.tenantName || 'Acme Quarry';
-  // const tenantInitials = React.useMemo(() => {
-  //   const parts = tenantName.trim().split(/\s+/);
-  //   const letters = parts
-  //     .slice(0, 2)
-  //     .map((p: string) => p[0]?.toUpperCase() || '')
-  //     .join('');
-  //   return letters || 'AQ';
-  // }, [tenantName]);
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantCompleteDetailsQueryOptions()
+  );
 
-  // const activeClient = client || { name: tenantName, initials: tenantInitials };
-  const activeClient = client || { name: 'Acme Quarry', initials: 'AQ' };
+  const tenantName =
+    tenantCompleteDetails?.tenantDetails?.tenantName || 'Acme Quarry';
+
+  const tenantInitials = React.useMemo(() => {
+    const parts = tenantName.trim().split(/\s+/);
+    const letters = parts
+      .slice(0, 2)
+      .map((p: string) => p[0]?.toUpperCase() || '')
+      .join('');
+    return letters || 'AQ';
+  }, [tenantName]);
+
+  const activeClient = client || { name: tenantName, initials: tenantInitials };
 
   return (
     <SidebarMenu>

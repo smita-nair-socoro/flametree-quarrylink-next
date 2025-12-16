@@ -17,3 +17,11 @@ export const TenantSubscriptionsAndInvoicesQueryOptions = () =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const TenantCompleteDetailsQueryOptions = () =>
+  queryOptions({
+    queryKey: [...TenantKeys.all, 'complete-details'],
+    queryFn: () => APIClient.tenants.getTenantCompleteDetails(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });

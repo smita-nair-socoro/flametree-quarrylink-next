@@ -45,10 +45,11 @@ export interface Subscriptions {
   subscriptions: [
     {
       subscriptionId: string;
+      subscriptionPlan?: string;
       status: string;
       items: [
         {
-          sbscriptionItemId: string;
+          subscriptionItemId: string;
           productId: string;
           productName?: string;
           quantity: number;
@@ -69,7 +70,8 @@ export interface Invoice {
   amountDueInCents: number;
   amountPaidInCents: number;
   amountRemainingInCents: number;
-  createdAt: string;
+  currency: string;
+  createdAt?: string;
   createdAtEpochSeconds: number;
   dueDateEpochSeconds?: number;
 }
@@ -81,6 +83,12 @@ export interface SubscriptionsAndInvoices {
 
 export interface TenantDetails {
   tenantName: string;
-  tenantInitials: string;
+  tenantInitials?: string;
+  businessName?: string;
   email: string;
+}
+
+export interface TenantCompleteDetails {
+  tenantDetails: TenantDetails;
+  subscriptionAndInvoices: SubscriptionsAndInvoices;
 }
