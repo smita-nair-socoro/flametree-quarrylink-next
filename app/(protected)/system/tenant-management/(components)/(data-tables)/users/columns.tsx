@@ -40,8 +40,8 @@ export const createUserColumns = (
     },
     cell: ({ row }) => {
       const groups = row.original.groups;
-      // groups is a string array like "[SUPERADMIN]" or "[USER]"
-      const groupsUpper = groups?.toUpperCase() || '';
+      // groups is a string array like ["SUPERADMIN"] or ["USER"]
+      const groupsUpper = groups?.join(',').toUpperCase() || '';
       const formattedRole = groupsUpper.includes('SUPERADMIN')
         ? 'Super Admin'
         : groupsUpper.includes('ADMIN')
