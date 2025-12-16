@@ -8,7 +8,7 @@ import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { User } from '../types/user';
+import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
 import {
   SubscriptionsAndInvoices,
   TenantDetails,
@@ -622,7 +622,20 @@ export const APIClient = {
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
   },
   users: {
-    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
+    getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
+    getById: (id: string) => {
+      console.log('[APIClient] 🔍 getById called with ID:', id);
+      return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
+    },
+    create: (data: UserCreateDTO) =>
+      appClient.Post<User>('/socoro/quarrylink/api/users', {
+        body: data,
+      }),
+    update: (id: string, data: UserUpdateDTO) => {
+      return appClient.Put<User>(`/socoro/quarrylink/api/users/${id}`, {
+        body: data,
+      });
+    },
   },
 
   tenants: {

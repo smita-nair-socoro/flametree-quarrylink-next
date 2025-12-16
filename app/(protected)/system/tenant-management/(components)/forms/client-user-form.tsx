@@ -30,16 +30,12 @@ type EditClientUserFormValues = z.infer<typeof EditClientUserFormSchema>;
 
 type EditClientUserPayload = EditClientUserFormValues & {
   id?: number;
-  client_id?: number;
-  created_at?: string | null;
-  last_login_at?: string | null;
-  total_logins?: number;
-  quotation_created?: number;
-  jobs_managed?: number;
-  invited_by?: number;
-  deletion_reason?: string;
-  isDeleted?: boolean;
-  updated_at?: string | null;
+  clientId?: number;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
+  totalLogins?: number;
+  quotationCreated?: number;
+  updatedAt?: string | null;
 };
 
 interface EditClientUserFormProps {
@@ -63,22 +59,47 @@ export function EditClientUserForm({
 }: EditClientUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  const fullName = initialData?.full_name.trim() || 'Unnamed User';
+  const fullName = initialData?.name.trim() || 'Unnamed User';
+
+  // Convert groups array to role string
+  const getRoleFromGroups = React.useCallback(
+    (groups: string[] | undefined): string => {
+      if (!groups || !Array.isArray(groups) || groups.length === 0) {
+        return '';
+      }
+
+      const groupsStr = groups.join(',').toLowerCase();
+
+      // Check in priority order
+      if (
+        groupsStr.includes('super_admin') ||
+        groupsStr.includes('superadmin')
+      ) {
+        return 'SUPERADMIN';
+      }
+      if (groupsStr.includes('admin')) {
+        return 'ADMIN';
+      }
+      return 'USER';
+    },
+    []
+  );
 
   const defaultValues = React.useMemo<EditClientUserFormValues>(
     () => ({
       full_name: fullName,
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
-      role: initialData?.role ?? '',
+      role: getRoleFromGroups(initialData?.groups),
       status: normalizeStatus(initialData?.status),
     }),
     [
       fullName,
       initialData?.email,
       initialData?.phone,
-      initialData?.role,
+      initialData?.groups,
       initialData?.status,
+      getRoleFromGroups,
     ]
   );
 
@@ -91,26 +112,22 @@ export function EditClientUserForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const joinedDate = initialData?.created_at || undefined;
+  const joinedDate = initialData?.createdAt || undefined;
   const formattedJoined = joinedDate
     ? formatDate(joinedDate, 'd MMM yyyy')
     : '—';
 
-  const lastLoginRelative = initialData?.last_login_at
-    ? getRelativeTime(initialData.last_login_at)
+  const lastLoginRelative = initialData?.lastLoginAt
+    ? getRelativeTime(initialData.lastLoginAt)
     : 'Never';
 
   const totalLogins =
-    typeof initialData?.total_logins === 'number'
-      ? initialData.total_logins
+    typeof initialData?.totalLogins === 'number'
+      ? initialData.totalLogins
       : 0;
   const quotations =
-    typeof initialData?.quotation_created === 'number'
-      ? initialData.quotation_created
-      : 0;
-  const jobs =
-    typeof initialData?.jobs_managed === 'number'
-      ? initialData.jobs_managed
+    typeof initialData?.quotationCreated === 'number'
+      ? initialData.quotationCreated
       : 0;
 
   const disableRoleChange =
@@ -129,17 +146,13 @@ export function EditClientUserForm({
     const payload: EditClientUserPayload = {
       ...values,
       id: initialData?.id,
-      client_id: initialData?.client_id,
+      clientId: initialData?.clientId,
       phone: normalizedPhone,
-      created_at: initialData?.created_at,
-      last_login_at: initialData?.last_login_at,
-      total_logins: initialData?.total_logins,
-      quotation_created: initialData?.quotation_created,
-      jobs_managed: initialData?.jobs_managed,
-      invited_by: initialData?.invited_by,
-      deletion_reason: initialData?.deletion_reason,
-      isDeleted: initialData?.isDeleted,
-      updated_at: initialData?.updated_at,
+      createdAt: initialData?.createdAt,
+      lastLoginAt: initialData?.lastLoginAt,
+      totalLogins: initialData?.totalLogins,
+      quotationCreated: initialData?.quotationCreated,
+      updatedAt: initialData?.updatedAt,
     };
 
     await onSave?.(payload);
@@ -362,7 +375,6 @@ export function EditClientUserForm({
                 <p className="text-sm">
                   Quotations Created: {quotations.toLocaleString()}
                 </p>
-                <p className="text-sm">Jobs Managed: {jobs.toLocaleString()}</p>
               </div>
             </div>
           </section>

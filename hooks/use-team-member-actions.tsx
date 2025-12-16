@@ -3,21 +3,11 @@ import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
-import { UserStatus } from '@/lib/types/user-enums';
-import { AlertTriangle, Users, Briefcase, Trash2, Key, RotateCcwSquare } from 'lucide-react';
+import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
-import { Button } from '@/components/ui/button';
-
-// Mock data for team members
-const MOCK_TEAM_MEMBERS = [
-  { id: '1', name: 'Sarah Johnson' },
-  { id: '2', name: 'Michael Chen' },
-  { id: '3', name: 'Emily Rodriguez' },
-  { id: '4', name: 'David Kim' },
-  { id: '5', name: 'Jessica Williams' },
-];
+import { TeamMemberActionButtons } from '@/app/(protected)/system/user-management/(components)/forms/team-member-action-buttons';
 
 interface DialogConfig {
   title?: string;
@@ -39,7 +29,7 @@ interface DialogConfig {
 }
 
 export function useTeamMemberActions(
-  teamMemberId: number | undefined,
+  teamMemberId: string | undefined, // Changed from number to string (sub is UUID)
   teamMemberData?: User | null,
   roles?: readonly FormSelectOption[],
   currentUserId?: number | string
@@ -61,50 +51,18 @@ export function useTeamMemberActions(
     reason?: string;
   }>({});
 
-  // Mock data - in real implementation, these would come from API
-  // Simulate different dependency scenarios based on team member ID
-  const getMockDependencies = (id: number | undefined) => {
-    if (!id) return { customerCount: 0, activeJobsCount: 0 };
-
-    // Different scenarios for testing both flows
-    switch (id) {
-      case 1: // Armin - Full dependencies
-        return { customerCount: 8, activeJobsCount: 3 };
-      case 2: // Sarah - Only customers
-        return { customerCount: 5, activeJobsCount: 0 };
-      case 3: // Mike - No dependencies (pending user)
-        return { customerCount: 0, activeJobsCount: 0 };
-      case 4: // Emma - Customers and jobs
-        return { customerCount: 3, activeJobsCount: 2 };
-      case 5: // David - Only jobs
-        return { customerCount: 0, activeJobsCount: 2 };
-      case 6: // Lisa - Both types
-        return { customerCount: 12, activeJobsCount: 5 };
-      case 7: // James - No dependencies
-        return { customerCount: 0, activeJobsCount: 0 };
-      case 8: // Maria - Only customers
-        return { customerCount: 4, activeJobsCount: 0 };
-      case 9: // Tom - No dependencies (pending)
-        return { customerCount: 0, activeJobsCount: 0 };
-      case 10: // Jessica - No dependencies (inactive)
-        return { customerCount: 0, activeJobsCount: 0 };
-      default:
-        return { customerCount: 0, activeJobsCount: 0 };
-    }
-  };
-
-  const { customerCount, activeJobsCount } = getMockDependencies(teamMemberId);
+  // TODO: Replace with real API data
+  // For now, assume no dependencies until backend provides this data
+  const customerCount = 0;
+  const activeJobsCount = 0;
 
   // Check if user has dependencies that need reassignment
   const hasDependencies = customerCount > 0 || activeJobsCount > 0;
 
-  // Convert mock data to SelectOption format
-  const teamMemberOptions = MOCK_TEAM_MEMBERS.map((member) => ({
-    label: member.name,
-    value: member.id,
-  }));
+  // TODO: Fetch real team members from API for reassignment dropdowns
+  const teamMemberOptions: { label: string; value: string }[] = [];
 
-  const userName = teamMemberData?.full_name;
+  const userName = teamMemberData?.name;
 
   // Check if delete button should be disabled
   const isDeleteButtonDisabled = React.useMemo(() => {
@@ -126,9 +84,23 @@ export function useTeamMemberActions(
   ]);
 
   // Helper function to format role for display
-  const formatRole = (role: string | undefined) => {
-    if (!role) return '';
-    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+  // groups is an array like ["super_admin", "admin"] containing role names
+  const formatRole = (groups: string[] | undefined) => {
+    if (!groups || !Array.isArray(groups) || groups.length === 0) {
+      return 'User';
+    }
+
+    // Check for roles in priority order (highest to lowest)
+    const groupsStr = groups.join(',').toLowerCase();
+
+    if (groupsStr.includes('super_admin') || groupsStr.includes('superadmin')) {
+      return 'Super Admin';
+    }
+    if (groupsStr.includes('admin')) {
+      return 'Admin';
+    }
+
+    return 'User';
   };
 
   // Single delete dialog config - same structure for both cases
@@ -145,10 +117,10 @@ export function useTeamMemberActions(
             <span className="font-semibold text-base">{userName}</span>
             <span className="text-sm text-muted-foreground">
               {teamMemberData?.email}
-              {teamMemberData?.role && (
+              {teamMemberData?.groups && (
                 <>
                   {' • '}
-                  {formatRole(teamMemberData.role)}
+                  {formatRole(teamMemberData.groups)}
                 </>
               )}
             </span>
@@ -360,7 +332,6 @@ export function useTeamMemberActions(
   // Render view/edit dialog
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={teamMemberId}
       dialogTitle="Edit Team Member"
       open={viewOpen}
       onOpenChangeAction={(open) => {
@@ -372,36 +343,11 @@ export function useTeamMemberActions(
       hideTrigger
       headerButtonsAlign="start"
       headerButtons={
-        <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] mr-5">
-          {teamMemberData?.status === UserStatus.PENDING ? (
-            <Button
-              variant="outline"
-              className="rounded-none px-4 h-auto py-1.5 gap-2 bg-white border-0 border-r"
-              onClick={actions.resendInvitation}
-            >
-              <RotateCcwSquare className="h-4 w-4" />
-              Resend Invitation
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="rounded-none px-4 h-auto py-1.5 gap-2 bg-white border-0 border-r"
-              onClick={actions.resetPassword}
-            >
-              <Key className="h-4 w-4" />
-              Reset Password
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            className="rounded-none px-4 h-auto py-1.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
-            onClick={actions.delete}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete User
-          </Button>
-        </div>
+        <TeamMemberActionButtons
+          teamMember={teamMemberData}
+          roles={roles}
+          currentUserId={currentUserId}
+        />
       }
       preserveEmptyBadgeSpace={false}
     >
