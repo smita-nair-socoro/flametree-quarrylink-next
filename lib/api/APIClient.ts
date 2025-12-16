@@ -9,6 +9,12 @@ import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
 import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
+import {
+  SubscriptionsAndInvoices,
+  TenantDetails,
+  TenantCompleteDetails,
+} from '../types/client';
+// import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -618,5 +624,20 @@ export const APIClient = {
         body: data,
       });
     },
+  },
+
+  tenants: {
+    getTenantDetails: () =>
+      appClient.Get<TenantDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-details`
+      ),
+    getSubscriptionsAndInvoices: () =>
+      appClient.Get<SubscriptionsAndInvoices>(
+        `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`
+      ),
+    getTenantCompleteDetails: () =>
+      appClient.Get<TenantCompleteDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-complete-details`
+      ),
   },
 };

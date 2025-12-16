@@ -29,7 +29,7 @@ export default function ProductsPage() {
   // Statistics cards data
   const statsCards: StatsCardData[] = [
     {
-      title: 'Most Quoted Product',
+      title: 'Highest Revenue Product',
       value: 'Premium Granite',
       description: '$287,450 this month',
       icon: Gem,

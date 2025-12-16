@@ -11,6 +11,7 @@ import {
   useUnarchiveQuarry,
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
+import { extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DeleteBlockingSummary {
   totalLineItems: number;
@@ -356,26 +357,43 @@ export function useQuarrySupplierActions(
         onConfirmAction={async () => {
           switch (key) {
             case 'delete':
-              console.log('Delete qurry supplier:', quarrySupplierId);
               if (!quarrySupplierId) {
                 setActiveDialog(null);
                 setSelectedAction(null);
                 break;
               }
               try {
-                const res = await deleteQuarryAfterEligibilityCheck({
+                await deleteQuarryAfterEligibilityCheck({
                   id: quarrySupplierId,
                 });
-                const blocked = Array.isArray(res?.blockingQuoteDtos)
-                  ? res.blockingQuoteDtos
-                  : [];
+
+                // Successfully deleted - close both dialogs
+                setActiveDialog(null);
+                setSelectedAction(null);
+                setViewOpen(false);
+              } catch (e: unknown) {
+                console.error('Failed to delete quarry supplier:', {
+                  error: e,
+                });
+
+                // Check if it's a 409 error with blocking quotes
+                const errorData = extractErrorData(e);
+                const blocked: { lineItemsCount?: number }[] =
+                  errorData &&
+                  typeof errorData === 'object' &&
+                  'blockingQuoteDtos' in errorData &&
+                  Array.isArray(
+                    (errorData as { blockingQuoteDtos?: unknown })
+                      .blockingQuoteDtos
+                  )
+                    ? ((errorData as { blockingQuoteDtos: unknown[] })
+                        .blockingQuoteDtos as { lineItemsCount?: number }[])
+                    : [];
+
                 if (blocked.length > 0) {
                   // Calculate total line items from blocking quotes
-                  const totalLineItems = blocked.reduce<number>(
-                    (sum, quote) =>
-                      sum +
-                      ((quote as { lineItemsCount?: number }).lineItemsCount ||
-                        0),
+                  const totalLineItems = blocked.reduce(
+                    (sum, quote) => sum + (quote.lineItemsCount || 0),
                     0
                   );
 
@@ -388,16 +406,10 @@ export function useQuarrySupplierActions(
                   setSelectedAction({ key: 'cannotDelete' });
                   setActiveDialog('cannotDelete');
                 } else {
+                  // Other error - just close the dialog
                   setActiveDialog(null);
                   setSelectedAction(null);
-                  window.location.reload();
                 }
-              } catch (e: unknown) {
-                console.error('Failed to delete quarry supplier:', {
-                  error: e,
-                });
-                setActiveDialog(null);
-                setSelectedAction(null);
               }
 
               return;
