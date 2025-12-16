@@ -3,12 +3,21 @@ import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';
 import { Quarry, QuarrySupplierProduct } from '../types/quarry';
-import { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import {
+  QuotationDTO,
+  QuotationLineItem,
+} from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
 import { User } from '../types/user';
+import {
+  SubscriptionsAndInvoices,
+  TenantDetails,
+  TenantCompleteDetails,
+} from '../types/client';
+// import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -605,5 +614,20 @@ export const APIClient = {
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/user`),
+  },
+
+  tenants: {
+    getTenantDetails: () =>
+      appClient.Get<TenantDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-details`
+      ),
+    getSubscriptionsAndInvoices: () =>
+      appClient.Get<SubscriptionsAndInvoices>(
+        `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`
+      ),
+    getTenantCompleteDetails: () =>
+      appClient.Get<TenantCompleteDetails>(
+        `/socoro/quarrylink/api/tenant/tenant-complete-details`
+      ),
   },
 };
