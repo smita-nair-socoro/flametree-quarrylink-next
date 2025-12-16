@@ -8,6 +8,7 @@ import {
   Truck,
   Users,
 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -22,6 +23,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
+import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 
 export const navItems = [
   {
@@ -98,6 +100,17 @@ export const navItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantCompleteDetailsQueryOptions()
+  );
+
+  React.useEffect(() => {
+    if (tenantCompleteDetails) {
+      console.log('🏢 [AppSidebar] Tenant Complete Details:', tenantCompleteDetails);
+      console.log('🏷️ [AppSidebar] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
+      console.log('📋 [AppSidebar] Subscription Plan:', tenantCompleteDetails.subscriptionAndInvoices?.subscriptions?.subscriptions?.[0]?.subscriptionPlan);
+    }
+  }, [tenantCompleteDetails]);
 
   const displayName =
     attributes?.name ||
@@ -116,6 +129,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     avatar: '/default-user.png',
   };
 
+  // Get subscription plan from the first active subscription
+  const subscriptionPlan =
+    tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
+      ?.subscriptions?.[0]?.subscriptionPlan || 'Essentials';
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader className="mb-4">
@@ -123,7 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarTrigger className="h-8 w-8 text-white" />
         </div>
         <div className="mb-1">
-          <QuarryLinkBranding subscriptionType="Essentials" />
+          <QuarryLinkBranding subscriptionType={subscriptionPlan} />
         </div>
         <TeamSwitcher />
       </SidebarHeader>
