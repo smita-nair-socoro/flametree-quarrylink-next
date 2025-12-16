@@ -149,7 +149,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   // Update form values when product data is loaded (for editing mode)
   React.useEffect(() => {
-    if (isEditing && selectedProduct) {
+    if ((isEditing || productJustCreated) && selectedProduct) {
       productForm.reset({
         product_name: selectedProduct.productName || '',
         product_code: selectedProduct.productCode || '',
@@ -166,7 +166,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         last_modified_by: selectedProduct.lastModifiedBy || '',
       });
     }
-  }, [isEditing, selectedProduct, productForm]);
+  }, [isEditing, productJustCreated, selectedProduct, productForm]);
 
   // Update total supplier count when product data is loaded
   React.useEffect(() => {
@@ -261,7 +261,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   }
 
   // Show loading state when fetching product details or materials
-  if (isLoadingMaterials || (isEditing && isLoadingProduct)) {
+  if (
+    isLoadingMaterials ||
+    ((isEditing || productJustCreated) && isLoadingProduct)
+  ) {
     return (
       <div className="w-full flex items-center justify-center h-96">
         <div className="flex flex-col items-center space-y-4">
@@ -277,7 +280,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   }
 
   // Show error state
-  if (isMaterialsError || (isEditing && isProductError)) {
+  if (
+    isMaterialsError ||
+    ((isEditing || productJustCreated) && isProductError)
+  ) {
     return (
       <div className="w-full flex items-center justify-center h-96">
         <div className="text-center">
@@ -587,7 +593,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           </div>
 
           {/* Audit Information */}
-          {isEditing && (
+          {(isEditing || productJustCreated) && (
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
