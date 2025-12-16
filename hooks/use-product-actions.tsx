@@ -419,8 +419,10 @@ export function useProductActions(
       console.log('[useProductActions] delete product start:', { productId });
       await deleteProduct(productId);
       console.log('[useProductActions] delete product success:', { productId });
-      setActiveDialog(null);
+      notifySuccess('Product deleted successfully.');
+      setViewOpen(false);
       setSelectedAction(null);
+      setActiveDialog(null);
     } catch (error: unknown) {
       const status =
         error &&
@@ -508,9 +510,6 @@ export function useProductActions(
                     isActive: false,
                     version: productData.version ?? 0,
                   };
-
-                  console.log('productData', productData);
-                  console.log('payload', payload);
 
                   await updateProductMutation.mutateAsync({
                     id: productId,
@@ -608,7 +607,13 @@ export function useProductActions(
           }, 100);
         }
       }}
-      headerButtons={<ProductActionButtons product={productData} />}
+      headerButtons={
+        <ProductActionButtons
+          product={productData}
+          actionsOverride={actions}
+          suppressDialogs
+        />
+      }
       hideTrigger
       headerInfo={{
         useSelectedProduct: true,
