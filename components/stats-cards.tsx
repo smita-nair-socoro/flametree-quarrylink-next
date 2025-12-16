@@ -169,7 +169,7 @@ export function StatsCards({
               <Card key={card.title} className="p-5 overflow-hidden">
                 <CardContent className="p-2 space-y-1">
                   <div className="flex justify-between gap-2 items-start">
-                    <span className="font-medium leading-tight text-[#737373] text-sm break-words">
+                    <span className="font-medium leading-tight text-[#737373] text-sm truncate">
                       {card.title}
                     </span>
                     <div
@@ -180,7 +180,7 @@ export function StatsCards({
                       />
                     </div>
                   </div>
-                  <div className="text-3xl font-bold pt-1 break-all">
+                  <div className="text-3xl font-bold pt-1 truncate">
                     {card.value}
                   </div>
                   <div

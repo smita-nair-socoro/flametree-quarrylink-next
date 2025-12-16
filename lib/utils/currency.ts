@@ -19,3 +19,11 @@ export function centsToDollars(cents: number): string {
     maximumFractionDigits: 2,
   });
 }
+
+export function centsToDollarsNum(value: string | number): number {
+  const cents = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(cents)) {
+    throw new Error(`Invalid cents amount: ${value}`);
+  }
+  return cents / 100;
+}

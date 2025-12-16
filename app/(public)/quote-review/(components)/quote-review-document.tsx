@@ -34,6 +34,9 @@ export default function QuoteReviewDocument({
     QuoteStatus.PENDING
   );
 
+  // TEMPORARY: State to force showing expired page for UI/UX testing
+  const [showExpiredPage, setShowExpiredPage] = useState(false);
+
   const quotationData = mockQuotationData;
 
   // Parse payload and status parameters
@@ -203,7 +206,8 @@ export default function QuoteReviewDocument({
   }, [quotationData]);
 
   // Check if quote is expired - show expired page
-  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+  // TEMPORARY: Also check showExpiredPage state for UI/UX testing
+  if (currentQuoteStatus === QuoteStatus.EXPIRED || showExpiredPage) {
     // Get account manager email from payload or mock data
     const accountManagerEmail = parsedPayload?.account_manager_email;
     const businessEmail = parsedPayload?.business_email;
@@ -275,6 +279,19 @@ export default function QuoteReviewDocument({
       {/* Main Document */}
       <div className="min-h-screen bg-gray-100 p-4 print:px-0 print:py-0">
         <div className="max-w-[960px] mx-auto bg-white">
+          {/* TEMPORARY: Testing button for UI/UX to view Expired page */}
+          <div className="bg-yellow-100 border-2 border-yellow-400 p-4 m-4 rounded-lg print:hidden">
+            <p className="text-sm font-semibold text-yellow-800 mb-2">
+              🧪 Development Testing Controls
+            </p>
+            <button
+              onClick={() => setShowExpiredPage(!showExpiredPage)}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+            >
+              {showExpiredPage ? '← Back to Quote' : 'View Expired Page →'}
+            </button>
+          </div>
+
           {/* Navbar */}
           <QuoteNavbar
             {...quotationData.navbar}
