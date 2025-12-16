@@ -1,4 +1,4 @@
-import { baseUrl, getUser, getTenantId } from '../utils';
+import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';

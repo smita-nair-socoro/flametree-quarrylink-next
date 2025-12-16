@@ -33,11 +33,7 @@ export default function SettingsTab() {
   const { user: authUser } = useAuth();
 
   // Fetch current user's detailed data using their Cognito sub
-  const {
-    data: currentUser,
-    isLoading: isLoadingUser,
-    error: userError,
-  } = useQuery({
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
     ...UserDetailQueryOptions(authUser?.userId || ''),
     enabled: !!authUser?.userId,
   });
@@ -159,6 +155,7 @@ export default function SettingsTab() {
       // TODO: Implement password change functionality
       // Backend endpoint for password change not yet implemented
       // This is a placeholder that simulates the request
+      console.log('Password change values:', values);
       await delay(2000);
 
       notifySuccess('Password Changed');

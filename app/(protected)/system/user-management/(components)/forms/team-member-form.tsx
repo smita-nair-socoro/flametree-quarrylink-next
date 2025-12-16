@@ -19,7 +19,6 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
-import { getRelativeTime, formatDate } from '@/lib/utils/date';
 import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
 import { useSelectedTeamMember } from '@/app/stores/team-member-store';
 import { AlertTriangle, Loader2 } from 'lucide-react';
@@ -55,7 +54,6 @@ interface EditTeamMemberFormProps {
 export function EditTeamMemberForm({
   roles,
   currentUserId,
-  onSave,
   onCancel,
   onSuccess,
 }: EditTeamMemberFormProps) {

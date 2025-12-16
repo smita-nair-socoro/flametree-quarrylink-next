@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { UserKeys } from './keys';
-import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
+import { UserCreateDTO, UserUpdateDTO } from '../types/user';
 
 export const UsersListQueryOptions = () =>
   queryOptions({

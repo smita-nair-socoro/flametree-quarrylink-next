@@ -3,19 +3,11 @@ import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
-import { UserStatus } from '@/lib/types/user-enums';
-import {
-  AlertTriangle,
-  Users,
-  Briefcase,
-  Trash2,
-  Key,
-  RotateCcwSquare,
-} from 'lucide-react';
+import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
-import { Button } from '@/components/ui/button';
+import { TeamMemberActionButtons } from '@/app/(protected)/system/user-management/(components)/forms/team-member-action-buttons';
 
 interface DialogConfig {
   title?: string;
@@ -351,36 +343,11 @@ export function useTeamMemberActions(
       hideTrigger
       headerButtonsAlign="start"
       headerButtons={
-        <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B] mr-5">
-          {teamMemberData?.status === UserStatus.PENDING ? (
-            <Button
-              variant="outline"
-              className="rounded-none px-4 h-auto py-1.5 gap-2 bg-white border-0 border-r"
-              onClick={actions.resendInvitation}
-            >
-              <RotateCcwSquare className="h-4 w-4" />
-              Resend Invitation
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="rounded-none px-4 h-auto py-1.5 gap-2 bg-white border-0 border-r"
-              onClick={actions.resetPassword}
-            >
-              <Key className="h-4 w-4" />
-              Reset Password
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            className="rounded-none px-4 h-auto py-1.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
-            onClick={actions.delete}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete User
-          </Button>
-        </div>
+        <TeamMemberActionButtons
+          teamMember={teamMemberData}
+          roles={roles}
+          currentUserId={currentUserId}
+        />
       }
       preserveEmptyBadgeSpace={false}
     >
