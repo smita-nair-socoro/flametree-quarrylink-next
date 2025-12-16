@@ -3,10 +3,7 @@ import { handleLogout } from '../auth/authManager';
 import { Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';
 import { Quarry, QuarrySupplierProduct } from '../types/quarry';
-import {
-  QuotationDTO,
-  QuotationLineItem,
-} from '../types/quotation';
+import { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
@@ -408,42 +405,19 @@ export const APIClient = {
       }),
     deleteProduct: (id: number) => {
       return appClient
-        .Delete<
-          | {
-              quotes?: string[];
-              jobs?: string[];
-              dockets?: string[];
-            }
-          | unknown
-        >(`/socoro/quarrylink/api/product/${id}`)
+        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`
+        )
         .then((res) => {
-          console.log('[APIClient] products.deleteProduct response:', res);
+          console.log('[APIClient] products.delete response:', res);
+          const len = Array.isArray(res?.blockingQuoteDtos)
+            ? res!.blockingQuoteDtos!.length
+            : 0;
+          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
           return res;
         })
         .catch((err) => {
-          const status =
-            err &&
-            typeof err === 'object' &&
-            'response' in err &&
-            (err as { response?: { status?: unknown } }).response &&
-            typeof (err as { response?: { status?: unknown } }).response
-              ?.status === 'number'
-              ? (err as { response: { status: number } }).response.status
-              : undefined;
-
-          const data =
-            err &&
-            typeof err === 'object' &&
-            'response' in err &&
-            (err as { response?: { data?: unknown } }).response
-              ? (err as { response?: { data?: unknown } }).response?.data
-              : undefined;
-
-          console.error('[APIClient] products.deleteProduct error:', {
-            status,
-            data,
-            error: err,
-          });
+          console.error('[APIClient] products.delete error:', err);
           throw err;
         });
     },

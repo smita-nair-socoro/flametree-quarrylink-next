@@ -307,6 +307,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   // Auto-fill product pricing on UOM changes
   const productCostUom = form.watch('productCostUom');
   const productSellUom = form.watch('productSellUom');
+
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProductDetailExt
@@ -331,6 +332,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     }
     form.setValue('productCostPrice', price || 0);
   }, [productCostUom, selectedQuarrySupplierProduct, form]);
+
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProductDetailExt
@@ -359,6 +361,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   // Auto-fill truck pricing on UOM changes
   const truckCostUom = form.watch('truckCostUom');
   const truckSellUom = form.watch('truckSellUom');
+
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProductDetailExt
@@ -383,6 +386,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     }
     form.setValue('truckCostPrice', rate || 0);
   }, [truckCostUom, selectedQuarrySupplierProduct, form]);
+
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProductDetailExt
