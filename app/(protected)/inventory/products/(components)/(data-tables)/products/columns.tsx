@@ -28,14 +28,14 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
 
   {
     id: 'material_type',
-    accessorFn: (row) => row.material?.name || '',
+    accessorFn: (row) => row.material?.name?.toUpperCase() || '',
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Material Type" />
       );
     },
     cell: ({ row }) => {
-      const material_type = row.original.material?.name || '';
+      const material_type = row.original.material?.name?.toUpperCase() || '';
       return (
         <div className="py-2">
           <TableBadges names={material_type} visibleCount={1} />
@@ -50,13 +50,13 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
 
   {
     id: 'status',
-    accessorFn: (row) => (row.isActive === true ? 'Available' : 'Unavailable'),
+    accessorFn: (row) => (row.isActive === true ? 'AVAILABLE' : 'UNAVAILABLE'),
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
       const status =
-        row.original.isActive === true ? 'Available' : 'Unavailable';
+        row.original.isActive === true ? 'AVAILABLE' : 'UNAVAILABLE';
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />

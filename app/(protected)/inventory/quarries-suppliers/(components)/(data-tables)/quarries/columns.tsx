@@ -59,12 +59,12 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
   },
   {
     id: 'suburb',
-    accessorFn: (row) => row.suburb,
+    accessorFn: (row) => row.suburb?.toUpperCase() || '',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Suburbs" />;
     },
     cell: ({ row }) => {
-      const suburb = row.original.address.suburb;
+      const suburb = row.original.address.suburb?.toUpperCase() || '';
       return (
         <div className="py-2">
           <TableBadges names={[suburb]} visibleCount={1} variant="suburb" />
