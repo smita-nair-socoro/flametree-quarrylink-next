@@ -25,10 +25,7 @@ interface QuotationStore {
     draft: number;
     totalValue: number;
   };
-  getUniqueCustomerNames: () => Array<{ label: string; value: number }>;
-  getUniqueAccountManagers: () => Array<{ label: string; value: number }>;
   getCustomerNameById: (customerId: number) => string | null;
-  getAccountManagerNameById: (managerId: number) => string | null;
 }
 
 export const useQuotationStore = create<QuotationStore>()(
@@ -101,53 +98,12 @@ export const useQuotationStore = create<QuotationStore>()(
         };
       },
 
-      getUniqueCustomerNames: () => {
-        const state = get();
-        const customerMap = new Map<number, string>();
-
-        state.quotations.forEach((quotation) => {
-          if (quotation.customerId && quotation.customerName) {
-            customerMap.set(quotation.customerId, quotation.customerName);
-          }
-        });
-
-        return Array.from(customerMap.entries())
-          .map(([value, label]) => ({ label, value }))
-          .sort((a, b) => a.label.localeCompare(b.label));
-      },
-
-      getUniqueAccountManagers: () => {
-        const state = get();
-        const managerMap = new Map<number, string>();
-
-        state.quotations.forEach((quotation) => {
-          if (quotation.accountManager && quotation.accountManagerName) {
-            managerMap.set(
-              quotation.accountManager,
-              quotation.accountManagerName
-            );
-          }
-        });
-
-        return Array.from(managerMap.entries())
-          .map(([value, label]) => ({ label, value }))
-          .sort((a, b) => a.label.localeCompare(b.label));
-      },
-
       getCustomerNameById: (customerId) => {
         const state = get();
         const quotation = state.quotations.find(
           (q) => q.customerId === customerId
         );
         return quotation?.customerName || null;
-      },
-
-      getAccountManagerNameById: (managerId) => {
-        const state = get();
-        const quotation = state.quotations.find(
-          (q) => q.accountManager === managerId
-        );
-        return quotation?.accountManagerName || null;
       },
     }),
     { name: 'quotation-store' }

@@ -42,6 +42,7 @@ import { Info } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { UsersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -113,7 +114,16 @@ export default function QuotationForm({
     }));
   }, [customers]);
 
-  // Auto-fill phone and email when customer is selected
+  const { data: users = [] } = useQuery(UsersListQueryOptions());
+  const userOptions: FormSelectOption[] = React.useMemo(() => {
+    if (!users) return [];
+    return users.map((user) => ({
+      label: user.name,
+      value: user.sub,
+    }));
+  }, [users]);
+
+  // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
     const subscription = quotationForm.watch((value, { name }) => {
       if (name === 'customerId' && value.customerId) {
@@ -128,30 +138,17 @@ export default function QuotationForm({
             normalizePhoneNumber(selectedCustomer.phone || '') || ''
           );
           quotationForm.setValue('email', selectedCustomer.email || '');
+
+          quotationForm.setValue(
+            'accountManagerSub',
+            selectedCustomer.accountManagerSub || ''
+          );
         }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [customers, quotationForm]);
-
-  // Build account manager options from quotations list
-  const accountManagers = React.useMemo(
-    () => [
-      { name: 'Alice', id: 1 },
-      { name: 'Bob', id: 2 },
-      { name: 'Charlie', id: 3 },
-      { name: 'David', id: 4 },
-      { name: 'Jay', id: 5 },
-    ],
-    []
-  );
-  const accountManagerOptions: FormSelectOption[] = React.useMemo(() => {
-    return accountManagers.map((accountManager) => ({
-      label: accountManager.name,
-      value: accountManager.id,
-    }));
-  }, [accountManagers]);
+  }, [customers, quotationForm, isEditing]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     console.log(values);
@@ -161,9 +158,7 @@ export default function QuotationForm({
       '';
 
     const accountManagerName =
-      accountManagers.find(
-        (accountManager) => accountManager.id === values.accountManager
-      )?.name || '';
+      users.find((user) => user.sub === values.accountManagerSub)?.name || '';
 
     if (!isEditing) {
       // Retry logic for handling duplicate quote number (409 conflict)
@@ -187,12 +182,15 @@ export default function QuotationForm({
           const nextQuoteNumber = generateNextQuoteNumber(latestQuoteNumber);
 
           console.log(
-            `[QuotationForm] Creating quote with number ${nextQuoteNumber} (attempt ${attempt + 1}/${MAX_RETRIES})`
+            `[QuotationForm] Creating quote with number ${nextQuoteNumber} (attempt ${
+              attempt + 1
+            }/${MAX_RETRIES})`
           );
 
           const transformed = transformFormDataToQuoteDto(values, {
             customerName,
             accountManagerName,
+            accountManagerSub: values.accountManagerSub,
             quoteNumber: nextQuoteNumber,
             lineItemsCount: 0,
             deliveryAddress: deliveryAddress,
@@ -217,7 +215,9 @@ export default function QuotationForm({
 
           if (is409Error && attempt < MAX_RETRIES - 1) {
             console.log(
-              `[QuotationForm] Quote number conflict detected, retrying... (attempt ${attempt + 1}/${MAX_RETRIES})`
+              `[QuotationForm] Quote number conflict detected, retrying... (attempt ${
+                attempt + 1
+              }/${MAX_RETRIES})`
             );
             attempt++;
             // Wait a bit before retrying (exponential backoff)
@@ -241,6 +241,7 @@ export default function QuotationForm({
       const transformed = transformFormDataToQuoteDto(values, {
         customerName,
         accountManagerName,
+        accountManagerSub: values.accountManagerSub,
         quoteNumber: currentQuotation?.quoteNumber || '',
         lineItemsCount: 0,
         deliveryAddress: deliveryAddress,
@@ -436,15 +437,15 @@ export default function QuotationForm({
 
             <FormSelect
               control={quotationForm.control}
-              name="accountManager"
+              name="accountManagerSub"
               label="Account Manager*"
               searchLabel="Account Managers"
-              options={accountManagerOptions}
+              options={userOptions}
               placeholder="Select Account Manager"
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
-              disabled={isEditing && !canEdit}
+              disabled={isEditing || !canEdit}
             />
 
             <FormField
