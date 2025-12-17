@@ -35,19 +35,21 @@
         width: 40px;
         height: 40px;
         object-fit: contain;
+        margin-right: 12px;
       }
       .navbar-logo-initial {
         width: 40px;
         height: 40px;
         border: 1.5px solid #000000;
         border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-block;
+        text-align: center;
+        line-height: 40px;
         font-size: 19px;
         font-weight: 700;
         color: #000000;
         background-color: #ffffff;
+        margin-right: 12px;
       }
       .hidden-logo {
         display: none;
@@ -100,12 +102,13 @@
         padding: 12px 24px;
         border-radius: 6px;
         background-color: #7c3aed;
-        color: #ffffff;
+        color: #ffffff !important;
         font-weight: 600;
         text-decoration: none;
       }
       .btn-other {
         background-color: #000000;
+        color: #ffffff !important;
       }
       .border-other {
         border-left: 4px solid #000000;
@@ -162,6 +165,13 @@
       }
       .footer-column-right {
         text-align: right;
+      }
+      .footer-link {
+        color: #ffffffe5;
+        text-decoration: none;
+      }
+      .footer-link:hover {
+        text-decoration: underline;
       }
     </style>
   </head>
@@ -229,7 +239,11 @@
         <!-- Detailed footer row for other businesses -->
         <div class="footer-row {otherFooterClass}">
           <div class="footer-column-left">
-            <div>{TenantEmail}</div>
+            <div>
+              <a href="mailto:{TenantEmail}" class="footer-link"
+                >{TenantEmail}</a
+              >
+            </div>
             <div>{TenantPhone}</div>
           </div>
           <div class="footer-column-center">
@@ -237,7 +251,9 @@
           </div>
           <div class="footer-column-right">
             <div>Website</div>
-            <div>{TenantWebsite}</div>
+            <div>
+              <a href="{TenantWebsite}" class="footer-link">{TenantWebsite}</a>
+            </div>
           </div>
         </div>
 
