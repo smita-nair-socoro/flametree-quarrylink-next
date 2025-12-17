@@ -3,6 +3,8 @@
  * from backend format to E.164 format required by react-phone-number-input
  */
 
+import { formatPhoneNumberIntl } from 'react-phone-number-input';
+
 /**
  * Transforms phone numbers from backend format to E.164 format
  * Adds +61 country code if the number doesn't already have it
@@ -17,9 +19,7 @@
  * normalizePhoneNumber("") // Returns ""
  * normalizePhoneNumber(null) // Returns ""
  */
-export function normalizePhoneNumber(
-  phone: string | undefined | null
-): string {
+export function normalizePhoneNumber(phone: string | undefined | null): string {
   if (!phone) return '';
 
   // Trim whitespace
@@ -39,6 +39,29 @@ export function normalizePhoneNumber(
 }
 
 /**
+ * Formats an E.164 phone number into an international, human-readable string
+ * suitable for sending to the backend (e.g. "+61411000003" -> "+61 411 000 003").
+ *
+ * Note: This does NOT attempt to "guess" a country for non-E.164 inputs.
+ */
+export function formatPhoneNumber(phone: string | undefined | null): string {
+  if (!phone) return '';
+
+  const trimmed = phone.trim();
+  if (!trimmed) return '';
+
+  // react-phone-number-input's formatter expects E.164 for reliable formatting.
+  if (!trimmed.startsWith('+')) return trimmed;
+
+  try {
+    return formatPhoneNumberIntl(trimmed);
+  } catch {
+    // If parsing/formatting fails, fall back to the original value
+    return trimmed;
+  }
+}
+
+/**
  * Transforms an object's phone number fields to E.164 format
  * Automatically detects and normalizes all fields ending with "phone" (case-insensitive)
  * Useful for normalizing API responses that contain phone number fields
@@ -50,9 +73,7 @@ export function normalizePhoneNumber(
  * normalizeObjectPhoneNumbers({ phone: "0412345678", contact_person_phone: "0498765432", businessPhone: "0387654321" })
  * // Returns { phone: "+61412345678", contact_person_phone: "+61498765432", businessPhone: "+61387654321" }
  */
-export function normalizeObjectPhoneNumbers<T>(
-  obj: T
-): T {
+export function normalizeObjectPhoneNumbers<T>(obj: T): T {
   if (!obj || typeof obj !== 'object') {
     return obj;
   }
