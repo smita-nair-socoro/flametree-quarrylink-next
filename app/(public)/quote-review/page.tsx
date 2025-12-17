@@ -62,8 +62,12 @@ function QuoteReviewContent() {
           <div className="text-sm text-red-600 text-center px-4">{error}</div>
         </div>
       )}
-      {!isLoading && !error && quoteData && (
-        <QuoteReviewDocument quoteId={quoteId} quoteData={quoteData} />
+      {!isLoading && !error && quoteData && token && (
+        <QuoteReviewDocument
+          quoteId={quoteId}
+          quoteData={quoteData}
+          token={token}
+        />
       )}
     </>
   );

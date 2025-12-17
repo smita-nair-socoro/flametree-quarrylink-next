@@ -15,22 +15,30 @@ import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import QuoteExpired from './quote-expired';
 import { PublicQuoteLinkResponse } from '@/lib/types/quotation';
 import { transformQuoteData } from './types/quote-transformer';
+import { useUpdatePublicQuoteStatus } from '@/lib/api/quotation';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
   quoteData?: PublicQuoteLinkResponse;
+  token: string;
 };
 
 export default function QuoteReviewDocument({
   quoteId,
   quoteData,
+  token,
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+
+  // Mutation hook for updating quote status
+  const { mutate: updateQuoteStatus, isPending: isUpdatingStatus } =
+    useUpdatePublicQuoteStatus();
 
   // Use API data if available, otherwise fall back to mock data
   const quotationData = quoteData
@@ -232,17 +240,42 @@ export default function QuoteReviewDocument({
 
   const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.APPROVED);
-    setNavbarStatus(QuoteStatus.APPROVED);
 
-    setApproveDialogOpen(false);
+    updateQuoteStatus(
+      { status: 'APPROVED', token },
+      {
+        onSuccess: () => {
+          setQuoteStatus(QuoteStatus.APPROVED);
+          setNavbarStatus(QuoteStatus.APPROVED);
+          setApproveDialogOpen(false);
+          notifySuccess('Quote approved successfully');
+        },
+        onError: (error) => {
+          console.error('Failed to approve quote:', error);
+          notifyError(extractErrorMessage(error));
+        },
+      }
+    );
   };
 
   const handleDecline = async () => {
     console.log('Decline quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.DECLINED);
-    setNavbarStatus(QuoteStatus.DECLINED);
-    setDeclineDialogOpen(false);
+
+    updateQuoteStatus(
+      { status: 'DECLINED', token },
+      {
+        onSuccess: () => {
+          setQuoteStatus(QuoteStatus.DECLINED);
+          setNavbarStatus(QuoteStatus.DECLINED);
+          setDeclineDialogOpen(false);
+          notifySuccess('Quote declined successfully');
+        },
+        onError: (error) => {
+          console.error('Failed to decline quote:', error);
+          notifyError(extractErrorMessage(error));
+        },
+      }
+    );
   };
 
   return (
@@ -253,9 +286,10 @@ export default function QuoteReviewDocument({
         onOpenChangeAction={setApproveDialogOpen}
         title="Approve Quote"
         description={approveDialogDescription}
-        confirmText="Approve Quote"
+        confirmText={isUpdatingStatus ? 'Approving...' : 'Approve Quote'}
         confirmVariant="default"
         confirmCustomColor="#008236"
+        confirmDisabled={isUpdatingStatus}
         onConfirmAction={handleApprove}
       />
 
@@ -265,8 +299,9 @@ export default function QuoteReviewDocument({
         onOpenChangeAction={setDeclineDialogOpen}
         title="Decline Quote"
         description={declineDialogDescription}
-        confirmText="Decline Quote"
+        confirmText={isUpdatingStatus ? 'Declining...' : 'Decline Quote'}
         confirmVariant="destructive"
+        confirmDisabled={isUpdatingStatus}
         onConfirmAction={handleDecline}
       />
 

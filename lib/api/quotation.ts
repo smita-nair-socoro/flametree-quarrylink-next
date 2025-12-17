@@ -234,3 +234,25 @@ export const useDeleteQuoteItem = () => {
     },
   });
 };
+
+/**
+ * Mutation hook for updating public quote status (approve/decline).
+ * Used on the public quote review page where customers are not authenticated.
+ */
+export const useUpdatePublicQuoteStatus = () => {
+  return useMutation({
+    mutationFn: async ({
+      status,
+      token,
+    }: {
+      status: 'APPROVED' | 'DECLINED';
+      token: string;
+    }) => {
+      const response = await APIClient.quotations.updatePublicQuoteStatus(
+        status,
+        token
+      );
+      return response;
+    },
+  });
+};

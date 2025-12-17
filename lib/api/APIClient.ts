@@ -576,6 +576,42 @@ export const APIClient = {
       const data = (await response.json()) as PublicQuoteLinkResponse;
       return data;
     },
+    updatePublicQuoteStatus: async (
+      status: 'APPROVED' | 'DECLINED',
+      token: string
+    ) => {
+      const apiBase = baseUrl();
+      if (!apiBase) {
+        throw new Error(
+          'Missing API base URL for public quote status update request'
+        );
+      }
+
+      const url = `${apiBase}/socoro/quarrylink/api/quote/public/link/${status}?token=${encodeURIComponent(
+        token
+      )}`;
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          Accept: '*/*',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(
+          `Failed to update public quote status: ${response.status} ${response.statusText} ${errorText}`
+        );
+      }
+
+      if (response.status === 204) {
+        return {};
+      }
+
+      const data = await response.json();
+      return data;
+    },
     getAll: async (params?: {
       page?: number;
       pageSize?: number;
