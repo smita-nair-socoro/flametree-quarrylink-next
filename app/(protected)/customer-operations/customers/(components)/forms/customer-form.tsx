@@ -31,6 +31,8 @@ import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { delay } from '@/lib/utils/time';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { useQuery } from '@tanstack/react-query';
+import { UsersListQueryOptions } from '@/lib/api/user';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -52,6 +54,17 @@ export default function CustomerForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedCustomer = useSelectedCustomer();
+
+  // Fetch users (account managers)
+  const { data: users = [] } = useQuery(UsersListQueryOptions());
+  const accountManagerOptions = React.useMemo(
+    () =>
+      users.map((user) => ({
+        label: user.name,
+        value: user.sub,
+      })),
+    [users]
+  );
 
   // Initialize states with selected customer data only when editing, defaults otherwise
   const [selectedCustomerType, setSelectedCustomerType] =
@@ -113,7 +126,9 @@ export default function CustomerForm({
         ? selectedCustomer?.paymentTermType || 'of the following month'
         : 'of the following month',
       payment_terms_day: isEditing ? selectedCustomer?.invoiceDueDate || 0 : 0,
-      account_manager: isEditing ? selectedCustomer?.accountManager || '' : '',
+      account_manager: isEditing
+        ? selectedCustomer?.accountManagerSub || ''
+        : '',
       billing_address: isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : '',
       created_at: undefined,
       updated_at: undefined,
@@ -174,7 +189,7 @@ export default function CustomerForm({
           selectedCustomer.paymentTermType === 'N/A'
             ? ''
             : selectedCustomer.paymentTermType,
-        account_manager: selectedCustomer.accountManager,
+        account_manager: selectedCustomer.accountManagerSub,
         billing_address: '1 Scott Street Pyrmont, NSW, 2009',
         created_at: selectedCustomer.createdAt
           ? new Date(selectedCustomer.createdAt)
@@ -221,14 +236,28 @@ export default function CustomerForm({
     { label: 'of the current month', value: 'OFCURRENTMONTH' },
   ];
 
-  const accountManagerOptions = [
-    { label: 'Alice', value: 'Alice' },
-    { label: 'Charlie', value: 'Charlie' },
-    { label: 'Bob', value: 'Bob' },
-    { label: 'David', value: 'David' },
-    { label: 'Jay', value: 'Jay' },
-    { label: 'Armin', value: 'Armin' },
-  ]; // TODO: get account manager
+  // If older customer records stored the manager name (not sub), map it when users load.
+  React.useEffect(() => {
+    if (
+      !isEditing ||
+      !selectedCustomer?.accountManagerSub ||
+      users.length === 0
+    ) {
+      return;
+    }
+
+    const currentValue = customerForm.getValues('account_manager') || '';
+    const subSet = new Set(users.map((u) => u.sub));
+    if (currentValue && subSet.has(currentValue)) return;
+
+    const matched =
+      users.find((u) => u.sub === selectedCustomer.accountManagerSub) ||
+      users.find((u) => u.name === selectedCustomer.accountManagerSub);
+
+    if (matched?.sub) {
+      customerForm.setValue('account_manager', matched.sub);
+    }
+  }, [isEditing, selectedCustomer, users, customerForm]);
 
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
     console.log('onSubmit function called!');
@@ -278,7 +307,7 @@ export default function CustomerForm({
           creditLimit === 0 ? 0 : Math.round(Number(creditLimit || 0) * 100),
         paymentTermsDay: paymentTermsDay,
         paymentTermsPeriod: paymentTermsPeriod,
-        accountManager: values.account_manager,
+        accountManagerSub: values.account_manager,
         customerStatus: 'ACTIVE',
         jobsCount: 0,
         version: 0,
@@ -317,7 +346,10 @@ export default function CustomerForm({
       if (isDuplicateEmail) {
         const msg = `Duplicate business email "${values.business_email}" already exists.`;
         notifyError(msg, { duration: 2000 });
-        customerForm.setError('business_email', { type: 'manual', message: msg });
+        customerForm.setError('business_email', {
+          type: 'manual',
+          message: msg,
+        });
         return;
       }
 

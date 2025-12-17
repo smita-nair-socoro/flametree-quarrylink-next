@@ -120,7 +120,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
   },
   {
     id: 'account_manager',
-    accessorFn: (row) => row.accountManager,
+    accessorFn: (row) => row.accountManagerName,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Account Manager" />

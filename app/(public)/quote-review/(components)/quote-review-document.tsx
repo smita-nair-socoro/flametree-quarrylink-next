@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -16,41 +15,45 @@ import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import QuoteExpired from './quote-expired';
-import { parseQuotePayload, parseStatusParam } from './types/quote-payload';
+import { PublicQuoteLinkResponse } from '@/lib/types/quotation';
+import { transformQuoteData } from './types/quote-transformer';
+import { useUpdatePublicQuoteStatus } from '@/lib/api/quotation';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
+  quoteData?: PublicQuoteLinkResponse;
+  token: string;
 };
 
 export default function QuoteReviewDocument({
   quoteId,
+  quoteData,
+  token,
 }: QuoteReviewDocumentProps) {
-  const searchParams = useSearchParams();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+
+  // Mutation hook for updating quote status
+  const { mutate: updateQuoteStatus, isPending: isUpdatingStatus } =
+    useUpdatePublicQuoteStatus();
+
+  // Use API data if available, otherwise fall back to mock data
+  const quotationData = quoteData
+    ? transformQuoteData(quoteData)
+    : mockQuotationData;
+
+  // Get status directly from the transformed quotation data
+  const currentQuoteStatus = quotationData.navbar.status;
+
+  // State for quote status (will be updated when user approves/declines)
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
-    QuoteStatus.PENDING
+    currentQuoteStatus
   );
-
-  // TEMPORARY: State to force showing expired page for UI/UX testing
-  const [showExpiredPage, setShowExpiredPage] = useState(false);
-
-  const quotationData = mockQuotationData;
-
-  // Parse payload and status parameters
-  const payloadParam = searchParams.get('payload');
-  const { currentQuoteStatus: parsedStatus, parsedPayload } = parseQuotePayload(
-    payloadParam,
-    quotationData.navbar.status
-  );
-
-  const statusParam = searchParams.get('status');
-  const currentQuoteStatus = parseStatusParam(statusParam, parsedStatus);
 
   // State for navbar status (will be updated when user approves/declines)
-  // Note: All hooks must be called before any conditional returns (React Hooks rules)
   const [navbarStatus, setNavbarStatus] =
     useState<QuoteStatus>(currentQuoteStatus);
 
@@ -206,11 +209,10 @@ export default function QuoteReviewDocument({
   }, [quotationData]);
 
   // Check if quote is expired - show expired page
-  // TEMPORARY: Also check showExpiredPage state for UI/UX testing
-  if (currentQuoteStatus === QuoteStatus.EXPIRED || showExpiredPage) {
-    // Get account manager email from payload or mock data
-    const accountManagerEmail = parsedPayload?.account_manager_email;
-    const businessEmail = parsedPayload?.business_email;
+  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+    // Get email information from API data or footer fallback
+    const accountManagerEmail = undefined; // Account manager email not available in current API
+    const businessEmail = quotationData.footer.email;
     return (
       <QuoteExpired
         accountManagerEmail={accountManagerEmail}
@@ -238,17 +240,42 @@ export default function QuoteReviewDocument({
 
   const handleApprove = async () => {
     console.log('Approve quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.APPROVED);
-    setNavbarStatus(QuoteStatus.APPROVED);
 
-    setApproveDialogOpen(false);
+    updateQuoteStatus(
+      { status: 'APPROVED', token },
+      {
+        onSuccess: () => {
+          setQuoteStatus(QuoteStatus.APPROVED);
+          setNavbarStatus(QuoteStatus.APPROVED);
+          setApproveDialogOpen(false);
+          notifySuccess('Quote approved successfully');
+        },
+        onError: (error) => {
+          console.error('Failed to approve quote:', error);
+          notifyError(extractErrorMessage(error));
+        },
+      }
+    );
   };
 
   const handleDecline = async () => {
     console.log('Decline quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.DECLINED);
-    setNavbarStatus(QuoteStatus.DECLINED);
-    setDeclineDialogOpen(false);
+
+    updateQuoteStatus(
+      { status: 'DECLINED', token },
+      {
+        onSuccess: () => {
+          setQuoteStatus(QuoteStatus.DECLINED);
+          setNavbarStatus(QuoteStatus.DECLINED);
+          setDeclineDialogOpen(false);
+          notifySuccess('Quote declined successfully');
+        },
+        onError: (error) => {
+          console.error('Failed to decline quote:', error);
+          notifyError(extractErrorMessage(error));
+        },
+      }
+    );
   };
 
   return (
@@ -259,9 +286,10 @@ export default function QuoteReviewDocument({
         onOpenChangeAction={setApproveDialogOpen}
         title="Approve Quote"
         description={approveDialogDescription}
-        confirmText="Approve Quote"
+        confirmText={isUpdatingStatus ? 'Approving...' : 'Approve Quote'}
         confirmVariant="default"
         confirmCustomColor="#008236"
+        confirmDisabled={isUpdatingStatus}
         onConfirmAction={handleApprove}
       />
 
@@ -271,27 +299,15 @@ export default function QuoteReviewDocument({
         onOpenChangeAction={setDeclineDialogOpen}
         title="Decline Quote"
         description={declineDialogDescription}
-        confirmText="Decline Quote"
+        confirmText={isUpdatingStatus ? 'Declining...' : 'Decline Quote'}
         confirmVariant="destructive"
+        confirmDisabled={isUpdatingStatus}
         onConfirmAction={handleDecline}
       />
 
       {/* Main Document */}
       <div className="min-h-screen bg-gray-100 p-4 print:px-0 print:py-0">
         <div className="max-w-[960px] mx-auto bg-white">
-          {/* TEMPORARY: Testing button for UI/UX to view Expired page */}
-          <div className="bg-yellow-100 border-2 border-yellow-400 p-4 m-4 rounded-lg print:hidden">
-            <p className="text-sm font-semibold text-yellow-800 mb-2">
-              🧪 Development Testing Controls
-            </p>
-            <button
-              onClick={() => setShowExpiredPage(!showExpiredPage)}
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium"
-            >
-              {showExpiredPage ? '← Back to Quote' : 'View Expired Page →'}
-            </button>
-          </div>
-
           {/* Navbar */}
           <QuoteNavbar
             {...quotationData.navbar}

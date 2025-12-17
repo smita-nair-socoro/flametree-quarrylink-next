@@ -41,7 +41,8 @@ export interface CustomerDTO {
   creditLimit: number;
   invoiceDueDate: number;
   paymentTermType: string;
-  accountManager: string;
+  accountManagerName: string;
+  accountManagerSub: string;
   customerStatus: CUSTOMER_STATUS;
   jobsCount: number;
   paymentType: string;

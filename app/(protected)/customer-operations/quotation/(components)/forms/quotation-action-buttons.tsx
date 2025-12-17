@@ -21,6 +21,7 @@ import {
   GitPullRequestCreateArrow,
   Timer,
   Archive,
+  Pencil,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
@@ -104,6 +105,13 @@ export function QuotationActionButtons({
                   Decline
                 </DropdownMenuItem>
               </>
+            )}
+
+            {quotation.status === 'DECLINED' && (
+              <DropdownMenuItem onClick={actions.convertToDraft}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Convert to Draft
+              </DropdownMenuItem>
             )}
 
             {quotation.status === 'APPROVED' && (
@@ -238,6 +246,18 @@ export function QuotationActionButtons({
               Approve Quote
             </Button>
           </>
+        )}
+
+        {quotation.status === 'DECLINED' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={actions.convertToDraft}
+            className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 hover:text-gray-900"
+          >
+            <Pencil className="h-4 w-4 mr-2" />
+            Convert to Draft
+          </Button>
         )}
 
         {quotation.status === 'APPROVED' && (

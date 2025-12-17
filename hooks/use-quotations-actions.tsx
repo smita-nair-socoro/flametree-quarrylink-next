@@ -22,6 +22,7 @@ import {
   QuotationWithLineItemsQueryOptions,
   useExtendExpiryDate,
   useUpdateQuotation,
+  useSendToCustomer,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -599,6 +600,7 @@ export function useQuotationActions(
 
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
+  const sendToCustomerMutation = useSendToCustomer();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -617,21 +619,16 @@ export function useQuotationActions(
   // Convert and transform detailed quotation data
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
-      // Generate mock email if backend doesn't provide customerEmail
+      // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
       let customerEmail = quotationDetailData.customerEmail;
-      if (!customerEmail && quotationDetailData.customerName) {
-        // Create mock email from customer name
-        const emailName = quotationDetailData.customerName
-          .toLowerCase()
-          .replace(/\s+/g, '.')
-          .replace(/[^a-z0-9.]/g, '');
-        customerEmail = `${emailName}@example.com`;
+      if (!customerEmail) {
+        customerEmail = 'charlie.peng@socoro.com.au';
       }
 
       const transformed = {
         ...quotationDetailData,
         status: quotationDetailData.quoteStatus,
-        customerEmail: customerEmail, // Use mock if backend doesn't provide
+        customerEmail: customerEmail,
       } as Quotation;
 
       return transformed;
@@ -688,28 +685,14 @@ export function useQuotationActions(
 
   // Extracted action handlers
   const handleSendToCustomer = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId) {
       notifyError(extractErrorMessage('Unable to send quotation to customer'));
       return;
     }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.PENDING,
-      });
+      await sendToCustomerMutation.mutateAsync(quotationId);
 
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
-        id: quotationId,
-      });
-
-      // Open preview window after successful status update
-      openQuotePreviewWindow(quotationId, resolvedQuotation);
       notifySuccess('Quotation sent to customer');
       setActiveDialog(null);
       setSelectedAction(null);
@@ -851,6 +834,8 @@ export function useQuotationActions(
 
     convertToJob: createDialogAction('convertToJob'),
 
+    convertToDraft: createDialogAction('convertToDraft'),
+
     extendExpiry: createDialogAction('extendExpiry'),
 
     view: () => {
@@ -903,9 +888,7 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit =
-    resolvedQuotation?.status === 'DRAFT' ||
-    resolvedQuotation?.status === 'DECLINED';
+  const canEdit = resolvedQuotation?.status === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
