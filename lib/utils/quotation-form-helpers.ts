@@ -14,7 +14,7 @@ export function quotationToFormValues(
     return {
       quoteType: 'DELIVERY' as const,
       customerId: 0,
-      accountManager: 0,
+      accountManagerSub: '',
       projectName: '',
       deliveryStartDate: undefined,
       deliveryWindowStart: '',
@@ -43,7 +43,7 @@ export function quotationToFormValues(
   return {
     quoteType: quotation?.quoteType || 'DELIVERY',
     customerId: quotation?.customerId || 0,
-    accountManager: quotation?.accountManager || 0,
+    accountManagerSub: quotation?.accountManagerSub || '',
     projectName: quotation?.projectName || '',
     deliveryStartDate: quotation?.deliveryStartDate
       ? new Date(quotation.deliveryStartDate)
@@ -54,17 +54,17 @@ export function quotationToFormValues(
       ? new Date(quotation.expiryDate)
       : undefined,
     deliveryAddress: quotation?.deliveryAddress?.formattedAddress || '',
-    phone: normalizePhoneNumber(quotation?.customerPhone),
-    email: quotation?.customerEmail || '',
+    phone: normalizePhoneNumber(
+      quotation?.customerDto?.phone || quotation?.customerPhone
+    ),
+    email: quotation?.customerDto?.email || quotation?.customerEmail || '',
     createdAt: quotation?.createdAt
       ? new Date(quotation.createdAt)
       : new Date(),
     updatedAt: quotation?.updatedAt
       ? new Date(quotation.updatedAt)
       : new Date(),
-    createdBy: isEditing
-      ? quotation?.createdBy || 'Unknown'
-      : 'Jay Woo Choi',
+    createdBy: isEditing ? quotation?.createdBy || 'Unknown' : 'Jaywoo Choi',
     lastModifiedBy: isEditing
       ? quotation?.lastModifiedBy || 'Unknown'
       : 'Armin Menhaji',

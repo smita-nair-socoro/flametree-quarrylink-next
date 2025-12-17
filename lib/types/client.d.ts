@@ -42,23 +42,19 @@ export interface BillingHistory {
 
 export interface Subscriptions {
   stripeCustomerId: string;
-  subscriptions: [
-    {
-      subscriptionId: string;
-      subscriptionPlan?: string;
-      status: string;
-      items: [
-        {
-          subscriptionItemId: string;
-          productId: string;
-          productName?: string;
-          quantity: number;
-          unitAmountInCents: number;
-          currency: string;
-        }
-      ];
-    }
-  ];
+  subscriptions: Array<{
+    subscriptionId: string;
+    subscriptionPlan?: string;
+    status: string;
+    items: Array<{
+      subscriptionItemId: string;
+      productId: string;
+      productName?: string;
+      quantity: number;
+      unitAmountInCents: number;
+      currency: string;
+    }>;
+  }>;
 }
 
 export interface Invoice {

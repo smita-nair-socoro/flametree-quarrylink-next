@@ -15,7 +15,7 @@ export interface QuotationDTO {
   customerEmail: string;
   customerPhone: string;
   customerDto: CustomerDTO;
-  accountManager: number;
+  accountManagerSub: string;
   accountManagerName: string;
   projectName: string;
   quoteStatus: QuoteStatus;
@@ -52,7 +52,7 @@ export interface Quotation {
   customerEmail: string;
   customerPhone: string;
   customerDto: CustomerDTO;
-  accountManager: number;
+  accountManagerSub: string;
   accountManagerName: string;
   projectName: string;
   status: QuoteStatus;
@@ -135,4 +135,74 @@ export interface quarrySupplierProductDetail {
   quarrySupplierId: number;
   supplierProductName: string;
   supplierProductCode: string;
+}
+
+export interface StripeTenantDetailsSnapshot {
+  tenantName: string;
+  businessName: string;
+  billingAddress: string;
+  website: string;
+  email: string;
+  contactNumber: string;
+}
+
+export interface PublicQuoteLinkResponse {
+  quoteDto: QuotationDTO;
+  stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
+}
+
+export interface QuotationDisplayData {
+  navbar: {
+    quoteNumber: string;
+    dateIssued: string;
+    validUntil: string;
+    accountManager: string;
+    status: QuoteStatus;
+  };
+  customer: {
+    customerName: string;
+    email: string;
+    phone: string;
+    billingAddress: {
+      line1: string;
+      line2: string;
+      country: string;
+    };
+  };
+  project: {
+    type: QuoteType;
+    projectName: string;
+    deliveryAddress: string;
+    deliveryDate: string;
+    deliveryWindow: string;
+  };
+  products: Array<{
+    name: string;
+    code: string;
+    truckType: string;
+    capacity: string;
+    quantity: string;
+    totalPrice: number;
+  }>;
+  summary: {
+    totalProducts: number;
+    totalQuantity: string;
+    estimatedDelivery: string;
+    termsAndConditions: string[];
+    subtotal: number;
+    gst: number;
+    total: number;
+  };
+  proceedActions: {
+    validUntil: string;
+    accountManager: string;
+  };
+  footer: {
+    email: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2: string;
+    website: string;
+    businessName: string;
+  };
 }
