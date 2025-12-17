@@ -105,6 +105,8 @@ export default function CustomersPage() {
     isError,
   } = useQuery(CustomersListQueryOptions());
 
+  console.log(customersData);
+
   React.useEffect(() => {
     if (isError && error) {
       console.error('Customer API Error:', error);

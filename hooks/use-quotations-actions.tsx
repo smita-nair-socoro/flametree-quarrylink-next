@@ -834,6 +834,8 @@ export function useQuotationActions(
 
     convertToJob: createDialogAction('convertToJob'),
 
+    convertToDraft: createDialogAction('convertToDraft'),
+
     extendExpiry: createDialogAction('extendExpiry'),
 
     view: () => {
@@ -886,9 +888,7 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit =
-    resolvedQuotation?.status === 'DRAFT' ||
-    resolvedQuotation?.status === 'DECLINED';
+  const canEdit = resolvedQuotation?.status === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}

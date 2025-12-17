@@ -7,7 +7,7 @@ const timeWithoutZoneRegex =
 export const NewQuotationFormSchema = z.object({
   quoteType: z.string().nonempty({ message: 'Required' }),
   customerId: z.coerce.number().min(1, { message: 'Required' }),
-  accountManager: z.coerce.number().min(1, { message: 'Required' }),
+  accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),
   deliveryStartDate: z.date({ message: 'Required' }),
   deliveryWindowStart: z
