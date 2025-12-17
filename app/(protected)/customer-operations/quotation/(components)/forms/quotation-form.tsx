@@ -44,7 +44,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   id?: number;
@@ -233,9 +236,16 @@ export default function QuotationForm({
       }
 
       // If we get here, all retries failed
-      const errorMessage = extractErrorMessage(lastError);
-      notifyError(`Failed to create quote: ${errorMessage}`);
-      console.error('Failed to create quote after retries:', lastError);
+      console.error('Error creating quotation after retries:', lastError);
+
+      // Extract normalized error response and message
+      const err = extractErrorResponse(lastError);
+      const extractedMessage = extractErrorMessage(lastError);
+      const messageFromErr = err?.message || extractedMessage;
+
+      notifyError(
+        messageFromErr || 'Failed to create quote. Please try again.'
+      );
     } else {
       // Update existing quotation - keep the original quote number
       const transformed = transformFormDataToQuoteDto(values, {
@@ -254,9 +264,17 @@ export default function QuotationForm({
         notifySuccess('Quote updated successfully');
         onCancel?.();
       } catch (error) {
-        const errorMessage = extractErrorMessage(error);
-        notifyError(`Failed to update quote: ${errorMessage}`);
-        console.error('Failed to update quote:', error);
+        console.error('Error updating quotation:', error);
+
+        // Extract normalized error response and message
+        const err = extractErrorResponse(error);
+        const extractedMessage = extractErrorMessage(error);
+        const messageFromErr = err?.message || extractedMessage;
+
+        // Fallback error using extracted message
+        notifyError(
+          messageFromErr || 'Failed to update quote. Please try again.'
+        );
       }
     }
   }
