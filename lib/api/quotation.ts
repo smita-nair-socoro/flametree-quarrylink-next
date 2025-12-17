@@ -6,7 +6,11 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { QuotationKeys } from './keys';
-import { QuotationDTO, QuotationLineItem } from '../types/quotation';
+import {
+  PublicQuoteLinkResponse,
+  QuotationDTO,
+  QuotationLineItem,
+} from '../types/quotation';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 
 export const QuotationsListQueryOptions = () =>
@@ -26,6 +30,14 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
     staleTime: 5_000,
     enabled: !!quotationId && quotationId > 0,
   });
+
+export const fetchPublicQuoteByToken = async (
+  token: string
+): Promise<PublicQuoteLinkResponse> => {
+  const response = await APIClient.quotations.getByPublicLinkToken(token);
+  console.log('[Quotation][public link] response:', response);
+  return response;
+};
 
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({
@@ -91,6 +103,29 @@ export const useExtendExpiryDate = () => {
   return useMutation({
     mutationFn: ({ id, expiryDate }: { id: number; expiryDate: Date }) =>
       APIClient.quotations.extendExpiryDate(id, expiryDate),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for sending a quotation to customer.
+ * Automatically invalidates the quotations list and detail cache on success.
+ */
+export const useSendToCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.quotations.sendToCustomer(id),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
@@ -196,6 +231,28 @@ export const useDeleteQuoteItem = () => {
         queryKey: [...QuotationKeys.detail(data.quoteId), 'with-line-items'],
       });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for updating public quote status (approve/decline).
+ * Used on the public quote review page where customers are not authenticated.
+ */
+export const useUpdatePublicQuoteStatus = () => {
+  return useMutation({
+    mutationFn: async ({
+      status,
+      token,
+    }: {
+      status: 'APPROVED' | 'DECLINED';
+      token: string;
+    }) => {
+      const response = await APIClient.quotations.updatePublicQuoteStatus(
+        status,
+        token
+      );
+      return response;
     },
   });
 };

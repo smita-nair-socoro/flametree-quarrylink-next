@@ -27,7 +27,7 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
   total,
 }) => {
   return (
-    <View style={styles.section}>
+    <View style={styles.section} wrap={false}>
       <View style={styles.separator} />
       <View style={styles.twoColumn}>
         {/* Left Column - Summary & Terms */}
