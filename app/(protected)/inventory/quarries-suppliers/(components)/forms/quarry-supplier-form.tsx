@@ -35,6 +35,7 @@ import {
 } from '@/app/stores/quarry-supplier-store';
 import { Quarry } from '@/lib/types/quarry';
 import { QuarryType } from '@/lib/types/quarry-enums';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 
 interface FormProps {
   id?: number;
@@ -271,13 +272,13 @@ export default function QuarrySupplierForm({
           name: values.name,
           quarrySupplierType: values.quarry_supplier_type,
           email: values.email,
-          phone: values.phone,
+          phone: formatPhoneNumber(values.phone),
           isActive: true,
           openingClosingInfo: values.opening_closing_info || '',
           notes: values.notes || '',
           weighbridgeInfo: values.weighbridge_info || '',
           contactPersonName: values.contact_person_name || '',
-          contactPersonPhone: values.contact_person_phone || '',
+          contactPersonPhone: formatPhoneNumber(values.contact_person_phone),
           contactPersonEmail: values.contact_person_email || '',
           ...(values.website && values.website.trim() !== ''
             ? {
