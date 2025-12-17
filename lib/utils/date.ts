@@ -133,3 +133,22 @@ export function toLocalDateTime(date: Date): string {
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}`;
 }
+
+// Format epoch seconds to date in format dd/mm/yyyy
+export const formatEpochDateDdMmYyyy = (epochSeconds?: number): string => {
+  if (!epochSeconds) return '-';
+  const d = new Date(epochSeconds * 1000);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+export const formatEpochMonthYear = (epochSeconds?: number): string => {
+  if (!epochSeconds) return '-';
+  const d = new Date(epochSeconds * 1000);
+  return new Intl.DateTimeFormat('en-AU', {
+    month: 'long',
+    year: 'numeric',
+  }).format(d);
+};
