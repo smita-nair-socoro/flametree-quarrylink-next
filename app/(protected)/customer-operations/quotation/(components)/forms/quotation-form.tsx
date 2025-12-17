@@ -123,6 +123,14 @@ export default function QuotationForm({
     }));
   }, [users]);
 
+  const getUserNameBySub = React.useCallback(
+    (subOrName?: string | null) => {
+      if (!subOrName) return '';
+      return users.find((u) => u.sub === subOrName)?.name || subOrName;
+    },
+    [users]
+  );
+
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
     const subscription = quotationForm.watch((value, { name }) => {
@@ -789,7 +797,8 @@ export default function QuotationForm({
                           Created By:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('createdBy') || 'Jay Woo Choi'}
+                          {getUserNameBySub(quotationForm.watch('createdBy')) ||
+                            'Jaywoo Choi'}
                         </p>
                       </div>
 
@@ -798,8 +807,9 @@ export default function QuotationForm({
                           Last Modified By:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('lastModifiedBy') ||
-                            'Jaywoo Choi'}
+                          {getUserNameBySub(
+                            quotationForm.watch('lastModifiedBy')
+                          ) || 'Jaywoo Choi'}
                         </p>
                       </div>
 
