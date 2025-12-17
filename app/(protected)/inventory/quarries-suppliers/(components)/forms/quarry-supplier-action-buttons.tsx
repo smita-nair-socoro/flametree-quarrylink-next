@@ -46,16 +46,16 @@ export function QuarrySupplierActionButtons({
       {confirmDialogs}
 
       <div className="inline-flex items-center rounded-md overflow-hidden">
-        {/* Archive button - only show when ACTIVE */}
+        {/* Delete button - only show when ACTIVE */}
         {isActive && (
           <Button
             variant="outline"
             size="sm"
-            onClick={actions.archive}
+            onClick={actions.delete}
             className="h-9 gap-2 rounded-r-none border-r-0"
           >
             <Archive className="h-4 w-4" />
-            Archive
+            Delete
           </Button>
         )}
 

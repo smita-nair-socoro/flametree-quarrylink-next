@@ -9,19 +9,37 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { useSupplierActions } from '@/hooks/use-supplier-actions';
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { useSupplierStore } from '@/app/stores/supplier-store';
 import { Separator } from '@/components/ui/separator';
 
 interface SupplierTableActionProps {
-  quarry: QuarriesWithProduct;
+  quarry: QuarrySupplierProduct;
+  productId?: number;
 }
 
-export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
+export function SupplierTableActions({
+  quarry,
+  productId,
+}: SupplierTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+  // Add productId to quarry data for the actions
+  const quarryWithProductId = React.useMemo(
+    () => ({
+      ...quarry,
+      productId: productId || quarry.productId,
+    }),
+    [quarry, productId]
+  );
+
+  // Support both direct id and nested quarry_supplier.id
+  const quarrySupplierId =
+    quarry?.quarrySupplierId ?? quarry?.quarrySupplier?.id;
+
   const { actions, confirmDialogs, viewDialog } = useSupplierActions(
-    quarry.id,
-    quarry
+    quarrySupplierId,
+    quarryWithProductId
   );
 
   const setSelectedSupplier = useSupplierStore(
@@ -29,13 +47,13 @@ export function SupplierTableActions({ quarry }: SupplierTableActionProps) {
   );
 
   const handleView = () => {
-    setSelectedSupplier(quarry);
+    setSelectedSupplier(quarryWithProductId);
     setDropdownOpen(false); // Close dropdown before opening modal
     actions.view();
   };
 
   const handleDeleteSupplier = () => {
-    setSelectedSupplier(quarry);
+    setSelectedSupplier(quarryWithProductId);
     setDropdownOpen(false); // Close dropdown before opening modal
     actions.delete();
   };

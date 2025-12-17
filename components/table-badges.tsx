@@ -87,8 +87,10 @@ export function TableBadges({
   variant = 'default',
 }: TableBadgesProps) {
   const all = Array.isArray(names) ? names : [names];
-  const visible = all.slice(0, visibleCount);
-  const hidden = all.slice(visibleCount);
+  // Filter out undefined, null, and empty strings
+  const filtered = all.filter((n) => n && typeof n === 'string' && n.trim());
+  const visible = filtered.slice(0, visibleCount);
+  const hidden = filtered.slice(visibleCount);
   return (
     <div className="flex items-center gap-1">
       {visible.map((n) => (
@@ -134,6 +136,30 @@ export function TableBadges({
           </TooltipContent>
         </Tooltip>
       )}
+    </div>
+  );
+}
+
+// Simplified badge component for PDF rendering
+// No tooltips, no array handling, just a single badge
+interface SimplePdfBadgeProps {
+  name: string;
+  variant?: 'default' | 'suburb';
+}
+
+export function SimplePdfBadge({
+  name,
+  variant = 'default',
+}: SimplePdfBadgeProps) {
+  return (
+    <div
+      className={cn(
+        'inline-block h-10 px-4 text-xl font-semibold border-2 rounded-lg uppercase',
+        getBadgeClassName(name, variant)
+      )}
+      style={{ lineHeight: '13.5px' }}
+    >
+      {name.replace(/_/g, ' ')}
     </div>
   );
 }

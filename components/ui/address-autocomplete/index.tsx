@@ -1,5 +1,5 @@
 'use client';
-import { FormMessages } from '../form-messages';
+// import { FormMessages } from '../form-messages';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -194,6 +194,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           country,
           lat,
           lng,
+          googlePlaceId: selectedPlaceId, // Store the Google Place ID
         };
 
         setAddress(formattedData);
@@ -215,7 +216,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const handleManualEntry = () => {
     // Pre-populate with search input if available
     if (searchInput.trim()) {
-      const updatedAddress = {
+      const updatedAddress: AddressType = {
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
@@ -244,6 +245,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       country: '',
       lat: 0,
       lng: 0,
+      googlePlaceId: '',
     };
     setAddress(resetAddress);
     // Notify react-hook-form of the change
@@ -256,7 +258,11 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     <>
       {selectedPlaceId !== '' || address.formattedAddress ? (
         <div className="flex items-center gap-2">
-          <Input value={address?.formattedAddress} disabled={readOnly} />
+          <Input
+            value={address?.formattedAddress}
+            readOnly
+            disabled={readOnly}
+          />
           <AddressDialog
             isLoading={detailsLoading}
             dialogTitle={dialogTitle}
@@ -320,9 +326,9 @@ interface CommonProps {
 function AddressAutoCompleteInput(props: CommonProps) {
   const {
     setSelectedPlaceId,
-    selectedPlaceId,
+    // selectedPlaceId,
     setIsOpenDialog,
-    showInlineError,
+    // showInlineError,
     searchInput,
     setSearchInput,
     placeholder,
@@ -437,13 +443,13 @@ function AddressAutoCompleteInput(props: CommonProps) {
           disabled={readOnly}
         />
       </div>
-      {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
+      {/* {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
         <FormMessages
           type="error"
           className="pt-1 text-sm"
           messages={['Select a valid address from the list']}
         />
-      )}
+      )} */}
       {isOpen && (
         <div className="relative animate-in fade-in-0 zoom-in-95 h-auto">
           <CommandList>

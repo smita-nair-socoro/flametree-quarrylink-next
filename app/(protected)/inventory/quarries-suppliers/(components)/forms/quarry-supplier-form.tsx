@@ -22,12 +22,19 @@ import { QuarrySupplierFormSchema } from './schemas/quarry-supplier-form-schema'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import { AddressType } from '@/lib/types/address';
+import { Address, AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
-import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-suppliers/(components)/quarry-subscription-actions';
+import { useCreateQuarry, useUpdateQuarry } from '@/lib/api/quarries';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import {
+  useSelectedQuarrySupplier,
+  useQuarrySupplierStore,
+} from '@/app/stores/quarry-supplier-store';
+import { Quarry } from '@/lib/types/quarry';
+import { QuarryType } from '@/lib/types/quarry-enums';
 
 interface FormProps {
   id?: number;
@@ -43,13 +50,23 @@ export default function QuarrySupplierForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
+
+  // Initialize mutation hooks for creating and updating quarry/supplier
+  const createQuarryMutation = useCreateQuarry();
+  const updateQuarryMutation = useUpdateQuarry();
+
+  // Get selected quarry/supplier from Zustand store
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
+  const setSelectedQuarrySupplier = useQuarrySupplierStore(
+    (state) => state.setSelectedQuarrySupplier
+  );
+
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
     React.useState(false);
-  const [pendingSubmission, setPendingSubmission] =
-    React.useState<z.infer<typeof QuarrySupplierFormSchema> | null>(null);
-  const [mockBillingCycle, setMockBillingCycle] =
-    React.useState<'monthly' | 'yearly'>('monthly');
+  const [pendingSubmission, setPendingSubmission] = React.useState<z.infer<
+    typeof QuarrySupplierFormSchema
+  > | null>(null);
+  const [mockBillingCycle] = React.useState<'monthly' | 'yearly'>('monthly');
   const subscriptionMock = React.useMemo(
     () => ({
       billingCycle: mockBillingCycle,
@@ -61,24 +78,42 @@ export default function QuarrySupplierForm({
     [mockBillingCycle]
   );
 
-  // Initialize states with selected quarry/supplier data only when editing, defaults otherwise
-  const [selectedType, setSelectedType] = React.useState<string>(
-    isEditing && selectedQuarrySupplier?.type
-      ? selectedQuarrySupplier.type
-      : 'QUARRY'
+  // Initialize states with selected quarry/supplier data
+  const [selectedType, setSelectedType] = React.useState<QuarryType>(
+    selectedQuarrySupplier?.quarry_supplier_type || QuarryType.QUARRY
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const [address, setAddress] = React.useState<AddressType>({
-    address1: '',
-    address2: '',
-    formattedAddress: '',
-    city: '',
-    region: '',
-    postalCode: '',
-    country: '',
-    lat: 0,
-    lng: 0,
+  // Address state for AddressAutoComplete (uses AddressType)
+  // Initialize with backend data when editing
+  const [address, setAddress] = React.useState<AddressType>(() => {
+    if (isEditing && selectedQuarrySupplier?.address) {
+      const backendAddress = selectedQuarrySupplier.address;
+      return {
+        address1: backendAddress.streetDetailsPrimary || '',
+        address2: backendAddress.streetDetailsOptional || '',
+        formattedAddress: backendAddress.formattedAddress || '',
+        city: backendAddress.city || '',
+        region: backendAddress.state || '',
+        postalCode: backendAddress.postcode || '',
+        country: backendAddress.country || '',
+        lat: backendAddress.latitude || 0,
+        lng: backendAddress.longitude || 0,
+        googlePlaceId: backendAddress.googlePlaceId || '',
+      };
+    }
+    return {
+      address1: '',
+      address2: '',
+      formattedAddress: '',
+      city: '',
+      region: '',
+      postalCode: '',
+      country: '',
+      lat: 0,
+      lng: 0,
+      googlePlaceId: '',
+    };
   });
   const [searchInput, setSearchInput] = React.useState('');
 
@@ -86,85 +121,100 @@ export default function QuarrySupplierForm({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
     defaultValues: {
-      type: 'QUARRY',
-      name: '',
-      website: '',
-      email: '',
-      phone: '',
-      address: '', // Will be handled separately for address autocomplete
-      contact_person_name: isEditing
-        ? selectedQuarrySupplier?.contact_person_name || ''
-        : '',
-      contact_person_phone: isEditing
-        ? selectedQuarrySupplier?.contact_person_phone || ''
-        : '',
-      contact_person_email: isEditing
-        ? selectedQuarrySupplier?.contact_person_email || ''
-        : '',
-      opening_closing_times: isEditing
-        ? selectedQuarrySupplier?.opening_closing_times || ''
-        : '',
-      notes: isEditing ? selectedQuarrySupplier?.notes || '' : '',
-      created_at: undefined,
-      updated_at: undefined,
-      created_by: 'current_user',
-      last_modified_by: 'current_user',
+      quarry_supplier_type:
+        selectedQuarrySupplier?.quarry_supplier_type || 'QUARRY',
+      name: selectedQuarrySupplier?.name || '',
+      website:
+        selectedQuarrySupplier?.website === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.website || '',
+      email: selectedQuarrySupplier?.email || '',
+      phone: selectedQuarrySupplier?.phone || '',
+      address: selectedQuarrySupplier?.address?.formattedAddress || '',
+      contact_person_name:
+        selectedQuarrySupplier?.contact_person_name === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.contact_person_name || '',
+      contact_person_phone:
+        selectedQuarrySupplier?.contact_person_phone === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.contact_person_phone || '',
+      contact_person_email:
+        selectedQuarrySupplier?.contact_person_email === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.contact_person_email || '',
+      opening_closing_info:
+        selectedQuarrySupplier?.opening_closing_info === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.opening_closing_info || '',
+      weighbridge_info:
+        selectedQuarrySupplier?.weighbridge_info === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.weighbridge_info || '',
+      notes:
+        selectedQuarrySupplier?.notes === 'N/A'
+          ? ''
+          : selectedQuarrySupplier?.notes || '',
+      created_at: selectedQuarrySupplier?.created_at
+        ? new Date(selectedQuarrySupplier.created_at)
+        : undefined,
+      updated_at: selectedQuarrySupplier?.updated_at
+        ? new Date(selectedQuarrySupplier.updated_at)
+        : undefined,
+      created_by: selectedQuarrySupplier?.created_by || 'current_user',
+      last_modified_by:
+        selectedQuarrySupplier?.last_modified_by || 'current_user',
     },
   });
 
+  // Clear selected quarry/supplier and reset form when creating new (not editing)
+  React.useEffect(() => {
+    if (!isEditing) {
+      setSelectedQuarrySupplier(null);
+      // Reset form to empty values
+      quarrySupplierForm.reset({
+        quarry_supplier_type: QuarryType.QUARRY,
+        name: '',
+        website: '',
+        email: '',
+        phone: '',
+        address: '',
+        contact_person_name: '',
+        contact_person_phone: '',
+        contact_person_email: '',
+        opening_closing_info: '',
+        weighbridge_info: '',
+        notes: '',
+        created_by: 'current_user',
+        last_modified_by: 'current_user',
+      });
+      // Reset address state
+      setAddress({
+        address1: '',
+        address2: '',
+        formattedAddress: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        lat: 0,
+        lng: 0,
+        googlePlaceId: '',
+      });
+      // Reset search input
+      setSearchInput('');
+      // Reset selected type
+      setSelectedType(QuarryType.QUARRY);
+    }
+  }, [isEditing, setSelectedQuarrySupplier, quarrySupplierForm]);
+
   const handleTypeChange = (value: string) => {
-    setSelectedType(value);
-    quarrySupplierForm.setValue('type', value as 'QUARRY' | 'SUPPLIER');
+    const quarryType = value as QuarryType;
+    setSelectedType(quarryType);
+    quarrySupplierForm.setValue('quarry_supplier_type', quarryType);
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
   };
-
-  // Effect to reset form when selected quarry/supplier changes
-  React.useEffect(() => {
-    if (selectedQuarrySupplier && isEditing) {
-      setSelectedType(selectedQuarrySupplier.type);
-
-      quarrySupplierForm.reset({
-        type: selectedQuarrySupplier.type,
-        name: selectedQuarrySupplier.name || '',
-        website:
-          selectedQuarrySupplier.website === 'N/A'
-            ? ''
-            : selectedQuarrySupplier.website || '',
-        email: selectedQuarrySupplier.email || '',
-        phone: selectedQuarrySupplier.phone || '',
-        address: '', // Will be handled separately
-        contact_person_name:
-          selectedQuarrySupplier.contact_person_name === 'N/A'
-            ? ''
-            : selectedQuarrySupplier.contact_person_name || '',
-        contact_person_phone:
-          selectedQuarrySupplier.contact_person_phone === 'N/A'
-            ? ''
-            : selectedQuarrySupplier.contact_person_phone || '',
-        contact_person_email:
-          selectedQuarrySupplier.contact_person_email === 'N/A'
-            ? ''
-            : selectedQuarrySupplier.contact_person_email || '',
-        opening_closing_times:
-          selectedQuarrySupplier.opening_closing_times === 'N/A'
-            ? ''
-            : selectedQuarrySupplier.opening_closing_times || '',
-        notes:
-          selectedQuarrySupplier.notes === 'N/A'
-            ? ''
-            : selectedQuarrySupplier.notes || '',
-        created_at: selectedQuarrySupplier.created_at
-          ? new Date(selectedQuarrySupplier.created_at)
-          : undefined,
-        updated_at: selectedQuarrySupplier.updated_at
-          ? new Date(selectedQuarrySupplier.updated_at)
-          : undefined,
-        created_by: selectedQuarrySupplier.created_by,
-        last_modified_by: selectedQuarrySupplier.last_modified_by,
-      });
-    }
-  }, [selectedQuarrySupplier, isEditing, quarrySupplierForm]);
 
   // Effect to handle address changes
   React.useEffect(() => {
@@ -189,48 +239,116 @@ export default function QuarrySupplierForm({
 
   const submitQuarrySupplier = React.useCallback(
     async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
-      console.log('onSubmit function called!');
-      console.log('Quarry/Supplier Form Values:', values);
-
       setIsSubmitting(true);
+      console.log('values are', values);
 
-      const currentTimestamp = new Date().toISOString();
-      const quarrySupplierData = {
-        id: 0, // Will be generated by backend
-        type: values.type,
-        name: values.name,
-        website: values.website || '',
-        email: values.email || '',
-        phone: values.phone || '',
-        address: values.address,
-        contactPersonName: values.contact_person_name || '',
-        contactPersonPhone: values.contact_person_phone || '',
-        contactPersonEmail: values.contact_person_email || '',
-        openingClosingTimes: values.opening_closing_times || '',
-        weighbridgeInfo: values.weighbridge_info || '',
-        notes: values.notes || '',
-        status: 'ACTIVE',
-        version: 0,
-        isDeleted: false,
-        createdBy: 'current_user',
-        createdAt: currentTimestamp,
-        updatedAt: currentTimestamp,
-        lastModifiedBy: 'current_user',
-      };
+      try {
+        // Build address data from current address state
+        const addressData: Address = {
+          // Include id and version only when editing with existing address
+          ...(isEditing && selectedQuarrySupplier?.address?.id
+            ? { id: selectedQuarrySupplier.address.id }
+            : {}),
+          ...(isEditing &&
+          selectedQuarrySupplier?.address?.version !== undefined
+            ? { version: selectedQuarrySupplier.address.version }
+            : {}),
+          googlePlaceId: address.googlePlaceId || '',
+          formattedAddress: address.formattedAddress || '',
+          streetDetailsPrimary: address.address1 || '',
+          streetDetailsOptional: address.address2 || '',
+          city: address.city || '',
+          suburb: address.city || '',
+          state: address.region || '',
+          postcode: address.postalCode || '',
+          country: address.country || '',
+          latitude: address.lat || 0,
+          longitude: address.lng || 0,
+          version: selectedQuarrySupplier?.address?.version || 0,
+        } as Address;
 
-      console.log('Quarry/Supplier Data:', quarrySupplierData);
+        const quarrySupplierData = {
+          name: values.name,
+          quarrySupplierType: values.quarry_supplier_type,
+          email: values.email,
+          phone: values.phone,
+          isActive: true,
+          openingClosingInfo: values.opening_closing_info || '',
+          notes: values.notes || '',
+          weighbridgeInfo: values.weighbridge_info || '',
+          contactPersonName: values.contact_person_name || '',
+          contactPersonPhone: values.contact_person_phone || '',
+          contactPersonEmail: values.contact_person_email || '',
+          ...(values.website && values.website.trim() !== ''
+            ? {
+                website: values.website.trim().startsWith('http')
+                  ? values.website.trim()
+                  : `https://${values.website.trim()}`,
+              }
+            : {}),
+          address: addressData,
+          // Only include version when editing (for optimistic locking)
+          ...(isEditing && selectedQuarrySupplier?.version !== undefined
+            ? { version: selectedQuarrySupplier.version }
+            : {}),
+          version: selectedQuarrySupplier?.version || 0,
+        } as unknown as Quarry;
 
-      // Simulate API call delay (remove this in production)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+        if (isEditing && id) {
+          // Update existing quarry/supplier
 
-      setIsSubmitting(false);
+          await updateQuarryMutation.mutateAsync({
+            id,
+            data: quarrySupplierData,
+          });
+
+          notifySuccess(
+            `${
+              values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
+            } updated successfully!`
+          );
+        } else {
+          // Create new quarry/supplier
+          await createQuarryMutation.mutateAsync(quarrySupplierData);
+
+          notifySuccess(
+            `${
+              values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
+            } created successfully!`
+          );
+        }
+
+        // Close the form dialog on success
+        if (onCancel) {
+          onCancel();
+        }
+      } catch (error) {
+        notifyError(
+          error instanceof Error
+            ? error.message
+            : `Failed to ${isEditing ? 'update' : 'create'} ${
+                values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
+              }`
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
     },
-    []
+    [
+      createQuarryMutation,
+      updateQuarryMutation,
+      onCancel,
+      isEditing,
+      id,
+      selectedQuarrySupplier?.version,
+      selectedQuarrySupplier?.address,
+      address,
+    ]
   );
 
   const willExceedQuarryLimit = React.useCallback(() => {
     if (isEditing) return false;
-    if (selectedType !== 'QUARRY') return false;
+    if (selectedType !== QuarryType.QUARRY) return false;
     return (
       subscriptionMock.currentOwnedQuarries + 1 > subscriptionMock.planLimit
     );
@@ -257,19 +375,16 @@ export default function QuarrySupplierForm({
     });
   }, [pendingSubmission, submitQuarrySupplier]);
 
-  const handleSubscriptionDialogToggle = React.useCallback(
-    (open: boolean) => {
-      setIsSubscriptionDialogOpen(open);
-      if (!open) {
-        setPendingSubmission(null);
-      }
-    },
-    []
-  );
+  const handleSubscriptionDialogToggle = React.useCallback((open: boolean) => {
+    setIsSubscriptionDialogOpen(open);
+    if (!open) {
+      setPendingSubmission(null);
+    }
+  }, []);
 
   const watchedQuarryName = quarrySupplierForm.watch('name');
   const locationDescriptor =
-    selectedType === 'QUARRY' ? 'Owned Location' : 'Supplier';
+    selectedType === QuarryType.QUARRY ? 'Owned Location' : 'Supplier';
 
   return (
     <div className="w-full relative">
@@ -284,7 +399,8 @@ export default function QuarrySupplierForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding {selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}...
+              Adding{' '}
+              {selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}...
             </p>
           </div>
         </div>
@@ -313,7 +429,7 @@ export default function QuarrySupplierForm({
           {/* Type Selection */}
           <FormField
             control={quarrySupplierForm.control}
-            name="type"
+            name="quarry_supplier_type"
             render={({ field }) => (
               <FormItem className="col-span-1 col-start-1">
                 <FormLabel className="mb-3">Type*</FormLabel>
@@ -346,32 +462,6 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          <div className="col-span-full rounded-xl border border-dashed border-[#D0D5DD] bg-[#F9FAFB] p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium text-[#101828]">
-                  Subscription Billing Cycle (Mock)
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Toggle to preview the payment summary the customer would see.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                {(['monthly', 'yearly'] as const).map((cycle) => (
-                  <Button
-                    key={cycle}
-                    type="button"
-                    variant={mockBillingCycle === cycle ? 'default' : 'outline'}
-                    className="px-4"
-                    onClick={() => setMockBillingCycle(cycle)}
-                  >
-                    {cycle === 'monthly' ? 'Monthly' : 'Yearly'}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
-
           <Separator className="col-span-full my-2 mb-5" />
 
           {/* Section: Basic Information */}
@@ -394,7 +484,7 @@ export default function QuarrySupplierForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {selectedType === 'QUARRY'
+                    {selectedType === QuarryType.QUARRY
                       ? 'Quarry Name*'
                       : 'Supplier Name*'}
                   </FormLabel>
@@ -402,7 +492,7 @@ export default function QuarrySupplierForm({
                     <Input
                       className="w-full"
                       placeholder={
-                        selectedType === 'QUARRY'
+                        selectedType === QuarryType.QUARRY
                           ? 'Enter quarry name'
                           : 'Enter supplier name'
                       }
@@ -584,7 +674,7 @@ export default function QuarrySupplierForm({
           {/* Opening & Closing Times */}
           <FormField
             control={quarrySupplierForm.control}
-            name="opening_closing_times"
+            name="opening_closing_info"
             render={({ field }) => (
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'}
@@ -602,7 +692,7 @@ export default function QuarrySupplierForm({
             )}
           />
 
-          {/* Weightbridge Info */}
+          {/* Weighbridge Info */}
           <FormField
             control={quarrySupplierForm.control}
             name="weighbridge_info"
@@ -610,11 +700,11 @@ export default function QuarrySupplierForm({
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'}
               >
-                <FormLabel>Weightbridge Info</FormLabel>
+                <FormLabel>Weighbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
                     className="w-full min-h-[80px]"
-                    placeholder="Enter weightbridge details"
+                    placeholder="Enter weighbridge details"
                     {...field}
                   />
                 </FormControl>
@@ -644,18 +734,13 @@ export default function QuarrySupplierForm({
           <Separator className="col-span-full my-2 mb-5" />
           {/* Audit Information */}
           {isEditing && (
-            <div className="col-span-full space-y-6">
+            <div className="col-span-full space-y-6 mt-10 mb-4">
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div
-                className={cn(
-                  'grid gap-3',
-                  isDesktop ? 'grid-cols-2 gap-2 max-w-3xl' : 'grid-cols-1'
-                )}
-              >
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Create By:
+                  <p className="text-sm font-semibold text-foreground">
+                    Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {selectedQuarrySupplier?.created_by || 'N/A'}
@@ -663,7 +748,7 @@ export default function QuarrySupplierForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -672,8 +757,8 @@ export default function QuarrySupplierForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Create Date:
+                  <p className="text-sm font-semibold text-foreground">
+                    Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {selectedQuarrySupplier?.created_at
@@ -689,7 +774,7 @@ export default function QuarrySupplierForm({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -722,7 +807,9 @@ export default function QuarrySupplierForm({
               >
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+                  : `Add ${
+                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                    }`}
               </Button>
             </div>
           )}
@@ -732,7 +819,9 @@ export default function QuarrySupplierForm({
               <Button type="submit" className="cursor-pointer">
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+                  : `Add ${
+                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                    }`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

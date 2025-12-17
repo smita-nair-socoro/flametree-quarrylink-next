@@ -22,27 +22,46 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { ChangePasswordSchema } from './schemas/change-password-schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import rawJson from '@/lib/tests/personalInformationResponseData.json';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
-import { User } from '@/lib/types/user';
-import { getRelativeTime } from '@/lib/utils/date';
-
-const convertedJson = convertKeysToSnakeCase(rawJson);
-const { full_name, email, phone, created_at, last_login_at } =
-  convertedJson as User;
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { useAuth } from '@/hooks/use-auth';
+import { useQuery } from '@tanstack/react-query';
+import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
+import { delay } from '@/lib/utils/time';
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { user: authUser } = useAuth();
+
+  // Fetch current user's detailed data using their Cognito sub
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
+    ...UserDetailQueryOptions(authUser?.userId || ''),
+    enabled: !!authUser?.userId,
+  });
+
+  // Use update user mutation
+  const updateUserMutation = useUpdateUser();
 
   const settingsForm = useForm<z.infer<typeof PersonalInformationSchema>>({
     resolver: zodResolver(PersonalInformationSchema),
     defaultValues: {
-      full_name: full_name,
-      phone: phone,
-      created_at: '2025-10-29T13:00:00.000Z',
-      last_login_at: '2025-10-29T13:00:00.000Z',
+      full_name: '',
+      phone: '',
+      created_at: '',
+      last_login_at: '',
     },
   });
+
+  // Update form when user data loads
+  React.useEffect(() => {
+    if (currentUser) {
+      settingsForm.reset({
+        full_name: currentUser.name || '',
+        phone: currentUser.phone || '',
+        created_at: '',
+        last_login_at: '',
+      });
+    }
+  }, [currentUser, settingsForm]);
 
   const changePasswordForm = useForm<z.infer<typeof ChangePasswordSchema>>({
     resolver: zodResolver(ChangePasswordSchema),
@@ -54,9 +73,10 @@ export default function SettingsTab() {
   });
 
   const getInitials = (fullName: string) => {
+    if (!fullName || fullName.trim() === '') return 'NA';
     return fullName
       .split(' ')
-      .map((name) => name[0].toUpperCase())
+      .map((name) => name[0]?.toUpperCase() || '')
       .join('')
       .slice(0, 2);
   };
@@ -66,34 +86,106 @@ export default function SettingsTab() {
   async function onSubmitPersonalInformation(
     values: z.infer<typeof PersonalInformationSchema>
   ) {
-    console.log('onSubmit function called!');
-    console.log('Form is valid:', settingsForm.formState.isValid);
-    console.log('Form errors:', settingsForm.formState.errors);
-    console.log('Form data:', values);
+    if (!currentUser?.sub) {
+      notifyError('User not found');
+      return;
+    }
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Convert frontend role to backend format (if groups exist)
+      const roleToBackend = (groups: string[] | undefined): string => {
+        if (!groups || groups.length === 0) return 'USER';
+        const groupsStr = groups.join(',').toLowerCase();
+        if (
+          groupsStr.includes('super_admin') ||
+          groupsStr.includes('superadmin')
+        ) {
+          return 'SUPER_ADMIN';
+        }
+        if (groupsStr.includes('admin')) {
+          return 'ADMIN';
+        }
+        return 'USER';
+      };
 
-    setIsSubmitting(false);
+      const updateData = {
+        name: values.full_name,
+        phone: values.phone || undefined,
+        role: roleToBackend(currentUser.groups),
+      };
+
+      // Call the API to update user
+      await updateUserMutation.mutateAsync({
+        id: currentUser.sub,
+        data: updateData,
+      });
+
+      // Show success toast
+      notifySuccess('Profile Updated');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      notifyError('Update Failed', {
+        description:
+          error instanceof Error ? error.message : 'Please try again',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Handle Personal Information form validation errors
+  function onErrorPersonalInformation(errors: unknown) {
+    console.error('Personal Information validation errors:', errors);
+    notifyError('Update Failed');
   }
 
   async function onSubmitChangePassword(
     values: z.infer<typeof ChangePasswordSchema>
   ) {
-    console.log('onSubmit function called!');
-    console.log('Form is valid:', changePasswordForm.formState.isValid);
-    console.log('Form errors:', changePasswordForm.formState.errors);
-    console.log('Form data:', values);
+    if (!currentUser?.sub) {
+      notifyError('User not found');
+      return;
+    }
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // TODO: Implement password change functionality
+      // Backend endpoint for password change not yet implemented
+      // This is a placeholder that simulates the request
+      console.log('Password change values:', values);
+      await delay(2000);
 
-    changePasswordForm.reset();
-    setIsSubmitting(false);
+      notifySuccess('Password Changed');
+      changePasswordForm.reset();
+    } catch (error) {
+      console.error('Error changing password:', error);
+      notifyError('Password Change Failed', {
+        description: 'Check current password and try again',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Handle Change Password form validation errors
+  function onErrorChangePassword(errors: unknown) {
+    console.error('Change Password validation errors:', errors);
+    notifyError('Password Change Failed', {
+      description: 'Check current password and try again',
+    });
+  }
+
+  // Show loading state while fetching user
+  if (isLoadingUser) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4">
+        <Spinner size="medium" />
+        <p className="text-lg text-muted-foreground">Loading user details...</p>
+      </div>
+    );
   }
 
   return (
@@ -133,7 +225,8 @@ export default function SettingsTab() {
                   isSubmitting && 'pointer-events-none'
                 )}
                 onSubmit={settingsForm.handleSubmit(
-                  onSubmitPersonalInformation
+                  onSubmitPersonalInformation,
+                  onErrorPersonalInformation
                 )}
               >
                 <div className="flex flex-col">
@@ -141,7 +234,7 @@ export default function SettingsTab() {
                   <div className="flex justify-start gap-2">
                     <div className="w-22 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center">
                       <span className="text-xl text-[#2563EB] font-medium">
-                        {getInitials(full_name)}
+                        {getInitials(currentUser?.name || '')}
                       </span>
                     </div>
                     <FormField
@@ -166,7 +259,11 @@ export default function SettingsTab() {
                   {/* Email */}
                   <div className="flex flex-col mt-3 gap-2">
                     <Label>Email Address (Cannot be changed)</Label>
-                    <Input className="w-full" value={email} disabled />
+                    <Input
+                      className="w-full"
+                      value={currentUser?.email || ''}
+                      disabled
+                    />
                   </div>
 
                   {/* Phone */}
@@ -190,20 +287,14 @@ export default function SettingsTab() {
                   />
 
                   {/* Audit Information */}
-                  <div className="flex flex-col gap-1">
+                  {/* <div className="flex flex-col gap-1">
                     <span className="text-sm text-[#4B5563]">
-                      Last Login:{' '}
-                      {last_login_at ? getRelativeTime(last_login_at) : 'Never'}
+                      Last Login:
                     </span>
                     <span className="text-sm text-[#4B5563]">
-                      Created On:{' '}
-                      {new Date(created_at).toLocaleDateString('en-AU', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: '2-digit',
-                      })}
+                      Created On:
                     </span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <Button
@@ -234,7 +325,8 @@ export default function SettingsTab() {
                 id="change-password-form"
                 className="w-full flex flex-col p-1"
                 onSubmit={changePasswordForm.handleSubmit(
-                  onSubmitChangePassword
+                  onSubmitChangePassword,
+                  onErrorChangePassword
                 )}
               >
                 <FormField

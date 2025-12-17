@@ -1,5 +1,5 @@
 'use client';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -8,10 +8,47 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Loader2 } from 'lucide-react';
+import { navItems } from '@/components/app-sidebar';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const router = useRouter();
+
+  // Build quick lookup for plan by path and first essential fallback
+  const { getPlanByPath, fallbackUrl } = useMemo(() => {
+    const pathToPlan = new Map<string, string>();
+    const customersPath = '/customer-operations/customers';
+
+    for (const item of navItems) {
+      if ('plan' in item && item.plan) {
+        pathToPlan.set(item.url, item.plan);
+      }
+      if (item.items) {
+        for (const sub of item.items) {
+          if (sub.plan) {
+            pathToPlan.set(sub.url, sub.plan);
+          }
+        }
+      }
+    }
+
+    return {
+      getPlanByPath: (path: string) => {
+        if (pathToPlan.has(path)) return pathToPlan.get(path);
+        let matchedBasePath: string | undefined;
+        for (const key of pathToPlan.keys()) {
+          if (path === key || path.startsWith(`${key}/`)) {
+            if (!matchedBasePath || key.length > matchedBasePath.length) {
+              matchedBasePath = key;
+            }
+          }
+        }
+        return matchedBasePath ? pathToPlan.get(matchedBasePath) : undefined;
+      },
+      fallbackUrl: customersPath,
+    };
+  }, []);
 
   useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
@@ -20,12 +57,28 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     }
   }, [auth.isLoading, auth.isAuthenticated, router]);
 
+  // Block access to non-Essential pages (PRO/PLUS)
+  useEffect(() => {
+    if (auth.isLoading || !auth.isAuthenticated) return;
+    const path = window.location.pathname;
+    const plan = getPlanByPath(path);
+    if (plan === 'PRO' || plan === 'PLUS') {
+      router.replace(fallbackUrl);
+    }
+  }, [
+    auth.isLoading,
+    auth.isAuthenticated,
+    getPlanByPath,
+    fallbackUrl,
+    router,
+  ]);
+
   if (auth.isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p>Loading...</p>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-lg font-medium">Loading...</p>
         </div>
       </div>
     );

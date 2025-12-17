@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Plus,
+  // Plus, Used for duplicate action
   Send,
   MoreHorizontal,
   Printer,
@@ -25,6 +25,7 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
+import { useAuth } from '@/hooks/use-auth';
 
 interface QuotationActionButtonsProps {
   quotation: Quotation | null | undefined;
@@ -37,10 +38,14 @@ export function QuotationActionButtons({
 }: QuotationActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    quotation?.id,
-    quotation
-  );
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
+
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } =
+    useQuotationActions(quotation?.id, quotation);
 
   // Early returns for null quotation or new quotation
   if (!quotation) {
@@ -58,6 +63,7 @@ export function QuotationActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
+        {duplicateDialog}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -67,19 +73,15 @@ export function QuotationActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {/* Always available: Duplicate */}
-            <DropdownMenuItem onClick={actions.duplicate}>
+            {/* Current stage hide it: Duplicate */}
+            {/* <DropdownMenuItem onClick={actions.duplicate}>
               <Plus className="h-4 w-4 mr-2" />
               Duplicate
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
 
             {/* Status-specific actions */}
             {quotation.status === 'DRAFT' && (
               <>
-                <DropdownMenuItem onClick={actions.approve}>
-                  <BadgeCheck className="h-4 w-4 mr-2" />
-                  Approve Quote
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={actions.sendToCustomer}>
                   <Send className="h-4 w-4 mr-2" />
                   Send to Customer
@@ -110,10 +112,12 @@ export function QuotationActionButtons({
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.convertToJob}>
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Create Job
-                </DropdownMenuItem>
+                {!isEssentials && (
+                  <DropdownMenuItem onClick={actions.convertToJob}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Create Job
+                  </DropdownMenuItem>
+                )}
               </>
             )}
 
@@ -148,13 +152,13 @@ export function QuotationActionButtons({
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={actions.print}>
                 <Printer className="h-4 w-4 mr-2" />
-                Print Quote
+                Download PDF
               </DropdownMenuItem>
             </>
 
-            <>
-              <DropdownMenuSeparator />
-              {quotation.status !== 'ARCHIVED' && (
+            {quotation.status !== 'ARCHIVED' && (
+              <>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
@@ -162,8 +166,8 @@ export function QuotationActionButtons({
                   <Archive className="h-4 w-4 mr-2 text-destructive" />
                   Archive
                 </DropdownMenuItem>
-              )}
-            </>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -175,10 +179,11 @@ export function QuotationActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Always visible: Duplicate */}
-        <Button
+        {/* Current stage hide it Duplicate */}
+        {/* <Button
           variant="ghost"
           size="sm"
           onClick={actions.duplicate}
@@ -186,7 +191,7 @@ export function QuotationActionButtons({
         >
           <Plus className="h-4 w-4 mr-2" />
           Duplicate
-        </Button>
+        </Button> */}
 
         {/* Status-specific primary actions */}
         {quotation.status === 'DRAFT' && (
@@ -199,15 +204,6 @@ export function QuotationActionButtons({
             >
               <Send className="h-4 w-4 mr-2" />
               Send to Customer
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.approve}
-              className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
-            >
-              <BadgeCheck className="h-4 w-4 mr-2" />
-              Approve Quote
             </Button>
           </>
         )}
@@ -255,15 +251,17 @@ export function QuotationActionButtons({
               <ThumbsDown className="h-4 w-4 mr-2" />
               Decline
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.convertToJob}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
-            >
-              <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
-              Create Job
-            </Button>
+            {!isEssentials && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={actions.convertToJob}
+                className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+              >
+                <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
+                Create Job
+              </Button>
+            )}
           </>
         )}
 
@@ -306,13 +304,12 @@ export function QuotationActionButtons({
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem onClick={actions.print}>
               <Printer className="h-4 w-4 mr-2" />
-              Print Quote
+              Download PDF
             </DropdownMenuItem>
 
-            <div>
-              <DropdownMenuSeparator />
-
-              {quotation.status !== 'ARCHIVED' && (
+            {quotation.status !== 'ARCHIVED' && (
+              <div>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
@@ -320,8 +317,8 @@ export function QuotationActionButtons({
                   <Archive className="h-4 w-4 mr-2 text-destructive" />
                   Archive
                 </DropdownMenuItem>
-              )}
-            </div>
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -1,31 +1,39 @@
 import { BASE_UNIT, MEASURE_UNIT, PRODUCT_STATUS } from './product-enums';
 import { Quotation } from './quotation';
 import { JobDetails } from './job';
-import { QuarriesWithProduct } from './quarry';
+import { QuarrySupplierProduct } from './quarry';
 
 export interface Product {
   id: number;
-  product_name: string;
-  product_code: string;
-  material_type: string;
-  density_tonnage_per_m3: number;
-  product_description: string;
-  base_unit: BASE_UNIT;
-  measure_unit: MEASURE_UNIT[];
-  cost_price: number;
-  sell_price: number;
+  productName: string;
+  productCode: string;
+  material: MaterialType;
+  materialId: number;
+  densityTonnagePerM3: number;
+  productDescription: string;
+  baseUnit: BASE_UNIT;
+  measureUnit: MEASURE_UNIT[];
+  isActive: boolean;
+  costPrice: number;
+  sellPrice: number;
   margin: number;
   status: PRODUCT_STATUS;
   version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+}
+
+export interface MaterialType {
+  id: number;
+  name: string;
+  version: number;
 }
 
 export interface ProductDetails extends Product {
-  quarries: QuarriesWithProduct[];
+  quarrySupplierProducts: QuarrySupplierProduct[];
   quotes: Quotation[];
   jobs: JobDetails[];
 }

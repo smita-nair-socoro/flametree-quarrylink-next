@@ -9,7 +9,7 @@ import {
   Briefcase,
   Archive,
   Timer,
-  Copy,
+  // Copy, used in duplicate action
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,7 @@ import {
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
 import { useQuotationStore } from '@/app/stores/quotation-store';
+import { useAuth } from '@/hooks/use-auth';
 
 interface QuotationTableActionsProps {
   quotation: Quotation;
@@ -31,10 +32,15 @@ export function QuotationTableActions({
   quotation,
 }: QuotationTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    quotation.id,
-    quotation
-  );
+
+  // Role-based feature detection
+  const { attributes } = useAuth();
+  const userRole =
+    attributes?.['custom:role'] || attributes?.role || 'Essentials';
+  const isEssentials = userRole === 'Essentials';
+
+  const { actions, confirmDialogs, viewDialog, duplicateDialog } =
+    useQuotationActions(quotation.id, quotation);
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
@@ -55,7 +61,9 @@ export function QuotationTableActions({
   );
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
-  const handleDuplicate = createHandler(actions.duplicate);
+  const handleDuplicate = createHandler(actions.duplicate, () =>
+    setSelectedQuotation(quotation)
+  );
   const handleExtendExpiry = createHandler(actions.extendExpiry);
   const handlePrint = createHandler(actions.print);
 
@@ -63,6 +71,7 @@ export function QuotationTableActions({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {duplicateDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -114,12 +123,16 @@ export function QuotationTableActions({
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={handleConvertToJob}>
-                <Briefcase className="h-4 w-4 mr-2" />
-                Create Job
-              </DropdownMenuItem>
+              {!isEssentials && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleConvertToJob}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Create Job
+                  </DropdownMenuItem>
+                </>
+              )}
             </>
           )}
 
@@ -148,16 +161,16 @@ export function QuotationTableActions({
 
           <DropdownMenuItem onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
-            Print Quote
+            Download PDF
           </DropdownMenuItem>
 
-          {/* Always available: Duplicate */}
-          <DropdownMenuSeparator />
+          {/* Hide Duplicate Quote at current stage*/}
+          {/* <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate Quote
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
 
           {/* Archive - always at the bottom for applicable statuses */}
           {quotation.status !== 'ARCHIVED' && (

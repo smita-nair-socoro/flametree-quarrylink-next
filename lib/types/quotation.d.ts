@@ -1,121 +1,138 @@
-export enum QuoteType {
-  COLLECTION = 'COLLECTION',
-  DELIVERY = 'DELIVERY',
-}
+import {
+  QUOTE_TYPE as QuoteType,
+  QUOTE_STATUS as QuoteStatus,
+} from './quotation-enums';
+import { CustomerDTO } from './customer';
+import { Address } from './address';
 
-export enum QuoteStatus {
-  DRAFT = 'DRAFT',
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  CONVERTED_TO_JOB = 'CONVERTED_TO_JOB',
-  EXPIRED = 'EXPIRED',
-  DECLINED = 'DECLINED',
-  ARCHIVED = 'ARCHIVED',
-}
-
-// DTO type for API response (uses quote_status from backend)
+// DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
   id: number;
-  quote_number: string;
-  quote_type: QuoteType;
-  customer_id: number;
-  customer_name: string;
-  customer_email: string;
-  account_manager: number;
-  account_manager_name: string;
-  project_name: string;
-  quote_status: QuoteStatus; // Backend uses quote_status
-  delivery_address: string;
-  job_id: number;
-  delivery_start_date: string | null;
-  expiry_date: string | null;
-  delivery_window_start: string | null;
-  delivery_window_end: string | null;
-  total_cost_price: number;
-  total_sell_price: number;
-  total_truck_sell_price: number;
-  total_truck_cost_price: number;
-  gross_profit: number;
-  gross_profit_percentage: number;
-  line_items_count: number;
-  converted_at?: string;
+  quoteNumber: string;
+  quoteType: QuoteType;
+  customerId: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerDto: CustomerDTO;
+  accountManager: number;
+  accountManagerName: string;
+  projectName: string;
+  quoteStatus: QuoteStatus;
+  deliveryAddress: Address;
+  jobId: number;
+  deliveryStartDate: string | null;
+  expiryDate: string | null;
+  deliveryWindowStart: string | null;
+  deliveryWindowEnd: string | null;
+  totalCostPrice: number;
+  totalSellPrice: number;
+  totalTruckSellPrice: number;
+  totalTruckCostPrice: number;
+  grossProfit: number;
+  grossProfitPercentage: number;
+  lineItemsCount: number;
+  convertedAt?: string;
   version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string | null;
-  updated_at: string;
-  last_modified_by: string;
-  line_items: QuotationLineItem[];
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string | null;
+  updatedAt: string;
+  lastModifiedBy: string;
+  quoteItems: QuotationLineItem[];
 }
 
-// Frontend type (uses status for consistency with columns)
+// Frontend type (same as DTO, uses camelCase)
 export interface Quotation {
   id: number;
-  quote_number: string;
-  quote_type: QuoteType;
-  customer_id: number; // FK to Customer.id
-  customer_name: string;
-  customer_email: string;
-  account_manager: number; // FK to User.id
-  account_manager_name: string;
-  project_name: string;
+  quoteNumber: string;
+  quoteType: QuoteType;
+  customerId: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerDto: CustomerDTO;
+  accountManager: number;
+  accountManagerName: string;
+  projectName: string;
   status: QuoteStatus;
-  delivery_address: string; // FK to Address.id (String for now; will change it later)
-  job_id: number; // FK to Job.id (if converted)
-  delivery_start_date: string;
-  expiry_date: string;
-  delivery_window_start: string;
-  delivery_window_end: string;
-  total_cost_price: number;
-  total_sell_price: number;
-  total_truck_sell_price: number;
-  total_truck_cost_price: number;
-  gross_profit: number;
-  gross_profit_percentage: number;
-  line_items_count: number;
-  converted_at?: string;
+  deliveryAddress: Address;
+  jobId: number;
+  deliveryStartDate: string;
+  expiryDate: string;
+  deliveryWindowStart: string;
+  deliveryWindowEnd: string;
+  totalCostPrice: number;
+  totalSellPrice: number;
+  totalTruckSellPrice: number;
+  totalTruckCostPrice: number;
+  grossProfit: number;
+  grossProfitPercentage: number;
+  lineItemsCount: number;
+  convertedAt?: string;
   version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
-  line_items: QuotationLineItem[];
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+  quoteItems: QuotationLineItem[];
 }
 
 export interface QuotationLineItem {
-  id: number;
-  quote_id: number; // FK to Quote.id
-  product_id: number; // FK to Product.id
-  quarry_id: number; // FK to Quarry.id
-  quarry_product_id: number; // FK to QuarryProduct.id
-  product_name: string;
-  quarry_name: string;
-  supplier_product_name: string;
-  product_cost_uom: string;
-  product_cost_qty: number;
-  product_cost_price: number;
-  total_product_cost_price: number;
-  product_sell_uom: string;
-  product_sell_qty: number;
-  product_sell_price: number;
-  total_product_sell_price: number;
-  truck_type: string;
-  truck_cost_uom: string;
-  truck_cost_qty: number;
-  truck_cost_price: number;
-  total_truck_cost_price: number;
-  truck_sell_uom: string;
-  truck_sell_qty: number;
-  truck_sell_price: number;
-  total_truck_sell_price: number;
-  required_loads: number;
-  gross_profit: number;
-  total_quantity_required: number;
-  allocated_quantity: number;
-  remaining_quantity: number;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  id?: number;
+  quoteId: number;
+  productId: number;
+  quarrySupplierId: number;
+  quarryProductId?: number;
+  productName: string;
+  quarryName: string;
+  supplierProductName: string;
+  productCostUom: string;
+  productCostQty: number;
+  productCostPrice: number;
+  totalProductCostPrice: number;
+  productSellUom: string;
+  productSellQty: number;
+  productSellPrice: number;
+  totalProductSellPrice: number;
+  truckType: string;
+  truckCostUom: string;
+  truckCostQty: number;
+  truckCostPrice: number;
+  totalTruckCostPrice: number;
+  truckSellUom: string;
+  truckSellQty: number;
+  truckSellPrice: number;
+  totalTruckSellPrice: number;
+  requiredLoads: number;
+  grossProfit: number;
+  totalQuantityRequired: number;
+  allocatedQuantity: number;
+  remainingQuantity: number;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
+  version?: number;
+  isDeleted?: boolean;
+}
+
+export interface quarrySupplierProductDetail {
+  availableForSaleTn: boolean;
+  availableForSaleM3: boolean;
+  availableForSale20kg: boolean;
+  availableForSaleBulka: boolean;
+  perTnCostPrice: number;
+  perM3CostPrice: number;
+  per20kgCostPrice: number;
+  perBulkaCostPrice: number;
+  tnTruckRate: number;
+  m3TruckRate: number;
+  hourlyTruckRate: number;
+  loadTruckRate: number;
+  quarryName: string;
+  quarrySupplierId: number;
+  supplierProductName: string;
+  supplierProductCode: string;
 }

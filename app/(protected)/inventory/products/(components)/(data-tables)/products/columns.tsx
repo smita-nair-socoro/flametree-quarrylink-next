@@ -9,7 +9,7 @@ import { ProductTableActions } from './product-table-actions';
 export const productColumns: ColumnDef<ProductDetails>[] = [
   {
     id: 'product_code',
-    accessorFn: (row) => row.product_code,
+    accessorFn: (row) => row.productCode,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product Code" />;
     },
@@ -18,7 +18,7 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
   },
   {
     id: 'product_name',
-    accessorFn: (row) => row.product_name,
+    accessorFn: (row) => row.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product Name" />;
     },
@@ -28,31 +28,35 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
 
   {
     id: 'material_type',
-    accessorFn: (row) => row.material_type,
+    accessorFn: (row) => row.material?.name?.toUpperCase() || '',
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Material Type" />
       );
     },
     cell: ({ row }) => {
-      const material_type = row.original.material_type;
+      const material_type = row.original.material?.name?.toUpperCase() || '';
       return (
         <div className="py-2">
-          <TableBadges names={[material_type]} visibleCount={1} />
+          <TableBadges names={material_type} visibleCount={1} />
         </div>
       );
     },
     meta: 'Material Type',
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
   },
 
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => (row.isActive === true ? 'AVAILABLE' : 'UNAVAILABLE'),
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status =
+        row.original.isActive === true ? 'AVAILABLE' : 'UNAVAILABLE';
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />
@@ -60,6 +64,9 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
       );
     },
     meta: 'Status',
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
   },
 
   {

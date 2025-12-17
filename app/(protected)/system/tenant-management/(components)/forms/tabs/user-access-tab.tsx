@@ -38,7 +38,7 @@ export default function UserAccessTab({
   const shouldOpenDialogRef = React.useRef(false);
 
   const { actions, viewDialog } = useClientUserActions(
-    selectedUserForActions?.id,
+    selectedUserForActions?.sub,
     selectedUserForActions,
     rolesOptions,
     undefined // TODO: Pass actual currentUserId when available

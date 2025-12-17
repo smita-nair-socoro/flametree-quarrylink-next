@@ -107,3 +107,29 @@ export function formatDate(
     return '—';
   }
 }
+
+/**
+ * Converts a JavaScript Date to LocalDateTime format (without timezone).
+ * Format: YYYY-MM-DDTHH:mm:ss.SSS
+ *
+ * This is used for Java backend APIs that expect LocalDateTime format.
+ * The date is formatted in the browser's local timezone.
+ *
+ * @param date - The date to convert
+ * @returns String in LocalDateTime format (e.g., "2025-11-28T09:20:00.000")
+ *
+ * @example
+ * const date = new Date('2025-11-28T09:20:00');
+ * toLocalDateTime(date); // Returns "2025-11-28T09:20:00.000"
+ */
+export function toLocalDateTime(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const ms = String(date.getMilliseconds()).padStart(3, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}`;
+}

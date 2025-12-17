@@ -20,6 +20,7 @@ import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Loader2 } from 'lucide-react';
 
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
@@ -27,6 +28,9 @@ import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { delay } from '@/lib/utils/time';
+import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
 interface FormProps {
   id?: number;
@@ -35,7 +39,12 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-export default function CustomerForm({ id, onCancel, className }: FormProps) {
+export default function CustomerForm({
+  id,
+  onCancel,
+  className,
+  onSuccess,
+}: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
   const selectedCustomer = useSelectedCustomer();
@@ -43,13 +52,13 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   // Initialize states with selected customer data only when editing, defaults otherwise
   const [selectedCustomerType, setSelectedCustomerType] =
     React.useState<string>(
-      isEditing && selectedCustomer?.customer_type
-        ? selectedCustomer.customer_type
+      isEditing && selectedCustomer?.customerType
+        ? selectedCustomer.customerType
         : 'BUSINESS'
     );
   const [selectedPaymentType, setSelectedPaymentType] = React.useState<string>(
-    isEditing && selectedCustomer?.payment_type
-      ? selectedCustomer.payment_type
+    isEditing && selectedCustomer?.paymentType
+      ? selectedCustomer.paymentType
       : 'CREDIT'
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -65,39 +74,43 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     lat: 0,
     lng: 0,
   });
-  const [searchInput, setSearchInput] = React.useState('');
+  const [searchInput, setSearchInput] = React.useState(
+    isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : ''
+  );
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
     mode: 'onChange',
     defaultValues: {
       customer_type:
-        isEditing && selectedCustomer?.customer_type
-          ? selectedCustomer.customer_type
+        isEditing && selectedCustomer?.customerType
+          ? selectedCustomer.customerType
           : 'BUSINESS',
       payment_type:
-        isEditing && selectedCustomer?.payment_type
-          ? selectedCustomer.payment_type
+        isEditing && selectedCustomer?.paymentType
+          ? selectedCustomer.paymentType
           : 'CREDIT',
-      business_name: isEditing ? selectedCustomer?.business_name || '' : '',
-      business_email: isEditing ? selectedCustomer?.business_email || '' : '',
-      business_phone: isEditing ? selectedCustomer?.business_phone || '' : '',
-      abn: isEditing ? selectedCustomer?.abn || '' : '',
-      contact_person_name: isEditing
-        ? selectedCustomer?.contact_name || ''
+      business_name: isEditing ? selectedCustomer?.businessName || '' : '',
+      business_email: isEditing
+        ? selectedCustomer?.email || 'buildpty@email.com'
         : '',
+      business_phone: isEditing
+        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
+        : '',
+      abn: isEditing ? selectedCustomer?.abn || '' : '',
+      contact_person_name: isEditing ? selectedCustomer?.contactName || '' : '',
       contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
-      contact_person_phone: isEditing ? selectedCustomer?.phone || '' : '',
+      contact_person_phone: isEditing
+        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
+        : '',
       credit_limit:
-        isEditing && selectedCustomer ? selectedCustomer.credit_limit / 100 : 0, // Convert from cents to dollars
+        isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing
-        ? selectedCustomer?.payment_terms || 'of the following month'
+        ? selectedCustomer?.paymentTermType || 'of the following month'
         : 'of the following month',
-      payment_terms_day: isEditing
-        ? selectedCustomer?.payment_terms_day || 0
-        : 0,
-      account_manager: isEditing ? selectedCustomer?.account_manager || '' : '',
-      billing_address: '', // Will be handled separately for address autocomplete
+      payment_terms_day: isEditing ? selectedCustomer?.invoiceDueDate || 0 : 0,
+      account_manager: isEditing ? selectedCustomer?.accountManager || '' : '',
+      billing_address: isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : '',
       created_at: undefined,
       updated_at: undefined,
       created_by: 'current_user',
@@ -132,39 +145,41 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   React.useEffect(() => {
     if (selectedCustomer && isEditing) {
       const paymentType =
-        selectedCustomer.payment_type === 'PREPAID' ? 'PREPAID' : 'CREDIT';
-      setSelectedCustomerType(selectedCustomer.customer_type);
+        selectedCustomer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
+      setSelectedCustomerType(selectedCustomer.customerType);
       setSelectedPaymentType(paymentType);
+      setSearchInput('1 Scott Street Pyrmont, NSW, 2009');
 
       customerForm.reset({
-        customer_type: selectedCustomer.customer_type,
+        customer_type: selectedCustomer.customerType,
         payment_type: paymentType,
-        business_name: selectedCustomer.business_name,
-        business_email: selectedCustomer.business_email,
-        business_phone: selectedCustomer.business_phone,
+        business_name: selectedCustomer.businessName,
+        business_email: selectedCustomer.email,
+        business_phone: normalizePhoneNumber(selectedCustomer.phone) || '',
         abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
-        contact_person_name: selectedCustomer.contact_name,
+        contact_person_name: selectedCustomer.contactName,
         contact_person_email: selectedCustomer.email,
-        contact_person_phone: selectedCustomer.phone,
+        contact_person_phone:
+          normalizePhoneNumber(selectedCustomer.phone) || '',
         credit_limit:
-          selectedCustomer.credit_limit === 0
+          selectedCustomer.creditLimit === 0
             ? 0
-            : selectedCustomer.credit_limit / 100, // Convert from cents to dollars
-        payment_terms_day: selectedCustomer.payment_terms_day,
+            : selectedCustomer.creditLimit / 100, // Convert from cents to dollars
+        payment_terms_day: selectedCustomer.invoiceDueDate,
         payment_terms:
-          selectedCustomer.payment_terms === 'N/A'
+          selectedCustomer.paymentTermType === 'N/A'
             ? ''
-            : selectedCustomer.payment_terms,
-        account_manager: selectedCustomer.account_manager,
-        billing_address: '', // Will be handled separately
-        created_at: selectedCustomer.created_at
-          ? new Date(selectedCustomer.created_at)
+            : selectedCustomer.paymentTermType,
+        account_manager: selectedCustomer.accountManager,
+        billing_address: '1 Scott Street Pyrmont, NSW, 2009',
+        created_at: selectedCustomer.createdAt
+          ? new Date(selectedCustomer.createdAt)
           : undefined,
-        updated_at: selectedCustomer.updated_at
-          ? new Date(selectedCustomer.updated_at)
+        updated_at: selectedCustomer.updatedAt
+          ? new Date(selectedCustomer.updatedAt)
           : undefined,
-        created_by: selectedCustomer.created_by,
-        last_modified_by: selectedCustomer.last_modified_by,
+        created_by: selectedCustomer.createdBy,
+        last_modified_by: selectedCustomer.lastModifiedBy,
       });
     }
   }, [selectedCustomer, isEditing, customerForm]);
@@ -190,16 +205,16 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
   );
 
   const paymentTermsOptions = [
-    { label: 'of the following month', value: 'of the following month' },
+    { label: 'of the following month', value: 'OFFOLLOWINGMONTH' },
     {
       label: 'day(s) after the invoice date',
-      value: 'day(s) after the invoice date',
+      value: 'DAYSAFTERBILLDATE',
     },
     {
       label: 'day(s) after the invoice month',
-      value: 'day(s) after the invoice month',
+      value: 'DAYSAFTERBILLMONTH',
     },
-    { label: 'of the current month', value: 'of the current month' },
+    { label: 'of the current month', value: 'OFCURRENTMONTH' },
   ];
 
   const accountManagerOptions = [
@@ -215,66 +230,88 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
     console.log('onSubmit function called!');
     console.log('Customer Form Values:', values);
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // Handle business field population for Individual customers
-    let businessName = values.business_name;
-    let businessEmail = values.business_email;
-    let businessPhone = values.business_phone;
-    let abn = values.abn;
+      // Handle business field population for Individual customers
+      let businessName = values.business_name;
+      let businessEmail = values.business_email;
+      let businessPhone = values.business_phone;
+      let abn = values.abn;
 
-    let creditLimit = values.credit_limit;
-    let paymentTermsDay = values.payment_terms_day;
-    let paymentTermsPeriod = values.payment_terms;
+      let creditLimit = values.credit_limit;
+      let paymentTermsDay = values.payment_terms_day;
+      let paymentTermsPeriod = values.payment_terms;
 
-    if (values.customer_type === 'INDIVIDUAL') {
-      // For Individual customers, populate business fields with contact data
-      businessName = values.contact_person_name || values.business_name;
-      businessEmail = values.contact_person_email || values.business_email;
-      businessPhone = values.contact_person_phone || values.business_phone;
-      abn = 'N/A';
+      if (values.customer_type === 'INDIVIDUAL') {
+        // For Individual customers, populate business fields with contact data
+        businessName = values.contact_person_name || values.business_name;
+        businessEmail = values.contact_person_email || values.business_email;
+        businessPhone = values.contact_person_phone || values.business_phone;
+        abn = 'N/A';
+      }
+
+      // Handle credit limit for Prepaid customers
+      if (values.payment_type === 'PREPAID') {
+        creditLimit = 0;
+        paymentTermsDay = 0;
+        paymentTermsPeriod = 'N/A';
+      }
+
+      const currentTimestamp = new Date().toISOString();
+      const customerData = {
+        id: 0, // Will be generated by backend
+        customerType: values.customer_type || 'BUSINESS',
+        businessName: businessName,
+        businessEmail: businessEmail,
+        businessPhone: businessPhone,
+        abn: abn,
+        contactName: values.contact_person_name,
+        phone: values.contact_person_phone,
+        email: values.contact_person_email,
+        billingAddress: values.billing_address,
+        creditLimit:
+          creditLimit === 0 ? 0 : Math.round(Number(creditLimit || 0) * 100),
+        paymentTermsDay: paymentTermsDay,
+        paymentTermsPeriod: paymentTermsPeriod,
+        accountManager: values.account_manager,
+        customerStatus: 'ACTIVE',
+        jobsCount: 0,
+        version: 0,
+        isDeleted: false,
+        createdBy: 'current_user',
+        createdAt: currentTimestamp,
+        updatedAt: currentTimestamp,
+        lastModifiedBy: 'current_user',
+      };
+
+      console.log('Customer Data:', customerData);
+
+      // Simulate API call delay (remove this in production)
+      await delay(2000);
+
+      // Show success toast
+      notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added');
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      notifyError(
+        isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
+  }
 
-    // Handle credit limit for Prepaid customers
-    if (values.payment_type === 'PREPAID') {
-      creditLimit = 0;
-      paymentTermsDay = 0;
-      paymentTermsPeriod = 'N/A';
-    }
-
-    const currentTimestamp = new Date().toISOString();
-    const customerData = {
-      id: 0, // Will be generated by backend
-      customerType: values.customer_type || 'BUSINESS',
-      businessName: businessName,
-      businessEmail: businessEmail,
-      businessPhone: businessPhone,
-      abn: abn,
-      contactName: values.contact_person_name,
-      phone: values.contact_person_phone,
-      email: values.contact_person_email,
-      billingAddress: values.billing_address,
-      creditLimit:
-        creditLimit === 0 ? 0 : Math.round(Number(creditLimit || 0) * 100),
-      paymentTermsDay: paymentTermsDay,
-      paymentTermsPeriod: paymentTermsPeriod,
-      accountManager: values.account_manager,
-      customerStatus: 'ACTIVE',
-      jobsCount: 0,
-      version: 0,
-      isDeleted: false,
-      createdBy: 'current_user',
-      createdAt: currentTimestamp,
-      updatedAt: currentTimestamp,
-      lastModifiedBy: 'current_user',
-    };
-
-    console.log('Customer Data:', customerData);
-
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
+  // Handle form validation errors
+  function onError(errors: unknown) {
+    console.error('Form validation errors:', errors);
+    notifyError(
+      isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer',
+      {
+        description: 'Check required fields',
+      }
+    );
   }
 
   return (
@@ -290,7 +327,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              Adding Customer...
+              {isEditing ? 'Updating Customer...' : 'Adding Customer...'}
             </p>
           </div>
         </div>
@@ -307,7 +344,7 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
             className,
             isSubmitting && 'pointer-events-none'
           )}
-          onSubmit={customerForm.handleSubmit(onSubmit)}
+          onSubmit={customerForm.handleSubmit(onSubmit, onError)}
         >
           {/* Customer Type */}
           <FormField
@@ -702,58 +739,60 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
 
           {/* Audit Information */}
           {isEditing && (
-            <div className="col-span-full space-y-6 mt-16">
+            <div className="col-span-full space-y-6 mt-10 mb-4">
               <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-8 gap-6 md:max-w-3xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.created_by || 'N/A'}
+                    {selectedCustomer?.createdBy || 'N/A'}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.last_modified_by || 'N/A'}
+                    {selectedCustomer?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.created_at
-                      ? new Date(
-                          selectedCustomer.created_at
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
+                    {selectedCustomer?.createdAt
+                      ? new Date(selectedCustomer.createdAt).toLocaleDateString(
+                          'en-AU',
+                          {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          }
+                        )
                       : 'N/A'}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.updated_at
-                      ? new Date(
-                          selectedCustomer.updated_at
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
+                    {selectedCustomer?.updatedAt
+                      ? new Date(selectedCustomer.updatedAt).toLocaleDateString(
+                          'en-AU',
+                          {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                          }
+                        )
                       : 'N/A'}
                   </p>
                 </div>
@@ -773,7 +812,16 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isEditing ? 'Save Changes' : 'Add Customer'}
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Customer...'
+                  : isEditing
+                  ? 'Save Changes'
+                  : 'Add Customer'}
               </Button>
             </div>
           )}
@@ -785,8 +833,18 @@ export default function CustomerForm({ id, onCancel, className }: FormProps) {
                 // form="add-new-customer-form"
                 type="submit"
                 className="cursor-pointer"
+                disabled={isSubmitting}
               >
-                {isEditing ? 'Save Changes' : 'Add Customer'}
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Customer...'
+                  : isEditing
+                  ? 'Save Changes'
+                  : 'Add Customer'}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

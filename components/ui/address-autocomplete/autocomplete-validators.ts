@@ -12,23 +12,23 @@ export const isValidAutocomplete = (
     return true;
   }
   const AddressSchema = z.object({
-    address1: z
+    streetDetailsPrimary: z
       .string()
       .min(1, 'Address line 1 is required')
       .max(100, 'Address line 1 must be less than 100 characters')
       .regex(/^[a-zA-Z0-9\s,.&]+$/, 'Invalid address'),
-    address2: z.string().optional(),
+    streetDetailsOptional: z.string().optional(),
     formattedAddress: z.string().min(1, 'Formatted address is required'),
     city: z.string().min(1, 'City is required'),
-    region: z.string().min(1, 'Region is required'),
-    postalCode: z
+    state: z.string().min(1, 'State is required'),
+    postcode: z
       .string()
       .min(1, 'Postal code is required')
       .regex(/^\d{4}$/, 'Invalid postal code'),
 
     country: z.string().min(1, 'Country is required'),
-    lat: z.number().nonnegative(),
-    lng: z.number().nonnegative(),
+    latitude: z.number().nonnegative(),
+    longitude: z.number().nonnegative(),
   });
   const result = AddressSchema.safeParse(address);
   return result.success;

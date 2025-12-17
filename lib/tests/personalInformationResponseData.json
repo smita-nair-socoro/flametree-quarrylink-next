@@ -1,7 +1,7 @@
 {
-  "full_name": "Alex Kontarero",
+  "name": "Alex Kontarero",
   "email": "alex.kontarero@socoro.com.au",
   "phone": "+61412345678",
-  "created_at": "2025-08-21T06:00:59.955Z",
-  "last_login_at": "2025-08-21T06:00:59.955Z"
+  "createdAt": "2025-08-21T06:00:59.955Z",
+  "lastLoginAt": "2025-08-21T06:00:59.955Z"
 }

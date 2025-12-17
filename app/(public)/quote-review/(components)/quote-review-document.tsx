@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -14,51 +15,44 @@ import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
+import { downloadQuotePdf } from '@/lib/utils/pdf-download';
+import { notifyError } from '@/lib/toast';
+import QuoteExpired from './quote-expired';
+import { parseQuotePayload, parseStatusParam } from './types/quote-payload';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
-  payloadParam?: string;
 };
 
 export default function QuoteReviewDocument({
   quoteId,
-  payloadParam, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: QuoteReviewDocumentProps) {
+  const searchParams = useSearchParams();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(QuoteStatus.PENDING);
+  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
+    QuoteStatus.PENDING
+  );
 
-  /**
-   * CURRENT STATE: Using hardcoded mock data for all quotes
-   * This is intentional for static site deployment (no dynamic data fetching during build)
-   *
-   * FUTURE BACKEND INTEGRATION:
-   * When backend API is ready, replace mock data with actual API call:
-   */
+  // TEMPORARY: State to force showing expired page for UI/UX testing
+  const [showExpiredPage, setShowExpiredPage] = useState(false);
+
   const quotationData = mockQuotationData;
 
+  // Parse payload and status parameters
+  const payloadParam = searchParams.get('payload');
+  const { currentQuoteStatus: parsedStatus, parsedPayload } = parseQuotePayload(
+    payloadParam,
+    quotationData.navbar.status
+  );
+
+  const statusParam = searchParams.get('status');
+  const currentQuoteStatus = parseStatusParam(statusParam, parsedStatus);
+
   // State for navbar status (will be updated when user approves/declines)
-  const [navbarStatus, setNavbarStatus] = useState<QuoteStatus>(quotationData.navbar.status);
-
-  const handleDownloadPDF = () => {
-    console.log('Download PDF clicked for quote:', quoteId);
-    window.print();
-  };
-
-  const handleApprove = async () => {
-    console.log('Approve quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.APPROVED);
-    setNavbarStatus(QuoteStatus.APPROVED);
-
-    setApproveDialogOpen(false);
-  };
-
-  const handleDecline = async () => {
-    console.log('Decline quotation:', quoteId);
-    setQuoteStatus(QuoteStatus.DECLINED);
-    setNavbarStatus(QuoteStatus.DECLINED);
-    setDeclineDialogOpen(false);
-  };
+  // Note: All hooks must be called before any conditional returns (React Hooks rules)
+  const [navbarStatus, setNavbarStatus] =
+    useState<QuoteStatus>(currentQuoteStatus);
 
   const approveDialogDescription = useMemo(() => {
     const { project, navbar, customer, summary } = quotationData;
@@ -130,7 +124,7 @@ export default function QuoteReviewDocument({
 
         <div className="rounded-xl border border-slate-100 bg-[#E5E5E5] p-3 space-y-2">
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
-            <span>Quote Total (incl. GST):</span>
+            <span>Quote Total (Incl. GST):</span>
             <span className="text-base font-medium text-[#101828]">
               {currencyFormatter.format(summary.total)}
             </span>
@@ -145,6 +139,7 @@ export default function QuoteReviewDocument({
       </div>
     );
   }, [quotationData]);
+
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
     const declineNotes = [
@@ -210,6 +205,52 @@ export default function QuoteReviewDocument({
     );
   }, [quotationData]);
 
+  // Check if quote is expired - show expired page
+  // TEMPORARY: Also check showExpiredPage state for UI/UX testing
+  if (currentQuoteStatus === QuoteStatus.EXPIRED || showExpiredPage) {
+    // Get account manager email from payload or mock data
+    const accountManagerEmail = parsedPayload?.account_manager_email;
+    const businessEmail = parsedPayload?.business_email;
+    return (
+      <QuoteExpired
+        accountManagerEmail={accountManagerEmail}
+        businessEmail={businessEmail}
+      />
+    );
+  }
+
+  const handleDownloadPDF = async () => {
+    console.log('Download PDF clicked for quote:', quoteId);
+    try {
+      await downloadQuotePdf(
+        quotationData,
+        quoteId,
+        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
+      );
+    } catch (error) {
+      notifyError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to download PDF. Please try again.'
+      );
+    }
+  };
+
+  const handleApprove = async () => {
+    console.log('Approve quotation:', quoteId);
+    setQuoteStatus(QuoteStatus.APPROVED);
+    setNavbarStatus(QuoteStatus.APPROVED);
+
+    setApproveDialogOpen(false);
+  };
+
+  const handleDecline = async () => {
+    console.log('Decline quotation:', quoteId);
+    setQuoteStatus(QuoteStatus.DECLINED);
+    setNavbarStatus(QuoteStatus.DECLINED);
+    setDeclineDialogOpen(false);
+  };
+
   return (
     <>
       {/* Approve Dialog */}
@@ -238,6 +279,19 @@ export default function QuoteReviewDocument({
       {/* Main Document */}
       <div className="min-h-screen bg-gray-100 p-4 print:px-0 print:py-0">
         <div className="max-w-[960px] mx-auto bg-white">
+          {/* TEMPORARY: Testing button for UI/UX to view Expired page */}
+          <div className="bg-yellow-100 border-2 border-yellow-400 p-4 m-4 rounded-lg print:hidden">
+            <p className="text-sm font-semibold text-yellow-800 mb-2">
+              🧪 Development Testing Controls
+            </p>
+            <button
+              onClick={() => setShowExpiredPage(!showExpiredPage)}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+            >
+              {showExpiredPage ? '← Back to Quote' : 'View Expired Page →'}
+            </button>
+          </div>
+
           {/* Navbar */}
           <QuoteNavbar
             {...quotationData.navbar}

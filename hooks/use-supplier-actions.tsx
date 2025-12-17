@@ -1,10 +1,12 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { QuarriesWithProduct } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ActionDialog } from '@/components/action-dialog';
 import SupplierForm from '@/app/(protected)/inventory/products/(components)/forms/supplier-form';
-import { TriangleAlert, CircleCheckBig } from 'lucide-react';
+import { TriangleAlert, CircleCheckBig, CircleAlert } from 'lucide-react';
+import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
+import { extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -28,40 +30,72 @@ interface SelectedAction {
   key: string;
 }
 
-const getDialogConfigs = (
-  quarryData?: QuarriesWithProduct | null,
-  selectedAction?: SelectedAction
-): Record<string, DialogConfig> => {
-  const quarryName = quarryData?.quarry_name;
-  const supplierName = quarryData?.supplier_product_name;
-  const supplierProductCode = quarryData?.supplier_product_code;
+interface BlockingQuote {
+  quoteNumber: string;
+  lineItemsCount: number;
+}
 
-  if (selectedAction?.key === 'cannotDelete ') {
+const getDialogConfigs = (
+  quarryData?: QuarrySupplierProduct | null,
+  selectedAction?: SelectedAction,
+  blockingQuotes?: BlockingQuote[]
+): Record<string, DialogConfig> => {
+  const quarryName = quarryData?.quarryName ?? quarryData?.supplierProductName;
+  const supplierProductCode = quarryData?.supplierProductCode;
+  const blockingQuoteLength = blockingQuotes?.length ?? 0;
+
+  const blockingQuoteIds =
+    blockingQuotes?.map((quote: any) => quote.quoteNumber) ?? [];
+
+  if (selectedAction?.key === 'cannotDelete') {
     return {
-      delete: {
-        title: `Delete Supplier`,
+      cannotDelete: {
+        title: 'Cannot Delete',
         description: (
-          <div className="flex justfiy-start gap-2">
-            <div className="flex w-[41.99px] h-[41.99px] items-center justify-center bg-[#FFEDD4] rounded-full">
-              <span className="flex items-center justify-center">
-                <TriangleAlert className="h-5 w-5 text-[#F54900]" />
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-medium">Cannot Delete Supplier</span>
-              <div className="flex justify-start gap-2">
-                <span className="text-sm text-gray-500">
-                  {supplierName} ({supplierProductCode})
-                </span>
+          <div className="flex justify-start items-center gap-1">
+            <div className="flex items-center gap-2">
+              <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FFEDD4] rounded-full">
+                <TriangleAlert className="h-[21px] w-[21px] text-[#F54900]" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="font-medium">Cannot Delete Supplier</span>
+                <div className="flex justify-start gap-2">
+                  <span className="text-sm text-[#6A7282]">
+                    {quarryName} ({supplierProductCode})
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-5">
-            <span className="text-sm text-gray-500 font-semibold">
-              Are you sure you want to delete this supplier from the product?
-            </span>
+          <div className="flex flex-col gap-4">
+            <div className="text-[14px] text-[#364153]">
+              This supplier cannot be removed because it has pending business
+              activities:
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-[14px] text-[#101828]">
+                Active Usage:
+              </span>
+              <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3">
+                <span className="text-[14px] text-[#364153] font-normal">
+                  {blockingQuoteLength} active quotes:{' '}
+                </span>
+                <span className="text-[14px] text-[#155DFC] font-medium underline">
+                  {blockingQuoteIds.join(', ')}
+                </span>
+              </div>
+            </div>
+            <div className="bg-[#EFF6FF] border border-[#BEDBFF] rounded-md p-3">
+              <div className="flex items-start gap-2 self-stretch">
+                <CircleAlert className="h-5 w-5 text-[#193CB8]" />
+                <span className="text-[14px] text-[#193CB8] font-normal">
+                  Removing this supplier now would disrupt ongoig business
+                  operations.
+                </span>
+              </div>
+            </div>
           </div>
         ),
         confirmActionNeeded: false,
@@ -147,16 +181,23 @@ const getDialogConfigs = (
 
 export function useSupplierActions(
   quarryId: number | undefined,
-  quarryData?: QuarriesWithProduct | null
+  quarryData?: QuarrySupplierProduct | null
 ) {
+  const { mutateAsync: deleteQuarrySupplierProduct } =
+    useDeleteQuarrySupplierProduct();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
+  const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
+    []
+  );
+
   const dialogConfigs = getDialogConfigs(
     quarryData,
-    selectedAction || undefined
+    selectedAction || undefined,
+    blockingQuotes
   );
 
   const createDialogAction = (actionKey: string, action: () => void) => {
@@ -206,17 +247,62 @@ export function useSupplierActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'delete':
               console.log('Delete supplier:', quarryId, quarryData);
-              // TODO: implement delete logic
-              break;
+              if (!quarryId || !quarryData?.productId) {
+                setActiveDialog(null);
+                setSelectedAction(null);
+                break;
+              }
+              try {
+                await deleteQuarrySupplierProduct({
+                  quarrySupplierId: quarryId,
+                  productId: quarryData.productId,
+                });
+
+                // Deleted successfully; close dialog
+                setActiveDialog(null);
+                setSelectedAction(null);
+              } catch (e: unknown) {
+                console.error('Failed to delete supplier:', {
+                  error: e,
+                });
+
+                // Backend returns 409 with blockingQuoteDtos when deletion is blocked
+                const errorData = extractErrorData(e);
+                const blocked: BlockingQuote[] =
+                  errorData &&
+                  typeof errorData === 'object' &&
+                  'blockingQuoteDtos' in errorData &&
+                  Array.isArray(
+                    (errorData as { blockingQuoteDtos?: BlockingQuote[] })
+                      .blockingQuoteDtos
+                  )
+                    ? (errorData as { blockingQuoteDtos: BlockingQuote[] })
+                        .blockingQuoteDtos
+                    : [];
+
+                console.log('blocked', blocked);
+
+                if (blocked.length > 0) {
+                  // Open cannotDelete modal to show info
+                  setBlockingQuotes(blocked);
+                  setSelectedAction({ key: 'cannotDelete' });
+                  setActiveDialog('cannotDelete');
+                } else {
+                  setActiveDialog(null);
+                  setSelectedAction(null);
+                }
+              }
+              return;
             case 'cannotDelete':
               console.log('Cannot delete supplier:', quarryId, quarryData);
               // TODO: implement cannot delete logic
               break;
           }
+          // default close
           setActiveDialog(null);
           setSelectedAction(null);
         }}
@@ -227,7 +313,7 @@ export function useSupplierActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quarryId}
-      dialogTitle={`${quarryData?.quarry_name} - Detailed Information`}
+      dialogTitle={`${quarryData?.quarrySupplier?.name} - Detailed Information`}
       dialogWidth="700px"
       contentClass="-mt-5"
       open={viewOpen}
@@ -246,7 +332,11 @@ export function useSupplierActions(
         useSelectedSupplier: true,
       }}
     >
-      <SupplierForm />
+      <SupplierForm
+        quarrySupplierId={quarryData?.quarrySupplier?.id}
+        productId={quarryData?.productId}
+        onCancel={() => setViewOpen(false)}
+      />
     </FormDialog>
   ) : null;
 

@@ -19,26 +19,27 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
-import { getRelativeTime, formatDate } from '@/lib/utils/date';
 import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
 import { useSelectedTeamMember } from '@/app/stores/team-member-store';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TableBadges } from '@/components/table-badges';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
+import { useQuery } from '@tanstack/react-query';
+import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
+
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
 type EditTeamMemberPayload = EditTeamMemberFormValues & {
   id?: number;
-  client_id?: number;
-  created_at?: string | null;
-  last_login_at?: string | null;
-  total_logins?: number;
-  quotation_created?: number;
-  jobs_managed?: number;
-  invited_by?: number;
-  deletion_reason?: string;
-  isDeleted?: boolean;
-  updated_at?: string | null;
+  clientId?: number;
+  createdAt?: string | null;
+  lastLoginAt?: string | null;
+  totalLogins?: number;
+  quotationCreated?: number;
+  updatedAt?: string | null;
   status?: string | null;
 };
 
@@ -53,31 +54,74 @@ interface EditTeamMemberFormProps {
 export function EditTeamMemberForm({
   roles,
   currentUserId,
-  onSave,
   onCancel,
   onSuccess,
 }: EditTeamMemberFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const initialData = useSelectedTeamMember();
+  const selectedUser = useSelectedTeamMember(); // User from store (basic data from list)
 
-  const fullName = initialData?.full_name.trim() || 'Unnamed User';
+  // Use the update user mutation
+  const updateUserMutation = useUpdateUser();
 
-  const defaultValues = React.useMemo<EditTeamMemberFormValues>(
-    () => ({
+  // Fetch detailed user data by ID (using sub as the ID)
+  const {
+    data: detailedUser,
+    isLoading: isLoadingDetails,
+    error: detailsError,
+  } = useQuery({
+    ...UserDetailQueryOptions(selectedUser?.sub || ''),
+    enabled: !!selectedUser?.sub, // Only fetch if we have a sub (user ID)
+  });
+
+  console.log('[TeamMemberForm] 📦 API Response - detailedUser:', detailedUser);
+
+  // Use detailed data if available, fallback to store data
+  const initialData = detailedUser || selectedUser;
+
+  const fullName = initialData?.name?.trim() || 'Unnamed User';
+
+  // Convert groups array to role string for form
+  const getRoleFromGroups = React.useCallback(
+    (groups: string[] | undefined): string => {
+      if (!groups || !Array.isArray(groups) || groups.length === 0) {
+        return '';
+      }
+
+      const groupsStr = groups.join(',').toLowerCase();
+
+      // Check in priority order
+      if (
+        groupsStr.includes('super_admin') ||
+        groupsStr.includes('superadmin')
+      ) {
+        return 'SUPERADMIN';
+      }
+      if (groupsStr.includes('admin')) {
+        return 'ADMIN';
+      }
+      return 'USER';
+    },
+    []
+  );
+
+  const defaultValues = React.useMemo<EditTeamMemberFormValues>(() => {
+    const role = getRoleFromGroups(initialData?.groups);
+
+    return {
       full_name: fullName,
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
-      role: initialData?.role ?? '',
+      role: role,
       status: initialData?.status,
-    }),
-    [
-      fullName,
-      initialData?.email,
-      initialData?.phone,
-      initialData?.role,
-      initialData?.status,
-    ]
-  );
+    };
+  }, [
+    fullName,
+    initialData?.email,
+    initialData?.phone,
+    initialData?.groups,
+    initialData?.status,
+    getRoleFromGroups,
+  ]);
 
   const form = useForm<EditTeamMemberFormValues>({
     resolver: zodResolver(EditTeamMemberFormSchema),
@@ -88,28 +132,10 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const joinedDate = initialData?.created_at || undefined;
-  const formattedJoined = joinedDate
-    ? formatDate(joinedDate, 'd MMM yyyy')
-    : '—';
-
-  const lastLoginRelative = initialData?.last_login_at
-    ? getRelativeTime(initialData.last_login_at)
-    : 'Never';
-
-  const totalLogins =
-    typeof initialData?.total_logins === 'number'
-      ? initialData.total_logins
-      : 0;
-  const quotations =
-    typeof initialData?.quotation_created === 'number'
-      ? initialData.quotation_created
-      : 0;
-
   const disableRoleChange =
     currentUserId !== undefined &&
-    initialData?.id !== undefined &&
-    String(currentUserId) === String(initialData.id);
+    initialData?.sub !== undefined &&
+    String(currentUserId) === String(initialData.sub);
 
   const handleCancel = () => {
     form.reset();
@@ -117,32 +143,85 @@ export function EditTeamMemberForm({
   };
 
   const handleSubmit = async (values: EditTeamMemberFormValues) => {
-    const normalizedPhone = values.phone?.trim() || '';
+    if (!initialData?.sub) {
+      notifyError('No user ID found');
+      return;
+    }
 
-    const payload: EditTeamMemberPayload = {
-      ...values,
-      id: initialData?.id,
-      client_id: initialData?.client_id,
-      phone: normalizedPhone,
-      created_at: initialData?.created_at,
-      last_login_at: initialData?.last_login_at,
-      total_logins: initialData?.total_logins,
-      quotation_created: initialData?.quotation_created,
-      jobs_managed: initialData?.jobs_managed,
-      invited_by: initialData?.invited_by,
-      deletion_reason: initialData?.deletion_reason,
-      isDeleted: initialData?.isDeleted,
-      updated_at: initialData?.updated_at,
-    };
+    try {
+      // Convert frontend role to backend format
+      const roleToBackend = (role: string): string => {
+        if (role === 'SUPERADMIN') return 'SUPER_ADMIN';
+        return role; // USER and ADMIN remain the same
+      };
 
-    await onSave?.(payload);
-    form.reset({
-      ...values,
-      phone: normalizedPhone,
-    });
-    onSuccess?.();
+      const normalizedPhone = values.phone?.trim() || '';
+
+      // Create UserUpdateDTO matching backend structure
+      const updateData = {
+        name: values.full_name,
+        phone: normalizedPhone || undefined,
+        role: roleToBackend(values.role),
+      };
+
+      // Call the API to update user (use sub as the ID)
+      await updateUserMutation.mutateAsync({
+        id: initialData.sub, // sub is already a string
+        data: updateData,
+      });
+
+      // Reset form with updated values
+      form.reset({
+        ...values,
+        phone: normalizedPhone,
+      });
+
+      // Show success toast
+      notifySuccess('User Updated');
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error updating team member:', error);
+      notifyError('Update Failed', {
+        description:
+          error instanceof Error ? error.message : 'Please try again',
+      });
+    }
   };
 
+  // Handle form validation errors
+  const handleError = (errors: unknown) => {
+    console.error('Team Member validation errors:', errors);
+    notifyError('Update Failed');
+  };
+
+  // Use mutation's pending state for loading indicator
+  const isSubmitting = updateUserMutation.isPending;
+
+  // Show loading state while fetching details
+  if (isLoadingDetails) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4">
+        <Spinner size="medium" />
+        <p className="text-lg text-muted-foreground">Loading user details...</p>
+      </div>
+    );
+  }
+
+  // Show error if details fetch failed
+  if (detailsError) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load user details. Please try again.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Show message if no user selected
   if (!initialData) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -152,7 +231,24 @@ export function EditTeamMemberForm({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10'
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              Updating User...
+            </p>
+          </div>
+        </div>
+      )}
+
       <header className="rounded-lg border border-border bg-[#F9FAFB] p-4 sm:p-5">
         <div
           className={
@@ -171,18 +267,23 @@ export function EditTeamMemberForm({
               {fullName}
             </span>
             <TableBadges names={initialData.status} visibleCount={1} />
-            <span className="text-[16px] text-[#4B5563]">{initialData.email}</span>
-            <span className="text-[14px] text-[#6B7280]">
-              Joined: {formattedJoined}
+            <span className="text-[16px] text-[#4B5563]">
+              {initialData.email}
             </span>
+            {/* <span className="text-[14px] text-[#6B7280]">
+              Joined: {formattedJoined}
+            </span> */}
           </div>
         </div>
       </header>
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="flex flex-col gap-2 mt-2"
+          onSubmit={form.handleSubmit(handleSubmit, handleError)}
+          className={cn(
+            'flex flex-col gap-2 mt-2',
+            isSubmitting && 'pointer-events-none'
+          )}
         >
           <section className="space-y-3">
             <div>
@@ -276,7 +377,7 @@ export function EditTeamMemberForm({
             ) : null}
           </section>
 
-          <section className="space-y-4">
+          {/* <section className="space-y-4">
             <div
               className={
                 isDesktop
@@ -305,7 +406,7 @@ export function EditTeamMemberForm({
                 </p>
               </div>
             </div>
-          </section>
+          </section> */}
 
           {isDesktop && <Separator />}
 
@@ -314,13 +415,23 @@ export function EditTeamMemberForm({
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+              </Button>
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col gap-3 mb-3">
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+              </Button>
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>

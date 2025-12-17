@@ -4,101 +4,134 @@ import { ColumnDef } from '@tanstack/react-table';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { centsToDollars } from '@/lib/utils/currency';
 import { QuotationLineItemTableActions } from './quotation-line-item-actions';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
   {
-    id: 'product_name',
-    accessorFn: (row) => row.product_name,
+    id: 'productName',
+    accessorFn: (row) => row.productName,
     header: () => {
       return <div>Product</div>;
     },
     cell: (info) => info.getValue(),
     meta: 'Product Name',
-    size: 150,
+    size: 160,
   },
   {
-    id: 'quarry_name',
-    accessorFn: (row) => row.quarry_name,
+    id: 'quarryName',
+    accessorFn: (row) => row.quarryName,
     header: () => {
       return <div>Supplier</div>;
     },
     cell: (info) => info.getValue(),
-    meta: 'quarry_name',
+    meta: 'quarryName',
     size: 200,
   },
   {
-    id: 'total_product_cost_price',
-    accessorFn: (row) => row.total_product_cost_price,
+    id: 'totalProductCostPrice',
+    accessorFn: (row) => row.totalProductCostPrice,
     header: () => {
-      return <div>Total Cost</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Total Cost{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
-      const total_product_cost_price = row.original.total_product_cost_price
-        ? centsToDollars(row.original.total_product_cost_price)
+      const totalProductCostPrice = row.original.totalProductCostPrice
+        ? centsToDollars(row.original.totalProductCostPrice)
         : '0';
-      return <div>${total_product_cost_price}</div>;
+      return <div>${totalProductCostPrice}</div>;
     },
     meta: 'Total Product Cost Price',
-    size: 120,
+    size: 150,
   },
   {
-    id: 'total_product_sell_price',
-    accessorFn: (row) => row.total_product_sell_price,
+    id: 'totalProductSellPrice',
+    accessorFn: (row) => row.totalProductSellPrice,
     header: () => {
-      return <div>Total Sell</div>;
+      return (
+        <div className="flex items-center gap-1">
+          Total Sell{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
     },
     cell: ({ row }) => {
-      const total_product_sell_price = row.original.total_product_sell_price
-        ? centsToDollars(row.original.total_product_sell_price)
+      const totalProductSellPrice = row.original.totalProductSellPrice
+        ? centsToDollars(row.original.totalProductSellPrice)
         : '0';
-      return <div>${total_product_sell_price}</div>;
+      return <div>${totalProductSellPrice}</div>;
     },
     meta: 'Total Product Sell Price',
-    size: 120,
+    size: 150,
   },
   {
-    id: 'product_sell_qty',
-    accessorFn: (row) => row.product_sell_qty,
+    id: 'productSellQty',
+    accessorFn: (row) => row.productSellQty,
     header: () => {
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      const product_sell_qty = row.original.product_sell_qty;
-      const product_sell_uom = row.original.product_sell_uom;
+      const productSellQty = row.original.productSellQty;
+      const productSellUom =
+        row.original.productSellUom === 'KG_20'
+          ? 'x 20kg'
+          : row.original.productSellUom;
       return (
         <div>
-          {product_sell_qty} {product_sell_uom}
+          {productSellQty} {productSellUom}
         </div>
       );
     },
     meta: 'Product Sell QTY',
-    size: 120,
+    size: 100,
   },
   {
-    id: 'truck_type',
-    accessorFn: (row) => row.truck_type,
+    id: 'truckType',
+    accessorFn: (row) => row.truckType,
     header: () => {
       return <div>Truck</div>;
     },
     cell: ({ row }) => {
-      const truck_type = row.original.truck_type;
-      return <div>{truck_type}</div>;
+      const truckType = row.original.truckType;
+      return <div>{truckType}</div>;
     },
     meta: 'Truck Type',
-    size: 120,
+    size: 140,
   },
   {
-    id: 'gross_profit',
-    accessorFn: (row) => row.gross_profit,
+    id: 'grossProfit',
+    accessorFn: (row) => row.grossProfit,
     header: () => {
       return <div>GP</div>;
     },
     cell: ({ row }) => {
-      const gross_profit = row.original.gross_profit;
-      return <div>{gross_profit}%</div>;
+      const grossProfit = row.original.grossProfit;
+      return <div>{grossProfit.toFixed(2)}%</div>;
     },
     meta: 'Gross Profit',
-    size: 80,
+    size: 40,
   },
   {
     id: 'actions',
