@@ -5,6 +5,7 @@ import { toAddressPayload } from './address-helper';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
 import { notifyError } from '../toast';
+import { formatPhoneNumber } from './phone-helper';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -89,9 +90,13 @@ export const getLatestQuoteNumber = (
   const numbers = existingQuotes
     .map((q) => {
       const match = q.quoteNumber.match(/Q(\d+)/);
-      return match ? { num: parseInt(match[1], 10), original: q.quoteNumber } : null;
+      return match
+        ? { num: parseInt(match[1], 10), original: q.quoteNumber }
+        : null;
     })
-    .filter((n): n is { num: number; original: string } => n !== null && !isNaN(n.num));
+    .filter(
+      (n): n is { num: number; original: string } => n !== null && !isNaN(n.num)
+    );
 
   if (numbers.length === 0) {
     return null;
@@ -127,7 +132,7 @@ export const transformFormDataToQuoteDto = (
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,
     customerEmail: (formData.email as string) || '',
-    customerPhone: (formData.phone as string) || '',
+    customerPhone: formatPhoneNumber(formData.phone as string) || '',
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
     expiryDate: toLocalDateTime(expiryDate),
