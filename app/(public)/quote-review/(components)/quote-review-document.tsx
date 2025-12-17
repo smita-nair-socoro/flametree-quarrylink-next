@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -18,36 +17,35 @@ import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { downloadQuotePdf } from '@/lib/utils/pdf-download';
 import { notifyError } from '@/lib/toast';
 import QuoteExpired from './quote-expired';
-import { parseQuotePayload, parseStatusParam } from './types/quote-payload';
+import { PublicQuoteLinkResponse } from '@/lib/types/quotation';
+import { transformQuoteData } from './types/quote-transformer';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
+  quoteData?: PublicQuoteLinkResponse;
 };
 
 export default function QuoteReviewDocument({
   quoteId,
+  quoteData,
 }: QuoteReviewDocumentProps) {
-  const searchParams = useSearchParams();
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+
+  // Use API data if available, otherwise fall back to mock data
+  const quotationData = quoteData
+    ? transformQuoteData(quoteData)
+    : mockQuotationData;
+
+  // Get status directly from the transformed quotation data
+  const currentQuoteStatus = quotationData.navbar.status;
+
+  // State for quote status (will be updated when user approves/declines)
   const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
-    QuoteStatus.PENDING
+    currentQuoteStatus
   );
-
-  const quotationData = mockQuotationData;
-
-  // Parse payload and status parameters
-  const payloadParam = searchParams.get('payload');
-  const { currentQuoteStatus: parsedStatus, parsedPayload } = parseQuotePayload(
-    payloadParam,
-    quotationData.navbar.status
-  );
-
-  const statusParam = searchParams.get('status');
-  const currentQuoteStatus = parseStatusParam(statusParam, parsedStatus);
 
   // State for navbar status (will be updated when user approves/declines)
-  // Note: All hooks must be called before any conditional returns (React Hooks rules)
   const [navbarStatus, setNavbarStatus] =
     useState<QuoteStatus>(currentQuoteStatus);
 
@@ -204,9 +202,9 @@ export default function QuoteReviewDocument({
 
   // Check if quote is expired - show expired page
   if (currentQuoteStatus === QuoteStatus.EXPIRED) {
-    // Get account manager email from payload or mock data
-    const accountManagerEmail = parsedPayload?.account_manager_email;
-    const businessEmail = parsedPayload?.business_email;
+    // Get email information from API data or footer fallback
+    const accountManagerEmail = undefined; // Account manager email not available in current API
+    const businessEmail = quotationData.footer.email;
     return (
       <QuoteExpired
         accountManagerEmail={accountManagerEmail}

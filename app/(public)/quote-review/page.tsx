@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import QuoteReviewDocument from './(components)/quote-review-document';
 import { fetchPublicQuoteByToken } from '@/lib/api/quotation';
 import { Spinner } from '@/components/ui/spinner';
+import { PublicQuoteLinkResponse } from '@/lib/types/quotation';
 
 function QuoteReviewContent() {
   const searchParams = useSearchParams();
@@ -13,6 +14,9 @@ function QuoteReviewContent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quoteData, setQuoteData] = useState<PublicQuoteLinkResponse | null>(
+    null
+  );
 
   useEffect(() => {
     if (!token) {
@@ -26,10 +30,11 @@ function QuoteReviewContent() {
     fetchPublicQuoteByToken(token)
       .then((res) => {
         console.log('[QuoteReview] public link payload:', res);
+        setQuoteData(res);
       })
       .catch((err) => {
         console.error('Failed to fetch public quote link:', err);
-        setError(' Link is invalid or has expired.');
+        setError('Link is invalid or has expired.');
       })
       .finally(() => setIsLoading(false));
   }, [token]);
@@ -57,7 +62,9 @@ function QuoteReviewContent() {
           <div className="text-sm text-red-600 text-center px-4">{error}</div>
         </div>
       )}
-      <QuoteReviewDocument quoteId={quoteId} />
+      {!isLoading && !error && quoteData && (
+        <QuoteReviewDocument quoteId={quoteId} quoteData={quoteData} />
+      )}
     </>
   );
 }
