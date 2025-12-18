@@ -560,12 +560,12 @@ export default function SupplierForm({
       // Show success notification with warning if negative margins exist
       if (negativeMarginUnits.length > 0) {
         notifySuccess(
-          `Supplier ${
-            isEditing ? 'updated' : 'added'
-          } successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(
-            ', '
-          )}`,
-          { duration: 4000 }
+          `Supplier ${isEditing ? 'updated' : 'added'} successfully!`,
+          {
+            description: `Note: Negative margin on ${negativeMarginUnits.join(
+              ', '
+            )}`,
+          }
         );
       } else {
         notifySuccess(
