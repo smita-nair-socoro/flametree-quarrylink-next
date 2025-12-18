@@ -27,6 +27,10 @@ import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
 import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
 import { delay } from '@/lib/utils/time';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -126,9 +130,25 @@ export default function SettingsTab() {
       notifySuccess('Profile Updated');
     } catch (error) {
       console.error('Error updating profile:', error);
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Check for specific error codes if needed
+      if (codeStr === '409') {
+        const msg = 'User with this information already exists.';
+        notifyError('Update Failed', {
+          description: msg,
+        });
+        return;
+      }
+
+      // Fallback error using extracted message
       notifyError('Update Failed', {
         description:
-          error instanceof Error ? error.message : 'Please try again',
+          messageFromErr || 'Failed to update profile. Please try again.',
       });
     } finally {
       setIsSubmitting(false);
