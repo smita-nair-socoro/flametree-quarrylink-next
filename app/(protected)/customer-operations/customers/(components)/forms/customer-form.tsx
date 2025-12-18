@@ -29,7 +29,6 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { delay } from '@/lib/utils/time';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { useQuery } from '@tanstack/react-query';
 import { UsersListQueryOptions } from '@/lib/api/user';
