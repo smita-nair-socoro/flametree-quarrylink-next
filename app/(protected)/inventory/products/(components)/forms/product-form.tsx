@@ -471,8 +471,9 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 </span>
                 {isEditing && (
                   <span className="text-sm text-gray-500">
-                    {totalSupplier} suppliers configured with pricing and truck
-                    rates
+                    {totalSupplier}{' '}
+                    {totalSupplier === 1 ? 'supplier' : 'suppliers'} configured
+                    with pricing and truck rates
                   </span>
                 )}
                 {!isEditing && !productJustCreated && (
