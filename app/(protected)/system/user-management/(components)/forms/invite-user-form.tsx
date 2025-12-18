@@ -27,7 +27,10 @@ import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useCreateUser } from '@/lib/api/user';
 import { UserCreateDTO } from '@/lib/types/user';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
 import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
 
@@ -127,8 +130,30 @@ export default function InviteUserForm({
       onSuccess?.();
     } catch (error) {
       console.error('Error inviting user:', error);
-      const errorMessage = extractErrorMessage(error);
-      notifyError('Invitation Failed', { description: errorMessage });
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Duplicate email (HTTP 409)
+      const duplicateEmailPhrase = `Key (email)=(${data.email}) already exists`;
+      const isDuplicateEmail =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateEmailPhrase);
+
+      if (isDuplicateEmail) {
+        const msg = `User with email "${data.email}" already exists.`;
+        notifyError('Invitation Failed', { description: msg, duration: 2000 });
+        form.setError('email', { type: 'manual', message: msg });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError('Invitation Failed', {
+        description: messageFromErr || 'Failed to invite user. Please try again.',
+      });
     }
   };
 

@@ -33,6 +33,11 @@ import {
   useUpdateQuarrySupplierProduct,
 } from '@/lib/api/quarry-supplier-product';
 import { QuarriesListQueryOptions } from '@/lib/api/quarry';
+import { notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   productId?: number;
@@ -501,15 +506,39 @@ export default function SupplierForm({
       if (onCancel) {
         onCancel();
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} quarry supplier product:`,
         error
       );
-      console.error('Error details:', {
-        message: (error as Error).message,
-      });
-      // You might want to show a toast notification here
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Duplicate supplier product code (HTTP 409)
+      const duplicateKeyPhrase = `Key (supplier_product_code)=(${values.supplier_product_code}) already exists`;
+      const isDuplicateProductCode =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateKeyPhrase);
+
+      if (isDuplicateProductCode) {
+        const msg = `Duplicate supplier product code "${values.supplier_product_code}" already exists for this product.`;
+        notifyError(msg, { duration: 2000 });
+        supplierForm.setError('supplier_product_code', {
+          type: 'manual',
+          message: msg,
+        });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError(
+        messageFromErr ||
+          `Failed to ${isEditing ? 'update' : 'create'} supplier. Please try again.`
+      );
     } finally {
       setIsSubmitting(false);
     }
