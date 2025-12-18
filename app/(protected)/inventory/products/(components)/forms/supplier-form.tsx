@@ -381,7 +381,9 @@ export default function SupplierForm({
         // Check if this error is NOT a warning
         // Warnings have params.warning === true in the Zod schema
         const message = error?.message;
-        return !(typeof message === 'string' && message.startsWith('⚠️ Warning:'));
+        return !(
+          typeof message === 'string' && message.startsWith('⚠️ Warning:')
+        );
       });
 
       if (!hasNonWarningErrors) {
@@ -530,16 +532,27 @@ export default function SupplierForm({
       const negativeMarginUnits: string[] = [];
 
       for (const unit of units) {
-        const costPrice = processedValues[`cost_price_${unit}`] as number || 0;
-        const sellPrice = processedValues[`sell_price_${unit}`] as number || 0;
-        const isAvailable = processedValues[`available_for_sale_${unit}`] as boolean;
+        const costPrice =
+          (processedValues[`cost_price_${unit}`] as number) || 0;
+        const sellPrice =
+          (processedValues[`sell_price_${unit}`] as number) || 0;
+        const isAvailable = processedValues[
+          `available_for_sale_${unit}`
+        ] as boolean;
 
         // Convert back from cents to dollars for comparison
         const costInDollars = costPrice / 100;
         const sellInDollars = sellPrice / 100;
 
         if (isAvailable && sellInDollars > 0 && costInDollars > sellInDollars) {
-          const unitLabel = unit === 'tn' ? 'TN' : unit === 'm3' ? 'm³' : unit === 'kg' ? '20kg' : 'Bulka';
+          const unitLabel =
+            unit === 'tn'
+              ? 'TN'
+              : unit === 'm3'
+              ? 'm³'
+              : unit === 'kg'
+              ? '20kg'
+              : 'Bulka';
           negativeMarginUnits.push(unitLabel);
         }
       }
@@ -547,11 +560,17 @@ export default function SupplierForm({
       // Show success notification with warning if negative margins exist
       if (negativeMarginUnits.length > 0) {
         notifySuccess(
-          `Supplier ${isEditing ? 'updated' : 'added'} successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(', ')}`,
+          `Supplier ${
+            isEditing ? 'updated' : 'added'
+          } successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(
+            ', '
+          )}`,
           { duration: 4000 }
         );
       } else {
-        notifySuccess(`Supplier ${isEditing ? 'updated' : 'added'} successfully!`);
+        notifySuccess(
+          `Supplier ${isEditing ? 'updated' : 'added'} successfully!`
+        );
       }
 
       // Close form on success
@@ -589,7 +608,9 @@ export default function SupplierForm({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${isEditing ? 'update' : 'create'} supplier. Please try again.`
+          `Failed to ${
+            isEditing ? 'update' : 'create'
+          } supplier. Please try again.`
       );
     } finally {
       setIsSubmitting(false);
@@ -663,6 +684,78 @@ export default function SupplierForm({
           <Tab tabs={tabs} defaultTab={tabs[0].name} className="w-full" />
 
           <Separator className="my-4" />
+
+          {/* Negative Margin Warning */}
+          {(() => {
+            const units = [
+              {
+                key: 'tn',
+                label: 'TN',
+                cost: watchedCostTN,
+                sell: watchedSellTN,
+              },
+              {
+                key: 'm3',
+                label: 'm³',
+                cost: watchedCostM3,
+                sell: watchedSellM3,
+              },
+              {
+                key: 'kg',
+                label: '20kg',
+                cost: watchedCostKG,
+                sell: watchedSellKG,
+              },
+              {
+                key: 'bulka',
+                label: 'Bulka',
+                cost: watchedCostBulk,
+                sell: watchedSellBulk,
+              },
+            ];
+
+            const negativeMarginUnits = units.filter(
+              ({ cost, sell }) => (sell ?? 0) > 0 && (cost ?? 0) > (sell ?? 0)
+            );
+
+            if (negativeMarginUnits.length === 0) return null;
+
+            return (
+              <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                <div className="flex items-start gap-2">
+                  <span className="text-xl">⚠️</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                      Warning: Negative Profit Detected
+                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+                      The following units have cost prices higher than sell
+                      prices:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {negativeMarginUnits.map(({ label, cost, sell }) => {
+                        const costValue = cost ?? 0;
+                        const sellValue = sell ?? 0;
+                        const margin =
+                          ((sellValue - costValue) / sellValue) * 100;
+                        return (
+                          <li
+                            key={label}
+                            className="text-sm text-amber-700 dark:text-amber-300"
+                          >
+                            <strong>{label}:</strong> Cost $
+                            {costValue.toFixed(2)} {'>'} Sell $
+                            {sellValue.toFixed(2)} (Margin: {margin.toFixed(2)}
+                            %)
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           <div
             className={cn(
