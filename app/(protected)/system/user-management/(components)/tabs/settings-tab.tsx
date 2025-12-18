@@ -26,7 +26,6 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
 import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
-import { delay } from '@/lib/utils/time';
 import {
   extractErrorMessage,
   extractErrorResponse,
