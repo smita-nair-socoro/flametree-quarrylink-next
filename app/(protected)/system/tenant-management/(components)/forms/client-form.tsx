@@ -232,13 +232,6 @@ export default function ClientForm({
       // Simulate API call delay (remove this in production and replace with actual API call)
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // TODO: Replace with actual API call
-      // if (isEditing && id) {
-      //   await updateClient.mutateAsync({ id, data: payload });
-      // } else {
-      //   await createClient.mutateAsync(payload);
-      // }
-
       // Close the form modal first
       onCancel?.();
 
@@ -288,7 +281,9 @@ export default function ClientForm({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${isEditing ? 'update' : 'create'} client. Please try again.`
+          `Failed to ${
+            isEditing ? 'update' : 'create'
+          } client. Please try again.`
       );
     } finally {
       setIsSubmitting(false);
