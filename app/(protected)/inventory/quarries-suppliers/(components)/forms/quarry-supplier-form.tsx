@@ -36,6 +36,10 @@ import {
 import { Quarry } from '@/lib/types/quarry';
 import { QuarryType } from '@/lib/types/quarry-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   id?: number;
@@ -324,12 +328,40 @@ export default function QuarrySupplierForm({
           onCancel();
         }
       } catch (error) {
+        console.error(
+          `Error ${isEditing ? 'updating' : 'creating'} ${
+            values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
+          }:`,
+          error
+        );
+        // Extract normalized error response and message
+        const err = extractErrorResponse(error);
+        const extractedMessage = extractErrorMessage(error);
+        const codeStr = err?.code ? String(err.code) : undefined;
+        const messageFromErr = err?.message || extractedMessage;
+
+        // Duplicate quarry/supplier name (HTTP 409)
+        const duplicateNamePhrase = `Key (name)=(${values.name}) already exists`;
+        const isDuplicateName =
+          codeStr === '409' &&
+          typeof messageFromErr === 'string' &&
+          messageFromErr.includes(duplicateNamePhrase);
+
+        if (isDuplicateName) {
+          const msg = `${
+            values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
+          } with name "${values.name}" already exists.`;
+          notifyError(msg);
+          quarrySupplierForm.setError('name', { type: 'manual', message: msg });
+          return;
+        }
+
+        // Fallback error using extracted message
         notifyError(
-          error instanceof Error
-            ? error.message
-            : `Failed to ${isEditing ? 'update' : 'create'} ${
-                values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
-              }`
+          messageFromErr ||
+            `Failed to ${isEditing ? 'update' : 'create'} ${
+              values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
+            }. Please try again.`
         );
       } finally {
         setIsSubmitting(false);

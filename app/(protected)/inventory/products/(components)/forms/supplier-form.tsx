@@ -560,12 +560,12 @@ export default function SupplierForm({
       // Show success notification with warning if negative margins exist
       if (negativeMarginUnits.length > 0) {
         notifySuccess(
-          `Supplier ${
-            isEditing ? 'updated' : 'added'
-          } successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(
-            ', '
-          )}`,
-          { duration: 4000 }
+          `Supplier ${isEditing ? 'updated' : 'added'} successfully!`,
+          {
+            description: `Note: Negative margin on ${negativeMarginUnits.join(
+              ', '
+            )}`,
+          }
         );
       } else {
         notifySuccess(
@@ -597,7 +597,7 @@ export default function SupplierForm({
 
       if (isDuplicateProductCode) {
         const msg = `Duplicate supplier product code "${values.supplier_product_code}" already exists for this product.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         supplierForm.setError('supplier_product_code', {
           type: 'manual',
           message: msg,

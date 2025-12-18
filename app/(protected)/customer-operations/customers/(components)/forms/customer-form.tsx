@@ -33,6 +33,10 @@ import { delay } from '@/lib/utils/time';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { useQuery } from '@tanstack/react-query';
 import { UsersListQueryOptions } from '@/lib/api/user';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   id?: number;
@@ -315,17 +319,72 @@ export default function CustomerForm({
       };
 
       console.log('Customer Data:', customerData);
-
-      // Simulate API call delay (remove this in production)
-      await delay(2000);
-
       // Show success toast
       notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added');
       onSuccess?.();
     } catch (error) {
-      console.error('Error creating customer:', error);
+      console.error(
+        `Error ${isEditing ? 'updating' : 'creating'} customer:`,
+        error
+      );
+
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Duplicate business email (HTTP 409)
+      const duplicateEmailPhrase = `Key (business_email)=(${values.business_email}) already exists`;
+      const isDuplicateEmail =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateEmailPhrase);
+
+      if (isDuplicateEmail) {
+        const msg = `Duplicate business email "${values.business_email}" already exists.`;
+        notifyError(msg);
+        customerForm.setError('business_email', {
+          type: 'manual',
+          message: msg,
+        });
+        return;
+      }
+
+      // Duplicate contact email (HTTP 409)
+      const duplicateContactEmailPhrase = `Key (contact_person_email)=(${values.contact_person_email}) already exists`;
+      const isDuplicateContactEmail =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateContactEmailPhrase);
+
+      if (isDuplicateContactEmail) {
+        const msg = `Duplicate contact email "${values.contact_person_email}" already exists.`;
+        notifyError(msg);
+        customerForm.setError('contact_person_email', {
+          type: 'manual',
+          message: msg,
+        });
+        return;
+      }
+
+      // Duplicate ABN (HTTP 409)
+      const duplicateABNPhrase = `Key (abn)=(${values.abn}) already exists`;
+      const isDuplicateABN =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateABNPhrase);
+
+      if (isDuplicateABN) {
+        const msg = `Duplicate ABN "${values.abn}" already exists.`;
+        notifyError(msg);
+        customerForm.setError('abn', { type: 'manual', message: msg });
+        return;
+      }
+
+      // Fallback error using extracted message
       notifyError(
-        isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer'
+        messageFromErr || 'Failed to save customer. Please try again.'
       );
     } finally {
       setIsSubmitting(false);

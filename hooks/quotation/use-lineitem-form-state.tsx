@@ -19,6 +19,10 @@ import {
   dollarsToCents,
 } from '@/lib/utils/currency';
 import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
+import {
   QuotationLineItem,
   quarrySupplierProductDetail,
 } from '@/lib/types/quotation';
@@ -556,9 +560,20 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       form.reset();
       onCancel?.();
     } catch (error) {
-      console.error('❌ Failed to save Line item:', error);
+      console.error(
+        `Error ${isEditing ? 'updating' : 'creating'} line item:`,
+        error
+      );
+
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Fallback error using extracted message
       notifyError(
-        isEditing ? 'Failed to Update Line item' : 'Failed to Add Line item'
+        messageFromErr ||
+          `Failed to ${isEditing ? 'update' : 'add'} line item. Please try again.`
       );
     }
   }

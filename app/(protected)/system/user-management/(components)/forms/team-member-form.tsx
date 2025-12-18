@@ -29,6 +29,10 @@ import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 import { useQuery } from '@tanstack/react-query';
 import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
@@ -181,9 +185,25 @@ export function EditTeamMemberForm({
       onSuccess?.();
     } catch (error) {
       console.error('Error updating team member:', error);
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Check for specific error codes if needed
+      // For example, duplicate email (409) or permission errors (403)
+      if (codeStr === '409') {
+        const msg = 'User with this information already exists.';
+        notifyError('Update Failed', {
+          description: msg,
+        });
+        return;
+      }
+
+      // Fallback error using extracted message
       notifyError('Update Failed', {
-        description:
-          error instanceof Error ? error.message : 'Please try again',
+        description: messageFromErr || 'Failed to update user. Please try again.',
       });
     }
   };

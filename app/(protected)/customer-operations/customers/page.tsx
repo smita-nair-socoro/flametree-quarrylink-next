@@ -21,6 +21,8 @@ import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 import {
   DataTableClient,
@@ -110,6 +112,7 @@ export default function CustomersPage() {
   React.useEffect(() => {
     if (isError && error) {
       console.error('Customer API Error:', error);
+      notifyError(extractErrorMessage(error));
     }
   }, [isError, error]);
 

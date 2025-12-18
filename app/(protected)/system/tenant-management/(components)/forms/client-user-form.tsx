@@ -25,6 +25,11 @@ import { EditClientUserFormSchema } from './schemas/client-user-form-schema';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { User } from '@/lib/types/user';
+import { notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 type EditClientUserFormValues = z.infer<typeof EditClientUserFormSchema>;
 
@@ -155,12 +160,37 @@ export function EditClientUserForm({
       updatedAt: initialData?.updatedAt,
     };
 
-    await onSave?.(payload);
-    form.reset({
-      ...values,
-      phone: normalizedPhone,
-    });
-    onSuccess?.();
+    try {
+      await onSave?.(payload);
+      form.reset({
+        ...values,
+        phone: normalizedPhone,
+      });
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error updating client user:', error);
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Check for specific error codes if needed
+      // For example, duplicate email (409) or permission errors (403)
+      if (codeStr === '409') {
+        const msg = 'User with this information already exists.';
+        notifyError('Update Failed', {
+          description: msg,
+        });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError('Update Failed', {
+        description:
+          messageFromErr || 'Failed to update client user. Please try again.',
+      });
+    }
   };
 
   if (!initialData) {
