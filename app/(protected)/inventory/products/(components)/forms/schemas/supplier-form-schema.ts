@@ -112,24 +112,4 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
     }
   }
 
-  // Negative margin warnings - these are warnings only, won't block submission
-  for (const unit of units) {
-    if (data[`available_for_sale_${unit}`] === true) {
-      const costPrice = data[`cost_price_${unit}`] || 0;
-      const sellPrice = data[`sell_price_${unit}`] || 0;
-
-      // Check if cost price is higher than sell price (negative margin)
-      if (sellPrice > 0 && costPrice > sellPrice) {
-        const margin = ((sellPrice - costPrice) / sellPrice) * 100;
-        ctx.addIssue({
-          path: [`sell_price_${unit}`],
-          code: z.ZodIssueCode.custom,
-          message: `⚠️ Warning: Cost Price ($${costPrice.toFixed(2)}) > Sell Price ($${sellPrice.toFixed(2)}). Margin: ${margin.toFixed(2)}%`,
-          params: {
-            warning: true, // Mark this as a warning, not a blocking error
-          },
-        });
-      }
-    }
-  }
 });

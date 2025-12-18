@@ -113,7 +113,7 @@ export function PricingConfigurationTable({
         const displayValue = `${marginValue.toFixed(2)}%`;
 
         // Determine text color based on margin value
-        const textColor = marginValue < 0 ? 'text-red-600' : 'text-green-600';
+        const textColor = marginValue <= 0 ? 'text-red-600' : 'text-green-600';
 
         return (
           <div className="flex justify-start gap-2">
