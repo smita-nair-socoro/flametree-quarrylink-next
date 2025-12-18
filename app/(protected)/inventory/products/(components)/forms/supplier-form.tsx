@@ -597,7 +597,7 @@ export default function SupplierForm({
 
       if (isDuplicateProductCode) {
         const msg = `Duplicate supplier product code "${values.supplier_product_code}" already exists for this product.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         supplierForm.setError('supplier_product_code', {
           type: 'manual',
           message: msg,

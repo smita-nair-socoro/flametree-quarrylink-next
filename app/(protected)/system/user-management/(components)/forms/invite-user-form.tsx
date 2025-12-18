@@ -145,14 +145,15 @@ export default function InviteUserForm({
 
       if (isDuplicateEmail) {
         const msg = `User with email "${data.email}" already exists.`;
-        notifyError('Invitation Failed', { description: msg, duration: 2000 });
+        notifyError('Invitation Failed', { description: msg });
         form.setError('email', { type: 'manual', message: msg });
         return;
       }
 
       // Fallback error using extracted message
       notifyError('Invitation Failed', {
-        description: messageFromErr || 'Failed to invite user. Please try again.',
+        description:
+          messageFromErr || 'Failed to invite user. Please try again.',
       });
     }
   };

@@ -30,6 +30,7 @@ import { User } from '@/lib/types/user';
 import Step1CompanyDetails from './steps/step-1-company-details';
 import Step2Subscription from './steps/step-2-subscription';
 import Step3Summary from './steps/step-3-summary';
+import { delay } from '@/lib/utils/time';
 
 interface FormProps {
   id?: number;
@@ -230,7 +231,7 @@ export default function ClientForm({
 
     try {
       // Simulate API call delay (remove this in production and replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await delay(2000);
 
       // Close the form modal first
       onCancel?.();
@@ -266,14 +267,14 @@ export default function ClientForm({
 
       if (isDuplicateName) {
         const msg = `Client with name "${values.name}" already exists.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         clientForm.setError('name', { type: 'manual', message: msg });
         return;
       }
 
       if (isDuplicateABN) {
         const msg = `Client with ABN "${values.abn}" already exists.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         clientForm.setError('abn', { type: 'manual', message: msg });
         return;
       }

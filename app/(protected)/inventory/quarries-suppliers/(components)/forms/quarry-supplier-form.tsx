@@ -351,7 +351,7 @@ export default function QuarrySupplierForm({
           const msg = `${
             values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
           } with name "${values.name}" already exists.`;
-          notifyError(msg, { duration: 2000 });
+          notifyError(msg);
           quarrySupplierForm.setError('name', { type: 'manual', message: msg });
           return;
         }

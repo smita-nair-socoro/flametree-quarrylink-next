@@ -345,7 +345,7 @@ export default function CustomerForm({
 
       if (isDuplicateEmail) {
         const msg = `Duplicate business email "${values.business_email}" already exists.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         customerForm.setError('business_email', {
           type: 'manual',
           message: msg,
@@ -362,7 +362,7 @@ export default function CustomerForm({
 
       if (isDuplicateContactEmail) {
         const msg = `Duplicate contact email "${values.contact_person_email}" already exists.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         customerForm.setError('contact_person_email', {
           type: 'manual',
           message: msg,
@@ -379,7 +379,7 @@ export default function CustomerForm({
 
       if (isDuplicateABN) {
         const msg = `Duplicate ABN "${values.abn}" already exists.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         customerForm.setError('abn', { type: 'manual', message: msg });
         return;
       }
