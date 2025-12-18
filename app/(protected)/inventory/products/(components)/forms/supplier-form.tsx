@@ -685,6 +685,78 @@ export default function SupplierForm({
 
           <Separator className="my-4" />
 
+          {/* Negative Margin Warning */}
+          {(() => {
+            const units = [
+              {
+                key: 'tn',
+                label: 'TN',
+                cost: watchedCostTN,
+                sell: watchedSellTN,
+              },
+              {
+                key: 'm3',
+                label: 'm³',
+                cost: watchedCostM3,
+                sell: watchedSellM3,
+              },
+              {
+                key: 'kg',
+                label: '20kg',
+                cost: watchedCostKG,
+                sell: watchedSellKG,
+              },
+              {
+                key: 'bulka',
+                label: 'Bulka',
+                cost: watchedCostBulk,
+                sell: watchedSellBulk,
+              },
+            ];
+
+            const negativeMarginUnits = units.filter(
+              ({ cost, sell }) => (sell ?? 0) > 0 && (cost ?? 0) > (sell ?? 0)
+            );
+
+            if (negativeMarginUnits.length === 0) return null;
+
+            return (
+              <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                <div className="flex items-start gap-2">
+                  <span className="text-xl">⚠️</span>
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                      Warning: Negative Profit Detected
+                    </p>
+                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
+                      The following units have cost prices higher than sell
+                      prices:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1">
+                      {negativeMarginUnits.map(({ label, cost, sell }) => {
+                        const costValue = cost ?? 0;
+                        const sellValue = sell ?? 0;
+                        const margin =
+                          ((sellValue - costValue) / sellValue) * 100;
+                        return (
+                          <li
+                            key={label}
+                            className="text-sm text-amber-700 dark:text-amber-300"
+                          >
+                            <strong>{label}:</strong> Cost $
+                            {costValue.toFixed(2)} {'>'} Sell $
+                            {sellValue.toFixed(2)} (Margin: {margin.toFixed(2)}
+                            %)
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           <div
             className={cn(
               'mb-6',
