@@ -14,6 +14,11 @@ import { Button } from '@/components/ui/button';
 import { AddressType } from '@/lib/types/address';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 import UserAccessTab from './tabs/user-access-tab';
 import UsageStatisticsTab from './tabs/usage-statistics-tab';
 import BillingHistoryTab from './tabs/billing-history-tab';
@@ -223,19 +228,62 @@ export default function ClientForm({
 
     setIsSubmitting(true);
 
-    // Simulate API call delay (remove this in production)
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Close the form modal first
+      onCancel?.();
 
-    setIsSubmitting(false);
+      // Trigger success callback with client data
+      if (!isEditing) {
+        setTimeout(() => {
+          onClientAdded?.(values.name, values.email);
+        }, 300);
+      }
+    } catch (error) {
+      console.error(
+        `Error ${isEditing ? 'updating' : 'creating'} client:`,
+        error
+      );
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
 
-    // Close the form modal first
-    onCancel?.();
+      // Duplicate client name or ABN (HTTP 409)
+      const duplicateNamePhrase = `Key (name)=(${values.name}) already exists`;
+      const duplicateABNPhrase = `Key (abn)=(${values.abn}) already exists`;
+      const isDuplicateName =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateNamePhrase);
+      const isDuplicateABN =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateABNPhrase);
 
-    // Trigger success callback with client data
-    if (!isEditing) {
-      setTimeout(() => {
-        onClientAdded?.(values.name, values.email);
-      }, 300);
+      if (isDuplicateName) {
+        const msg = `Client with name "${values.name}" already exists.`;
+        notifyError(msg);
+        clientForm.setError('name', { type: 'manual', message: msg });
+        return;
+      }
+
+      if (isDuplicateABN) {
+        const msg = `Client with ABN "${values.abn}" already exists.`;
+        notifyError(msg);
+        clientForm.setError('abn', { type: 'manual', message: msg });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError(
+        messageFromErr ||
+          `Failed to ${
+            isEditing ? 'update' : 'create'
+          } client. Please try again.`
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   }
 

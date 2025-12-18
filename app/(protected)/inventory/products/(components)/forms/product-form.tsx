@@ -244,7 +244,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
       if (isDuplicateProductCode) {
         const msg = `Duplicate product code "${values.product_code}" already exists.`;
-        notifyError(msg, { duration: 2000 });
+        notifyError(msg);
         productForm.setError('product_code', { type: 'manual', message: msg });
         return;
       }
