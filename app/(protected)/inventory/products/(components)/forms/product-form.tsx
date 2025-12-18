@@ -170,10 +170,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   // Update total supplier count when product data is loaded
   React.useEffect(() => {
-    if (selectedProduct?.quarrySupplierProducts) {
-      setTotalSupplier(selectedProduct.quarrySupplierProducts.length || 0);
-    }
-  }, [selectedProduct]);
+    setTotalSupplier(selectedProduct?.quarrySupplierProducts?.length || 0);
+  }, [selectedProduct?.quarrySupplierProducts]);
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -473,8 +471,9 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 </span>
                 {isEditing && (
                   <span className="text-sm text-gray-500">
-                    {totalSupplier} suppliers configured with pricing and truck
-                    rates
+                    {totalSupplier}{' '}
+                    {totalSupplier === 1 ? 'supplier' : 'suppliers'} configured
+                    with pricing and truck rates
                   </span>
                 )}
                 {!isEditing && !productJustCreated && (
