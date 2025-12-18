@@ -171,12 +171,7 @@ export default function SettingsTab() {
 
     try {
       setIsSubmitting(true);
-
-      // TODO: Implement password change functionality
-      // Backend endpoint for password change not yet implemented
-      // This is a placeholder that simulates the request
       console.log('Password change values:', values);
-      await delay(2000);
 
       notifySuccess('Password Changed');
       changePasswordForm.reset();

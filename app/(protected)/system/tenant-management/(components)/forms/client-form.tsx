@@ -230,9 +230,6 @@ export default function ClientForm({
     setIsSubmitting(true);
 
     try {
-      // Simulate API call delay (remove this in production and replace with actual API call)
-      await delay(2000);
-
       // Close the form modal first
       onCancel?.();
 

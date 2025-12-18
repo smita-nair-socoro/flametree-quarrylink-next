@@ -319,8 +319,6 @@ export default function CustomerForm({
       };
 
       console.log('Customer Data:', customerData);
-      // Simulate API call delay (remove this in production)
-      await delay(2000);
       // Show success toast
       notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added');
       onSuccess?.();
