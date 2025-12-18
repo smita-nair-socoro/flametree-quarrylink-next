@@ -33,6 +33,11 @@ import {
   useUpdateQuarrySupplierProduct,
 } from '@/lib/api/quarry-supplier-product';
 import { QuarriesListQueryOptions } from '@/lib/api/quarry';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 
 interface FormProps {
   productId?: number;
@@ -196,10 +201,10 @@ export default function SupplierForm({
   const watchedCostBulk = supplierForm.watch('cost_price_bulka');
   const watchedSellBulk = supplierForm.watch('sell_price_bulka');
 
-  // Calculate margin percentage
+  // Calculate margin percentage: (Sell Price - Cost Price) / Sell Price × 100
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
-    if (!costPrice || !sellPrice || costPrice <= 0) return 0;
-    return ((sellPrice - costPrice) / costPrice) * 100;
+    if (!sellPrice || sellPrice <= 0) return 0;
+    return ((sellPrice - costPrice) / sellPrice) * 100;
   };
 
   // Update margin values when prices or availability change
@@ -362,9 +367,32 @@ export default function SupplierForm({
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Trigger validation
+    const isValid = await supplierForm.trigger();
+
+    if (!isValid) {
+      // Check if all errors are warnings
+      const errors = supplierForm.formState.errors;
+      const hasNonWarningErrors = Object.values(errors).some((error) => {
+        // Check if this error is NOT a warning
+        // Warnings have params.warning === true in the Zod schema
+        const message = error?.message;
+        return !(typeof message === 'string' && message.startsWith('⚠️ Warning:'));
+      });
+
+      if (!hasNonWarningErrors) {
+        // Only warnings exist, allow submission
+        const values = supplierForm.getValues();
+        await onSubmit(values);
+        return;
+      }
+    }
+
+    // Normal submission flow (no errors or non-warning errors exist)
     supplierForm.handleSubmit(onSubmit)(e);
   };
 
@@ -497,19 +525,72 @@ export default function SupplierForm({
         console.log('Quarry Supplier Product created successfully!');
       }
 
+      // Check if there are any negative margins and show info notification
+      const units = ['tn', 'm3', 'kg', 'bulka'] as const;
+      const negativeMarginUnits: string[] = [];
+
+      for (const unit of units) {
+        const costPrice = processedValues[`cost_price_${unit}`] as number || 0;
+        const sellPrice = processedValues[`sell_price_${unit}`] as number || 0;
+        const isAvailable = processedValues[`available_for_sale_${unit}`] as boolean;
+
+        // Convert back from cents to dollars for comparison
+        const costInDollars = costPrice / 100;
+        const sellInDollars = sellPrice / 100;
+
+        if (isAvailable && sellInDollars > 0 && costInDollars > sellInDollars) {
+          const unitLabel = unit === 'tn' ? 'TN' : unit === 'm3' ? 'm³' : unit === 'kg' ? '20kg' : 'Bulka';
+          negativeMarginUnits.push(unitLabel);
+        }
+      }
+
+      // Show success notification with warning if negative margins exist
+      if (negativeMarginUnits.length > 0) {
+        notifySuccess(
+          `Supplier ${isEditing ? 'updated' : 'added'} successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(', ')}`,
+          { duration: 4000 }
+        );
+      } else {
+        notifySuccess(`Supplier ${isEditing ? 'updated' : 'added'} successfully!`);
+      }
+
       // Close form on success
       if (onCancel) {
         onCancel();
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} quarry supplier product:`,
         error
       );
-      console.error('Error details:', {
-        message: (error as Error).message,
-      });
-      // You might want to show a toast notification here
+      // Extract normalized error response and message
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      // Duplicate supplier product code (HTTP 409)
+      const duplicateKeyPhrase = `Key (supplier_product_code)=(${values.supplier_product_code}) already exists`;
+      const isDuplicateProductCode =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateKeyPhrase);
+
+      if (isDuplicateProductCode) {
+        const msg = `Duplicate supplier product code "${values.supplier_product_code}" already exists for this product.`;
+        notifyError(msg, { duration: 2000 });
+        supplierForm.setError('supplier_product_code', {
+          type: 'manual',
+          message: msg,
+        });
+        return;
+      }
+
+      // Fallback error using extracted message
+      notifyError(
+        messageFromErr ||
+          `Failed to ${isEditing ? 'update' : 'create'} supplier. Please try again.`
+      );
     } finally {
       setIsSubmitting(false);
     }
