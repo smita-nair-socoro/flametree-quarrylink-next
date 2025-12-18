@@ -381,7 +381,9 @@ export default function SupplierForm({
         // Check if this error is NOT a warning
         // Warnings have params.warning === true in the Zod schema
         const message = error?.message;
-        return !(typeof message === 'string' && message.startsWith('⚠️ Warning:'));
+        return !(
+          typeof message === 'string' && message.startsWith('⚠️ Warning:')
+        );
       });
 
       if (!hasNonWarningErrors) {
@@ -410,41 +412,6 @@ export default function SupplierForm({
     try {
       // Reset pricing values to 0 if availability switches are off
       const processedValues = { ...values };
-
-      if (!processedValues.available_for_sale_tn) {
-        processedValues.cost_price_tn = 0;
-        processedValues.sell_price_tn = 0;
-        processedValues.margin_tn = 0;
-      }
-      if (!processedValues.available_for_sale_m3) {
-        processedValues.cost_price_m3 = 0;
-        processedValues.sell_price_m3 = 0;
-        processedValues.margin_m3 = 0;
-      }
-      if (!processedValues.available_for_sale_kg) {
-        processedValues.cost_price_kg = 0;
-        processedValues.sell_price_kg = 0;
-        processedValues.margin_kg = 0;
-      }
-      if (!processedValues.available_for_sale_bulka) {
-        processedValues.cost_price_bulka = 0;
-        processedValues.sell_price_bulka = 0;
-        processedValues.margin_bulka = 0;
-      }
-
-      // Reset truck rate values to 0 if availability switches are off
-      if (!processedValues.available_truck_tn_rate) {
-        processedValues.truck_tn_rate = 0;
-      }
-      if (!processedValues.available_truck_m3_rate) {
-        processedValues.truck_m3_rate = 0;
-      }
-      if (!processedValues.available_truck_hourly_rate) {
-        processedValues.truck_hourly_rate = 0;
-      }
-      if (!processedValues.available_truck_load_rate) {
-        processedValues.truck_load_rate = 0;
-      }
 
       // Convert prices from dollars to cents for database storage
       const priceFieldsToConvert = [
@@ -530,16 +497,27 @@ export default function SupplierForm({
       const negativeMarginUnits: string[] = [];
 
       for (const unit of units) {
-        const costPrice = processedValues[`cost_price_${unit}`] as number || 0;
-        const sellPrice = processedValues[`sell_price_${unit}`] as number || 0;
-        const isAvailable = processedValues[`available_for_sale_${unit}`] as boolean;
+        const costPrice =
+          (processedValues[`cost_price_${unit}`] as number) || 0;
+        const sellPrice =
+          (processedValues[`sell_price_${unit}`] as number) || 0;
+        const isAvailable = processedValues[
+          `available_for_sale_${unit}`
+        ] as boolean;
 
         // Convert back from cents to dollars for comparison
         const costInDollars = costPrice / 100;
         const sellInDollars = sellPrice / 100;
 
         if (isAvailable && sellInDollars > 0 && costInDollars > sellInDollars) {
-          const unitLabel = unit === 'tn' ? 'TN' : unit === 'm3' ? 'm³' : unit === 'kg' ? '20kg' : 'Bulka';
+          const unitLabel =
+            unit === 'tn'
+              ? 'TN'
+              : unit === 'm3'
+              ? 'm³'
+              : unit === 'kg'
+              ? '20kg'
+              : 'Bulka';
           negativeMarginUnits.push(unitLabel);
         }
       }
@@ -547,11 +525,17 @@ export default function SupplierForm({
       // Show success notification with warning if negative margins exist
       if (negativeMarginUnits.length > 0) {
         notifySuccess(
-          `Supplier ${isEditing ? 'updated' : 'added'} successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(', ')}`,
+          `Supplier ${
+            isEditing ? 'updated' : 'added'
+          } successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(
+            ', '
+          )}`,
           { duration: 4000 }
         );
       } else {
-        notifySuccess(`Supplier ${isEditing ? 'updated' : 'added'} successfully!`);
+        notifySuccess(
+          `Supplier ${isEditing ? 'updated' : 'added'} successfully!`
+        );
       }
 
       // Close form on success
@@ -589,7 +573,9 @@ export default function SupplierForm({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${isEditing ? 'update' : 'create'} supplier. Please try again.`
+          `Failed to ${
+            isEditing ? 'update' : 'create'
+          } supplier. Please try again.`
       );
     } finally {
       setIsSubmitting(false);
