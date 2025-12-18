@@ -983,7 +983,7 @@ export function DataTableClient<TData, TValue>({
                 <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                   Total Records:
                   <span className="text-accent-foreground ml-2">
-                    {data.length}
+                    {table.getFilteredRowModel().rows.length}
                   </span>
                 </p>
 
