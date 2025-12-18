@@ -196,10 +196,10 @@ export default function SupplierForm({
   const watchedCostBulk = supplierForm.watch('cost_price_bulka');
   const watchedSellBulk = supplierForm.watch('sell_price_bulka');
 
-  // Calculate margin percentage
+  // Calculate margin percentage: (Sell Price - Cost Price) / Sell Price × 100
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
-    if (!costPrice || !sellPrice || costPrice <= 0) return 0;
-    return ((sellPrice - costPrice) / costPrice) * 100;
+    if (!sellPrice || sellPrice <= 0) return 0;
+    return ((sellPrice - costPrice) / sellPrice) * 100;
   };
 
   // Update margin values when prices or availability change
