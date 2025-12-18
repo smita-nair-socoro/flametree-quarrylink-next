@@ -525,8 +525,34 @@ export default function SupplierForm({
         console.log('Quarry Supplier Product created successfully!');
       }
 
-      // Show success notification
-      notifySuccess(`Supplier ${isEditing ? 'updated' : 'added'} successfully!`);
+      // Check if there are any negative margins and show info notification
+      const units = ['tn', 'm3', 'kg', 'bulka'] as const;
+      const negativeMarginUnits: string[] = [];
+
+      for (const unit of units) {
+        const costPrice = processedValues[`cost_price_${unit}`] as number || 0;
+        const sellPrice = processedValues[`sell_price_${unit}`] as number || 0;
+        const isAvailable = processedValues[`available_for_sale_${unit}`] as boolean;
+
+        // Convert back from cents to dollars for comparison
+        const costInDollars = costPrice / 100;
+        const sellInDollars = sellPrice / 100;
+
+        if (isAvailable && sellInDollars > 0 && costInDollars > sellInDollars) {
+          const unitLabel = unit === 'tn' ? 'TN' : unit === 'm3' ? 'm³' : unit === 'kg' ? '20kg' : 'Bulka';
+          negativeMarginUnits.push(unitLabel);
+        }
+      }
+
+      // Show success notification with warning if negative margins exist
+      if (negativeMarginUnits.length > 0) {
+        notifySuccess(
+          `Supplier ${isEditing ? 'updated' : 'added'} successfully! ⚠️ Note: Negative margin on ${negativeMarginUnits.join(', ')}`,
+          { duration: 4000 }
+        );
+      } else {
+        notifySuccess(`Supplier ${isEditing ? 'updated' : 'added'} successfully!`);
+      }
 
       // Close form on success
       if (onCancel) {
