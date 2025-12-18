@@ -89,8 +89,8 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     accessorFn: (row) => {
       const costPrice = row.per20kgCostPrice || 0;
       const sellPrice = row.per20kgSellPrice || 0;
-      if (costPrice === 0) return 0;
-      return (sellPrice - costPrice) / costPrice;
+      if (sellPrice === 0) return 0;
+      return (sellPrice - costPrice) / sellPrice;
     },
     header: ({}) => {
       return <div>Margin</div>;
@@ -102,8 +102,8 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       const costPrice = row.original.per20kgCostPrice || 0;
       const sellPrice = row.original.per20kgSellPrice || 0;
 
-      // Calculate margin: (Sell Price - Cost Price) / Cost Price
-      const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
+      // Calculate margin: (Sell Price - Cost Price) / Sell Price
+      const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice;
 
       return (
         <div

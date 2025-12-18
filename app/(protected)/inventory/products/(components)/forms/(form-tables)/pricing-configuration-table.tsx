@@ -20,10 +20,10 @@ export function PricingConfigurationTable({
   control,
   watch,
 }: PricingConfigurationTableProps) {
-  // Calculate margin percentage
+  // Calculate margin percentage: (Sell Price - Cost Price) / Sell Price × 100
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
-    if (!costPrice || !sellPrice || costPrice <= 0) return 0;
-    return ((sellPrice - costPrice) / costPrice) * 100;
+    if (!sellPrice || sellPrice <= 0) return 0;
+    return ((sellPrice - costPrice) / sellPrice) * 100;
   };
 
   // Headers configuration

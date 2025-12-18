@@ -89,8 +89,8 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     accessorFn: (row) => {
       const costPrice = row.perBulkaCostPrice || 0;
       const sellPrice = row.perBulkaSellPrice || 0;
-      if (costPrice === 0) return 0;
-      return (sellPrice - costPrice) / costPrice;
+      if (sellPrice === 0) return 0;
+      return (sellPrice - costPrice) / sellPrice;
     },
     header: ({}) => {
       return <div>Margin</div>;
@@ -102,8 +102,8 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       const costPrice = row.original.perBulkaCostPrice || 0;
       const sellPrice = row.original.perBulkaSellPrice || 0;
 
-      // Calculate margin: (Sell Price - Cost Price) / Cost Price
-      const margin = costPrice === 0 ? 0 : (sellPrice - costPrice) / costPrice;
+      // Calculate margin: (Sell Price - Cost Price) / Sell Price
+      const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice;
 
       return (
         <div
