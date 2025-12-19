@@ -342,17 +342,30 @@ export default function QuarrySupplierForm({
 
         // Duplicate quarry/supplier name (HTTP 409)
         const duplicateNamePhrase = `Key (name)=(${values.name}) already exists`;
-        const isDuplicateName =
+        const duplicateEmailPhrase = `Key (email)`;
+
+        if (
           codeStr === '409' &&
           typeof messageFromErr === 'string' &&
-          messageFromErr.includes(duplicateNamePhrase);
-
-        if (isDuplicateName) {
+          messageFromErr.includes(duplicateNamePhrase)
+        ) {
           const msg = `${
             values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
           } with name "${values.name}" already exists.`;
           notifyError(msg);
           quarrySupplierForm.setError('name', { type: 'manual', message: msg });
+          return;
+        } else if (
+          codeStr == '409' &&
+          typeof messageFromErr === 'string' &&
+          messageFromErr.includes(duplicateEmailPhrase)
+        ) {
+          const msg = 'Email already exists.';
+          notifyError(msg);
+          quarrySupplierForm.setError('email', {
+            type: 'manual',
+            message: msg,
+          });
           return;
         }
 
