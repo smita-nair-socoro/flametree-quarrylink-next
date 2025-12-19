@@ -30,7 +30,6 @@ import { User } from '@/lib/types/user';
 import Step1CompanyDetails from './steps/step-1-company-details';
 import Step2Subscription from './steps/step-2-subscription';
 import Step3Summary from './steps/step-3-summary';
-import { delay } from '@/lib/utils/time';
 
 interface FormProps {
   id?: number;

@@ -413,41 +413,6 @@ export default function SupplierForm({
       // Reset pricing values to 0 if availability switches are off
       const processedValues = { ...values };
 
-      if (!processedValues.available_for_sale_tn) {
-        processedValues.cost_price_tn = 0;
-        processedValues.sell_price_tn = 0;
-        processedValues.margin_tn = 0;
-      }
-      if (!processedValues.available_for_sale_m3) {
-        processedValues.cost_price_m3 = 0;
-        processedValues.sell_price_m3 = 0;
-        processedValues.margin_m3 = 0;
-      }
-      if (!processedValues.available_for_sale_kg) {
-        processedValues.cost_price_kg = 0;
-        processedValues.sell_price_kg = 0;
-        processedValues.margin_kg = 0;
-      }
-      if (!processedValues.available_for_sale_bulka) {
-        processedValues.cost_price_bulka = 0;
-        processedValues.sell_price_bulka = 0;
-        processedValues.margin_bulka = 0;
-      }
-
-      // Reset truck rate values to 0 if availability switches are off
-      if (!processedValues.available_truck_tn_rate) {
-        processedValues.truck_tn_rate = 0;
-      }
-      if (!processedValues.available_truck_m3_rate) {
-        processedValues.truck_m3_rate = 0;
-      }
-      if (!processedValues.available_truck_hourly_rate) {
-        processedValues.truck_hourly_rate = 0;
-      }
-      if (!processedValues.available_truck_load_rate) {
-        processedValues.truck_load_rate = 0;
-      }
-
       // Convert prices from dollars to cents for database storage
       const priceFieldsToConvert = [
         'cost_price_tn',
