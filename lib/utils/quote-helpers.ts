@@ -118,6 +118,7 @@ export const transformFormDataToQuoteDto = (
     quoteNumber: string;
     lineItemsCount?: number;
     deliveryAddress: AddressType | null;
+    originalDeliveryAddress?: Address | null;
   }
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
@@ -152,7 +153,10 @@ export const transformFormDataToQuoteDto = (
   };
 
   // Map UI address shape (AddressType) to backend Address payload
-  const mappedAddress = toAddressPayload(additionalData.deliveryAddress);
+  const mappedAddress = toAddressPayload(
+    additionalData.deliveryAddress,
+    additionalData.originalDeliveryAddress
+  );
   if (!mappedAddress) {
     notifyError('⚠️ Address may be missing!');
   } else {

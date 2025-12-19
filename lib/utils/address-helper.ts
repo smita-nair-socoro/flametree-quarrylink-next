@@ -33,7 +33,8 @@ export function toAddressType(address?: Address | null): AddressType {
 
 // Convert legacy AddressType back to backend Address payload
 export function toAddressPayload(
-  address?: AddressType | null
+  address?: AddressType | null,
+  originalAddress?: Address | null
 ): Address | undefined {
   if (!address) return undefined;
 
@@ -42,7 +43,22 @@ export function toAddressPayload(
   //   ? String(address.googlePlaceId)
   //   : '';
 
+  // Check if address has changed compared to original
+  const addressChanged =
+    originalAddress &&
+    (address.address1 !== (originalAddress.streetDetailsPrimary || '') ||
+      address.address2 !== (originalAddress.streetDetailsOptional || '') ||
+      address.city !== (originalAddress.city || '') ||
+      address.region !== (originalAddress.state || '') ||
+      address.postalCode !== (originalAddress.postcode || '') ||
+      address.country !== (originalAddress.country || '') ||
+      address.formattedAddress !== (originalAddress.formattedAddress || ''));
+
   return {
+    // Only include id if address hasn't changed (backend doesn't accept id for updates)
+    ...(!addressChanged && originalAddress?.id
+      ? { id: originalAddress.id }
+      : {}),
     googlePlaceId,
     formattedAddress: address.formattedAddress || '',
     streetDetailsPrimary: address.address1 || '',
@@ -54,6 +70,6 @@ export function toAddressPayload(
     country: address.country || '',
     latitude: address.lat ?? 0,
     longitude: address.lng ?? 0,
-    version: 0,
+    version: originalAddress?.version ?? 0,
   };
 }

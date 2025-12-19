@@ -271,10 +271,27 @@ export default function QuarrySupplierForm({
       console.log('values are', values);
 
       try {
+        // Check if address has changed
+        const originalAddress = selectedQuarrySupplier?.address;
+        const addressChanged =
+          isEditing &&
+          originalAddress &&
+          (address.address1 !== (originalAddress.streetDetailsPrimary || '') ||
+            address.address2 !== (originalAddress.streetDetailsOptional || '') ||
+            address.city !== (originalAddress.city || '') ||
+            address.region !== (originalAddress.state || '') ||
+            address.postalCode !== (originalAddress.postcode || '') ||
+            address.country !== (originalAddress.country || '') ||
+            address.formattedAddress !==
+              (originalAddress.formattedAddress || ''));
+
         // Build address data from current address state
+        // Note: Backend does not accept address.id for updates when address is modified
         const addressData: Address = {
-          // Include id and version only when editing with existing address
-          ...(isEditing && selectedQuarrySupplier?.address?.id
+          // Only include id if address hasn't changed
+          ...(!addressChanged &&
+          isEditing &&
+          selectedQuarrySupplier?.address?.id
             ? { id: selectedQuarrySupplier.address.id }
             : {}),
           ...(isEditing &&
