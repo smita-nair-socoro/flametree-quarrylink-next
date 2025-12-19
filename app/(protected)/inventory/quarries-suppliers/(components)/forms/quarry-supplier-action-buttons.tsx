@@ -18,15 +18,32 @@ import { Quarry } from '@/lib/types/quarry';
 
 interface QuarrySupplierActionButtonsProps {
   quarrySupplier: Quarry | null | undefined;
+  /**
+   * When provided, these actions will be used instead of creating a new
+   * `useQuarrySupplierActions` instance. This lets the header buttons operate on
+   * the same dialog state as the parent (so closing actions affect the same dialog).
+   */
+  actionsOverride?: {
+    view: () => void;
+    linkedProducts: () => void;
+    delete: () => void;
+    unarchive: () => void;
+  };
+  /**
+   * When true, this component will not render its own confirm dialogs.
+   * Useful when the parent already renders them to avoid duplication.
+   */
+  suppressDialogs?: boolean;
 }
 
 export function QuarrySupplierActionButtons({
   quarrySupplier,
+  actionsOverride,
+  suppressDialogs = false,
 }: QuarrySupplierActionButtonsProps) {
-  const { actions, confirmDialogs } = useQuarrySupplierActions(
-    quarrySupplier?.id,
-    quarrySupplier
-  );
+  const internal = useQuarrySupplierActions(quarrySupplier?.id, quarrySupplier);
+  const actions = actionsOverride ?? internal.actions;
+  const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
 
   // Early returns for null quarry/supplier or new quarry/supplier
   if (!quarrySupplier) {

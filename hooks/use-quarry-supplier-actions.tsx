@@ -58,7 +58,7 @@ const getDialogConfigs = (
   blockingSummary?: DeleteBlockingSummary
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
-  const type = quarrySupplierData?.quarry_supplier_type;
+  const type = quarrySupplierData?.quarrySupplierType;
 
   if (selectedAction?.key === 'delete') {
     return {
@@ -284,7 +284,7 @@ export function useQuarrySupplierActions(
     DeleteBlockingSummary | undefined
   >(undefined);
   const [editFormType, setEditFormType] = React.useState<string>(
-    quarrySupplierData?.quarry_supplier_type || 'QUARRY'
+    quarrySupplierData?.quarrySupplierType || 'QUARRY'
   );
 
   const unarchiveMutation = useUnarchiveQuarry();
@@ -306,7 +306,7 @@ export function useQuarrySupplierActions(
 
   const actions = {
     view: () => {
-      setEditFormType(quarrySupplierData?.quarry_supplier_type || 'QUARRY');
+      setEditFormType(quarrySupplierData?.quarrySupplierType || 'QUARRY');
       setViewOpen(true);
     },
 
@@ -443,7 +443,9 @@ export function useQuarrySupplierActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quarrySupplierId}
-      dialogTitle={`View / Edit ${editFormType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
+      dialogTitle={`View / Edit ${
+        editFormType === 'QUARRY' ? 'Quarry' : 'Supplier'
+      }`}
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
@@ -460,7 +462,11 @@ export function useQuarrySupplierActions(
         useSelectedQuarrySupplier: true,
       }}
       headerButtons={
-        <QuarrySupplierActionButtons quarrySupplier={quarrySupplierData} />
+        <QuarrySupplierActionButtons
+          quarrySupplier={quarrySupplierData}
+          actionsOverride={actions}
+          suppressDialogs
+        />
       }
     >
       <QuarrySupplierForm

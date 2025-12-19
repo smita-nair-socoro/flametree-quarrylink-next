@@ -3,7 +3,6 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import QuarrySupplierForm from './(components)/forms/quarry-supplier-form';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import { Quarry } from '@/lib/types/quarry';
 import { QuarryType, QuarryStatus } from '@/lib/types/quarry-enums';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
@@ -85,7 +84,7 @@ export default function QuarriesSuppliersPage() {
     },
   ];
 
-  const { actions, viewDialog } = useQuarrySupplierActions(
+  const { actions, confirmDialogs, viewDialog } = useQuarrySupplierActions(
     selectedQuarrySupplierForActions?.id,
     selectedQuarrySupplierForActions
   );
@@ -94,24 +93,28 @@ export default function QuarriesSuppliersPage() {
   const items: Quarry[] = React.useMemo(() => {
     return (
       quarriesData?.map((quarry) => {
-        const convertedQuarry = convertKeysToSnakeCase(quarry);
-
-        const quarryType = (convertedQuarry.quarry_supplier_type || 'QUARRY') as QuarryType;
+        const quarryType = (quarry.quarrySupplierType ||
+          'QUARRY') as QuarryType;
 
         // Check if is_active field exists (from API response)
-        const isActive = 'is_active' in convertedQuarry ? (convertedQuarry as Record<string, unknown>).is_active : undefined;
+        const isActive =
+          'isActive' in quarry
+            ? (quarry as Record<string, unknown>).isActive
+            : undefined;
 
         const transformed = {
-          ...convertedQuarry,
-          quarry_supplier_type: quarryType,
-          status: (isActive === false ? 'ARCHIVED' : convertedQuarry.status || 'ACTIVE') as QuarryStatus,
+          ...quarry,
+          quarrySupplierType: quarryType,
+          status: (isActive === false
+            ? 'ARCHIVED'
+            : quarry.status || 'ACTIVE') as QuarryStatus,
           // Preserve address in original camelCase format (backend uses camelCase for Address)
           address: quarry.address,
           // Extract suburb from address object for table display
           suburb: quarry.address?.suburb || '',
-          email: convertedQuarry.email || '',
-          phone: convertedQuarry.phone || '',
-          opening_closing_times: convertedQuarry.opening_closing_info || '',
+          email: quarry.email || '',
+          phone: quarry.phone || '',
+          opening_closing_times: quarry.openingClosingInfo || '',
         };
 
         return transformed;
@@ -119,9 +122,10 @@ export default function QuarriesSuppliersPage() {
     );
   }, [quarriesData]);
 
-
   // Get Zustand store actions
-  const setSelectedQuarrySupplierInStore = useQuarrySupplierStore((state) => state.setSelectedQuarrySupplier);
+  const setSelectedQuarrySupplierInStore = useQuarrySupplierStore(
+    (state) => state.setSelectedQuarrySupplier
+  );
 
   // Handle row click to open quarry/supplier details
   const handleRowClick = (quarrySupplier: Quarry) => {
@@ -139,6 +143,7 @@ export default function QuarriesSuppliersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
       {viewDialog}
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
@@ -147,7 +152,9 @@ export default function QuarriesSuppliersPage() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
-            dialogTitle={`Add New ${createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
+            dialogTitle={`Add New ${
+              createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+            }`}
             dialogDescription="Fill in the details to add a new quarry or supplier to your system."
             buttonTitle="Add Quarry / Supplier"
           >
@@ -167,7 +174,9 @@ export default function QuarriesSuppliersPage() {
           </div>
         ) : isError ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-center">Error loading quarries & suppliers</div>
+            <div className="text-center">
+              Error loading quarries & suppliers
+            </div>
           </div>
         ) : (
           <DataTableClient

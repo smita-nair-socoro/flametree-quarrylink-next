@@ -87,7 +87,7 @@ export default function QuarrySupplierForm({
 
   // Initialize states with selected quarry/supplier data
   const [selectedType, setSelectedType] = React.useState<QuarryType>(
-    selectedQuarrySupplier?.quarry_supplier_type || QuarryType.QUARRY
+    selectedQuarrySupplier?.quarrySupplierType || QuarryType.QUARRY
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -129,7 +129,7 @@ export default function QuarrySupplierForm({
     mode: 'onChange',
     defaultValues: {
       quarry_supplier_type:
-        selectedQuarrySupplier?.quarry_supplier_type || 'QUARRY',
+        selectedQuarrySupplier?.quarrySupplierType || 'QUARRY',
       name: selectedQuarrySupplier?.name || '',
       website:
         selectedQuarrySupplier?.website === 'N/A'
@@ -139,38 +139,38 @@ export default function QuarrySupplierForm({
       phone: selectedQuarrySupplier?.phone || '',
       address: selectedQuarrySupplier?.address?.formattedAddress || '',
       contact_person_name:
-        selectedQuarrySupplier?.contact_person_name === 'N/A'
+        selectedQuarrySupplier?.contactPersonName === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.contact_person_name || '',
+          : selectedQuarrySupplier?.contactPersonName || '',
       contact_person_phone:
-        selectedQuarrySupplier?.contact_person_phone === 'N/A'
+        selectedQuarrySupplier?.contactPersonPhone === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.contact_person_phone || '',
+          : selectedQuarrySupplier?.contactPersonPhone || '',
       contact_person_email:
-        selectedQuarrySupplier?.contact_person_email === 'N/A'
+        selectedQuarrySupplier?.contactPersonEmail === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.contact_person_email || '',
+          : selectedQuarrySupplier?.contactPersonEmail || '',
       opening_closing_info:
-        selectedQuarrySupplier?.opening_closing_info === 'N/A'
+        selectedQuarrySupplier?.openingClosingInfo === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.opening_closing_info || '',
+          : selectedQuarrySupplier?.openingClosingInfo || '',
       weighbridge_info:
-        selectedQuarrySupplier?.weighbridge_info === 'N/A'
+        selectedQuarrySupplier?.weighbridgeInfo === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.weighbridge_info || '',
+          : selectedQuarrySupplier?.weighbridgeInfo || '',
       notes:
         selectedQuarrySupplier?.notes === 'N/A'
           ? ''
           : selectedQuarrySupplier?.notes || '',
-      created_at: selectedQuarrySupplier?.created_at
-        ? new Date(selectedQuarrySupplier.created_at)
+      created_at: selectedQuarrySupplier?.createdAt
+        ? new Date(selectedQuarrySupplier.createdAt)
         : undefined,
-      updated_at: selectedQuarrySupplier?.updated_at
-        ? new Date(selectedQuarrySupplier.updated_at)
+      updated_at: selectedQuarrySupplier?.updatedAt
+        ? new Date(selectedQuarrySupplier.updatedAt)
         : undefined,
-      created_by: selectedQuarrySupplier?.created_by || 'current_user',
+      created_by: selectedQuarrySupplier?.createdBy || 'current_user',
       last_modified_by:
-        selectedQuarrySupplier?.last_modified_by || 'current_user',
+        selectedQuarrySupplier?.lastModifiedBy || 'current_user',
     },
   });
 
@@ -794,7 +794,7 @@ export default function QuarrySupplierForm({
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.created_by || 'N/A'}
+                    {selectedQuarrySupplier?.createdBy || 'N/A'}
                   </p>
                 </div>
 
@@ -803,7 +803,7 @@ export default function QuarrySupplierForm({
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.last_modified_by || 'N/A'}
+                    {selectedQuarrySupplier?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
 
@@ -812,9 +812,9 @@ export default function QuarrySupplierForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.created_at
+                    {selectedQuarrySupplier?.createdAt
                       ? new Date(
-                          selectedQuarrySupplier.created_at
+                          selectedQuarrySupplier.createdAt
                         ).toLocaleDateString('en-AU', {
                           day: '2-digit',
                           month: '2-digit',
@@ -829,9 +829,9 @@ export default function QuarrySupplierForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.updated_at
+                    {selectedQuarrySupplier?.updatedAt
                       ? new Date(
-                          selectedQuarrySupplier.updated_at
+                          selectedQuarrySupplier.updatedAt
                         ).toLocaleDateString('en-AU', {
                           day: '2-digit',
                           month: '2-digit',

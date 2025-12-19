@@ -5,23 +5,23 @@ export interface Quarry {
   id: number;
   name: string;
   status: QuarryStatus;
-  quarry_supplier_type: QuarryType;
+  quarrySupplierType: QuarryType;
   website: string;
   email: string;
   phone: string;
   address: Address;
-  contact_person_name: string;
-  contact_person_email: string;
-  contact_person_phone: string;
-  opening_closing_info: string;
-  weighbridge_info: string;
+  contactPersonName: string;
+  contactPersonEmail: string;
+  contactPersonPhone: string;
+  openingClosingInfo: string;
+  weighbridgeInfo: string;
   notes: string;
   version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
   // Computed property for table display (extracted from address.suburb)
   suburb?: string;
 }
