@@ -118,29 +118,6 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-3">
-              <span className="font-semibold">Current Status:</span>
-              <div className="flex flex-col gap-2 text-sm">
-                <div className="flex justfiy-start gap-2">
-                  <CircleCheckBig className="h-5 w-4 text-[#16A34A]" />
-                  <span className="text-[#16A34A]">
-                    No active quotes using this supplier
-                  </span>
-                </div>
-                <div className="flex justfiy-start gap-2">
-                  <CircleCheckBig className="h-5 w-4 text-[#16A34A]" />
-                  <span className="text-[#16A34A]">
-                    No active jobs using this supplier
-                  </span>
-                </div>
-                <div className="flex justfiy-start gap-2">
-                  <CircleCheckBig className="h-5 w-4 text-[#16A34A]" />
-                  <span className="text-[#16A34A]">
-                    No pending transactions
-                  </span>
-                </div>
-              </div>
-            </div>
             <div className="border-1 border-[#FED7AA] rounded-md p-3 bg-[#FFF7ED]">
               <div className="flex items-start gap-2 self-stretch">
                 <TriangleAlert className="h-5 w-5 text-[#F59E0B]" />

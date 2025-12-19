@@ -23,7 +23,7 @@ import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { ChartColumn } from 'lucide-react';
+import { ChartColumn, Check } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
 import { ActionDialog } from '@/components/action-dialog';
@@ -33,7 +33,7 @@ import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing
 import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
 import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
 import { useQuery } from '@tanstack/react-query';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -45,6 +45,7 @@ import {
 } from '@/lib/api/product';
 import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { ProductDetails } from '@/lib/types/product';
+import { Separator } from '@/components/ui/separator';
 
 interface FormProps {
   id?: number;
@@ -61,6 +62,9 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
   const [totalSupplier, setTotalSupplier] = React.useState(0);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
 
+  // Create flow steps (only used when creating a new product)
+  const [createStep, setCreateStep] = React.useState<1 | 2>(1);
+
   // Track newly created product ID
   const [createdProductId, setCreatedProductId] = React.useState<number | null>(
     null
@@ -69,6 +73,13 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
 
   // Get the active product ID (either passed in or newly created)
   const activeProductId = id || createdProductId;
+
+  // When product is created, automatically move to Supplier Info step
+  React.useEffect(() => {
+    if (!isEditing && productJustCreated) {
+      setCreateStep(2);
+    }
+  }, [isEditing, productJustCreated]);
 
   // Fetch product with quarries/suppliers - single API call for everything
   const {
@@ -218,6 +229,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         ) {
           setCreatedProductId(createdProduct.id as number);
           setProductJustCreated(true);
+          notifySuccess(
+            'Product created successfully. You can now add suppliers.'
+          );
+          setCreateStep(2);
           console.log('Product ID stored:', createdProduct.id);
         }
 
@@ -319,7 +334,48 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         </div>
       )}
 
-      <span className="text-lg font-semibold">Product Details</span>
+      {/* Stepper - only for create flow */}
+      {!isEditing && (
+        <div className="mb-5">
+          <div className="w-[70%] md:w-1/2">
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'h-7 w-7 rounded-full flex items-center justify-center border text-sm font-semibold',
+                  createStep === 1
+                    ? 'border-[#7C3AED] text-[#7C3AED]'
+                    : 'bg-[#7C3AED] border-[#7C3AED] text-white'
+                )}
+              >
+                {createStep === 1 ? '1' : <Check className="h-4 w-4" />}
+              </span>
+              <span className="text-sm font-medium text-[#101828]">
+                Product Details
+              </span>
+              <div className="flex-1 h-px bg-border" />
+
+              <span
+                className={cn(
+                  'h-7 w-7 rounded-full flex items-center justify-center border text-sm font-semibold',
+                  createStep === 2
+                    ? 'border-[#7C3AED] text-[#7C3AED]'
+                    : 'border-muted-foreground/30 text-muted-foreground'
+                )}
+              >
+                2
+              </span>
+              <span className="text-sm font-medium text-[#101828]">
+                Supplier Info
+              </span>
+            </div>
+          </div>
+          <Separator className="my-5" />
+        </div>
+      )}
+
+      {(isEditing || createStep === 1) && (
+        <span className="text-lg font-semibold">Product Details</span>
+      )}
 
       <Form {...productForm}>
         <form
@@ -331,268 +387,312 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
           )}
           onSubmit={productForm.handleSubmit(onSubmit)}
         >
-          <div
-            className={cn(
-              'gap-1 p-1 w-full mt-4',
-              isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
-              className,
-              isSubmitting && 'pointer-events-none'
-            )}
-          >
-            <FormField
-              control={productForm.control}
-              name="product_name"
-              render={({ field }) => (
-                <FormItem className="col-span-1">
-                  <FormLabel>Product Name*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter Product Name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Product Code */}
-            <FormField
-              control={productForm.control}
-              name="product_code"
-              render={({ field }) => (
-                <FormItem className="col-span-1">
-                  <FormLabel>Product Code*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter Product Code"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Material Type */}
-            <FormSelect
-              control={productForm.control}
-              name="material_id"
-              label="Material Type*"
-              options={materialTypeOptions}
-              placeholder="Select Material Type"
-              showSearch={true}
-              className="col-span-1"
-            />
-
-            {/* Density (TN/m³) */}
-            <FormField
-              control={productForm.control}
-              name="density_tonnage_per_m3"
-              render={({ field }) => (
-                <FormItem className="col-span-1">
-                  <FormLabel>Density (TN/m³)*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter Density Tonnage per m3"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Product Description */}
-            <FormField
-              control={productForm.control}
-              name="product_description"
-              render={({ field }) => (
-                <FormItem className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                  <FormLabel>Product Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      className="w-full"
-                      placeholder="Enter Product Description"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className={cn('mb-3 -mt-5', 'flex justify-end space-x-2')}>
-            <Button variant="outline" type="button" onClick={onCancel}>
-              Cancel
-            </Button>
-            {!isEditing && !productJustCreated && (
-              <Button
-                form="add-new-product-form"
-                className="cursor-pointer"
-                type="submit"
-                disabled={isSubmitting}
+          {(isEditing || createStep === 1) && (
+            <>
+              <div
+                className={cn(
+                  'gap-1 p-1 w-full mt-4',
+                  isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
+                  className,
+                  isSubmitting && 'pointer-events-none'
+                )}
               >
-                {isSubmitting ? 'Adding Product...' : 'Create Product'}
-              </Button>
-            )}
-            {productJustCreated && (
-              <Button variant="outline" disabled className="cursor-not-allowed">
-                ✓ Product Created
-              </Button>
-            )}
-            {isEditing && (
-              <Button
-                form="add-new-product-form"
-                type="submit"
-                className="cursor-pointer"
-              >
-                Save Changes
-              </Button>
-            )}
-          </div>
+                <FormField
+                  control={productForm.control}
+                  name="product_name"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1">
+                      <FormLabel>Product Name*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          placeholder="Enter Product Name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          {/* Supplier Table */}
-          <div className="flex flex-col gap-4 mb-10">
-            <div
-              className={cn(
-                isDesktop
-                  ? 'flex justify-between items-center'
-                  : 'flex flex-col gap-4'
-              )}
-            >
-              <div className="flex flex-col gap-0">
-                <span className="text-lg font-semibold">
-                  Supplier Information
-                </span>
-                {isEditing && (
-                  <span className="text-sm text-gray-500">
-                    {totalSupplier}{' '}
-                    {totalSupplier === 1 ? 'supplier' : 'suppliers'} configured
-                    with pricing and truck rates
-                  </span>
-                )}
-                {!isEditing && !productJustCreated && (
-                  <span className="text-sm text-gray-500">
-                    Add suppliers after creating the product
-                  </span>
-                )}
-                {productJustCreated && (
-                  <span className="text-sm text-green-600 font-medium">
-                    ✓ Product created successfully! You can now add suppliers.
-                  </span>
-                )}
+                {/* Product Code */}
+                <FormField
+                  control={productForm.control}
+                  name="product_code"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1">
+                      <FormLabel>Product Code*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          placeholder="Enter Product Code"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Material Type */}
+                <FormSelect
+                  control={productForm.control}
+                  name="material_id"
+                  label="Material Type*"
+                  options={materialTypeOptions}
+                  placeholder="Select Material Type"
+                  showSearch={true}
+                  className="col-span-1"
+                />
+
+                {/* Density (TN/m³) */}
+                <FormField
+                  control={productForm.control}
+                  name="density_tonnage_per_m3"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1">
+                      <FormLabel>Density (TN/m³)*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          placeholder="Enter Density Tonnage per m3"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Product Description */}
+                <FormField
+                  control={productForm.control}
+                  name="product_description"
+                  render={({ field }) => (
+                    <FormItem
+                      className={isDesktop ? 'col-span-2' : 'col-span-1'}
+                    >
+                      <FormLabel>Product Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          className="w-full"
+                          placeholder="Enter Product Description"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div
-                className={cn('flex items-center gap-2', !isDesktop && 'mb-2')}
-              >
-                {isEditing && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex items-center gap-1"
-                    onClick={() => setIsCompareDialogOpen(true)}
-                    disabled={
-                      totalSupplier === 0 ||
-                      !selectedProduct?.quarrySupplierProducts ||
-                      selectedProduct.quarrySupplierProducts.length === 0
-                    }
-                  >
-                    <ChartColumn className="mr-3" />
-                    Compare All
-                  </Button>
+                className={cn(
+                  'mb-3 -mt-5 flex items-center gap-2',
+                  isEditing ? 'justify-end' : 'justify-between'
                 )}
-                {(isEditing || productJustCreated) && (
-                  <FormDialog
-                    dialogTitle="Add New Supplier"
-                    buttonTitle="Add Supplier"
-                    dialogWidth="700px"
-                    contentClass="-mt-5"
+              >
+                <Button variant="outline" type="button" onClick={onCancel}>
+                  Cancel
+                </Button>
+
+                {isEditing ? (
+                  <Button
+                    form="add-new-product-form"
+                    type="submit"
+                    className="cursor-pointer"
                   >
-                    <SupplierForm productId={activeProductId ?? undefined} />
-                  </FormDialog>
+                    Save Changes
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {!productJustCreated && (
+                      <Button
+                        form="add-new-product-form"
+                        className="cursor-pointer"
+                        type="submit"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? 'Adding Product...' : 'Create Product'}
+                      </Button>
+                    )}
+
+                    {productJustCreated && (
+                      <>
+                        <Button
+                          variant="outline"
+                          disabled
+                          className="cursor-not-allowed"
+                        >
+                          ✓ Product Created
+                        </Button>
+                        <Button type="button" onClick={() => setCreateStep(2)}>
+                          Next
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
+            </>
+          )}
 
-            {/* Compare All Dialog */}
-            <ActionDialog
-              open={isCompareDialogOpen}
-              onOpenChangeAction={setIsCompareDialogOpen}
-              customWidth="!max-w-[60vw]"
-              title={`Compare All - ${totalSupplier} suppliers`}
-              content={
-                <div className="flex flex-col space-y-4">
-                  <span className="text-lg font-semibold text-[#101828]">
-                    Pricing Comparison
+          {/* Supplier Table */}
+          {(isEditing || createStep === 2) && (
+            <div className="flex flex-col gap-4 mb-10">
+              <div
+                className={cn(
+                  isDesktop
+                    ? 'flex justify-between items-center'
+                    : 'flex flex-col gap-4'
+                )}
+              >
+                <div className="flex flex-col gap-0">
+                  <span className="text-lg font-semibold">
+                    Supplier Information
                   </span>
-                  <span className="font-normal text-[#364153]">TN Pricing</span>
-                  <DataTableClient
-                    columns={tnPricingColumn}
-                    data={selectedProduct?.quarrySupplierProducts || []}
-                    simpleTable={true}
-                    useColumnSizing={true}
-                  />
-                  <span className="font-normal text-[#364153]">m³ Pricing</span>
-                  <DataTableClient
-                    columns={m3PricingColumn}
-                    data={selectedProduct?.quarrySupplierProducts || []}
-                    simpleTable={true}
-                    useColumnSizing={true}
-                  />
-                  <span className="font-normal text-[#364153]">
-                    20kg Pricing
-                  </span>
-                  <DataTableClient
-                    columns={kgPricingColumn}
-                    data={selectedProduct?.quarrySupplierProducts || []}
-                    simpleTable={true}
-                    useColumnSizing={true}
-                  />
-                  <span className="font-normal text-[#364153]">
-                    Bulka Pricing
-                  </span>
-                  <DataTableClient
-                    columns={bulkaPricingColumn}
-                    data={selectedProduct?.quarrySupplierProducts || []}
-                    simpleTable={true}
-                    useColumnSizing={true}
-                  />
-                  <span className="text-lg font-semibold text-[#101828]">
-                    Truck Rates Comparison
-                  </span>
-                  <DataTableClient
-                    columns={truckRateComparisonColumn}
-                    data={selectedProduct?.quarrySupplierProducts || []}
-                    simpleTable={true}
-                    useColumnSizing={true}
-                  />
+                  {isEditing ? (
+                    <span className="text-sm text-gray-500">
+                      {totalSupplier}{' '}
+                      {totalSupplier === 1 ? 'supplier' : 'suppliers'}{' '}
+                      configured with pricing and truck rates
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-500">
+                      Add suppliers after creating the product
+                    </span>
+                  )}
                 </div>
-              }
-              confirmActionNeeded={false}
-            />
 
-            {/* Supplier Table */}
-            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-              <DataTableClient
-                columns={supplierColumns(selectedProduct?.id)}
-                data={
-                  isEditing || productJustCreated
-                    ? selectedProduct?.quarrySupplierProducts ?? []
-                    : []
+                <div
+                  className={cn(
+                    'flex items-center gap-2',
+                    !isDesktop && 'mb-2'
+                  )}
+                >
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex items-center gap-1"
+                      onClick={() => setIsCompareDialogOpen(true)}
+                      disabled={
+                        totalSupplier === 0 ||
+                        !selectedProduct?.quarrySupplierProducts ||
+                        selectedProduct.quarrySupplierProducts.length === 0
+                      }
+                    >
+                      <ChartColumn className="mr-3" />
+                      Compare All
+                    </Button>
+                  )}
+                  {(isEditing || productJustCreated) && (
+                    <FormDialog
+                      dialogTitle="Add New Supplier"
+                      buttonTitle="Add Supplier"
+                      dialogWidth="700px"
+                      contentClass="-mt-5"
+                    >
+                      <SupplierForm productId={activeProductId ?? undefined} />
+                    </FormDialog>
+                  )}
+                </div>
+              </div>
+
+              {/* Compare All Dialog */}
+              <ActionDialog
+                open={isCompareDialogOpen}
+                onOpenChangeAction={setIsCompareDialogOpen}
+                customWidth="!max-w-[60vw]"
+                title={`Compare All - ${totalSupplier} suppliers`}
+                content={
+                  <div className="flex flex-col space-y-4">
+                    <span className="text-lg font-semibold text-[#101828]">
+                      Pricing Comparison
+                    </span>
+                    <span className="font-normal text-[#364153]">
+                      TN Pricing
+                    </span>
+                    <DataTableClient
+                      columns={tnPricingColumn}
+                      data={selectedProduct?.quarrySupplierProducts || []}
+                      simpleTable={true}
+                      useColumnSizing={true}
+                    />
+                    <span className="font-normal text-[#364153]">
+                      m³ Pricing
+                    </span>
+                    <DataTableClient
+                      columns={m3PricingColumn}
+                      data={selectedProduct?.quarrySupplierProducts || []}
+                      simpleTable={true}
+                      useColumnSizing={true}
+                    />
+                    <span className="font-normal text-[#364153]">
+                      20kg Pricing
+                    </span>
+                    <DataTableClient
+                      columns={kgPricingColumn}
+                      data={selectedProduct?.quarrySupplierProducts || []}
+                      simpleTable={true}
+                      useColumnSizing={true}
+                    />
+                    <span className="font-normal text-[#364153]">
+                      Bulka Pricing
+                    </span>
+                    <DataTableClient
+                      columns={bulkaPricingColumn}
+                      data={selectedProduct?.quarrySupplierProducts || []}
+                      simpleTable={true}
+                      useColumnSizing={true}
+                    />
+                    <span className="text-lg font-semibold text-[#101828]">
+                      Truck Rates Comparison
+                    </span>
+                    <DataTableClient
+                      columns={truckRateComparisonColumn}
+                      data={selectedProduct?.quarrySupplierProducts || []}
+                      simpleTable={true}
+                      useColumnSizing={true}
+                    />
+                  </div>
                 }
-                simpleTable={true}
+                confirmActionNeeded={false}
               />
+
+              {/* Supplier Table */}
+              <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                <DataTableClient
+                  columns={supplierColumns(selectedProduct?.id)}
+                  data={
+                    isEditing || productJustCreated
+                      ? selectedProduct?.quarrySupplierProducts ?? []
+                      : []
+                  }
+                  simpleTable={true}
+                />
+              </div>
+
+              {/* Create flow footer buttons (Step 2) */}
+              {!isEditing && createStep === 2 && (
+                <div className="flex justify-between items-center mt-4">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => setCreateStep(1)}
+                  >
+                    Back to Details
+                  </Button>
+                  <Button type="button" onClick={onCancel}>
+                    Save Changes
+                  </Button>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Audit Information */}
-          {(isEditing || productJustCreated) && (
+          {isEditing && (
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
