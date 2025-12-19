@@ -118,11 +118,7 @@ export default function ProductsPage() {
           <h1 className="text-2xl">Products</h1>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Add New Product"
-            buttonTitle="Add Product"
-            headerSeparator={true}
-          >
+          <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product">
             <ProductForm />
           </FormDialog>
         </div>

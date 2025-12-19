@@ -686,16 +686,17 @@ export default function SupplierForm({
             if (negativeMarginUnits.length === 0) return null;
 
             return (
-              <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
                 <div className="flex items-start gap-2">
                   <span className="text-xl">⚠️</span>
                   <div className="flex-1">
-                    <p className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
-                      Warning: Negative Profit Detected
+                    <p className="font-semibold text-amber-800 mb-2">
+                      Warning: Negative Margin Detected
                     </p>
-                    <p className="text-sm text-amber-700 dark:text-amber-300 mb-2">
-                      The following units have cost prices higher than sell
-                      prices:
+                    <p className="text-sm text-amber-700  mb-2">
+                      For the following{' '}
+                      {negativeMarginUnits.length > 1 ? 'units' : 'unit'}, the
+                      cost price is higher than the sell price:
                     </p>
                     <ul className="list-disc list-inside space-y-1">
                       {negativeMarginUnits.map(({ label, cost, sell }) => {
@@ -704,10 +705,7 @@ export default function SupplierForm({
                         const margin =
                           ((sellValue - costValue) / sellValue) * 100;
                         return (
-                          <li
-                            key={label}
-                            className="text-sm text-amber-700 dark:text-amber-300"
-                          >
+                          <li key={label} className="text-sm text-amber-700 ">
                             <strong>{label}:</strong> Cost $
                             {costValue.toFixed(2)} {'>'} Sell $
                             {sellValue.toFixed(2)} (Margin: {margin.toFixed(2)}
