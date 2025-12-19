@@ -337,7 +337,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
       {/* Stepper - only for create flow */}
       {!isEditing && (
         <div className="mb-5">
-          {/* Stepper row should only take ~half the dialog width */}
           <div className="w-[70%] md:w-1/2">
             <div className="flex items-center gap-2">
               <span
