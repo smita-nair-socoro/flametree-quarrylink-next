@@ -112,11 +112,16 @@ export function transformQuoteData(
     ? `${quoteItems.reduce((sum, item) => sum + (item.productSellQty || 0), 0)} ${quoteItems[0]?.productSellUom || 'units'}`
     : '0 units';
 
-  // Format billing address from customerDto
-  const billingAddressLine1 = customerDto?.billingAddressId
-    ? `Billing Address ID: ${customerDto.billingAddressId}`
-    : 'N/A';
-  const billingAddressLine2 = '';
+  // Format billing address from stripeTenantDetailsSnapshot
+  const billingAddressParts =
+    stripeTenantDetailsSnapshot?.billingAddress?.split(',') || [];
+  const billingAddressLine1 =
+    billingAddressParts[0] || 'Suite 1102/132 Arthur St';
+  const billingAddressLine2 = billingAddressParts
+    .slice(1)
+    .join(',')
+    .replace(/,?\s*AU\s*$/i, '')
+    .trim() || 'North Sydney NSW 2060';
 
   return {
     navbar: {
