@@ -37,6 +37,19 @@ export function StateSelect({
 }: StateSelectProps) {
   const [open, setOpen] = React.useState(false);
   const states = countryCode ? State.getStatesOfCountry(countryCode) : [];
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(
+    typeof document !== 'undefined' ? document.body : null
+  );
+
+  React.useEffect(() => {
+    const dialogContent = triggerRef.current?.closest(
+      '[data-slot="dialog-content"]'
+    ) as HTMLElement | null;
+    if (dialogContent) {
+      setPortalContainer(dialogContent);
+    }
+  }, []);
 
   // If country has no predefined states, allow free text input
   if (states.length === 0) {
@@ -58,6 +71,7 @@ export function StateSelect({
         role="combobox"
         className="w-full justify-between"
         disabled={true}
+        ref={triggerRef}
       >
         {placeholder}
         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -74,12 +88,17 @@ export function StateSelect({
           aria-expanded={open}
           className="w-full justify-between"
           disabled={disabled}
+          ref={triggerRef}
         >
           {value || placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent
+        className="w-full p-0"
+        align="start"
+        container={portalContainer}
+      >
         <Command>
           <CommandInput placeholder="Search state/region..." />
           <CommandList>

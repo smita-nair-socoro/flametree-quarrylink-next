@@ -43,6 +43,19 @@ export function CountrySelect({
 }: CountrySelectProps) {
   const [open, setOpen] = React.useState(false);
   const countries = Country.getAllCountries();
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null);
+  const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(
+    typeof document !== 'undefined' ? document.body : null
+  );
+
+  React.useEffect(() => {
+    const dialogContent = triggerRef.current?.closest(
+      '[data-slot="dialog-content"]'
+    ) as HTMLElement | null;
+    if (dialogContent) {
+      setPortalContainer(dialogContent);
+    }
+  }, []);
 
   // Find selected country for display with flag
   const selectedCountry = countries.find((c) => c.name === value);
@@ -56,6 +69,7 @@ export function CountrySelect({
           aria-expanded={open}
           className="w-full justify-between font-normal"
           disabled={disabled}
+          ref={triggerRef}
         >
           <span className="flex items-center gap-2">
             {selectedCountry ? (
@@ -72,7 +86,11 @@ export function CountrySelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" align="start">
+      <PopoverContent
+        className="w-[300px] p-0"
+        align="start"
+        container={portalContainer}
+      >
         <Command>
           <CommandInput placeholder="Search country..." />
           <CommandList>
