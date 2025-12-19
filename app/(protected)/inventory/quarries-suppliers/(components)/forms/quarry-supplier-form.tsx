@@ -86,8 +86,11 @@ export default function QuarrySupplierForm({
   );
 
   // Initialize states with selected quarry/supplier data
+  // Only use selectedQuarrySupplier data when editing
   const [selectedType, setSelectedType] = React.useState<QuarryType>(
-    selectedQuarrySupplier?.quarrySupplierType || QuarryType.QUARRY
+    isEditing && selectedQuarrySupplier?.quarrySupplierType
+      ? selectedQuarrySupplier.quarrySupplierType
+      : QuarryType.QUARRY
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -129,48 +132,64 @@ export default function QuarrySupplierForm({
     mode: 'onChange',
     defaultValues: {
       quarry_supplier_type:
-        selectedQuarrySupplier?.quarrySupplierType || 'QUARRY',
-      name: selectedQuarrySupplier?.name || '',
+        isEditing && selectedQuarrySupplier?.quarrySupplierType
+          ? selectedQuarrySupplier.quarrySupplierType
+          : 'QUARRY',
+      name: isEditing && selectedQuarrySupplier?.name ? selectedQuarrySupplier.name : '',
       website:
-        selectedQuarrySupplier?.website === 'N/A'
+        isEditing && selectedQuarrySupplier?.website === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.website || '',
-      email: selectedQuarrySupplier?.email || '',
-      phone: selectedQuarrySupplier?.phone || '',
-      address: selectedQuarrySupplier?.address?.formattedAddress || '',
+          : isEditing && selectedQuarrySupplier?.website
+          ? selectedQuarrySupplier.website
+          : '',
+      email: isEditing && selectedQuarrySupplier?.email ? selectedQuarrySupplier.email : '',
+      phone: isEditing && selectedQuarrySupplier?.phone ? selectedQuarrySupplier.phone : '',
+      address: isEditing && selectedQuarrySupplier?.address?.formattedAddress ? selectedQuarrySupplier.address.formattedAddress : '',
       contact_person_name:
-        selectedQuarrySupplier?.contactPersonName === 'N/A'
+        isEditing && selectedQuarrySupplier?.contactPersonName === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.contactPersonName || '',
+          : isEditing && selectedQuarrySupplier?.contactPersonName
+          ? selectedQuarrySupplier.contactPersonName
+          : '',
       contact_person_phone:
-        selectedQuarrySupplier?.contactPersonPhone === 'N/A'
+        isEditing && selectedQuarrySupplier?.contactPersonPhone === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.contactPersonPhone || '',
+          : isEditing && selectedQuarrySupplier?.contactPersonPhone
+          ? selectedQuarrySupplier.contactPersonPhone
+          : '',
       contact_person_email:
-        selectedQuarrySupplier?.contactPersonEmail === 'N/A'
+        isEditing && selectedQuarrySupplier?.contactPersonEmail === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.contactPersonEmail || '',
+          : isEditing && selectedQuarrySupplier?.contactPersonEmail
+          ? selectedQuarrySupplier.contactPersonEmail
+          : '',
       opening_closing_info:
-        selectedQuarrySupplier?.openingClosingInfo === 'N/A'
+        isEditing && selectedQuarrySupplier?.openingClosingInfo === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.openingClosingInfo || '',
+          : isEditing && selectedQuarrySupplier?.openingClosingInfo
+          ? selectedQuarrySupplier.openingClosingInfo
+          : '',
       weighbridge_info:
-        selectedQuarrySupplier?.weighbridgeInfo === 'N/A'
+        isEditing && selectedQuarrySupplier?.weighbridgeInfo === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.weighbridgeInfo || '',
+          : isEditing && selectedQuarrySupplier?.weighbridgeInfo
+          ? selectedQuarrySupplier.weighbridgeInfo
+          : '',
       notes:
-        selectedQuarrySupplier?.notes === 'N/A'
+        isEditing && selectedQuarrySupplier?.notes === 'N/A'
           ? ''
-          : selectedQuarrySupplier?.notes || '',
-      created_at: selectedQuarrySupplier?.createdAt
+          : isEditing && selectedQuarrySupplier?.notes
+          ? selectedQuarrySupplier.notes
+          : '',
+      created_at: isEditing && selectedQuarrySupplier?.createdAt
         ? new Date(selectedQuarrySupplier.createdAt)
         : undefined,
-      updated_at: selectedQuarrySupplier?.updatedAt
+      updated_at: isEditing && selectedQuarrySupplier?.updatedAt
         ? new Date(selectedQuarrySupplier.updatedAt)
         : undefined,
-      created_by: selectedQuarrySupplier?.createdBy || 'current_user',
+      created_by: isEditing && selectedQuarrySupplier?.createdBy ? selectedQuarrySupplier.createdBy : 'current_user',
       last_modified_by:
-        selectedQuarrySupplier?.lastModifiedBy || 'current_user',
+        isEditing && selectedQuarrySupplier?.lastModifiedBy ? selectedQuarrySupplier.lastModifiedBy : 'current_user',
     },
   });
 

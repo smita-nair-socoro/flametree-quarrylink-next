@@ -29,6 +29,20 @@ export default function QuarriesSuppliersPage() {
   const [createFormType, setCreateFormType] = React.useState<QuarryType>(
     QuarryType.QUARRY
   );
+  const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
+
+  // Handle create dialog open change
+  const handleCreateDialogOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (open) {
+        // When opening create dialog, reset form type and clear selected quarry supplier
+        setCreateFormType(QuarryType.QUARRY);
+        setSelectedQuarrySupplier(null);
+      }
+      setCreateDialogOpen(open);
+    },
+    [setSelectedQuarrySupplier]
+  );
 
   // Use React Query to fetch quarries and suppliers data
   const {
@@ -157,6 +171,8 @@ export default function QuarriesSuppliersPage() {
             }`}
             dialogDescription="Fill in the details to add a new quarry or supplier to your system."
             buttonTitle="Add Quarry / Supplier"
+            open={createDialogOpen}
+            onOpenChangeAction={handleCreateDialogOpenChange}
           >
             <QuarrySupplierForm onTypeChange={setCreateFormType} />
           </FormDialog>
