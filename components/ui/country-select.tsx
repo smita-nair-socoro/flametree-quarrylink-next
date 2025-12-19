@@ -26,6 +26,15 @@ interface CountrySelectProps {
   placeholder?: string;
 }
 
+// Convert country code to flag emoji
+function getFlagEmoji(countryCode: string): string {
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
 export function CountrySelect({
   value,
   onChange,
@@ -35,6 +44,9 @@ export function CountrySelect({
   const [open, setOpen] = React.useState(false);
   const countries = Country.getAllCountries();
 
+  // Find selected country for display with flag
+  const selectedCountry = countries.find((c) => c.name === value);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -42,14 +54,25 @@ export function CountrySelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between font-normal"
           disabled={disabled}
         >
-          {value || placeholder}
+          <span className="flex items-center gap-2">
+            {selectedCountry ? (
+              <>
+                <span className="text-lg leading-none">
+                  {getFlagEmoji(selectedCountry.isoCode)}
+                </span>
+                <span>{selectedCountry.name}</span>
+              </>
+            ) : (
+              placeholder
+            )}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search country..." />
           <CommandList>
@@ -70,7 +93,10 @@ export function CountrySelect({
                       value === country.name ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {country.name}
+                  <span className="mr-2 text-lg leading-none">
+                    {getFlagEmoji(country.isoCode)}
+                  </span>
+                  <span>{country.name}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
