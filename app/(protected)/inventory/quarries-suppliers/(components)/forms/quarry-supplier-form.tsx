@@ -46,12 +46,14 @@ interface FormProps {
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  onTypeChange?: (type: QuarryType) => void;
 }
 
 export default function QuarrySupplierForm({
   id,
   onCancel,
   className,
+  onTypeChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -219,6 +221,8 @@ export default function QuarrySupplierForm({
     quarrySupplierForm.setValue('quarry_supplier_type', quarryType);
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
+    // Notify parent component of type change
+    onTypeChange?.(quarryType);
   };
 
   // Effect to handle address changes
