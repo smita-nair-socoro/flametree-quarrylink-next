@@ -35,7 +35,8 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
       // Actions
       setQuarries: (quarries) => set({ quarries }),
 
-      setSelectedQuarrySupplier: (quarry) => set({ selectedQuarrySupplier: quarry }),
+      setSelectedQuarrySupplier: (quarry) =>
+        set({ selectedQuarrySupplier: quarry }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 
@@ -47,9 +48,7 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
 
       getQuarriesByType: (type) => {
         const state = get();
-        return state.quarries.filter(
-          (q) => q.quarry_supplier_type === type
-        );
+        return state.quarries.filter((q) => q.quarrySupplierType === type);
       },
 
       getQuarryStats: () => {
@@ -59,13 +58,15 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
         return {
           total: quarries.length,
           quarries: quarries.filter(
-            (q) => q.quarry_supplier_type === QuarryType.QUARRY
+            (q) => q.quarrySupplierType === QuarryType.QUARRY
           ).length,
           suppliers: quarries.filter(
-            (q) => q.quarry_supplier_type === QuarryType.SUPPLIER
+            (q) => q.quarrySupplierType === QuarryType.SUPPLIER
           ).length,
-          active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE).length,
-          archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED).length,
+          active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE)
+            .length,
+          archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED)
+            .length,
         };
       },
     }),
@@ -76,20 +77,21 @@ export const useQuarrySupplierStore = create<QuarrySupplierStore>()(
 export const useSelectedQuarrySupplier = () =>
   useQuarrySupplierStore((state) => state.selectedQuarrySupplier);
 
-export const useQuarries = () => useQuarrySupplierStore((state) => state.quarries);
+export const useQuarries = () =>
+  useQuarrySupplierStore((state) => state.quarries);
 
 export const useQuarryLoading = () =>
   useQuarrySupplierStore((state) => state.isLoading);
 
 export const useQuarryById = (id: number) => {
-  return useQuarrySupplierStore((state) => state.quarries.find((q) => q.id === id));
+  return useQuarrySupplierStore((state) =>
+    state.quarries.find((q) => q.id === id)
+  );
 };
 
 export const useQuarriesByType = (type: QuarryType) => {
   return useQuarrySupplierStore((state) =>
-    state.quarries.filter(
-      (q) => q.quarry_supplier_type === type
-    )
+    state.quarries.filter((q) => q.quarrySupplierType === type)
   );
 };
 
@@ -100,13 +102,14 @@ export const useQuarryStats = () => {
     return {
       total: quarries.length,
       quarries: quarries.filter(
-        (q) => q.quarry_supplier_type === QuarryType.QUARRY
+        (q) => q.quarrySupplierType === QuarryType.QUARRY
       ).length,
       suppliers: quarries.filter(
-        (q) => q.quarry_supplier_type === QuarryType.SUPPLIER
+        (q) => q.quarrySupplierType === QuarryType.SUPPLIER
       ).length,
       active: quarries.filter((q) => q.status === QuarryStatus.ACTIVE).length,
-      archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED).length,
+      archived: quarries.filter((q) => q.status === QuarryStatus.ARCHIVED)
+        .length,
     };
   });
 };
