@@ -27,6 +27,9 @@ export default function QuarriesSuppliersPage() {
     selectedQuarrySupplierForActions,
     setSelectedQuarrySupplierForActions,
   ] = React.useState<Quarry | null>(null);
+  const [createFormType, setCreateFormType] = React.useState<QuarryType>(
+    QuarryType.QUARRY
+  );
 
   // Use React Query to fetch quarries and suppliers data
   const {
@@ -144,11 +147,11 @@ export default function QuarriesSuppliersPage() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
-            dialogTitle="Add New Quarry / Supplier"
+            dialogTitle={`Add New ${createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
             dialogDescription="Fill in the details to add a new quarry or supplier to your system."
             buttonTitle="Add Quarry / Supplier"
           >
-            <QuarrySupplierForm />
+            <QuarrySupplierForm onTypeChange={setCreateFormType} />
           </FormDialog>
         </div>
       </div>

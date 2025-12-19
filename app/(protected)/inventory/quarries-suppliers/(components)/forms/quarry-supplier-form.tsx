@@ -46,12 +46,14 @@ interface FormProps {
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  onTypeChange?: (type: QuarryType) => void;
 }
 
 export default function QuarrySupplierForm({
   id,
   onCancel,
   className,
+  onTypeChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -219,6 +221,8 @@ export default function QuarrySupplierForm({
     quarrySupplierForm.setValue('quarry_supplier_type', quarryType);
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
+    // Notify parent component of type change
+    onTypeChange?.(quarryType);
   };
 
   // Effect to handle address changes
@@ -342,17 +346,30 @@ export default function QuarrySupplierForm({
 
         // Duplicate quarry/supplier name (HTTP 409)
         const duplicateNamePhrase = `Key (name)=(${values.name}) already exists`;
-        const isDuplicateName =
+        const duplicateEmailPhrase = `Key (email)`;
+
+        if (
           codeStr === '409' &&
           typeof messageFromErr === 'string' &&
-          messageFromErr.includes(duplicateNamePhrase);
-
-        if (isDuplicateName) {
+          messageFromErr.includes(duplicateNamePhrase)
+        ) {
           const msg = `${
             values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
           } with name "${values.name}" already exists.`;
           notifyError(msg);
           quarrySupplierForm.setError('name', { type: 'manual', message: msg });
+          return;
+        } else if (
+          codeStr == '409' &&
+          typeof messageFromErr === 'string' &&
+          messageFromErr.includes(duplicateEmailPhrase)
+        ) {
+          const msg = 'Email already exists.';
+          notifyError(msg);
+          quarrySupplierForm.setError('email', {
+            type: 'manual',
+            message: msg,
+          });
           return;
         }
 

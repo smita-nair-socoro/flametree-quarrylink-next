@@ -283,6 +283,9 @@ export function useQuarrySupplierActions(
   const [blockingSummary, setBlockingSummary] = React.useState<
     DeleteBlockingSummary | undefined
   >(undefined);
+  const [editFormType, setEditFormType] = React.useState<string>(
+    quarrySupplierData?.quarry_supplier_type || 'QUARRY'
+  );
 
   const unarchiveMutation = useUnarchiveQuarry();
   const { mutateAsync: deleteQuarryAfterEligibilityCheck } =
@@ -303,6 +306,7 @@ export function useQuarrySupplierActions(
 
   const actions = {
     view: () => {
+      setEditFormType(quarrySupplierData?.quarry_supplier_type || 'QUARRY');
       setViewOpen(true);
     },
 
@@ -439,7 +443,7 @@ export function useQuarrySupplierActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quarrySupplierId}
-      dialogTitle="View / Edit Quarry / Supplier"
+      dialogTitle={`View / Edit ${editFormType === 'QUARRY' ? 'Quarry' : 'Supplier'}`}
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
@@ -459,7 +463,10 @@ export function useQuarrySupplierActions(
         <QuarrySupplierActionButtons quarrySupplier={quarrySupplierData} />
       }
     >
-      <QuarrySupplierForm id={quarrySupplierId} />
+      <QuarrySupplierForm
+        id={quarrySupplierId}
+        onTypeChange={(type) => setEditFormType(type)}
+      />
     </FormDialog>
   ) : null;
 
