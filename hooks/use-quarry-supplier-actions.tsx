@@ -12,6 +12,7 @@ import {
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
+import { notifySuccess } from '@/lib/toast';
 
 interface DeleteBlockingSummary {
   totalLineItems: number;
@@ -372,6 +373,9 @@ export function useQuarrySupplierActions(
                 });
 
                 // Successfully deleted - close both dialogs
+                notifySuccess(
+                  `${quarrySupplierData?.name} deleted successfully.`
+                );
                 setActiveDialog(null);
                 setSelectedAction(null);
                 setViewOpen(false);

@@ -263,6 +263,7 @@ export default function QuotationForm({
         quoteNumber: currentQuotation?.quoteNumber || '',
         lineItemsCount: 0,
         deliveryAddress: deliveryAddress,
+        originalDeliveryAddress: currentQuotation?.deliveryAddress || null,
       });
 
       try {
