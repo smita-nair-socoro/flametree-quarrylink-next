@@ -163,6 +163,13 @@ export default function QuotationForm({
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     console.log(values);
+
+    // Check for missing email when creating a quotation
+    if (!isEditing && !values.email?.trim()) {
+      notifyError('Contact has no email. Add an email in the Customer profile for it to appear on the quote.');
+      return;
+    }
+
     const customerName =
       customers.find((c) => c.id === values.customerId)?.businessName ||
       customers.find((c) => c.id === values.customerId)?.contactName ||
