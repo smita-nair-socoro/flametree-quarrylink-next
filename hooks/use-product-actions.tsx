@@ -124,7 +124,7 @@ const getDialogConfigs = (
                 <li>Action quotes can still be converted to orders</li>
                 <li>Pending orders continue through delivery</li>
                 <li>Historical data remains accessible</li>
-                <li>Product managemnet and editing</li>
+                <li>Product management and editing</li>
               </ul>
             </div>
           </div>
