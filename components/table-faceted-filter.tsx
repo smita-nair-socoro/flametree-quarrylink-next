@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +45,15 @@ export function DataTableFacetedFilter({
 }: DataTableFacetedFilterProps) {
   const [open, setOpen] = useState(false);
 
+  // Sort options alphabetically by label
+  const sortedOptions = useMemo(() => {
+    return [...options].sort((a, b) => {
+      const labelA = a.label.toLowerCase();
+      const labelB = b.label.toLowerCase();
+      return labelA.localeCompare(labelB);
+    });
+  }, [options]);
+
   // toggle a single value in the filterValues array
   const handleSelect = (val: string) => {
     const next = filterValues.includes(val)
@@ -87,7 +96,7 @@ export function DataTableFacetedFilter({
                   </Badge>
                 ) : (
                   filterValues.map((val) => {
-                    const opt = options.find((o) => o.value === val);
+                    const opt = sortedOptions.find((o) => o.value === val);
                     // Use formatted label if original label contains underscores, otherwise use original
                     const label = opt?.label.includes('_')
                       ? formatLabel(opt.label)
@@ -119,7 +128,7 @@ export function DataTableFacetedFilter({
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
-              {options.map((opt) => {
+              {sortedOptions.map((opt) => {
                 const Icon = opt.icon;
                 const checked = filterValues.includes(opt.value);
                 const displayLabel = opt.label.includes('_')

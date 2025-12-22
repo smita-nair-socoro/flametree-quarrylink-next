@@ -574,63 +574,69 @@ export function DataTableClient<TData, TValue>({
                               </AccordionTrigger>
                               <AccordionContent>
                                 <div className="space-y-2 pt-2">
-                                  {filter.options.map((option) => {
-                                    const isSelected =
-                                      currentFilterValues.includes(
-                                        option.value
-                                      );
-                                    const displayLabel = option.label.includes(
-                                      '_'
+                                  {[...filter.options]
+                                    .sort((a, b) =>
+                                      a.label
+                                        .toLowerCase()
+                                        .localeCompare(b.label.toLowerCase())
                                     )
-                                      ? option.label.replace(/_/g, ' ')
-                                      : option.label;
+                                    .map((option) => {
+                                      const isSelected =
+                                        currentFilterValues.includes(
+                                          option.value
+                                        );
+                                      const displayLabel = option.label.includes(
+                                        '_'
+                                      )
+                                        ? option.label.replace(/_/g, ' ')
+                                        : option.label;
 
-                                    return (
-                                      <div
-                                        key={option.value}
-                                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                                        onClick={() => {
-                                          const newValues = isSelected
-                                            ? currentFilterValues.filter(
-                                                (v) => v !== option.value
-                                              )
-                                            : [
-                                                ...currentFilterValues,
-                                                option.value,
-                                              ];
-                                          handleTempFilterChange(
-                                            filter.column,
-                                            newValues
-                                          );
-                                        }}
-                                      >
-                                        <div className="flex items-center space-x-3">
-                                          <div
-                                            className={cn(
-                                              'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
-                                              isSelected
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'opacity-50'
-                                            )}
-                                          >
-                                            {isSelected && (
-                                              <Check className="h-3 w-3" />
-                                            )}
-                                          </div>
-                                          <span className="text-sm">
-                                            {displayLabel}
-                                          </span>
-                                        </div>
-                                        {filter.counts &&
-                                          filter.counts[option.value] !=
-                                            null && (
-                                            <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                                              {filter.counts[option.value]}
+                                      return (
+                                        <div
+                                          key={option.value}
+                                          className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                          onClick={() => {
+                                            const newValues = isSelected
+                                              ? currentFilterValues.filter(
+                                                  (v) => v !== option.value
+                                                )
+                                              : [
+                                                  ...currentFilterValues,
+                                                  option.value,
+                                                ];
+                                            handleTempFilterChange(
+                                              filter.column,
+                                              newValues
+                                            );
+                                          }}
+                                        >
+                                          <div className="flex items-center space-x-3">
+                                            <div
+                                              className={cn(
+                                                'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
+                                                isSelected
+                                                  ? 'bg-primary text-primary-foreground'
+                                                  : 'opacity-50'
+                                              )}
+                                            >
+                                              {isSelected && (
+                                                <Check className="h-3 w-3" />
+                                              )}
+                                            </div>
+                                            <span className="text-sm">
+                                              {displayLabel}
                                             </span>
-                                          )}
-                                      </div>
-                                    );
-                                  })}
+                                          </div>
+                                          {filter.counts &&
+                                            filter.counts[option.value] !=
+                                              null && (
+                                              <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                                                {filter.counts[option.value]}
+                                              </span>
+                                            )}
+                                        </div>
+                                      );
+                                    })}
                                 </div>
                               </AccordionContent>
                             </AccordionItem>
