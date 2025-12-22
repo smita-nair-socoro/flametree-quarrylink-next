@@ -224,7 +224,7 @@ const getDialogConfigs = (
                   3 active dockets not yet delivered
                 </div> */}
                 <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  {quotesCount} quotes with line items
+                  {quotesCount} {quotesCount === 1 ? 'quote' : 'quotes'} with line items
                 </div>
               </div>
             </div>

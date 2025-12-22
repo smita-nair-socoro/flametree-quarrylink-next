@@ -4,7 +4,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { ActionDialog } from '@/components/action-dialog';
 import SupplierForm from '@/app/(protected)/inventory/products/(components)/forms/supplier-form';
-import { TriangleAlert, CircleCheckBig, CircleAlert } from 'lucide-react';
+import { TriangleAlert, CircleAlert } from 'lucide-react';
 import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
 
@@ -139,7 +139,7 @@ const getDialogConfigs = (
             <div className="flex flex-col gap-2">
               <span className="font-semibold">What will be preserved:</span>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-outside pl-5">
-                <li>Historical trasnaction records</li>
+                <li>Historical transaction records</li>
                 <li>Audit logs</li>
                 <li>Other suppliers for this product</li>
               </ul>
