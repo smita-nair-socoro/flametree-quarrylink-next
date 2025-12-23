@@ -606,7 +606,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
                 customWidth="!max-w-[60vw]"
-                title={`Compare All - ${totalSupplier} suppliers`}
+                cancelText="Close"
+                title={`Compare All - ${totalSupplier} Suppliers`}
                 content={
                   <div className="flex flex-col space-y-4">
                     <span className="text-lg font-semibold text-[#101828]">
