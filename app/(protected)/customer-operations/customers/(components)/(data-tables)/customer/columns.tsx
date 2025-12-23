@@ -87,7 +87,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     },
     cell: ({ row }) => {
       const cents = parseFloat(
-        (row.original.creditLimit - row.original.remainingCredit).toString()
+        (row.original.creditLimit - (row.original.remainingCredit ?? 0)).toString()
       );
       const dollars = cents / 100;
       const formatted = new Intl.NumberFormat('en-US', {
