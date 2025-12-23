@@ -748,6 +748,24 @@ export function DataTableClient<TData, TValue>({
                       }
                     />
                   ))}
+
+                  {/* Clear All Filters Button */}
+                  {columnFilters.length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-dashed"
+                      onClick={() => {
+                        setColumnFilters([]);
+                        if (!isMobile) {
+                          saveToStorage('columnFilters', []);
+                        }
+                      }}
+                    >
+                      <X size={16} className="mr-2" />
+                      Clear All
+                    </Button>
+                  )}
                 </div>
 
                 {/* Show/Hide Columns - Pushed to the right */}
