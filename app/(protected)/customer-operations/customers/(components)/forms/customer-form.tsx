@@ -114,7 +114,15 @@ export default function CustomerForm({
         ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
         : '',
       abn: isEditing ? selectedCustomer?.abn || '' : '',
-      contact_person_name: isEditing ? selectedCustomer?.contactName || '' : '',
+      contact_person_name: isEditing && selectedCustomer?.customerType === 'INDIVIDUAL'
+        ? selectedCustomer?.contactName || ''
+        : '',
+      contact_person_first_name: isEditing && selectedCustomer?.customerType === 'BUSINESS'
+        ? selectedCustomer?.contactName?.split(' ')[0] || ''
+        : '',
+      contact_person_last_name: isEditing && selectedCustomer?.customerType === 'BUSINESS'
+        ? selectedCustomer?.contactName?.split(' ').slice(1).join(' ') || ''
+        : '',
       contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
       contact_person_phone: isEditing
         ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
@@ -144,10 +152,20 @@ export default function CustomerForm({
       setSelectedCustomerType(value);
       customerForm.setValue('customer_type', value);
       if (value === 'INDIVIDUAL') {
+        // Clear business-specific fields
         customerForm.setValue('business_name', '');
         customerForm.setValue('business_email', '');
         customerForm.setValue('business_phone', '');
         customerForm.setValue('abn', '');
+        customerForm.setValue('contact_person_first_name', '');
+        customerForm.setValue('contact_person_last_name', '');
+        // Clear contact person name for fresh start
+        customerForm.setValue('contact_person_name', '');
+      } else if (value === 'BUSINESS') {
+        // Clear individual-specific fields
+        customerForm.setValue('contact_person_name', '');
+        customerForm.setValue('contact_person_first_name', '');
+        customerForm.setValue('contact_person_last_name', '');
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
@@ -175,7 +193,15 @@ export default function CustomerForm({
         business_email: selectedCustomer.email,
         business_phone: normalizePhoneNumber(selectedCustomer.phone) || '',
         abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
-        contact_person_name: selectedCustomer.contactName,
+        contact_person_name: selectedCustomer.customerType === 'INDIVIDUAL'
+          ? selectedCustomer.contactName
+          : '',
+        contact_person_first_name: selectedCustomer.customerType === 'BUSINESS'
+          ? selectedCustomer.contactName?.split(' ')[0] || ''
+          : '',
+        contact_person_last_name: selectedCustomer.customerType === 'BUSINESS'
+          ? selectedCustomer.contactName?.split(' ').slice(1).join(' ') || ''
+          : '',
         contact_person_email: selectedCustomer.email,
         contact_person_phone:
           normalizePhoneNumber(selectedCustomer.phone) || '',
@@ -275,12 +301,20 @@ export default function CustomerForm({
       let paymentTermsDay = values.payment_terms_day;
       let paymentTermsPeriod = values.payment_terms;
 
+      // Combine contact person fields for the contactName
+      let contactName = '';
+
       if (values.customer_type === 'INDIVIDUAL') {
-        // For Individual customers, populate business fields with contact data
+        // For Individual customers, use contact_person_name
+        contactName = values.contact_person_name || '';
+        // Populate business fields with contact data
         businessName = values.contact_person_name || values.business_name;
         businessEmail = values.contact_person_email || values.business_email;
         businessPhone = values.contact_person_phone || values.business_phone;
         abn = 'N/A';
+      } else if (values.customer_type === 'BUSINESS') {
+        // For Business customers, combine first name and last name
+        contactName = `${values.contact_person_first_name || ''} ${values.contact_person_last_name || ''}`.trim();
       }
 
       // Handle credit limit for Prepaid customers
@@ -298,7 +332,7 @@ export default function CustomerForm({
         businessEmail: businessEmail,
         businessPhone: businessPhone,
         abn: abn,
-        contactName: values.contact_person_name,
+        contactName: contactName,
         phone: values.contact_person_phone,
         email: values.contact_person_email,
         billingAddress: values.billing_address,
@@ -616,81 +650,196 @@ export default function CustomerForm({
             />
           )}
 
-          {/* Contact Person Name */}
-          <FormField
-            control={customerForm.control}
-            name="contact_person_name"
-            render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-1'
-                    : 'col-span-2'
-                }
-              >
-                <FormLabel>Contact Person Name*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Contact Person Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Contact Person Name - For INDIVIDUAL type only */}
+          {selectedCustomerType === 'INDIVIDUAL' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_name"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Name*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Contact Person Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          {/* Contact Person Email */}
-          <FormField
-            control={customerForm.control}
-            name="contact_person_email"
-            render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
-                    : 'col-span-2'
-                }
-              >
-                <FormLabel>Contact Person Email*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="email@example.com"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Contact Person First Name - For BUSINESS type only */}
+          {selectedCustomerType === 'BUSINESS' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_first_name"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person First Name*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter First Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          {/* Contact Person Phone */}
-          <FormField
-            control={customerForm.control}
-            name="contact_person_phone"
-            render={({ field }) => (
-              <FormItem
-                className={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-1'
-                    : 'col-span-2'
-                }
-              >
-                <FormLabel>Contact Person Phone*</FormLabel>
-                <FormControl>
-                  <PhoneInput
-                    className="w-full"
-                    defaultCountry="AU"
-                    placeholder="Enter phone number"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Contact Person Email - For BUSINESS type */}
+          {selectedCustomerType === 'BUSINESS' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_email"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Email*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="email@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Contact Person Last Name - For BUSINESS type only */}
+          {selectedCustomerType === 'BUSINESS' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_last_name"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Last Name*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter Last Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Contact Person Phone - For BUSINESS type */}
+          {selectedCustomerType === 'BUSINESS' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_phone"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Phone*</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      className="w-full"
+                      defaultCountry="AU"
+                      placeholder="Enter phone number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Contact Person Email - For INDIVIDUAL type */}
+          {selectedCustomerType === 'INDIVIDUAL' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_email"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Email*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="email@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Contact Person Phone - For INDIVIDUAL type */}
+          {selectedCustomerType === 'INDIVIDUAL' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_phone"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Phone*</FormLabel>
+                  <FormControl>
+                    <PhoneInput
+                      className="w-full"
+                      defaultCountry="AU"
+                      placeholder="Enter phone number"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* Credit Limit */}
           {selectedPaymentType === 'CREDIT' && (
@@ -701,7 +850,7 @@ export default function CustomerForm({
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
+                      ? 'col-span-1 col-start-1'
                       : 'col-span-2'
                   }
                 >
@@ -732,8 +881,8 @@ export default function CustomerForm({
                 'space-y-2',
                 isEditing && isDesktop
                   ? selectedPaymentType === 'CREDIT'
-                    ? 'col-span-1 col-start-1'
-                    : 'col-span-1 col-start-2'
+                    ? 'col-span-1 col-start-2'
+                    : 'col-span-1 col-start-1'
                   : 'col-span-2'
               )}
             >
@@ -791,7 +940,7 @@ export default function CustomerForm({
             options={accountManagerOptions}
             placeholder="Select Account Manager"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
             }
           />
 
@@ -803,7 +952,7 @@ export default function CustomerForm({
               <FormItem
                 className={
                   isEditing && isDesktop
-                    ? 'col-span-1 col-start-1'
+                    ? 'col-span-1 col-start-2'
                     : 'col-span-2'
                 }
               >
