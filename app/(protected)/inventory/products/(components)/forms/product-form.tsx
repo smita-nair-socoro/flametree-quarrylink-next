@@ -381,7 +381,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         <form
           id="add-new-product-form"
           className={cn(
-            'gap-5 p-1 w-full flex flex-col',
+            'gap-5 w-full flex flex-col',
             className,
             isSubmitting && 'pointer-events-none'
           )}
@@ -391,7 +391,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             <>
               <div
                 className={cn(
-                  'gap-1 p-1 w-full mt-4',
+                  'gap-1 w-full mt-4',
                   isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
                   className,
                   isSubmitting && 'pointer-events-none'
@@ -486,10 +486,12 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                 />
               </div>
 
+              {!isEditing && <Separator className="w-full" />}
+
               <div
                 className={cn(
-                  'mb-3 -mt-5 flex items-center gap-2',
-                  isEditing ? 'justify-end' : 'justify-between'
+                  'flex items-center gap-2',
+                  isEditing ? 'justify-end -mt-5 mb-3 ' : 'justify-between mb-5'
                 )}
               >
                 <Button variant="outline" type="button" onClick={onCancel}>
@@ -675,8 +677,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               </div>
 
               {/* Create flow footer buttons (Step 2) */}
+              {!isEditing && <Separator className="w-full mt-5 mb-2" />}
+
               {!isEditing && createStep === 2 && (
-                <div className="flex justify-between items-center mt-4">
+                <div className="flex justify-between items-center -mb-3">
                   <Button
                     variant="outline"
                     type="button"
