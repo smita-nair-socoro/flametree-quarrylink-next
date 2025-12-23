@@ -38,8 +38,13 @@ import {
 } from '@/lib/utils/quote-helpers';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { Info } from 'lucide-react';
+import { Info, HelpCircle } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { UsersListQueryOptions } from '@/lib/api/user';
@@ -426,13 +431,34 @@ export default function QuotationForm({
               name="quoteType"
               render={({ field }) => (
                 <FormItem className="col-span-1 col-start-1 gap-3">
-                  <FormLabel>Quote Type*</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <FormLabel>Quote Type*</FormLabel>
+                    {isEditing && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          className="max-w-[250px]"
+                          backgroundClassName="bg-gray-900 text-white"
+                          arrowClassName="bg-gray-900 fill-gray-900"
+                        >
+                          <p className="text-xs">
+                            Quote type cannot be changed after creation as it would
+                            remove truck configuration data. Please create a new
+                            quote if you need a different type.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="grid grid-flow-col auto-cols-max gap-4"
-                      disabled={isEditing && !canEdit}
+                      disabled={isEditing}
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>

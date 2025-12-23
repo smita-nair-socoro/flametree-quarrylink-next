@@ -33,7 +33,6 @@ export interface Customer {
 export interface CustomerDTO {
   id: number;
   customerType: CUSTOMER_TYPE;
-  businessName: string;
   contactName: string;
   phone: string;
   email: string;
@@ -41,24 +40,33 @@ export interface CustomerDTO {
   creditLimit: number;
   invoiceDueDate: number;
   paymentTermType: string;
-  accountManagerName: string;
+  accountManagerName?: string;
   accountManagerSub: string;
   customerStatus: CUSTOMER_STATUS;
   jobsCount: number;
   paymentType: string;
-  legalName: string;
-  tradingName: string;
-  abn: string;
-  acn: string;
-  vatNumber: string;
   version: number;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
+
+  // BUSINESS type specific fields
+  businessName?: string;
+  legalName?: string;
+  tradingName?: string;
+  abn?: string;
+  acn?: string;
+  vatNumber?: string;
+
+  // INDIVIDUAL type specific fields
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  govId?: string;
 
   // Come back to this; Currently below are not included in the DTO
-  remainingCredit: number;
+  remainingCredit?: number;
 }
 
 export interface CustomerDetails extends Customer {

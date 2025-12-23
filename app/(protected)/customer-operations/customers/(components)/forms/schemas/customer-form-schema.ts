@@ -39,13 +39,23 @@ const EmailOptional = z
 const Base = z.object({
   customer_type: z.string(),
   payment_type: z.string(),
+  // For INDIVIDUAL type
   contact_person_name: z
     .string()
     .trim()
-    .nonempty({ message: 'Contact Person Name is required' })
     .max(256, 'Maximum 256 characters')
-    .min(2, 'At least 2 characters')
-    .regex(/^[a-zA-Z0-9\s,.&-]+$/, 'Invalid characters'),
+    .optional(),
+  // For BUSINESS type - Primary Person fields
+  contact_person_first_name: z
+    .string()
+    .trim()
+    .max(256, 'Maximum 256 characters')
+    .optional(),
+  contact_person_last_name: z
+    .string()
+    .trim()
+    .max(256, 'Maximum 256 characters')
+    .optional(),
   contact_person_email: EmailOptional,
   contact_person_phone: PhoneOptional,
 
@@ -142,15 +152,6 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
 
   // Customer type specific validations
   if (data.customer_type === 'BUSINESS') {
-    // ABN must be valid for Business customers
-    // if (!data.abn || !isValidABN(data.abn)) {
-    //   ctx.addIssue({
-    //     path: ['abn'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: data.abn ? 'Invalid ABN' : 'ABN is required',
-    //   });
-    // }
-
     // Business name is required for Business customers
     if (!data.business_name || data.business_name.trim().length < 2) {
       ctx.addIssue({
@@ -163,6 +164,48 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.business_name)) {
       ctx.addIssue({
         path: ['business_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid characters',
+      });
+    }
+
+    // Contact Person First Name is required for Business customers
+    if (!data.contact_person_first_name || data.contact_person_first_name.trim().length === 0) {
+      ctx.addIssue({
+        path: ['contact_person_first_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Contact Person First Name is required',
+      });
+    } else if (data.contact_person_first_name.trim().length < 2) {
+      ctx.addIssue({
+        path: ['contact_person_first_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'At least 2 characters',
+      });
+    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.contact_person_first_name)) {
+      ctx.addIssue({
+        path: ['contact_person_first_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid characters',
+      });
+    }
+
+    // Contact Person Last Name is required for Business customers
+    if (!data.contact_person_last_name || data.contact_person_last_name.trim().length === 0) {
+      ctx.addIssue({
+        path: ['contact_person_last_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Contact Person Last Name is required',
+      });
+    } else if (data.contact_person_last_name.trim().length < 2) {
+      ctx.addIssue({
+        path: ['contact_person_last_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'At least 2 characters',
+      });
+    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.contact_person_last_name)) {
+      ctx.addIssue({
+        path: ['contact_person_last_name'],
         code: z.ZodIssueCode.custom,
         message: 'Invalid characters',
       });
@@ -228,6 +271,27 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       }
     }
   } else if (data.customer_type === 'INDIVIDUAL') {
+    // Contact Person Name is required for Individual customers
+    if (!data.contact_person_name || data.contact_person_name.trim().length === 0) {
+      ctx.addIssue({
+        path: ['contact_person_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Contact Person Name is required',
+      });
+    } else if (data.contact_person_name.trim().length < 2) {
+      ctx.addIssue({
+        path: ['contact_person_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'At least 2 characters',
+      });
+    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.contact_person_name)) {
+      ctx.addIssue({
+        path: ['contact_person_name'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid characters',
+      });
+    }
+
     // For Individual customers, ABN should be "N/A" or empty
     if (data.abn && data.abn !== 'N/A' && data.abn.trim() !== '') {
       ctx.addIssue({
