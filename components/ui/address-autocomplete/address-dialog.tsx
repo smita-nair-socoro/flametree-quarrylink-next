@@ -19,6 +19,9 @@ import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
 import { AddressType } from '@/lib/types/address';
+import { CountrySelect } from '../country-select';
+import { StateSelect } from '../state-select';
+import { Country } from 'country-state-city';
 
 interface AddressDialogProps {
   open: boolean;
@@ -116,6 +119,8 @@ export default function AddressDialog(
   const [city, setCity] = useState('');
   const [region, setRegion] = useState('');
   const [postalCode, setPostcode] = useState('');
+  const [country, setCountry] = useState('');
+  const [countryCode, setCountryCode] = useState('');
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
 
   const addressSchema = createAddressSchema({
@@ -226,7 +231,8 @@ export default function AddressDialog(
       postalCode !== address.postalCode ||
       address1 !== address.address1 ||
       city !== address.city ||
-      region !== address.region
+      region !== address.region ||
+      country !== address.country
     ) {
       const newFormattedAddress = updateAndFormatAddress(adrAddress, {
         'street-address': address1,
@@ -243,6 +249,7 @@ export default function AddressDialog(
         address2,
         address1,
         postalCode,
+        country,
         formattedAddress: newFormattedAddress,
       });
       // Notify react-hook-form of the change
@@ -259,6 +266,13 @@ export default function AddressDialog(
     setPostcode(address.postalCode);
     setCity(address.city);
     setRegion(address.region);
+    setCountry(address.country || 'Australia');
+
+    // Get country code from country name
+    const countryData = Country.getAllCountries().find(
+      (c) => c.name.toLowerCase() === (address.country || 'Australia').toLowerCase()
+    );
+    setCountryCode(countryData?.isoCode || 'AU');
 
     if (!open) {
       setErrorMap({});
@@ -341,13 +355,12 @@ export default function AddressDialog(
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="region">State / Province / Region</Label>
-                  <Input
+                  <StateSelect
                     value={region}
-                    onChange={(e) => setRegion(e.currentTarget.value)}
+                    onChange={(stateName) => setRegion(stateName)}
+                    countryCode={countryCode}
                     disabled={isLoading}
-                    id="region"
-                    name="region"
-                    placeholder="Region"
+                    placeholder="Select state/region"
                   />
                   {errorMap.region && (
                     <FormMessages
@@ -380,15 +393,16 @@ export default function AddressDialog(
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                   <Label htmlFor="country">Country</Label>
-                  <Input
-                    value={address?.country || 'Australia'}
-                    onChange={(e) =>
-                      setAddress({ ...address, country: e.currentTarget.value })
-                    }
-                    id="country"
-                    disabled
-                    name="country"
-                    placeholder="Country"
+                  <CountrySelect
+                    value={country}
+                    onChange={(countryName, newCountryCode) => {
+                      setCountry(countryName);
+                      setCountryCode(newCountryCode);
+                      // Clear region when country changes
+                      setRegion('');
+                    }}
+                    disabled={isLoading}
+                    placeholder="Select country"
                   />
                 </div>
               </div>

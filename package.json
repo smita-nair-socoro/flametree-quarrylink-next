@@ -1,6 +1,6 @@
 {
   "name": "quarrylink-next",
-  "version": "1.0.147",
+  "version": "1.0.148",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -47,6 +47,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "country-data-list": "^1.5.4",
+    "country-state-city": "^3.2.1",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "html2canvas": "^1.4.1",

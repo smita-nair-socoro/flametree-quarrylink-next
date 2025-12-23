@@ -25,7 +25,17 @@ export const supplierColumns = (
     header: ({}) => {
       return <div>Supplier Name</div>;
     },
-    cell: (info) => <div>{info.getValue() as string}</div>,
+    cell: (info) => {
+      const name = (info.getValue() as string) || 'N/A';
+      return (
+        <div
+          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+          title={name}
+        >
+          {name}
+        </div>
+      );
+    },
     meta: 'Name',
   },
   {
@@ -34,7 +44,17 @@ export const supplierColumns = (
     header: ({}) => {
       return <div>Supplier Product Name</div>;
     },
-    cell: ({ row }) => <div>{row.original.supplierProductName}</div>,
+    cell: ({ row }) => {
+      const value = row.original.supplierProductName || 'N/A';
+      return (
+        <div
+          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+          title={value}
+        >
+          {value}
+        </div>
+      );
+    },
     meta: 'Supplier Product Name',
   },
   {
