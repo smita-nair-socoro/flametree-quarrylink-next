@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { centsToDollars } from '@/lib/utils/currency';
 import { QuotationLineItemTableActions } from './quotation-line-item-actions';
+import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 import {
   Tooltip,
   TooltipContent,
@@ -148,3 +149,12 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     size: 80,
   },
 ];
+
+export function getQuotationLineItemColumns(
+  quoteType?: QUOTE_TYPE | string | null
+) {
+  if (quoteType === QUOTE_TYPE.COLLECTION || quoteType === 'COLLECTION') {
+    return quotationLineItemColumns.filter((c) => c.id !== 'truckType');
+  }
+  return quotationLineItemColumns;
+}
