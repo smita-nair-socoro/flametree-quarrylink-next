@@ -294,9 +294,6 @@ export async function HttpClient<T = unknown>(
         await handleLogout();
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
-      case 500: {
-        return Promise.reject(new Error(`Internal server error`));
-      }
       case 503: {
         // Show an error toast to notify the user what occurred
         return Promise.reject(
@@ -695,6 +692,9 @@ export const APIClient = {
       ),
     deleteQuoteItem: (id: number) =>
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
+
+    convertToDraft: (id: number) =>
+      appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),

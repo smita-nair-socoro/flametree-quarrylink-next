@@ -1,13 +1,15 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Archive, ArchiveRestore } from 'lucide-react';
+// import { MoreHorizontal, Eye, Archive, ArchiveRestore } from 'lucide-react';
+import { MoreHorizontal, Eye } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -24,7 +26,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     customer
   );
 
-  const isArchived = customer.customerStatus === 'ARCHIVED';
+  // const isArchived = customer.customerStatus === 'ARCHIVED';
 
   const setSelectedCustomer = useCustomerStore(
     (state) => state.setSelectedCustomer
@@ -36,15 +38,15 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     actions.view();
   };
 
-  const handleArchive = () => {
-    setDropdownOpen(false); // Close dropdown before opening modal
-    actions.archive();
-  };
+  // const handleArchive = () => {
+  //   setDropdownOpen(false); // Close dropdown before opening modal
+  //   actions.archive();
+  // };
 
-  const handleUnarchive = () => {
-    setDropdownOpen(false); // Close dropdown before opening modal
-    actions.unarchive();
-  };
+  // const handleUnarchive = () => {
+  //   setDropdownOpen(false); // Close dropdown before opening modal
+  //   actions.unarchive();
+  // };
 
   return (
     <div>
@@ -61,7 +63,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {/* <DropdownMenuSeparator />
           {!isArchived ? (
             <DropdownMenuItem
               onClick={handleArchive}
@@ -78,7 +80,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
               <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
               Unarchive
             </DropdownMenuItem>
-          )}
+          )} */}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
