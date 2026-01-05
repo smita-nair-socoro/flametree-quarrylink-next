@@ -155,18 +155,18 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             )}
 
-            {/* Secondary actions for non-archived statuses */}
+            {/* Secondary actions for non-archived statuses
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={actions.print}>
                 <Printer className="h-4 w-4 mr-2" />
                 Download PDF
               </DropdownMenuItem>
-            </>
+            </> */}
 
             {quotation.status !== 'ARCHIVED' && (
               <>
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator /> */}
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
@@ -311,25 +311,26 @@ export function QuotationActionButtons({
           </>
         )}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={actions.print}>
+        {quotation.status !== 'ARCHIVED' && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {/* <DropdownMenuItem onClick={actions.print}>
               <Printer className="h-4 w-4 mr-2" />
               Download PDF
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
 
-            {quotation.status !== 'ARCHIVED' && (
+              {/* {quotation.status !== 'ARCHIVED' && ( */}
               <div>
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator /> */}
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
@@ -338,9 +339,10 @@ export function QuotationActionButtons({
                   Archive
                 </DropdownMenuItem>
               </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {/* )} */}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );
