@@ -51,6 +51,23 @@ export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
     enabled: !!quotationId && quotationId > 0,
   });
 
+export const useConvertToDraft = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.quotations.convertToDraft(id),
+    onSuccess: (_data, quotationId) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(quotationId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
 /**
  * Mutation hook for creating a new quotation.
  * Automatically invalidates the quotations list cache on success.
