@@ -105,7 +105,6 @@ export interface QuotationLineItem {
   truckSellQty: number;
   truckSellPrice: number;
   totalTruckSellPrice: number;
-  requiredLoads: number;
   grossProfit: number;
   totalQuantityRequired: number;
   allocatedQuantity: number;

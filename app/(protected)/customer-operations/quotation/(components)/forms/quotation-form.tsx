@@ -19,7 +19,7 @@ import React from 'react';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
-import { quotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
+import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
@@ -54,6 +54,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 interface FormProps {
   id?: number;
@@ -103,6 +104,7 @@ export default function QuotationForm({
     searchInput,
     setSearchInput,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
+  const isCollectionQuote = currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -765,7 +767,9 @@ export default function QuotationForm({
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
                       return (
                         <DataTableClient
-                          columns={quotationLineItemColumns}
+                          columns={getQuotationLineItemColumns(
+                            currentQuotation?.quoteType
+                          )}
                           data={quoteItemsData}
                           simpleTable={true}
                           useColumnSizing={true}
@@ -784,14 +788,16 @@ export default function QuotationForm({
                           ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3 -mt-3">
-                        <span className="text-sm font-normal">
-                          Truck Cost (Total):
-                        </span>
-                        <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
-                        </span>
-                      </div>
+                      {!isCollectionQuote && (
+                        <div className="flex justify-between py-3 -mt-3">
+                          <span className="text-sm font-normal">
+                            Truck Cost (Total):
+                          </span>
+                          <span className="text-sm font-normal">
+                            ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-normal">
                           Product Sell (Total):
@@ -800,14 +806,16 @@ export default function QuotationForm({
                           ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
                         </span>
                       </div>
-                      <div className="flex justify-between py-3 -mt-3">
-                        <span className="text-sm font-normal">
-                          Truck Sell (Total):
-                        </span>
-                        <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
-                        </span>
-                      </div>
+                      {!isCollectionQuote && (
+                        <div className="flex justify-between py-3 -mt-3">
+                          <span className="text-sm font-normal">
+                            Truck Sell (Total):
+                          </span>
+                          <span className="text-sm font-normal">
+                            ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-normal">
                           Subtotal (ex-GST):

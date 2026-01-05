@@ -5,6 +5,7 @@ import z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 
 import { NewQuotationLineItemFormSchema } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/line-item-quotation-schema';
+import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 import {
   ProductsListQueryOptions,
   ProductDetailWithQuarrySupplierProductQueryOptions,
@@ -65,6 +66,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   const selectedLineItem = useSelectedLineItem();
   const selectedQuotation = useSelectedQuotation();
+  const quoteType = selectedQuotation?.quoteType;
   const createQuoteItem = useCreateQuoteItem();
   const updateQuoteItem = useUpdateQuoteItem();
 
@@ -72,6 +74,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     resolver: zodResolver(NewQuotationLineItemFormSchema),
     mode: 'onChange',
     defaultValues: {
+      quoteType: selectedQuotation?.quoteType ?? QUOTE_TYPE.DELIVERY,
       productId: isEditing ? selectedLineItem?.productId : 0,
       quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
       supplierProductName: isEditing
@@ -98,7 +101,6 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       truckSellPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.truckSellPrice || 0)
         : 0,
-      requiredLoads: isEditing ? selectedLineItem?.requiredLoads : 1,
       totalProductCostPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.totalProductCostPrice || 0)
         : 0,
@@ -114,6 +116,26 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       grossProfit: isEditing ? selectedLineItem?.grossProfit : 0,
     },
   });
+
+  // Keep quoteType in sync (drives conditional validation + UI)
+  React.useEffect(() => {
+    if (!quoteType) return;
+    form.setValue('quoteType', quoteType, { shouldValidate: true });
+  }, [quoteType, form]);
+
+  // If collection, zero out truck fields so they don't affect totals / submit payload
+  React.useEffect(() => {
+    if (quoteType !== QUOTE_TYPE.COLLECTION) return;
+    form.setValue('truckType', '', { shouldValidate: true });
+    form.setValue('truckCostUom', '', { shouldValidate: true });
+    form.setValue('truckCostQty', 0, { shouldValidate: true });
+    form.setValue('truckCostPrice', 0, { shouldValidate: true });
+    form.setValue('truckSellUom', '', { shouldValidate: true });
+    form.setValue('truckSellQty', 0, { shouldValidate: true });
+    form.setValue('truckSellPrice', 0, { shouldValidate: true });
+    form.setValue('totalTruckCostPrice', 0, { shouldValidate: true });
+    form.setValue('totalTruckSellPrice', 0, { shouldValidate: true });
+  }, [quoteType, form]);
 
   // Products
   const { data: products } = useQuery(ProductsListQueryOptions());
@@ -538,7 +560,6 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       totalQuantityRequired: values.productSellQty,
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty,
-      requiredLoads: values.requiredLoads,
       version: 1,
     };
 
@@ -573,7 +594,9 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${isEditing ? 'update' : 'add'} line item. Please try again.`
+          `Failed to ${
+            isEditing ? 'update' : 'add'
+          } line item. Please try again.`
       );
     }
   }
@@ -583,6 +606,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     isReadOnly,
     form,
     selectedLineItem,
+    quoteType,
     productOptions,
     quarryOptions,
     truckTypeOptions,
