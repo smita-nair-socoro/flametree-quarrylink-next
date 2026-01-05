@@ -94,6 +94,23 @@ export default function QuarrySupplierForm({
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Capture the original type when editing so we can detect supplier -> quarry conversions.
+  // This matters for subscription logic: converting a supplier to a quarry increases owned quarry count.
+  const originalTypeRef = React.useRef<QuarryType | null>(null);
+  React.useEffect(() => {
+    if (!isEditing) {
+      originalTypeRef.current = null;
+      return;
+    }
+
+    if (
+      originalTypeRef.current === null &&
+      selectedQuarrySupplier?.quarrySupplierType
+    ) {
+      originalTypeRef.current = selectedQuarrySupplier.quarrySupplierType;
+    }
+  }, [isEditing, selectedQuarrySupplier?.quarrySupplierType]);
+
   // Address state for AddressAutoComplete (uses AddressType)
   // Initialize with backend data when editing
   const [address, setAddress] = React.useState<AddressType>(() => {
@@ -135,16 +152,28 @@ export default function QuarrySupplierForm({
         isEditing && selectedQuarrySupplier?.quarrySupplierType
           ? selectedQuarrySupplier.quarrySupplierType
           : 'QUARRY',
-      name: isEditing && selectedQuarrySupplier?.name ? selectedQuarrySupplier.name : '',
+      name:
+        isEditing && selectedQuarrySupplier?.name
+          ? selectedQuarrySupplier.name
+          : '',
       website:
         isEditing && selectedQuarrySupplier?.website === 'N/A'
           ? ''
           : isEditing && selectedQuarrySupplier?.website
           ? selectedQuarrySupplier.website
           : '',
-      email: isEditing && selectedQuarrySupplier?.email ? selectedQuarrySupplier.email : '',
-      phone: isEditing && selectedQuarrySupplier?.phone ? selectedQuarrySupplier.phone : '',
-      address: isEditing && selectedQuarrySupplier?.address?.formattedAddress ? selectedQuarrySupplier.address.formattedAddress : '',
+      email:
+        isEditing && selectedQuarrySupplier?.email
+          ? selectedQuarrySupplier.email
+          : '',
+      phone:
+        isEditing && selectedQuarrySupplier?.phone
+          ? selectedQuarrySupplier.phone
+          : '',
+      address:
+        isEditing && selectedQuarrySupplier?.address?.formattedAddress
+          ? selectedQuarrySupplier.address.formattedAddress
+          : '',
       contact_person_name:
         isEditing && selectedQuarrySupplier?.contactPersonName === 'N/A'
           ? ''
@@ -181,15 +210,22 @@ export default function QuarrySupplierForm({
           : isEditing && selectedQuarrySupplier?.notes
           ? selectedQuarrySupplier.notes
           : '',
-      created_at: isEditing && selectedQuarrySupplier?.createdAt
-        ? new Date(selectedQuarrySupplier.createdAt)
-        : undefined,
-      updated_at: isEditing && selectedQuarrySupplier?.updatedAt
-        ? new Date(selectedQuarrySupplier.updatedAt)
-        : undefined,
-      created_by: isEditing && selectedQuarrySupplier?.createdBy ? selectedQuarrySupplier.createdBy : 'current_user',
+      created_at:
+        isEditing && selectedQuarrySupplier?.createdAt
+          ? new Date(selectedQuarrySupplier.createdAt)
+          : undefined,
+      updated_at:
+        isEditing && selectedQuarrySupplier?.updatedAt
+          ? new Date(selectedQuarrySupplier.updatedAt)
+          : undefined,
+      created_by:
+        isEditing && selectedQuarrySupplier?.createdBy
+          ? selectedQuarrySupplier.createdBy
+          : 'current_user',
       last_modified_by:
-        isEditing && selectedQuarrySupplier?.lastModifiedBy ? selectedQuarrySupplier.lastModifiedBy : 'current_user',
+        isEditing && selectedQuarrySupplier?.lastModifiedBy
+          ? selectedQuarrySupplier.lastModifiedBy
+          : 'current_user',
     },
   });
 
@@ -268,7 +304,6 @@ export default function QuarrySupplierForm({
   const submitQuarrySupplier = React.useCallback(
     async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
       setIsSubmitting(true);
-      console.log('values are', values);
 
       try {
         // Check if address has changed
@@ -277,7 +312,8 @@ export default function QuarrySupplierForm({
           isEditing &&
           originalAddress &&
           (address.address1 !== (originalAddress.streetDetailsPrimary || '') ||
-            address.address2 !== (originalAddress.streetDetailsOptional || '') ||
+            address.address2 !==
+              (originalAddress.streetDetailsOptional || '') ||
             address.city !== (originalAddress.city || '') ||
             address.region !== (originalAddress.state || '') ||
             address.postalCode !== (originalAddress.postcode || '') ||
@@ -433,17 +469,28 @@ export default function QuarrySupplierForm({
     ]
   );
 
-  const willExceedQuarryLimit = React.useCallback(() => {
-    if (isEditing) return false;
-    if (selectedType !== QuarryType.QUARRY) return false;
-    return (
-      subscriptionMock.currentOwnedQuarries + 1 > subscriptionMock.planLimit
-    );
-  }, [isEditing, selectedType, subscriptionMock]);
+  const willExceedQuarryLimit = React.useCallback(
+    (targetType: QuarryType) => {
+      if (targetType !== QuarryType.QUARRY) return false;
+
+      const isCreatingNewQuarry = !isEditing;
+      const isConvertingSupplierToQuarry =
+        isEditing &&
+        originalTypeRef.current === QuarryType.SUPPLIER &&
+        targetType === QuarryType.QUARRY;
+
+      if (!isCreatingNewQuarry && !isConvertingSupplierToQuarry) return false;
+
+      return (
+        subscriptionMock.currentOwnedQuarries + 1 > subscriptionMock.planLimit
+      );
+    },
+    [isEditing, subscriptionMock]
+  );
 
   const handleFormSubmit = React.useCallback(
     async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
-      if (willExceedQuarryLimit()) {
+      if (willExceedQuarryLimit(values.quarry_supplier_type as QuarryType)) {
         setPendingSubmission(values);
         setIsSubscriptionDialogOpen(true);
         return;
