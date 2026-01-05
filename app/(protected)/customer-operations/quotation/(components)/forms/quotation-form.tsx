@@ -173,7 +173,9 @@ export default function QuotationForm({
 
     // Check for missing email when creating a quotation
     if (!isEditing && !values.email?.trim()) {
-      notifyError('Contact has no email. Add an email in the Customer profile for it to appear on the quote.');
+      notifyError(
+        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.'
+      );
       return;
     }
 
@@ -447,9 +449,9 @@ export default function QuotationForm({
                           arrowClassName="bg-gray-900 fill-gray-900"
                         >
                           <p className="text-xs">
-                            Quote type cannot be changed after creation as it would
-                            remove truck configuration data. Please create a new
-                            quote if you need a different type.
+                            Quote type cannot be changed after creation as it
+                            would remove truck configuration data. Please create
+                            a new quote if you need a different type.
                           </p>
                         </TooltipContent>
                       </Tooltip>

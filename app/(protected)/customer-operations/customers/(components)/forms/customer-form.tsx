@@ -777,7 +777,6 @@ export default function CustomerForm({
               )}
             />
           )}
-
           {/* Contact Person First Name - For BUSINESS type only */}
           {selectedCustomerType === 'BUSINESS' && (
             <FormField
@@ -805,33 +804,6 @@ export default function CustomerForm({
             />
           )}
 
-          {/* Contact Person Email - For BUSINESS type */}
-          {selectedCustomerType === 'BUSINESS' && (
-            <FormField
-              control={customerForm.control}
-              name="contact_person_email"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Contact Person Email*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="email@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
           {/* Contact Person Last Name - For BUSINESS type only */}
           {selectedCustomerType === 'BUSINESS' && (
             <FormField
@@ -841,7 +813,7 @@ export default function CustomerForm({
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
+                      ? 'col-span-1 col-start-2'
                       : 'col-span-2'
                   }
                 >
@@ -859,7 +831,33 @@ export default function CustomerForm({
             />
           )}
 
-          {/* Contact Person Phone - For BUSINESS type */}
+          {/* Contact Person Email - For BUSINESS type */}
+          {selectedCustomerType === 'BUSINESS' && (
+            <FormField
+              control={customerForm.control}
+              name="contact_person_email"
+              render={({ field }) => (
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>Contact Person Email*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="email@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           {selectedCustomerType === 'BUSINESS' && (
             <FormField
               control={customerForm.control}
@@ -951,7 +949,9 @@ export default function CustomerForm({
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
+                      ? selectedCustomerType === 'BUSINESS'
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-1 col-start-2'
                       : 'col-span-2'
                   }
                 >
@@ -981,7 +981,7 @@ export default function CustomerForm({
               className={cn(
                 'space-y-2',
                 isEditing && isDesktop
-                  ? selectedPaymentType === 'CREDIT'
+                  ? selectedCustomerType === 'BUSINESS'
                     ? 'col-span-1 col-start-2'
                     : 'col-span-1 col-start-1'
                   : 'col-span-2'
@@ -1041,7 +1041,11 @@ export default function CustomerForm({
             options={accountManagerOptions}
             placeholder="Select Account Manager"
             formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              isEditing && isDesktop
+                ? selectedCustomerType === 'BUSINESS'
+                  ? 'col-span-1 col-start-1'
+                  : 'col-span-1 col-start-2'
+                : 'col-span-2'
             }
           />
 
@@ -1053,7 +1057,9 @@ export default function CustomerForm({
               <FormItem
                 className={
                   isEditing && isDesktop
-                    ? 'col-span-1 col-start-2'
+                    ? selectedCustomerType === 'BUSINESS'
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-1 col-start-1'
                     : 'col-span-2'
                 }
               >
