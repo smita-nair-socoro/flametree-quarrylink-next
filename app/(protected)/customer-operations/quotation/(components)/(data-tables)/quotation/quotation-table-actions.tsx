@@ -4,7 +4,7 @@ import {
   MoreHorizontal,
   Eye,
   Send,
-  Printer,
+  // Printer,
   ThumbsDown,
   Briefcase,
   Archive,
@@ -65,7 +65,7 @@ export function QuotationTableActions({
     setSelectedQuotation(quotation)
   );
   const handleExtendExpiry = createHandler(actions.extendExpiry);
-  const handlePrint = createHandler(actions.print);
+  // const handlePrint = createHandler(actions.print);
 
   return (
     <div>
