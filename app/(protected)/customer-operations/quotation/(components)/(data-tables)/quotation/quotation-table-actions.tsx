@@ -156,13 +156,13 @@ export function QuotationTableActions({
             </>
           )}
 
-          {/* Print action - always available for non-archived */}
+          {/* Print action - always available for non-archived
           <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
             Download PDF
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
 
           {/* Hide Duplicate Quote at current stage*/}
           {/* <DropdownMenuSeparator />
