@@ -575,7 +575,6 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         });
         notifySuccess('Line item Updated');
       } else {
-        console.log('clicked', quoteItemData);
         await createQuoteItem.mutateAsync(quoteItemData);
         notifySuccess('Line item Added');
       }
