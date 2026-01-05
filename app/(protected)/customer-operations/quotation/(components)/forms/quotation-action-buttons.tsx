@@ -5,14 +5,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   // Plus, Used for duplicate action
   Send,
   MoreHorizontal,
-  Printer,
+  // Printer,
   Briefcase,
   Calendar,
   ThumbsDown,
