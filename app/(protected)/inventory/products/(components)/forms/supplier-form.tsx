@@ -570,6 +570,28 @@ export default function SupplierForm({
         return;
       }
 
+      // e.g. "Key (quarry_supplier_id, product_id)=(2, 3) already exists"
+      // Don't match the IDs (they can vary / include different spacing); match the stable phrase instead.
+      const duplicateSupplierForProductPhrase =
+        'Key (quarry_supplier_id, product_id)=';
+      const duplicateSupplierForProductSuffix = 'already exists';
+      const isDuplicateSupplierForProduct =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        ((messageFromErr.includes(duplicateSupplierForProductPhrase) &&
+          messageFromErr.includes(duplicateSupplierForProductSuffix)) ||
+          messageFromErr.includes('quarry_supplier_products_pkey'));
+
+      if (isDuplicateSupplierForProduct) {
+        const msg = 'Duplicate supplier already exists for this product.';
+        notifyError(msg);
+        supplierForm.setError('quarry_supplier_id', {
+          type: 'manual',
+          message: msg,
+        });
+        return;
+      }
+
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
