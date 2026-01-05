@@ -5,10 +5,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
+  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
+// import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
+import { MoreHorizontal, Eye } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -79,17 +80,17 @@ export function CustomerActionButtons({
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
                 >
                   <Archive className="h-4 w-4 mr-2 text-red-600" />
                   Archive
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </>
             )}
-            {isArchived && (
+            {/* {isArchived && (
               <DropdownMenuItem
                 onClick={actions.unarchive}
                 className="text-blue-600 focus:text-blue-600"
@@ -97,7 +98,7 @@ export function CustomerActionButtons({
                 <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
                 Unarchive
               </DropdownMenuItem>
-            )}
+            )} */}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -133,7 +134,7 @@ export function CustomerActionButtons({
             View Dockets
           </Button>
         )}
-        {!isArchived && (
+        {/* {!isArchived && (
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -190,7 +191,7 @@ export function CustomerActionButtons({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
+        )} */}
       </div>
     </div>
   );
