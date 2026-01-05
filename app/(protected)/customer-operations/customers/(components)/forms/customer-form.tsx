@@ -777,114 +777,200 @@ export default function CustomerForm({
               )}
             />
           )}
-
-          {/* Contact Person First Name - For BUSINESS type only */}
-          {selectedCustomerType === 'BUSINESS' && (
-            <FormField
-              control={customerForm.control}
-              name="contact_person_first_name"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Contact Person First Name*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter First Name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {!isEditing && selectedCustomerType === 'BUSINESS' && (
+            <>
+              <FormField
+                control={customerForm.control}
+                name="contact_person_first_name"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person First Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter First Name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={customerForm.control}
+                name="contact_person_last_name"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person Last Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Last Name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={customerForm.control}
+                name="contact_person_email"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person Email*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="email@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={customerForm.control}
+                name="contact_person_phone"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person Phone*</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        className="w-full"
+                        defaultCountry="AU"
+                        placeholder="Enter phone number"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
 
-          {/* Contact Person Email - For BUSINESS type */}
-          {selectedCustomerType === 'BUSINESS' && (
-            <FormField
-              control={customerForm.control}
-              name="contact_person_email"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Contact Person Email*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="email@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {/* Contact Person Last Name - For BUSINESS type only */}
-          {selectedCustomerType === 'BUSINESS' && (
-            <FormField
-              control={customerForm.control}
-              name="contact_person_last_name"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Contact Person Last Name*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter Last Name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {/* Contact Person Phone - For BUSINESS type */}
-          {selectedCustomerType === 'BUSINESS' && (
-            <FormField
-              control={customerForm.control}
-              name="contact_person_phone"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Contact Person Phone*</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      className="w-full"
-                      defaultCountry="AU"
-                      placeholder="Enter phone number"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {isEditing && selectedCustomerType === 'BUSINESS' && (
+            <>
+              <FormField
+                control={customerForm.control}
+                name="contact_person_first_name"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person First Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter First Name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={customerForm.control}
+                name="contact_person_email"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person Email*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="email@example.com"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={customerForm.control}
+                name="contact_person_last_name"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person Last Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Last Name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={customerForm.control}
+                name="contact_person_phone"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Contact Person Phone*</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        className="w-full"
+                        defaultCountry="AU"
+                        placeholder="Enter phone number"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
 
           {/* Contact Person Email - For INDIVIDUAL type */}
