@@ -19,6 +19,7 @@ import {
   Updater,
   RowSelectionState,
   Row,
+  RowPinningState,
 } from '@tanstack/react-table';
 
 import {
@@ -119,7 +120,6 @@ const defaultPagination: PaginationState = {
   pageIndex: 0,
   pageSize: 10,
 };
-const defaultSorting: SortingState = [];
 const defaultColumnFilters: ColumnFiltersState = [];
 const defaultGlobalFilter = '';
 const defaultColumnVisibility: VisibilityState = {};
@@ -149,6 +149,68 @@ export function DataTableClient<TData, TValue>({
     (key: string) => `${tableId}_${key}`,
     [tableId]
   );
+
+  // Read new record IDs from sessionStorage - use state with event listener
+  const [newRecordIds, setNewRecordIds] = useState<string[]>(() => {
+    try {
+      const stored = getSessionStorage<string[]>(
+        getStorageKey('newRecordIds'),
+        []
+      );
+      const ids = Array.isArray(stored) ? stored : [];
+      return ids;
+    } catch {
+      return [];
+    }
+  });
+
+  // Listen for storage updates
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      try {
+        const stored = getSessionStorage<string[]>(
+          getStorageKey('newRecordIds'),
+          []
+        );
+        const ids = Array.isArray(stored) ? stored : [];
+        setNewRecordIds(ids);
+      } catch {
+        setNewRecordIds([]);
+      }
+    };
+
+    // Custom event for same-tab updates (sessionStorage doesn't trigger 'storage' event in same tab)
+    window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
+    };
+  }, [getStorageKey]);
+
+  // Convert to Set for fast lookup (only once per newRecordIds change)
+  const newRecordIdsSet = useMemo(() => new Set<string>(newRecordIds), [newRecordIds]);
+
+  // Row pinning state (use TanStack Table row pinning instead of reordering data)
+  const [rowPinning, setRowPinning] = useState<RowPinningState>(() => {
+    const presentIds = new Set(
+      (data as Array<TData & { id?: number | string; sub?: string }>)
+        .map((r) => (r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined))
+        .filter((v): v is string => v !== undefined)
+    );
+    const top = newRecordIds.filter((id) => presentIds.has(id));
+    return { top, bottom: [] };
+  });
+
+  // Keep row pinning in sync with data and stored new IDs
+  useEffect(() => {
+    const presentIds = new Set(
+      (data as Array<TData & { id?: number | string; sub?: string }>)
+        .map((r) => (r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined))
+        .filter((v): v is string => v !== undefined)
+    );
+    const top = newRecordIds.filter((id) => presentIds.has(id));
+    setRowPinning((prev) => ({ ...prev, top }));
+  }, [data, newRecordIds]);
 
   const loadFromStorage = <T,>(key: string, fallback: T): T => {
     try {
@@ -267,6 +329,7 @@ export function DataTableClient<TData, TValue>({
         'globalFilter',
         'columnVisibility',
         'paginationSize',
+        'newRecordIds',
       ];
       keys.forEach((key) => {
         try {
@@ -286,7 +349,7 @@ export function DataTableClient<TData, TValue>({
       setColumnVisibility(defaultColumnVisibility);
       setPaginationSize(defaultPaginationSize);
     }
-  }, [isMobile, tableId, getStorageKey]);
+  }, [isMobile, tableId, getStorageKey, defaultSorting]);
 
   // Enhanced state setters that save to localStorage (only when not mobile)
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -305,6 +368,7 @@ export function DataTableClient<TData, TValue>({
       if (!isMobile) {
         saveToStorage('sorting', newValue);
       }
+
       return newValue;
     });
   };
@@ -414,6 +478,13 @@ export function DataTableClient<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    getRowId: (originalRow, index) => {
+      const r = originalRow as TData & { id?: number | string; sub?: string };
+      if (r?.id !== undefined) return String(r.id);
+      if (typeof r?.sub === 'string' && r.sub.length > 0) return r.sub;
+      return String(index);
+    },
+    enableRowPinning: true,
 
     globalFilterFn: 'auto',
 
@@ -426,6 +497,7 @@ export function DataTableClient<TData, TValue>({
     onGlobalFilterChange: handleGlobalFilterChange,
     onColumnVisibilityChange: handleColumnVisibilityChange,
     onRowSelectionChange: setRowSelection,
+    onRowPinningChange: setRowPinning,
 
     enableRowSelection: enableRowSelection
       ? (row: Row<TData>) => {
@@ -441,8 +513,25 @@ export function DataTableClient<TData, TValue>({
       globalFilter,
       columnVisibility,
       rowSelection,
+      rowPinning,
     },
   });
+
+  // Clear temporary pinning on page unload or when table unmounts
+  useEffect(() => {
+    const handler = () => {
+      try {
+        sessionStorage.removeItem(getStorageKey('newRecordIds'));
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => {
+      window.removeEventListener('beforeunload', handler);
+      handler();
+    };
+  }, [getStorageKey]);
 
   const facetedWithCounts = useFacets(table, facetDefination);
 
@@ -494,6 +583,24 @@ export function DataTableClient<TData, TValue>({
     }
     setDrawerOpen(false);
   }
+
+  // Combine pinned top/bottom rows with the main row model and de-duplicate by row.id
+  const displayRows = (() => {
+    const combined = [
+      ...table.getTopRows(),
+      ...table.getRowModel().rows,
+      ...table.getBottomRows(),
+    ];
+    const seen = new Set<string>();
+    const deduped: Row<TData>[] = [];
+    for (const r of combined) {
+      if (!seen.has(r.id)) {
+        seen.add(r.id);
+        deduped.push(r);
+      }
+    }
+    return deduped;
+  })();
 
   return (
     <div className="space-y-4">
@@ -587,11 +694,10 @@ export function DataTableClient<TData, TValue>({
                                         currentFilterValues.includes(
                                           option.value
                                         );
-                                      const displayLabel = option.label.includes(
-                                        '_'
-                                      )
-                                        ? option.label.replace(/_/g, ' ')
-                                        : option.label;
+                                      const displayLabel =
+                                        option.label.includes('_')
+                                          ? option.label.replace(/_/g, ' ')
+                                          : option.label;
 
                                       return (
                                         <div
@@ -889,84 +995,92 @@ export function DataTableClient<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.length > 0 ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    className={cn(
-                      simpleTable
-                        ? 'border-b border-border hover:bg-transparent'
-                        : 'bg-white hover:bg-gray-100',
-                      !simpleTable && onRowClick && 'cursor-pointer',
-                      row.getIsSelected() && '!bg-[#EFF6FF] hover:!bg-blue-100'
-                    )}
-                    onClick={(e) => {
-                      // Prevent row click if clicking on buttons or interactive elements
-                      const target = e.target as HTMLElement;
-                      const isInteractiveElement = target.closest(
-                        'button, a, [role="button"], [role="menuitem"], [data-radix-dropdown-menu-item], input, select, textarea'
-                      );
+              {displayRows.length > 0 ? (
+                displayRows.map((row) => {
+                  // Check if this row is newly added (by checking ID against sessionStorage)
+                  const isNewRecord = newRecordIdsSet.has(row.id);
 
-                      if (allowClicksInsideModal) {
-                        // Special mode: Allow clicks inside modals (for tables like UserAccessTab)
-                        if (!isInteractiveElement && onRowClick) {
-                          onRowClick(row.original);
-                        }
-                      } else {
-                        // Default mode: Block clicks if modal is open (safe default)
-                        const hasOpenModal = document.querySelector(
-                          '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]'
-                        );
-                        const isInsideModal = target.closest(
-                          '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]'
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                      className={cn(
+                        simpleTable
+                          ? 'border-b border-border hover:bg-transparent'
+                          : 'bg-white hover:bg-gray-100',
+                        !simpleTable && onRowClick && 'cursor-pointer',
+                        row.getIsSelected() &&
+                          '!bg-[#EFF6FF] hover:!bg-blue-100',
+                        isNewRecord &&
+                          '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500'
+                      )}
+                      onClick={(e) => {
+                        // Prevent row click if clicking on buttons or interactive elements
+                        const target = e.target as HTMLElement;
+                        const isInteractiveElement = target.closest(
+                          'button, a, [role="button"], [role="menuitem"], [data-radix-dropdown-menu-item], input, select, textarea'
                         );
 
-                        if (
-                          !isInteractiveElement &&
-                          !hasOpenModal &&
-                          !isInsideModal &&
-                          onRowClick
-                        ) {
-                          onRowClick(row.original);
+                        if (allowClicksInsideModal) {
+                          // Special mode: Allow clicks inside modals (for tables like UserAccessTab)
+                          if (!isInteractiveElement && onRowClick) {
+                            onRowClick(row.original);
+                          }
+                        } else {
+                          // Default mode: Block clicks if modal is open (safe default)
+                          const hasOpenModal = document.querySelector(
+                            '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]'
+                          );
+                          const isInsideModal = target.closest(
+                            '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]'
+                          );
+
+                          if (
+                            !isInteractiveElement &&
+                            !hasOpenModal &&
+                            !isInsideModal &&
+                            onRowClick
+                          ) {
+                            onRowClick(row.original);
+                          }
                         }
-                      }
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell, cellIndex) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          simpleTable && 'border-b-0',
-                          'whitespace-nowrap',
-                          !simpleTable && 'first:pl-4 last:pr-4 py-2',
-                          cellIndex === row.getVisibleCells().length - 1 &&
-                            'w-auto text-right'
-                        )}
-                        style={
-                          useColumnSizing
-                            ? {
-                                width: cell.column.columnDef.size
-                                  ? `${cell.column.columnDef.size}px`
-                                  : undefined,
-                                minWidth: cell.column.columnDef.size
-                                  ? `${cell.column.columnDef.size}px`
-                                  : undefined,
-                                maxWidth: cell.column.columnDef.size
-                                  ? `${cell.column.columnDef.size}px`
-                                  : undefined,
-                              }
-                            : undefined
-                        }
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell, cellIndex) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            simpleTable && 'border-b-0',
+                            'whitespace-nowrap',
+                            !simpleTable && 'first:pl-4 last:pr-4 py-2',
+                            cellIndex === row.getVisibleCells().length - 1 &&
+                              'w-auto text-right'
+                          )}
+                          style={
+                            useColumnSizing
+                              ? {
+                                  width: cell.column.columnDef.size
+                                    ? `${cell.column.columnDef.size}px`
+                                    : undefined,
+                                  minWidth: cell.column.columnDef.size
+                                    ? `${cell.column.columnDef.size}px`
+                                    : undefined,
+                                  maxWidth: cell.column.columnDef.size
+                                    ? `${cell.column.columnDef.size}px`
+                                    : undefined,
+                                }
+                              : undefined
+                          }
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow
                   className={cn(simpleTable && 'border-b-0', 'bg-white')}

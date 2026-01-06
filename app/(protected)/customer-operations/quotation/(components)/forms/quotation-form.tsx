@@ -55,6 +55,7 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { addNewRecordId } from '@/lib/utils';
 
 interface FormProps {
   id?: number;
@@ -223,7 +224,13 @@ export default function QuotationForm({
             deliveryAddress: deliveryAddress,
           });
 
-          await createQuotation.mutateAsync(transformed);
+          const newQuotation = await createQuotation.mutateAsync(transformed);
+
+          // Add the new record ID to sessionStorage for highlighting
+          if (newQuotation && typeof newQuotation.id === 'number') {
+            addNewRecordId('quotation_main_data_table', newQuotation.id);
+          }
+
           notifySuccess('Quote created successfully');
           onCancel?.();
           return; // Success - exit the function

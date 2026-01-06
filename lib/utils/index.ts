@@ -81,6 +81,34 @@ export function setSessionStorage<T>(key: string, value: T) {
 }
 
 /**
+ * Add a new record ID to the table's "new records" list in sessionStorage
+ * This allows the table to highlight and pin newly created records at the top
+ * until the user refreshes or changes sorting
+ */
+export function addNewRecordId(tableId: string, recordId: number | string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `${tableId}_newRecordIds`;
+    const existing = getSessionStorage<string[]>(key, []);
+    const updated = Array.isArray(existing) ? [...existing] : [];
+
+    // Add new ID if not already in the list
+    const recordKey = String(recordId);
+    const existingIndex = updated.indexOf(recordKey);
+    if (existingIndex !== -1) {
+      updated.splice(existingIndex, 1);
+    }
+    // Put newest first so it appears at the very top
+    updated.unshift(recordKey);
+    setSessionStorage(key, updated);
+    // Dispatch custom event to notify DataTable components
+    window.dispatchEvent(new Event('sessionStorageUpdated'));
+  } catch (err) {
+    console.log('failed to add new record ID to sessionStorage:', err);
+  }
+}
+
+/**
  * A sorting function you can reuse on any date-string column.
  * Returns negative if a < b, positive if a > b.
  */
