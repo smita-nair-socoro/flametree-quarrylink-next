@@ -118,10 +118,12 @@ export default function QuotationForm({
 
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
     if (!customers) return [];
-    return customers.map((customer) => ({
-      label: customer.businessName || customer.contactName,
-      value: customer.id,
-    }));
+    return customers
+      .filter((customer) => customer.id !== undefined)
+      .map((customer) => ({
+        label: customer.businessName || customer.contactName,
+        value: customer.id!,
+      }));
   }, [customers]);
 
   const { data: users = [] } = useQuery(UsersListQueryOptions());
