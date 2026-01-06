@@ -72,7 +72,11 @@ export function QuotationTableActions({
       {confirmDialogs}
       {viewDialog}
       {duplicateDialog}
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <DropdownMenu
+        open={dropdownOpen}
+        onOpenChange={setDropdownOpen}
+        modal={false}
+      >
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
