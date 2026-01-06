@@ -85,37 +85,37 @@ export function NavUser({
             <HoverCardContent
               side="right"
               align="end"
-              className="w-72 p-4 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
-              sideOffset={12}
+              className="w-64 p-1.5 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
+              sideOffset={8}
             >
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 px-2">
-                  <Avatar className="h-10 w-10 rounded-lg">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5 px-1.5">
+                  <Avatar className="h-8 w-8 rounded-lg">
                     <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold text-white">
+                    <span className="truncate font-semibold text-white text-xs">
                       {user.name}
                     </span>
-                    <span className="truncate text-xs text-[#94a3b8]">
+                    <span className="truncate text-[10px] text-[#94a3b8]">
                       {user.email}
                     </span>
                   </div>
                 </div>
                 <div className="h-px bg-[#334155]" />
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <Link
                     href="/system/user-management"
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-white hover:bg-[#7138F533] transition-all duration-200"
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg text-white hover:bg-[#7138F533] transition-all duration-200"
                   >
                     <BadgeCheck className="h-4 w-4" />
                     <span>Account & Billings</span>
                   </Link>
-                  <div className="h-px bg-[#334155] my-1" />
+                  <div className="h-px bg-[#334155] my-0.5" />
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg text-white hover:bg-[#7138F533] transition-all duration-200"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-lg text-white hover:bg-[#7138F533] transition-all duration-200"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Log out</span>

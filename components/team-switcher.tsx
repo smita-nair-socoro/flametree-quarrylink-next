@@ -34,8 +34,14 @@ export function TeamSwitcher({
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
-      console.log('🏢 [TeamSwitcher] Tenant Complete Details:', tenantCompleteDetails);
-      console.log('🏷️ [TeamSwitcher] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
+      console.log(
+        '🏢 [TeamSwitcher] Tenant Complete Details:',
+        tenantCompleteDetails
+      );
+      console.log(
+        '🏷️ [TeamSwitcher] Tenant Name:',
+        tenantCompleteDetails.tenantDetails?.tenantName
+      );
     }
   }, [tenantCompleteDetails]);
 
@@ -86,16 +92,16 @@ export function TeamSwitcher({
             <HoverCardContent
               side="right"
               align="start"
-              className="w-72 p-4 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
-              sideOffset={12}
+              className="w-64 p-1.5 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
+              sideOffset={8}
             >
-              <div className="flex items-center gap-3 px-4 py-2.5 bg-[#7138F5] rounded-lg">
+              <div className="flex items-center gap-2.5 px-3 py-2 bg-[#7138F5] rounded-lg">
                 <div className="bg-white border border-purple-300 text-purple-500 flex aspect-square size-8 items-center justify-center rounded-lg">
                   <span className="text-sm font-semibold">
                     {activeClient.initials}
                   </span>
                 </div>
-                <span className="text-base font-semibold text-white truncate">
+                <span className="text-sm font-semibold text-white truncate">
                   {activeClient.name}
                 </span>
               </div>

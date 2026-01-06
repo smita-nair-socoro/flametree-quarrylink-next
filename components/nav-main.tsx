@@ -117,15 +117,21 @@ export function NavMain({
                   <HoverCardContent
                     side="right"
                     align="start"
-                    className="w-72 p-4 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
-                    sideOffset={12}
+                    className="w-64 p-1.5 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
+                    sideOffset={8}
                   >
                     <Link
                       href={item.url}
                       aria-disabled={itemIsDisabled}
-                      className={`flex items-center justify-between gap-2 min-w-0 px-4 py-2.5 text-base font-semibold rounded-lg transition-all duration-200
-                        ${isActive ? 'bg-[#7138F5] text-white' : 'text-white hover:bg-[#7138F533]'} ${
-                        itemIsDisabled ? 'pointer-events-none opacity-40 text-[#94a3b8]' : ''
+                      className={`flex items-center justify-between gap-2 min-w-0 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200
+                        ${
+                          isActive
+                            ? 'bg-[#7138F5] text-white'
+                            : 'text-white hover:bg-[#7138F533]'
+                        } ${
+                        itemIsDisabled
+                          ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                          : ''
                       }`}
                     >
                       <span className="truncate whitespace-nowrap overflow-hidden">
@@ -173,6 +179,7 @@ export function NavMain({
 
           // If collapsed and has subitems, show hover card
           if (isCollapsed && item.items && item.items.length > 0) {
+            const itemIsDisabled = isDisabled(item.plan);
             return (
               <HoverCard
                 key={`${item.url}-${forceUpdate}`}
@@ -183,7 +190,9 @@ export function NavMain({
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={isActive}
-                      className="hover:bg-[#7138f533]"
+                      className={`hover:bg-[#7138f533] ${
+                        itemIsDisabled ? 'opacity-40' : ''
+                      }`}
                     >
                       {item.icon && <item.icon className="text-white" />}
                       <span className="truncate whitespace-nowrap">
@@ -195,36 +204,46 @@ export function NavMain({
                 <HoverCardContent
                   side="right"
                   align="start"
-                  className="w-72 p-4 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
+                  className="w-56 p-2 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
                   sideOffset={12}
                 >
                   <div className="space-y-1">
-                    <div className="font-semibold text-base mb-3 text-white px-2">{item.title}</div>
-                    {item.items.map((sub) => {
-                      const subActive =
-                        pathname === sub.url || pathname === `${sub.url}/`;
-                      const subDisabled = isDisabled(sub.plan);
-                      return (
-                        <Link
-                          key={sub.url}
-                          href={sub.url}
-                          aria-disabled={subDisabled}
-                          className={`flex items-center justify-between gap-2 min-w-0 px-4 py-2.5 text-sm rounded-lg transition-all duration-200
-                            ${subActive ? 'bg-[#7138F5] text-white font-medium' : 'text-white hover:bg-[#7138F533]'} ${
-                            subDisabled ? 'pointer-events-none opacity-40 text-[#94a3b8]' : ''
-                          }`}
-                        >
-                          <span className="truncate whitespace-nowrap overflow-hidden">
-                            {sub.title}
-                          </span>
-                          {subDisabled && (
-                            <span className="shrink-0 text-[#94a3b8] border border-[#475569] rounded-sm px-1.5 py-0.5 text-xs font-medium">
-                              {getPlanLabel(sub.plan)}
+                    <div className="font-semibold text-sm mb-2 text-white px-2">
+                      {item.title}
+                    </div>
+                    <div className="relative pl-3 border-l-2 border-[#475569] ml-2">
+                      {item.items.map((sub) => {
+                        const subActive =
+                          pathname === sub.url || pathname === `${sub.url}/`;
+                        const subDisabled = isDisabled(sub.plan);
+                        return (
+                          <Link
+                            key={sub.url}
+                            href={sub.url}
+                            aria-disabled={subDisabled}
+                            className={`flex items-center justify-between gap-2 min-w-0 px-2 py-2 text-sm rounded-lg transition-all duration-200 mb-1
+                              ${
+                                subActive
+                                  ? 'bg-[#7138F5] text-white font-medium'
+                                  : 'text-white hover:bg-[#7138F533]'
+                              } ${
+                              subDisabled
+                                ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                                : ''
+                            }`}
+                          >
+                            <span className="truncate whitespace-nowrap overflow-hidden">
+                              {sub.title}
                             </span>
-                          )}
-                        </Link>
-                      );
-                    })}
+                            {subDisabled && (
+                              <span className="shrink-0 text-[#94a3b8] border border-[#475569] rounded-sm px-1.5 py-0.5 text-xs font-medium">
+                                {getPlanLabel(sub.plan)}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
                 </HoverCardContent>
               </HoverCard>
@@ -232,6 +251,7 @@ export function NavMain({
           }
 
           // If expanded and has subitems, show collapsible menu
+          const itemIsDisabled = isDisabled(item.plan);
           return (
             <Collapsible
               key={item.url}
@@ -247,12 +267,24 @@ export function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton isActive={isActive}>
-                    {item.icon && <item.icon className="text-white" />}
-                    <span className="truncate whitespace-nowrap text-white">
-                      {item.title}
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    className={itemIsDisabled ? 'opacity-40' : ''}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      {item.icon && <item.icon className="text-white" />}
+                      <span className="truncate whitespace-nowrap text-white">
+                        {item.title}
+                      </span>
                     </span>
-                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
+                    <div className="flex items-center gap-2 ml-auto">
+                      {itemIsDisabled && (
+                        <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
+                          {getPlanLabel(item.plan)}
+                        </span>
+                      )}
+                      <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
+                    </div>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

@@ -79,6 +79,7 @@ export const navItems = [
     title: 'Logistics',
     url: '/logistics',
     icon: Truck,
+    plan: 'PLUS',
     items: [
       { title: 'Drivers', url: '/logistics/drivers', plan: 'PLUS' },
       { title: 'Trucks', url: '/logistics/trucks', plan: 'PLUS' },
@@ -106,9 +107,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
-      console.log('🏢 [AppSidebar] Tenant Complete Details:', tenantCompleteDetails);
-      console.log('🏷️ [AppSidebar] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
-      console.log('📋 [AppSidebar] Subscription Plan:', tenantCompleteDetails.subscriptionAndInvoices?.subscriptions?.subscriptions?.[0]?.subscriptionPlan);
+      console.log(
+        '🏢 [AppSidebar] Tenant Complete Details:',
+        tenantCompleteDetails
+      );
+      console.log(
+        '🏷️ [AppSidebar] Tenant Name:',
+        tenantCompleteDetails.tenantDetails?.tenantName
+      );
+      console.log(
+        '📋 [AppSidebar] Subscription Plan:',
+        tenantCompleteDetails.subscriptionAndInvoices?.subscriptions
+          ?.subscriptions?.[0]?.subscriptionPlan
+      );
     }
   }, [tenantCompleteDetails]);
 
