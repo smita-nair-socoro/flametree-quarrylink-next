@@ -61,6 +61,25 @@ export function setLocalStorage<T>(key: string, value: T) {
   }
 }
 
+export function getSessionStorage<T>(key: string, defaultValue: T): T {
+  if (typeof window === 'undefined') return defaultValue;
+  try {
+    const stored = window.sessionStorage.getItem(key);
+    return stored ? (JSON.parse(stored) as T) : defaultValue;
+  } catch {
+    return defaultValue;
+  }
+}
+
+export function setSessionStorage<T>(key: string, value: T) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.log('failed to write into sessionStorage err : ', err);
+  }
+}
+
 /**
  * A sorting function you can reuse on any date-string column.
  * Returns negative if a < b, positive if a > b.

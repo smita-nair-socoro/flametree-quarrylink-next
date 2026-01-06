@@ -50,6 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signOut();
       setUser(null);
       setAttributes(null);
+
+      // Clear all sessionStorage to reset table states and other session data
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+      }
     } catch (error) {
       console.error('Sign out error:', error);
     }
