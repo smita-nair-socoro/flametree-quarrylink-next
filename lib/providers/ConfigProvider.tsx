@@ -14,6 +14,37 @@ export function useConfig() {
   return cfg;
 }
 
+type MultiEnvConfig = {
+  environments?: Record<string, RuntimeConfig>;
+  enviornments?: Record<string, RuntimeConfig>;
+};
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isRuntimeConfig(value: unknown): value is RuntimeConfig {
+  if (!isObject(value)) return false;
+  return (
+    typeof value.COGNITO_DOMAIN === 'string' &&
+    typeof value.COGNITO_CLIENT_ID === 'string' &&
+    typeof value.COGNITO_REDIRECT_URI === 'string' &&
+    typeof value.AMPLIFY_AUTH_REGION === 'string' &&
+    typeof value.AMPLIFY_AUTH_USER_POOL_ID === 'string' &&
+    typeof value.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID === 'string' &&
+    typeof value.GOOGLE_MAPS_API_KEY === 'string' &&
+    typeof value.API_URL === 'string'
+  );
+}
+
+function getEnvContainer(value: unknown): Record<string, RuntimeConfig> | null {
+  if (!isObject(value)) return null;
+  const maybe = value as MultiEnvConfig;
+  const container = maybe.environments ?? maybe.enviornments;
+  if (!container || !isObject(container)) return null;
+  return container as Record<string, RuntimeConfig>;
+}
+
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
   const [cfg, setCfg] = useState<RuntimeConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +64,8 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         // { environments: { dev: RuntimeConfig, essentials: RuntimeConfig } }
         // or { enviornments: { ... } }
         let resolved: RuntimeConfig;
-        const maybeObj = json as Record<string, any>;
-        const envs =
-          (maybeObj && maybeObj.environments) ||
-          (maybeObj && maybeObj.enviornments);
+
+        const envs = getEnvContainer(json);
 
         if (envs && typeof envs === 'object') {
           // Determine environment: URL param has highest precedence (?env=essentials|dev)
@@ -63,11 +92,17 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
             envKey = 'dev';
           }
 
-          resolved = (envs[envKey!] ||
-            envs['dev'] ||
-            Object.values(envs)[0]) as RuntimeConfig;
+          const candidate =
+            envs[envKey!] ?? envs['dev'] ?? Object.values(envs)[0];
+          if (!isRuntimeConfig(candidate)) {
+            throw new Error('Invalid runtime config in selected environment');
+          }
+          resolved = candidate;
         } else {
-          resolved = maybeObj as RuntimeConfig;
+          if (!isRuntimeConfig(json)) {
+            throw new Error('Invalid runtime config format');
+          }
+          resolved = json;
         }
 
         setCfg(resolved);
