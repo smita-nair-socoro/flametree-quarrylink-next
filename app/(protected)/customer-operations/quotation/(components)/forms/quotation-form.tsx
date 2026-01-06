@@ -104,7 +104,8 @@ export default function QuotationForm({
     searchInput,
     setSearchInput,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
-  const isCollectionQuote = currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
+  const isCollectionQuote =
+    currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -772,7 +773,6 @@ export default function QuotationForm({
                           )}
                           data={quoteItemsData}
                           simpleTable={true}
-                          useColumnSizing={true}
                         />
                       );
                     })()}

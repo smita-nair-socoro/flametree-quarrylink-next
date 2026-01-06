@@ -28,7 +28,9 @@ export function configureAmplify(config: RuntimeConfig) {
         loginWith: {
           email: true,
           oauth: {
-            domain: config.COGNITO_HOSTED_UI_DOMAIN,
+            domain:
+              config.AMPLIFY_AUTH_USER_POOL_ID.replace('ap-southeast-2_', '') +
+              '.auth.ap-southeast-2.amazoncognito.com',
             scopes: ['openid', 'email', 'profile'],
             redirectSignIn: [redirectSignIn],
             redirectSignOut: [redirectSignOut],

@@ -676,7 +676,7 @@ export function useQuotationActions(
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
       // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      let customerEmail = quotationDetailData.customerEmail;
+      let customerEmail = quotationDetailData.email;
       if (!customerEmail) {
         customerEmail = 'charlie.peng@socoro.com.au';
       }

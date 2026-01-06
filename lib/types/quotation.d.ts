@@ -13,6 +13,7 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  email: string;
   customerPhone: string;
   customerDto: CustomerDTO;
   accountManagerSub: string;

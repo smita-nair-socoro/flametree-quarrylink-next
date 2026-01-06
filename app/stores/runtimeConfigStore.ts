@@ -3,7 +3,6 @@ export type RuntimeConfig = {
   COGNITO_DOMAIN: string;
   COGNITO_CLIENT_ID: string;
   COGNITO_REDIRECT_URI: string;
-  COGNITO_HOSTED_UI_DOMAIN: string;
   AMPLIFY_AUTH_REGION: string;
   AMPLIFY_AUTH_USER_POOL_ID: string;
   AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: string;

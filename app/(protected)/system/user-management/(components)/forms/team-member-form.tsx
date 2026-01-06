@@ -77,8 +77,6 @@ export function EditTeamMemberForm({
     enabled: !!selectedUser?.sub, // Only fetch if we have a sub (user ID)
   });
 
-  console.log('[TeamMemberForm] 📦 API Response - detailedUser:', detailedUser);
-
   // Use detailed data if available, fallback to store data
   const initialData = detailedUser || selectedUser;
 
@@ -203,7 +201,8 @@ export function EditTeamMemberForm({
 
       // Fallback error using extracted message
       notifyError('Update Failed', {
-        description: messageFromErr || 'Failed to update user. Please try again.',
+        description:
+          messageFromErr || 'Failed to update user. Please try again.',
       });
     }
   };
