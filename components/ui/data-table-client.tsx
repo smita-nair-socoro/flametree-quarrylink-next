@@ -60,7 +60,7 @@ import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
 import { InputIcon } from './input-icon';
 import { Separator } from './separator';
-import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
+import { cn, getSessionStorage, setSessionStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToolbarCompact } from '@/hooks/use-toolbar-compact';
@@ -88,7 +88,7 @@ interface DataTableProps<TData, TValue> {
   facetDefination?: FacetDefinition[];
   searchPlaceHolder?: string;
   simpleTable?: boolean;
-  tableId?: string; // Unique identifier for localStorage
+  tableId?: string; // Unique identifier for sessionStorage
   useColumnSizing?: boolean; // Optional prop to enable column sizing
   onRowClick?: (row: TData) => void; // Optional row click handler
   isShowHideColumns?: boolean;
@@ -97,6 +97,7 @@ interface DataTableProps<TData, TValue> {
   rowSelectionFilter?: (row: TData) => boolean; // Filter which rows can be selected
   bulkActionsSlot?: React.ReactNode; // Slot for bulk action buttons
   allowClicksInsideModal?: boolean; // Allow row clicks when table is inside a modal/dialog (default: false)
+  defaultSorting?: SortingState; // Default sorting configuration
 }
 
 export type FacetDefinition = {
@@ -140,6 +141,7 @@ export function DataTableClient<TData, TValue>({
   onRowSelectionChange,
   rowSelectionFilter,
   bulkActionsSlot,
+  defaultSorting = [], // Default to empty array if not provided
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -150,7 +152,7 @@ export function DataTableClient<TData, TValue>({
 
   const loadFromStorage = <T,>(key: string, fallback: T): T => {
     try {
-      const stored = getLocalStorage(getStorageKey(key), fallback);
+      const stored = getSessionStorage(getStorageKey(key), fallback);
       return stored;
     } catch {
       return fallback;
@@ -159,13 +161,13 @@ export function DataTableClient<TData, TValue>({
 
   const saveToStorage = (key: string, value: unknown) => {
     try {
-      setLocalStorage(getStorageKey(key), value);
+      setSessionStorage(getStorageKey(key), value);
     } catch (error) {
-      console.warn(`Failed to save ${key} to localStorage:`, error);
+      console.warn(`Failed to save ${key} to sessionStorage:`, error);
     }
   };
 
-  // Initialize state with localStorage values or defaults
+  // Initialize state with sessionStorage values or defaults
   const [pagination, setPagination] = useState<PaginationState>(() => {
     if (isMobile) return defaultPagination;
     return loadFromStorage('pagination', defaultPagination);
@@ -254,10 +256,10 @@ export function DataTableClient<TData, TValue>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowSelection]);
 
-  // Clear localStorage when switching to mobile or reset everything for mobile
+  // Clear sessionStorage when switching to mobile or reset everything for mobile
   useEffect(() => {
     if (isMobile) {
-      // Clear all localStorage for this table when on mobile
+      // Clear all sessionStorage for this table when on mobile
       const keys = [
         'pagination',
         'sorting',
@@ -268,9 +270,9 @@ export function DataTableClient<TData, TValue>({
       ];
       keys.forEach((key) => {
         try {
-          localStorage.removeItem(getStorageKey(key));
+          sessionStorage.removeItem(getStorageKey(key));
         } catch (error) {
-          console.warn(`Failed to remove ${key} from localStorage:`, error);
+          console.warn(`Failed to remove ${key} from sessionStorage:`, error);
         }
       });
 

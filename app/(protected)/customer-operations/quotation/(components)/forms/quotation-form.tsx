@@ -773,6 +773,7 @@ export default function QuotationForm({
                           data={quoteItemsData}
                           simpleTable={true}
                           useColumnSizing={true}
+                          defaultSorting={[{ id: 'productName', desc: false }]}
                         />
                       );
                     })()}

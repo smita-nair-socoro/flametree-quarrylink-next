@@ -673,6 +673,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       : []
                   }
                   simpleTable={true}
+                  defaultSorting={[{ id: 'name', desc: false }]}
                 />
               </div>
 

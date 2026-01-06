@@ -145,6 +145,7 @@ export default function ProductsPage() {
             facetDefination={facetDefs}
             searchPlaceHolder="Search products..."
             onRowClick={handleRowClick}
+            defaultSorting={[{ id: 'product_name', desc: false }]}
           />
         )}
       </div>

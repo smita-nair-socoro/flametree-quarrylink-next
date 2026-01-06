@@ -202,6 +202,7 @@ export default function QuarriesSuppliersPage() {
             facetDefination={facetDefs}
             searchPlaceHolder="Search Quarries & Suppliers..."
             onRowClick={handleRowClick}
+            defaultSorting={[{ id: 'name', desc: false }]}
           />
         )}
       </div>
