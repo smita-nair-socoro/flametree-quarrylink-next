@@ -539,6 +539,14 @@ export const APIClient = {
       appClient.Get<CustomerDTO>(
         `/socoro/quarrylink/api/customer/${customerId}`
       ),
+    create: (data: Partial<CustomerDTO>) =>
+      appClient.Post<CustomerDTO>('/socoro/quarrylink/api/customer', {
+        body: data,
+      }),
+    update: (data: Partial<CustomerDTO>) =>
+      appClient.Put<CustomerDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
+        body: data,
+      }),
   },
 
   quotations: {

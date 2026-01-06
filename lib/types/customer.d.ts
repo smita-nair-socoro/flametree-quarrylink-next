@@ -31,21 +31,26 @@ export interface Customer {
 }
 
 export interface CustomerDTO {
-  id: number;
+  id?: number; // Optional for create, required for update
   customerType: CUSTOMER_TYPE;
   contactName: string;
   phone: string;
   email: string;
   billingAddressId: number;
   creditLimit: number;
+  accountManagerSub: string;
   invoiceDueDate: number;
   paymentTermType: string;
-  accountManagerName?: string;
-  accountManagerSub: string;
   customerStatus: CUSTOMER_STATUS;
   jobsCount: number;
   paymentType: string;
   version: number;
+
+  // Optional metadata fields
+  accountManagerName?: string;
+  accountManagerEmail?: string;
+  remainingCredit?: number;
+  isDeleted?: boolean;
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -53,6 +58,8 @@ export interface CustomerDTO {
 
   // BUSINESS type specific fields
   businessName?: string;
+  businessEmail?: string;
+  businessPhone?: string;
   legalName?: string;
   tradingName?: string;
   abn?: string;
@@ -64,9 +71,6 @@ export interface CustomerDTO {
   lastName?: string;
   dateOfBirth?: string;
   govId?: string;
-
-  // Come back to this; Currently below are not included in the DTO
-  remainingCredit?: number;
 }
 
 export interface CustomerDetails extends Customer {
