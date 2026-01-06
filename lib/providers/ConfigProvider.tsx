@@ -25,53 +25,9 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         if (!res.ok) {
           throw new Error(`Failed to load config: ${res.status}`);
         }
-        const json: unknown = await res.json();
-
-        // Support both flat config and multi-environment config files.
-        // Handle common misspelling "enviornments" as well.
-        // Structure:
-        // { environments: { dev: RuntimeConfig, essentials: RuntimeConfig } }
-        // or { enviornments: { ... } }
-        let resolved: RuntimeConfig;
-        const maybeObj = json as Record<string, any>;
-        const envs =
-          (maybeObj && maybeObj.environments) ||
-          (maybeObj && maybeObj.enviornments);
-
-        if (envs && typeof envs === 'object') {
-          // Determine environment: URL param has highest precedence (?env=essentials|dev)
-          let envKey: string | null = null;
-          if (typeof window !== 'undefined') {
-            const params = new URLSearchParams(window.location.search);
-            const fromQuery = params.get('env');
-            if (fromQuery === 'essentials' || fromQuery === 'dev') {
-              envKey = fromQuery;
-            } else {
-              const host = window.location.host.toLowerCase();
-              if (host.includes('.essentials.')) {
-                envKey = 'essentials';
-              } else if (
-                host.includes('.dev.') ||
-                host.startsWith('localhost')
-              ) {
-                envKey = 'dev';
-              } else {
-                envKey = 'dev';
-              }
-            }
-          } else {
-            envKey = 'dev';
-          }
-
-          resolved = (envs[envKey!] ||
-            envs['dev'] ||
-            Object.values(envs)[0]) as RuntimeConfig;
-        } else {
-          resolved = maybeObj as RuntimeConfig;
-        }
-
-        setCfg(resolved);
-        setRuntimeConfig(resolved);
+        const json: RuntimeConfig = await res.json();
+        setCfg(json);
+        setRuntimeConfig(json);
       } catch (err) {
         console.error('Failed to load configuration:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
