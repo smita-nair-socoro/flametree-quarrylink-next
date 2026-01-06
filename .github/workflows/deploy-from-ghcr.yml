@@ -25,9 +25,9 @@ env:
   AWS_REGION: ap-southeast-2
 
 permissions:
-  contents: read      # to checkout code
-  packages: read      # to pull from GitHub Packages/GHCR
-  id-token: write     # for AWS OIDC federation
+  contents: read # to checkout code
+  packages: read # to pull from GitHub Packages/GHCR
+  id-token: write # for AWS OIDC federation
 
 jobs:
   deploy:
@@ -75,6 +75,7 @@ jobs:
           COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
           COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
           COGNITO_REDIRECT_URI: ${{ vars.COGNITO_REDIRECT_URI }}
+          COGNITO_HOSTED_UI_DOMAIN: ${{ vars.COGNITO_HOSTED_UI_DOMAIN }}
           AMPLIFY_AUTH_REGION: ${{ vars.AMPLIFY_AUTH_REGION }}
           AMPLIFY_AUTH_USER_POOL_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_ID }}
           AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID }}
@@ -88,6 +89,7 @@ jobs:
             --arg cognitoDomain "$COGNITO_DOMAIN" \
             --arg cognitoClientId "$COGNITO_CLIENT_ID" \
             --arg cognitoRedirectUri "$COGNITO_REDIRECT_URI" \
+            --arg cognitoHostedUiDomain "$COGNITO_HOSTED_UI_DOMAIN" \
             --arg amplifyAuthRegion "$AMPLIFY_AUTH_REGION" \
             --arg amplifyAuthUserPoolId "$AMPLIFY_AUTH_USER_POOL_ID" \
             --arg amplifyAuthUserPoolWebClientId "$AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID" \
@@ -98,6 +100,7 @@ jobs:
                COGNITO_DOMAIN: $cognitoDomain,
                COGNITO_CLIENT_ID: $cognitoClientId,
                COGNITO_REDIRECT_URI: $cognitoRedirectUri,
+               COGNITO_HOSTED_UI_DOMAIN: $cognitoHostedUiDomain,
                AMPLIFY_AUTH_REGION: $amplifyAuthRegion,
                AMPLIFY_AUTH_USER_POOL_ID: $amplifyAuthUserPoolId,
                AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: $amplifyAuthUserPoolWebClientId,
@@ -110,10 +113,10 @@ jobs:
         # Prefer OIDC + role assumption (no long-lived keys).
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}   # arn:aws:iam::<acct>:role/<role>
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # arn:aws:iam::<acct>:role/<role>
           aws-region: ${{ env.AWS_REGION }}
-          role-session-name: gh-actions-${{ github.run_id }}  # unique STS session name
-          mask-aws-account-id: true                           # hide the account ID in logs.
+          role-session-name: gh-actions-${{ github.run_id }} # unique STS session name
+          mask-aws-account-id: true # hide the account ID in logs.
 
       # Empty S3 bucket
       - name: Empty S3 bucket

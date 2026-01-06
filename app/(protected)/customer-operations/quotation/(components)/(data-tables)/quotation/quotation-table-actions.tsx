@@ -173,18 +173,19 @@ export function QuotationTableActions({
           </DropdownMenuItem> */}
 
           {/* Archive - always at the bottom for applicable statuses */}
-          {quotation.status !== 'ARCHIVED' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleArchive}
-                className="text-destructive focus:text-destructive"
-              >
-                <Archive className="h-4 w-4 mr-2 text-destructive" />
-                Archive
-              </DropdownMenuItem>
-            </>
-          )}
+          {quotation.status !== 'ARCHIVED' &&
+            quotation.status !== 'PENDING' && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleArchive}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Archive className="h-4 w-4 mr-2 text-destructive" />
+                  Archive
+                </DropdownMenuItem>
+              </>
+            )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
