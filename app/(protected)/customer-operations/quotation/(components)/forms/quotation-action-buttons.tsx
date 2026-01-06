@@ -66,7 +66,7 @@ export function QuotationActionButtons({
         {viewDialog}
         {duplicateDialog}
 
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8 px-3">
               <MoreHorizontal className="h-4 w-4 mr-2" />
@@ -313,7 +313,7 @@ export function QuotationActionButtons({
         )}
 
         {quotation.status !== 'ARCHIVED' && quotation.status !== 'PENDING' && (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
