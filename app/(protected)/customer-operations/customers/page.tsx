@@ -15,7 +15,10 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { CustomersListQueryOptions } from '@/lib/api/customer';
+import {
+  CustomersListQueryOptions,
+  CustomerReportingQueryOptions,
+} from '@/lib/api/customer';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { TableSkeleton } from '@/components/table-skeleton';
@@ -35,46 +38,6 @@ export default function CustomersPage() {
   );
   const [selectedCustomerForActions, setSelectedCustomerForActions] =
     React.useState<CustomerDTO | null>(null);
-
-  // Statistics cards data
-  const statsCards: StatsCardData[] = [
-    {
-      title: 'Total Customers',
-      value: 248,
-      description: '+12 this month',
-      icon: Users,
-      iconBgColor: 'bg-[#DBEAFE]',
-      iconColor: 'text-[#193CB8]',
-      descriptionColor: 'text-[#00A63E]',
-    },
-    {
-      title: 'Active Customers',
-      value: 185,
-      description: '75% of total',
-      icon: UserCheck,
-      iconBgColor: 'bg-[#DCFCE7]',
-      iconColor: 'text-[#016630]',
-      descriptionColor: 'text-[#737373]',
-    },
-    {
-      title: 'Total Business Customers',
-      value: 142,
-      description: '45% requested quotes',
-      icon: Activity,
-      iconBgColor: 'bg-[#F3E8FF]',
-      iconColor: 'text-[#8E51FF]',
-      descriptionColor: 'text-[#737373]',
-    },
-    {
-      title: 'Total Individual Customers',
-      value: 63,
-      description: '45% requested quotes',
-      icon: Building2,
-      iconBgColor: 'bg-[#FCE7F3]',
-      iconColor: 'text-[#DB2777]',
-      descriptionColor: 'text-[#737373]',
-    },
-  ];
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
     selectedCustomerForActions?.id,
@@ -107,7 +70,55 @@ export default function CustomersPage() {
     isError,
   } = useQuery(CustomersListQueryOptions());
 
-  console.log(customersData);
+  const { data: reportingData } = useQuery(CustomerReportingQueryOptions());
+
+  // Statistics cards data
+  const statsCards: StatsCardData[] = [
+    {
+      title: 'Total Customers',
+      value: reportingData?.totalCustomers || 0,
+      description: `+${
+        reportingData?.totalCustomersChangePercentThisMonth || 0
+      } this month`,
+      icon: Users,
+      iconBgColor: 'bg-[#DBEAFE]',
+      iconColor: 'text-[#193CB8]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+    {
+      title: 'Active Customers',
+      value: reportingData?.totalActiveCustomers || 0,
+      description: `${
+        reportingData?.activeCustomersPercentOfTotal || 0
+      }% of total`,
+      icon: UserCheck,
+      iconBgColor: 'bg-[#DCFCE7]',
+      iconColor: 'text-[#016630]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Total Business Customers',
+      value: reportingData?.totalActiveBusinessCustomers || 0,
+      description: `${
+        reportingData?.businessCustomerQuotesPercent || 0
+      }% requested quotes`,
+      icon: Activity,
+      iconBgColor: 'bg-[#F3E8FF]',
+      iconColor: 'text-[#8E51FF]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Total Individual Customers',
+      value: reportingData?.totalActiveIndividualCustomers || 0,
+      description: `${
+        reportingData?.individualCustomerQuotesPercent || 0
+      }% requested quotes`,
+      icon: Building2,
+      iconBgColor: 'bg-[#FCE7F3]',
+      iconColor: 'text-[#DB2777]',
+      descriptionColor: 'text-[#737373]',
+    },
+  ];
 
   React.useEffect(() => {
     if (isError && error) {

@@ -37,6 +37,14 @@ export const ProductDetailWithQuarrySupplierProductQueryOptions = (
     enabled: !!productId,
   });
 
+export const ProductReportingQueryOptions = () =>
+  queryOptions({
+    queryKey: ProductKeys.reporting(),
+    queryFn: () => APIClient.products.reporting(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({

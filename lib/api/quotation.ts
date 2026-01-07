@@ -51,6 +51,14 @@ export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
     enabled: !!quotationId && quotationId > 0,
   });
 
+export const QuotationReportingQueryOptions = () =>
+  queryOptions({
+    queryKey: QuotationKeys.reporting(),
+    queryFn: () => APIClient.quotations.reporting(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 export const useConvertToDraft = () => {
   const queryClient = useQueryClient();
 

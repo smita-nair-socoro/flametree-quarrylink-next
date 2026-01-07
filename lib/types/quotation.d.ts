@@ -206,3 +206,12 @@ export interface QuotationDisplayData {
     businessName: string;
   };
 }
+
+interface QuotationReporting {
+  totalQuotesRaisedThisMonth: number;
+  totalValueOfQuotesRaisedThisMonth: number;
+  totalPendingQuotes: number;
+  totalQuotesExpiringIn7Days: number;
+  totalQuotesPercentageChangeVsLastMonth: number;
+  totalQuotesValuePercentageChangeVsLastMonth: 0;
+}

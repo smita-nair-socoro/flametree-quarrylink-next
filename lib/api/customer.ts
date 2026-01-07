@@ -25,6 +25,14 @@ export const CustomerDetailQueryOptions = (customerId: number) =>
     enabled: !!customerId,
   });
 
+export const CustomerReportingQueryOptions = () =>
+  queryOptions({
+    queryKey: CustomerKeys.reporting(),
+    queryFn: () => APIClient.customers.reporting(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 /**
  * Mutation hook for creating a new customer.
  * Automatically invalidates the customers list cache on success.
