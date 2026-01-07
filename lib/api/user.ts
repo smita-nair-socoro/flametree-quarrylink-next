@@ -74,3 +74,11 @@ export const useDeleteUser = () => {
     },
   });
 };
+
+export const useGetUserDependencies = (id: string) =>
+  queryOptions({
+    queryKey: UserKeys.detail(id),
+    queryFn: () => APIClient.users.getDependencies(id),
+    staleTime: 5_000,
+    enabled: !!id,
+  });

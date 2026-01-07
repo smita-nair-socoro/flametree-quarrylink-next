@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User, UserDelete } from '@/lib/types/user';
@@ -8,7 +9,11 @@ import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TeamMemberActionButtons } from '@/app/(protected)/system/user-management/(components)/forms/team-member-action-buttons';
-import { useDeleteUser } from '@/lib/api/user';
+import {
+  useDeleteUser,
+  useGetUserDependencies,
+  UsersListQueryOptions,
+} from '@/lib/api/user';
 
 interface DialogConfig {
   title?: string;
@@ -37,6 +42,13 @@ export function useTeamMemberActions(
 ) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [viewOpen, setViewOpen] = React.useState(false);
+
+  const {
+    data: userDependencies,
+    isLoading: isUserDependenciesLoading,
+    isFetching: isUserDependenciesFetching,
+  } = useQuery(useGetUserDependencies(teamMemberId || ''));
+
   const deleteUserMutation = useDeleteUser();
 
   // State for delete with dependencies form
@@ -53,19 +65,24 @@ export function useTeamMemberActions(
     reason?: string;
   }>({});
 
-  // TODO: Replace with real API data
-  // For now, assume no dependencies until backend provides this data
-  const customerCount = 0;
+  // Live dependency counts from API
+  const counts = userDependencies?.counts;
+  const customerCount = counts?.customers ?? 0;
+  const quotesCount = counts?.quotations ?? 0;
   const activeJobsCount = 0;
 
   // Check if user has dependencies that need reassignment
-  const hasDependencies = customerCount > 0 || activeJobsCount > 0;
-  console.log('hasDependencies', hasDependencies);
-  console.log('customerCount', customerCount);
-  console.log('activeJobsCount', activeJobsCount);
+  const hasDependencies =
+    userDependencies?.hasDependencies ??
+    (customerCount > 0 || quotesCount > 0 || activeJobsCount > 0);
 
   // TODO: Fetch real team members from API for reassignment dropdowns
-  const teamMemberOptions: { label: string; value: string }[] = [];
+  const { data: teamMembers } = useQuery(UsersListQueryOptions());
+  const teamMemberOptions: { label: string; value: string }[] =
+    teamMembers?.map((member) => ({
+      label: member.name,
+      value: member.sub,
+    })) || [];
 
   const userName = teamMemberData?.name;
 
@@ -75,6 +92,9 @@ export function useTeamMemberActions(
 
     // If there are customers, must select account manager
     if (customerCount > 0 && !accountManagerReassignTo) return true;
+
+    // If there are quotations, must select new owner
+    if (quotesCount > 0 && !accountManagerReassignTo) return true;
 
     // If there are jobs, must select job assignee
     if (activeJobsCount > 0 && !jobReassignTo) return true;
@@ -192,6 +212,27 @@ export function useTeamMemberActions(
               </div>
             )}
 
+            {/* Account Manager Section */}
+            {quotesCount > 0 && (
+              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  Account Manager for {quotesCount} quotations
+                </div>
+                <SelectOptions
+                  label="Reassign to:"
+                  searchLabel="team member"
+                  options={teamMemberOptions}
+                  value={accountManagerReassignTo}
+                  onChange={setAccountManagerReassignTo}
+                  placeholder="Select team member..."
+                  popoverWidthClass="w-[300px]"
+                  error={validationErrors.accountManager}
+                  className="bg-white border-border text-foreground"
+                />
+              </div>
+            )}
+
             {/* Active Jobs Section */}
             {activeJobsCount > 0 && (
               <div className="border border-border bg-white rounded-lg p-3 space-y-3">
@@ -245,14 +286,18 @@ export function useTeamMemberActions(
   const validateDeleteForm = (): boolean => {
     const errors: typeof validationErrors = {};
 
-    // Deletion reason is always required
-    if (!deletionReason.trim()) {
-      errors.reason = 'Deletion reason is required';
-    }
+    // // Deletion reason is always required
+    // if (!deletionReason.trim()) {
+    //   errors.reason = 'Deletion reason is required';
+    // }
 
     // Only validate reassignment fields if there are dependencies
     if (hasDependencies) {
       if (customerCount > 0 && !accountManagerReassignTo) {
+        errors.accountManager = 'Please select a team member';
+      }
+
+      if (quotesCount > 0 && !accountManagerReassignTo) {
         errors.accountManager = 'Please select a team member';
       }
 
@@ -262,6 +307,7 @@ export function useTeamMemberActions(
     }
 
     setValidationErrors(errors);
+    console.log('errors', errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -289,23 +335,41 @@ export function useTeamMemberActions(
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     if (!validateDeleteForm()) {
+      console.log('validationErrors', validationErrors);
       return;
     }
     console.log('user delete clicked');
 
     if (!teamMemberId) return;
 
-    // NOTE: Backend delete endpoint expects reassignments in the request body.
-    // This hook currently has placeholder dependency data, so we send empty arrays by default.
-    // When real dependency lists (customerIds/quoteIds) are available, map them into this shape.
+    // Build delete payload:
+    // - If there are customer dependencies, map them to { customerId, newAccountManagerSub }
+    // - Quotes can be empty for now
+    const customerReassignments =
+      hasDependencies && customerCount > 0
+        ? (userDependencies?.dependencies?.customers || []).map((c) => ({
+            customerId: c.id,
+            newAccountManagerSub: String(accountManagerReassignTo),
+          }))
+        : [];
+
+    const quoteReassignments =
+      hasDependencies && quotesCount > 0
+        ? (userDependencies?.dependencies?.quotations || []).map((q) => ({
+            quoteId: q.id,
+            newOwnerSub: String(accountManagerReassignTo),
+          }))
+        : [];
+
     const payload: UserDelete = {
       reassignments: {
-        customers: [],
-        quotes: [],
+        customers: customerReassignments,
+        quotes: quoteReassignments,
       },
     };
 
     try {
+      console.log('payload', payload);
       await deleteUserMutation.mutateAsync({ id: teamMemberId, data: payload });
       setIsDeleteDialogOpen(false);
       resetDeleteForm();

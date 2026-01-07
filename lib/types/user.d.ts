@@ -100,3 +100,30 @@ export interface UserDeleteReassignments {
 export interface UserDelete {
   reassignments: UserDeleteReassignments;
 }
+
+export interface UserDependenciesCustomer {
+  id: number;
+  name: string;
+}
+
+export interface UserDependenciesQuotation {
+  id: number;
+  reference: string;
+  customerName: string;
+  status: string;
+}
+
+export interface UserDependenciesCounts {
+  customers: number;
+  quotations: number;
+}
+
+export interface UserDependencies {
+  hasDependencies: boolean;
+  dependencies: {
+    customers: UserDependenciesCustomer[];
+    quotations: UserDependenciesQuotation[];
+  };
+  counts: UserDependenciesCounts;
+  canDelete: boolean;
+}

@@ -57,6 +57,11 @@ export default function TeamAdminTab() {
     }
   }, [error]);
 
+  // Filter only enabled users (FOR NOW)
+  const enabledUsers = React.useMemo(() => {
+    return (users || []).filter((u) => u.enabled === true);
+  }, [users]);
+
   // Helper function to convert groups array to Role string for display
   const getHighestRole = (groups: string[] | undefined): Role => {
     if (!groups || !Array.isArray(groups)) return Role.USER;
@@ -70,7 +75,7 @@ export default function TeamAdminTab() {
 
   // Convert pending users from API to PendingInvitation format
   const pendingInvitations: PendingInvitation[] = React.useMemo(() => {
-    const pending = users
+    const pending = enabledUsers
       .filter((user) => user.status === UserStatus.PENDING)
       .map((user) => ({
         id: user.id || 0, // Fallback to 0 if no id (should use sub for unique identifier)
@@ -112,7 +117,7 @@ export default function TeamAdminTab() {
   };
 
   // Calculate team member count based on actual data
-  const teamMemberCount = users.length;
+  const teamMemberCount = enabledUsers.length;
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
@@ -172,7 +177,7 @@ export default function TeamAdminTab() {
                 )}
                 <DataTableClient
                   tableId="team_member_data_table"
-                  data={users.filter(
+                  data={enabledUsers.filter(
                     (member) =>
                       member.status !== UserStatus.DELETED &&
                       member.status !== UserStatus.INACTIVE

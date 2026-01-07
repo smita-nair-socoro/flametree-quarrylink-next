@@ -12,7 +12,13 @@ import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { User, UserCreateDTO, UserDelete, UserUpdateDTO } from '../types/user';
+import {
+  User,
+  UserCreateDTO,
+  UserDelete,
+  UserUpdateDTO,
+  UserDependencies,
+} from '../types/user';
 import {
   SubscriptionsAndInvoices,
   TenantDetails,
@@ -715,7 +721,6 @@ export const APIClient = {
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
     getById: (id: string) => {
-      console.log('[APIClient] 🔍 getById called with ID:', id);
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
     create: (data: UserCreateDTO) =>
@@ -723,7 +728,7 @@ export const APIClient = {
         body: data,
       }),
     delete: (id: string, data: UserDelete) =>
-      appClient.Post<User>(`/socoro/quarrylink/api/users/${id}/delete`, {
+      appClient.Delete<User>(`/socoro/quarrylink/api/users/${id}`, {
         body: data,
       }),
     update: (id: string, data: UserUpdateDTO) => {
@@ -731,6 +736,10 @@ export const APIClient = {
         body: data,
       });
     },
+    getDependencies: (id: string) =>
+      appClient.Get<UserDependencies>(
+        `/socoro/quarrylink/api/users/${id}/dependencies`
+      ),
   },
 
   tenants: {
