@@ -369,14 +369,20 @@ export default function CustomerForm({
         customerData.id = id;
       }
 
-      // Add timestamps and metadata for new customers
+      // Add timestamps and metadata
+      const now = new Date().toISOString();
       if (!isEditing) {
-        const now = new Date().toISOString();
+        // New customer: set all initial fields
         customerData.createdAt = now;
         customerData.updatedAt = now;
         customerData.isDeleted = false;
         customerData.createdBy = values.created_by;
         customerData.lastModifiedBy = values.last_modified_by;
+      } else {
+        // Update customer: set update fields
+        customerData.updatedAt = now;
+        customerData.lastModifiedBy = values.last_modified_by;
+        customerData.isDeleted = selectedCustomer?.isDeleted ?? false;
       }
 
       // Handle BUSINESS type specific fields
