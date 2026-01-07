@@ -14,7 +14,6 @@ export function QuoteFooter({
   phone,
   addressLine1,
   addressLine2,
-  website,
   businessName,
 }: QuoteFooterProps) {
   return (

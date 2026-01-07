@@ -16,7 +16,6 @@ export const QuoteFooterPdf: React.FC<QuoteFooterPdfProps> = ({
   phone,
   addressLine1,
   addressLine2,
-  website,
   businessName,
 }) => {
   return (
