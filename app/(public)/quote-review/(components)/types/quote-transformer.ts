@@ -123,6 +123,20 @@ export function transformQuoteData(
     .replace(/,?\s*AU\s*$/i, '')
     .trim() || 'North Sydney NSW 2060';
 
+  // Determine customer display name based on customer type
+  let customerDisplayName: string;
+  if (customerDto?.customerType === 'BUSINESS') {
+    // For business: use businessName, fallback to contactName
+    customerDisplayName =
+      customerDto.businessName || customerDto.contactName || customerName || 'N/A';
+  } else if (customerDto?.customerType === 'INDIVIDUAL') {
+    // For individual: use contactName
+    customerDisplayName = customerDto.contactName || customerName || 'N/A';
+  } else {
+    // Default: use top-level customerName
+    customerDisplayName = customerName || 'N/A';
+  }
+
   return {
     navbar: {
       quoteNumber: quoteNumber || 'N/A',
@@ -133,7 +147,7 @@ export function transformQuoteData(
       tenantDetails: stripeTenantDetailsSnapshot,
     },
     customer: {
-      customerName: customerDto?.contactName || customerName || 'N/A',
+      customerName: customerDisplayName,
       email: customerEmail || customerDto?.email || 'N/A',
       phone: customerPhone || customerDto?.phone || 'N/A',
       billingAddress: {
