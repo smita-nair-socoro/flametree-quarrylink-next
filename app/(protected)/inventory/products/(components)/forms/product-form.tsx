@@ -255,9 +255,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
       const extractedMessage = extractErrorMessage(error);
       const codeStr = err?.code ? String(err.code) : undefined;
       const messageFromErr = err?.message || extractedMessage;
+      console.log('messageFromErr', messageFromErr);
 
       // Duplicate product code (HTTP 409) — match the product_code in backend message
-      const duplicateKeyPhrase = `Key (product_code)=(${values.product_code}) already exists`;
+      const duplicateKeyPhrase = `[ERROR: duplicate key value violates unique constraint "uq_product_code_ci"`;
       const isDuplicateProductCode =
         codeStr === '409' &&
         typeof messageFromErr === 'string' &&
