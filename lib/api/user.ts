@@ -77,7 +77,7 @@ export const useDeleteUser = () => {
 
 export const useGetUserDependencies = (id: string) =>
   queryOptions({
-    queryKey: UserKeys.detail(id),
+    queryKey: UserKeys.dependencies(id),
     queryFn: () => APIClient.users.getDependencies(id),
     staleTime: 5_000,
     enabled: !!id,

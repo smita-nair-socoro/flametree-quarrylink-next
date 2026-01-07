@@ -14,6 +14,7 @@ import {
   useGetUserDependencies,
   UsersListQueryOptions,
 } from '@/lib/api/user';
+import { notifyError, notifySuccess } from '@/lib/toast';
 
 interface DialogConfig {
   title?: string;
@@ -78,8 +79,11 @@ export function useTeamMemberActions(
 
   // TODO: Fetch real team members from API for reassignment dropdowns
   const { data: teamMembers } = useQuery(UsersListQueryOptions());
+  const filteredTeamMembers = teamMembers?.filter(
+    (member) => member.enabled === true
+  );
   const teamMemberOptions: { label: string; value: string }[] =
-    teamMembers?.map((member) => ({
+    filteredTeamMembers?.map((member) => ({
       label: member.name,
       value: member.sub,
     })) || [];
@@ -369,10 +373,10 @@ export function useTeamMemberActions(
     };
 
     try {
-      console.log('payload', payload);
       await deleteUserMutation.mutateAsync({ id: teamMemberId, data: payload });
       setIsDeleteDialogOpen(false);
       resetDeleteForm();
+      notifySuccess('User deleted successfully.');
     } catch (err) {
       // Keep dialog open so the user can retry / adjust inputs once backend validations exist.
       console.error('Failed to delete user', err, {
@@ -382,6 +386,7 @@ export function useTeamMemberActions(
         jobReassignTo,
         deletionReason,
       });
+      notifyError('Failed to delete user.');
     }
   };
 
