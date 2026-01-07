@@ -22,13 +22,6 @@ export function TeamSwitcher({
     TenantCompleteDetailsQueryOptions()
   );
 
-  React.useEffect(() => {
-    if (tenantCompleteDetails) {
-      console.log('🏢 [TeamSwitcher] Tenant Complete Details:', tenantCompleteDetails);
-      console.log('🏷️ [TeamSwitcher] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
-    }
-  }, [tenantCompleteDetails]);
-
   const tenantName =
     tenantCompleteDetails?.tenantDetails?.tenantName || 'Acme Quarry';
 

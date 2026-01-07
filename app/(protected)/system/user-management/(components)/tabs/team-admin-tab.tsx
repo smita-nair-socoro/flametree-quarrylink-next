@@ -57,14 +57,6 @@ export default function TeamAdminTab() {
     }
   }, [error]);
 
-  React.useEffect(() => {
-    if (users && users.length > 0) {
-      console.log('[TeamAdminTab] Users data:', users);
-    } else if (users && users.length === 0) {
-      console.log('[TeamAdminTab] ⚠️ No users returned from API');
-    }
-  }, [users]);
-
   // Helper function to convert groups array to Role string for display
   const getHighestRole = (groups: string[] | undefined): Role => {
     if (!groups || !Array.isArray(groups)) return Role.USER;

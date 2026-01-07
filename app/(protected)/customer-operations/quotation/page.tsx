@@ -46,6 +46,8 @@ export default function QuotationsPage() {
     })) as Quotation[];
   }, [quotationsData]);
 
+  console.log('items', items);
+
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );

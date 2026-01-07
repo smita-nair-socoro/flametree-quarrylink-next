@@ -66,7 +66,7 @@ export function QuotationActionButtons({
         {viewDialog}
         {duplicateDialog}
 
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8 px-3">
               <MoreHorizontal className="h-4 w-4 mr-2" />
@@ -164,18 +164,19 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             </> */}
 
-            {quotation.status !== 'ARCHIVED' && (
-              <>
-                {/* <DropdownMenuSeparator /> */}
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-destructive" />
-                  Archive
-                </DropdownMenuItem>
-              </>
-            )}
+            {quotation.status !== 'ARCHIVED' &&
+              quotation.status !== 'PENDING' && (
+                <>
+                  {/* <DropdownMenuSeparator /> */}
+                  <DropdownMenuItem
+                    onClick={actions.archive}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Archive className="h-4 w-4 mr-2 text-destructive" />
+                    Archive
+                  </DropdownMenuItem>
+                </>
+              )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -311,8 +312,8 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {quotation.status !== 'ARCHIVED' && (
-          <DropdownMenu>
+        {quotation.status !== 'ARCHIVED' && quotation.status !== 'PENDING' && (
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
