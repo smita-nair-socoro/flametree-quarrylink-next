@@ -84,7 +84,7 @@ const openQuotePreviewWindow = (
   if (!encodedPayload) return;
 
   // Use search params for static site compatibility (S3 + CloudFront)
-  const previewUrl = `/quote-review?quoteId=${quotationId}&payload=${encodedPayload}`;
+  const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
   window.open(previewUrl, '_blank', 'noopener,noreferrer');
 };
 
@@ -982,7 +982,7 @@ export function useQuotationActions(
         }
 
         // Open preview in new tab
-        const previewUrl = `/quote-review?quoteId=${quotationId}&payload=${encodedPayload}`;
+        const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
         window.open(previewUrl, '_blank', 'noopener,noreferrer');
       } catch (error) {
         console.error('Failed to preview quotation:', error);
