@@ -18,7 +18,7 @@ export function SummaryPayment({
   totalProducts,
   totalQuantity,
   estimatedDelivery,
-  termsAndConditions,
+  // termsAndConditions,
   subtotal,
   gst,
   total,
@@ -48,7 +48,7 @@ export function SummaryPayment({
             </p>
           </div>
 
-          {/* Terms & Conditions */}
+          {/* Terms & Conditions
           <div>
             <h3 className="font-semibold text-[rgba(10,10,10,1)] mb-3 text-base">
               Terms & Conditions
@@ -64,7 +64,7 @@ export function SummaryPayment({
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
         </div>
 
         {/* Right Column - Payment Breakdown */}

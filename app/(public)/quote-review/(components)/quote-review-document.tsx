@@ -230,7 +230,9 @@ export default function QuoteReviewDocument({
       await downloadQuotePdf(
         quotationData,
         quoteId,
-        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
+        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`,
+        undefined,
+        quotationData.navbar.tenantDetails
       );
     } catch (error) {
       notifyError(

@@ -21,7 +21,7 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
   totalProducts,
   totalQuantity,
   estimatedDelivery,
-  termsAndConditions,
+  // termsAndConditions,
   subtotal,
   gst,
   total,
@@ -49,7 +49,7 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
             </Text>
           </View>
 
-          {/* Terms & Conditions */}
+          {/* Terms & Conditions
           <Text style={styles.termsHeading}>Terms & Conditions</Text>
           <View>
             {termsAndConditions.map((term, index) => (
@@ -58,7 +58,7 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
                 <Text style={styles.bulletText}>{term}</Text>
               </View>
             ))}
-          </View>
+          </View> */}
         </View>
 
         {/* Right Column - Payment Card */}

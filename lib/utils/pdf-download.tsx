@@ -4,6 +4,7 @@ import {
   QuotePdfDocument,
   QuotationData,
 } from '@/app/(public)/quote-review/(components)/pdf/QuotePdfDocument';
+import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 
 /**
  * Generate and download a PDF document for a quotation
@@ -11,12 +12,14 @@ import {
  * @param quoteId - The quote ID to include in hyperlinks
  * @param filename - The desired filename for the downloaded PDF (without .pdf extension)
  * @param baseUrl - Optional base URL for hyperlinks (defaults to current origin)
+ * @param tenantDetails - Optional tenant details for branding
  */
 export async function downloadQuotePdf(
   data: QuotationData,
   quoteId: string,
   filename: string,
-  baseUrl?: string
+  baseUrl?: string,
+  tenantDetails?: StripeTenantDetailsSnapshot
 ): Promise<void> {
   try {
     // Generate PDF blob from the QuotePdfDocument component
@@ -25,6 +28,7 @@ export async function downloadQuotePdf(
         data={data}
         quoteId={quoteId}
         baseUrl={baseUrl || window.location.origin}
+        tenantDetails={tenantDetails}
       />
     ).toBlob();
 

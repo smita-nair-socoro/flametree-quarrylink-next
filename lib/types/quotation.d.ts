@@ -158,6 +158,7 @@ export interface QuotationDisplayData {
     validUntil: string;
     accountManager: string;
     status: QuoteStatus;
+    tenantDetails?: StripeTenantDetailsSnapshot;
   };
   customer: {
     customerName: string;
