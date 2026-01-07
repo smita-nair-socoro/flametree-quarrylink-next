@@ -167,6 +167,7 @@ export const QuotationPreviewQueryOptions = (quotationId: number) =>
     queryKey: [...QuotationKeys.detail(quotationId), 'preview'],
     queryFn: async () => {
       const data = await APIClient.quotations.preview(quotationId);
+      console.log('[Quotation][preview] response:', data);
       return convertKeysToCamelCase(data) as PublicQuoteLinkResponse;
     },
     staleTime: 5_000,

@@ -11,6 +11,7 @@ export const mockQuotationData = {
     validUntil: '15th August, 2026',
     accountManager: 'Sarah Wilson',
     status: QuoteStatus.PENDING,
+    tenantDetails: undefined,
   },
 
   // Customer information
