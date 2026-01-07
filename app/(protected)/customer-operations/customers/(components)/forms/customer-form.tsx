@@ -380,8 +380,10 @@ export default function CustomerForm({
         customerData.lastModifiedBy = values.last_modified_by;
       } else {
         // Update customer: set update fields
+        customerData.createdAt = selectedCustomer?.createdAt ?? new Date().toISOString();
         customerData.updatedAt = now;
         customerData.lastModifiedBy = values.last_modified_by;
+        customerData.createdBy = selectedCustomer?.createdBy ?? values.created_by;
         customerData.isDeleted = selectedCustomer?.isDeleted ?? false;
       }
 
