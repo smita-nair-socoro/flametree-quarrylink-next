@@ -23,7 +23,7 @@ import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationsListQueryOptions } from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
-import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
+// import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
   // Use React Query to fetch quotations data
@@ -103,11 +103,11 @@ export default function QuotationsPage() {
     },
   ];
 
-  // State for bulk selection
-  const [selectedQuotations, setSelectedQuotations] = React.useState<
-    Quotation[]
-  >([]);
-  const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
+  // // State for bulk selection
+  // const [selectedQuotations, setSelectedQuotations] = React.useState<
+  //   Quotation[]
+  // >([]);
+  // const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
@@ -120,15 +120,15 @@ export default function QuotationsPage() {
     actions.view();
   };
 
-  const handleRowSelectionChange = (selected: Quotation[]) => {
-    setSelectedQuotations(selected);
-  };
+  // const handleRowSelectionChange = (selected: Quotation[]) => {
+  //   setSelectedQuotations(selected);
+  // };
 
-  const handleClearSelection = () => {
-    setSelectedQuotations([]);
-    // Force re-render of table to clear checkboxes
-    setRowSelectionKey((prev) => prev + 1);
-  };
+  // const handleClearSelection = () => {
+  //   setSelectedQuotations([]);
+  //   // Force re-render of table to clear checkboxes
+  //   setRowSelectionKey((prev) => prev + 1);
+  // };
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
@@ -175,23 +175,15 @@ export default function QuotationsPage() {
           </div>
         ) : (
           <DataTableClient
-            key={rowSelectionKey}
+            // key={rowSelectionKey}
             tableId="quotation_main_data_table"
             data={items ?? []}
             columns={quotationColumns}
             facetDefination={facetDefs}
             searchPlaceHolder="Search quotes..."
             onRowClick={handleRowClick}
-            enableRowSelection={true}
-            onRowSelectionChange={handleRowSelectionChange}
+            enableRowSelection={false}
             defaultSorting={[{ id: 'created_at', desc: true }]}
-            // bulkActions={true}
-            bulkActionsSlot={
-              <QuotationBulkActions
-                selectedQuotations={selectedQuotations}
-                onClearSelection={handleClearSelection}
-              />
-            }
           />
         )}
       </div>

@@ -82,7 +82,6 @@ export function transformQuoteData(
     deliveryWindowStart,
     deliveryWindowEnd,
     expiryDate,
-    totalCostPrice,
     totalSellPrice,
     accountManagerName,
     quoteStatus,
@@ -98,14 +97,16 @@ export function transformQuoteData(
       truckType: item.truckType || 'N/A',
       capacity: `${item.totalQuantityRequired || 0} ${item.productSellUom || 'units'} per delivery`,
       quantity: `${item.productSellQty || 0} ${item.productSellUom || ''}`,
-      totalPrice: item.totalProductSellPrice || 0,
+      totalPrice: (item.totalProductSellPrice || 0) + (item.totalTruckSellPrice || 0),
     })) || [];
 
   // Calculate totals (prices are in cents from backend)
-  const subtotal = totalCostPrice || 0;
-  const gst =
-    totalSellPrice && totalCostPrice ? totalSellPrice - totalCostPrice : 0;
-  const total = totalSellPrice || 0;
+  // Subtotal is the total sell price (ex-GST)
+  const subtotal = totalSellPrice || 0;
+  // GST is 10% of the subtotal
+  const gst = Math.round(subtotal * 0.10);
+  // Total is subtotal + GST
+  const total = subtotal + gst;
 
   // Total quantity calculation from all products
   const totalQuantity = quoteItems
