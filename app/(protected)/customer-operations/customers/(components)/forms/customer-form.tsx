@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { cn } from '@/lib/utils';
+import { cn, addNewRecordId } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -145,7 +145,9 @@ export default function CustomerForm({
       account_manager: isEditing
         ? selectedCustomer?.accountManagerSub || ''
         : '',
-      billing_address: isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : '',
+      billing_address: isEditing
+        ? selectedCustomer?.billingAddress?.formattedAddress || ''
+        : '',
       created_at: undefined,
       updated_at: undefined,
       created_by: 'current_user',
@@ -193,7 +195,23 @@ export default function CustomerForm({
         selectedCustomer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
       setSelectedCustomerType(selectedCustomer.customerType);
       setSelectedPaymentType(paymentType);
-      setSearchInput('1 Scott Street Pyrmont, NSW, 2009');
+
+      // Set the search input and address state from billing address
+      if (selectedCustomer.billingAddress) {
+        setSearchInput(selectedCustomer.billingAddress.formattedAddress || '');
+        setAddress({
+          address1: selectedCustomer.billingAddress.streetDetailsPrimary || '',
+          address2: selectedCustomer.billingAddress.streetDetailsOptional || '',
+          formattedAddress: selectedCustomer.billingAddress.formattedAddress || '',
+          city: selectedCustomer.billingAddress.city || '',
+          region: selectedCustomer.billingAddress.state || '',
+          postalCode: selectedCustomer.billingAddress.postcode || '',
+          country: selectedCustomer.billingAddress.country || '',
+          lat: selectedCustomer.billingAddress.latitude || 0,
+          lng: selectedCustomer.billingAddress.longitude || 0,
+          googlePlaceId: selectedCustomer.billingAddress.googlePlaceId,
+        });
+      }
 
       customerForm.reset({
         customer_type: selectedCustomer.customerType,
@@ -228,7 +246,7 @@ export default function CustomerForm({
             ? ''
             : selectedCustomer.paymentTermType,
         account_manager: selectedCustomer.accountManagerSub,
-        billing_address: '1 Scott Street Pyrmont, NSW, 2009',
+        billing_address: selectedCustomer.billingAddress?.formattedAddress || '',
         created_at: selectedCustomer.createdAt
           ? new Date(selectedCustomer.createdAt)
           : undefined,
@@ -378,8 +396,13 @@ export default function CustomerForm({
         await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
       } else {
-        await createCustomer.mutateAsync(customerData);
+        const newCustomer = await createCustomer.mutateAsync(customerData);
         notifySuccess('Customer Added Successfully!');
+
+        // Add the new record ID to sessionStorage for highlighting
+        if (newCustomer && typeof newCustomer.id === 'number') {
+          addNewRecordId('customer_main_data_table', newCustomer.id);
+        }
       }
 
       onSuccess?.();

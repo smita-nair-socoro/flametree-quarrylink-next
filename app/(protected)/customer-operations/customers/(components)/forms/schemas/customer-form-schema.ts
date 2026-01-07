@@ -2,38 +2,38 @@ import z from 'zod';
 // import isValidABN from 'is-valid-abn';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 
-// const PhoneRequired = z
-//   .string()
-//   .trim()
-//   .nonempty({ message: 'Phone number is required' })
-//   .refine((v) => !v || isValidPhoneNumber(v), {
-//     message: 'Invalid phone number',
-//   });
-
-const PhoneOptional = z
+const PhoneRequired = z
   .string()
   .trim()
-  .optional()
+  .nonempty({ message: 'Phone number is required' })
   .refine((v) => !v || isValidPhoneNumber(v), {
     message: 'Invalid phone number',
   });
 
-// const EmailRequired = z
+// const PhoneOptional = z
 //   .string()
 //   .trim()
-//   .nonempty({ message: 'Email is required' })
-//   .max(256, 'Maximum 256 characters')
-//   .refine((v) => !v || z.string().email().safeParse(v).success, {
-//     message: 'Invalid email format',
+//   .optional()
+//   .refine((v) => !v || isValidPhoneNumber(v), {
+//     message: 'Invalid phone number',
 //   });
 
-const EmailOptional = z
+const EmailRequired = z
   .string()
   .trim()
-  .optional()
+  .nonempty({ message: 'Email is required' })
+  .max(256, 'Maximum 256 characters')
   .refine((v) => !v || z.string().email().safeParse(v).success, {
     message: 'Invalid email format',
   });
+
+// const EmailOptional = z
+//   .string()
+//   .trim()
+//   .optional()
+//   .refine((v) => !v || z.string().email().safeParse(v).success, {
+//     message: 'Invalid email format',
+//   });
 
 // Parts common to both customer types
 const Base = z.object({
@@ -56,8 +56,8 @@ const Base = z.object({
     .trim()
     .max(256, 'Maximum 256 characters')
     .optional(),
-  contact_person_email: EmailOptional,
-  contact_person_phone: PhoneOptional,
+  contact_person_email: EmailRequired,
+  contact_person_phone: PhoneRequired,
 
   // Business fields are optional in base schema but conditionally validated
   business_name: z
@@ -170,7 +170,10 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Contact Person First Name is required for Business customers
-    if (!data.contact_person_first_name || data.contact_person_first_name.trim().length === 0) {
+    if (
+      !data.contact_person_first_name ||
+      data.contact_person_first_name.trim().length === 0
+    ) {
       ctx.addIssue({
         path: ['contact_person_first_name'],
         code: z.ZodIssueCode.custom,
@@ -191,7 +194,10 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Contact Person Last Name is required for Business customers
-    if (!data.contact_person_last_name || data.contact_person_last_name.trim().length === 0) {
+    if (
+      !data.contact_person_last_name ||
+      data.contact_person_last_name.trim().length === 0
+    ) {
       ctx.addIssue({
         path: ['contact_person_last_name'],
         code: z.ZodIssueCode.custom,
@@ -212,49 +218,58 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Business email is required for Business customers
-    // if (!data.business_email || data.business_email.trim().length === 0) {
-    //   ctx.addIssue({
-    //     path: ['business_email'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: 'Business email is required',
-    //   });
-    // if (!z.string().email().safeParse(data.business_email).success) {
-    //   ctx.addIssue({
-    //     path: ['business_email'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: 'Invalid business email format',
-    //   });
-    // }
-    // else if (data.business_email.trim().length > 256) {
-    //   ctx.addIssue({
-    //     path: ['business_email'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: 'Maximum 256 characters',
-    //   });
-    // }
+    if (!data.business_email || data.business_email.trim().length === 0) {
+      ctx.addIssue({
+        path: ['business_email'],
+        code: z.ZodIssueCode.custom,
+        message: 'Business email is required',
+      });
+    } else if (!z.string().email().safeParse(data.business_email).success) {
+      ctx.addIssue({
+        path: ['business_email'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid business email format',
+      });
+    } else if (data.business_email.trim().length > 256) {
+      ctx.addIssue({
+        path: ['business_email'],
+        code: z.ZodIssueCode.custom,
+        message: 'Maximum 256 characters',
+      });
+    }
 
     // Business phone is required for Business customers
-    // if (!data.business_phone || data.business_phone.trim().length === 0) {
-    //   ctx.addIssue({
-    //     path: ['business_phone'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: 'Business phone is required',
-    //   });
-    // } else if (!isValidPhoneNumber(data.business_phone)) {
-    //   ctx.addIssue({
-    //     path: ['business_phone'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: 'Invalid business phone format',
-    //   });
-    // }
+    if (!data.business_phone || data.business_phone.trim().length === 0) {
+      ctx.addIssue({
+        path: ['business_phone'],
+        code: z.ZodIssueCode.custom,
+        message: 'Business phone is required',
+      });
+    } else if (!isValidPhoneNumber(data.business_phone)) {
+      ctx.addIssue({
+        path: ['business_phone'],
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid business phone format',
+      });
+    }
 
-    // if (!data.payment_terms || data.payment_terms.trim().length === 0) {
-    //   ctx.addIssue({
-    //     path: ['payment_terms'],
-    //     code: z.ZodIssueCode.custom,
-    //     message: 'Payment terms is required',
-    //   });
-    // }
+    // ABN is required for Business customers
+    if (!data.abn || data.abn.trim().length === 0) {
+      ctx.addIssue({
+        path: ['abn'],
+        code: z.ZodIssueCode.custom,
+        message: 'ABN is required for Business customers',
+      });
+    }
+
+    // Billing address is required for Business customers
+    if (!data.billing_address || data.billing_address.trim().length === 0) {
+      ctx.addIssue({
+        path: ['billing_address'],
+        code: z.ZodIssueCode.custom,
+        message: 'Billing address is required for Business customers',
+      });
+    }
 
     // Credit limit validation for Business customers (only if not already validated by payment type)
     if (data.payment_type !== 'credit') {
@@ -272,7 +287,10 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
   } else if (data.customer_type === 'INDIVIDUAL') {
     // Contact Person Name is required for Individual customers
-    if (!data.contact_person_name || data.contact_person_name.trim().length === 0) {
+    if (
+      !data.contact_person_name ||
+      data.contact_person_name.trim().length === 0
+    ) {
       ctx.addIssue({
         path: ['contact_person_name'],
         code: z.ZodIssueCode.custom,
