@@ -188,13 +188,18 @@ export function DataTableClient<TData, TValue>({
   }, [getStorageKey]);
 
   // Convert to Set for fast lookup (only once per newRecordIds change)
-  const newRecordIdsSet = useMemo(() => new Set<string>(newRecordIds), [newRecordIds]);
+  const newRecordIdsSet = useMemo(
+    () => new Set<string>(newRecordIds),
+    [newRecordIds]
+  );
 
   // Row pinning state (use TanStack Table row pinning instead of reordering data)
   const [rowPinning, setRowPinning] = useState<RowPinningState>(() => {
     const presentIds = new Set(
       (data as Array<TData & { id?: number | string; sub?: string }>)
-        .map((r) => (r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined))
+        .map((r) =>
+          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined
+        )
         .filter((v): v is string => v !== undefined)
     );
     const top = newRecordIds.filter((id) => presentIds.has(id));
@@ -205,7 +210,9 @@ export function DataTableClient<TData, TValue>({
   useEffect(() => {
     const presentIds = new Set(
       (data as Array<TData & { id?: number | string; sub?: string }>)
-        .map((r) => (r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined))
+        .map((r) =>
+          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined
+        )
         .filter((v): v is string => v !== undefined)
     );
     const top = newRecordIds.filter((id) => presentIds.has(id));
@@ -964,7 +971,11 @@ export function DataTableClient<TData, TValue>({
                         !simpleTable &&
                           headerIndex === hg.headers.length - 1 &&
                           'rounded-tr-md',
-                        headerIndex === hg.headers.length - 1 &&
+                        // Only force right-alignment on "Actions" columns (or non-simple tables where we expect an actions column)
+                        ((header.column.id === 'actions' &&
+                          headerIndex === hg.headers.length - 1) ||
+                          (!simpleTable &&
+                            headerIndex === hg.headers.length - 1)) &&
                           'w-auto text-right'
                       )}
                       style={
@@ -1053,7 +1064,11 @@ export function DataTableClient<TData, TValue>({
                             simpleTable && 'border-b-0',
                             'whitespace-nowrap',
                             !simpleTable && 'first:pl-4 last:pr-4 py-2',
-                            cellIndex === row.getVisibleCells().length - 1 &&
+                            ((cell.column.id === 'actions' &&
+                              cellIndex === row.getVisibleCells().length - 1) ||
+                              (!simpleTable &&
+                                cellIndex ===
+                                  row.getVisibleCells().length - 1)) &&
                               'w-auto text-right'
                           )}
                           style={
