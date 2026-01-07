@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { UserKeys } from './keys';
-import { UserCreateDTO, UserUpdateDTO } from '../types/user';
+import { UserCreateDTO, UserDelete, UserUpdateDTO } from '../types/user';
 
 export const UsersListQueryOptions = () =>
   queryOptions({
@@ -57,6 +57,19 @@ export const useUpdateUser = () => {
       queryClient.invalidateQueries({
         queryKey: UserKeys.detail(variables.id),
       });
+      queryClient.invalidateQueries({ queryKey: UserKeys.all });
+    },
+  });
+};
+
+export const useDeleteUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UserDelete }) =>
+      APIClient.users.delete(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: UserKeys.list() });
       queryClient.invalidateQueries({ queryKey: UserKeys.all });
     },
   });

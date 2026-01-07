@@ -12,7 +12,7 @@ import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
+import { User, UserCreateDTO, UserDelete, UserUpdateDTO } from '../types/user';
 import {
   SubscriptionsAndInvoices,
   TenantDetails,
@@ -720,6 +720,10 @@ export const APIClient = {
     },
     create: (data: UserCreateDTO) =>
       appClient.Post<User>('/socoro/quarrylink/api/users', {
+        body: data,
+      }),
+    delete: (id: string, data: UserDelete) =>
+      appClient.Post<User>(`/socoro/quarrylink/api/users/${id}/delete`, {
         body: data,
       }),
     update: (id: string, data: UserUpdateDTO) => {

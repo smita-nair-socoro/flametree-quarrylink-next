@@ -2,12 +2,13 @@
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
-import { User } from '@/lib/types/user';
+import { User, UserDelete } from '@/lib/types/user';
 import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TeamMemberActionButtons } from '@/app/(protected)/system/user-management/(components)/forms/team-member-action-buttons';
+import { useDeleteUser } from '@/lib/api/user';
 
 interface DialogConfig {
   title?: string;
@@ -36,6 +37,7 @@ export function useTeamMemberActions(
 ) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const deleteUserMutation = useDeleteUser();
 
   // State for delete with dependencies form
   const [accountManagerReassignTo, setAccountManagerReassignTo] =
@@ -58,6 +60,9 @@ export function useTeamMemberActions(
 
   // Check if user has dependencies that need reassignment
   const hasDependencies = customerCount > 0 || activeJobsCount > 0;
+  console.log('hasDependencies', hasDependencies);
+  console.log('customerCount', customerCount);
+  console.log('activeJobsCount', activeJobsCount);
 
   // TODO: Fetch real team members from API for reassignment dropdowns
   const teamMemberOptions: { label: string; value: string }[] = [];
@@ -104,6 +109,8 @@ export function useTeamMemberActions(
   };
 
   // Single delete dialog config - same structure for both cases
+  const isConfirmDisabled =
+    !teamMemberId || isDeleteButtonDisabled || deleteUserMutation.isPending;
   const deleteDialogConfig: DialogConfig = {
     title: 'Delete User',
     description: (
@@ -225,7 +232,7 @@ export function useTeamMemberActions(
     confirmText: hasDependencies ? 'Delete & Reassign' : 'Delete User',
     confirmVariant: 'destructive',
     confirmActionNeeded: true,
-    confirmDisabled: isDeleteButtonDisabled,
+    confirmDisabled: isConfirmDisabled,
   };
 
   const resetDeleteForm = () => {
@@ -280,28 +287,38 @@ export function useTeamMemberActions(
   };
 
   // Handle delete confirmation
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!validateDeleteForm()) {
       return;
     }
+    console.log('user delete clicked');
 
-    if (hasDependencies) {
-      // TODO: Implement actual delete logic with reassignments
-      // API call: DELETE /api/team-members/${teamMemberId} with reassignment data
-      console.log('Deleting user with dependencies:', {
-        teamMember: teamMemberData,
+    if (!teamMemberId) return;
+
+    // NOTE: Backend delete endpoint expects reassignments in the request body.
+    // This hook currently has placeholder dependency data, so we send empty arrays by default.
+    // When real dependency lists (customerIds/quoteIds) are available, map them into this shape.
+    const payload: UserDelete = {
+      reassignments: {
+        customers: [],
+        quotes: [],
+      },
+    };
+
+    try {
+      await deleteUserMutation.mutateAsync({ id: teamMemberId, data: payload });
+      setIsDeleteDialogOpen(false);
+      resetDeleteForm();
+    } catch (err) {
+      // Keep dialog open so the user can retry / adjust inputs once backend validations exist.
+      console.error('Failed to delete user', err, {
+        teamMemberId,
+        hasDependencies,
         accountManagerReassignTo,
         jobReassignTo,
         deletionReason,
       });
-    } else {
-      // TODO: Implement actual simple delete logic
-      // API call: DELETE /api/team-members/${teamMemberId}
-      console.log('Deleting user:', teamMemberData);
     }
-
-    setIsDeleteDialogOpen(false);
-    resetDeleteForm();
   };
 
   // Render delete dialog

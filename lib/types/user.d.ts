@@ -81,3 +81,22 @@ export interface Invoice {
   invoice_amount: number;
   invoice_status: string;
 }
+
+export interface UserDeleteCustomerReassignment {
+  customerId: number;
+  newAccountManagerSub: string;
+}
+
+export interface UserDeleteQuoteReassignment {
+  quoteId: number;
+  newOwnerSub: string;
+}
+
+export interface UserDeleteReassignments {
+  customers: UserDeleteCustomerReassignment[];
+  quotes: UserDeleteQuoteReassignment[];
+}
+
+export interface UserDelete {
+  reassignments: UserDeleteReassignments;
+}
