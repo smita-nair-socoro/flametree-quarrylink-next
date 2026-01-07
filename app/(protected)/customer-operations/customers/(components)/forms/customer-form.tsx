@@ -369,6 +369,16 @@ export default function CustomerForm({
         customerData.id = id;
       }
 
+      // Add timestamps and metadata for new customers
+      if (!isEditing) {
+        const now = new Date().toISOString();
+        customerData.createdAt = now;
+        customerData.updatedAt = now;
+        customerData.isDeleted = false;
+        customerData.createdBy = values.created_by;
+        customerData.lastModifiedBy = values.last_modified_by;
+      }
+
       // Handle BUSINESS type specific fields
       if (values.customer_type === 'BUSINESS') {
         customerData.contactName = `${values.contact_person_first_name || ''} ${
