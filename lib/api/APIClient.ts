@@ -683,6 +683,10 @@ export const APIClient = {
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`
       ),
+    preview: (id: number) =>
+      appClient.Get<PublicQuoteLinkResponse>(
+        `/socoro/quarrylink/api/quote/${id}/preview`
+      ),
     createQuoteItem: (data: Partial<QuotationLineItem>) =>
       appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
         body: convertKeysToCamelCase(data),

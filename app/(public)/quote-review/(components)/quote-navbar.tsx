@@ -13,6 +13,7 @@ export interface QuoteNavbarProps {
   accountManager: string;
   status: QuoteStatus;
   onDownloadPDF?: () => void;
+  isPreviewMode?: boolean;
 }
 
 export function QuoteNavbar({
@@ -22,6 +23,7 @@ export function QuoteNavbar({
   accountManager,
   status,
   onDownloadPDF,
+  isPreviewMode = false,
 }: QuoteNavbarProps) {
   return (
     <div className="bg-gradient-to-r from-[#8E51FF] to-[#553199] text-white px-8 py-6 rounded-t-lg">
@@ -43,15 +45,17 @@ export function QuoteNavbar({
 
         {/* Download Button & Quote Number */}
         <div className="grid grid-cols-2 gap-8 w-full items-center md:w-auto md:flex md:flex-row md:gap-4 md:justify-end">
-          <Button
-            onClick={onDownloadPDF}
-            variant="secondary"
-            className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100 whitespace-nowrap justify-self-start w-fit"
-            size="default"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </Button>
+          {!isPreviewMode && (
+            <Button
+              onClick={onDownloadPDF}
+              variant="secondary"
+              className="bg-secondary text-sm text-secondary-foreground hover:bg-gray-100 whitespace-nowrap justify-self-start w-fit"
+              size="default"
+            >
+              <Download className="w-4 h-4" />
+              Download PDF
+            </Button>
+          )}
 
           <div className="text-left md:text-right">
             <div className="font-bold text-[29px] break-words">

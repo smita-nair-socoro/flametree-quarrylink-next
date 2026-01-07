@@ -22,11 +22,11 @@ const createColumns = (): ColumnDef<Product>[] => [
     accessorKey: 'name',
     header: 'Product',
     cell: ({ row }) => (
-      <div>
-        <p className="font-semibold text-gray-900 text-sm">
+      <div className="max-w-full">
+        <p className="font-semibold text-gray-900 text-sm truncate" title={row.original.name}>
           {row.original.name}
         </p>
-        <p className="text-gray-500 text-xs">{row.original.code}</p>
+        <p className="text-gray-500 text-xs truncate" title={row.original.code}>{row.original.code}</p>
       </div>
     ),
     size: 160,

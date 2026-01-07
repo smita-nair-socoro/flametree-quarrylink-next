@@ -9,6 +9,7 @@ import {
   Briefcase,
   Archive,
   Timer,
+  FileSearch,
   // Copy, used in duplicate action
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ export function QuotationTableActions({
   const handleView = createHandler(actions.view, () =>
     setSelectedQuotation(quotation)
   );
+  const handlePreview = createHandler(actions.preview);
   const handleArchive = createHandler(actions.archive);
   const handleSendToCustomer = createHandler(actions.sendToCustomer, () =>
     setSelectedQuotation(quotation)
@@ -88,6 +90,17 @@ export function QuotationTableActions({
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
+
+          {/* Preview Quote - available for DRAFT and PENDING */}
+          {(quotation.status === 'DRAFT' || quotation.status === 'PENDING') && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handlePreview}>
+                <FileSearch className="h-4 w-4 mr-2" />
+                Preview Quote
+              </DropdownMenuItem>
+            </>
+          )}
 
           {/* Status-specific actions */}
           {quotation.status === 'DRAFT' && (
