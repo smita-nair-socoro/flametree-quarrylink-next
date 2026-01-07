@@ -1,7 +1,11 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { Quotation, QuotationDTO } from '@/lib/types/quotation';
+import {
+  Quotation,
+  QuotationDTO,
+  PublicQuoteLinkResponse,
+} from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
@@ -21,6 +25,7 @@ import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
+  QuotationPreviewQueryOptions,
   useConvertToDraft,
   useExtendExpiryDate,
   useUpdateQuotation,
@@ -55,7 +60,9 @@ interface SelectedAction {
   key: string;
 }
 
-const encodeQuotationPayload = (quotationData?: Quotation | null) => {
+const encodeQuotationPayload = (
+  quotationData?: Quotation | PublicQuoteLinkResponse | null
+) => {
   if (!quotationData) return null;
   try {
     const json = JSON.stringify(quotationData);
@@ -946,6 +953,41 @@ export function useQuotationActions(
 
     view: () => {
       setViewOpen(true);
+    },
+
+    preview: async () => {
+      if (!quotationId) {
+        notifyError('Unable to preview quotation');
+        return;
+      }
+
+      try {
+        // Fetch preview data from API
+        const queryClient = (await import('@tanstack/react-query')).QueryClient;
+        const client = new queryClient();
+        const previewData = await client.fetchQuery(
+          QuotationPreviewQueryOptions(quotationId)
+        );
+
+        if (!previewData) {
+          notifyError('Failed to load preview data');
+          return;
+        }
+
+        // Encode the preview data
+        const encodedPayload = encodeQuotationPayload(previewData);
+        if (!encodedPayload) {
+          notifyError('Failed to encode preview data');
+          return;
+        }
+
+        // Open preview in new tab
+        const previewUrl = `/quote-review?quoteId=${quotationId}&payload=${encodedPayload}`;
+        window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        console.error('Failed to preview quotation:', error);
+        notifyError(extractErrorMessage(error));
+      }
     },
 
     download: () => {

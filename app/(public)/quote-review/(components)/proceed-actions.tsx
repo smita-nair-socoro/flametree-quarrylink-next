@@ -100,8 +100,8 @@ export function ProceedActions({
         </h2>
         <p className="text-[15px] text-[rgba(115,115,115,1)] max-w-3xl mx-auto">
           Please review the quotation details above and select your preferred
-          action below. We're here to help with any questions or modifications
-          you may need.
+          action below. We&apos;re here to help with any questions or
+          modifications you may need.
         </p>
       </div>
 

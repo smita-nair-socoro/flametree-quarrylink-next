@@ -22,6 +22,7 @@ import {
   Timer,
   Archive,
   Pencil,
+  FileSearch,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
@@ -80,6 +81,8 @@ export function QuotationActionButtons({
               Duplicate
             </DropdownMenuItem> */}
 
+            {/* Preview Quote - available for DRAFT and PENDING */}
+
             {/* Status-specific actions */}
             {quotation.status === 'DRAFT' && (
               <>
@@ -106,7 +109,13 @@ export function QuotationActionButtons({
                 </DropdownMenuItem>
               </>
             )}
-
+            {(quotation.status === 'DRAFT' ||
+              quotation.status === 'PENDING') && (
+              <DropdownMenuItem onClick={actions.preview}>
+                <FileSearch className="h-4 w-4 mr-2" />
+                Preview Quote
+              </DropdownMenuItem>
+            )}
             {quotation.status === 'DECLINED' && (
               <DropdownMenuItem onClick={actions.convertToDraft}>
                 <Pencil className="h-4 w-4 mr-2" />
@@ -214,6 +223,15 @@ export function QuotationActionButtons({
               <Send className="h-4 w-4 mr-2" />
               Send to Customer
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={actions.preview}
+              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+            >
+              <FileSearch className="h-4 w-4 mr-2" />
+              Preview Quote
+            </Button>
           </>
         )}
 
@@ -227,6 +245,15 @@ export function QuotationActionButtons({
             >
               <Send className="h-4 w-4 mr-2" />
               Re-Send To Customer
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={actions.preview}
+              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+            >
+              <FileSearch className="h-4 w-4 mr-2" />
+              Preview Quote
             </Button>
             <Button
               variant="ghost"

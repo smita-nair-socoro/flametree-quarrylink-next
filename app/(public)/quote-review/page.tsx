@@ -11,6 +11,7 @@ function QuoteReviewContent() {
   const searchParams = useSearchParams();
   const quoteId = searchParams.get('quoteId') || '0';
   const token = searchParams.get('token');
+  const payload = searchParams.get('payload');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,6 +20,25 @@ function QuoteReviewContent() {
   );
 
   useEffect(() => {
+    // Case 1: Authenticated preview with payload
+    if (payload) {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const decoded = decodeURIComponent(payload);
+        const data = JSON.parse(decoded) as PublicQuoteLinkResponse;
+        console.log('[QuoteReview] preview payload:', data);
+        setQuoteData(data);
+      } catch (err) {
+        console.error('Failed to decode preview payload:', err);
+        setError('Failed to load preview data.');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Case 2: Public access with token
     if (!token) {
       setError('Link token is missing.');
       return;
@@ -37,13 +57,13 @@ function QuoteReviewContent() {
         setError('Link is invalid or has expired.');
       })
       .finally(() => setIsLoading(false));
-  }, [token]);
+  }, [token, payload]);
 
-  if (!token) {
+  if (!token && !payload) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-red-600 text-center px-4">
-          Invalid quote link (missing token).
+          Invalid quote link (missing token or preview data).
         </p>
       </div>
     );
@@ -62,11 +82,11 @@ function QuoteReviewContent() {
           <div className="text-sm text-red-600 text-center px-4">{error}</div>
         </div>
       )}
-      {!isLoading && !error && quoteData && token && (
+      {!isLoading && !error && quoteData && (
         <QuoteReviewDocument
           quoteId={quoteId}
           quoteData={quoteData}
-          token={token}
+          token={token || ''}
         />
       )}
     </>

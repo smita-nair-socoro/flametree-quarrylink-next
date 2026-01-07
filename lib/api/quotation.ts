@@ -158,6 +158,22 @@ export const useSendToCustomer = () => {
 };
 
 /**
+ * Query options for fetching a quotation preview.
+ * Returns the same data structure as the public quote link,
+ * but using authenticated access.
+ */
+export const QuotationPreviewQueryOptions = (quotationId: number) =>
+  queryOptions({
+    queryKey: [...QuotationKeys.detail(quotationId), 'preview'],
+    queryFn: async () => {
+      const data = await APIClient.quotations.preview(quotationId);
+      return convertKeysToCamelCase(data) as PublicQuoteLinkResponse;
+    },
+    staleTime: 5_000,
+    enabled: !!quotationId && quotationId > 0,
+  });
+
+/**
  * Mutation hook for creating a new quote item.
  * Automatically invalidates the quotations cache on success.
  *
