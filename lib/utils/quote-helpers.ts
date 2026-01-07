@@ -115,7 +115,7 @@ export const transformFormDataToQuoteDto = (
     customerName: string;
     accountManagerName: string;
     accountManagerSub: string;
-    quoteNumber: string;
+    quoteNumber?: string;
     lineItemsCount?: number;
     deliveryAddress: AddressType | null;
     originalDeliveryAddress?: Address | null;
@@ -129,7 +129,9 @@ export const transformFormDataToQuoteDto = (
   }
 
   const transformed: Record<string, unknown> = {
-    quoteNumber: additionalData.quoteNumber,
+    ...(additionalData.quoteNumber
+      ? { quoteNumber: additionalData.quoteNumber }
+      : {}),
     quoteType: formData.quoteType as QUOTE_TYPE,
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,

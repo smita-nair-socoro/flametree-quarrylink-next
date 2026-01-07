@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { cn } from '@/lib/utils';
+import { cn, addNewRecordId } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -36,6 +36,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { useCreateCustomer, useUpdateCustomer } from '@/lib/api/customer';
+import { CustomerDTO } from '@/lib/types/customer';
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import { toAddressPayload } from '@/lib/utils/address-helper';
 
 interface FormProps {
   id?: number;
@@ -64,6 +68,10 @@ export default function CustomerForm({
       })),
     [users]
   );
+
+  // Mutation hooks
+  const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
 
   // Initialize states with selected customer data only when editing, defaults otherwise
   const [selectedCustomerType, setSelectedCustomerType] =
@@ -107,11 +115,9 @@ export default function CustomerForm({
           ? selectedCustomer.paymentType
           : 'CREDIT',
       business_name: isEditing ? selectedCustomer?.businessName || '' : '',
-      business_email: isEditing
-        ? selectedCustomer?.email || 'buildpty@email.com'
-        : '',
+      business_email: isEditing ? selectedCustomer?.businessEmail || '' : '',
       business_phone: isEditing
-        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
+        ? normalizePhoneNumber(selectedCustomer?.businessPhone || '') || ''
         : '',
       abn: isEditing ? selectedCustomer?.abn || '' : '',
       contact_person_name:
@@ -128,7 +134,7 @@ export default function CustomerForm({
           : '',
       contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
       contact_person_phone: isEditing
-        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
+        ? normalizePhoneNumber(selectedCustomer?.phone || '') || ''
         : '',
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
@@ -139,7 +145,9 @@ export default function CustomerForm({
       account_manager: isEditing
         ? selectedCustomer?.accountManagerSub || ''
         : '',
-      billing_address: isEditing ? '1 Scott Street Pyrmont, NSW, 2009' : '',
+      billing_address: isEditing
+        ? selectedCustomer?.billingAddress?.formattedAddress || ''
+        : '',
       created_at: undefined,
       updated_at: undefined,
       created_by: 'current_user',
@@ -187,14 +195,32 @@ export default function CustomerForm({
         selectedCustomer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
       setSelectedCustomerType(selectedCustomer.customerType);
       setSelectedPaymentType(paymentType);
-      setSearchInput('1 Scott Street Pyrmont, NSW, 2009');
+
+      // Set the search input and address state from billing address
+      if (selectedCustomer.billingAddress) {
+        setSearchInput(selectedCustomer.billingAddress.formattedAddress || '');
+        setAddress({
+          address1: selectedCustomer.billingAddress.streetDetailsPrimary || '',
+          address2: selectedCustomer.billingAddress.streetDetailsOptional || '',
+          formattedAddress:
+            selectedCustomer.billingAddress.formattedAddress || '',
+          city: selectedCustomer.billingAddress.city || '',
+          region: selectedCustomer.billingAddress.state || '',
+          postalCode: selectedCustomer.billingAddress.postcode || '',
+          country: selectedCustomer.billingAddress.country || '',
+          lat: selectedCustomer.billingAddress.latitude || 0,
+          lng: selectedCustomer.billingAddress.longitude || 0,
+          googlePlaceId: selectedCustomer.billingAddress.googlePlaceId,
+        });
+      }
 
       customerForm.reset({
         customer_type: selectedCustomer.customerType,
         payment_type: paymentType,
         business_name: selectedCustomer.businessName,
-        business_email: selectedCustomer.email,
-        business_phone: normalizePhoneNumber(selectedCustomer.phone) || '',
+        business_email: selectedCustomer.businessEmail || '',
+        business_phone:
+          normalizePhoneNumber(selectedCustomer.businessPhone) || '',
         abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
         contact_person_name:
           selectedCustomer.customerType === 'INDIVIDUAL'
@@ -221,7 +247,8 @@ export default function CustomerForm({
             ? ''
             : selectedCustomer.paymentTermType,
         account_manager: selectedCustomer.accountManagerSub,
-        billing_address: '1 Scott Street Pyrmont, NSW, 2009',
+        billing_address:
+          selectedCustomer.billingAddress?.formattedAddress || '',
         created_at: selectedCustomer.createdAt
           ? new Date(selectedCustomer.createdAt)
           : undefined,
@@ -297,77 +324,100 @@ export default function CustomerForm({
     try {
       setIsSubmitting(true);
 
-      // Handle business field population for Individual customers
-      let businessName = values.business_name;
-      let businessEmail = values.business_email;
-      let businessPhone = values.business_phone;
-      let abn = values.abn;
+      // Convert address using helper function
+      const billingAddressData = toAddressPayload(
+        address,
+        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null
+      );
 
-      let creditLimit = values.credit_limit;
-      let paymentTermsDay = values.payment_terms_day;
-      let paymentTermsPeriod = values.payment_terms;
+      // Backend requires billingAddressId (maps to customers.billing_address_id) on update.
+      const billingAddressIdFromExisting =
+        (isEditing && selectedCustomer
+          ? selectedCustomer.billingAddressId ??
+            selectedCustomer.billingAddress?.id
+          : undefined) ?? billingAddressData?.id;
 
-      // Combine contact person fields for the contactName
-      let contactName = '';
-
-      if (values.customer_type === 'INDIVIDUAL') {
-        // For Individual customers, use contact_person_name
-        contactName = values.contact_person_name || '';
-        // Populate business fields with contact data
-        businessName = values.contact_person_name || values.business_name;
-        businessEmail = values.contact_person_email || values.business_email;
-        businessPhone = values.contact_person_phone || values.business_phone;
-        abn = 'N/A';
-      } else if (values.customer_type === 'BUSINESS') {
-        // For Business customers, combine first name and last name
-        contactName = `${values.contact_person_first_name || ''} ${
-          values.contact_person_last_name || ''
-        }`.trim();
-      }
-
-      // Handle credit limit for Prepaid customers
-      if (values.payment_type === 'PREPAID') {
-        creditLimit = 0;
-        paymentTermsDay = 0;
-        paymentTermsPeriod = 'N/A';
-      }
-
-      const currentTimestamp = new Date().toISOString();
-      const customerData: Record<string, unknown> = {
-        id: 0, // Will be generated by backend
-        customerType: values.customer_type || 'BUSINESS',
-        businessName: businessName,
-        businessEmail: businessEmail,
-        businessPhone: businessPhone,
-        abn: abn,
-        contactName: contactName,
-        phone: values.contact_person_phone,
-        email: values.contact_person_email,
-        billingAddress: values.billing_address,
-        creditLimit:
-          creditLimit === 0 ? 0 : Math.round(Number(creditLimit || 0) * 100),
-        paymentTermsDay: paymentTermsDay,
-        paymentTermsPeriod: paymentTermsPeriod,
+      // Build the CustomerDTO payload
+      const customerData: Partial<CustomerDTO> = {
+        customerType:
+          values.customer_type === 'BUSINESS'
+            ? CUSTOMER_TYPE.BUSINESS
+            : CUSTOMER_TYPE.INDIVIDUAL,
+        phone: values.contact_person_phone || '',
+        email: values.contact_person_email || '',
+        ...(billingAddressIdFromExisting
+          ? { billingAddressId: billingAddressIdFromExisting }
+          : {}),
+        billingAddress: billingAddressData,
+        creditLimit: Math.round(Number(values.credit_limit || 0) * 100), // Convert to cents
         accountManagerSub: values.account_manager,
-        customerStatus: 'ACTIVE',
+        invoiceDueDate: values.payment_terms_day || 0,
+        customerStatus: CUSTOMER_STATUS.ACTIVE,
         jobsCount: 0,
-        version: 0,
-        isDeleted: false,
-        createdBy: 'current_user',
-        createdAt: currentTimestamp,
-        updatedAt: currentTimestamp,
-        lastModifiedBy: 'current_user',
+        paymentType: values.payment_type,
+        version: isEditing && selectedCustomer ? selectedCustomer.version : 0,
       };
 
-      // Add firstName and lastName for BUSINESS customers
-      if (values.customer_type === 'BUSINESS') {
-        customerData.firstName = values.contact_person_first_name || '';
-        customerData.lastName = values.contact_person_last_name || '';
+      // Only set paymentTermType for CREDIT payment type
+      if (values.payment_type === 'CREDIT') {
+        customerData.paymentTermType =
+          values.payment_terms || 'DAYSAFTERBILLDATE';
       }
 
-      console.log('Customer Data:', customerData);
-      // Show success toast
-      notifySuccess(isEditing ? 'Customer Updated' : 'Customer Added');
+      // Add id for updates
+      if (isEditing && id) {
+        customerData.id = id;
+      }
+
+      // Handle BUSINESS type specific fields
+      if (values.customer_type === 'BUSINESS') {
+        customerData.contactName = `${values.contact_person_first_name || ''} ${
+          values.contact_person_last_name || ''
+        }`.trim();
+        customerData.businessName = values.business_name || '';
+        customerData.businessEmail = values.business_email || '';
+        customerData.businessPhone = values.business_phone || '';
+        customerData.firstName = values.contact_person_first_name || '';
+        customerData.lastName = values.contact_person_last_name || '';
+        customerData.abn = values.abn || '';
+        // Default fields, actually not needed but is mandatory in backend
+        customerData.legalName = values.business_name || '';
+        customerData.tradingName = values.business_name || '';
+        customerData.acn = '997744';
+        customerData.vatNumber = '123';
+      }
+
+      // Handle INDIVIDUAL type specific fields
+      if (values.customer_type === 'INDIVIDUAL') {
+        customerData.contactName = values.contact_person_name || '';
+        customerData.abn = 'N/A';
+        // Default fields for INDIVIDUAL type
+        customerData.dateOfBirth = new Date().toISOString();
+        customerData.govId = '123';
+      }
+
+      // Handle PREPAID payment type
+      if (values.payment_type === 'PREPAID') {
+        customerData.creditLimit = 0;
+        customerData.invoiceDueDate = 0;
+      }
+
+      console.log('Customer Data Payload:', customerData);
+
+      // Call the appropriate mutation
+      if (isEditing) {
+        await updateCustomer.mutateAsync(customerData);
+        notifySuccess('Customer Updated Successfully!');
+      } else {
+        const newCustomer = await createCustomer.mutateAsync(customerData);
+        notifySuccess('Customer Added Successfully!');
+
+        // Add the new record ID to sessionStorage for highlighting
+        if (newCustomer && typeof newCustomer.id === 'number') {
+          addNewRecordId('customer_main_data_table', newCustomer.id);
+        }
+      }
+
       onSuccess?.();
     } catch (error) {
       console.error(
@@ -398,15 +448,16 @@ export default function CustomerForm({
         return;
       }
 
-      // Duplicate contact email (HTTP 409)
-      const duplicateContactEmailPhrase = `Key (contact_person_email)=(${values.contact_person_email}) already exists`;
+      // Duplicate contact email - Check both the specific key format and constraint name
+      const emailKeyPattern = `Key (email)=(${values.contact_person_email}) already exists`;
       const isDuplicateContactEmail =
         codeStr === '409' &&
         typeof messageFromErr === 'string' &&
-        messageFromErr.includes(duplicateContactEmailPhrase);
+        (messageFromErr.includes(emailKeyPattern) ||
+          messageFromErr.includes('customers_email_key'));
 
       if (isDuplicateContactEmail) {
-        const msg = `Duplicate contact email "${values.contact_person_email}" already exists.`;
+        const msg = 'The contact person email already exists.';
         notifyError(msg);
         customerForm.setError('contact_person_email', {
           type: 'manual',
