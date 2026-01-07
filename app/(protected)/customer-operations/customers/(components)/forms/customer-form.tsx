@@ -330,6 +330,13 @@ export default function CustomerForm({
         isEditing && selectedCustomer ? selectedCustomer.billingAddress : null
       );
 
+      // Backend requires billingAddressId (maps to customers.billing_address_id) on update.
+      const billingAddressIdFromExisting =
+        (isEditing && selectedCustomer
+          ? selectedCustomer.billingAddressId ??
+            selectedCustomer.billingAddress?.id
+          : undefined) ?? billingAddressData?.id;
+
       // Build the CustomerDTO payload
       const customerData: Partial<CustomerDTO> = {
         customerType:
@@ -338,6 +345,9 @@ export default function CustomerForm({
             : CUSTOMER_TYPE.INDIVIDUAL,
         phone: values.contact_person_phone || '',
         email: values.contact_person_email || '',
+        ...(billingAddressIdFromExisting
+          ? { billingAddressId: billingAddressIdFromExisting }
+          : {}),
         billingAddress: billingAddressData,
         creditLimit: Math.round(Number(values.credit_limit || 0) * 100), // Convert to cents
         accountManagerSub: values.account_manager,

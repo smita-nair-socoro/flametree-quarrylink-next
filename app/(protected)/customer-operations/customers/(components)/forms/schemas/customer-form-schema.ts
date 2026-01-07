@@ -81,7 +81,10 @@ const Base = z.object({
     .optional(),
   payment_terms: z.string().trim().optional(),
   account_manager: z.string().trim().min(1, 'Required'),
-  billing_address: z.string().trim().optional(),
+  billing_address: z
+    .string()
+    .trim()
+    .nonempty({ message: 'Billing address is required' }),
 
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
