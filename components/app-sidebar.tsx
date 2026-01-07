@@ -100,9 +100,13 @@ export const navItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
-  const { data: tenantCompleteDetails } = useQuery(
-    TenantCompleteDetailsQueryOptions()
-  );
+  const {
+    data: tenantCompleteDetails,
+    isLoading,
+    isFetching,
+  } = useQuery(TenantCompleteDetailsQueryOptions());
+
+  const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
@@ -142,7 +146,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Get subscription plan from the first active subscription
   const subscriptionPlan =
     tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
-      ?.subscriptions?.[0]?.subscriptionPlan || 'Essentials';
+      ?.subscriptions?.[0]?.subscriptionPlan;
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -151,7 +155,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarTrigger className="h-8 w-8 text-white" />
         </div>
         <div className="mb-1">
-          <QuarryLinkBranding subscriptionType={subscriptionPlan} />
+          <QuarryLinkBranding
+            subscriptionType={subscriptionPlan}
+            isLoading={isPending}
+          />
         </div>
         <TeamSwitcher />
       </SidebarHeader>
