@@ -61,6 +61,10 @@ export default function RolesTab() {
           permissions: { super_admin: false, user: false },
         },
         {
+          name: 'Weighbridge Integration',
+          permissions: { super_admin: false, user: false },
+        },
+        {
           name: 'Stockpile Management',
           permissions: { super_admin: false, user: false },
         },
@@ -68,10 +72,7 @@ export default function RolesTab() {
           name: 'Site & Driver Sign-in',
           permissions: { super_admin: false, user: false },
         },
-        {
-          name: 'Weighbridge Integration',
-          permissions: { super_admin: false, user: false },
-        },
+
         {
           name: 'Production Planning',
           permissions: { super_admin: false, user: false },
@@ -127,15 +128,15 @@ export default function RolesTab() {
           permissions: { super_admin: true, user: true },
         },
         {
+          name: 'Weighbridge Integration',
+          permissions: { super_admin: true, user: true },
+        },
+        {
           name: 'Stockpile Management',
           permissions: { super_admin: false, user: false },
         },
         {
           name: 'Site & Driver Sign-in',
-          permissions: { super_admin: false, user: false },
-        },
-        {
-          name: 'Weighbridge Integration',
           permissions: { super_admin: false, user: false },
         },
         {
@@ -193,6 +194,10 @@ export default function RolesTab() {
           permissions: { super_admin: true, user: true },
         },
         {
+          name: 'Weighbridge Integration',
+          permissions: { super_admin: true, user: true },
+        },
+        {
           name: 'Stockpile Management',
           permissions: { super_admin: true, user: true },
         },
@@ -200,10 +205,7 @@ export default function RolesTab() {
           name: 'Site & Driver Sign-in',
           permissions: { super_admin: true, user: true },
         },
-        {
-          name: 'Weighbridge Integration',
-          permissions: { super_admin: true, user: true },
-        },
+
         {
           name: 'Production Planning',
           permissions: { super_admin: true, user: true },
