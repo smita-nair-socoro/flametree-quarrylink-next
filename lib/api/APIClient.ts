@@ -1,6 +1,6 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
-import { Product, ProductDetails } from '../types/product';
+import { LinkedProduct, Product, ProductDetails } from '../types/product';
 import { CustomerDTO } from '../types/customer';
 import { Quarry, QuarrySupplierProduct } from '../types/quarry';
 import {
@@ -476,6 +476,10 @@ export const APIClient = {
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
+      ),
+    linkedProducts: (quarryId: number) =>
+      appClient.Get<LinkedProduct>(
+        `/socoro/quarrylink/api/quarries/${quarryId}/linked-products`
       ),
   },
 

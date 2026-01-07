@@ -26,13 +26,14 @@ import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
 import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useCreateUser } from '@/lib/api/user';
-import { UserCreateDTO } from '@/lib/types/user';
+import { User, UserCreateDTO } from '@/lib/types/user';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
 import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
+import { addNewRecordId } from '@/lib/utils';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -116,7 +117,18 @@ export default function InviteUserForm({
       console.log('Creating user with data:', userData);
 
       // Call the API to create user
-      await createUserMutation.mutateAsync(userData);
+      const newUser = await createUserMutation.mutateAsync(userData);
+
+      // Add the new record identifiers to sessionStorage for highlighting/pinning
+      if (newUser) {
+        const u = newUser as User;
+        if (typeof u.id === 'number') {
+          addNewRecordId('team_member_data_table', u.id);
+        }
+        if (typeof u.sub === 'string') {
+          addNewRecordId('team_member_data_table', u.sub);
+        }
+      }
 
       // Show success toast
       notifySuccess('User Invited', {

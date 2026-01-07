@@ -8,11 +8,14 @@ import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarrie
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
 import {
+  LinkedProductsQueryOptions,
   useUnarchiveQuarry,
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
+import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
-import { notifySuccess } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { useRouter } from 'next/navigation';
 
 interface DeleteBlockingSummary {
   totalLineItems: number;
@@ -280,6 +283,8 @@ export function useQuarrySupplierActions(
   quarrySupplierId: number | undefined,
   quarrySupplierData?: Quarry | null
 ) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [viewOpen, setViewOpen] = React.useState(false);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
@@ -314,8 +319,52 @@ export function useQuarrySupplierActions(
       setViewOpen(true);
     },
 
-    linkedProducts: () => {
-      // TODO: Implement linked products functionality
+    linkedProducts: async () => {
+      if (!quarrySupplierId) return;
+
+      try {
+        const linked = await queryClient.fetchQuery(
+          LinkedProductsQueryOptions(quarrySupplierId)
+        );
+
+        const linkedArr = Array.isArray(linked)
+          ? linked
+          : linked
+          ? [linked]
+          : [];
+
+        const productIdsSet = new Set<number>();
+        for (const lp of linkedArr) {
+          const qsp = lp?.quarrySupplierProducts ?? [];
+          for (const p of qsp) {
+            const id = p?.productId;
+            if (typeof id === 'number' && id > 0) productIdsSet.add(id);
+          }
+        }
+
+        const productIds = Array.from(productIdsSet);
+
+        if (productIds.length === 0) {
+          notifyError('No linked products found for this quarry/supplier.');
+          return;
+        }
+
+        const quarrySupplierName = quarrySupplierData?.name?.trim();
+        const nameParam = quarrySupplierName
+          ? `&linkedQuarrySupplierName=${encodeURIComponent(
+              quarrySupplierName
+            )}`
+          : '';
+
+        router.push(
+          `/inventory/products?linkedProductIds=${encodeURIComponent(
+            productIds.join(',')
+          )}&linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`
+        );
+      } catch (e: unknown) {
+        console.error('[useQuarrySupplierActions] linkedProducts failed:', e);
+        notifyError('Failed to load linked products.');
+      }
     },
 
     delete: () => {

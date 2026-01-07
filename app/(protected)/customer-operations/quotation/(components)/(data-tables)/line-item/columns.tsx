@@ -19,9 +19,18 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     header: () => {
       return <div>Product</div>;
     },
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (
+        <div
+          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+          title={value}
+        >
+          {value}
+        </div>
+      );
+    },
     meta: 'Product Name',
-    size: 160,
   },
   {
     id: 'quarryName',
@@ -29,9 +38,18 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     header: () => {
       return <div>Supplier</div>;
     },
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (
+        <div
+          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+          title={value}
+        >
+          {value}
+        </div>
+      );
+    },
     meta: 'quarryName',
-    size: 200,
   },
   {
     id: 'totalProductCostPrice',
@@ -58,7 +76,6 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>${totalProductCostPrice}</div>;
     },
     meta: 'Total Product Cost Price',
-    size: 150,
   },
   {
     id: 'totalProductSellPrice',
@@ -85,7 +102,6 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>${totalProductSellPrice}</div>;
     },
     meta: 'Total Product Sell Price',
-    size: 150,
   },
   {
     id: 'productSellQty',
@@ -100,13 +116,12 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
           ? 'x 20kg'
           : row.original.productSellUom;
       return (
-        <div>
+        <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
           {productSellQty} {productSellUom}
         </div>
       );
     },
     meta: 'Product Sell QTY',
-    size: 100,
   },
   {
     id: 'truckType',
@@ -115,11 +130,17 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return <div>Truck</div>;
     },
     cell: ({ row }) => {
-      const truckType = row.original.truckType;
-      return <div>{truckType}</div>;
+      const value = row.original.truckType || 'N/A';
+      return (
+        <div
+          className="truncate block w-[30px] sm:w-[30px] md:w-[70px] lg:w-[90px] xl:w-[120px]"
+          title={value}
+        >
+          {value}
+        </div>
+      );
     },
     meta: 'Truck Type',
-    size: 140,
   },
   {
     id: 'grossProfit',
@@ -146,7 +167,6 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
         </div>
       );
     },
-    size: 80,
   },
 ];
 

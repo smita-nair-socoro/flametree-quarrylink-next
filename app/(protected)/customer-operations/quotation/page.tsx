@@ -46,6 +46,8 @@ export default function QuotationsPage() {
     })) as Quotation[];
   }, [quotationsData]);
 
+  console.log('items', items);
+
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
   );
@@ -182,6 +184,7 @@ export default function QuotationsPage() {
             onRowClick={handleRowClick}
             enableRowSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
+            defaultSorting={[{ id: 'created_at', desc: true }]}
             // bulkActions={true}
             bulkActionsSlot={
               <QuotationBulkActions
