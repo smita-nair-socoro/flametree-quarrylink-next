@@ -27,7 +27,7 @@ export function toAddressType(address?: Address | null): AddressType {
     country: address.country ?? '',
     lat: address.latitude ?? 0,
     lng: address.longitude ?? 0,
-    // googlePlaceId: address.googlePlaceId ?? '', temporary changed to number for backend testing
+    googlePlaceId: address.googlePlaceId ?? '',
   };
 }
 
@@ -38,10 +38,8 @@ export function toAddressPayload(
 ): Address | undefined {
   if (!address) return undefined;
 
-  const googlePlaceId = 123456789012; // TEMPORARY FIX FOR BACKEND
-  // address.googlePlaceId !== undefined && address.googlePlaceId !== null
-  //   ? String(address.googlePlaceId)
-  //   : '';
+  // Use the real googlePlaceId from the address object
+  const googlePlaceId = address.googlePlaceId || '';
 
   // Check if address has changed compared to original
   const addressChanged =
