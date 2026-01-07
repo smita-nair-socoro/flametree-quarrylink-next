@@ -612,7 +612,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               <ActionDialog
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
-                customWidth="!max-w-[60vw]"
+                customWidth="!max-w-[30vw] sm:!max-w-[90vw] md:!max-w-[90vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
                 cancelText="Close"
                 title={`Compare All - ${totalSupplier} Suppliers`}
                 content={
@@ -627,7 +627,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={tnPricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="font-normal text-[#364153]">
                       m³ Pricing
@@ -636,7 +635,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={m3PricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="font-normal text-[#364153]">
                       20kg Pricing
@@ -645,7 +643,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={kgPricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="font-normal text-[#364153]">
                       Bulka Pricing
@@ -654,7 +651,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={bulkaPricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="text-lg font-semibold text-[#101828]">
                       Truck Rates Comparison
@@ -663,7 +659,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={truckRateComparisonColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                   </div>
                 }
