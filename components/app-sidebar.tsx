@@ -4,7 +4,7 @@ import * as React from 'react';
 import {
   LayoutDashboard,
   Package,
-  Settings2,
+  // Settings2,
   Truck,
   Users,
 } from 'lucide-react';
@@ -90,12 +90,12 @@ export const navItems = [
       },
     ],
   },
-  {
-    title: 'Tenant Management',
-    url: '/system/tenant-management',
-    icon: Settings2,
-    plan: 'ESSENTIAL',
-  },
+  // {
+  //   title: 'Tenant Management',
+  //   url: '/system/tenant-management',
+  //   icon: Settings2,
+  //   plan: 'ESSENTIAL',
+  // },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -106,9 +106,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
-      console.log('🏢 [AppSidebar] Tenant Complete Details:', tenantCompleteDetails);
-      console.log('🏷️ [AppSidebar] Tenant Name:', tenantCompleteDetails.tenantDetails?.tenantName);
-      console.log('📋 [AppSidebar] Subscription Plan:', tenantCompleteDetails.subscriptionAndInvoices?.subscriptions?.subscriptions?.[0]?.subscriptionPlan);
+      console.log(
+        '🏢 [AppSidebar] Tenant Complete Details:',
+        tenantCompleteDetails
+      );
+      console.log(
+        '🏷️ [AppSidebar] Tenant Name:',
+        tenantCompleteDetails.tenantDetails?.tenantName
+      );
+      console.log(
+        '📋 [AppSidebar] Subscription Plan:',
+        tenantCompleteDetails.subscriptionAndInvoices?.subscriptions
+          ?.subscriptions?.[0]?.subscriptionPlan
+      );
     }
   }, [tenantCompleteDetails]);
 
