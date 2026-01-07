@@ -1,4 +1,5 @@
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
+import { Address } from './address';
 
 export interface Customer {
   id: number;
@@ -36,7 +37,7 @@ export interface CustomerDTO {
   contactName: string;
   phone: string;
   email: string;
-  billingAddressId: number;
+  billingAddress: Address;
   creditLimit: number;
   accountManagerSub: string;
   invoiceDueDate: number;

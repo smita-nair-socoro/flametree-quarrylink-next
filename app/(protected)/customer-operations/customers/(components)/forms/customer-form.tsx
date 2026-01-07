@@ -39,6 +39,7 @@ import {
 import { useCreateCustomer, useUpdateCustomer } from '@/lib/api/customer';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import { toAddressPayload } from '@/lib/utils/address-helper';
 
 interface FormProps {
   id?: number;
@@ -114,11 +115,9 @@ export default function CustomerForm({
           ? selectedCustomer.paymentType
           : 'CREDIT',
       business_name: isEditing ? selectedCustomer?.businessName || '' : '',
-      business_email: isEditing
-        ? selectedCustomer?.email || 'buildpty@email.com'
-        : '',
+      business_email: isEditing ? selectedCustomer?.businessEmail || '' : '',
       business_phone: isEditing
-        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
+        ? normalizePhoneNumber(selectedCustomer?.businessPhone || '') || ''
         : '',
       abn: isEditing ? selectedCustomer?.abn || '' : '',
       contact_person_name:
@@ -135,7 +134,7 @@ export default function CustomerForm({
           : '',
       contact_person_email: isEditing ? selectedCustomer?.email || '' : '',
       contact_person_phone: isEditing
-        ? normalizePhoneNumber(selectedCustomer?.phone || '') || '+61429384373'
+        ? normalizePhoneNumber(selectedCustomer?.phone || '') || ''
         : '',
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
@@ -200,8 +199,9 @@ export default function CustomerForm({
         customer_type: selectedCustomer.customerType,
         payment_type: paymentType,
         business_name: selectedCustomer.businessName,
-        business_email: selectedCustomer.email,
-        business_phone: normalizePhoneNumber(selectedCustomer.phone) || '',
+        business_email: selectedCustomer.businessEmail || '',
+        business_phone:
+          normalizePhoneNumber(selectedCustomer.businessPhone) || '',
         abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
         contact_person_name:
           selectedCustomer.customerType === 'INDIVIDUAL'
@@ -304,6 +304,12 @@ export default function CustomerForm({
     try {
       setIsSubmitting(true);
 
+      // Convert address using helper function
+      const billingAddressData = toAddressPayload(
+        address,
+        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null
+      );
+
       // Build the CustomerDTO payload
       const customerData: Partial<CustomerDTO> = {
         customerType:
@@ -312,19 +318,20 @@ export default function CustomerForm({
             : CUSTOMER_TYPE.INDIVIDUAL,
         phone: values.contact_person_phone || '',
         email: values.contact_person_email || '',
-        billingAddressId: 1, // TODO: Get actual billing address ID from address component
+        billingAddress: billingAddressData,
         creditLimit: Math.round(Number(values.credit_limit || 0) * 100), // Convert to cents
         accountManagerSub: values.account_manager,
         invoiceDueDate: values.payment_terms_day || 0,
-        paymentTermType:
-          values.payment_type === 'PREPAID'
-            ? 'N/A'
-            : values.payment_terms || 'DAYSAFTERBILLDATE',
         customerStatus: CUSTOMER_STATUS.ACTIVE,
         jobsCount: 0,
         paymentType: values.payment_type,
         version: isEditing && selectedCustomer ? selectedCustomer.version : 0,
       };
+
+      // Only set paymentTermType for CREDIT payment type
+      if (values.payment_type === 'CREDIT') {
+        customerData.paymentTermType = values.payment_terms || 'DAYSAFTERBILLDATE';
+      }
 
       // Add id for updates
       if (isEditing && id) {
@@ -352,17 +359,16 @@ export default function CustomerForm({
       // Handle INDIVIDUAL type specific fields
       if (values.customer_type === 'INDIVIDUAL') {
         customerData.contactName = values.contact_person_name || '';
-        customerData.businessName = values.contact_person_name || '';
-        customerData.businessEmail = values.contact_person_email || '';
-        customerData.businessPhone = values.contact_person_phone || '';
         customerData.abn = 'N/A';
+        // Default fields for INDIVIDUAL type
+        customerData.dateOfBirth = new Date().toISOString();
+        customerData.govId = '123';
       }
 
       // Handle PREPAID payment type
       if (values.payment_type === 'PREPAID') {
         customerData.creditLimit = 0;
         customerData.invoiceDueDate = 0;
-        customerData.paymentTermType = 'N/A';
       }
 
       console.log('Customer Data Payload:', customerData);
