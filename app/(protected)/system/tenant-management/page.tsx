@@ -133,6 +133,7 @@ export default function ClientPortalPage() {
           facetDefination={facetDefs}
           searchPlaceHolder="Search clients..."
           onRowClick={handleRowClick}
+          defaultSorting={[{ id: 'name', desc: false }]}
         />
       </div>
 

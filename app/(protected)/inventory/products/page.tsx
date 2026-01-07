@@ -9,6 +9,8 @@ import ProductForm from './(components)/forms/product-form';
 import { useQuery } from '@tanstack/react-query';
 import { ProductsListQueryOptions } from '@/lib/api/product';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 import {
   DataTableClient,
@@ -21,6 +23,8 @@ import {
 import { useProductActions } from '@/hooks/use-product-actions';
 
 export default function ProductsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const setSelectedProduct = useProductStore(
     (state) => state.setSelectedProduct
   );
@@ -104,6 +108,28 @@ export default function ProductsPage() {
       } as ProductDetails;
     }) || [];
 
+  const linkedProductIdsParam = searchParams.get('linkedProductIds');
+  const linkedQuarrySupplierIdParam = searchParams.get(
+    'linkedQuarrySupplierId'
+  );
+  const linkedQuarrySupplierNameParam = searchParams.get(
+    'linkedQuarrySupplierName'
+  );
+
+  const linkedProductIdsSet = React.useMemo(() => {
+    if (!linkedProductIdsParam) return null;
+    const ids = linkedProductIdsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return new Set(ids);
+  }, [linkedProductIdsParam]);
+
+  const filteredItems = React.useMemo(() => {
+    if (!linkedProductIdsSet) return items;
+    return items.filter((p) => linkedProductIdsSet.has(p.id));
+  }, [items, linkedProductIdsSet]);
+
   const facetDefs: FacetDefinition[] = [
     { column: 'material_type', title: 'Material Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
@@ -114,9 +140,8 @@ export default function ProductsPage() {
       {confirmDialogs}
       {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <h1 className="text-2xl">Products</h1>
-        </div>
+        <h1 className="text-2xl">Products</h1>
+
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product">
             <ProductForm />
@@ -138,14 +163,48 @@ export default function ProductsPage() {
             <div className="text-center">Error loading products</div>
           </div>
         ) : (
-          <DataTableClient
-            tableId="product_main_data_table"
-            data={items ?? []}
-            columns={productColumns}
-            facetDefination={facetDefs}
-            searchPlaceHolder="Search products..."
-            onRowClick={handleRowClick}
-          />
+          <>
+            <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
+              {linkedProductIdsSet && (
+                <div className="mt-1 text-sm text-muted-foreground">
+                  <span>Showing linked products</span>
+                  {linkedQuarrySupplierNameParam ? (
+                    <>
+                      <span>{' for '}</span>
+                      <span className="font-semibold text-foreground">
+                        {linkedQuarrySupplierNameParam}
+                      </span>
+                    </>
+                  ) : linkedQuarrySupplierIdParam ? (
+                    <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
+                  ) : null}
+                </div>
+              )}
+              {linkedProductIdsSet && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push('/inventory/products')}
+                >
+                  Reset Filter
+                </Button>
+              )}
+            </div>
+
+            <DataTableClient
+              tableId={
+                linkedProductIdsSet
+                  ? `product_linked_${linkedQuarrySupplierIdParam ?? 'unknown'}`
+                  : 'product_main_data_table'
+              }
+              data={filteredItems ?? []}
+              columns={productColumns}
+              facetDefination={facetDefs}
+              searchPlaceHolder="Search products..."
+              onRowClick={handleRowClick}
+              defaultSorting={[{ id: 'product_name', desc: false }]}
+            />
+          </>
         )}
       </div>
     </div>

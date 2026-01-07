@@ -184,6 +184,7 @@ export default function QuotationsPage() {
             onRowClick={handleRowClick}
             enableRowSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
+            defaultSorting={[{ id: 'created_at', desc: true }]}
             // bulkActions={true}
             bulkActionsSlot={
               <QuotationBulkActions

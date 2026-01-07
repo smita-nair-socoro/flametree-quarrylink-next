@@ -115,3 +115,11 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
     },
   });
 };
+
+export const LinkedProductsQueryOptions = (quarryId: number) =>
+  queryOptions({
+    queryKey: QuarryKeys.linkedProducts(quarryId),
+    queryFn: () => APIClient.quarries.linkedProducts(quarryId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });

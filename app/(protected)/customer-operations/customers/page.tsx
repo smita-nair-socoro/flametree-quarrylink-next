@@ -193,6 +193,7 @@ export default function CustomersPage() {
               facetDefination={facetDefs}
               searchPlaceHolder="Search customers..."
               onRowClick={handleRowClick}
+              defaultSorting={[{ id: 'customer_name', desc: false }]}
             />
           </div>
         )}
