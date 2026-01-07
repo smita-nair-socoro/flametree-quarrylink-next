@@ -8,6 +8,7 @@ import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
 import { QUOTE_STATUS, QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 
 // Type matching the mockQuotationData structure
 export interface QuotationData {
@@ -66,18 +67,20 @@ export interface QuotePdfDocumentProps {
   data: QuotationData;
   quoteId: string;
   baseUrl?: string;
+  tenantDetails?: StripeTenantDetailsSnapshot;
 }
 
 export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
   data,
   quoteId,
   baseUrl,
+  tenantDetails,
 }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page} wrap>
         {/* Fixed Header */}
-        <QuoteNavbarPdf {...data.navbar} />
+        <QuoteNavbarPdf {...data.navbar} tenantDetails={tenantDetails} />
 
         {/* Main Content */}
         <View style={styles.content}>

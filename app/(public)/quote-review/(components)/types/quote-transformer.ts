@@ -130,9 +130,10 @@ export function transformQuoteData(
       validUntil: formatDate(expiryDate),
       accountManager: accountManagerName || 'N/A',
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
+      tenantDetails: stripeTenantDetailsSnapshot,
     },
     customer: {
-      customerName: customerName || 'N/A',
+      customerName: customerDto?.contactName || customerName || 'N/A',
       email: customerEmail || customerDto?.email || 'N/A',
       phone: customerPhone || customerDto?.phone || 'N/A',
       billingAddress: {
