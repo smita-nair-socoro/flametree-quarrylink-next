@@ -202,7 +202,8 @@ export default function CustomerForm({
         setAddress({
           address1: selectedCustomer.billingAddress.streetDetailsPrimary || '',
           address2: selectedCustomer.billingAddress.streetDetailsOptional || '',
-          formattedAddress: selectedCustomer.billingAddress.formattedAddress || '',
+          formattedAddress:
+            selectedCustomer.billingAddress.formattedAddress || '',
           city: selectedCustomer.billingAddress.city || '',
           region: selectedCustomer.billingAddress.state || '',
           postalCode: selectedCustomer.billingAddress.postcode || '',
@@ -246,7 +247,8 @@ export default function CustomerForm({
             ? ''
             : selectedCustomer.paymentTermType,
         account_manager: selectedCustomer.accountManagerSub,
-        billing_address: selectedCustomer.billingAddress?.formattedAddress || '',
+        billing_address:
+          selectedCustomer.billingAddress?.formattedAddress || '',
         created_at: selectedCustomer.createdAt
           ? new Date(selectedCustomer.createdAt)
           : undefined,
@@ -348,7 +350,8 @@ export default function CustomerForm({
 
       // Only set paymentTermType for CREDIT payment type
       if (values.payment_type === 'CREDIT') {
-        customerData.paymentTermType = values.payment_terms || 'DAYSAFTERBILLDATE';
+        customerData.paymentTermType =
+          values.payment_terms || 'DAYSAFTERBILLDATE';
       }
 
       // Add id for updates
@@ -435,15 +438,16 @@ export default function CustomerForm({
         return;
       }
 
-      // Duplicate contact email (HTTP 409)
-      const duplicateContactEmailPhrase = `Key (contact_person_email)=(${values.contact_person_email}) already exists`;
+      // Duplicate contact email - Check both the specific key format and constraint name
+      const emailKeyPattern = `Key (email)=(${values.contact_person_email}) already exists`;
       const isDuplicateContactEmail =
         codeStr === '409' &&
         typeof messageFromErr === 'string' &&
-        messageFromErr.includes(duplicateContactEmailPhrase);
+        (messageFromErr.includes(emailKeyPattern) ||
+          messageFromErr.includes('customers_email_key'));
 
       if (isDuplicateContactEmail) {
-        const msg = `Duplicate contact email "${values.contact_person_email}" already exists.`;
+        const msg = 'The contact person email already exists.';
         notifyError(msg);
         customerForm.setError('contact_person_email', {
           type: 'manual',
