@@ -38,6 +38,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { addNewRecordId } from '@/lib/utils';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -220,6 +221,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         // Create new product
         const createdProduct = await createProduct.mutateAsync(payload);
         console.log('Product created successfully!', createdProduct);
+
+        // Add the new record ID to sessionStorage for highlighting
+        if (createdProduct && typeof createdProduct.id === 'number') {
+          addNewRecordId('product_main_data_table', createdProduct.id);
+        }
 
         // Store the created product ID and mark as just created
         if (
@@ -673,6 +679,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       : []
                   }
                   simpleTable={true}
+                  defaultSorting={[{ id: 'name', desc: false }]}
                 />
               </div>
 

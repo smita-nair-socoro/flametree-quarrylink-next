@@ -40,6 +40,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { addNewRecordId } from '@/lib/utils';
 
 interface FormProps {
   id?: number;
@@ -390,7 +391,12 @@ export default function QuarrySupplierForm({
           );
         } else {
           // Create new quarry/supplier
-          await createQuarryMutation.mutateAsync(quarrySupplierData);
+          const newQuarrySupplier = await createQuarryMutation.mutateAsync(quarrySupplierData);
+
+          // Add the new record ID to sessionStorage for highlighting
+          if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
+            addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
+          }
 
           notifySuccess(
             `${

@@ -183,6 +183,7 @@ export default function TeamAdminTab() {
                   onRowClick={handleRowClick}
                   useColumnSizing={true}
                   isShowHideColumns={false}
+                  defaultSorting={[{ id: 'name', desc: false }]}
                 />
               </div>
             )}
