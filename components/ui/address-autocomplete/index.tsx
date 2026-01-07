@@ -15,6 +15,13 @@ import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import { cn } from '@/lib/utils';
+
+type RHFAriaProps = {
+  id?: string;
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string;
+};
 
 interface AddressAutoCompleteProps {
   address: AddressType;
@@ -30,6 +37,8 @@ interface AddressAutoCompleteProps {
   onBlur?: () => void;
   name?: string;
   readOnly?: boolean;
+  // Forwarded from `FormControl` (react-hook-form + shadcn)
+  rhfAriaProps?: RHFAriaProps;
 }
 
 interface AutocompleteSuggestion {
@@ -92,7 +101,17 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     onChange,
     onBlur,
     readOnly,
+    rhfAriaProps,
   } = props;
+
+  // Also support `FormControl` passing aria props directly (via Radix Slot)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const directAria = props as any;
+  const ariaInvalid: boolean | undefined =
+    rhfAriaProps?.['aria-invalid'] ?? directAria['aria-invalid'];
+  const ariaDescribedBy: string | undefined =
+    rhfAriaProps?.['aria-describedby'] ?? directAria['aria-describedby'];
+  const inputId: string | undefined = rhfAriaProps?.id ?? directAria.id;
 
   const [selectedPlaceId, setSelectedPlaceId] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -262,6 +281,9 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             value={address?.formattedAddress}
             readOnly
             disabled={readOnly}
+            id={inputId}
+            aria-invalid={ariaInvalid}
+            aria-describedby={ariaDescribedBy}
           />
           <AddressDialog
             isLoading={detailsLoading}
@@ -304,6 +326,9 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           onManualEntry={handleManualEntry}
           onBlur={onBlur}
           readOnly={readOnly}
+          ariaInvalid={ariaInvalid}
+          ariaDescribedBy={ariaDescribedBy}
+          inputId={inputId}
         />
       )}
     </>
@@ -321,6 +346,9 @@ interface CommonProps {
   onManualEntry: () => void;
   onBlur?: () => void;
   readOnly?: boolean;
+  ariaInvalid?: boolean;
+  ariaDescribedBy?: string;
+  inputId?: string;
 }
 
 function AddressAutoCompleteInput(props: CommonProps) {
@@ -335,6 +363,9 @@ function AddressAutoCompleteInput(props: CommonProps) {
     onManualEntry,
     onBlur,
     readOnly,
+    ariaInvalid,
+    ariaDescribedBy,
+    inputId,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -427,10 +458,21 @@ function AddressAutoCompleteInput(props: CommonProps) {
       onKeyDown={handleKeyDown}
       className="overflow-visible"
     >
-      <div className="flex h-9 w-full items-center rounded-md border border-input px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring md:text-sm">
+      <div
+        aria-invalid={ariaInvalid}
+        className={cn(
+          'flex h-9 w-full items-center rounded-md border border-input px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring md:text-sm',
+          ariaInvalid
+            ? 'border-destructive focus-within:border-destructive focus-within:ring-destructive/20'
+            : null
+        )}
+      >
         <CommandPrimitive.Input
           value={searchInput}
           onValueChange={setSearchInput}
+          id={inputId}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           onBlur={() => {
             close();
             if (onBlur) {

@@ -76,10 +76,10 @@ export function CustomerActionButtons({
                     </DropdownMenuItem>
                   </>
                 )}
-                <DropdownMenuItem onClick={actions.viewQuotations}>
+                {/* <DropdownMenuItem onClick={actions.viewQuotations}>
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 {/* <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
@@ -114,7 +114,7 @@ export function CustomerActionButtons({
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {/* Primary button - conditional based on role */}
 
-        <Button
+        {/* <Button
           variant="ghost"
           size="sm"
           onClick={actions.viewQuotations}
@@ -122,7 +122,7 @@ export function CustomerActionButtons({
         >
           <Eye className="h-4 w-4 mr-2" />
           View Quotations
-        </Button>
+        </Button> */}
         {!isEssentials && (
           <Button
             variant="ghost"
