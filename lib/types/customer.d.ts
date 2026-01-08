@@ -78,3 +78,14 @@ export interface CustomerDTO {
 export interface CustomerDetails extends Customer {
   jobs: Job[];
 }
+
+export interface CustomerReporting {
+  totalCustomers: number;
+  totalCustomersChangePercentThisMonth: number;
+  totalActiveCustomers: number;
+  activeCustomersPercentOfTotal: number;
+  totalActiveBusinessCustomers: number;
+  businessCustomerQuotesPercent: number;
+  totalActiveIndividualCustomers: number;
+  individualCustomerQuotesPercent: number;
+}

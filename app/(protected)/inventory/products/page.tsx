@@ -7,10 +7,14 @@ import { Plus, Gem, PackageX, TrendingUp, Package } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery } from '@tanstack/react-query';
-import { ProductsListQueryOptions } from '@/lib/api/product';
+import {
+  ProductsListQueryOptions,
+  ProductReportingQueryOptions,
+} from '@/lib/api/product';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { centsToDollars } from '@/lib/utils/currency';
 
 import {
   DataTableClient,
@@ -31,44 +35,6 @@ export default function ProductsPage() {
   const selectedProductForActions = useSelectedProduct();
 
   // Statistics cards data
-  const statsCards: StatsCardData[] = [
-    {
-      title: 'Highest Revenue Product',
-      value: 'Premium Granite',
-      description: '$287,450 this month',
-      icon: Gem,
-      iconBgColor: 'bg-[#FEF3C6]',
-      iconColor: 'text-[#733E0A]',
-      descriptionColor: 'text-[#737373]',
-    },
-    {
-      title: 'Unavailable Products',
-      value: 12,
-      description: '8% of inventory',
-      icon: PackageX,
-      iconBgColor: 'bg-[#FFE2E2]',
-      iconColor: 'text-[#9F0712]',
-      descriptionColor: 'text-[#737373]',
-    },
-    {
-      title: 'Average Product Margin',
-      value: '34.5%',
-      description: '+2.3% vs last month',
-      icon: TrendingUp,
-      iconBgColor: 'bg-[#D0FAE5]',
-      iconColor: 'text-[#00A63E]',
-      descriptionColor: 'text-[#00A63E]',
-    },
-    {
-      title: 'Total Products',
-      value: 156,
-      description: '+8 added this month',
-      icon: Package,
-      iconBgColor: 'bg-[#CEFAFE]',
-      iconColor: 'text-[#0891B2]',
-      descriptionColor: 'text-[#00A63E]',
-    },
-  ];
 
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     selectedProductForActions?.id,
@@ -82,6 +48,55 @@ export default function ProductsPage() {
     error,
     isError,
   } = useQuery(ProductsListQueryOptions());
+
+  const { data: reportingData } = useQuery(ProductReportingQueryOptions());
+
+  const statsCards: StatsCardData[] = [
+    {
+      title: 'Highest Revenue Product',
+      value: reportingData?.mostQuotedProductName || '',
+      description: `${centsToDollars(
+        reportingData?.mostQuotedProductValueThisMonth || 0
+      )} this month`,
+      icon: Gem,
+      iconBgColor: 'bg-[#FEF3C6]',
+      iconColor: 'text-[#733E0A]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Unavailable Products',
+      value: reportingData?.unavailableProductsCount || 0,
+      description: `${
+        reportingData?.unavailableProductsPercentOfInventory || 0
+      }% of inventory`,
+      icon: PackageX,
+      iconBgColor: 'bg-[#FFE2E2]',
+      iconColor: 'text-[#9F0712]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Average Product Margin',
+      value: `${reportingData?.averageProductMarginThisMonth || 0}%`,
+      description: `${
+        reportingData?.averageProductMarginChangePercent || 0
+      }% vs last month`,
+      icon: TrendingUp,
+      iconBgColor: 'bg-[#D0FAE5]',
+      iconColor: 'text-[#00A63E]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+    {
+      title: 'Total Products',
+      value: reportingData?.totalProducts || 0,
+      description: `+${
+        reportingData?.productsAddedThisMonth || 0
+      } added this month`,
+      icon: Package,
+      iconBgColor: 'bg-[#CEFAFE]',
+      iconColor: 'text-[#0891B2]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+  ];
 
   React.useEffect(() => {
     if (isError && error) {

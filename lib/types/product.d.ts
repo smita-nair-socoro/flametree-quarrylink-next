@@ -123,3 +123,14 @@ export interface ProductDetails extends Product {
   quotes: Quotation[];
   jobs: JobDetails[];
 }
+
+export interface ProductReporting {
+  mostQuotedProductName: string;
+  mostQuotedProductValueThisMonth: number;
+  unavailableProductsCount: number;
+  unavailableProductsPercentOfInventory: number;
+  averageProductMarginThisMonth: number;
+  averageProductMarginChangePercent: number;
+  totalProducts: number;
+  productsAddedThisMonth: number;
+}

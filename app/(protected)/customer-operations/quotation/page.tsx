@@ -21,8 +21,12 @@ import QuotationForm from './(components)/forms/quotation-form';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { useQuery } from '@tanstack/react-query';
-import { QuotationsListQueryOptions } from '@/lib/api/quotation';
+import {
+  QuotationsListQueryOptions,
+  QuotationReportingQueryOptions,
+} from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { centsToDollars } from '@/lib/utils/currency';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -46,7 +50,7 @@ export default function QuotationsPage() {
     })) as Quotation[];
   }, [quotationsData]);
 
-  console.log('items', items);
+  const { data: reportingData } = useQuery(QuotationReportingQueryOptions());
 
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation
@@ -67,8 +71,10 @@ export default function QuotationsPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Quotations',
-      value: 15,
-      description: '+25% vs last month',
+      value: reportingData?.totalQuotesRaisedThisMonth || 0,
+      description: `${
+        reportingData?.totalQuotesPercentageChangeVsLastMonth || 0
+      }% vs last month`,
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#193CB8]',
@@ -76,7 +82,7 @@ export default function QuotationsPage() {
     },
     {
       title: 'Pending Approval',
-      value: 3,
+      value: reportingData?.totalPendingQuotes || 0,
       description: 'Need attention',
       icon: AlertCircle,
       iconBgColor: 'bg-[#FEF9C2]',
@@ -85,8 +91,12 @@ export default function QuotationsPage() {
     },
     {
       title: 'Total Quote Value',
-      value: '$1,043,570',
-      description: '+15% vs last month',
+      value: centsToDollars(
+        reportingData?.totalValueOfQuotesRaisedThisMonth || 0
+      ),
+      description: `${
+        reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0
+      }% vs last month`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0D542B]',
@@ -94,7 +104,7 @@ export default function QuotationsPage() {
     },
     {
       title: 'Expiring Soon',
-      value: 0,
+      value: reportingData?.totalQuotesExpiringIn7Days || 0,
       description: 'Within 7 days',
       icon: Clock,
       iconBgColor: 'bg-[#FFE4E6]',

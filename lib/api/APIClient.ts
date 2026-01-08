@@ -1,12 +1,22 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
-import { LinkedProduct, Product, ProductDetails } from '../types/product';
-import { CustomerDTO } from '../types/customer';
-import { Quarry, QuarrySupplierProduct } from '../types/quarry';
+import {
+  LinkedProduct,
+  Product,
+  ProductDetails,
+  ProductReporting,
+} from '../types/product';
+import { CustomerDTO, CustomerReporting } from '../types/customer';
+import {
+  Quarry,
+  QuarryReporting,
+  QuarrySupplierProduct,
+} from '../types/quarry';
 import {
   PublicQuoteLinkResponse,
   QuotationDTO,
   QuotationLineItem,
+  QuotationReporting,
 } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
@@ -390,6 +400,10 @@ const appClient = {
 
 export const APIClient = {
   products: {
+    reporting: () =>
+      appClient.Get<ProductReporting>(
+        `/socoro/quarrylink/api/product/reporting`
+      ),
     getAll: () =>
       appClient.Get<ProductDetails[]>(
         `/socoro/quarrylink/api/product/material`
@@ -430,6 +444,10 @@ export const APIClient = {
     },
   },
   quarries: {
+    reporting: () =>
+      appClient.Get<QuarryReporting>(
+        `/socoro/quarrylink/api/quarries/reporting`
+      ),
     getAll: async () => {
       const quarries = await appClient.Get<Quarry[]>(
         `/socoro/quarrylink/api/quarries`
@@ -543,6 +561,10 @@ export const APIClient = {
   },
 
   customers: {
+    reporting: () =>
+      appClient.Get<CustomerReporting>(
+        `/socoro/quarrylink/api/customer/reporting`
+      ),
     getAll: () =>
       appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
@@ -560,6 +582,10 @@ export const APIClient = {
   },
 
   quotations: {
+    reporting: () =>
+      appClient.Get<QuotationReporting>(
+        `/socoro/quarrylink/api/quote/reporting`
+      ),
     /**
      * Public quotation retrieval using token from quote email link.
      * This endpoint must remain unauthenticated because customers are not logged in.
