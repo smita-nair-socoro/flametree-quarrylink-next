@@ -339,6 +339,16 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       | QuarrySupplierProductDetailExt
       | undefined;
     if (!qsp) return;
+
+    // In edit mode, don't overwrite existing price unless UOM actually changed
+    if (isEditing) {
+      const initialUom = selectedLineItem?.productCostUom || '';
+      const currentUom = form.getValues('productCostUom') || '';
+      if (currentUom === initialUom) {
+        return;
+      }
+    }
+
     let price = 0;
     switch (productCostUom) {
       case 'TN':
@@ -357,13 +367,29 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         price = 0;
     }
     form.setValue('productCostPrice', price || 0);
-  }, [productCostUom, selectedQuarrySupplierProduct, form]);
+  }, [
+    productCostUom,
+    selectedQuarrySupplierProduct,
+    form,
+    isEditing,
+    selectedLineItem?.productCostUom,
+  ]);
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProductDetailExt
       | undefined;
     if (!qsp) return;
+
+    // In edit mode, don't overwrite existing price unless UOM actually changed
+    if (isEditing) {
+      const initialUom = selectedLineItem?.productSellUom || '';
+      const currentUom = form.getValues('productSellUom') || '';
+      if (currentUom === initialUom) {
+        return;
+      }
+    }
+
     let price = 0;
     switch (productSellUom) {
       case 'TN':
@@ -382,7 +408,13 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         price = 0;
     }
     form.setValue('productSellPrice', price || 0);
-  }, [productSellUom, selectedQuarrySupplierProduct, form]);
+  }, [
+    productSellUom,
+    selectedQuarrySupplierProduct,
+    form,
+    isEditing,
+    selectedLineItem?.productSellUom,
+  ]);
 
   // Auto-fill truck pricing on UOM changes
   const truckCostUom = form.watch('truckCostUom');
@@ -393,6 +425,16 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       | QuarrySupplierProductDetailExt
       | undefined;
     if (!qsp) return;
+
+    // In edit mode, don't overwrite existing price unless UOM actually changed
+    if (isEditing) {
+      const initialUom = selectedLineItem?.truckCostUom || '';
+      const currentUom = form.getValues('truckCostUom') || '';
+      if (currentUom === initialUom) {
+        return;
+      }
+    }
+
     let rate = 0;
     switch (truckCostUom) {
       case 'TN':
@@ -411,13 +453,29 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         rate = 0;
     }
     form.setValue('truckCostPrice', rate || 0);
-  }, [truckCostUom, selectedQuarrySupplierProduct, form]);
+  }, [
+    truckCostUom,
+    selectedQuarrySupplierProduct,
+    form,
+    isEditing,
+    selectedLineItem?.truckCostUom,
+  ]);
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProductDetailExt
       | undefined;
     if (!qsp) return;
+
+    // In edit mode, don't overwrite existing price unless UOM actually changed
+    if (isEditing) {
+      const initialUom = selectedLineItem?.truckSellUom || '';
+      const currentUom = form.getValues('truckSellUom') || '';
+      if (currentUom === initialUom) {
+        return;
+      }
+    }
+
     let rate = 0;
     switch (truckSellUom) {
       case 'TN':
@@ -436,7 +494,13 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         rate = 0;
     }
     form.setValue('truckSellPrice', rate || 0);
-  }, [truckSellUom, selectedQuarrySupplierProduct, form]);
+  }, [
+    truckSellUom,
+    selectedQuarrySupplierProduct,
+    form,
+    isEditing,
+    selectedLineItem?.truckSellUom,
+  ]);
 
   // Reset truck UOMs when truck type changes
   const truckType = form.watch('truckType');
