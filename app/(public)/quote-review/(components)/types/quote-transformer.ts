@@ -6,6 +6,7 @@ import {
   QUOTE_STATUS as QuoteStatus,
   QUOTE_TYPE as QuoteType,
 } from '@/lib/types/quotation-enums';
+import { formatAustralianAddress } from '@/lib/utils/address-helper';
 
 /**
  * Format date to readable string like "15th July, 2026"
@@ -113,16 +114,16 @@ export function transformQuoteData(
     ? `${quoteItems.reduce((sum, item) => sum + (item.productSellQty || 0), 0)} ${quoteItems[0]?.productSellUom || 'units'}`
     : '0 units';
 
-  // Format billing address from stripeTenantDetailsSnapshot
-  const billingAddressParts =
-    stripeTenantDetailsSnapshot?.billingAddress?.split(',') || [];
+  // Format billing address from stripeTenantDetailsSnapshot using Australian standard
+  const billingAddressFormatted = formatAustralianAddress(
+    stripeTenantDetailsSnapshot?.billingAddress
+  );
   const billingAddressLine1 =
-    billingAddressParts[0] || 'Suite 1102/132 Arthur St';
-  const billingAddressLine2 = billingAddressParts
-    .slice(1)
-    .join(',')
-    .replace(/,?\s*AU\s*$/i, '')
-    .trim() || 'North Sydney NSW 2060';
+    billingAddressFormatted?.line1 || 'Suite 1102/132 Arthur St';
+  const billingAddressLine2 =
+    billingAddressFormatted?.line2 || 'NORTH SYDNEY NSW 2060';
+  const billingAddressLine3 =
+    billingAddressFormatted?.line3 || 'AUSTRALIA';
 
   // Determine customer display name based on customer type
   let customerDisplayName: string;
@@ -154,13 +155,22 @@ export function transformQuoteData(
       billingAddress: {
         line1: billingAddressLine1,
         line2: billingAddressLine2,
-        country: 'Australia',
+        line3: billingAddressLine3,
       },
     },
     project: {
       type: (quoteType as QuoteType) || QuoteType.DELIVERY,
       projectName: projectName || 'N/A',
-      deliveryAddress: deliveryAddress?.formattedAddress || 'N/A',
+      deliveryAddress: (() => {
+        const formatted = formatAustralianAddress(
+          deliveryAddress?.formattedAddress
+        );
+        if (!formatted) return 'N/A';
+        // Return multi-line string (will be displayed with white-space: pre-line CSS)
+        const lines = [formatted.line1, formatted.line2, formatted.line3]
+          .filter(Boolean);
+        return lines.length > 0 ? lines.join('\n') : 'N/A';
+      })(),
       deliveryDate: formatDate(deliveryStartDate),
       deliveryWindow: formatDeliveryWindow(
         deliveryWindowStart,
@@ -184,24 +194,28 @@ export function transformQuoteData(
       validUntil: formatDate(expiryDate),
       accountManager: accountManagerName || 'N/A',
     },
-    footer: {
-      email:
-        stripeTenantDetailsSnapshot?.email || 'support@quarrylink.com.au',
-      phone: stripeTenantDetailsSnapshot?.contactNumber || '(02) 7229 1427',
-      addressLine1:
-        stripeTenantDetailsSnapshot?.billingAddress?.split(',')[0] ||
-        'Suite 1102/132 Arthur St,',
-      addressLine2:
+    footer: (() => {
+      // Format footer address using Australian standard (same as billing address)
+      const footerAddressFormatted = formatAustralianAddress(
         stripeTenantDetailsSnapshot?.billingAddress
-          ?.split(',')
-          .slice(1)
-          .join(',') || 'North Sydney NSW 2060',
-      website:
-        stripeTenantDetailsSnapshot?.website || 'www.quarrylink.com.au',
-      businessName:
-        stripeTenantDetailsSnapshot?.businessName ||
-        stripeTenantDetailsSnapshot?.tenantName ||
-        'QuarryLink',
-    },
+      );
+      return {
+        email:
+          stripeTenantDetailsSnapshot?.email || 'support@quarrylink.com.au',
+        phone: stripeTenantDetailsSnapshot?.contactNumber || '(02) 7229 1427',
+        addressLine1:
+          footerAddressFormatted?.line1 || 'Suite 1102/132 Arthur St',
+        addressLine2:
+          footerAddressFormatted?.line2 || 'NORTH SYDNEY NSW 2060',
+        addressLine3:
+          footerAddressFormatted?.line3 || 'AUSTRALIA',
+        website:
+          stripeTenantDetailsSnapshot?.website || 'www.quarrylink.com.au',
+        businessName:
+          stripeTenantDetailsSnapshot?.businessName ||
+          stripeTenantDetailsSnapshot?.tenantName ||
+          'QuarryLink',
+      };
+    })(),
   };
 }

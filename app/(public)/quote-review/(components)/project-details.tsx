@@ -45,7 +45,7 @@ export function ProjectDetails({
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
             Delivery Address
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 whitespace-pre-line">
             {deliveryAddress}
           </p>
         </div>

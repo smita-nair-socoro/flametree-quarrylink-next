@@ -9,7 +9,7 @@ export interface CustomerInformationProps {
   billingAddress: {
     line1: string;
     line2: string;
-    country: string;
+    line3: string;
   };
 }
 
@@ -48,7 +48,7 @@ export function CustomerInformation({
           <div className="text-sm text-gray-600 space-y-1">
             <p>{billingAddress.line1}</p>
             <p>{billingAddress.line2}</p>
-            <p>{billingAddress.country}</p>
+            <p>{billingAddress.line3}</p>
           </div>
         </div>
       </div>
