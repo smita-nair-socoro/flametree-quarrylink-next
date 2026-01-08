@@ -18,6 +18,7 @@ import { useDeleteProduct, useUpdateProduct } from '@/lib/api/product';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useProductStore } from '@/app/stores/product-store';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
+import Link from 'next/link';
 
 interface DialogConfig {
   title?: string;
@@ -41,6 +42,7 @@ interface SelectedAction {
 }
 
 interface BlockingQuote {
+  id?: number;
   quoteNumber: string;
   lineItemsCount: number;
 }
@@ -55,8 +57,18 @@ const getDialogConfigs = (
   const productStatus = productData?.isActive ? 'Available' : 'Unavailable';
 
   const blockingQuoteLength = blockingQuotes?.length ?? 0;
-  const blockingQuoteIds =
+  const blockingQuoteNumbers =
     blockingQuotes?.map((quote: BlockingQuote) => quote.quoteNumber) ?? [];
+  const blockingQuoteIdList =
+    blockingQuotes
+      ?.map((quote) => (typeof quote.id === 'number' ? quote.id : null))
+      .filter((v): v is number => Number.isFinite(v as number)) ?? [];
+  const blockingHref =
+    blockingQuoteIdList.length > 0
+      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
+          blockingQuoteIdList.join(',')
+        )}`
+      : undefined;
 
   if (selectedAction?.key === 'unavailable') {
     return {
@@ -296,12 +308,28 @@ const getDialogConfigs = (
                 Active Usage:
               </span>
               <div className="bg-[#FFF7ED] border border-[#FFD6A7] rounded-md p-3">
-                <span className="text-[14px] text-[#364153] font-normal">
-                  {blockingQuoteLength} active quotes:{' '}
-                </span>
-                <span className="text-[14px] text-[#155DFC] font-medium underline">
-                  {blockingQuoteIds.join(', ')}
-                </span>
+                {blockingHref ? (
+                  <>
+                    <Link
+                      href={blockingHref}
+                      className="text-[15px] text-[#155DFC] font-medium"
+                    >
+                      <span className="text-[15px] text-blue-700 font-normal ">
+                        {blockingQuoteLength} active quotes:{' '}
+                      </span>
+                    </Link>
+                    <span>{blockingQuoteNumbers.join(', ')}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[14px] text-[#364153] font-normal">
+                      {blockingQuoteLength} active quotes:{' '}
+                    </span>
+                    <span className="text-[14px] text-[#155DFC] font-medium underline">
+                      {blockingQuoteNumbers.join(', ')}
+                    </span>
+                  </>
+                )}
               </div>
               <div className="border-1 border-[#BEDBFF] bg-[#EFF6FF] rounded-md p-3 ">
                 <div className="flex justify-start gap-2">
