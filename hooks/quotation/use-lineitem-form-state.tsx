@@ -69,7 +69,6 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   const quoteType = selectedQuotation?.quoteType;
   const createQuoteItem = useCreateQuoteItem();
   const updateQuoteItem = useUpdateQuoteItem();
-  console.log('selectedLineItem', selectedLineItem);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(NewQuotationLineItemFormSchema),
