@@ -28,6 +28,8 @@ import {
   UserDelete,
   UserUpdateDTO,
   UserDependencies,
+  ChangePasswordRequest,
+  PasswordChangeResponse,
 } from '../types/user';
 import {
   SubscriptionsAndInvoices,
@@ -765,6 +767,13 @@ export const APIClient = {
     getDependencies: (id: string) =>
       appClient.Get<UserDependencies>(
         `/socoro/quarrylink/api/users/${id}/dependencies`
+      ),
+    changePassword: (data: ChangePasswordRequest) =>
+      appClient.Patch<PasswordChangeResponse>(
+        '/socoro/quarrylink/api/users/password',
+        {
+          body: data,
+        }
       ),
   },
 

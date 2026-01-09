@@ -6,7 +6,12 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { UserKeys } from './keys';
-import { UserCreateDTO, UserDelete, UserUpdateDTO } from '../types/user';
+import {
+  UserCreateDTO,
+  UserDelete,
+  UserUpdateDTO,
+  ChangePasswordRequest,
+} from '../types/user';
 
 export const UsersListQueryOptions = () =>
   queryOptions({
@@ -82,3 +87,13 @@ export const useGetUserDependencies = (id: string) =>
     staleTime: 5_000,
     enabled: !!id,
   });
+
+/**
+ * Mutation hook for changing user password.
+ */
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: (data: ChangePasswordRequest) =>
+      APIClient.users.changePassword(data),
+  });
+};

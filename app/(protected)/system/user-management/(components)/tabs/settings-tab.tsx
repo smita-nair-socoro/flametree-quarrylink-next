@@ -25,7 +25,11 @@ import { Label } from '@/components/ui/label';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
-import { UserDetailQueryOptions, useUpdateUser } from '@/lib/api/user';
+import {
+  UserDetailQueryOptions,
+  useUpdateUser,
+  useChangePassword,
+} from '@/lib/api/user';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -43,6 +47,9 @@ export default function SettingsTab() {
 
   // Use update user mutation
   const updateUserMutation = useUpdateUser();
+
+  // Use change password mutation
+  const changePasswordMutation = useChangePassword();
 
   const settingsForm = useForm<z.infer<typeof PersonalInformationSchema>>({
     resolver: zodResolver(PersonalInformationSchema),
@@ -170,7 +177,12 @@ export default function SettingsTab() {
 
     try {
       setIsSubmitting(true);
-      console.log('Password change values:', values);
+
+      // Call the API to change password
+      await changePasswordMutation.mutateAsync({
+        oldPassword: values.current_password,
+        newPassword: values.new_password,
+      });
 
       notifySuccess('Password Changed');
       changePasswordForm.reset();
