@@ -30,6 +30,7 @@ import {
   UserDependencies,
   ChangePasswordRequest,
   PasswordChangeResponse,
+  PasswordResetResponse,
 } from '../types/user';
 import {
   SubscriptionsAndInvoices,
@@ -774,6 +775,10 @@ export const APIClient = {
         {
           body: data,
         }
+      ),
+    resetPasswordBySuperAdmin: (id: string) =>
+      appClient.Post<PasswordResetResponse>(
+        `/socoro/quarrylink/api/users/${id}/reset-password`
       ),
   },
 

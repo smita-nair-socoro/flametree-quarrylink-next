@@ -13,6 +13,7 @@ import {
   useDeleteUser,
   useGetUserDependencies,
   UsersListQueryOptions,
+  useResetPasswordBySuperAdmin,
 } from '@/lib/api/user';
 import { notifyError, notifySuccess } from '@/lib/toast';
 
@@ -51,6 +52,7 @@ export function useTeamMemberActions(
   } = useQuery(useGetUserDependencies(teamMemberId || ''));
 
   const deleteUserMutation = useDeleteUser();
+  const resetPasswordMutation = useResetPasswordBySuperAdmin();
 
   // State for delete with dependencies form
   const [accountManagerReassignTo, setAccountManagerReassignTo] =
@@ -326,9 +328,19 @@ export function useTeamMemberActions(
     viewEdit: () => {
       setViewOpen(true);
     },
-    resetPassword: () => {
-      // TODO: Implement reset password functionality
-      console.log('Reset password for user:', teamMemberData);
+    resetPassword: async () => {
+      if (!teamMemberId) {
+        notifyError('User not found');
+        return;
+      }
+
+      try {
+        await resetPasswordMutation.mutateAsync(teamMemberId);
+        notifySuccess('Password reset successfully');
+      } catch (error) {
+        console.error('Error resetting password:', error);
+        notifyError('Failed to reset password');
+      }
     },
     resendInvitation: () => {
       // TODO: Implement resend invitation functionality

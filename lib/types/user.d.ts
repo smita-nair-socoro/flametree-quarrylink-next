@@ -126,3 +126,8 @@ export interface PasswordChangeResponse {
   success: boolean;
   message: string;
 }
+
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}

@@ -97,3 +97,16 @@ export const useChangePassword = () => {
       APIClient.users.changePassword(data),
   });
 };
+
+/**
+ * Mutation hook for super admin to reset a user's password.
+ * Does not invalidate any caches as password reset doesn't affect user data displayed in UI.
+ *
+ * @param userSub - The user's sub (Cognito user ID) from User.sub
+ */
+export const useResetPasswordBySuperAdmin = () => {
+  return useMutation({
+    mutationFn: (userSub: string) =>
+      APIClient.users.resetPasswordBySuperAdmin(userSub),
+  });
+};
