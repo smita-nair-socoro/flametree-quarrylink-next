@@ -4,7 +4,8 @@ export interface QuoteFooterProps {
   email: string; // Tenant email (e.g., support@quarrylink.com.au)
   phone: string; // Tenant phone (e.g., (02) 7229 1427)
   addressLine1: string; // First address line (e.g., Suite 1102/132 Arthur St)
-  addressLine2: string; // Second address line (e.g., North Sydney NSW 2060)
+  addressLine2: string; // Second address line (e.g., NORTH SYDNEY NSW 2060)
+  addressLine3: string; // Third address line - Country (e.g., AUSTRALIA)
   website: string; // Tenant website (e.g., www.quarrylink.com.au)
   businessName: string; // For copyright (e.g., QuarryLink)
 }
@@ -14,6 +15,7 @@ export function QuoteFooter({
   phone,
   addressLine1,
   addressLine2,
+  addressLine3,
   businessName,
 }: QuoteFooterProps) {
   return (
@@ -30,6 +32,7 @@ export function QuoteFooter({
         <div className="text-white/90 text-sm text-center md:text-right">
           <p>{addressLine1}</p>
           <p>{addressLine2}</p>
+          <p>{addressLine3}</p>
         </div>
       </div>
 

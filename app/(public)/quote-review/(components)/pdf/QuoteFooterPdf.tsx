@@ -6,7 +6,8 @@ export interface QuoteFooterPdfProps {
   email: string; // Tenant email (e.g., support@quarrylink.com.au)
   phone: string; // Tenant phone (e.g., (02) 7229 1427)
   addressLine1: string; // First address line (e.g., Suite 1102/132 Arthur St)
-  addressLine2: string; // Second address line (e.g., North Sydney NSW 2060)
+  addressLine2: string; // Second address line (e.g., NORTH SYDNEY NSW 2060)
+  addressLine3: string; // Third address line - Country (e.g., AUSTRALIA)
   website: string; // Tenant website (e.g., www.quarrylink.com.au)
   businessName: string; // For copyright (e.g., QuarryLink)
 }
@@ -16,6 +17,7 @@ export const QuoteFooterPdf: React.FC<QuoteFooterPdfProps> = ({
   phone,
   addressLine1,
   addressLine2,
+  addressLine3,
   businessName,
 }) => {
   return (
@@ -35,6 +37,7 @@ export const QuoteFooterPdf: React.FC<QuoteFooterPdfProps> = ({
           <View style={styles.footerRightColumn}>
             <Text style={styles.footerText}>{addressLine1}</Text>
             <Text style={styles.footerText}>{addressLine2}</Text>
+            <Text style={styles.footerText}>{addressLine3}</Text>
           </View>
         </View>
         <View style={styles.footerSeparator} />

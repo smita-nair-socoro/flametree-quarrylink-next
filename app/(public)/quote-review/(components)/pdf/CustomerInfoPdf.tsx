@@ -9,7 +9,7 @@ export interface CustomerInfoPdfProps {
   billingAddress: {
     line1: string;
     line2: string;
-    country: string;
+    line3: string;
   };
 }
 
@@ -37,7 +37,7 @@ export const CustomerInfoPdf: React.FC<CustomerInfoPdfProps> = ({
           <Text style={styles.label}>Billing Address</Text>
           <Text style={styles.valueSmall}>{billingAddress.line1}</Text>
           <Text style={styles.valueSmall}>{billingAddress.line2}</Text>
-          <Text style={styles.valueSmall}>{billingAddress.country}</Text>
+          <Text style={styles.valueSmall}>{billingAddress.line3}</Text>
         </View>
       </View>
       <View style={styles.separator} />
