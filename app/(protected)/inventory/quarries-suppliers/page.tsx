@@ -68,9 +68,9 @@ export default function QuarriesSuppliersPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Monthly Value - Suppliers',
-      value: centsToDollars(
+      value: `$${centsToDollars(
         reportingData?.suppliersMonthlyProfitValueChangePercent || 0
-      ),
+      )}`,
       description: `${
         reportingData?.suppliersMonthlyProfitValueChangePercent || 0
       }% vs last month`,
@@ -82,7 +82,7 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Top Supplier',
       value: reportingData?.topSupplierOfTheMonth || '',
-      description: `${centsToDollars(
+      description: `$${centsToDollars(
         reportingData?.topSupplierQuotedProfitValueThisMonth || 0
       )} this month`,
       icon: Building,
@@ -92,9 +92,9 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Monthly Value - Quarries',
-      value: centsToDollars(
+      value: `$${centsToDollars(
         reportingData?.quarriesMonthlyProfitValueChangePercent || 0
-      ),
+      )}`,
       description: `${
         reportingData?.quarriesMonthlyProfitValueChangePercent || 0
       }% vs last month`,
@@ -106,7 +106,7 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Top Quarry',
       value: reportingData?.topQuarryOfTheMonth || '',
-      description: `${centsToDollars(
+      description: `$${centsToDollars(
         reportingData?.topQuarryQuotedProfitValueThisMonth || 0
       )} this month`,
       icon: Factory,
