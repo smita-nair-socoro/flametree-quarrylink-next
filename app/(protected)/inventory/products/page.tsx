@@ -55,7 +55,7 @@ export default function ProductsPage() {
     {
       title: 'Highest Revenue Product',
       value: reportingData?.mostQuotedProductName || '',
-      description: `${centsToDollars(
+      description: `$${centsToDollars(
         reportingData?.mostQuotedProductValueThisMonth || 0
       )} this month`,
       icon: Gem,

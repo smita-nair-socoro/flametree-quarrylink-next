@@ -27,6 +27,7 @@ import {
 } from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { centsToDollars } from '@/lib/utils/currency';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -72,9 +73,9 @@ export default function QuotationsPage() {
     {
       title: 'Total Quotations',
       value: reportingData?.totalQuotesRaisedThisMonth || 0,
-      description: `${
+      description: `${formatNumberThousandSeparator(
         reportingData?.totalQuotesPercentageChangeVsLastMonth || 0
-      }% vs last month`,
+      )}% vs last month`,
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#193CB8]',
@@ -91,12 +92,12 @@ export default function QuotationsPage() {
     },
     {
       title: 'Total Quote Value',
-      value: centsToDollars(
+      value: `$${centsToDollars(
         reportingData?.totalValueOfQuotesRaisedThisMonth || 0
-      ),
-      description: `${
+      )}`,
+      description: `${formatNumberThousandSeparator(
         reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0
-      }% vs last month`,
+      )}% vs last month`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0D542B]',
