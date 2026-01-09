@@ -28,9 +28,13 @@ import {
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { centsToDollars } from '@/lib/utils/currency';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   // Use React Query to fetch quotations data
   const {
     data: quotationsData,
@@ -67,6 +71,22 @@ export default function QuotationsPage() {
 
   const [selectedQuotationForActions, setSelectedQuotationForActions] =
     React.useState<Quotation | null>(null);
+
+  // URL-driven filtering for linked quotations
+  const linkedQuotationIdsParam = searchParams.get('linkedQuotationIds');
+  const linkedQuotationIdsSet = React.useMemo(() => {
+    if (!linkedQuotationIdsParam) return null;
+    const ids = linkedQuotationIdsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return new Set(ids);
+  }, [linkedQuotationIdsParam]);
+
+  const filteredItems = React.useMemo(() => {
+    if (!linkedQuotationIdsSet) return items;
+    return items.filter((q) => linkedQuotationIdsSet.has(q.id));
+  }, [items, linkedQuotationIdsSet]);
 
   // Statistics cards data
   const statsCards: StatsCardData[] = [
@@ -185,17 +205,37 @@ export default function QuotationsPage() {
             <div className="text-center">Error loading quotations</div>
           </div>
         ) : (
-          <DataTableClient
-            // key={rowSelectionKey}
-            tableId="quotation_main_data_table"
-            data={items ?? []}
-            columns={quotationColumns}
-            facetDefination={facetDefs}
-            searchPlaceHolder="Search quotes..."
-            onRowClick={handleRowClick}
-            enableRowSelection={false}
-            defaultSorting={[{ id: 'created_at', desc: true }]}
-          />
+          <>
+            {linkedQuotationIdsSet && (
+              <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
+                <div className="mt-1 text-sm text-muted-foreground">
+                  <span>Showing linked quotations</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push('/customer-operations/quotation')}
+                >
+                  Reset Filter
+                </Button>
+              </div>
+            )}
+            <DataTableClient
+              // key={rowSelectionKey}
+              tableId={
+                linkedQuotationIdsSet
+                  ? 'quotation_linked_data_table'
+                  : 'quotation_main_data_table'
+              }
+              data={filteredItems ?? []}
+              columns={quotationColumns}
+              facetDefination={facetDefs}
+              searchPlaceHolder="Search quotes..."
+              onRowClick={handleRowClick}
+              enableRowSelection={false}
+              defaultSorting={[{ id: 'created_at', desc: true }]}
+            />
+          </>
         )}
       </div>
     </div>
