@@ -26,7 +26,7 @@ export interface QuotationData {
     billingAddress: {
       line1: string;
       line2: string;
-      country: string;
+      line3: string;
     };
   };
   project: {
@@ -58,6 +58,7 @@ export interface QuotationData {
     phone: string;
     addressLine1: string;
     addressLine2: string;
+    addressLine3: string;
     website: string;
     businessName: string;
   };

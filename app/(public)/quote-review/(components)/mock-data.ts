@@ -21,8 +21,8 @@ export const mockQuotationData = {
     phone: '+61 2 9876 5432',
     billingAddress: {
       line1: 'Level 12, 456 George Street',
-      line2: 'Sydney NSW 2000',
-      country: 'Australia',
+      line2: 'SYDNEY NSW 2000',
+      line3: 'AUSTRALIA',
     },
   },
 
@@ -143,8 +143,9 @@ export const mockQuotationData = {
   footer: {
     email: 'support@quarrylink.com.au',
     phone: '(02) 7229 1427',
-    addressLine1: 'Suite 1102/132 Arthur St,',
-    addressLine2: 'North Sydney NSW 2060',
+    addressLine1: 'Suite 1102/132 Arthur St',
+    addressLine2: 'NORTH SYDNEY NSW 2060',
+    addressLine3: 'AUSTRALIA',
     website: 'www.quarrylink.com.au',
     businessName: 'QuarryLink',
   },
