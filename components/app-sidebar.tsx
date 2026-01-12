@@ -79,6 +79,7 @@ export const navItems = [
     title: 'Logistics',
     url: '/logistics',
     icon: Truck,
+    plan: 'PLUS',
     items: [
       { title: 'Drivers', url: '/logistics/drivers', plan: 'PLUS' },
       { title: 'Trucks', url: '/logistics/trucks', plan: 'PLUS' },
