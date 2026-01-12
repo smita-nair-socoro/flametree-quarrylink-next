@@ -101,7 +101,7 @@ export function NavMain({
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
-                      <span className="truncate whitespace-nowrap text-white">
+                      <span className="truncate whitespace-nowrap text-white" title={item.title}>
                         {item.title}
                       </span>
                     </span>
@@ -131,7 +131,7 @@ export function NavMain({
                       className="hover:bg-[#7138f533]"
                     >
                       {item.icon && <item.icon className="text-white" />}
-                      <span className="truncate whitespace-nowrap">
+                      <span className="truncate whitespace-nowrap" title={item.title}>
                         {item.title}
                       </span>
                     </SidebarMenuButton>
@@ -159,7 +159,7 @@ export function NavMain({
                             subDisabled ? 'pointer-events-none opacity-50' : ''
                           }`}
                         >
-                          <span className="truncate whitespace-nowrap overflow-hidden">
+                          <span className="truncate whitespace-nowrap overflow-hidden" title={sub.title}>
                             {sub.title}
                           </span>
                           {subDisabled && (
@@ -194,7 +194,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton isActive={isActive}>
                     {item.icon && <item.icon className="text-white" />}
-                    <span className="truncate whitespace-nowrap text-white">
+                    <span className="truncate whitespace-nowrap text-white" title={item.title}>
                       {item.title}
                     </span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
@@ -218,7 +218,7 @@ export function NavMain({
                               href={sub.url}
                               className="flex items-center w-full justify-between gap-2 min-w-0"
                             >
-                              <span className="text-white truncate whitespace-nowrap overflow-hidden">
+                              <span className="text-white truncate whitespace-nowrap overflow-hidden" title={sub.title}>
                                 {sub.title}
                               </span>
                               {subDisabled && (

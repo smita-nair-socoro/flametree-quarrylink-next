@@ -130,6 +130,7 @@ export function StatsCards({
                           </span>
                           <span
                             className={`text-xs ${card.descriptionColor} truncate`}
+                            title={card.description}
                           >
                             {card.description}
                           </span>
@@ -169,7 +170,7 @@ export function StatsCards({
               <Card key={card.title} className="p-5 overflow-hidden">
                 <CardContent className="p-2 space-y-1">
                   <div className="flex justify-between gap-2 items-start">
-                    <span className="font-medium leading-tight text-[#737373] text-sm truncate">
+                    <span className="font-medium leading-tight text-[#737373] text-sm truncate" title={card.title}>
                       {card.title}
                     </span>
                     <div
@@ -180,11 +181,12 @@ export function StatsCards({
                       />
                     </div>
                   </div>
-                  <div className="text-3xl font-bold pt-1 truncate">
+                  <div className="text-3xl font-bold pt-1 truncate" title={String(card.value)}>
                     {card.value}
                   </div>
                   <div
                     className={`text-sm font-normal ${card.descriptionColor} truncate`}
+                    title={card.description}
                   >
                     {card.description}
                   </div>

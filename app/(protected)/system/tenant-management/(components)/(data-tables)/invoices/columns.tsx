@@ -44,7 +44,7 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
         currency: 'USD',
       }).format(dollars);
       return (
-        <div className="py-2 font-medium w-36 max-w-36 truncate">
+        <div className="py-2 font-medium w-36 max-w-36 truncate" title={formatted}>
           {formatted}
         </div>
       );

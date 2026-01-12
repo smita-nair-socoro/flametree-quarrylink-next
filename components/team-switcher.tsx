@@ -62,7 +62,7 @@ export function TeamSwitcher({
             {isPending ? (
               <Skeleton className="h-4 w-36 bg-white/30" />
             ) : (
-              <span className="truncate font-medium text-white">
+              <span className="truncate font-medium text-white" title={activeClient.name}>
                 {activeClient.name}
               </span>
             )}

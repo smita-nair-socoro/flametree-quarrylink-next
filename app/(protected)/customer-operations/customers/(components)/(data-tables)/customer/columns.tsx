@@ -70,11 +70,11 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
         currency: 'USD',
       }).format(dollars);
       return row.original.paymentType === 'CREDIT' ? (
-        <div className="py-2 font-medium w-36 max-w-36 truncate">
+        <div className="py-2 font-medium w-36 max-w-36 truncate" title={formatted}>
           {formatted}
         </div>
       ) : (
-        <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
+        <div className="py-2 font-medium w-36 max-w-36 truncate" title="N/A">N/A</div>
       );
     },
     meta: 'Credit Limit',

@@ -115,9 +115,10 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
         row.original.productSellUom === 'KG_20'
           ? 'x 20kg'
           : row.original.productSellUom;
+      const displayText = `${productSellQty} ${productSellUom}`;
       return (
-        <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
-          {productSellQty} {productSellUom}
+        <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]" title={displayText}>
+          {displayText}
         </div>
       );
     },

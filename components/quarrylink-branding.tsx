@@ -36,13 +36,13 @@ export function QuarryLinkBranding({
               />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold text-white">
+              <span className="truncate font-semibold text-white" title="QuarryLink">
                 QuarryLink
               </span>
               {isLoading ? (
                 <Skeleton className="h-3 w-20 bg-white/30" />
               ) : (
-                <span className="truncate text-xs text-[#71717B]">
+                <span className="truncate text-xs text-[#71717B]" title={subscriptionType || 'Lite Plus'}>
                   {subscriptionType || 'Lite Plus'}
                 </span>
               )}
