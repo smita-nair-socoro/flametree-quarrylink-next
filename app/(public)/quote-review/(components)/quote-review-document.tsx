@@ -170,7 +170,7 @@ export default function QuoteReviewDocument({
 
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
-    const declineNotes = [
+    const declineNotesInfo = [
       'Quote status changes from Pending to Declined',
       'Your account manager is notified of declined status',
     ];
@@ -279,7 +279,7 @@ export default function QuoteReviewDocument({
             What happens when quote is declined:
           </p>
           <ul className=" text-sm text-[#6A7282]">
-            {declineNotes.map((note) => (
+            {declineNotesInfo.map((note) => (
               <li key={note} className="flex items-start gap-2">
                 <span className="mt-[8px] h-[4px] w-[4px] rounded-full bg-[#6A7282]"></span>
                 <span>{note}</span>
@@ -289,7 +289,7 @@ export default function QuoteReviewDocument({
         </div>
       </div>
     );
-  }, [quotationData]);
+  }, [quotationData, declineReason, showValidationError, declineNotes]);
 
   // Check if quote is expired - show expired page
   if (currentQuoteStatus === QuoteStatus.EXPIRED) {

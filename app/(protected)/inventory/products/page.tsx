@@ -111,17 +111,20 @@ export default function ProductsPage() {
   };
 
   // Transform the API data to match our component expectations
-  const items: ProductDetails[] =
-    productsData?.map((product) => {
-      // Convert API response to snake_case if needed
+  const items: ProductDetails[] = React.useMemo(
+    () =>
+      productsData?.map((product) => {
+        // Convert API response to snake_case if needed
 
-      return {
-        ...product,
-        productId: product.id,
-        // Ensure material is properly mapped for facet filtering
-        material: product.material || { id: 0, name: '', version: 0 },
-      } as ProductDetails;
-    }) || [];
+        return {
+          ...product,
+          productId: product.id,
+          // Ensure material is properly mapped for facet filtering
+          material: product.material || { id: 0, name: '', version: 0 },
+        } as ProductDetails;
+      }) || [],
+    [productsData]
+  );
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(

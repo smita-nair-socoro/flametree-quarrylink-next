@@ -91,7 +91,7 @@ export default function TeamAdminTab() {
       }));
 
     return pending;
-  }, [users]);
+  }, [enabledUsers]);
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
