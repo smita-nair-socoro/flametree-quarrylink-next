@@ -160,6 +160,7 @@ export async function HttpClient<T = unknown>(
 
   const authUser = await getUser(); // ✅ Properly awaited
   // const tenantId = await getTenantId(); // ✅ Properly awaited
+  console.log('authUser', authUser);
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
