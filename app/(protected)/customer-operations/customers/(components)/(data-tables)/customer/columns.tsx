@@ -6,6 +6,11 @@ import { CustomerDTO } from '@/lib/types/customer';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { CustomerTableActions } from './customer-table-actions';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const customerColumns: ColumnDef<CustomerDTO>[] = [
   {
@@ -70,11 +75,25 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
         currency: 'USD',
       }).format(dollars);
       return row.original.paymentType === 'CREDIT' ? (
-        <div className="py-2 font-medium w-36 max-w-36 truncate" title={formatted}>
-          {formatted}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
       ) : (
-        <div className="py-2 font-medium w-36 max-w-36 truncate" title="N/A">N/A</div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>N/A</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'Credit Limit',

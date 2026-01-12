@@ -10,6 +10,11 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function TeamSwitcher({
   client,
@@ -62,9 +67,16 @@ export function TeamSwitcher({
             {isPending ? (
               <Skeleton className="h-4 w-36 bg-white/30" />
             ) : (
-              <span className="truncate font-medium text-white" title={activeClient.name}>
-                {activeClient.name}
-              </span>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <span className="truncate font-medium text-white">
+                    {activeClient.name}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent variant="white">
+                  <p>{activeClient.name}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         </SidebarMenuButton>

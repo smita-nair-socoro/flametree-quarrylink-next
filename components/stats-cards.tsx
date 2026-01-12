@@ -5,6 +5,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LucideIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export interface StatsCardData {
   title: string;
@@ -128,12 +133,18 @@ export function StatsCards({
                           <span className="text-sm font-bold flex-shrink-0">
                             {card.value}
                           </span>
-                          <span
-                            className={`text-xs ${card.descriptionColor} truncate`}
-                            title={card.description}
-                          >
-                            {card.description}
-                          </span>
+                          <Tooltip delayDuration={300}>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={`text-xs ${card.descriptionColor} truncate`}
+                              >
+                                {card.description}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent variant="white">
+                              <p>{card.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
                       </div>
                     </Card>
@@ -170,9 +181,16 @@ export function StatsCards({
               <Card key={card.title} className="p-5 overflow-hidden">
                 <CardContent className="p-2 space-y-1">
                   <div className="flex justify-between gap-2 items-start">
-                    <span className="font-medium leading-tight text-[#737373] text-sm truncate" title={card.title}>
-                      {card.title}
-                    </span>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <span className="font-medium leading-tight text-[#737373] text-sm truncate">
+                          {card.title}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent variant="white">
+                        <p>{card.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <div
                       className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
                     >
@@ -181,15 +199,28 @@ export function StatsCards({
                       />
                     </div>
                   </div>
-                  <div className="text-3xl font-bold pt-1 truncate" title={String(card.value)}>
-                    {card.value}
-                  </div>
-                  <div
-                    className={`text-sm font-normal ${card.descriptionColor} truncate`}
-                    title={card.description}
-                  >
-                    {card.description}
-                  </div>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <div className="text-3xl font-bold pt-1 truncate">
+                        {card.value}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent variant="white">
+                      <p>{String(card.value)}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={`text-sm font-normal ${card.descriptionColor} truncate`}
+                      >
+                        {card.description}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent variant="white">
+                      <p>{card.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </CardContent>
               </Card>
             );

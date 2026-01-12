@@ -23,6 +23,11 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useLocalStorageState } from '@/hooks/use-localstorage';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -101,9 +106,16 @@ export function NavMain({
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
-                      <span className="truncate whitespace-nowrap text-white" title={item.title}>
-                        {item.title}
-                      </span>
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <span className="truncate whitespace-nowrap text-white">
+                            {item.title}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent variant="white">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </span>
                     {itemIsDisabled && (
                       <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
@@ -131,9 +143,16 @@ export function NavMain({
                       className="hover:bg-[#7138f533]"
                     >
                       {item.icon && <item.icon className="text-white" />}
-                      <span className="truncate whitespace-nowrap" title={item.title}>
-                        {item.title}
-                      </span>
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <span className="truncate whitespace-nowrap">
+                            {item.title}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent variant="white">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </HoverCardTrigger>
@@ -159,9 +178,16 @@ export function NavMain({
                             subDisabled ? 'pointer-events-none opacity-50' : ''
                           }`}
                         >
-                          <span className="truncate whitespace-nowrap overflow-hidden" title={sub.title}>
-                            {sub.title}
-                          </span>
+                          <Tooltip delayDuration={300}>
+                            <TooltipTrigger asChild>
+                              <span className="truncate whitespace-nowrap overflow-hidden">
+                                {sub.title}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent variant="white">
+                              <p>{sub.title}</p>
+                            </TooltipContent>
+                          </Tooltip>
                           {subDisabled && (
                             <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
                               {getPlanLabel(sub.plan)}
@@ -194,9 +220,16 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton isActive={isActive}>
                     {item.icon && <item.icon className="text-white" />}
-                    <span className="truncate whitespace-nowrap text-white" title={item.title}>
-                      {item.title}
-                    </span>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <span className="truncate whitespace-nowrap text-white">
+                          {item.title}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent variant="white">
+                        <p>{item.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
@@ -218,9 +251,16 @@ export function NavMain({
                               href={sub.url}
                               className="flex items-center w-full justify-between gap-2 min-w-0"
                             >
-                              <span className="text-white truncate whitespace-nowrap overflow-hidden" title={sub.title}>
-                                {sub.title}
-                              </span>
+                              <Tooltip delayDuration={300}>
+                                <TooltipTrigger asChild>
+                                  <span className="text-white truncate whitespace-nowrap overflow-hidden">
+                                    {sub.title}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent variant="white">
+                                  <p>{sub.title}</p>
+                                </TooltipContent>
+                              </Tooltip>
                               {subDisabled && (
                                 <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
                                   {getPlanLabel(sub.plan)}

@@ -21,6 +21,11 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function NavUser({
   user,
@@ -58,12 +63,26 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium text-white" title={user.name}>
-                  {user.name}
-                </span>
-                <span className="truncate text-xs text-white" title={user.email}>
-                  {user.email}
-                </span>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <span className="truncate font-medium text-white">
+                      {user.name}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent variant="white">
+                    <p>{user.name}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <span className="truncate text-xs text-white">
+                      {user.email}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent variant="white">
+                    <p>{user.email}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               <ChevronsUpDown className="ml-auto size-4 text-white" />
             </SidebarMenuButton>
@@ -81,8 +100,22 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium" title={user.name}>{user.name}</span>
-                  <span className="truncate text-xs" title={user.email}>{user.email}</span>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <span className="truncate font-medium">{user.name}</span>
+                    </TooltipTrigger>
+                    <TooltipContent variant="white">
+                      <p>{user.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <span className="truncate text-xs">{user.email}</span>
+                    </TooltipTrigger>
+                    <TooltipContent variant="white">
+                      <p>{user.email}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </DropdownMenuLabel>

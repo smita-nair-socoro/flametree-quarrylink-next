@@ -17,14 +17,23 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
     header: ({}) => {
       return <div>Supplier</div>;
     },
-    cell: (info) => (
-      <div
-        className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
-        title={info.getValue() as string}
-      >
-        {info.getValue() as string}
-      </div>
-    ),
+    cell: (info) => {
+      const value = info.getValue() as string;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div
+              className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
+            >
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
     meta: 'Name',
   },
   {
