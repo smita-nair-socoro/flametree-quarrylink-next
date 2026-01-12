@@ -215,6 +215,7 @@ export function transformQuoteData(
           stripeTenantDetailsSnapshot?.businessName ||
           stripeTenantDetailsSnapshot?.tenantName ||
           'QuarryLink',
+        abn: stripeTenantDetailsSnapshot?.abn || '12 345 678 901',
       };
     })(),
   };

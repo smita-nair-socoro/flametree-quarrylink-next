@@ -140,6 +140,7 @@ export interface quarrySupplierProductDetail {
 export interface StripeTenantDetailsSnapshot {
   tenantName: string;
   businessName: string;
+  abn: string;
   billingAddress: string;
   website: string;
   email: string;
@@ -206,6 +207,7 @@ export interface QuotationDisplayData {
     addressLine3: string;
     website: string;
     businessName: string;
+    abn: string;
   };
 }
 
