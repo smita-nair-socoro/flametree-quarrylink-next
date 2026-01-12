@@ -26,13 +26,18 @@ export function TeamSwitcher({
     initials: string;
   };
 }) {
-  const { data: tenantCompleteDetails } = useQuery(
-    TenantCompleteDetailsQueryOptions()
-  );
   const { state, openMobile } = useSidebar();
   const isMobileDevice = useIsMobile();
   const [forceUpdate, setForceUpdate] = React.useState(0);
-
+  // Reset hover state when sidebar state changes
+  React.useEffect(() => {
+    setForceUpdate((prev) => prev + 1);
+  }, [state, openMobile, isMobileDevice]);
+  const {
+    data: tenantCompleteDetails,
+    isLoading,
+    isFetching,
+  } = useQuery(TenantCompleteDetailsQueryOptions());
   React.useEffect(() => {
     if (tenantCompleteDetails) {
       console.log(
@@ -45,16 +50,6 @@ export function TeamSwitcher({
       );
     }
   }, [tenantCompleteDetails]);
-
-  // Reset hover state when sidebar state changes
-  React.useEffect(() => {
-    setForceUpdate((prev) => prev + 1);
-  }, [state, openMobile, isMobileDevice]);
-  const {
-    data: tenantCompleteDetails,
-    isLoading,
-    isFetching,
-  } = useQuery(TenantCompleteDetailsQueryOptions());
 
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
