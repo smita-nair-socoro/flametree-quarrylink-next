@@ -66,11 +66,6 @@ export function TeamMemberTableActions({
             View/Edit User
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={handleResetPassword}>
-            <Key className="h-4 w-4 mr-2" />
-            Reset Password
-          </DropdownMenuItem>
-
           <DropdownMenuItem
             onClick={handleDelete}
             className="text-destructive focus:text-destructive"
