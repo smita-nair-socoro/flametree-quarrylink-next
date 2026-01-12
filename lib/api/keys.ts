@@ -7,6 +7,7 @@ export const ProductKeys = {
     [...ProductKeys.all, 'detail', id, 'material'] as const,
   detailWithQuarrySupplierProduct: (id: number) =>
     [...ProductKeys.all, 'detail', id, 'quarry-supplier-product'] as const,
+  reporting: () => [...ProductKeys.all, 'reporting'] as const,
 };
 
 export const QuarryKeys = {
@@ -14,6 +15,9 @@ export const QuarryKeys = {
   list: () => [...QuarryKeys.all, 'list'] as const,
   detail: (id: number) => [...QuarryKeys.all, 'detail', id] as const,
   suburbs: () => [...QuarryKeys.all, 'suburbs'] as const,
+  linkedProducts: (quarryId: number) =>
+    [...QuarryKeys.all, 'linked-products', quarryId] as const,
+  reporting: () => [...QuarryKeys.all, 'reporting'] as const,
 };
 
 export const CategoryKeys = {
@@ -28,6 +32,7 @@ export const CategoryKeys = {
 
 export const CustomerKeys = {
   all: ['customers'] as const,
+  reporting: () => [...CustomerKeys.all, 'reporting'] as const,
   list: () => [...CustomerKeys.all, 'list'] as const,
   detail: (id: number) => [...CustomerKeys.all, 'detail', id] as const,
 };
@@ -36,6 +41,7 @@ export const QuotationKeys = {
   all: ['quotations'] as const,
   list: () => [...QuotationKeys.all, 'list'] as const,
   detail: (id: number) => [...QuotationKeys.all, 'detail', id] as const,
+  reporting: () => [...QuotationKeys.all, 'reporting'] as const,
 };
 
 export const TenantKeys = {
@@ -64,4 +70,5 @@ export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
+  dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };

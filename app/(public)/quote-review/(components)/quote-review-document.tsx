@@ -25,7 +25,7 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 type QuoteReviewDocumentProps = {
   quoteId: string;
   quoteData?: PublicQuoteLinkResponse;
-  token: string;
+  token: string; // Empty string for preview mode, actual token for public access
 };
 
 export default function QuoteReviewDocument({
@@ -35,6 +35,9 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+
+  // Check if we're in preview mode (no token means authenticated preview)
+  const isPreviewMode = !token;
 
   // Mutation hook for updating quote status
   const { mutate: updateQuoteStatus, isPending: isUpdatingStatus } =
@@ -227,7 +230,9 @@ export default function QuoteReviewDocument({
       await downloadQuotePdf(
         quotationData,
         quoteId,
-        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`
+        `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`,
+        undefined,
+        quotationData.navbar.tenantDetails
       );
     } catch (error) {
       notifyError(
@@ -313,6 +318,7 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
+            isPreviewMode={isPreviewMode}
           />
 
           {/* Status Banner */}
@@ -334,13 +340,15 @@ export default function QuoteReviewDocument({
           {/* Summary & Payment */}
           <SummaryPayment {...quotationData.summary} />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
-          {/* Proceed Actions */}
-          <ProceedActions
-            {...quotationData.proceedActions}
-            status={quoteStatus || QuoteStatus.PENDING}
-            onApprove={() => setApproveDialogOpen(true)}
-            onDecline={() => setDeclineDialogOpen(true)}
-          />
+          {/* Proceed Actions - only show if not in preview mode */}
+          {!isPreviewMode && (
+            <ProceedActions
+              {...quotationData.proceedActions}
+              status={quoteStatus || QuoteStatus.PENDING}
+              onApprove={() => setApproveDialogOpen(true)}
+              onDecline={() => setDeclineDialogOpen(true)}
+            />
+          )}
 
           {/* Footer */}
           <QuoteFooter {...quotationData.footer} />

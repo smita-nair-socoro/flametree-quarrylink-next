@@ -8,7 +8,10 @@ import { QuarryType, QuarryStatus } from '@/lib/types/quarry-enums';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
 import { Plus, DollarSign, Building, Mountain, Factory } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { QuarryListQueryOptions } from '@/lib/api/quarries';
+import {
+  QuarryListQueryOptions,
+  QuarryReportingQueryOptions,
+} from '@/lib/api/quarries';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
@@ -17,6 +20,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export default function QuarriesSuppliersPage() {
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
@@ -52,6 +56,8 @@ export default function QuarriesSuppliersPage() {
     isError,
   } = useQuery(QuarryListQueryOptions());
 
+  const { data: reportingData } = useQuery(QuarryReportingQueryOptions());
+
   React.useEffect(() => {
     if (isError && error) {
       console.error('Quarry API Error:', error);
@@ -62,8 +68,12 @@ export default function QuarriesSuppliersPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Monthly Value - Suppliers',
-      value: '$645,890',
-      description: '+12% vs last month',
+      value: `$${centsToDollars(
+        reportingData?.suppliersMonthlyProfitValueChangePercent || 0
+      )}`,
+      description: `${
+        reportingData?.suppliersMonthlyProfitValueChangePercent || 0
+      }% vs last month`,
       icon: DollarSign,
       iconBgColor: 'bg-[#ECFCCA]',
       iconColor: 'text-[#016630]',
@@ -71,8 +81,10 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Top Supplier',
-      value: 'Summit Stone Co.',
-      description: '$198,750 this month',
+      value: reportingData?.topSupplierOfTheMonth || '',
+      description: `$${centsToDollars(
+        reportingData?.topSupplierQuotedProfitValueThisMonth || 0
+      )} this month`,
       icon: Building,
       iconBgColor: 'bg-[#E0E7FF]',
       iconColor: 'text-[#193CB8]',
@@ -80,8 +92,12 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Monthly Value - Quarries',
-      value: '$397,680',
-      description: '-3.5% vs last month',
+      value: `$${centsToDollars(
+        reportingData?.quarriesMonthlyProfitValueChangePercent || 0
+      )}`,
+      description: `${
+        reportingData?.quarriesMonthlyProfitValueChangePercent || 0
+      }% vs last month`,
       icon: Mountain,
       iconBgColor: 'bg-[#F1F5F9]',
       iconColor: 'text-[#71717B]',
@@ -89,8 +105,10 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Top Quarry',
-      value: 'RedRock Quarry',
-      description: '$156,420 this month',
+      value: reportingData?.topQuarryOfTheMonth || '',
+      description: `$${centsToDollars(
+        reportingData?.topQuarryQuotedProfitValueThisMonth || 0
+      )} this month`,
       icon: Factory,
       iconBgColor: 'bg-[#FEF9C2]',
       iconColor: 'text-[#D08700]',
@@ -202,6 +220,7 @@ export default function QuarriesSuppliersPage() {
             facetDefination={facetDefs}
             searchPlaceHolder="Search Quarries & Suppliers..."
             onRowClick={handleRowClick}
+            defaultSorting={[{ id: 'name', desc: false }]}
           />
         )}
       </div>

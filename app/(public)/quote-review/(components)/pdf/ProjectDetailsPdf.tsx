@@ -51,7 +51,11 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
         {/* Delivery Address */}
         <View style={styles.quarterColumn}>
           <Text style={styles.label}>Delivery Address</Text>
-          <Text style={styles.valueSmall}>{deliveryAddress}</Text>
+          {deliveryAddress.split('\n').map((line, index) => (
+            <Text key={index} style={styles.valueSmall}>
+              {line}
+            </Text>
+          ))}
         </View>
 
         {/* Delivery Date */}

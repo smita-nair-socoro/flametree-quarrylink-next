@@ -16,6 +16,14 @@ export const QuarryListQueryOptions = () =>
     staleTime: 5_000,
   });
 
+export const QuarryReportingQueryOptions = () =>
+  queryOptions({
+    queryKey: QuarryKeys.reporting(),
+    queryFn: () => APIClient.quarries.reporting(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 export const QuarryDetailQueryOptions = (quarryId: number) =>
   queryOptions({
     queryKey: QuarryKeys.detail(quarryId),
@@ -115,3 +123,11 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
     },
   });
 };
+
+export const LinkedProductsQueryOptions = (quarryId: number) =>
+  queryOptions({
+    queryKey: QuarryKeys.linkedProducts(quarryId),
+    queryFn: () => APIClient.quarries.linkedProducts(quarryId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });

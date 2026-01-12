@@ -1,18 +1,34 @@
 import { baseUrl, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
-import { Product, ProductDetails } from '../types/product';
-import { CustomerDTO } from '../types/customer';
-import { Quarry, QuarrySupplierProduct } from '../types/quarry';
+import {
+  LinkedProduct,
+  Product,
+  ProductDetails,
+  ProductReporting,
+} from '../types/product';
+import { CustomerDTO, CustomerReporting } from '../types/customer';
+import {
+  Quarry,
+  QuarryReporting,
+  QuarrySupplierProduct,
+} from '../types/quarry';
 import {
   PublicQuoteLinkResponse,
   QuotationDTO,
   QuotationLineItem,
+  QuotationReporting,
 } from '../types/quotation';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
-import { User, UserCreateDTO, UserUpdateDTO } from '../types/user';
+import {
+  User,
+  UserCreateDTO,
+  UserDelete,
+  UserUpdateDTO,
+  UserDependencies,
+} from '../types/user';
 import {
   SubscriptionsAndInvoices,
   TenantDetails,
@@ -294,9 +310,6 @@ export async function HttpClient<T = unknown>(
         await handleLogout();
         return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
-      case 500: {
-        return Promise.reject(new Error(`Internal server error`));
-      }
       case 503: {
         // Show an error toast to notify the user what occurred
         return Promise.reject(
@@ -387,6 +400,10 @@ const appClient = {
 
 export const APIClient = {
   products: {
+    reporting: () =>
+      appClient.Get<ProductReporting>(
+        `/socoro/quarrylink/api/product/reporting`
+      ),
     getAll: () =>
       appClient.Get<ProductDetails[]>(
         `/socoro/quarrylink/api/product/material`
@@ -427,6 +444,10 @@ export const APIClient = {
     },
   },
   quarries: {
+    reporting: () =>
+      appClient.Get<QuarryReporting>(
+        `/socoro/quarrylink/api/quarries/reporting`
+      ),
     getAll: async () => {
       const quarries = await appClient.Get<Quarry[]>(
         `/socoro/quarrylink/api/quarries`
@@ -479,6 +500,10 @@ export const APIClient = {
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
+      ),
+    linkedProducts: (quarryId: number) =>
+      appClient.Get<LinkedProduct>(
+        `/socoro/quarrylink/api/quarries/${quarryId}/linked-products`
       ),
   },
 
@@ -536,15 +561,31 @@ export const APIClient = {
   },
 
   customers: {
+    reporting: () =>
+      appClient.Get<CustomerReporting>(
+        `/socoro/quarrylink/api/customer/reporting`
+      ),
     getAll: () =>
       appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
       appClient.Get<CustomerDTO>(
         `/socoro/quarrylink/api/customer/${customerId}`
       ),
+    create: (data: Partial<CustomerDTO>) =>
+      appClient.Post<CustomerDTO>('/socoro/quarrylink/api/customer', {
+        body: data,
+      }),
+    update: (data: Partial<CustomerDTO>) =>
+      appClient.Put<CustomerDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
+        body: data,
+      }),
   },
 
   quotations: {
+    reporting: () =>
+      appClient.Get<QuotationReporting>(
+        `/socoro/quarrylink/api/quote/reporting`
+      ),
     /**
      * Public quotation retrieval using token from quote email link.
      * This endpoint must remain unauthenticated because customers are not logged in.
@@ -682,6 +723,10 @@ export const APIClient = {
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`
       ),
+    preview: (id: number) =>
+      appClient.Get<PublicQuoteLinkResponse>(
+        `/socoro/quarrylink/api/quote/${id}/preview`
+      ),
     createQuoteItem: (data: Partial<QuotationLineItem>) =>
       appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
         body: convertKeysToCamelCase(data),
@@ -695,15 +740,21 @@ export const APIClient = {
       ),
     deleteQuoteItem: (id: number) =>
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
+
+    convertToDraft: (id: number) =>
+      appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
     getById: (id: string) => {
-      console.log('[APIClient] 🔍 getById called with ID:', id);
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
     create: (data: UserCreateDTO) =>
       appClient.Post<User>('/socoro/quarrylink/api/users', {
+        body: data,
+      }),
+    delete: (id: string, data: UserDelete) =>
+      appClient.Delete<User>(`/socoro/quarrylink/api/users/${id}`, {
         body: data,
       }),
     update: (id: string, data: UserUpdateDTO) => {
@@ -711,6 +762,10 @@ export const APIClient = {
         body: data,
       });
     },
+    getDependencies: (id: string) =>
+      appClient.Get<UserDependencies>(
+        `/socoro/quarrylink/api/users/${id}/dependencies`
+      ),
   },
 
   tenants: {

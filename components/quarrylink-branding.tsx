@@ -8,11 +8,14 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function QuarryLinkBranding({
-  subscriptionType = 'Lite Plus',
+  subscriptionType,
+  isLoading = false,
 }: {
   subscriptionType?: string;
+  isLoading?: boolean;
 }) {
   return (
     <SidebarMenu>
@@ -36,9 +39,13 @@ export function QuarryLinkBranding({
               <span className="truncate font-semibold text-white">
                 QuarryLink
               </span>
-              <span className="truncate text-xs text-[#71717B]">
-                {subscriptionType}
-              </span>
+              {isLoading ? (
+                <Skeleton className="h-3 w-20 bg-white/30" />
+              ) : (
+                <span className="truncate text-xs text-[#71717B]">
+                  {subscriptionType || 'Lite Plus'}
+                </span>
+              )}
             </div>
           </Link>
         </SidebarMenuButton>

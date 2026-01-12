@@ -66,3 +66,14 @@ export interface QuarrySupplierProduct {
 }
 
 export type QuarriesWithProduct = QuarrySupplierProduct;
+
+export interface QuarryReporting {
+  supplierTotalMonthlyProfitValueOfQuotedProducts: number;
+  suppliersMonthlyProfitValueChangePercent: number;
+  topSupplierOfTheMonth: string;
+  topSupplierQuotedProfitValueThisMonth: number;
+  quarriesTotalMonthlyProfitValueOfQuotedProducts: number;
+  quarriesMonthlyProfitValueChangePercent: number;
+  topQuarryOfTheMonth: string;
+  topQuarryQuotedProfitValueThisMonth: number;
+}

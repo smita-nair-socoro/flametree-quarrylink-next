@@ -7,6 +7,7 @@ import SupplierForm from '@/app/(protected)/inventory/products/(components)/form
 import { TriangleAlert, CircleAlert } from 'lucide-react';
 import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
+import Link from 'next/link';
 
 interface DialogConfig {
   title?: string;
@@ -31,6 +32,7 @@ interface SelectedAction {
 }
 
 interface BlockingQuote {
+  id?: number;
   quoteNumber: string;
   lineItemsCount: number;
 }
@@ -44,8 +46,18 @@ const getDialogConfigs = (
   const supplierProductCode = quarryData?.supplierProductCode;
   const blockingQuoteLength = blockingQuotes?.length ?? 0;
 
-  const blockingQuoteIds =
-    blockingQuotes?.map((quote: any) => quote.quoteNumber) ?? [];
+  const blockingQuoteNumbers =
+    blockingQuotes?.map((quote: BlockingQuote) => quote.quoteNumber) ?? [];
+  const blockingQuoteIdList =
+    blockingQuotes
+      ?.map((quote) => (typeof quote.id === 'number' ? quote.id : null))
+      .filter((v): v is number => Number.isFinite(v as number)) ?? [];
+  const blockingHref =
+    blockingQuoteIdList.length > 0
+      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
+          blockingQuoteIdList.join(',')
+        )}`
+      : undefined;
 
   if (selectedAction?.key === 'cannotDelete') {
     return {
@@ -79,12 +91,28 @@ const getDialogConfigs = (
                 Active Usage:
               </span>
               <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3">
-                <span className="text-[14px] text-[#364153] font-normal">
-                  {blockingQuoteLength} active quotes:{' '}
-                </span>
-                <span className="text-[14px] text-[#155DFC] font-medium underline">
-                  {blockingQuoteIds.join(', ')}
-                </span>
+                {blockingHref ? (
+                  <>
+                    <Link
+                      href={blockingHref}
+                      className="text-[15px] text-[#155DFC] font-medium"
+                    >
+                      <span className="text-[15px] text-blue-700 font-normal">
+                        {blockingQuoteLength} active quotes:{' '}
+                      </span>
+                    </Link>
+                    <span>{blockingQuoteNumbers.join(', ')}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[14px] text-[#364153] font-normal">
+                      {blockingQuoteLength} active quotes:{' '}
+                    </span>
+                    <span className="text-[14px] text-[#155DFC] font-medium underline">
+                      {blockingQuoteNumbers.join(', ')}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <div className="bg-[#EFF6FF] border border-[#BEDBFF] rounded-md p-3">

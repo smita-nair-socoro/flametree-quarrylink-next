@@ -1,7 +1,11 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { Quotation, QuotationDTO } from '@/lib/types/quotation';
+import {
+  Quotation,
+  QuotationDTO,
+  PublicQuoteLinkResponse,
+} from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
@@ -12,6 +16,7 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
+  RotateCcw,
   // Quote,
   Send,
 } from 'lucide-react';
@@ -20,12 +25,18 @@ import { DatePicker } from '@/components/date-picker';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
+  QuotationPreviewQueryOptions,
+  useConvertToDraft,
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorData,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface DialogConfig {
@@ -49,7 +60,9 @@ interface SelectedAction {
   key: string;
 }
 
-const encodeQuotationPayload = (quotationData?: Quotation | null) => {
+const encodeQuotationPayload = (
+  quotationData?: Quotation | PublicQuoteLinkResponse | null
+) => {
   if (!quotationData) return null;
   try {
     const json = JSON.stringify(quotationData);
@@ -71,7 +84,7 @@ const openQuotePreviewWindow = (
   if (!encodedPayload) return;
 
   // Use search params for static site compatibility (S3 + CloudFront)
-  const previewUrl = `/quote-review?quoteId=${quotationId}&payload=${encodedPayload}`;
+  const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
   window.open(previewUrl, '_blank', 'noopener,noreferrer');
 };
 
@@ -312,6 +325,55 @@ const getDialogConfigs = (
         confirmText: 'Decline Quote',
         confirmVariant: 'destructive',
         confirmCustomColor: '#E7000B',
+      },
+    };
+  } else if (selectedAction?.key === 'convertToDraft') {
+    return {
+      convertToDraft: {
+        title: 'Convert Quote to Draft',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[40px] h-[40px] justify-center bg-gray-300 rounded-full">
+              <span className="flex items-center justify-center">
+                <RotateCcw className="h-[20px] w-[20px]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{projectName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <span className="text-[14px] text-[#364153] font-normal">
+              Are you sure you want to convert this quote to Draft?
+            </span>
+            <div className="rounded-md p-[16.625px] bg-gray-300">
+              <div className="flex justify-start gap-2 self-stretch">
+                <ArrowRight className="h-[20px] w-[20px] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] font-medium">
+                    Convert to Draft
+                  </span>
+                  <span className="text-[14px] font-normal">
+                    This quote will be converted to Draft and the quote will be
+                    editable.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Convert to Draft',
+        confirmVariant: 'default',
+        confirmCustomColor: '#9CA3AF',
       },
     };
   } else if (selectedAction?.key === 'convertToJob') {
@@ -601,6 +663,7 @@ export function useQuotationActions(
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
+  const convertToDraftMutation = useConvertToDraft();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -620,7 +683,7 @@ export function useQuotationActions(
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
       // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      let customerEmail = quotationDetailData.customerEmail;
+      let customerEmail = quotationDetailData.email;
       if (!customerEmail) {
         customerEmail = 'charlie.peng@socoro.com.au';
       }
@@ -664,6 +727,24 @@ export function useQuotationActions(
     };
   };
 
+  const handleSendToCustomerClick = () => {
+    // Guard: don't open the dialog if the quote is already expired
+    if (quotationToUse?.expiryDate) {
+      const expiry = new Date(quotationToUse.expiryDate);
+      if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
+        notifyError(
+          `Quote expired on ${expiry.toLocaleDateString(
+            'en-AU'
+          )}. Please extend the expiry date.`
+        );
+        return;
+      }
+    }
+
+    setSelectedAction({ key: 'sendToCustomer' });
+    setActiveDialog('sendToCustomer');
+  };
+
   // Build a safe payload for update actions (keeps deliveryAddress + status)
   const buildUpdatePayload = (
     overrides: Partial<QuotationDTO>
@@ -697,7 +778,21 @@ export function useQuotationActions(
       setActiveDialog(null);
       setSelectedAction(null);
     } catch (error) {
-      console.error('Failed to send quotation to customer:', error);
+      console.log('error', error);
+      const err = extractErrorResponse(error);
+      console.log('err', err);
+      // const extractedMessage = extractErrorMessage(error);
+      const expiryDateErrorPhrase = 'Quote expired on';
+      const isExpiryDateError = err?.message?.includes(expiryDateErrorPhrase);
+      console.log('isExpiryDateError', isExpiryDateError);
+      if (isExpiryDateError) {
+        notifyError(
+          extractErrorMessage(
+            'Quote Expired Date is the past. Please extend the expiry date.'
+          )
+        );
+        return;
+      }
       notifyError(extractErrorMessage(error));
     }
   };
@@ -765,6 +860,23 @@ export function useQuotationActions(
     // TODO: implement convert to job logic
   };
 
+  const handleConvertToDraft = async () => {
+    if (!quotationId) {
+      notifyError(extractErrorMessage('Unable to convert quotation to draft'));
+      return;
+    }
+
+    try {
+      await convertToDraftMutation.mutateAsync(quotationId);
+      notifySuccess('Quotation converted to draft');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to convert quotation to draft:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handleExtendExpiry = async () => {
     if (!quotationId) return;
 
@@ -816,6 +928,7 @@ export function useQuotationActions(
     sendToCustomer: handleSendToCustomer,
     approve: handleApprove,
     decline: handleDecline,
+    convertToDraft: handleConvertToDraft,
     convertToJob: handleConvertToJob,
     extendExpiry: handleExtendExpiry,
     archive: handleArchive,
@@ -826,7 +939,7 @@ export function useQuotationActions(
       setDuplicateOpen(true);
     },
 
-    sendToCustomer: createDialogAction('sendToCustomer'),
+    sendToCustomer: handleSendToCustomerClick,
 
     approve: createDialogAction('approve'),
 
@@ -840,6 +953,41 @@ export function useQuotationActions(
 
     view: () => {
       setViewOpen(true);
+    },
+
+    preview: async () => {
+      if (!quotationId) {
+        notifyError('Unable to preview quotation');
+        return;
+      }
+
+      try {
+        // Fetch preview data from API
+        const queryClient = (await import('@tanstack/react-query')).QueryClient;
+        const client = new queryClient();
+        const previewData = await client.fetchQuery(
+          QuotationPreviewQueryOptions(quotationId)
+        );
+
+        if (!previewData) {
+          notifyError('Failed to load preview data');
+          return;
+        }
+
+        // Encode the preview data
+        const encodedPayload = encodeQuotationPayload(previewData);
+        if (!encodedPayload) {
+          notifyError('Failed to encode preview data');
+          return;
+        }
+
+        // Open preview in new tab
+        const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
+        window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        console.error('Failed to preview quotation:', error);
+        notifyError(extractErrorMessage(error));
+      }
     },
 
     download: () => {

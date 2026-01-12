@@ -69,39 +69,41 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
         style: 'currency',
         currency: 'USD',
       }).format(dollars);
-      return (
+      return row.original.paymentType === 'CREDIT' ? (
         <div className="py-2 font-medium w-36 max-w-36 truncate">
           {formatted}
         </div>
+      ) : (
+        <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
       );
     },
     meta: 'Credit Limit',
   },
-  {
-    id: 'remaining_credit',
-    accessorFn: (row) => row.remainingCredit,
-    header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Remaining Credit" />
-      );
-    },
-    cell: ({ row }) => {
-      const cents = parseFloat(
-        (row.original.creditLimit - (row.original.remainingCredit ?? 0)).toString()
-      );
-      const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(dollars);
-      return (
-        <div className="py-2 font-medium w-36 max-w-36 truncate">
-          {formatted}
-        </div>
-      );
-    },
-    meta: 'Remaining Credit',
-  },
+  // {
+  //   id: 'remaining_credit',
+  //   accessorFn: (row) => row.remainingCredit,
+  //   header: ({ column }) => {
+  //     return (
+  //       <TableClientSortableHeader column={column} title="Remaining Credit" />
+  //     );
+  //   },
+  //   cell: ({ row }) => {
+  //     const cents = parseFloat(
+  //       (row.original.creditLimit - (row.original.remainingCredit ?? 0)).toString()
+  //     );
+  //     const dollars = cents / 100;
+  //     const formatted = new Intl.NumberFormat('en-US', {
+  //       style: 'currency',
+  //       currency: 'USD',
+  //     }).format(dollars);
+  //     return (
+  //       <div className="py-2 font-medium w-36 max-w-36 truncate">
+  //         {formatted}
+  //       </div>
+  //     );
+  //   },
+  //   meta: 'Remaining Credit',
+  // },
   {
     id: 'status',
     accessorFn: (row) => row.customerStatus,

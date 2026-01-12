@@ -100,6 +100,28 @@ export const pdfStyles = StyleSheet.create({
     marginRight: 8,
   },
 
+  initialsLogo: {
+    width: 30,
+    height: 30,
+    marginRight: 8,
+    backgroundColor: colors.white,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.black,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+
+  initialsText: {
+    fontSize: fontSize.base,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.black,
+    textAlign: 'center',
+  },
+
   brandName: {
     fontSize: fontSize.xl,
     fontFamily: 'Geist',
@@ -186,7 +208,7 @@ export const pdfStyles = StyleSheet.create({
   footerGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    width: '97%',
+    width: '70%',
     alignSelf: 'center',
   },
 

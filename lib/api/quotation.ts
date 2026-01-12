@@ -51,6 +51,31 @@ export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
     enabled: !!quotationId && quotationId > 0,
   });
 
+export const QuotationReportingQueryOptions = () =>
+  queryOptions({
+    queryKey: QuotationKeys.reporting(),
+    queryFn: () => APIClient.quotations.reporting(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const useConvertToDraft = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.quotations.convertToDraft(id),
+    onSuccess: (_data, quotationId) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(quotationId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
 /**
  * Mutation hook for creating a new quotation.
  * Automatically invalidates the quotations list cache on success.
@@ -139,6 +164,23 @@ export const useSendToCustomer = () => {
     },
   });
 };
+
+/**
+ * Query options for fetching a quotation preview.
+ * Returns the same data structure as the public quote link,
+ * but using authenticated access.
+ */
+export const QuotationPreviewQueryOptions = (quotationId: number) =>
+  queryOptions({
+    queryKey: [...QuotationKeys.detail(quotationId), 'preview'],
+    queryFn: async () => {
+      const data = await APIClient.quotations.preview(quotationId);
+      console.log('[Quotation][preview] response:', data);
+      return convertKeysToCamelCase(data) as PublicQuoteLinkResponse;
+    },
+    staleTime: 5_000,
+    enabled: !!quotationId && quotationId > 0,
+  });
 
 /**
  * Mutation hook for creating a new quote item.

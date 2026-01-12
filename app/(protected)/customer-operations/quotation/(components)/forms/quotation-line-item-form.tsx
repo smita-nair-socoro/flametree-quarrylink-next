@@ -44,6 +44,7 @@ export default function QuoteLineItemForm({
     isReadOnly,
     form: quotationLineItemForm,
     selectedLineItem,
+    quoteType,
     productOptions,
     quarryOptions,
     truckTypeOptions,
@@ -57,6 +58,7 @@ export default function QuoteLineItemForm({
     onSubmit,
     isPending,
   } = useLineItemFormState({ id, canEdit, onCancel });
+  const isCollection = quoteType === 'COLLECTION';
 
   return (
     <div className="w-full relative">
@@ -313,174 +315,180 @@ export default function QuoteLineItemForm({
             </div>
 
             {/* Truck Configuration */}
-            <div className="flex flex-col">
-              <div className="flex flex-col gap-2">
-                <span className="text-[20px] font-semibold mt-3">
-                  Truck Configuration
-                </span>
-                <Separator className="mb-4" />
-              </div>
-              <FormSelect
-                control={quotationLineItemForm.control}
-                name="truckType"
-                label="Truck Type*"
-                searchLabel="Truck Type"
-                options={truckTypeOptions}
-                placeholder="Select Truck Type"
-                disabled={isReadOnly}
-              />
+            {!isCollection && (
+              <div className="flex flex-col">
+                <div className="flex flex-col gap-2">
+                  <span className="text-[20px] font-semibold mt-3">
+                    Truck Configuration
+                  </span>
+                  <Separator className="mb-4" />
+                </div>
+                <FormSelect
+                  control={quotationLineItemForm.control}
+                  name="truckType"
+                  label="Truck Type*"
+                  searchLabel="Truck Type"
+                  options={truckTypeOptions}
+                  placeholder="Select Truck Type"
+                  disabled={isReadOnly}
+                />
 
-              <div className="space-y-2">
-                <span className="block text-sm font-medium text-[#737373]">
-                  Cost Pricing
-                </span>
-                <div
-                  className={
-                    isDesktop ? 'grid grid-cols-3 gap-4' : 'flex flex-col gap-3'
-                  }
-                >
-                  <FormSelect
-                    control={quotationLineItemForm.control}
-                    name="truckCostUom"
-                    label="Unit of Measure*"
-                    searchLabel="Unit of Measure"
-                    showSearch={false}
-                    options={truckUnitOptions}
-                    placeholder="Select Unit of Measure"
-                    disabled={
-                      !quotationLineItemForm.watch('truckType') || isReadOnly
+                <div className="space-y-2">
+                  <span className="block text-sm font-medium text-[#737373]">
+                    Cost Pricing
+                  </span>
+                  <div
+                    className={
+                      isDesktop
+                        ? 'grid grid-cols-3 gap-4'
+                        : 'flex flex-col gap-3'
                     }
-                  />
+                  >
+                    <FormSelect
+                      control={quotationLineItemForm.control}
+                      name="truckCostUom"
+                      label="Unit of Measure*"
+                      searchLabel="Unit of Measure"
+                      showSearch={false}
+                      options={truckUnitOptions}
+                      placeholder="Select Unit of Measure"
+                      disabled={
+                        !quotationLineItemForm.watch('truckType') || isReadOnly
+                      }
+                    />
 
-                  <FormField
-                    control={quotationLineItemForm.control}
-                    name="truckCostQty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>QTY*</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={quotationLineItemForm.control}
+                      name="truckCostQty"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>QTY*</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              {...field}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={quotationLineItemForm.control}
-                    name="truckCostPrice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Cost Per Unit*
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>(ex-GST)</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </FormLabel>
-                        <FormControl>
-                          <CurrencyInput
-                            id="truckCostPrice"
-                            className="w-full"
-                            value={field.value}
-                            onValueChange={(value) =>
-                              field.onChange(value === '' ? 0 : value)
-                            }
-                            decimalPlaces={2}
-                            allowNegative={false}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={quotationLineItemForm.control}
+                      name="truckCostPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-1">
+                            Cost Per Unit*
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>(ex-GST)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </FormLabel>
+                          <FormControl>
+                            <CurrencyInput
+                              id="truckCostPrice"
+                              className="w-full"
+                              value={field.value}
+                              onValueChange={(value) =>
+                                field.onChange(value === '' ? 0 : value)
+                              }
+                              decimalPlaces={2}
+                              allowNegative={false}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="block text-sm font-medium text-[#737373]">
+                    Sell Pricing
+                  </span>
+                  <div
+                    className={
+                      isDesktop
+                        ? 'grid grid-cols-3 gap-4'
+                        : 'flex flex-col gap-3'
+                    }
+                  >
+                    <FormSelect
+                      control={quotationLineItemForm.control}
+                      name="truckSellUom"
+                      label="Unit of Measure*"
+                      searchLabel="Unit of Measure"
+                      showSearch={false}
+                      options={truckUnitOptions}
+                      placeholder="Select Unit of Measure"
+                      disabled={
+                        !quotationLineItemForm.watch('truckType') || isReadOnly
+                      }
+                    />
+
+                    <FormField
+                      control={quotationLineItemForm.control}
+                      name="truckSellQty"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>QTY*</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              {...field}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={quotationLineItemForm.control}
+                      name="truckSellPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-1">
+                            Sell Price Per Unit*
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>(ex-GST)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </FormLabel>
+                          <FormControl>
+                            <CurrencyInput
+                              id="truckSellPrice"
+                              className="w-full"
+                              value={field.value}
+                              onValueChange={(value) =>
+                                field.onChange(value === '' ? 0 : value)
+                              }
+                              decimalPlaces={2}
+                              allowNegative={false}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <span className="block text-sm font-medium text-[#737373]">
-                  Sell Pricing
-                </span>
-                <div
-                  className={
-                    isDesktop ? 'grid grid-cols-3 gap-4' : 'flex flex-col gap-3'
-                  }
-                >
-                  <FormSelect
-                    control={quotationLineItemForm.control}
-                    name="truckSellUom"
-                    label="Unit of Measure*"
-                    searchLabel="Unit of Measure"
-                    showSearch={false}
-                    options={truckUnitOptions}
-                    placeholder="Select Unit of Measure"
-                    disabled={
-                      !quotationLineItemForm.watch('truckType') || isReadOnly
-                    }
-                  />
-
-                  <FormField
-                    control={quotationLineItemForm.control}
-                    name="truckSellQty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>QTY*</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={quotationLineItemForm.control}
-                    name="truckSellPrice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Sell Price Per Unit*
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>(ex-GST)</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </FormLabel>
-                        <FormControl>
-                          <CurrencyInput
-                            id="truckSellPrice"
-                            className="w-full"
-                            value={field.value}
-                            onValueChange={(value) =>
-                              field.onChange(value === '' ? 0 : value)
-                            }
-                            decimalPlaces={2}
-                            allowNegative={false}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </div>
+            )}
 
             <div className="flex flex-col gap-0">
               <div className="flex flex-col gap-2">
@@ -498,14 +506,16 @@ export default function QuoteLineItemForm({
                     ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between py-3 -mt-3">
-                  <span className="text-sm font-normal">
-                    Truck Cost (Total):
-                  </span>
-                  <span className="text-sm font-normal">
-                    ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
-                  </span>
-                </div>
+                {!isCollection && (
+                  <div className="flex justify-between py-3 -mt-3">
+                    <span className="text-sm font-normal">
+                      Truck Cost (Total):
+                    </span>
+                    <span className="text-sm font-normal">
+                      ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
                     Product Sell (Total):
@@ -514,14 +524,16 @@ export default function QuoteLineItemForm({
                     ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between py-3 -mt-3">
-                  <span className="text-sm font-normal">
-                    Truck Sell (Total):
-                  </span>
-                  <span className="text-sm font-normal">
-                    ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
-                  </span>
-                </div>
+                {!isCollection && (
+                  <div className="flex justify-between py-3 -mt-3">
+                    <span className="text-sm font-normal">
+                      Truck Sell (Total):
+                    </span>
+                    <span className="text-sm font-normal">
+                      ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between py-3">
                   <span className="text-sm font-normal">
                     Subtotal (ex-GST):

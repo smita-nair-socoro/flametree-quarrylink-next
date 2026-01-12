@@ -10,6 +10,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { TableBadges } from '@/components/table-badges';
 
 export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
   {
@@ -18,9 +19,15 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     header: ({}) => {
       return <div>Supplier</div>;
     },
-    cell: (info) => <div>{info.getValue() as string}</div>,
+    cell: (info) => (
+      <div
+        className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
+        title={info.getValue() as string}
+      >
+        {info.getValue() as string}
+      </div>
+    ),
     meta: 'Name',
-    size: 180,
   },
   {
     id: 'cost_price',
@@ -41,17 +48,12 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.availableForSaleTn === false) {
-        return <div>N/A</div>;
-      } else {
-        const costPrice = row.original.perTnCostPrice
-          ? centsToDollars(row.original.perTnCostPrice)
-          : '0';
-        return <div>${costPrice}</div>;
-      }
+      const costPrice = row.original.perTnCostPrice
+        ? centsToDollars(row.original.perTnCostPrice)
+        : '0.00';
+      return <div>${costPrice}</div>;
     },
     meta: 'cost price',
-    size: 130,
   },
   {
     id: 'sell_price',
@@ -72,17 +74,12 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      if (row.original.availableForSaleTn === false) {
-        return <div>N/A</div>;
-      } else {
-        const sellPrice = row.original.perTnSellPrice
-          ? centsToDollars(row.original.perTnSellPrice)
-          : '0';
-        return <div>${sellPrice}</div>;
-      }
+      const sellPrice = row.original.perTnSellPrice
+        ? centsToDollars(row.original.perTnSellPrice)
+        : '0.00';
+      return <div>${sellPrice}</div>;
     },
     meta: 'sell price',
-    size: 130,
   },
   {
     id: 'margin',
@@ -93,12 +90,9 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return (sellPrice - costPrice) / sellPrice;
     },
     header: ({}) => {
-      return <div>Margin</div>;
+      return <div className="w-[90px]">Margin</div>;
     },
     cell: ({ row }) => {
-      if (row.original.availableForSaleTn === false) {
-        return <div>0.00%</div>;
-      }
       const costPrice = row.original.perTnCostPrice || 0;
       const sellPrice = row.original.perTnSellPrice || 0;
 
@@ -113,7 +107,7 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
               : margin > 0
               ? 'text-green-600'
               : 'text-gray-600',
-            'flex justify-start items-center gap-1'
+            'flex justify-start items-center gap-1 w-[90px]'
           )}
         >
           {margin < 0 && <TrendingDown className="w-4 h-4" />}
@@ -128,14 +122,17 @@ export const tnPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     id: 'available_for_sale_tn',
     accessorFn: (row) => row.availableForSaleTn,
     header: ({}) => {
-      return <div className="text-left">Available</div>;
+      return <div className="text-left w-[120px]">Availability</div>;
     },
     cell: ({ row }) => {
       const availableForSale =
-        row.original.availableForSaleTn === true ? 'Yes' : 'No';
-      return <div className="text-left">{availableForSale}</div>;
+        row.original.availableForSaleTn === true ? (
+          <TableBadges names={['AVAILABLE']} />
+        ) : (
+          <TableBadges names={['UNAVAILABLE']} />
+        );
+      return <div className="text-left w-[120px]">{availableForSale}</div>;
     },
     meta: 'available for sale',
-    size: 100,
   },
 ];

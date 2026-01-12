@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   HoverCard,
   HoverCardContent,
@@ -49,12 +50,20 @@ export function TeamSwitcher({
   React.useEffect(() => {
     setForceUpdate((prev) => prev + 1);
   }, [state, openMobile, isMobileDevice]);
+  const {
+    data: tenantCompleteDetails,
+    isLoading,
+    isFetching,
+  } = useQuery(TenantCompleteDetailsQueryOptions());
+
+  const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
   const tenantName =
-    tenantCompleteDetails?.tenantDetails?.tenantName || 'Acme Quarry';
+    tenantCompleteDetails?.tenantDetails?.tenantName ?? client?.name;
 
   const tenantInitials = React.useMemo(() => {
-    const parts = tenantName.trim().split(/\s+/);
+    const base = tenantName?.trim() ?? '';
+    const parts = base.split(/\s+/);
     const letters = parts
       .slice(0, 2)
       .map((p: string) => p[0]?.toUpperCase() || '')
@@ -121,14 +130,22 @@ export function TeamSwitcher({
           className="cursor-default bg-[#7138F5] hover:bg-[#7138F533] pointer-events-none"
         >
           <div className="bg-white border border-purple-300 text-purple-500 flex aspect-square size-8 items-center justify-center rounded-lg">
-            <span className="text-sm font-semibold">
-              {activeClient.initials}
-            </span>
+            {isPending ? (
+              <Skeleton className="h-3 w-4 bg-black/10" />
+            ) : (
+              <span className="text-sm font-semibold">
+                {activeClient.initials}
+              </span>
+            )}
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium text-white">
-              {activeClient.name}
-            </span>
+            {isPending ? (
+              <Skeleton className="h-4 w-36 bg-white/30" />
+            ) : (
+              <span className="truncate font-medium text-white">
+                {activeClient.name}
+              </span>
+            )}
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>

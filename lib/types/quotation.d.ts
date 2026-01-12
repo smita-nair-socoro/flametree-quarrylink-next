@@ -13,6 +13,7 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  email: string;
   customerPhone: string;
   customerDto: CustomerDTO;
   accountManagerSub: string;
@@ -105,7 +106,6 @@ export interface QuotationLineItem {
   truckSellQty: number;
   truckSellPrice: number;
   totalTruckSellPrice: number;
-  requiredLoads: number;
   grossProfit: number;
   totalQuantityRequired: number;
   allocatedQuantity: number;
@@ -158,6 +158,7 @@ export interface QuotationDisplayData {
     validUntil: string;
     accountManager: string;
     status: QuoteStatus;
+    tenantDetails?: StripeTenantDetailsSnapshot;
   };
   customer: {
     customerName: string;
@@ -166,7 +167,7 @@ export interface QuotationDisplayData {
     billingAddress: {
       line1: string;
       line2: string;
-      country: string;
+      line3: string;
     };
   };
   project: {
@@ -202,7 +203,17 @@ export interface QuotationDisplayData {
     phone: string;
     addressLine1: string;
     addressLine2: string;
+    addressLine3: string;
     website: string;
     businessName: string;
   };
+}
+
+interface QuotationReporting {
+  totalQuotesRaisedThisMonth: number;
+  totalValueOfQuotesRaisedThisMonth: number;
+  totalPendingQuotes: number;
+  totalQuotesExpiringIn7Days: number;
+  totalQuotesPercentageChangeVsLastMonth: number;
+  totalQuotesValuePercentageChangeVsLastMonth: 0;
 }

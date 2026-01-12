@@ -38,6 +38,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { addNewRecordId } from '@/lib/utils';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -221,6 +222,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
         const createdProduct = await createProduct.mutateAsync(payload);
         console.log('Product created successfully!', createdProduct);
 
+        // Add the new record ID to sessionStorage for highlighting
+        if (createdProduct && typeof createdProduct.id === 'number') {
+          addNewRecordId('product_main_data_table', createdProduct.id);
+        }
+
         // Store the created product ID and mark as just created
         if (
           createdProduct &&
@@ -249,9 +255,10 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
       const extractedMessage = extractErrorMessage(error);
       const codeStr = err?.code ? String(err.code) : undefined;
       const messageFromErr = err?.message || extractedMessage;
+      console.log('messageFromErr', messageFromErr);
 
       // Duplicate product code (HTTP 409) — match the product_code in backend message
-      const duplicateKeyPhrase = `Key (product_code)=(${values.product_code}) already exists`;
+      const duplicateKeyPhrase = `[ERROR: duplicate key value violates unique constraint "uq_product_code_ci"`;
       const isDuplicateProductCode =
         codeStr === '409' &&
         typeof messageFromErr === 'string' &&
@@ -605,7 +612,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
               <ActionDialog
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
-                customWidth="!max-w-[60vw]"
+                customWidth="!max-w-[30vw] sm:!max-w-[90vw] md:!max-w-[90vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
                 cancelText="Close"
                 title={`Compare All - ${totalSupplier} Suppliers`}
                 content={
@@ -620,7 +627,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={tnPricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="font-normal text-[#364153]">
                       m³ Pricing
@@ -629,7 +635,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={m3PricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="font-normal text-[#364153]">
                       20kg Pricing
@@ -638,7 +643,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={kgPricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="font-normal text-[#364153]">
                       Bulka Pricing
@@ -647,7 +651,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={bulkaPricingColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                     <span className="text-lg font-semibold text-[#101828]">
                       Truck Rates Comparison
@@ -656,7 +659,6 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       columns={truckRateComparisonColumn}
                       data={selectedProduct?.quarrySupplierProducts || []}
                       simpleTable={true}
-                      useColumnSizing={true}
                     />
                   </div>
                 }
@@ -673,6 +675,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                       : []
                   }
                   simpleTable={true}
+                  defaultSorting={[{ id: 'name', desc: false }]}
                 />
               </div>
 

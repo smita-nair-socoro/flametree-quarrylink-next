@@ -8,15 +8,20 @@ import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarrie
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
 import {
+  LinkedProductsQueryOptions,
   useUnarchiveQuarry,
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
+import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
-import { notifySuccess } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
-interface DeleteBlockingSummary {
-  totalLineItems: number;
-  quotesCount: number;
+interface BlockingQuote {
+  id?: number;
+  quoteNumber?: string;
+  lineItemsCount?: number;
 }
 
 interface DialogConfig {
@@ -56,10 +61,24 @@ const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
 const getDialogConfigs = (
   quarrySupplierData?: Quarry | null,
   selectedAction?: SelectedAction,
-  blockingSummary?: DeleteBlockingSummary
+  blockingQuotes?: BlockingQuote[]
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
   const type = quarrySupplierData?.quarrySupplierType;
+
+  const blockingQuoteLength = blockingQuotes?.length ?? 0;
+  const blockingQuoteNumbers =
+    blockingQuotes?.map((q) => q.quoteNumber).filter(Boolean) ?? [];
+  const blockingQuoteIdList =
+    blockingQuotes
+      ?.map((q) => (typeof q.id === 'number' ? q.id : null))
+      .filter((v): v is number => Number.isFinite(v as number)) ?? [];
+  const blockingHref =
+    blockingQuoteIdList.length > 0
+      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
+          blockingQuoteIdList.join(',')
+        )}`
+      : undefined;
 
   if (selectedAction?.key === 'delete') {
     return {
@@ -189,10 +208,6 @@ const getDialogConfigs = (
       },
     };
   } else if (selectedAction?.key === 'cannotDelete') {
-    // Use the summary data directly
-    const totalLineItems = blockingSummary?.totalLineItems || 0;
-    const quotesCount = blockingSummary?.quotesCount || 0;
-
     return {
       cannotDelete: {
         title: 'Cannot Delete',
@@ -209,26 +224,38 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-4">
             <div className="text-[16px] text-[#364153]">
-              <div>Cannot delete while deliveries are pending.</div>
-              <div>Complete all deliveries first, then try again.</div>
+              <div>
+                Cannot delete while this supplier is referenced in quotes.
+              </div>
+              <div>Resolve active quotes first, then try again.</div>
             </div>
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#101828]">
-                Current Status:
+                Active Usage:
               </span>
-              <div className="flex flex-col gap-2">
-                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  {totalLineItems}{' '}
-                  {totalLineItems === 1 ? 'line item' : 'line items'} with
-                  pending deliveries
-                </div>
-                {/* <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  3 active dockets not yet delivered
-                </div> */}
-                <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                  {quotesCount} {quotesCount === 1 ? 'quote' : 'quotes'} with
-                  line items
-                </div>
+              <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
+                {blockingHref ? (
+                  <>
+                    <Link
+                      href={blockingHref}
+                      className="text-[15px] text-[#155DFC] font-medium"
+                    >
+                      <span className="text-[15px] text-blue-700 font-normal ">
+                        {blockingQuoteLength} active quotes:{' '}
+                      </span>
+                    </Link>
+                    <span>{blockingQuoteNumbers.join(', ')}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[14px] text-[#364153] font-normal">
+                      {blockingQuoteLength} active quotes:{' '}
+                    </span>
+                    <span className="text-[14px] text-[#155DFC] font-medium underline">
+                      {blockingQuoteNumbers.join(', ')}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -280,13 +307,15 @@ export function useQuarrySupplierActions(
   quarrySupplierId: number | undefined,
   quarrySupplierData?: Quarry | null
 ) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [viewOpen, setViewOpen] = React.useState(false);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [blockingSummary, setBlockingSummary] = React.useState<
-    DeleteBlockingSummary | undefined
-  >(undefined);
+  const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
+    []
+  );
   const [editFormType, setEditFormType] = React.useState<string>(
     quarrySupplierData?.quarrySupplierType || 'QUARRY'
   );
@@ -298,7 +327,7 @@ export function useQuarrySupplierActions(
   const dialogConfigs = getDialogConfigs(
     quarrySupplierData,
     selectedAction || undefined,
-    blockingSummary
+    blockingQuotes
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -314,8 +343,52 @@ export function useQuarrySupplierActions(
       setViewOpen(true);
     },
 
-    linkedProducts: () => {
-      // TODO: Implement linked products functionality
+    linkedProducts: async () => {
+      if (!quarrySupplierId) return;
+
+      try {
+        const linked = await queryClient.fetchQuery(
+          LinkedProductsQueryOptions(quarrySupplierId)
+        );
+
+        const linkedArr = Array.isArray(linked)
+          ? linked
+          : linked
+          ? [linked]
+          : [];
+
+        const productIdsSet = new Set<number>();
+        for (const lp of linkedArr) {
+          const qsp = lp?.quarrySupplierProducts ?? [];
+          for (const p of qsp) {
+            const id = p?.productId;
+            if (typeof id === 'number' && id > 0) productIdsSet.add(id);
+          }
+        }
+
+        const productIds = Array.from(productIdsSet);
+
+        if (productIds.length === 0) {
+          notifyError('No linked products found for this quarry/supplier.');
+          return;
+        }
+
+        const quarrySupplierName = quarrySupplierData?.name?.trim();
+        const nameParam = quarrySupplierName
+          ? `&linkedQuarrySupplierName=${encodeURIComponent(
+              quarrySupplierName
+            )}`
+          : '';
+
+        router.push(
+          `/inventory/products?linkedProductIds=${encodeURIComponent(
+            productIds.join(',')
+          )}&linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`
+        );
+      } catch (e: unknown) {
+        console.error('[useQuarrySupplierActions] linkedProducts failed:', e);
+        notifyError('Failed to load linked products.');
+      }
     },
 
     delete: () => {
@@ -349,7 +422,7 @@ export function useQuarrySupplierActions(
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
-            setBlockingSummary(undefined);
+            setBlockingQuotes([]);
           }
         }}
         title={config.title ?? ''}
@@ -389,7 +462,7 @@ export function useQuarrySupplierActions(
 
                 // Check if it's a 409 error with blocking quotes
                 const errorData = extractErrorData(e);
-                const blocked: { lineItemsCount?: number }[] =
+                const rawBlocked =
                   errorData &&
                   typeof errorData === 'object' &&
                   'blockingQuoteDtos' in errorData &&
@@ -398,22 +471,24 @@ export function useQuarrySupplierActions(
                       .blockingQuoteDtos
                   )
                     ? ((errorData as { blockingQuoteDtos: unknown[] })
-                        .blockingQuoteDtos as { lineItemsCount?: number }[])
+                        .blockingQuoteDtos as unknown[])
                     : [];
+                const blocked: BlockingQuote[] = rawBlocked.map((b: any) => ({
+                  id: typeof b?.id === 'number' ? b.id : undefined,
+                  quoteNumber:
+                    typeof b?.quoteNumber === 'string'
+                      ? b.quoteNumber
+                      : b?.id
+                      ? String(b.id)
+                      : undefined,
+                  lineItemsCount:
+                    typeof b?.lineItemsCount === 'number'
+                      ? b.lineItemsCount
+                      : undefined,
+                }));
 
                 if (blocked.length > 0) {
-                  // Calculate total line items from blocking quotes
-                  const totalLineItems = blocked.reduce(
-                    (sum, quote) => sum + (quote.lineItemsCount || 0),
-                    0
-                  );
-
-                  // Set the blocking summary data for the dialog
-                  setBlockingSummary({
-                    totalLineItems,
-                    quotesCount: blocked.length,
-                  });
-
+                  setBlockingQuotes(blocked);
                   setSelectedAction({ key: 'cannotDelete' });
                   setActiveDialog('cannotDelete');
                 } else {
