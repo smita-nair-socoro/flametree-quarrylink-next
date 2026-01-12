@@ -148,5 +148,6 @@ export const mockQuotationData = {
     addressLine3: 'AUSTRALIA',
     website: 'www.quarrylink.com.au',
     businessName: 'QuarryLink',
+    abn: '12 345 678 901',
   },
 };

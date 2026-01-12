@@ -52,9 +52,8 @@ export default function QuoteReviewDocument({
   const currentQuoteStatus = quotationData.navbar.status;
 
   // State for quote status (will be updated when user approves/declines)
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
-    currentQuoteStatus
-  );
+  const [quoteStatus, setQuoteStatus] =
+    useState<QuoteStatus>(currentQuoteStatus);
 
   // State for navbar status (will be updated when user approves/declines)
   const [navbarStatus, setNavbarStatus] =
@@ -318,7 +317,6 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
-            isPreviewMode={isPreviewMode}
           />
 
           {/* Status Banner */}
