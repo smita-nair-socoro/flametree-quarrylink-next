@@ -84,8 +84,13 @@ export const useCreateQuotation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<QuotationDTO>) =>
-      APIClient.quotations.create(data),
+    mutationFn: (data: Partial<QuotationDTO>) => {
+      const dataWithDefaults = {
+        inclDeliveryCost: false,
+        ...data,
+      };
+      return APIClient.quotations.create(dataWithDefaults);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
@@ -102,8 +107,13 @@ export const useUpdateQuotation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<QuotationDTO>) =>
-      APIClient.quotations.update(data),
+    mutationFn: (data: Partial<QuotationDTO>) => {
+      const dataWithDefaults = {
+        inclDeliveryCost: false,
+        ...data,
+      };
+      return APIClient.quotations.update(dataWithDefaults);
+    },
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
