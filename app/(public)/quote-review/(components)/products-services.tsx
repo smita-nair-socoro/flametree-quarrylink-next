@@ -3,6 +3,11 @@ import { Separator } from '@/components/ui/separator';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { ColumnDef } from '@tanstack/react-table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export interface Product {
   name: string;
@@ -19,17 +24,35 @@ export interface ProductsServicesProps {
   includeDeliveryPrices?: boolean;
 }
 
-const createColumns = (includeDeliveryPrices: boolean): ColumnDef<Product>[] => {
+const createColumns = (
+  includeDeliveryPrices: boolean
+): ColumnDef<Product>[] => {
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'name',
       header: 'Product',
       cell: ({ row }) => (
         <div className="max-w-full">
-          <p className="font-semibold text-gray-900 text-sm truncate" title={row.original.name}>
-            {row.original.name}
-          </p>
-          <p className="text-gray-500 text-xs truncate" title={row.original.code}>{row.original.code}</p>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <p className="font-semibold text-gray-900 text-sm truncate">
+                {row.original.name}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>{row.original.name}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <p className="text-gray-500 text-xs truncate">
+                {row.original.code}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>{row.original.code}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       ),
       size: 160,

@@ -2,7 +2,65 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+interface ExtendedInputProps extends React.ComponentProps<'input'> {
+  isNumber?: boolean;
+}
+
+function Input({
+  className,
+  type,
+  isNumber,
+  onChange,
+  onFocus,
+  onMouseUp,
+  inputMode,
+  pattern,
+  ...props
+}: ExtendedInputProps) {
+  const handleChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (isNumber) {
+        const raw = e.target.value;
+        // Allow empty while typing
+        if (raw === '') {
+          onChange?.(e);
+          return;
+        }
+        // Keep only digits
+        let digits = raw.replace(/\D/g, '');
+        // Strip leading zeros when more than one digit
+        if (digits.length > 1) {
+          digits = digits.replace(/^0+(?=\d)/, '');
+        }
+        // Mutate the value so consumers receive the sanitized content
+        e.target.value = digits;
+      }
+      onChange?.(e);
+    },
+    [isNumber, onChange]
+  );
+
+  const handleFocus = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      if (isNumber) {
+        e.currentTarget.select();
+      }
+      onFocus?.(e);
+    },
+    [isNumber, onFocus]
+  );
+
+  const handleMouseUp = React.useCallback(
+    (e: React.MouseEvent<HTMLInputElement>) => {
+      if (isNumber) {
+        // Prevent default to avoid deselecting text on mouse up
+        e.preventDefault();
+      }
+      onMouseUp?.(e);
+    },
+    [isNumber, onMouseUp]
+  );
+
   return (
     <input
       type={type}
@@ -13,6 +71,12 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
         'aria-invalid:ring-destructive/20  aria-invalid:border-destructive',
         className
       )}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onMouseUp={handleMouseUp}
+      // Provide helpful defaults for numeric entry without overriding explicit props
+      inputMode={isNumber ? inputMode ?? 'numeric' : inputMode}
+      pattern={isNumber ? pattern ?? '[0-9]*' : pattern}
       {...props}
     />
   );

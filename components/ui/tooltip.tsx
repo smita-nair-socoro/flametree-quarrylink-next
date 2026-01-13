@@ -34,7 +34,7 @@ function TooltipTrigger({
 
 interface TooltipContentProps
   extends React.ComponentProps<typeof TooltipPrimitive.Content> {
-  variant?: 'default' | 'table';
+  variant?: 'default' | 'table' | 'purple' | 'white';
   backgroundClassName?: string;
   arrowClassName?: string;
 }
@@ -83,6 +83,14 @@ function TooltipContent({
     table: {
       content: 'bg-gray-50 text-gray-900 border border-gray-200',
       arrow: 'bg-gray-50 fill-gray-50',
+    },
+    purple: {
+      content: 'bg-purple-50 text-purple-900 border border-purple-100',
+      arrow: 'bg-purple-50 fill-purple-50',
+    },
+    white: {
+      content: 'bg-white text-gray-900 border border-gray-200 shadow-md',
+      arrow: 'bg-white fill-white',
     },
   };
 

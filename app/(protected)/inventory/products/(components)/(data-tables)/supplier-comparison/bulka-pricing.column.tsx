@@ -19,14 +19,23 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
     header: ({}) => {
       return <div>Supplier</div>;
     },
-    cell: (info) => (
-      <div
-        className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
-        title={info.getValue() as string}
-      >
-        {info.getValue() as string}
-      </div>
-    ),
+    cell: (info) => {
+      const value = info.getValue() as string;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div
+              className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
+            >
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
     meta: 'Name',
   },
   {
@@ -90,7 +99,7 @@ export const bulkaPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return (sellPrice - costPrice) / sellPrice;
     },
     header: ({}) => {
-      return <div className="w-[90px]">Margin</div>;
+      return <div className="w-[90px]">Profit Margin</div>;
     },
     cell: ({ row }) => {
       const costPrice = row.original.perBulkaCostPrice || 0;

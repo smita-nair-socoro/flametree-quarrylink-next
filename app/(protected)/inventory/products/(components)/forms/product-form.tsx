@@ -463,6 +463,7 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                         <Input
                           className="w-full"
                           placeholder="Enter Density Tonnage per m3"
+                          isNumber
                           {...field}
                         />
                       </FormControl>

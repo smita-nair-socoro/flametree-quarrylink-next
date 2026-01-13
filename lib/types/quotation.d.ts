@@ -33,6 +33,7 @@ export interface QuotationDTO {
   grossProfit: number;
   grossProfitPercentage: number;
   lineItemsCount: number;
+  inclDeliveryCost: boolean;
   convertedAt?: string;
   version: number;
   isDeleted: boolean;
@@ -70,6 +71,7 @@ export interface Quotation {
   grossProfit: number;
   grossProfitPercentage: number;
   lineItemsCount: number;
+  inclDeliveryCost: boolean;
   convertedAt?: string;
   version: number;
   isDeleted: boolean;
