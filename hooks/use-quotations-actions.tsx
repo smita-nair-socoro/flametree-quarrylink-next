@@ -19,9 +19,12 @@ import {
   RotateCcw,
   // Quote,
   Send,
+  Eye,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
@@ -34,7 +37,6 @@ import {
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   extractErrorMessage,
-  extractErrorData,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
@@ -73,26 +75,14 @@ const encodeQuotationPayload = (
   }
 };
 
-const openQuotePreviewWindow = (
-  quotationId?: number,
-  quotationData?: Quotation | null
-) => {
-  if (typeof window === 'undefined') return;
-  if (!quotationId) return;
-
-  const encodedPayload = encodeQuotationPayload(quotationData);
-  if (!encodedPayload) return;
-
-  // Use search params for static site compatibility (S3 + CloudFront)
-  const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
-  window.open(previewUrl, '_blank', 'noopener,noreferrer');
-};
-
 const getDialogConfigs = (
   quotationData?: Quotation | null,
   selectedAction?: SelectedAction,
   newExpiryDate?: Date,
-  setNewExpiryDate?: (date: Date) => void
+  setNewExpiryDate?: (date: Date) => void,
+  includeDeliveryPrices?: boolean,
+  setIncludeDeliveryPrices?: (value: boolean) => void,
+  onPreviewClick?: () => void
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -109,20 +99,22 @@ const getDialogConfigs = (
       sendToCustomer: {
         title: 'Send Quote',
         description: (
-          <div className="flex justify-start items-center gap-2">
-            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFF7ED] rounded-full">
-              <span className="flex items-center justify-center">
-                <Send className="h-[20px] w-[20px] text-[#F54900]" />
-              </span>
+          <div className="flex justify-start items-center gap-3">
+            <div className="flex w-[40px] h-[40px] justify-center items-center bg-[#FFF7ED] rounded-full flex-shrink-0">
+              <Send className="h-[20px] w-[20px] text-[#F54900]" />
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-medium">{projectName}</span>
-              <div className="flex justify-start gap-2">
-                <span className="text-sm text-[#6A7282]">
+            <div className="flex flex-col gap-0.5">
+              <span className="font-semibold text-[16px] text-[#101828]">
+                {projectName}
+              </span>
+              <div className="flex justify-start items-center gap-1.5">
+                <span className="text-[14px] text-[#6A7282]">
                   {quotationNumber}
                 </span>
-                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-                <span className="text-sm text-[#6A7282]">{projectName}</span>
+                <span className="text-[14px] text-[#6A7282]">•</span>
+                <span className="text-[14px] text-[#6A7282]">
+                  {customerName}
+                </span>
               </div>
             </div>
           </div>
@@ -132,37 +124,75 @@ const getDialogConfigs = (
             <span className="text-[14px] text-[#364153] font-normal">
               Are you sure you want to send this quote to the customer?
             </span>
-            <div className="border-1 border-[#FFD6A7] rounded-md p-[16.625px] bg-[#FFF7ED]">
-              <div className="flex justify-start gap-2 self-stretch">
+
+            {/* Include Delivery Prices Toggle Section */}
+            <div className="border border-[#E5E7EB] rounded-lg p-4 bg-white">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1">
+                  <div className="font-base text-[16px] text-[#101828] mb-1">
+                    Include Delivery Prices
+                  </div>
+                  <p className="text-[13px] text-[#6A7282]">
+                    {includeDeliveryPrices
+                      ? 'Delivery prices will be shown as separate line items in the customer quote.'
+                      : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
+                  </p>
+                </div>
+                <Switch
+                  checked={includeDeliveryPrices}
+                  onCheckedChange={setIncludeDeliveryPrices}
+                  className="data-[state=checked]:bg-[#F54900]"
+                />
+              </div>
+
+              {/* Preview Quote Button */}
+              <Button
+                variant="default"
+                size="lg"
+                onClick={onPreviewClick}
+                className="mt-3 text-orange-600 border-base-input hover:bg-orange-200 bg-orange-100"
+              >
+                <Eye className="h-5 w-5 mr-2" />
+                Preview Quote
+              </Button>
+            </div>
+
+            {/* Quote Delivery Section */}
+            <div className="border border-[#FFD6A7] rounded-lg p-4 bg-[#FFF7ED]">
+              <div className="flex justify-start gap-3 self-stretch">
                 <Send className="h-[20px] w-[20px] text-[#F54900] flex-shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
-                  <span className="text-[16px] text-[#F54900] font-medium">
+                  <span className="text-[16px] text-[#F54900] font-semibold">
                     Quote Delivery
                   </span>
                   <span className="text-[14px] font-normal text-[#F54900]">
-                    This quote will be sent via email to {customerEmail} and the
-                    status will change to Pending
+                    The quote will be sent via email to {customerEmail} and the
+                    status will change to Pending.
                   </span>
                 </div>
               </div>
             </div>
+
+            {/* What happens when quote is sent */}
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What happens when Quote is sent:
+              <span className="font-semibold text-[14px] text-[#101828]">
+                What happens when quote is sent:
               </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Quote status changes from Draft to Pending</li>
-                <li> Customer receives email with PDF quote</li>
-                <li> Approval process begins</li>
-                <li> Quote can no longer be edited</li>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-5">
+                <li>Quote status changes from Draft to Pending</li>
+                <li>Customer receives email with PDF quote</li>
+                <li>Approval process begins</li>
+                <li>Quote can no longer be edited</li>
               </ul>
             </div>
+
+            {/* Customer Email */}
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
+              <span className="font-semibold text-[14px] text-[#101828]">
                 Customer Email:
               </span>
-              <div className="rounded-md p-1 bg-[#E5E5E5]">
-                <span className="text-[14px] font-normal text-[#6A7282] p-2">
+              <div className="rounded-md px-3 py-2 bg-[#F3F4F6]">
+                <span className="text-[14px] font-normal text-[#6A7282]">
                   {customerEmail}
                 </span>
               </div>
@@ -170,6 +200,60 @@ const getDialogConfigs = (
           </div>
         ),
         confirmText: 'Send Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#F54900',
+      },
+    };
+  } else if (selectedAction?.key === 'previewQuote') {
+    return {
+      previewQuote: {
+        title: 'Preview Quote',
+        description: (
+          <div className="flex justify-start items-center gap-3">
+            <div className="flex w-[40px] h-[40px] justify-center items-center bg-[#FFF7ED] rounded-full flex-shrink-0">
+              <Send className="h-[20px] w-[20px] text-[#F54900]" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-semibold text-[16px] text-[#101828]">
+                {projectName}
+              </span>
+              <div className="flex justify-start items-center gap-1.5">
+                <span className="text-[14px] text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-[14px] text-[#6A7282]">•</span>
+                <span className="text-[14px] text-[#6A7282]">
+                  {customerName}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-4">
+            {/* Include Delivery Prices Toggle Section */}
+            <div className="border border-[#E5E5E5] rounded-lg p-4 bg-[#FFFFFF]">
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1">
+                  <div className="font-base text-[16px] text-[#101828] mb-2">
+                    Include Delivery Prices
+                  </div>
+                  <p className="text-[14px] text-[#6B7280] leading-relaxed">
+                    {includeDeliveryPrices
+                      ? 'Delivery prices will be shown as separate line items in the customer quote.'
+                      : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
+                  </p>
+                </div>
+                <Switch
+                  checked={includeDeliveryPrices}
+                  onCheckedChange={setIncludeDeliveryPrices}
+                  className="data-[state=checked]:bg-[#F54900]"
+                />
+              </div>
+            </div>
+          </div>
+        ),
+        confirmText: 'Preview Quote',
         confirmVariant: 'default',
         confirmCustomColor: '#F54900',
       },
@@ -659,6 +743,8 @@ export function useQuotationActions(
     weekFromToday.setDate(weekFromToday.getDate() + 7);
     return weekFromToday;
   });
+  const [includeDeliveryPrices, setIncludeDeliveryPrices] =
+    React.useState(false);
 
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
@@ -675,7 +761,7 @@ export function useQuotationActions(
   }, [selectedAction?.key]);
 
   // Fetch detailed quotation data with line items from backend
-  const { data: quotationDetailData, isLoading: isLoadingDetail } = useQuery(
+  const { data: quotationDetailData } = useQuery(
     QuotationWithLineItemsQueryOptions(quotationId || 0)
   );
 
@@ -713,11 +799,49 @@ export function useQuotationActions(
   // Use detailed data if available, otherwise fall back to list/store data
   const quotationToUse = resolvedQuotation;
 
+  const handlePreviewFromDialog = async () => {
+    if (!quotationId) {
+      notifyError('Unable to preview quotation');
+      return;
+    }
+
+    try {
+      // Fetch preview data from API
+      const queryClient = (await import('@tanstack/react-query')).QueryClient;
+      const client = new queryClient();
+      const previewData = await client.fetchQuery(
+        QuotationPreviewQueryOptions(quotationId)
+      );
+
+      if (!previewData) {
+        notifyError('Failed to load preview data');
+        return;
+      }
+
+      // Encode the preview data
+      const encodedPayload = encodeQuotationPayload(previewData);
+      if (!encodedPayload) {
+        notifyError('Failed to encode preview data');
+        return;
+      }
+
+      // Open preview in new tab
+      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Failed to preview quotation:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
     selectedAction || undefined,
     newExpiryDate,
-    setNewExpiryDate
+    setNewExpiryDate,
+    includeDeliveryPrices,
+    setIncludeDeliveryPrices,
+    handlePreviewFromDialog
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -923,9 +1047,49 @@ export function useQuotationActions(
     }
   };
 
+  const handlePreviewQuote = async () => {
+    if (!quotationId) {
+      notifyError('Unable to preview quotation');
+      return;
+    }
+
+    try {
+      // Fetch preview data from API
+      const queryClient = (await import('@tanstack/react-query')).QueryClient;
+      const client = new queryClient();
+      const previewData = await client.fetchQuery(
+        QuotationPreviewQueryOptions(quotationId)
+      );
+
+      if (!previewData) {
+        notifyError('Failed to load preview data');
+        return;
+      }
+
+      // Encode the preview data
+      const encodedPayload = encodeQuotationPayload(previewData);
+      if (!encodedPayload) {
+        notifyError('Failed to encode preview data');
+        return;
+      }
+
+      // Open preview in new tab
+      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+
+      // Close the modal after opening preview
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to preview quotation:', error);
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   // Map action keys to their handlers
   const actionHandlers: Record<string, () => Promise<void>> = {
     sendToCustomer: handleSendToCustomer,
+    previewQuote: handlePreviewQuote,
     approve: handleApprove,
     decline: handleDecline,
     convertToDraft: handleConvertToDraft,
@@ -955,40 +1119,7 @@ export function useQuotationActions(
       setViewOpen(true);
     },
 
-    preview: async () => {
-      if (!quotationId) {
-        notifyError('Unable to preview quotation');
-        return;
-      }
-
-      try {
-        // Fetch preview data from API
-        const queryClient = (await import('@tanstack/react-query')).QueryClient;
-        const client = new queryClient();
-        const previewData = await client.fetchQuery(
-          QuotationPreviewQueryOptions(quotationId)
-        );
-
-        if (!previewData) {
-          notifyError('Failed to load preview data');
-          return;
-        }
-
-        // Encode the preview data
-        const encodedPayload = encodeQuotationPayload(previewData);
-        if (!encodedPayload) {
-          notifyError('Failed to encode preview data');
-          return;
-        }
-
-        // Open preview in new tab
-        const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
-        window.open(previewUrl, '_blank', 'noopener,noreferrer');
-      } catch (error) {
-        console.error('Failed to preview quotation:', error);
-        notifyError(extractErrorMessage(error));
-      }
-    },
+    preview: createDialogAction('previewQuote'),
 
     download: () => {
       console.log('Download quotation:', quotationId);
