@@ -195,6 +195,7 @@ export default function QuoteLineItemForm({
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
+                            isNumber
                           />
                         </FormControl>
                         <FormMessage />
@@ -270,6 +271,7 @@ export default function QuoteLineItemForm({
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
+                            isNumber
                           />
                         </FormControl>
                         <FormMessage />
@@ -385,6 +387,7 @@ export default function QuoteLineItemForm({
                               className="w-full"
                               {...field}
                               disabled={isReadOnly}
+                              isNumber
                             />
                           </FormControl>
                           <FormMessage />
@@ -462,6 +465,7 @@ export default function QuoteLineItemForm({
                               className="w-full"
                               {...field}
                               disabled={isReadOnly}
+                              isNumber
                             />
                           </FormControl>
                           <FormMessage />

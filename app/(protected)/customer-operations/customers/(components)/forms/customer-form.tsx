@@ -380,10 +380,12 @@ export default function CustomerForm({
         customerData.lastModifiedBy = values.last_modified_by;
       } else {
         // Update customer: set update fields
-        customerData.createdAt = selectedCustomer?.createdAt ?? new Date().toISOString();
+        customerData.createdAt =
+          selectedCustomer?.createdAt ?? new Date().toISOString();
         customerData.updatedAt = now;
         customerData.lastModifiedBy = values.last_modified_by;
-        customerData.createdBy = selectedCustomer?.createdBy ?? values.created_by;
+        customerData.createdBy =
+          selectedCustomer?.createdBy ?? values.created_by;
         customerData.isDeleted = selectedCustomer?.isDeleted ?? false;
       }
 
@@ -1069,6 +1071,7 @@ export default function CustomerForm({
                           className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
                           placeholder="Days"
                           {...field}
+                          isNumber
                           onChange={(e) => {
                             field.onChange(e);
                             // Trigger validation for both payment_terms_day and payment_terms fields
