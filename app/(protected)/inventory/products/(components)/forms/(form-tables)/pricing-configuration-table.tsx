@@ -41,7 +41,7 @@ export function PricingConfigurationTable({
       className: 'w-20',
       tooltip: '(ex-GST)',
     },
-    { key: 'margin', label: 'Margin %', className: 'w-25' },
+    { key: 'Margin', label: 'Profit Margin %', className: 'w-25' },
     {
       key: 'available_for_sale',
       label: 'Available for Sale',
