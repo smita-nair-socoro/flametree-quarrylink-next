@@ -28,12 +28,18 @@ export const supplierColumns = (
     cell: (info) => {
       const name = (info.getValue() as string) || 'N/A';
       return (
-        <div
-          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-          title={name}
-        >
-          {name}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div
+              className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+            >
+              {name}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{name}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'Name',
@@ -47,12 +53,18 @@ export const supplierColumns = (
     cell: ({ row }) => {
       const value = row.original.supplierProductName || 'N/A';
       return (
-        <div
-          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-          title={value}
-        >
-          {value}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div
+              className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+            >
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'Supplier Product Name',

@@ -204,7 +204,7 @@ export default function BrandingTab() {
                                 </>
                               ) : (
                                 <>
-                                  <span className="truncate max-w-[150px] hover:bg-accent p-1 rounded-md">
+                                  <span className="truncate max-w-[150px] hover:bg-accent p-1 rounded-md" title={selectedFileName || ''}>
                                     {selectedFileName}
                                   </span>
                                   {logoPreview && (

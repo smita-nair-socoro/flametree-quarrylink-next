@@ -9,6 +9,11 @@ import {
 } from '@/components/ui/sidebar';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function QuarryLinkBranding({
   subscriptionType,
@@ -36,15 +41,29 @@ export function QuarryLinkBranding({
               />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold text-white">
-                QuarryLink
-              </span>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <span className="truncate font-semibold text-white">
+                    QuarryLink
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent variant="white">
+                  <p>QuarryLink</p>
+                </TooltipContent>
+              </Tooltip>
               {isLoading ? (
                 <Skeleton className="h-3 w-20 bg-white/30" />
               ) : (
-                <span className="truncate text-xs text-[#71717B]">
-                  {subscriptionType || 'Lite Plus'}
-                </span>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <span className="truncate text-xs text-[#71717B]">
+                      {subscriptionType || 'Lite Plus'}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent variant="white">
+                    <p>{subscriptionType || 'Lite Plus'}</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           </Link>
