@@ -10,6 +10,7 @@ export interface QuoteFooterPdfProps {
   addressLine3: string; // Third address line - Country (e.g., AUSTRALIA)
   website: string; // Tenant website (e.g., www.quarrylink.com.au)
   businessName: string; // For copyright (e.g., QuarryLink)
+  abn: string; // ABN number (e.g., 12 345 678 901)
 }
 
 export const QuoteFooterPdf: React.FC<QuoteFooterPdfProps> = ({
@@ -19,25 +20,35 @@ export const QuoteFooterPdf: React.FC<QuoteFooterPdfProps> = ({
   addressLine2,
   addressLine3,
   businessName,
+  abn,
 }) => {
   return (
     <View style={styles.footer} fixed>
       <View style={styles.footerBg}>
-        {/* Two columns */}
+        {/* Three columns with headers */}
         <View style={styles.footerGrid}>
-          {/* Column 1: Email & Phone */}
-          <View style={styles.footerLeftColumn}>
-            <Link src={`mailto:${email}`} style={styles.footerLink}>
-              {email}
-            </Link>
-            <Text style={styles.footerText}>{phone}</Text>
+          {/* Column 1: Business Details */}
+          <View style={styles.footerColumn}>
+            <Text style={styles.footerColumnHeader}>Business Details</Text>
+            <Text style={styles.footerText}>{businessName}</Text>
+            <Text style={styles.footerText}>ABN: {abn}</Text>
           </View>
 
-          {/* Column 2: Address */}
-          <View style={styles.footerRightColumn}>
+          {/* Column 2: Office Address */}
+          <View style={styles.footerColumn}>
+            <Text style={styles.footerColumnHeader}>Office Address</Text>
             <Text style={styles.footerText}>{addressLine1}</Text>
             <Text style={styles.footerText}>{addressLine2}</Text>
             <Text style={styles.footerText}>{addressLine3}</Text>
+          </View>
+
+          {/* Column 3: Business Contact */}
+          <View style={styles.footerColumn}>
+            <Text style={styles.footerColumnHeader}>Business Contact</Text>
+            <Text style={styles.footerText}>{phone}</Text>
+            <Link src={`mailto:${email}`} style={styles.footerLink}>
+              {email}
+            </Link>
           </View>
         </View>
         <View style={styles.footerSeparator} />

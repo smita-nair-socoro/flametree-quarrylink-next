@@ -61,6 +61,7 @@ export interface QuotationData {
     addressLine3: string;
     website: string;
     businessName: string;
+    abn: string;
   };
 }
 

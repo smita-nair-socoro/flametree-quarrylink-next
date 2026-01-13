@@ -420,7 +420,6 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
-            isPreviewMode={isPreviewMode}
           />
 
           {/* Status Banner */}

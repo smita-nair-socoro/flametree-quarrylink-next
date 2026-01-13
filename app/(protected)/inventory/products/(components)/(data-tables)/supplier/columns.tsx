@@ -126,7 +126,7 @@ export const supplierColumns = (
       return (sellPrice - costPrice) / sellPrice;
     },
     header: ({}) => {
-      return <div>Margin</div>;
+      return <div>Profit Margin</div>;
     },
     cell: ({ row }) => {
       const costPrice = row.original.perTnCostPrice || 0;

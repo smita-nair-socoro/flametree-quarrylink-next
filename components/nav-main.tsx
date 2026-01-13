@@ -90,9 +90,70 @@ export function NavMain({
             );
           const isOpen = openStates[item.url] ?? false;
 
-          // If item has no subitems, render as plain link
+          // If item has no subitems
           if (!item.items || item.items.length === 0) {
             const itemIsDisabled = isDisabled(item.plan);
+
+            // If collapsed, show hover card
+            if (isCollapsed) {
+              return (
+                <HoverCard
+                  key={`${item.url}-${forceUpdate}`}
+                  openDelay={150}
+                  closeDelay={150}
+                >
+                  <HoverCardTrigger asChild>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        aria-disabled={itemIsDisabled}
+                        className="hover:bg-[#7138f533]"
+                      >
+                        <Link href={item.url}>
+                          {item.icon && <item.icon className="text-white" />}
+                          <span className="truncate whitespace-nowrap">
+                            {item.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </HoverCardTrigger>
+                  <HoverCardContent
+                    side="right"
+                    align="start"
+                    className="w-64 p-1.5 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
+                    sideOffset={8}
+                  >
+                    <Link
+                      href={item.url}
+                      aria-disabled={itemIsDisabled}
+                      className={`flex items-center justify-between gap-2 min-w-0 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200
+                        ${
+                          isActive
+                            ? 'bg-[#7138F5] text-white'
+                            : 'text-white hover:bg-[#7138F533]'
+                        } ${
+                        itemIsDisabled
+                          ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                          : ''
+                      }`}
+                    >
+                      <span className="truncate whitespace-nowrap overflow-hidden">
+                        {item.title}
+                      </span>
+                      {itemIsDisabled && (
+                        <span className="shrink-0 text-[#94a3b8] border border-[#475569] rounded-sm px-1.5 py-0.5 text-xs font-medium">
+                          {getPlanLabel(item.plan)}
+                        </span>
+                      )}
+                    </Link>
+                  </HoverCardContent>
+                </HoverCard>
+              );
+            }
+
+            // If expanded, render as plain link
             return (
               <SidebarMenuItem key={item.url}>
                 <SidebarMenuButton
@@ -130,17 +191,20 @@ export function NavMain({
 
           // If collapsed and has subitems, show hover card
           if (isCollapsed && item.items && item.items.length > 0) {
+            const itemIsDisabled = isDisabled(item.plan);
             return (
               <HoverCard
                 key={`${item.url}-${forceUpdate}`}
-                openDelay={200}
-                closeDelay={100}
+                openDelay={150}
+                closeDelay={150}
               >
                 <HoverCardTrigger asChild>
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={isActive}
-                      className="hover:bg-[#7138f533]"
+                      className={`hover:bg-[#7138f533] ${
+                        itemIsDisabled ? 'opacity-40' : ''
+                      }`}
                     >
                       {item.icon && <item.icon className="text-white" />}
                       <Tooltip delayDuration={300}>
@@ -159,43 +223,53 @@ export function NavMain({
                 <HoverCardContent
                   side="right"
                   align="start"
-                  className="w-64 p-2"
-                  sideOffset={8}
+                  className="w-56 p-2 bg-[#1e293b] border-[#334155] shadow-lg rounded-xl"
+                  sideOffset={12}
                 >
                   <div className="space-y-1">
-                    <div className="font-medium text-sm mb-2">{item.title}</div>
-                    {item.items.map((sub) => {
-                      const subActive =
-                        pathname === sub.url || pathname === `${sub.url}/`;
-                      const subDisabled = isDisabled(sub.plan);
-                      return (
-                        <Link
-                          key={sub.url}
-                          href={sub.url}
-                          aria-disabled={subDisabled}
-                          className={`flex items-center justify-between gap-2 min-w-0 px-3 py-2 text-sm rounded-md hover:bg-[#7138F533] hover:text-black transition-colors
-                            ${subActive ? 'text-white' : ''} ${
-                            subDisabled ? 'pointer-events-none opacity-50' : ''
-                          }`}
-                        >
-                          <Tooltip delayDuration={300}>
-                            <TooltipTrigger asChild>
-                              <span className="truncate whitespace-nowrap overflow-hidden">
-                                {sub.title}
+                    <div className="font-semibold text-sm mb-2 text-white px-2">
+                      {item.title}
+                    </div>
+                    <div className="relative pl-3 border-l-2 border-[#475569] ml-2">
+                      {item.items.map((sub) => {
+                        const subActive =
+                          pathname === sub.url || pathname === `${sub.url}/`;
+                        const subDisabled = isDisabled(sub.plan);
+                        return (
+                          <Link
+                            key={sub.url}
+                            href={sub.url}
+                            aria-disabled={subDisabled}
+                            className={`flex items-center justify-between gap-2 min-w-0 px-2 py-2 text-sm rounded-lg transition-all duration-200 mb-1
+                              ${
+                                subActive
+                                  ? 'bg-[#7138F5] text-white font-medium'
+                                  : 'text-white hover:bg-[#7138F533]'
+                              } ${
+                              subDisabled
+                                ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                                : ''
+                            }`}
+                          >
+                            <Tooltip delayDuration={300}>
+                              <TooltipTrigger asChild>
+                                <span className="truncate whitespace-nowrap overflow-hidden">
+                                  {sub.title}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent variant="white">
+                                <p>{sub.title}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            {subDisabled && (
+                              <span className="shrink-0 text-[#94a3b8] border border-[#475569] rounded-sm px-1.5 py-0.5 text-xs font-medium">
+                                {getPlanLabel(sub.plan)}
                               </span>
-                            </TooltipTrigger>
-                            <TooltipContent variant="white">
-                              <p>{sub.title}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                          {subDisabled && (
-                            <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                              {getPlanLabel(sub.plan)}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </div>
                 </HoverCardContent>
               </HoverCard>
@@ -203,6 +277,7 @@ export function NavMain({
           }
 
           // If expanded and has subitems, show collapsible menu
+          const itemIsDisabled = isDisabled(item.plan);
           return (
             <Collapsible
               key={item.url}
@@ -218,19 +293,31 @@ export function NavMain({
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton isActive={isActive}>
-                    {item.icon && <item.icon className="text-white" />}
-                    <Tooltip delayDuration={300}>
-                      <TooltipTrigger asChild>
-                        <span className="truncate whitespace-nowrap text-white">
-                          {item.title}
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    className={itemIsDisabled ? 'opacity-40' : ''}
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      {item.icon && <item.icon className="text-white" />}
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <span className="truncate whitespace-nowrap text-white">
+                            {item.title}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent variant="white">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </span>
+                    <div className="flex items-center gap-2 ml-auto">
+                      {itemIsDisabled && (
+                        <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
+                          {getPlanLabel(item.plan)}
                         </span>
-                      </TooltipTrigger>
-                      <TooltipContent variant="white">
-                        <p>{item.title}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
+                      )}
+                      <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
+                    </div>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
