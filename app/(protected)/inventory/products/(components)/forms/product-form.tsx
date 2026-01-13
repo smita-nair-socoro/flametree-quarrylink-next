@@ -463,6 +463,8 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
                         <Input
                           className="w-full"
                           placeholder="Enter Density Tonnage per m3"
+                          onFocus={(e) => e.currentTarget.select()}
+                          onMouseUp={(e) => e.preventDefault()}
                           {...field}
                         />
                       </FormControl>
