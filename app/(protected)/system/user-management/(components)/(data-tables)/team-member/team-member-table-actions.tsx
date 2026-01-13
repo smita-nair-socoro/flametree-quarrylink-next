@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Key, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -47,7 +47,7 @@ export function TeamMemberTableActions({
     setSelectedTeamMember(teamMember);
     actions.viewEdit();
   });
-  const handleResetPassword = createHandler(actions.resetPassword);
+  // const handleResetPassword = createHandler(actions.resetPassword);
   const handleDelete = createHandler(actions.delete);
 
   return (
