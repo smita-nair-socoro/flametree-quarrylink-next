@@ -136,10 +136,12 @@ export default function SupplierForm({
       truck_m3_rate: 0,
       truck_hourly_rate: 0,
       truck_load_rate: 0,
+      truck_distance_rate: 0,
       available_truck_tn_rate: true,
       available_truck_m3_rate: false,
       available_truck_hourly_rate: false,
       available_truck_load_rate: false,
+      available_truck_distance_rate: false,
     },
   });
 
@@ -172,10 +174,12 @@ export default function SupplierForm({
         truck_m3_rate: (data.m3TruckRate || 0) / 100,
         truck_hourly_rate: (data.hourlyTruckRate || 0) / 100,
         truck_load_rate: (data.loadTruckRate || 0) / 100,
+        truck_distance_rate: (data.distanceTruckRate || 0) / 100,
         available_truck_tn_rate: data.availableForTruckRateTn ?? true,
         available_truck_m3_rate: data.availableForTruckRateM3 ?? false,
         available_truck_hourly_rate: data.availableForTruckRateHour ?? false,
         available_truck_load_rate: data.availableForTruckRateLoad ?? false,
+        available_truck_distance_rate: data.availableForTruckRateDistance ?? false,
       });
     }
   }, [isEditing, convertedQuarrySupplierProduct, supplierForm]);
@@ -427,6 +431,7 @@ export default function SupplierForm({
         'truck_m3_rate',
         'truck_hourly_rate',
         'truck_load_rate',
+        'truck_distance_rate',
       ] as const;
 
       priceFieldsToConvert.forEach((field) => {
@@ -466,6 +471,7 @@ export default function SupplierForm({
         m3TruckRate: processedValues.truck_m3_rate,
         hourlyTruckRate: processedValues.truck_hourly_rate,
         loadTruckRate: processedValues.truck_load_rate,
+        distanceTruckRate: processedValues.truck_distance_rate,
         availableForSaleTn: processedValues.available_for_sale_tn,
         availableForSaleM3: processedValues.available_for_sale_m3,
         availableForSale20kg: processedValues.available_for_sale_kg,
@@ -474,6 +480,7 @@ export default function SupplierForm({
         availableForTruckRateM3: processedValues.available_truck_m3_rate,
         availableForTruckRateHour: processedValues.available_truck_hourly_rate,
         availableForTruckRateLoad: processedValues.available_truck_load_rate,
+        availableForTruckRateDistance: processedValues.available_truck_distance_rate,
         isActive: true,
         version: convertedQuarrySupplierProduct?.version || 0,
       };

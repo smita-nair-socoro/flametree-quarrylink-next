@@ -141,4 +141,30 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
     },
     meta: 'truck load rate',
   },
+  {
+    id: 'truck_distance_rate',
+    accessorFn: (row) => row.distanceTruckRate,
+    header: ({}) => {
+      return (
+        <div className="flex items-center gap-1 w-[120px]">
+          Distance Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const distanceRate = row.original.distanceTruckRate
+        ? centsToDollars(row.original.distanceTruckRate)
+        : '0.00';
+      return <div className="text-left">${distanceRate}</div>;
+    },
+    meta: 'truck distance rate',
+  },
 ];
