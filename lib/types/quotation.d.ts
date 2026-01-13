@@ -185,6 +185,7 @@ export interface QuotationDisplayData {
     capacity: string;
     quantity: string;
     totalPrice: number;
+    deliveryPrice?: number;
   }>;
   summary: {
     totalProducts: number;
@@ -194,6 +195,8 @@ export interface QuotationDisplayData {
     subtotal: number;
     gst: number;
     total: number;
+    productSubtotal?: number;
+    deliverySubtotal?: number;
   };
   proceedActions: {
     validUntil: string;

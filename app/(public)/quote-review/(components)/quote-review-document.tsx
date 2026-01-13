@@ -10,6 +10,7 @@ import { ProceedActions } from './proceed-actions';
 import { QuoteFooter } from './quote-footer';
 import { ActionDialog } from '@/components/action-dialog';
 import { CircleX, CircleCheckBig } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
@@ -38,6 +39,14 @@ export default function QuoteReviewDocument({
 
   // Check if we're in preview mode (no token means authenticated preview)
   const isPreviewMode = !token;
+
+  // TODO: Backend should return includeDeliveryPrices flag in the API response
+  // When ready, use: quoteData?.includeDeliveryPrices
+  // For now, using a mock flag that can be toggled for testing
+  const [includeDeliveryPrices, setIncludeDeliveryPrices] = useState(
+    // @ts-expect-error - includeDeliveryPrices field will be added by backend
+    quoteData?.includeDeliveryPrices ?? true
+  );
 
   // Mutation hook for updating quote status
   const { mutate: updateQuoteStatus, isPending: isUpdatingStatus } =
@@ -319,6 +328,27 @@ export default function QuoteReviewDocument({
             onDownloadPDF={handleDownloadPDF}
           />
 
+          {/* Temporary Toggle for Testing - TODO: Remove when API is ready */}
+          {isPreviewMode && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 my-2">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-yellow-800">
+                    Preview Mode: Include Delivery Prices
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Toggle to test the delivery prices display. This will be controlled by API in production.
+                  </p>
+                </div>
+                <Switch
+                  checked={includeDeliveryPrices}
+                  onCheckedChange={setIncludeDeliveryPrices}
+                  className="data-[state=checked]:bg-[#F54900]"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Status Banner */}
           <QuoteStatusBanner
             status={quoteStatus}
@@ -333,10 +363,16 @@ export default function QuoteReviewDocument({
           <Separator />
 
           {/* Products & Services */}
-          <ProductsServices products={quotationData.products} />
+          <ProductsServices
+            products={quotationData.products}
+            includeDeliveryPrices={includeDeliveryPrices}
+          />
           <Separator className="mb-8" />
           {/* Summary & Payment */}
-          <SummaryPayment {...quotationData.summary} />
+          <SummaryPayment
+            {...quotationData.summary}
+            includeDeliveryPrices={includeDeliveryPrices}
+          />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions - only show if not in preview mode */}
           {!isPreviewMode && (
