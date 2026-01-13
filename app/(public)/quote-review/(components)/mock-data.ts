@@ -4,6 +4,9 @@ import {
 } from '@/lib/types/quotation-enums';
 
 export const mockQuotationData = {
+  // Include delivery cost flag
+  inclDeliveryCost: true,
+
   // Navbar data
   navbar: {
     quoteNumber: 'QPO001',

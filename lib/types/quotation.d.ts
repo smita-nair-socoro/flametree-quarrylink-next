@@ -155,6 +155,7 @@ export interface PublicQuoteLinkResponse {
 }
 
 export interface QuotationDisplayData {
+  inclDeliveryCost: boolean;
   navbar: {
     quoteNumber: string;
     dateIssued: string;

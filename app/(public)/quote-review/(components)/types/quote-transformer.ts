@@ -88,6 +88,7 @@ export function transformQuoteData(
     quoteStatus,
     quoteItems,
     createdAt,
+    inclDeliveryCost,
   } = quoteDto;
 
   // Transform products from quoteItems
@@ -151,6 +152,7 @@ export function transformQuoteData(
   }
 
   return {
+    inclDeliveryCost: inclDeliveryCost ?? false,
     navbar: {
       quoteNumber: quoteNumber || 'N/A',
       dateIssued: formatDate(createdAt),
