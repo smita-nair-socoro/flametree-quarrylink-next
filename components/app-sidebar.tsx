@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import { UserDetailQueryOptions } from '@/lib/api/user';
 
 export const navItems = [
   {
@@ -107,6 +108,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
 
+  // Fetch current user details so name/email reflect updates immediately after saving in settings
+  const { data: currentUser } = useQuery(
+    UserDetailQueryOptions(amplifyUser?.userId || '')
+  );
+
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
   React.useEffect(() => {
@@ -128,11 +134,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [tenantCompleteDetails]);
 
   const displayName =
+    currentUser?.name ||
     attributes?.name ||
     amplifyUser?.signInDetails?.loginId ||
     amplifyUser?.username ||
     'Unknown Name';
   const email =
+    currentUser?.email ||
     attributes?.email ||
     amplifyUser?.signInDetails?.loginId ||
     amplifyUser?.username ||
