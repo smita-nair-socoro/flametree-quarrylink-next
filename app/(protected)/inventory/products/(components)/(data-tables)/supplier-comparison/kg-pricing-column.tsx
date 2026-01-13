@@ -90,7 +90,7 @@ export const kgPricingColumn: ColumnDef<QuarriesWithProduct>[] = [
       return (sellPrice - costPrice) / sellPrice;
     },
     header: ({}) => {
-      return <div className="w-[90px]">Margin</div>;
+      return <div className="w-[90px]">Profit Margin</div>;
     },
     cell: ({ row }) => {
       const costPrice = row.original.per20kgCostPrice || 0;
