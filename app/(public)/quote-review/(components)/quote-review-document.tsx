@@ -63,9 +63,8 @@ export default function QuoteReviewDocument({
   const currentQuoteStatus = quotationData.navbar.status;
 
   // State for quote status (will be updated when user approves/declines)
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
-    currentQuoteStatus
-  );
+  const [quoteStatus, setQuoteStatus] =
+    useState<QuoteStatus>(currentQuoteStatus);
 
   // State for navbar status (will be updated when user approves/declines)
   const [navbarStatus, setNavbarStatus] =
@@ -233,11 +232,19 @@ export default function QuoteReviewDocument({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="price_too_high">Price too high</SelectItem>
-                <SelectItem value="timeline_conflict">Timeline conflict</SelectItem>
+                <SelectItem value="timeline_conflict">
+                  Timeline conflict
+                </SelectItem>
                 <SelectItem value="scope_changed">Scope changed</SelectItem>
-                <SelectItem value="customer_unresponsive">Customer unresponsive</SelectItem>
-                <SelectItem value="competitor_selected">Competitor selected</SelectItem>
-                <SelectItem value="project_cancelled">Project cancelled</SelectItem>
+                <SelectItem value="customer_unresponsive">
+                  Customer unresponsive
+                </SelectItem>
+                <SelectItem value="competitor_selected">
+                  Competitor selected
+                </SelectItem>
+                <SelectItem value="project_cancelled">
+                  Project cancelled
+                </SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
@@ -268,7 +275,8 @@ export default function QuoteReviewDocument({
               declineReason === 'other' &&
               !String(declineNotes).trim() && (
                 <p className="text-xs text-[#E7000B]">
-                  Please provide additional notes when selecting &quot;Other&quot;
+                  Please provide additional notes when selecting
+                  &quot;Other&quot;
                 </p>
               )}
           </div>
@@ -305,7 +313,6 @@ export default function QuoteReviewDocument({
   }
 
   const handleDownloadPDF = async () => {
-    console.log('Download PDF clicked for quote:', quoteId);
     try {
       await downloadQuotePdf(
         quotationData,
@@ -324,8 +331,6 @@ export default function QuoteReviewDocument({
   };
 
   const handleApprove = async () => {
-    console.log('Approve quotation:', quoteId);
-
     updateQuoteStatus(
       { status: 'APPROVED', token },
       {
@@ -349,10 +354,6 @@ export default function QuoteReviewDocument({
       setShowValidationError(true);
       return;
     }
-
-    console.log('Decline quotation:', quoteId);
-    console.log('Decline reason:', declineReason);
-    console.log('Decline notes:', declineNotes);
 
     // TODO: Once API is updated, include declineReason and declineNotes in the request
     updateQuoteStatus(
