@@ -133,6 +133,8 @@ export interface quarrySupplierProductDetail {
   m3TruckRate: number;
   hourlyTruckRate: number;
   loadTruckRate: number;
+  kmTruckRate: number;
+  availableForTruckRateKm: boolean;
   quarryName: string;
   quarrySupplierId: number;
   supplierProductName: string;

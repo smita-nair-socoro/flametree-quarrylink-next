@@ -57,6 +57,7 @@ type QuarrySupplierProductDetailExt = quarrySupplierProductDetail & {
   availableForTruckRateM3?: boolean;
   availableForTruckRateHour?: boolean;
   availableForTruckRateLoad?: boolean;
+  availableForTruckRateKm?: boolean;
   isActive?: boolean;
 };
 
@@ -327,6 +328,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       opts.push({ label: 'Hourly', value: 'HOURLY' });
     if (qsp?.availableForTruckRateLoad)
       opts.push({ label: 'Load', value: 'LOAD' });
+    if (qsp?.availableForTruckRateKm) opts.push({ label: 'KM', value: 'KM' });
     return opts;
   }, [selectedQuarrySupplierProduct]);
 
@@ -449,6 +451,9 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       case 'LOAD':
         rate = Number(centsToDollars(qsp.loadTruckRate || 0));
         break;
+      case 'KM':
+        rate = Number(centsToDollars(qsp.kmTruckRate || 0));
+        break;
       default:
         rate = 0;
     }
@@ -489,6 +494,9 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         break;
       case 'LOAD':
         rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        break;
+      case 'KM':
+        rate = Number(centsToDollars(qsp.kmTruckRate || 0));
         break;
       default:
         rate = 0;

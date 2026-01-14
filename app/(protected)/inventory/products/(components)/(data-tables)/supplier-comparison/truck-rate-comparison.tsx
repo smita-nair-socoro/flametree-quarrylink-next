@@ -22,9 +22,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div
-              className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
-            >
+            <div className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]">
               {value}
             </div>
           </TooltipTrigger>
@@ -143,7 +141,7 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
   },
   {
     id: 'truck_distance_rate',
-    accessorFn: (row) => row.distanceTruckRate,
+    accessorFn: (row) => row.kmTruckRate,
     header: ({}) => {
       return (
         <div className="flex items-center gap-1 w-[120px]">
@@ -160,8 +158,8 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       );
     },
     cell: ({ row }) => {
-      const distanceRate = row.original.distanceTruckRate
-        ? centsToDollars(row.original.distanceTruckRate)
+      const distanceRate = row.original.kmTruckRate
+        ? centsToDollars(row.original.kmTruckRate)
         : '0.00';
       return <div className="text-left">${distanceRate}</div>;
     },
