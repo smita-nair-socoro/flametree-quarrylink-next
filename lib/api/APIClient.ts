@@ -1,4 +1,4 @@
-import { baseUrl, getUser } from '../utils';
+import { baseUrl, getTenantId, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import {
   LinkedProduct,
@@ -159,7 +159,7 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  // const tenantId = await getTenantId(); // ✅ Properly awaited
+  const tenantId = await getTenantId();
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -167,7 +167,7 @@ export async function HttpClient<T = unknown>(
       Authorization: `Bearer ${authUser.id_token}`,
       // 'access-token': authUser.access_token,
       // 'id-token': authUser.id_token,
-      // 'tenant-id': tenantId || '',
+      'X-Tenant-ID': tenantId || '',
     };
   } else {
     return Promise.reject(new Error('Token expired or invalid.'));
