@@ -62,6 +62,7 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
 }
 
 interface SelectedAction {
@@ -106,7 +107,8 @@ const getDialogConfigs = (
   declineNotes?: string,
   setDeclineNotes?: (notes: string) => void,
   showDeclineValidationError?: boolean,
-  setShowDeclineValidationError?: (show: boolean) => void
+  setShowDeclineValidationError?: (show: boolean) => void,
+  isDeclineFormValid?: boolean
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -400,6 +402,7 @@ const getDialogConfigs = (
         confirmText: 'Decline Quote',
         confirmVariant: 'destructive',
         confirmCustomColor: '#E7000B',
+        confirmDisabled: !isDeclineFormValid,
       },
     };
   } else if (selectedAction?.key === 'convertToDraft') {
@@ -821,7 +824,8 @@ export function useQuotationActions(
     declineNotes,
     setDeclineNotes,
     showDeclineValidationError,
-    setShowDeclineValidationError
+    setShowDeclineValidationError,
+    isDeclineFormValid
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1141,6 +1145,7 @@ export function useQuotationActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
+        confirmDisabled={config.confirmDisabled}
         onConfirmAction={async () => {
           const handler = actionHandlers[key];
           if (handler) {
