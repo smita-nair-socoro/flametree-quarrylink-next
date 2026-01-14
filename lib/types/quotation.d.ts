@@ -14,6 +14,7 @@ export interface QuotationDTO {
   customerName: string;
   customerEmail: string;
   email: string;
+  phone: string;
   customerPhone: string;
   customerDto: CustomerDTO;
   accountManagerSub: string;
@@ -52,6 +53,8 @@ export interface Quotation {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  email: string;
+  phone: string;
   customerPhone: string;
   customerDto: CustomerDTO;
   accountManagerSub: string;
