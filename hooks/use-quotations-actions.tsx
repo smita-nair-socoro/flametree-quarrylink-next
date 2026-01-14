@@ -744,7 +744,7 @@ export function useQuotationActions(
     return weekFromToday;
   });
   const [includeDeliveryPrices, setIncludeDeliveryPrices] =
-    React.useState(false);
+    React.useState(quotationData?.inclDeliveryCost ?? false);
 
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
@@ -799,6 +799,13 @@ export function useQuotationActions(
   // Use detailed data if available, otherwise fall back to list/store data
   const quotationToUse = resolvedQuotation;
 
+  // Sync includeDeliveryPrices with backend value when quotation data changes
+  React.useEffect(() => {
+    if (resolvedQuotation?.inclDeliveryCost !== undefined) {
+      setIncludeDeliveryPrices(resolvedQuotation.inclDeliveryCost);
+    }
+  }, [resolvedQuotation?.inclDeliveryCost]);
+
   const handlePreviewFromDialog = async () => {
     if (!quotationId) {
       notifyError('Unable to preview quotation');
@@ -817,6 +824,9 @@ export function useQuotationActions(
         notifyError('Failed to load preview data');
         return;
       }
+
+      // Override inclDeliveryCost with toggle value for preview
+      previewData.quoteDto.inclDeliveryCost = includeDeliveryPrices;
 
       // Encode the preview data
       const encodedPayload = encodeQuotationPayload(previewData);
@@ -896,7 +906,10 @@ export function useQuotationActions(
     }
 
     try {
-      await sendToCustomerMutation.mutateAsync(quotationId);
+      await sendToCustomerMutation.mutateAsync({
+        id: quotationId,
+        inclDeliveryCost: includeDeliveryPrices,
+      });
 
       notifySuccess('Quotation sent to customer');
       setActiveDialog(null);
@@ -1073,8 +1086,8 @@ export function useQuotationActions(
         return;
       }
 
-      // Open preview in new tab
-      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
+      // Open preview in new tab with includeDeliveryPrices parameter
+      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}&includeDeliveryPrices=${includeDeliveryPrices}`;
       window.open(previewUrl, '_blank', 'noopener,noreferrer');
 
       // Close the modal after opening preview

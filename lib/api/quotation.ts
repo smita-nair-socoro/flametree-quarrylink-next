@@ -160,7 +160,8 @@ export const useSendToCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => APIClient.quotations.sendToCustomer(id),
+    mutationFn: ({ id, inclDeliveryCost }: { id: number; inclDeliveryCost: boolean }) =>
+      APIClient.quotations.sendToCustomer(id, inclDeliveryCost),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
