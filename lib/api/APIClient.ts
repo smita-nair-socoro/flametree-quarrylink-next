@@ -34,7 +34,6 @@ import {
   TenantDetails,
   TenantCompleteDetails,
 } from '../types/client';
-// import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
