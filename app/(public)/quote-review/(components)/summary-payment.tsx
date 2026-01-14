@@ -29,6 +29,8 @@ export function SummaryPayment({
   productSubtotal,
   deliverySubtotal,
 }: SummaryPaymentProps) {
+  console.log('[SummaryPayment] includeDeliveryPrices:', includeDeliveryPrices);
+
   return (
     <div className="bg-[rgba(245,245,245,0.3)] border-b-[1.25px] border-[rgba(229,229,229,1)] px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">

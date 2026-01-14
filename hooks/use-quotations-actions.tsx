@@ -1079,6 +1079,9 @@ export function useQuotationActions(
         return;
       }
 
+      // Override inclDeliveryCost with toggle value for preview mode
+      previewData.quoteDto.inclDeliveryCost = includeDeliveryPrices;
+
       // Encode the preview data
       const encodedPayload = encodeQuotationPayload(previewData);
       if (!encodedPayload) {
@@ -1086,8 +1089,8 @@ export function useQuotationActions(
         return;
       }
 
-      // Open preview in new tab with includeDeliveryPrices parameter
-      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}&includeDeliveryPrices=${includeDeliveryPrices}`;
+      // Open preview in new tab
+      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
       window.open(previewUrl, '_blank', 'noopener,noreferrer');
 
       // Close the modal after opening preview
