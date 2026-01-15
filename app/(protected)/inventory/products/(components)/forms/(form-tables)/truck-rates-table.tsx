@@ -51,7 +51,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       data: { unit: 'per load' },
     },
     {
-      id: 'distance_rate',
+      id: 'km_rate',
       label: 'Distance Rate',
       data: { unit: 'per KM' },
     },
