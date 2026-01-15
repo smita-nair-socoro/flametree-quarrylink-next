@@ -43,6 +43,7 @@ export interface QuotationData {
     capacity: string;
     quantity: string;
     totalPrice: number;
+    deliveryPrice?: number;
   }>;
   summary: {
     totalProducts: number;
@@ -52,7 +53,10 @@ export interface QuotationData {
     subtotal: number;
     gst: number;
     total: number;
+    productSubtotal?: number;
+    deliverySubtotal?: number;
   };
+  inclDeliveryCost?: boolean;
   footer: {
     email: string;
     phone: string;
@@ -93,7 +97,10 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           <ProjectDetailsPdf {...data.project} />
 
           {/* Products & Services Table */}
-          <ProductsTablePdf products={data.products} />
+          <ProductsTablePdf
+            products={data.products}
+            includeDeliveryPrices={data.inclDeliveryCost}
+          />
 
           {/* Summary & Payment */}
           <SummaryPaymentPdf
@@ -102,6 +109,7 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
             accountManager={data.navbar.accountManager}
             quoteId={quoteId}
             baseUrl={baseUrl}
+            includeDeliveryPrices={data.inclDeliveryCost}
           />
         </View>
 
