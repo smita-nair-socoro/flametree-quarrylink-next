@@ -59,6 +59,7 @@ interface FormProps {
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuotationForm({
@@ -67,6 +68,7 @@ export default function QuotationForm({
   className,
   canEdit,
   isDuplicate,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -108,6 +110,11 @@ export default function QuotationForm({
       quotationForm.reset(quotationToFormValues(currentQuotation, true));
     }
   }, [isEditing, currentQuotation, quotationForm]);
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(quotationForm.formState.isDirty);
+  }, [quotationForm.formState.isDirty, onDirtyChange]);
 
   // Fetch customers from API
   const { data: customers = [] } = useQuery(CustomersListQueryOptions());

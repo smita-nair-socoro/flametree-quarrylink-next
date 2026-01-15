@@ -45,6 +45,7 @@ interface FormProps {
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function SupplierForm({
@@ -52,6 +53,7 @@ export default function SupplierForm({
   quarrySupplierId,
   onCancel,
   className,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(quarrySupplierId && productId));
@@ -144,6 +146,11 @@ export default function SupplierForm({
       available_truck_km_rate: false,
     },
   });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(supplierForm.formState.isDirty);
+  }, [supplierForm.formState.isDirty, onDirtyChange]);
 
   // Update form when data is loaded in edit mode
   React.useEffect(() => {
