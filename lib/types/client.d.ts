@@ -10,26 +10,26 @@ export interface ClientsOverview {
 export interface Client {
   id: number;
   name: string;
-  contact_name: string;
+  contactName: string;
   email: string;
   phone: string;
   subscription: SubscriptionPlan;
-  subscription_payment_term: string;
-  client_status: ClientStatus;
+  subscriptionPaymentTerm: string;
+  clientStatus: ClientStatus;
   abn: string;
-  billing_address: number; // Address.id
-  next_billing: string;
+  billingAddress: number; // Address.id
+  nextBilling: string;
   invoices: BillingHistory;
-  stripe_profile: string;
-  total_users: number;
-  total_quarries: number;
+  stripeProfile: string;
+  totalUsers: number;
+  totalQuarries: number;
   user?: User[];
   isDeleted: boolean;
-  last_login_at: string;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  lastLoginAt: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
 }
 
 export interface BillingHistory {

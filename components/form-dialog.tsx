@@ -238,7 +238,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedClient && selectedClient) {
     finalCustomId = selectedClient.name;
-    finalPrimaryBadges = [selectedClient.client_status];
+    finalPrimaryBadges = [selectedClient.clientStatus];
     finalSecondaryBadges = [selectedClient.subscription];
   }
 

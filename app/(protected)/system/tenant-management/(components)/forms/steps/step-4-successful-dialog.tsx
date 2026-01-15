@@ -57,7 +57,7 @@ export default function Step4SuccessfulDialog({
             1
           </div>
           <span className="text-[14px] text-[#364153]">
-            Client completes payment setup
+            Tenant completes payment setup
           </span>
         </div>
         <div className="flex justify-start gap-2 items-center">
@@ -73,7 +73,7 @@ export default function Step4SuccessfulDialog({
             3
           </div>
           <span className="text-[14px] text-[#364153]">
-            Client gains full platform access
+            Tenant gains full platform access
           </span>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function Step4SuccessfulDialog({
     <ActionDialog
       open={open}
       onOpenChangeAction={onClose}
-      title="Client Successfully Added"
+      title="Tenant Successfully Added"
       content={content}
       description={description}
       cancelText="Done"

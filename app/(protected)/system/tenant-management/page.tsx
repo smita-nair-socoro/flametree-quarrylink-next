@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJson from '@/lib/tests/clientResponseData.json';
 import { Client } from '@/lib/types/client';
 import { clientColumns } from './(components)/(data-tables)/clients/columns';
@@ -20,9 +19,7 @@ import { useClientActions } from '@/hooks/use-client-actions';
 import { useClientStore } from '@/app/stores/client-store';
 
 export default function ClientPortalPage() {
-  const convertedJson = convertKeysToSnakeCase(rawJson);
-
-  const { items } = convertedJson as unknown as {
+  const { items } = rawJson as unknown as {
     items: Client[];
   };
 
@@ -34,12 +31,12 @@ export default function ClientPortalPage() {
 
   const statsCards = [
     {
-      title: 'Active Clients',
+      title: 'Active Tenants',
       value: 329,
       percentage: 25,
     },
     {
-      title: 'Problem Clients',
+      title: 'Problem Tenants',
       value: 329,
       percentage: 25,
     },
@@ -86,8 +83,8 @@ export default function ClientPortalPage() {
         <div className="border rounded-md p-5 bg-white">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
-              <span className="text-2xl font-semibold">Clients</span>
-              <span className="text-sm">Onbaord a new client</span>
+              <span className="text-2xl font-semibold">Tenants</span>
+              <span className="text-sm">Onbaord a new Tenant</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Button variant="outline">
@@ -95,9 +92,9 @@ export default function ClientPortalPage() {
                 Export
               </Button>
               <FormDialog
-                dialogTitle="Add New Client"
-                dialogDescription="Fill in the required fields to add a new client."
-                buttonTitle="Add Client"
+                dialogTitle="Add New Tenant"
+                dialogDescription="Fill in the required fields to add a new Tenant."
+                buttonTitle="Add Tenant"
                 dialogWidth="700px"
               >
                 <ClientForm onClientAdded={handleClientSuccess} />
@@ -131,7 +128,7 @@ export default function ClientPortalPage() {
           data={items ?? []}
           columns={clientColumns}
           facetDefination={facetDefs}
-          searchPlaceHolder="Search clients..."
+          searchPlaceHolder="Search Tenants..."
           onRowClick={handleRowClick}
           defaultSorting={[{ id: 'name', desc: false }]}
         />
