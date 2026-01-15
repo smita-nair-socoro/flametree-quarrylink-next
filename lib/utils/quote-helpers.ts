@@ -6,7 +6,6 @@ import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
 import { notifyError } from '../toast';
 import { formatPhoneNumber } from './phone-helper';
-import { custom } from 'zod';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
