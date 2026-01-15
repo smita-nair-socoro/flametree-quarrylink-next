@@ -84,23 +84,30 @@ const createColumns = (
       accessorKey: 'deliveryPrice',
       header: 'Delivery',
       cell: ({ row }) => (
-        <p className="font-semibold text-[#8E51FF] text-sm">
+        <span className="inline-block px-2 py-1 rounded-md bg-[#F3EEFF] text-[#8E51FF] font-semibold text-sm">
           ${centsToDollars(row.original.deliveryPrice || 0)}
-        </p>
+        </span>
       ),
       size: 100,
     });
   }
 
-  // Add Product Price column
+  // Add Price column
+  // When includeDeliveryPrices is true: show only product price (delivery is separate column)
+  // When includeDeliveryPrices is false: show total price (product + delivery combined)
   columns.push({
     accessorKey: 'totalPrice',
-    header: 'Product Price',
-    cell: ({ row }) => (
-      <p className="font-semibold text-gray-900 text-sm">
-        ${centsToDollars(row.original.totalPrice)}
-      </p>
-    ),
+    header: includeDeliveryPrices ? 'Product Price' : 'Total Price',
+    cell: ({ row }) => {
+      const price = includeDeliveryPrices
+        ? row.original.totalPrice
+        : row.original.totalPrice + (row.original.deliveryPrice || 0);
+      return (
+        <p className="font-semibold text-gray-900 text-sm">
+          ${centsToDollars(price)}
+        </p>
+      );
+    },
     size: 100,
   });
 

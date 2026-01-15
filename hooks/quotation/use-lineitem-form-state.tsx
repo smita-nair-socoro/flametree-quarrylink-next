@@ -14,11 +14,7 @@ import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import {
-  centsToDollars,
-  centsToDollarsNum,
-  dollarsToCents,
-} from '@/lib/utils/currency';
+import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -57,6 +53,7 @@ type QuarrySupplierProductDetailExt = quarrySupplierProductDetail & {
   availableForTruckRateM3?: boolean;
   availableForTruckRateHour?: boolean;
   availableForTruckRateLoad?: boolean;
+  availableForTruckRateKm?: boolean;
   isActive?: boolean;
 };
 
@@ -327,6 +324,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       opts.push({ label: 'Hourly', value: 'HOURLY' });
     if (qsp?.availableForTruckRateLoad)
       opts.push({ label: 'Load', value: 'LOAD' });
+    if (qsp?.availableForTruckRateKm) opts.push({ label: 'KM', value: 'KM' });
     return opts;
   }, [selectedQuarrySupplierProduct]);
 
@@ -352,16 +350,16 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let price = 0;
     switch (productCostUom) {
       case 'TN':
-        price = Number(centsToDollars(qsp.perTnCostPrice || 0));
+        price = centsToDollarsNum(qsp.perTnCostPrice || 0);
         break;
       case 'M3':
-        price = Number(centsToDollars(qsp.perM3CostPrice || 0));
+        price = centsToDollarsNum(qsp.perM3CostPrice || 0);
         break;
       case 'KG_20':
-        price = Number(centsToDollars(qsp.per20kgCostPrice || 0));
+        price = centsToDollarsNum(qsp.per20kgCostPrice || 0);
         break;
       case 'BULKA':
-        price = Number(centsToDollars(qsp.perBulkaCostPrice || 0));
+        price = centsToDollarsNum(qsp.perBulkaCostPrice || 0);
         break;
       default:
         price = 0;
@@ -393,16 +391,16 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let price = 0;
     switch (productSellUom) {
       case 'TN':
-        price = Number(centsToDollars(qsp.perTnSellPrice || 0));
+        price = centsToDollarsNum(qsp.perTnSellPrice || 0);
         break;
       case 'M3':
-        price = Number(centsToDollars(qsp.perM3SellPrice || 0));
+        price = centsToDollarsNum(qsp.perM3SellPrice || 0);
         break;
       case 'KG_20':
-        price = Number(centsToDollars(qsp.per20kgSellPrice || 0));
+        price = centsToDollarsNum(qsp.per20kgSellPrice || 0);
         break;
       case 'BULKA':
-        price = Number(centsToDollars(qsp.perBulkaSellPrice || 0));
+        price = centsToDollarsNum(qsp.perBulkaSellPrice || 0);
         break;
       default:
         price = 0;
@@ -426,6 +424,17 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       | undefined;
     if (!qsp) return;
 
+    // Debug: Log QSP truck rates
+    console.log('[DEBUG] QSP Truck Rates:', {
+      tnTruckRate: qsp.tnTruckRate,
+      m3TruckRate: qsp.m3TruckRate,
+      hourlyTruckRate: qsp.hourlyTruckRate,
+      loadTruckRate: qsp.loadTruckRate,
+      kmTruckRate: qsp.kmTruckRate,
+      availableForTruckRateKm: qsp.availableForTruckRateKm,
+      truckCostUom,
+    });
+
     // In edit mode, don't overwrite existing price unless UOM actually changed
     if (isEditing) {
       const initialUom = selectedLineItem?.truckCostUom || '';
@@ -438,16 +447,19 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let rate = 0;
     switch (truckCostUom) {
       case 'TN':
-        rate = Number(centsToDollars(qsp.tnTruckRate || 0));
+        rate = centsToDollarsNum(qsp.tnTruckRate || 0);
         break;
       case 'M3':
-        rate = Number(centsToDollars(qsp.m3TruckRate || 0));
+        rate = centsToDollarsNum(qsp.m3TruckRate || 0);
         break;
       case 'HOURLY':
-        rate = Number(centsToDollars(qsp.hourlyTruckRate || 0));
+        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0);
         break;
       case 'LOAD':
-        rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        rate = centsToDollarsNum(qsp.loadTruckRate || 0);
+        break;
+      case 'KM':
+        rate = centsToDollarsNum(qsp.kmTruckRate || 0);
         break;
       default:
         rate = 0;
@@ -479,16 +491,19 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let rate = 0;
     switch (truckSellUom) {
       case 'TN':
-        rate = Number(centsToDollars(qsp.tnTruckRate || 0));
+        rate = centsToDollarsNum(qsp.tnTruckRate || 0);
         break;
       case 'M3':
-        rate = Number(centsToDollars(qsp.m3TruckRate || 0));
+        rate = centsToDollarsNum(qsp.m3TruckRate || 0);
         break;
       case 'HOURLY':
-        rate = Number(centsToDollars(qsp.hourlyTruckRate || 0));
+        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0);
         break;
       case 'LOAD':
-        rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        rate = centsToDollarsNum(qsp.loadTruckRate || 0);
+        break;
+      case 'KM':
+        rate = centsToDollarsNum(qsp.kmTruckRate || 0);
         break;
       default:
         rate = 0;

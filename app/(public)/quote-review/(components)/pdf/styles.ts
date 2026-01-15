@@ -437,6 +437,7 @@ export const pdfStyles = StyleSheet.create({
 
   tableRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors.gray200,
     paddingVertical: 10,
@@ -506,6 +507,21 @@ export const pdfStyles = StyleSheet.create({
     color: colors.gray900,
   },
 
+  // Delivery price badge (purple background)
+  deliveryPriceBadge: {
+    backgroundColor: '#F3EEFF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+
+  deliveryPriceText: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: '#8E51FF',
+  },
+
   // Summary section
   summaryHeading: {
     fontSize: fontSize.base,
@@ -566,7 +582,7 @@ export const pdfStyles = StyleSheet.create({
   paymentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 4,
   },
 
   paymentLabel: {
@@ -583,11 +599,26 @@ export const pdfStyles = StyleSheet.create({
     color: colors.gray900,
   },
 
+  // Delivery subtotal (purple text)
+  deliverySubtotalLabel: {
+    fontSize: fontSize.base,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: '#8E51FF',
+  },
+
+  deliverySubtotalValue: {
+    fontSize: fontSize.base,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: '#8E51FF',
+  },
+
   totalSeparator: {
     borderTopWidth: 1,
     borderTopColor: colors.gray300,
-    paddingTop: 8,
-    marginTop: 8,
+    paddingTop: 4,
+    marginTop: 4,
   },
 
   totalRow: {
