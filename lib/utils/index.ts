@@ -3,6 +3,7 @@ import { compareAsc, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import { jwtDecode } from 'jwt-decode';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,9 +34,16 @@ export async function getUser() {
 
 export async function getTenantId() {
   try {
-    const user = await getCurrentUser();
-    // Extract tenant ID from user attributes if available
-    return user.signInDetails?.loginId || user.username || '';
+    const session = await fetchAuthSession();
+    const idToken = session.tokens?.idToken?.toString();
+    if (!idToken) return '';
+
+    type CognitoIdTokenClaims = Record<string, unknown> & {
+      'custom:tenant_id': string;
+    };
+
+    const decoded = jwtDecode<CognitoIdTokenClaims>(idToken);
+    return decoded['custom:tenant_id'] ?? '';
   } catch (error) {
     console.error('Failed to get user:', error);
     return null;

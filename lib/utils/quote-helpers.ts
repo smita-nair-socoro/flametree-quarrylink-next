@@ -137,6 +137,8 @@ export const transformFormDataToQuoteDto = (
     customerName: additionalData.customerName,
     customerEmail: (formData.email as string) || '',
     customerPhone: formatPhoneNumber(formData.phone as string) || '',
+    email: (formData.email as string) || '',
+    phone: formatPhoneNumber(formData.phone as string) || '',
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
     expiryDate: toLocalDateTime(expiryDate),

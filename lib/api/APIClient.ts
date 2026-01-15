@@ -1,4 +1,4 @@
-import { baseUrl, getUser } from '../utils';
+import { baseUrl, getTenantId, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import {
   LinkedProduct,
@@ -34,7 +34,6 @@ import {
   TenantDetails,
   TenantCompleteDetails,
 } from '../types/client';
-// import { getTenantId } from '../utils';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -159,7 +158,7 @@ export async function HttpClient<T = unknown>(
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  // const tenantId = await getTenantId(); // ✅ Properly awaited
+  const tenantId = await getTenantId();
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -167,7 +166,7 @@ export async function HttpClient<T = unknown>(
       Authorization: `Bearer ${authUser.id_token}`,
       // 'access-token': authUser.access_token,
       // 'id-token': authUser.id_token,
-      // 'tenant-id': tenantId || '',
+      'X-Tenant-ID': tenantId || '',
     };
   } else {
     return Promise.reject(new Error('Token expired or invalid.'));
@@ -719,9 +718,12 @@ export const APIClient = {
           },
         }
       ),
-    sendToCustomer: (id: number) =>
+    sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
       appClient.Post<QuotationDTO>(
-        `/socoro/quarrylink/api/quote/${id}/send-to-customer`
+        `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
+        {
+          body: { inclDeliveryCost },
+        }
       ),
     preview: (id: number) =>
       appClient.Get<PublicQuoteLinkResponse>(
