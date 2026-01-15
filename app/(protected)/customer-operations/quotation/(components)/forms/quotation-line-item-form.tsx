@@ -30,6 +30,7 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
   canEdit?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuoteLineItemForm({
@@ -37,6 +38,7 @@ export default function QuoteLineItemForm({
   onCancel,
   className,
   canEdit,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -58,6 +60,14 @@ export default function QuoteLineItemForm({
     onSubmit,
     isPending,
   } = useLineItemFormState({ id, canEdit, onCancel });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    // In "view details" (read-only) mode, we don't want to block closing with
+    // a dirty-state warning because users cannot make intentional edits.
+    onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
+  }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
   const isCollection = quoteType === 'COLLECTION';
 
   return (
