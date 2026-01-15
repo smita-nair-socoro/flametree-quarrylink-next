@@ -72,6 +72,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     mode: 'onChange',
     defaultValues: {
       quoteType: selectedQuotation?.quoteType ?? QUOTE_TYPE.DELIVERY,
+      address: isEditing ? (selectedLineItem as any)?.address ?? '' : '',
       productId: isEditing ? selectedLineItem?.productId : 0,
       quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
       supplierProductName: isEditing
@@ -607,8 +608,9 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       console.error('No quotation selected');
       return;
     }
-    const quoteItemData: QuotationLineItem = {
+    const quoteItemData: QuotationLineItem & { address?: string } = {
       quoteId: selectedQuotation?.id || 0,
+      address: values.address,
       productId: values.productId,
       quarrySupplierId: values.quarrySupplierId,
       productName:

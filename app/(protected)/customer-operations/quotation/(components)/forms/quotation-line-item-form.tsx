@@ -152,6 +152,35 @@ export default function QuoteLineItemForm({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={quotationLineItemForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>
+                      {isCollection ? 'Collection Address*' : 'Delivery Address*'}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder={
+                          isCollection
+                            ? 'Enter Collection Address'
+                            : 'Enter Delivery Address'
+                        }
+                        {...field}
+                        disabled={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Pricing */}
