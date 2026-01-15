@@ -4,6 +4,9 @@ import {
 } from '@/lib/types/quotation-enums';
 
 export const mockQuotationData = {
+  // Include delivery cost flag
+  inclDeliveryCost: true,
+
   // Navbar data
   navbar: {
     quoteNumber: 'QPO001',
@@ -43,7 +46,8 @@ export const mockQuotationData = {
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
       quantity: '120 T',
-      totalPrice: 7920000.0,
+      totalPrice: 5544000.0, // Product price only (70%)
+      deliveryPrice: 2376000.0, // Delivery price (30%)
     },
     {
       name: 'Slate Stone E5',
@@ -51,7 +55,8 @@ export const mockQuotationData = {
       truckType: 'Tandem',
       capacity: '85 T per delivery',
       quantity: '120 T',
-      totalPrice: 5212500.0,
+      totalPrice: 3648750.0, // Product price only
+      deliveryPrice: 1563750.0, // Delivery price
     },
     {
       name: 'Marble Slab B2',
@@ -59,7 +64,8 @@ export const mockQuotationData = {
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
       quantity: '120 T',
-      totalPrice: 4800000.0,
+      totalPrice: 3360000.0, // Product price only
+      deliveryPrice: 1440000.0, // Delivery price
     },
     {
       name: 'Sandstone Panel D4',
@@ -67,7 +73,8 @@ export const mockQuotationData = {
       truckType: 'B-Double',
       capacity: '95 T per delivery',
       quantity: '120 T',
-      totalPrice: 6850000.0,
+      totalPrice: 4795000.0, // Product price only
+      deliveryPrice: 2055000.0, // Delivery price
     },
     {
       name: 'Granite Block A1',
@@ -75,7 +82,8 @@ export const mockQuotationData = {
       truckType: 'Tandem',
       capacity: '60 T per delivery',
       quantity: '120 T',
-      totalPrice: 3650000.0,
+      totalPrice: 2555000.0, // Product price only
+      deliveryPrice: 1095000.0, // Delivery price
     },
     {
       name: 'Slate Stone E3',
@@ -83,7 +91,8 @@ export const mockQuotationData = {
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
       quantity: '120 T',
-      totalPrice: 7920000.0,
+      totalPrice: 5544000.0, // Product price only
+      deliveryPrice: 2376000.0, // Delivery price
     },
     {
       name: 'Slate Stone E5',
@@ -91,7 +100,8 @@ export const mockQuotationData = {
       truckType: 'Tandem',
       capacity: '85 T per delivery',
       quantity: '120 T',
-      totalPrice: 5212500.0,
+      totalPrice: 3648750.0, // Product price only
+      deliveryPrice: 1563750.0, // Delivery price
     },
     {
       name: 'Marble Slab B2',
@@ -99,7 +109,8 @@ export const mockQuotationData = {
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
       quantity: '120 T',
-      totalPrice: 4800000.0,
+      totalPrice: 3360000.0, // Product price only
+      deliveryPrice: 1440000.0, // Delivery price
     },
     {
       name: 'Sandstone Panel D4',
@@ -107,7 +118,8 @@ export const mockQuotationData = {
       truckType: 'B-Double',
       capacity: '95 T per delivery',
       quantity: '120 T',
-      totalPrice: 6850000.0,
+      totalPrice: 4795000.0, // Product price only
+      deliveryPrice: 2055000.0, // Delivery price
     },
     {
       name: 'Granite Block A1',
@@ -115,7 +127,8 @@ export const mockQuotationData = {
       truckType: 'Tandem',
       capacity: '60 T per delivery',
       quantity: '120 T',
-      totalPrice: 3650000.0,
+      totalPrice: 2555000.0, // Product price only
+      deliveryPrice: 1095000.0, // Delivery price
     },
   ],
 
@@ -131,6 +144,8 @@ export const mockQuotationData = {
     subtotal: 27010000.0,
     gst: 2843250.0,
     total: 31275750.0,
+    productSubtotal: 18907000.0, // 70% of subtotal
+    deliverySubtotal: 8103000.0, // 30% of subtotal
   },
 
   // Proceed actions

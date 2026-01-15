@@ -6,6 +6,7 @@ import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
 import { notifyError } from '../toast';
 import { formatPhoneNumber } from './phone-helper';
+import { custom } from 'zod';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -137,6 +138,8 @@ export const transformFormDataToQuoteDto = (
     customerName: additionalData.customerName,
     customerEmail: (formData.email as string) || '',
     customerPhone: formatPhoneNumber(formData.phone as string) || '',
+    email: (formData.email as string) || '',
+    phone: formatPhoneNumber(formData.phone as string) || '',
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
     expiryDate: toLocalDateTime(expiryDate),

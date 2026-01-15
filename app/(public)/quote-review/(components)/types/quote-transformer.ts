@@ -88,6 +88,7 @@ export function transformQuoteData(
     quoteStatus,
     quoteItems,
     createdAt,
+    inclDeliveryCost,
   } = quoteDto;
 
   // Transform products from quoteItems
@@ -98,11 +99,22 @@ export function transformQuoteData(
       truckType: item.truckType || 'N/A',
       capacity: `${item.totalQuantityRequired || 0} ${item.productSellUom || 'units'} per delivery`,
       quantity: `${item.productSellQty || 0} ${item.productSellUom || ''}`,
-      totalPrice: (item.totalProductSellPrice || 0) + (item.totalTruckSellPrice || 0),
+      totalPrice: item.totalProductSellPrice || 0, // Product price only
+      deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
     })) || [];
 
   // Calculate totals (prices are in cents from backend)
-  // Subtotal is the total sell price (ex-GST)
+  // Calculate product subtotal (sum of all totalProductSellPrice)
+  const productSubtotal = quoteItems
+    ? quoteItems.reduce((sum, item) => sum + (item.totalProductSellPrice || 0), 0)
+    : 0;
+
+  // Calculate delivery subtotal (sum of all totalTruckSellPrice)
+  const deliverySubtotal = quoteItems
+    ? quoteItems.reduce((sum, item) => sum + (item.totalTruckSellPrice || 0), 0)
+    : 0;
+
+  // Subtotal is the total sell price (ex-GST) - should be product + delivery
   const subtotal = totalSellPrice || 0;
   // GST is 10% of the subtotal
   const gst = Math.round(subtotal * 0.10);
@@ -140,6 +152,7 @@ export function transformQuoteData(
   }
 
   return {
+    inclDeliveryCost: inclDeliveryCost ?? false,
     navbar: {
       quoteNumber: quoteNumber || 'N/A',
       dateIssued: formatDate(createdAt),
@@ -189,6 +202,8 @@ export function transformQuoteData(
       subtotal,
       gst,
       total,
+      productSubtotal,
+      deliverySubtotal,
     },
     proceedActions: {
       validUntil: formatDate(expiryDate),

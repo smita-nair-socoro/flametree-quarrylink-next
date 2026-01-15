@@ -28,6 +28,7 @@ function QuoteReviewContent() {
         const decoded = decodeURIComponent(payload);
         const data = JSON.parse(decoded) as PublicQuoteLinkResponse;
         console.log('[QuoteReview] preview payload:', data);
+        console.log('[QuoteReview] preview mode - inclDeliveryCost:', data.quoteDto.inclDeliveryCost);
         setQuoteData(data);
       } catch (err) {
         console.error('Failed to decode preview payload:', err);
@@ -50,6 +51,7 @@ function QuoteReviewContent() {
     fetchPublicQuoteByToken(token)
       .then((res) => {
         console.log('[QuoteReview] public link payload:', res);
+        console.log('[QuoteReview] public link mode - inclDeliveryCost:', res.quoteDto.inclDeliveryCost);
         setQuoteData(res);
       })
       .catch((err) => {

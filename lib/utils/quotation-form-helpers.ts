@@ -54,10 +54,10 @@ export function quotationToFormValues(
       ? new Date(quotation.expiryDate)
       : undefined,
     deliveryAddress: quotation?.deliveryAddress?.formattedAddress || '',
+    email: quotation?.email || quotation?.customerDto?.email || '',
     phone: normalizePhoneNumber(
-      quotation?.customerDto?.phone || quotation?.customerPhone
+      quotation?.phone || quotation?.customerDto?.phone || ''
     ),
-    email: quotation?.customerDto?.email || quotation?.customerEmail || '',
     createdAt: quotation?.createdAt
       ? new Date(quotation.createdAt)
       : new Date(),

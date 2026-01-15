@@ -718,9 +718,12 @@ export const APIClient = {
           },
         }
       ),
-    sendToCustomer: (id: number) =>
+    sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
       appClient.Post<QuotationDTO>(
-        `/socoro/quarrylink/api/quote/${id}/send-to-customer`
+        `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
+        {
+          body: { inclDeliveryCost },
+        }
       ),
     preview: (id: number) =>
       appClient.Get<PublicQuoteLinkResponse>(
