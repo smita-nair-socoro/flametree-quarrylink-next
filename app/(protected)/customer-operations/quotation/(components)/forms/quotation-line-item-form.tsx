@@ -63,8 +63,10 @@ export default function QuoteLineItemForm({
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
-    onDirtyChange?.(quotationLineItemForm.formState.isDirty);
-  }, [quotationLineItemForm.formState.isDirty, onDirtyChange]);
+    // In "view details" (read-only) mode, we don't want to block closing with
+    // a dirty-state warning because users cannot make intentional edits.
+    onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
+  }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
 
   const isCollection = quoteType === 'COLLECTION';
 
