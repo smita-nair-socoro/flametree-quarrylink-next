@@ -44,6 +44,8 @@ import { toAddressPayload } from '@/lib/utils/address-helper';
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
   onCancel?: () => void;
 }
@@ -51,6 +53,8 @@ interface FormProps {
 export default function CustomerForm({
   id,
   onCancel,
+  onSaved,
+  onDirtyChange,
   className,
   onSuccess,
 }: FormProps) {
@@ -154,6 +158,11 @@ export default function CustomerForm({
       last_modified_by: 'current_user',
     },
   });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(customerForm.formState.isDirty);
+  }, [customerForm.formState.isDirty, onDirtyChange]);
 
   const handleFormFieldChange = (
     field: 'customer_type' | 'payment_type',
@@ -439,6 +448,7 @@ export default function CustomerForm({
       }
 
       onSuccess?.();
+      onSaved?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} customer:`,
