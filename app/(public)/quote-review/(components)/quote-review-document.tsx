@@ -436,10 +436,16 @@ export default function QuoteReviewDocument({
           <Separator />
 
           {/* Products & Services */}
-          <ProductsServices products={quotationData.products} />
+          <ProductsServices
+            products={quotationData.products}
+            includeDeliveryPrices={quotationData.inclDeliveryCost}
+          />
           <Separator className="mb-8" />
           {/* Summary & Payment */}
-          <SummaryPayment {...quotationData.summary} />
+          <SummaryPayment
+            {...quotationData.summary}
+            includeDeliveryPrices={quotationData.inclDeliveryCost}
+          />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions - only show if not in preview mode */}
           {!isPreviewMode && (

@@ -22,11 +22,11 @@ import { formatPhoneNumberIntl } from 'react-phone-number-input';
 export function normalizePhoneNumber(phone: string | undefined | null): string {
   if (!phone) return '';
 
-  // Trim whitespace
-  const trimmedPhone = phone.trim();
+  // Trim whitespace and remove all internal spaces for E.164 format
+  const trimmedPhone = phone.trim().replace(/\s/g, '');
   if (!trimmedPhone) return '';
 
-  // If it already starts with +, return as is
+  // If it already starts with +, return as is (now without spaces)
   if (trimmedPhone.startsWith('+')) return trimmedPhone;
 
   // If it starts with 0, remove the 0 and add +61

@@ -14,6 +14,7 @@ export interface QuotationDTO {
   customerName: string;
   customerEmail: string;
   email: string;
+  phone: string;
   customerPhone: string;
   customerDto: CustomerDTO;
   accountManagerSub: string;
@@ -52,6 +53,8 @@ export interface Quotation {
   customerId: number;
   customerName: string;
   customerEmail: string;
+  email: string;
+  phone: string;
   customerPhone: string;
   customerDto: CustomerDTO;
   accountManagerSub: string;
@@ -155,6 +158,7 @@ export interface PublicQuoteLinkResponse {
 }
 
 export interface QuotationDisplayData {
+  inclDeliveryCost: boolean;
   navbar: {
     quoteNumber: string;
     dateIssued: string;
@@ -187,6 +191,7 @@ export interface QuotationDisplayData {
     capacity: string;
     quantity: string;
     totalPrice: number;
+    deliveryPrice?: number;
   }>;
   summary: {
     totalProducts: number;
@@ -196,6 +201,8 @@ export interface QuotationDisplayData {
     subtotal: number;
     gst: number;
     total: number;
+    productSubtotal?: number;
+    deliverySubtotal?: number;
   };
   proceedActions: {
     validUntil: string;

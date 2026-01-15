@@ -16,72 +16,101 @@ export interface Product {
   capacity: string;
   quantity: string;
   totalPrice: number;
+  deliveryPrice?: number; // Optional delivery price
 }
 
 export interface ProductsServicesProps {
   products: Product[];
+  includeDeliveryPrices?: boolean;
 }
 
-const createColumns = (): ColumnDef<Product>[] => [
-  {
-    accessorKey: 'name',
-    header: 'Product',
-    cell: ({ row }) => (
-      <div className="max-w-full">
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <p className="font-semibold text-gray-900 text-sm truncate">
-              {row.original.name}
-            </p>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{row.original.name}</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <p className="text-gray-500 text-xs truncate">{row.original.code}</p>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{row.original.code}</p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    ),
-    size: 160,
-  },
-  {
-    accessorKey: 'truckType',
-    header: 'Truck Configuration',
-    cell: ({ row }) => (
-      <div>
-        <p className="text-gray-900 text-sm">{row.original.truckType}</p>
-        <p className="text-gray-500 text-xs">{row.original.capacity}</p>
-      </div>
-    ),
-    size: 160,
-  },
-  {
-    accessorKey: 'quantity',
-    header: 'Quantity',
-    cell: ({ row }) => (
-      <p className="text-gray-900 text-sm">{row.original.quantity}</p>
-    ),
-    size: 70,
-  },
-  {
+const createColumns = (
+  includeDeliveryPrices: boolean
+): ColumnDef<Product>[] => {
+  const columns: ColumnDef<Product>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Product',
+      cell: ({ row }) => (
+        <div className="max-w-full">
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <p className="font-semibold text-gray-900 text-sm truncate">
+                {row.original.name}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>{row.original.name}</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <p className="text-gray-500 text-xs truncate">
+                {row.original.code}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>{row.original.code}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      ),
+      size: 160,
+    },
+    {
+      accessorKey: 'truckType',
+      header: 'Truck Configuration',
+      cell: ({ row }) => (
+        <div>
+          <p className="text-gray-900 text-sm">{row.original.truckType}</p>
+          <p className="text-gray-500 text-xs">{row.original.capacity}</p>
+        </div>
+      ),
+      size: 160,
+    },
+    {
+      accessorKey: 'quantity',
+      header: 'Quantity',
+      cell: ({ row }) => (
+        <p className="text-gray-900 text-sm">{row.original.quantity}</p>
+      ),
+      size: 70,
+    },
+  ];
+
+  // Add Delivery column if includeDeliveryPrices is true
+  if (includeDeliveryPrices) {
+    columns.push({
+      accessorKey: 'deliveryPrice',
+      header: 'Delivery',
+      cell: ({ row }) => (
+        <p className="font-semibold text-[#8E51FF] text-sm">
+          ${centsToDollars(row.original.deliveryPrice || 0)}
+        </p>
+      ),
+      size: 100,
+    });
+  }
+
+  // Add Product Price column
+  columns.push({
     accessorKey: 'totalPrice',
-    header: 'Total Price (ex-GST)',
+    header: 'Product Price',
     cell: ({ row }) => (
       <p className="font-semibold text-gray-900 text-sm">
         ${centsToDollars(row.original.totalPrice)}
       </p>
     ),
     size: 100,
-  },
-];
+  });
 
-export function ProductsServices({ products }: ProductsServicesProps) {
+  return columns;
+};
+
+export function ProductsServices({
+  products,
+  includeDeliveryPrices = false,
+}: ProductsServicesProps) {
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">
       <h2 className="font-bold text-[rgba(142,81,255,1)] mb-3 text-lg">
@@ -89,7 +118,7 @@ export function ProductsServices({ products }: ProductsServicesProps) {
       </h2>
       <Separator className="mb-4" />
       <DataTableClient
-        columns={createColumns()}
+        columns={createColumns(includeDeliveryPrices)}
         data={products}
         simpleTable={true}
         isShowHideColumns={false}
