@@ -24,7 +24,9 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
-import AutoCompleteAddressSuggestion from '@/components/ui/address-autocomplete/auto-complete-address-suggestion';
+import AddressAutoComplete from '@/components/ui/address-autocomplete';
+import { AddressType } from '@/lib/types/address';
+import { toAddressType } from '@/lib/utils/address-helper';
 
 interface FormProps {
   id?: number;
@@ -76,6 +78,27 @@ export default function QuoteLineItemForm({
   }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
 
   const isCollection = quoteType === 'COLLECTION';
+  const watchedAddress = quotationLineItemForm.watch('address');
+  const [addressInput, setAddressInput] = React.useState<AddressType>(() => ({
+    address1: '',
+    address2: '',
+    formattedAddress: quotationLineItemForm.getValues('address') || '',
+    city: '',
+    region: '',
+    postalCode: '',
+    country: '',
+    lat: 0,
+    lng: 0,
+    googlePlaceId: '',
+  }));
+  const [addressSearchInput, setAddressSearchInput] = React.useState('');
+
+  React.useEffect(() => {
+    const nextValue = watchedAddress || '';
+    if (nextValue !== addressInput.formattedAddress) {
+      setAddressInput((prev) => ({ ...prev, formattedAddress: nextValue }));
+    }
+  }, [watchedAddress, addressInput.formattedAddress]);
 
   // Determine pinned address based on quote type:
   // - Delivery: Use customer's billing address
@@ -83,6 +106,10 @@ export default function QuoteLineItemForm({
   const pinnedAddress = isCollection
     ? selectedQuarrySupplierProduct?.quarrySupplier?.addressDto
     : selectedQuotation?.customerDto?.billingAddress;
+  const pinnedAddressType = React.useMemo(
+    () => toAddressType(pinnedAddress),
+    [pinnedAddress]
+  );
 
   return (
     <div className="w-full relative">
@@ -132,14 +159,19 @@ export default function QuoteLineItemForm({
                   >
                     <FormLabel>Delivery Address*</FormLabel>
                     <FormControl>
-                      <AutoCompleteAddressSuggestion
-                        value={field.value}
+                      <AddressAutoComplete
+                        address={addressInput}
+                        setAddress={setAddressInput}
+                        searchInput={addressSearchInput}
+                        setSearchInput={setAddressSearchInput}
+                        dialogTitle="Delivery Address"
+                        placeholder="Enter site address..."
+                        readOnly={isReadOnly}
+                        useSuggestions
+                        pinnedAddress={pinnedAddressType}
+                        isCollection={false}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
-                        placeholder="Enter site address..."
-                        disabled={isReadOnly}
-                        pinnedAddress={pinnedAddress}
-                        isCollection={false}
                       />
                     </FormControl>
                     <FormMessage />
@@ -192,15 +224,20 @@ export default function QuoteLineItemForm({
                       }
                     >
                       <FormLabel>Collection Address*</FormLabel>
-                      <FormControl>
-                        <AutoCompleteAddressSuggestion
-                          value={field.value}
+                    <FormControl>
+                        <AddressAutoComplete
+                          address={addressInput}
+                          setAddress={setAddressInput}
+                          searchInput={addressSearchInput}
+                          setSearchInput={setAddressSearchInput}
+                          dialogTitle="Collection Address"
+                          placeholder="Enter site address..."
+                          readOnly={isReadOnly}
+                          useSuggestions
+                          pinnedAddress={pinnedAddressType}
+                          isCollection
                           onChange={field.onChange}
                           onBlur={field.onBlur}
-                          placeholder="Enter site address..."
-                          disabled={isReadOnly}
-                          pinnedAddress={pinnedAddress}
-                          isCollection
                         />
                       </FormControl>
                       <FormMessage />

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
-import { Delete, Loader2, Pencil, Plus } from 'lucide-react';
+import { Delete, Loader2, Pencil, Pin, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
@@ -37,6 +37,9 @@ interface AddressAutoCompleteProps {
   onBlur?: () => void;
   name?: string;
   readOnly?: boolean;
+  useSuggestions?: boolean;
+  pinnedAddress?: AddressType;
+  isCollection?: boolean;
   // Forwarded from `FormControl` (react-hook-form + shadcn)
   rhfAriaProps?: RHFAriaProps;
 }
@@ -50,6 +53,75 @@ interface AutocompleteSuggestion {
     };
   };
 }
+
+interface SuggestedAddress {
+  id: string;
+  formattedAddress: string;
+  isPinned?: boolean;
+}
+
+const MOCK_HISTORY_ADDRESSES: SuggestedAddress[] = [
+  {
+    id: 'history-1',
+    formattedAddress: '456 Market St, Suite 200, Melbourne, VIC 3000, Australia',
+  },
+  {
+    id: 'history-2',
+    formattedAddress: '789 George St, Brisbane, QLD 4000, Australia',
+  },
+  {
+    id: 'history-3',
+    formattedAddress: '101 Collins St, Level 80, Perth, WA 6000, Australia',
+  },
+  {
+    id: 'history-4',
+    formattedAddress: '200 King William St, Adelaide, SA 5000, Australia',
+  },
+  {
+    id: 'history-5',
+    formattedAddress: '300 Elizabeth St, Hobart, TAS 7000, Australia',
+  },
+];
+
+const formatAddressToString = (address: AddressType | undefined): string => {
+  if (!address) {
+    return '';
+  }
+
+  if (address.formattedAddress?.trim()) {
+    return address.formattedAddress;
+  }
+
+  const parts = [];
+
+  if (address.address1?.trim()) {
+    parts.push(address.address1.trim());
+  }
+  if (address.address2?.trim()) {
+    parts.push(address.address2.trim());
+  }
+
+  const locationParts = [];
+  if (address.city?.trim()) {
+    locationParts.push(address.city.trim());
+  }
+  if (address.region?.trim()) {
+    locationParts.push(address.region.trim());
+  }
+  if (address.postalCode?.trim()) {
+    locationParts.push(address.postalCode.trim());
+  }
+
+  if (locationParts.length > 0) {
+    parts.push(locationParts.join(' '));
+  }
+
+  if (address.country?.trim()) {
+    parts.push(address.country.trim());
+  }
+
+  return parts.join(', ');
+};
 
 // Helper function to format address from components
 export const formatAddressFromComponents = (address: AddressType): string => {
@@ -98,9 +170,13 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     searchInput,
     setSearchInput,
     placeholder,
+    value,
     onChange,
     onBlur,
     readOnly,
+    useSuggestions = false,
+    pinnedAddress,
+    isCollection = false,
     rhfAriaProps,
   } = props;
 
@@ -117,6 +193,15 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [historyAddresses, setHistoryAddresses] = useState<SuggestedAddress[]>(
+    MOCK_HISTORY_ADDRESSES
+  );
+
+  useEffect(() => {
+    if (value && value !== address.formattedAddress) {
+      setAddress({ ...address, formattedAddress: value });
+    }
+  }, [value, address, address.formattedAddress, setAddress]);
 
   useEffect(() => {
     if (
@@ -273,6 +358,18 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     }
   };
 
+  const handleSelectSuggestion = (suggestedAddress: string) => {
+    setAddress({ ...address, formattedAddress: suggestedAddress });
+    if (onChange) {
+      onChange(suggestedAddress);
+    }
+    setSearchInput('');
+  };
+
+  const handleDeleteHistoryAddress = (id: string) => {
+    setHistoryAddresses((prev) => prev.filter((addr) => addr.id !== id));
+  };
+
   return (
     <>
       {selectedPlaceId !== '' || address.formattedAddress ? (
@@ -326,6 +423,12 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           onManualEntry={handleManualEntry}
           onBlur={onBlur}
           readOnly={readOnly}
+          useSuggestions={useSuggestions}
+          pinnedAddress={pinnedAddress}
+          historyAddresses={historyAddresses}
+          isCollection={isCollection}
+          onSelectSuggestion={handleSelectSuggestion}
+          onDeleteHistoryAddress={handleDeleteHistoryAddress}
           ariaInvalid={ariaInvalid}
           ariaDescribedBy={ariaDescribedBy}
           inputId={inputId}
@@ -346,6 +449,12 @@ interface CommonProps {
   onManualEntry: () => void;
   onBlur?: () => void;
   readOnly?: boolean;
+  useSuggestions?: boolean;
+  pinnedAddress?: AddressType;
+  historyAddresses?: SuggestedAddress[];
+  isCollection?: boolean;
+  onSelectSuggestion?: (address: string) => void;
+  onDeleteHistoryAddress?: (id: string) => void;
   ariaInvalid?: boolean;
   ariaDescribedBy?: string;
   inputId?: string;
@@ -363,6 +472,12 @@ function AddressAutoCompleteInput(props: CommonProps) {
     onManualEntry,
     onBlur,
     readOnly,
+    useSuggestions = false,
+    pinnedAddress,
+    historyAddresses,
+    isCollection = false,
+    onSelectSuggestion,
+    onDeleteHistoryAddress,
     ariaInvalid,
     ariaDescribedBy,
     inputId,
@@ -451,6 +566,11 @@ function AddressAutoCompleteInput(props: CommonProps) {
   const hasSearched = debouncedSearchInput.trim().length > 0;
   const hasNoResults =
     hasSearched && !autocompleteLoading && suggestions.length === 0;
+  const showInitialSuggestions = useSuggestions && !hasSearched && isOpen;
+  const showAutocompleteSuggestions = hasSearched && isOpen;
+  const pinnedAddressFormatted = useSuggestions
+    ? formatAddressToString(pinnedAddress)
+    : '';
 
   return (
     <Command
@@ -474,9 +594,18 @@ function AddressAutoCompleteInput(props: CommonProps) {
           aria-invalid={ariaInvalid}
           aria-describedby={ariaDescribedBy}
           onBlur={() => {
-            close();
-            if (onBlur) {
-              onBlur();
+            if (useSuggestions) {
+              setTimeout(() => {
+                close();
+                if (onBlur) {
+                  onBlur();
+                }
+              }, 200);
+            } else {
+              close();
+              if (onBlur) {
+                onBlur();
+              }
             }
           }}
           onFocus={readOnly ? undefined : open}
@@ -497,54 +626,109 @@ function AddressAutoCompleteInput(props: CommonProps) {
           <CommandList>
             <div className="absolute top-1.5 z-50 w-full">
               <CommandGroup className="relative h-auto z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md bg-background">
-                {autocompleteLoading ? (
-                  <div className="h-28 flex items-center justify-center">
-                    <Loader2 className="size-6 animate-spin" />
-                  </div>
-                ) : (
+                {showInitialSuggestions && (
                   <>
-                    {suggestions.map((prediction) => (
-                      <CommandPrimitive.Item
-                        value={prediction.placePrediction.text.text}
-                        onSelect={() => {
-                          setSearchInput('');
-                          setSelectedPlaceId(prediction.placePrediction.place);
-                          setIsOpenDialog(true);
-                        }}
-                        className="flex select-text flex-col cursor-pointer gap-0.5 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-start"
-                        key={prediction.placePrediction.placeId}
-                        onMouseDown={(e) => e.preventDefault()}
-                      >
-                        {prediction.placePrediction.text.text}
-                      </CommandPrimitive.Item>
-                    ))}
+                    <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
+                      Suggested {isCollection ? 'Collection' : 'Delivery'} Addresses
+                    </div>
 
-                    {/* Manual entry option when no results found */}
-                    {hasNoResults && (
+                    {pinnedAddressFormatted && onSelectSuggestion && (
                       <CommandPrimitive.Item
-                        value="manual-entry"
-                        onSelect={onManualEntry}
-                        className="flex select-text flex-col cursor-pointer gap-0.5 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-start border-t"
+                        value={pinnedAddressFormatted}
+                        onSelect={() => onSelectSuggestion(pinnedAddressFormatted)}
+                        className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center"
                         onMouseDown={(e) => e.preventDefault()}
                       >
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Plus className="size-4" />
-                          <span>Enter address manually</span>
-                        </div>
+                        <Pin className="size-4 text-muted-foreground shrink-0" />
+                        <span className="flex-1 truncate">
+                          {pinnedAddressFormatted}
+                        </span>
                       </CommandPrimitive.Item>
+                    )}
+
+                    {!isCollection &&
+                      historyAddresses?.map((addr) => (
+                        <CommandPrimitive.Item
+                          key={addr.id}
+                          value={addr.formattedAddress}
+                          onSelect={() => onSelectSuggestion?.(addr.formattedAddress)}
+                          className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center group"
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          <span className="flex-1 truncate">
+                            {addr.formattedAddress}
+                          </span>
+                          {onDeleteHistoryAddress && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteHistoryAddress(addr.id);
+                              }}
+                              className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                              onMouseDown={(e) => e.preventDefault()}
+                            >
+                              <X className="size-4" />
+                            </button>
+                          )}
+                        </CommandPrimitive.Item>
+                      ))}
+
+                    {!pinnedAddressFormatted &&
+                      (isCollection || !historyAddresses?.length) && (
+                        <div className="py-4 flex items-center justify-center text-sm text-muted-foreground">
+                          No suggested addresses available
+                        </div>
+                      )}
+                  </>
+                )}
+
+                {showAutocompleteSuggestions && (
+                  <>
+                    {autocompleteLoading ? (
+                      <div className="h-28 flex items-center justify-center">
+                        <Loader2 className="size-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <>
+                        {suggestions.map((prediction) => (
+                          <CommandPrimitive.Item
+                            value={prediction.placePrediction.text.text}
+                            onSelect={() => {
+                              setSearchInput('');
+                              setSelectedPlaceId(
+                                prediction.placePrediction.place
+                              );
+                              setIsOpenDialog(true);
+                            }}
+                            className="flex select-text flex-col cursor-pointer gap-0.5 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-start"
+                            key={prediction.placePrediction.placeId}
+                            onMouseDown={(e) => e.preventDefault()}
+                          >
+                            {prediction.placePrediction.text.text}
+                          </CommandPrimitive.Item>
+                        ))}
+
+                        {hasNoResults && (
+                          <CommandPrimitive.Item
+                            value="manual-entry"
+                            onSelect={onManualEntry}
+                            className="flex select-text flex-col cursor-pointer gap-0.5 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-start border-t"
+                            onMouseDown={(e) => e.preventDefault()}
+                          >
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <Plus className="size-4" />
+                              <span>Enter address manually</span>
+                            </div>
+                          </CommandPrimitive.Item>
+                        )}
+                      </>
                     )}
                   </>
                 )}
+
                 <CommandEmpty>
-                  {!autocompleteLoading && (
-                    <div className="py-4 flex items-center justify-center">
-                      {searchInput === ''
-                        ? 'Please enter an address'
-                        : hasNoResults
-                        ? null
-                        : 'No address found'}
-                    </div>
-                  )}
+                  {showAutocompleteSuggestions && !autocompleteLoading && hasNoResults && null}
                 </CommandEmpty>
               </CommandGroup>
             </div>

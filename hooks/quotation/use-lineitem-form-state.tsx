@@ -63,7 +63,10 @@ export function useLineItemFormState({
   const getFormValuesFromLineItem = React.useCallback((): FormValues => {
     return {
       quoteType: selectedQuotation?.quoteType ?? QUOTE_TYPE.DELIVERY,
-      address: isEditing ? (selectedLineItem as any)?.address ?? '' : '',
+      address: isEditing
+        ? selectedLineItem?.customerDeliveryAddress?.address
+            ?.formattedAddress ?? ''
+        : '',
       productId: isEditing ? selectedLineItem?.productId ?? 0 : 0,
       quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
       supplierProductName: isEditing
