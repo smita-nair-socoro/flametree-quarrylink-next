@@ -11,14 +11,14 @@ export const clientColumns: ColumnDef<Client>[] = [
     id: 'name',
     accessorFn: (row) => row.name,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Client" />;
+      return <TableClientSortableHeader column={column} title="Tenant" />;
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
     meta: 'Name',
   },
   {
     id: 'contact_name',
-    accessorFn: (row) => row.contact_name,
+    accessorFn: (row) => row.contactName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Contact Name" />;
     },
@@ -54,12 +54,12 @@ export const clientColumns: ColumnDef<Client>[] = [
   },
   {
     id: 'users',
-    accessorFn: (row) => `${row.total_users} / ${row.total_users}`,
+    accessorFn: (row) => `${row.totalUsers} / ${row.totalUsers}`,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Users" />;
     },
     cell: ({ row }) => {
-      const users = row.original.total_users;
+      const users = row.original.totalUsers;
       const percentage = (users / 30) * 100;
       return (
         <div className="py-2 flex items-center gap-2">
@@ -77,12 +77,12 @@ export const clientColumns: ColumnDef<Client>[] = [
   },
   {
     id: 'client_status',
-    accessorFn: (row) => row.client_status,
+    accessorFn: (row) => row.clientStatus,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.client_status;
+      const status = row.original.clientStatus;
       return (
         <div className="py-2">
           <TableBadges names={[status]} visibleCount={1} />

@@ -14,8 +14,9 @@ export const createUserColumns = (
 ): ColumnDef<User>[] => [
   {
     id: 'user_name',
-    accessorFn: (row) => row.name,
+    accessorFn: (row) => row.fullName,
     header: ({ column }) => {
+      console.log(column);
       return <TableClientSortableHeader column={column} title="User Name" />;
     },
     cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
