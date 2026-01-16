@@ -229,6 +229,52 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
 
 CurrencyInput.displayName = 'CurrencyInput';
 
+type QuantityUnit = 'TN' | 'm3' | 'Bags' | 'HOURLY' | 'LOAD' | 'KM' | '';
+type QuantityInputProps = Omit<InputMaskProps, 'type' | 'suffix'> & {
+  unit: QuantityUnit;
+};
+
+const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputProps>(
+  (
+    {
+      thousandSeparator = true,
+      decimalPlaces = 2,
+      allowNegative = false,
+      placeholder = '0',
+      unit,
+      ...props
+    },
+    ref
+  ) => (
+    <InputMask
+      {...props}
+      ref={ref}
+      type="number"
+      thousandSeparator={thousandSeparator}
+      decimalPlaces={decimalPlaces}
+      allowNegative={allowNegative}
+      placeholder={placeholder}
+      suffix={
+        unit === 'm3'
+          ? '/m³'
+          : unit === 'TN'
+          ? '/TN'
+          : unit === 'Bags'
+          ? '/Bags'
+          : unit === 'HOURLY'
+          ? '/Hourly'
+          : unit === 'LOAD'
+          ? '/Load'
+          : unit === 'KM'
+          ? '/km'
+          : undefined
+      }
+    />
+  )
+);
+
+QuantityInput.displayName = 'QuantityInput';
+
 type NumberInputProps = Omit<InputMaskProps, 'type'>;
 
 const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
@@ -259,4 +305,4 @@ NumberInput.displayName = 'NumberInput';
 // Add more compoenets here
 // eg. Quatnity like 5 TN, 2 kg and so on
 
-export { InputMask, ABNInput, CurrencyInput, NumberInput };
+export { InputMask, ABNInput, CurrencyInput, QuantityInput, NumberInput };

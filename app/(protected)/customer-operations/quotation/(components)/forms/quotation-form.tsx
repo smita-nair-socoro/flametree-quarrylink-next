@@ -58,6 +58,8 @@ interface FormProps {
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
+  onSaved?: () => void;
 }
 
 export default function QuotationForm({
@@ -66,6 +68,9 @@ export default function QuotationForm({
   className,
   canEdit,
   isDuplicate,
+  onDirtyChange,
+  onSuccess,
+  onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -102,6 +107,11 @@ export default function QuotationForm({
       quotationForm.reset(quotationToFormValues(currentQuotation, true));
     }
   }, [isEditing, currentQuotation, quotationForm]);
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(quotationForm.formState.isDirty);
+  }, [quotationForm.formState.isDirty, onDirtyChange]);
 
   // Fetch customers from API
   const { data: customers = [] } = useQuery(CustomersListQueryOptions());
@@ -197,7 +207,8 @@ export default function QuotationForm({
         }
 
         notifySuccess('Quote created successfully');
-        onCancel?.();
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error creating quotation:', error);
 
@@ -227,7 +238,8 @@ export default function QuotationForm({
           ...transformed,
         });
         notifySuccess('Quote updated successfully');
-        onCancel?.();
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 

@@ -24,7 +24,6 @@ import UsageStatisticsTab from './tabs/usage-statistics-tab';
 import BillingHistoryTab from './tabs/billing-history-tab';
 import { Tab } from '@/components/ui/tabs';
 import { Client } from '@/lib/types/client';
-import { convertKeysToSnakeCase } from '@/lib/utils/case-conversion';
 import rawJsonWithClientWithUsers from '@/lib/tests/clientWithUsersResponseData.json';
 import { User } from '@/lib/types/user';
 import Step1CompanyDetails from './steps/step-1-company-details';
@@ -75,22 +74,22 @@ export default function ClientForm({
     mode: 'onChange',
     defaultValues: {
       name: isEditing ? selectedClient?.name || '' : '',
-      contact_name: isEditing ? selectedClient?.contact_name || '' : '',
+      contact_name: isEditing ? selectedClient?.contactName || '' : '',
       email: isEditing ? selectedClient?.email || '' : '',
       phone: isEditing ? selectedClient?.phone || '' : '',
       subscription: isEditing ? selectedClient?.subscription || '' : '',
       subscription_payment_term: isEditing
-        ? selectedClient?.subscription_payment_term || ''
+        ? selectedClient?.subscriptionPaymentTerm || ''
         : '',
       unit_subscription_price: 0,
       total_subscription_price: 0,
       number_of_users: 10,
       abn: isEditing ? selectedClient?.abn || '' : '',
       billing_address: '',
-      created_by: isEditing ? selectedClient?.created_by || '' : '',
-      last_modified_by: isEditing ? selectedClient?.last_modified_by || '' : '',
-      created_at: isEditing ? selectedClient?.created_at || '' : '',
-      updated_at: isEditing ? selectedClient?.updated_at || '' : '',
+      created_by: isEditing ? selectedClient?.createdBy || '' : '',
+      last_modified_by: isEditing ? selectedClient?.lastModifiedBy || '' : '',
+      created_at: isEditing ? selectedClient?.createdAt || '' : '',
+      updated_at: isEditing ? selectedClient?.updatedAt || '' : '',
     },
   });
 
@@ -290,18 +289,16 @@ export default function ClientForm({
   // Prepare user data for the UserAccessTab
   const convertedClientWithUsers = React.useMemo(() => {
     if (isEditing && selectedClient?.id) {
-      const convertedDetailedJson = convertKeysToSnakeCase(
-        rawJsonWithClientWithUsers
-      );
-      const { items: detailedItems } = convertedDetailedJson as unknown as {
-        items: Client[];
-      };
+      const { items: detailedItems } =
+        rawJsonWithClientWithUsers as unknown as {
+          items: Client[];
+        };
       // Find the client matching the selected ID
       const detailedClient = detailedItems.find(
         (client) => client.id === selectedClient.id
       );
       const users = (detailedClient?.user || []) as User[];
-      return convertKeysToSnakeCase(users) as User[];
+      return users as User[];
     }
     return [] as User[];
   }, [isEditing, selectedClient?.id]);
@@ -492,7 +489,7 @@ export default function ClientForm({
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedClient?.created_by || 'N/A'}
+                    {selectedClient?.createdBy || 'N/A'}
                   </p>
                 </div>
 
@@ -501,7 +498,7 @@ export default function ClientForm({
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedClient?.last_modified_by || 'N/A'}
+                    {selectedClient?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
 
@@ -510,8 +507,8 @@ export default function ClientForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedClient?.created_at
-                      ? new Date(selectedClient.created_at).toLocaleDateString(
+                    {selectedClient?.createdAt
+                      ? new Date(selectedClient.createdAt).toLocaleDateString(
                           'en-AU',
                           {
                             day: '2-digit',
@@ -528,8 +525,8 @@ export default function ClientForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedClient?.updated_at
-                      ? new Date(selectedClient.updated_at).toLocaleDateString(
+                    {selectedClient?.updatedAt
+                      ? new Date(selectedClient.updatedAt).toLocaleDateString(
                           'en-AU',
                           {
                             day: '2-digit',
