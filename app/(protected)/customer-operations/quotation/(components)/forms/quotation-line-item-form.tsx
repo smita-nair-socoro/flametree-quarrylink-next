@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
+import AutoCompleteAddressSuggestion from '@/components/ui/address-autocomplete/auto-complete-address-suggestion';
 
 interface FormProps {
   id?: number;
@@ -44,6 +45,8 @@ export default function QuoteLineItemForm({
     isReadOnly,
     form: quotationLineItemForm,
     selectedLineItem,
+    selectedQuotation,
+    selectedQuarrySupplierProduct,
     quoteType,
     productOptions,
     quarryOptions,
@@ -59,6 +62,13 @@ export default function QuoteLineItemForm({
     isPending,
   } = useLineItemFormState({ id, canEdit, onCancel });
   const isCollection = quoteType === 'COLLECTION';
+
+  // Determine pinned address based on quote type:
+  // - Delivery: Use customer's billing address
+  // - Collection: Use selected quarry supplier's address
+  const pinnedAddress = isCollection
+    ? selectedQuarrySupplierProduct?.quarrySupplier?.addressDto
+    : selectedQuotation?.customerDto?.billingAddress;
 
   return (
     <div className="w-full relative">
@@ -96,6 +106,33 @@ export default function QuoteLineItemForm({
               isPending && 'pointer-events-none'
             )}
           >
+            {!isCollection && (
+              <FormField
+                control={quotationLineItemForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Delivery Address*</FormLabel>
+                    <FormControl>
+                      <AutoCompleteAddressSuggestion
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        placeholder="Enter site address..."
+                        disabled={isReadOnly}
+                        pinnedAddress={pinnedAddress}
+                        isCollection={false}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             {/* Product Information */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
@@ -130,6 +167,34 @@ export default function QuoteLineItemForm({
                 disabled={!selectedProductId || isReadOnly}
               />
 
+              {isCollection && (
+                <FormField
+                  control={quotationLineItemForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem
+                      className={
+                        isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>Collection Address*</FormLabel>
+                      <FormControl>
+                        <AutoCompleteAddressSuggestion
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          placeholder="Enter site address..."
+                          disabled={isReadOnly}
+                          pinnedAddress={pinnedAddress}
+                          isCollection
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <FormField
                 control={quotationLineItemForm.control}
                 name="supplierProductName"
@@ -144,35 +209,6 @@ export default function QuoteLineItemForm({
                       <Input
                         className="w-full"
                         placeholder="Enter Supplier Product Name"
-                        {...field}
-                        disabled={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={quotationLineItemForm.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>
-                      {isCollection ? 'Collection Address*' : 'Delivery Address*'}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder={
-                          isCollection
-                            ? 'Enter Collection Address'
-                            : 'Enter Delivery Address'
-                        }
                         {...field}
                         disabled={isReadOnly}
                       />

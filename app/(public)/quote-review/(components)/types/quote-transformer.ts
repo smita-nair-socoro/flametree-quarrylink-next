@@ -78,7 +78,6 @@ export function transformQuoteData(
     customerPhone,
     customerDto,
     projectName,
-    deliveryAddress,
     deliveryStartDate,
     deliveryWindowStart,
     deliveryWindowEnd,
@@ -174,16 +173,6 @@ export function transformQuoteData(
     project: {
       type: (quoteType as QuoteType) || QuoteType.DELIVERY,
       projectName: projectName || 'N/A',
-      deliveryAddress: (() => {
-        const formatted = formatAustralianAddress(
-          deliveryAddress?.formattedAddress
-        );
-        if (!formatted) return 'N/A';
-        // Return multi-line string (will be displayed with white-space: pre-line CSS)
-        const lines = [formatted.line1, formatted.line2, formatted.line3]
-          .filter(Boolean);
-        return lines.length > 0 ? lines.join('\n') : 'N/A';
-      })(),
       deliveryDate: formatDate(deliveryStartDate),
       deliveryWindow: formatDeliveryWindow(
         deliveryWindowStart,

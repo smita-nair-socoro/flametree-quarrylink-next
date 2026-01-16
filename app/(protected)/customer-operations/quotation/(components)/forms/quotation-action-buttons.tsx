@@ -84,7 +84,7 @@ export function QuotationActionButtons({
             {/* Preview Quote - available for DRAFT and PENDING */}
 
             {/* Status-specific actions */}
-            {quotation.status === 'DRAFT' && (
+            {quotation.quoteStatus === 'DRAFT' && (
               <>
                 <DropdownMenuItem onClick={actions.sendToCustomer}>
                   <Send className="h-4 w-4 mr-2" />
@@ -93,7 +93,7 @@ export function QuotationActionButtons({
               </>
             )}
 
-            {quotation.status === 'PENDING' && (
+            {quotation.quoteStatus === 'PENDING' && (
               <>
                 <DropdownMenuItem onClick={actions.sendToCustomer}>
                   <Send className="h-4 w-4 mr-2" />
@@ -109,21 +109,21 @@ export function QuotationActionButtons({
                 </DropdownMenuItem>
               </>
             )}
-            {(quotation.status === 'DRAFT' ||
-              quotation.status === 'PENDING') && (
+            {(quotation.quoteStatus === 'DRAFT' ||
+              quotation.quoteStatus === 'PENDING') && (
               <DropdownMenuItem onClick={actions.preview}>
                 <FileSearch className="h-4 w-4 mr-2" />
                 Preview Quote
               </DropdownMenuItem>
             )}
-            {quotation.status === 'DECLINED' && (
+            {quotation.quoteStatus === 'DECLINED' && (
               <DropdownMenuItem onClick={actions.convertToDraft}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Convert to Draft
               </DropdownMenuItem>
             )}
 
-            {quotation.status === 'APPROVED' && (
+            {quotation.quoteStatus === 'APPROVED' && (
               <>
                 <DropdownMenuItem onClick={actions.decline}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
@@ -138,14 +138,14 @@ export function QuotationActionButtons({
               </>
             )}
 
-            {quotation.status === 'CONVERTED_TO_JOB' && (
+            {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
               <DropdownMenuItem onClick={actions.duplicate}>
                 <Eye className="h-4 w-4 mr-2" />
                 View Job
               </DropdownMenuItem>
             )}
 
-            {quotation.status === 'EXPIRED' && (
+            {quotation.quoteStatus === 'EXPIRED' && (
               <>
                 <DropdownMenuItem onClick={actions.extendExpiry}>
                   <Calendar className="h-4 w-4 mr-2" />
@@ -154,7 +154,7 @@ export function QuotationActionButtons({
               </>
             )}
 
-            {quotation.status === 'DECLINED' && (
+            {quotation.quoteStatus === 'DECLINED' && (
               <DropdownMenuItem
                 onClick={actions.archive}
                 className="text-destructive focus:text-destructive"
@@ -173,8 +173,8 @@ export function QuotationActionButtons({
               </DropdownMenuItem>
             </> */}
 
-            {quotation.status !== 'ARCHIVED' &&
-              quotation.status !== 'PENDING' && (
+            {quotation.quoteStatus !== 'ARCHIVED' &&
+              quotation.quoteStatus !== 'PENDING' && (
                 <>
                   {/* <DropdownMenuSeparator /> */}
                   <DropdownMenuItem
@@ -212,7 +212,7 @@ export function QuotationActionButtons({
         </Button> */}
 
         {/* Status-specific primary actions */}
-        {quotation.status === 'DRAFT' && (
+        {quotation.quoteStatus === 'DRAFT' && (
           <>
             <Button
               variant="ghost"
@@ -235,7 +235,7 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {quotation.status === 'PENDING' && (
+        {quotation.quoteStatus === 'PENDING' && (
           <>
             <Button
               variant="ghost"
@@ -276,7 +276,7 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {quotation.status === 'DECLINED' && (
+        {quotation.quoteStatus === 'DECLINED' && (
           <Button
             variant="ghost"
             size="sm"
@@ -288,7 +288,7 @@ export function QuotationActionButtons({
           </Button>
         )}
 
-        {quotation.status === 'APPROVED' && (
+        {quotation.quoteStatus === 'APPROVED' && (
           <>
             <Button
               variant="ghost"
@@ -313,7 +313,7 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {quotation.status === 'CONVERTED_TO_JOB' && (
+        {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
           <Button
             variant="ghost"
             size="sm"
@@ -325,7 +325,7 @@ export function QuotationActionButtons({
           </Button>
         )}
 
-        {quotation.status === 'EXPIRED' && (
+        {quotation.quoteStatus === 'EXPIRED' && (
           <>
             <Button
               variant="ghost"
@@ -339,7 +339,8 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {quotation.status !== 'ARCHIVED' && quotation.status !== 'PENDING' && (
+        {quotation.quoteStatus !== 'ARCHIVED' &&
+          quotation.quoteStatus !== 'PENDING' && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button

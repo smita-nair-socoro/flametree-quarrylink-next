@@ -782,7 +782,6 @@ export function useQuotationActions(
 
       const transformed = {
         ...quotationDetailData,
-        status: quotationDetailData.quoteStatus,
         customerEmail: customerEmail,
       } as Quotation;
 
@@ -798,7 +797,7 @@ export function useQuotationActions(
     }
   }, [detailedQuotation, setSelectedQuotation]);
 
-  // Prefer detailed quotation (with deliveryAddress/line items), then provided prop, then store fallback
+  // Prefer detailed quotation (with line items), then provided prop, then store fallback
   const resolvedQuotation =
     detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
 
@@ -889,21 +888,17 @@ export function useQuotationActions(
     setActiveDialog('sendToCustomer');
   };
 
-  // Build a safe payload for update actions (keeps deliveryAddress + status)
+  // Build a safe payload for update actions (keeps status)
   const buildUpdatePayload = (
     overrides: Partial<QuotationDTO>
   ): Partial<QuotationDTO> | null => {
     if (!resolvedQuotation) return null;
 
-    const { status, ...quotationData } = resolvedQuotation;
-    // const { status, quoteItems, ...quotationData } = resolvedQuotation;
+    const { quoteStatus, ...quotationData } = resolvedQuotation;
+    // const { quoteStatus, quoteItems, ...quotationData } = resolvedQuotation;
     return {
       ...quotationData,
-      quoteStatus: overrides.quoteStatus ?? status,
-      deliveryAddress:
-        overrides.deliveryAddress ??
-        detailedQuotation?.deliveryAddress ??
-        resolvedQuotation.deliveryAddress,
+      quoteStatus: overrides.quoteStatus ?? quoteStatus,
       ...overrides,
     };
   };
@@ -1202,7 +1197,7 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit = resolvedQuotation?.status === 'DRAFT';
+  const canEdit = resolvedQuotation?.quoteStatus === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}

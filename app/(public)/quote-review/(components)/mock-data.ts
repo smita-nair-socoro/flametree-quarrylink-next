@@ -33,7 +33,6 @@ export const mockQuotationData = {
   project: {
     type: QuoteType.DELIVERY,
     projectName: 'Westfield Shopping Centre Extension',
-    deliveryAddress: '543 Construction Access Road, Parramatta NSW 2150',
     deliveryDate: '23rd August, 2026',
     deliveryWindow: '10:30 AM - 12:30 PM',
   },

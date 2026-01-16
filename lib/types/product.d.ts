@@ -3,6 +3,7 @@ import { Quotation } from './quotation';
 import { JobDetails } from './job';
 import { QuarrySupplierProduct } from './quarry';
 import { QuarryType } from './quarry-enums';
+import { Address } from './address';
 
 export interface Product {
   id: number;
@@ -107,7 +108,7 @@ export interface LinkedProduct {
   quarrySupplierType: QuarryType;
   email: string;
   phone: string;
-  addressId: number;
+  addressDto?: Address;
   openingClosingInfo: string;
   notes: string;
   weighbridgeInfo: string;

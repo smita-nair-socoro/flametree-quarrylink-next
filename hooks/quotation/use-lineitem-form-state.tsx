@@ -19,10 +19,8 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import {
-  QuotationLineItem,
-  quarrySupplierProductDetail,
-} from '@/lib/types/quotation';
+import { QuotationLineItem } from '@/lib/types/quotation';
+import { QuarrySupplierProductDetail } from '@/lib/types/quarry';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 
@@ -44,18 +42,6 @@ type PricingBreakdown = {
   grossProfitPercentage: number;
 };
 
-type QuarrySupplierProductDetailExt = quarrySupplierProductDetail & {
-  perTnSellPrice?: number;
-  perM3SellPrice?: number;
-  per20kgSellPrice?: number;
-  perBulkaSellPrice?: number;
-  availableForTruckRateTn?: boolean;
-  availableForTruckRateM3?: boolean;
-  availableForTruckRateHour?: boolean;
-  availableForTruckRateLoad?: boolean;
-  availableForTruckRateKm?: boolean;
-  isActive?: boolean;
-};
 
 export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   const [isEditing] = React.useState(Boolean(id));
@@ -186,13 +172,13 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     const currentQuarryId = Number(watchedQuarrySupplierId || 0);
     if (!details || details.id !== currentProductId || !currentQuarryId)
       return undefined;
-    const qsps: QuarrySupplierProductDetailExt[] = Array.isArray(
+    const qsps: QuarrySupplierProductDetail[] = Array.isArray(
       details.quarrySupplierProducts
     )
-      ? (details.quarrySupplierProducts as QuarrySupplierProductDetailExt[])
+      ? (details.quarrySupplierProducts as QuarrySupplierProductDetail[])
       : [];
     return qsps.find(
-      (qsp: QuarrySupplierProductDetailExt) =>
+      (qsp: QuarrySupplierProductDetail) =>
         Number(qsp?.quarrySupplierId || 0) === currentQuarryId
     );
   }, [
@@ -265,13 +251,13 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     ) {
       return;
     }
-    const qsps: QuarrySupplierProductDetailExt[] = Array.isArray(
+    const qsps: QuarrySupplierProductDetail[] = Array.isArray(
       details.quarrySupplierProducts
     )
-      ? (details.quarrySupplierProducts as QuarrySupplierProductDetailExt[])
+      ? (details.quarrySupplierProducts as QuarrySupplierProductDetail[])
       : [];
     const matched = qsps.find(
-      (qsp: QuarrySupplierProductDetailExt) =>
+      (qsp: QuarrySupplierProductDetail) =>
         Number(qsp?.quarrySupplierId || 0) === currentQuarryId
     );
     const supplierProductName = matched?.supplierProductName || '';
@@ -304,7 +290,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   const productUnitOptions: SelectOption[] = React.useMemo(() => {
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProductDetail
       | undefined;
     if (qsp?.availableForSaleTn) opts.push({ label: 'TN', value: 'TN' });
     if (qsp?.availableForSaleM3) opts.push({ label: 'm³', value: 'M3' });
@@ -317,7 +303,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   const truckUnitOptions: SelectOption[] = React.useMemo(() => {
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProductDetail
       | undefined;
     if (qsp?.availableForTruckRateTn) opts.push({ label: 'TN', value: 'TN' });
     if (qsp?.availableForTruckRateM3) opts.push({ label: 'm³', value: 'M3' });
@@ -335,7 +321,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProductDetail
       | undefined;
     if (!qsp) return;
 
@@ -376,7 +362,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProductDetail
       | undefined;
     if (!qsp) return;
 
@@ -421,7 +407,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProductDetail
       | undefined;
     if (!qsp) return;
 
@@ -476,7 +462,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProductDetail
       | undefined;
     if (!qsp) return;
 
@@ -687,6 +673,8 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     isReadOnly,
     form,
     selectedLineItem,
+    selectedQuotation,
+    selectedQuarrySupplierProduct,
     quoteType,
     productOptions,
     quarryOptions,

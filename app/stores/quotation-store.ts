@@ -47,7 +47,7 @@ export const useQuotationStore = create<QuotationStore>()(
         const state = get();
         const updatedQuotations = state.quotations.map((q) => {
           if (quotationIds.includes(q.id)) {
-            return { ...q, status: 'ARCHIVED' } as Quotation;
+            return { ...q, quoteStatus: 'ARCHIVED' } as Quotation;
           }
           return q;
         });
@@ -64,22 +64,22 @@ export const useQuotationStore = create<QuotationStore>()(
 
       getQuotationsByStatus: (status) => {
         const state = get();
-        return state.quotations.filter((q) => q.status === status);
+        return state.quotations.filter((q) => q.quoteStatus === status);
       },
 
       getPendingQuotations: () => {
         const state = get();
-        return state.quotations.filter((q) => q.status === 'PENDING');
+        return state.quotations.filter((q) => q.quoteStatus === 'PENDING');
       },
 
       getApprovedQuotations: () => {
         const state = get();
-        return state.quotations.filter((q) => q.status === 'APPROVED');
+        return state.quotations.filter((q) => q.quoteStatus === 'APPROVED');
       },
 
       getDraftQuotations: () => {
         const state = get();
-        return state.quotations.filter((q) => q.status === 'DRAFT');
+        return state.quotations.filter((q) => q.quoteStatus === 'DRAFT');
       },
 
       getQuotationStats: () => {
@@ -88,9 +88,9 @@ export const useQuotationStore = create<QuotationStore>()(
 
         return {
           total: quotations.length,
-          pending: quotations.filter((q) => q.status === 'PENDING').length,
-          approved: quotations.filter((q) => q.status === 'APPROVED').length,
-          draft: quotations.filter((q) => q.status === 'DRAFT').length,
+          pending: quotations.filter((q) => q.quoteStatus === 'PENDING').length,
+          approved: quotations.filter((q) => q.quoteStatus === 'APPROVED').length,
+          draft: quotations.filter((q) => q.quoteStatus === 'DRAFT').length,
           totalValue: quotations.reduce(
             (sum, q) => sum + (q.totalSellPrice || 0),
             0

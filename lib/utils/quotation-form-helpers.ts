@@ -20,7 +20,6 @@ export function quotationToFormValues(
       deliveryWindowStart: '',
       deliveryWindowEnd: '',
       expiryDate: undefined,
-      deliveryAddress: '',
       phone: '',
       email: '',
       createdAt: new Date(),
@@ -53,7 +52,6 @@ export function quotationToFormValues(
     expiryDate: quotation?.expiryDate
       ? new Date(quotation.expiryDate)
       : undefined,
-    deliveryAddress: quotation?.deliveryAddress?.formattedAddress || '',
     email: quotation?.email || quotation?.customerDto?.email || '',
     phone: normalizePhoneNumber(
       quotation?.phone || quotation?.customerDto?.phone || ''

@@ -32,7 +32,6 @@ export interface QuotationData {
   project: {
     type: QUOTE_TYPE;
     projectName: string;
-    deliveryAddress: string;
     deliveryDate: string;
     deliveryWindow: string;
   };

@@ -23,7 +23,6 @@ import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/li
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
-import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -83,21 +82,16 @@ export default function QuotationForm({
   const createQuotation = useCreateQuotation();
   const updateQuotation = useUpdateQuotation();
 
-  // All form state management: data fetching, labels, pricing, address, customer auto-fill
+  // All form state management: data fetching, labels, pricing, customer auto-fill
   const {
     currentQuotation,
     isLoadingDetail,
     detailError,
-    addressLabel,
     dateLabel,
     timeWindowLabel,
     pricingBreakdown,
     gst,
     totalInvoiceIncGST,
-    deliveryAddress,
-    handleAddressChange,
-    searchInput,
-    setSearchInput,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
   const isCollectionQuote =
     currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
@@ -193,7 +187,6 @@ export default function QuotationForm({
           accountManagerSub:
             values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
           lineItemsCount: 0,
-          deliveryAddress: deliveryAddress,
         });
 
         const newQuotation = await createQuotation.mutateAsync(transformed);
@@ -226,8 +219,6 @@ export default function QuotationForm({
           values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
         quoteNumber: currentQuotation?.quoteNumber || '',
         lineItemsCount: 0,
-        deliveryAddress: deliveryAddress,
-        originalDeliveryAddress: currentQuotation?.deliveryAddress || null,
       });
 
       try {
@@ -323,7 +314,7 @@ export default function QuotationForm({
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
-          {isEditing && currentQuotation?.status === 'PENDING' && (
+          {isEditing && currentQuotation?.quoteStatus === 'PENDING' && (
             <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
               <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
                 <Info className="h-4 w-4" />
@@ -335,7 +326,7 @@ export default function QuotationForm({
             </div>
           )}
 
-          {isEditing && currentQuotation?.status === 'DECLINED' && (
+          {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (
             <div className="border border-blue-600 bg-blue-50 p-4 rounded-md mb-4 flex flex-col">
               <div className="flex items-center gap-2 text-blue-900 font-medium text-sm">
                 <Info className="h-4 w-4" />
@@ -485,34 +476,6 @@ export default function QuotationForm({
               )}
             />
 
-            <FormField
-              control={quotationForm.control}
-              name="deliveryAddress"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>{addressLabel}*</FormLabel>
-                  <FormControl>
-                    <AddressAutoComplete
-                      address={deliveryAddress}
-                      setAddress={handleAddressChange}
-                      searchInput={searchInput}
-                      setSearchInput={setSearchInput}
-                      dialogTitle="Enter Address"
-                      placeholder="Enter site address..."
-                      readOnly={isEditing && !canEdit}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             {isEditing && (
               <FormField
