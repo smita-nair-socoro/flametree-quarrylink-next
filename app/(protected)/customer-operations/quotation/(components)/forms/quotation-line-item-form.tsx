@@ -29,6 +29,8 @@ interface FormProps {
   id?: number;
   className?: string;
   onCancel?: () => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
   canEdit?: boolean;
   onDirtyChange?: (isDirty: boolean) => void;
 }
@@ -36,6 +38,8 @@ interface FormProps {
 export default function QuoteLineItemForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   canEdit,
   onDirtyChange,
@@ -59,7 +63,7 @@ export default function QuoteLineItemForm({
     handleSubmit,
     onSubmit,
     isPending,
-  } = useLineItemFormState({ id, canEdit, onCancel });
+  } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {

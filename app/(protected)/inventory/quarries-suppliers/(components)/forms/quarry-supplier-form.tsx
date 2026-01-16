@@ -45,6 +45,7 @@ import { addNewRecordId } from '@/lib/utils';
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
   onTypeChange?: (type: QuarryType) => void;
@@ -54,6 +55,8 @@ interface FormProps {
 export default function QuarrySupplierForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   onTypeChange,
   onDirtyChange,
@@ -414,10 +417,9 @@ export default function QuarrySupplierForm({
           );
         }
 
-        // Close the form dialog on success
-        if (onCancel) {
-          onCancel();
-        }
+        // Clear dirty state in parent dialog, then close
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error(
           `Error ${isEditing ? 'updating' : 'creating'} ${
