@@ -16,7 +16,7 @@ import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
-import { CurrencyInput, QuantityInput } from '@/components/ui/input-mask';
+import { CurrencyInput } from '@/components/ui/input-mask';
 import {
   Tooltip,
   TooltipContent,
@@ -29,14 +29,20 @@ interface FormProps {
   id?: number;
   className?: string;
   onCancel?: () => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
   canEdit?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuoteLineItemForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   canEdit,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -57,7 +63,15 @@ export default function QuoteLineItemForm({
     handleSubmit,
     onSubmit,
     isPending,
-  } = useLineItemFormState({ id, canEdit, onCancel });
+  } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    // In "view details" (read-only) mode, we don't want to block closing with
+    // a dirty-state warning because users cannot make intentional edits.
+    onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
+  }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
   const isCollection = quoteType === 'COLLECTION';
 
   return (
@@ -191,25 +205,7 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
                         <FormControl>
-                          <QuantityInput
-                            unit={
-                              quotationLineItemForm.watch('productCostUom') ===
-                              'TN'
-                                ? 'TN'
-                                : quotationLineItemForm.watch(
-                                    'productCostUom'
-                                  ) === 'M3'
-                                ? 'm3'
-                                : quotationLineItemForm.watch(
-                                    'productCostUom'
-                                  ) === 'KG_20'
-                                ? 'Bags'
-                                : quotationLineItemForm.watch(
-                                    'productCostUom'
-                                  ) === 'BULKA'
-                                ? 'Bags'
-                                : ''
-                            }
+                          <Input
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
@@ -248,6 +244,24 @@ export default function QuoteLineItemForm({
                             decimalPlaces={2}
                             allowNegative={false}
                             disabled={isReadOnly}
+                            unit={
+                              quotationLineItemForm.watch('productCostUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -285,25 +299,7 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
                         <FormControl>
-                          <QuantityInput
-                            unit={
-                              quotationLineItemForm.watch('productSellUom') ===
-                              'TN'
-                                ? 'TN'
-                                : quotationLineItemForm.watch(
-                                    'productSellUom'
-                                  ) === 'M3'
-                                ? 'm3'
-                                : quotationLineItemForm.watch(
-                                    'productSellUom'
-                                  ) === 'KG_20'
-                                ? 'Bags'
-                                : quotationLineItemForm.watch(
-                                    'productSellUom'
-                                  ) === 'BULKA'
-                                ? 'Bags'
-                                : ''
-                            }
+                          <Input
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
@@ -342,6 +338,24 @@ export default function QuoteLineItemForm({
                             decimalPlaces={2}
                             allowNegative={false}
                             disabled={isReadOnly}
+                            unit={
+                              quotationLineItemForm.watch('productSellUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -419,29 +433,7 @@ export default function QuoteLineItemForm({
                         <FormItem>
                           <FormLabel>QTY*</FormLabel>
                           <FormControl>
-                            <QuantityInput
-                              unit={
-                                quotationLineItemForm.watch('truckCostUom') ===
-                                'TN'
-                                  ? 'TN'
-                                  : quotationLineItemForm.watch(
-                                      'truckCostUom'
-                                    ) === 'M3'
-                                  ? 'm3'
-                                  : quotationLineItemForm.watch(
-                                      'truckCostUom'
-                                    ) === 'HOURLY'
-                                  ? 'HOURLY'
-                                  : quotationLineItemForm.watch(
-                                      'truckCostUom'
-                                    ) === 'LOAD'
-                                  ? 'LOAD'
-                                  : quotationLineItemForm.watch(
-                                      'truckCostUom'
-                                    ) === 'KM'
-                                  ? 'KM'
-                                  : ''
-                              }
+                            <Input
                               className="w-full"
                               {...field}
                               disabled={isReadOnly}
@@ -480,6 +472,28 @@ export default function QuoteLineItemForm({
                               decimalPlaces={2}
                               allowNegative={false}
                               disabled={isReadOnly}
+                              unit={
+                                quotationLineItemForm.watch('truckCostUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'HOURLY'
+                                  ? 'HOURLY'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'LOAD'
+                                  ? 'LOAD'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'KM'
+                                  ? 'KM'
+                                  : ''
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -519,25 +533,7 @@ export default function QuoteLineItemForm({
                         <FormItem>
                           <FormLabel>QTY*</FormLabel>
                           <FormControl>
-                            <QuantityInput
-                              unit={
-                                quotationLineItemForm.watch('truckSellUom') ===
-                                'TN'
-                                  ? 'TN'
-                                  : quotationLineItemForm.watch(
-                                      'truckSellUom'
-                                    ) === 'M3'
-                                  ? 'm3'
-                                  : quotationLineItemForm.watch(
-                                      'truckSellUom'
-                                    ) === 'KG_20'
-                                  ? 'Bags'
-                                  : quotationLineItemForm.watch(
-                                      'truckSellUom'
-                                    ) === 'BULKA'
-                                  ? 'Bags'
-                                  : ''
-                              }
+                            <Input
                               className="w-full"
                               {...field}
                               disabled={isReadOnly}
@@ -576,6 +572,24 @@ export default function QuoteLineItemForm({
                               decimalPlaces={2}
                               allowNegative={false}
                               disabled={isReadOnly}
+                              unit={
+                                quotationLineItemForm.watch('truckSellUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'KG_20'
+                                  ? 'Bags'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'BULKA'
+                                  ? 'Bags'
+                                  : ''
+                              }
                             />
                           </FormControl>
                           <FormMessage />

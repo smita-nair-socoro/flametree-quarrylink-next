@@ -37,6 +37,11 @@ export interface QuarrySupplierProduct {
   supplierProductCode: string;
   quarryName?: string;
 
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+
   perTnCostPrice: number;
   perTnSellPrice: number;
   perM3CostPrice: number;

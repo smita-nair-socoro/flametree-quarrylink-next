@@ -4,12 +4,14 @@ import { cn } from '@/lib/utils';
 
 interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;
+  allowDecimal?: boolean;
 }
 
 function Input({
   className,
   type,
   isNumber,
+  allowDecimal,
   onChange,
   onFocus,
   onMouseUp,
@@ -26,18 +28,49 @@ function Input({
           onChange?.(e);
           return;
         }
-        // Keep only digits
-        let digits = raw.replace(/\D/g, '');
-        // Strip leading zeros when more than one digit
-        if (digits.length > 1) {
-          digits = digits.replace(/^0+(?=\d)/, '');
+        if (allowDecimal) {
+          // Keep digits and a single decimal point
+          let sanitized = raw.replace(/[^0-9.]/g, '');
+          const parts = sanitized.split('.');
+          if (parts.length > 2) {
+            sanitized = `${parts[0]}.${parts.slice(1).join('')}`;
+          }
+
+          // If user starts with ".", normalize to "0." (e.g. ".5" -> "0.5")
+          if (sanitized.startsWith('.')) {
+            sanitized = `0${sanitized}`;
+          }
+          if (sanitized === '.') {
+            sanitized = '0.';
+          }
+
+          // Strip leading zeros when more than one digit before dot (e.g. 00012.3 -> 12.3)
+          if (sanitized.includes('.')) {
+            const [intPart, fracPart] = sanitized.split('.');
+            const safeIntPart = intPart === '' ? '0' : intPart;
+            const normalizedInt =
+              safeIntPart.length > 1
+                ? safeIntPart.replace(/^0+(?=\d)/, '')
+                : safeIntPart;
+            sanitized = `${normalizedInt}.${fracPart ?? ''}`;
+          } else if (sanitized.length > 1) {
+            sanitized = sanitized.replace(/^0+(?=\d)/, '');
+          }
+          e.target.value = sanitized;
+        } else {
+          // Keep only digits (integer)
+          let digits = raw.replace(/\D/g, '');
+          // Strip leading zeros when more than one digit
+          if (digits.length > 1) {
+            digits = digits.replace(/^0+(?=\d)/, '');
+          }
+          // Mutate the value so consumers receive the sanitized content
+          e.target.value = digits;
         }
-        // Mutate the value so consumers receive the sanitized content
-        e.target.value = digits;
       }
       onChange?.(e);
     },
-    [isNumber, onChange]
+    [isNumber, allowDecimal, onChange]
   );
 
   const handleFocus = React.useCallback(
@@ -75,8 +108,12 @@ function Input({
       onFocus={handleFocus}
       onMouseUp={handleMouseUp}
       // Provide helpful defaults for numeric entry without overriding explicit props
-      inputMode={isNumber ? inputMode ?? 'numeric' : inputMode}
-      pattern={isNumber ? pattern ?? '[0-9]*' : pattern}
+      inputMode={isNumber ? inputMode ?? 'decimal' : inputMode}
+      pattern={
+        isNumber
+          ? pattern ?? (allowDecimal ? '[0-9]*[.]?[0-9]*' : '[0-9]*')
+          : pattern
+      }
       {...props}
     />
   );

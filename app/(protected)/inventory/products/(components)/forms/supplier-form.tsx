@@ -43,15 +43,20 @@ interface FormProps {
   productId?: number;
   quarrySupplierId?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function SupplierForm({
   productId,
   quarrySupplierId,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(quarrySupplierId && productId));
@@ -144,6 +149,11 @@ export default function SupplierForm({
       available_truck_km_rate: false,
     },
   });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(supplierForm.formState.isDirty);
+  }, [supplierForm.formState.isDirty, onDirtyChange]);
 
   // Update form when data is loaded in edit mode
   React.useEffect(() => {
@@ -247,7 +257,8 @@ export default function SupplierForm({
       const fieldName = key === 'bulka' ? 'margin_bulka' : `margin_${key}`;
       supplierForm.setValue(
         fieldName as keyof z.infer<typeof NewSupplierFormSchema>,
-        marginValue
+        marginValue,
+        { shouldDirty: false }
       );
     });
   }, [
@@ -545,10 +556,9 @@ export default function SupplierForm({
         );
       }
 
-      // Close form on success
-      if (onCancel) {
-        onCancel();
-      }
+      // Clear dirty state in parent dialog, then close
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} quarry supplier product:`,

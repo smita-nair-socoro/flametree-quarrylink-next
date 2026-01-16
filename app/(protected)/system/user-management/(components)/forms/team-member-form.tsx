@@ -53,6 +53,7 @@ interface EditTeamMemberFormProps {
   onSave?: (updated: EditTeamMemberPayload) => void | Promise<void>;
   onCancel?: () => void;
   onSuccess?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export function EditTeamMemberForm({
@@ -60,6 +61,7 @@ export function EditTeamMemberForm({
   currentUserId,
   onCancel,
   onSuccess,
+  onDirtyChange,
 }: EditTeamMemberFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const selectedUser = useSelectedTeamMember(); // User from store (basic data from list)
@@ -129,6 +131,10 @@ export function EditTeamMemberForm({
     resolver: zodResolver(EditTeamMemberFormSchema),
     defaultValues,
   });
+
+  React.useEffect(() => {
+    onDirtyChange?.(form.formState.isDirty);
+  }, [form.formState.isDirty, onDirtyChange]);
 
   React.useEffect(() => {
     form.reset(defaultValues);
