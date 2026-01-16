@@ -510,9 +510,12 @@ export const pdfStyles = StyleSheet.create({
   // Delivery price badge (purple background)
   deliveryPriceBadge: {
     backgroundColor: '#F3EEFF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
     borderRadius: 4,
+    alignSelf: 'flex-start',
+    flexGrow: 0,
+    flexShrink: 0,
   },
 
   deliveryPriceText: {

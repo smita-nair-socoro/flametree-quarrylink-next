@@ -2,8 +2,8 @@ import {
   QUOTE_TYPE as QuoteType,
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
-import { CustomerDTO } from './customer';
-import { Address } from './address';
+import { CustomerWithAddressResponseDTO } from './customer';
+import { CustomerDeliveryAddress } from './address';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -12,16 +12,13 @@ export interface QuotationDTO {
   quoteType: QuoteType;
   customerId: number;
   customerName: string;
-  customerEmail: string;
   email: string;
   phone: string;
-  customerPhone: string;
-  customerDto: CustomerDTO;
+  customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
   accountManagerSub: string;
   accountManagerName: string;
   projectName: string;
   quoteStatus: QuoteStatus;
-  deliveryAddress: Address;
   jobId: number;
   deliveryStartDate: string | null;
   expiryDate: string | null;
@@ -45,51 +42,15 @@ export interface QuotationDTO {
   quoteItems: QuotationLineItem[];
 }
 
-// Frontend type (same as DTO, uses camelCase)
-export interface Quotation {
-  id: number;
-  quoteNumber: string;
-  quoteType: QuoteType;
-  customerId: number;
-  customerName: string;
-  customerEmail: string;
-  email: string;
-  phone: string;
-  customerPhone: string;
-  customerDto: CustomerDTO;
-  accountManagerSub: string;
-  accountManagerName: string;
-  projectName: string;
-  status: QuoteStatus;
-  deliveryAddress: Address;
-  jobId: number;
-  deliveryStartDate: string;
-  expiryDate: string;
-  deliveryWindowStart: string;
-  deliveryWindowEnd: string;
-  totalCostPrice: number;
-  totalSellPrice: number;
-  totalTruckSellPrice: number;
-  totalTruckCostPrice: number;
-  grossProfit: number;
-  grossProfitPercentage: number;
-  lineItemsCount: number;
-  inclDeliveryCost: boolean;
-  convertedAt?: string;
-  version: number;
-  isDeleted: boolean;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
-  quoteItems: QuotationLineItem[];
-}
+export type Quotation = QuotationDTO;
 
 export interface QuotationLineItem {
   id?: number;
   quoteId: number;
   productId: number;
   quarrySupplierId: number;
+  customerDeliveryAddressId?: number;
+  customerDeliveryAddress?: CustomerDeliveryAddress;
   quarryProductId?: number;
   productName: string;
   quarryName: string;
@@ -115,33 +76,13 @@ export interface QuotationLineItem {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
+  requiredLoads?: number;
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
   lastModifiedBy?: string;
   version?: number;
   isDeleted?: boolean;
-}
-
-export interface quarrySupplierProductDetail {
-  availableForSaleTn: boolean;
-  availableForSaleM3: boolean;
-  availableForSale20kg: boolean;
-  availableForSaleBulka: boolean;
-  perTnCostPrice: number;
-  perM3CostPrice: number;
-  per20kgCostPrice: number;
-  perBulkaCostPrice: number;
-  tnTruckRate: number;
-  m3TruckRate: number;
-  hourlyTruckRate: number;
-  loadTruckRate: number;
-  kmTruckRate: number;
-  availableForTruckRateKm: boolean;
-  quarryName: string;
-  quarrySupplierId: number;
-  supplierProductName: string;
-  supplierProductCode: string;
 }
 
 export interface StripeTenantDetailsSnapshot {
@@ -182,13 +123,12 @@ export interface QuotationDisplayData {
   project: {
     type: QuoteType;
     projectName: string;
-    deliveryAddress: string;
     deliveryDate: string;
     deliveryWindow: string;
   };
   products: Array<{
     name: string;
-    code: string;
+    deliveryAddress: string;
     truckType: string;
     capacity: string;
     quantity: string;

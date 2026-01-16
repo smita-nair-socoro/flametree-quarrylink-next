@@ -109,12 +109,12 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.quoteStatus,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.quoteStatus;
       if (!status) return <span className="text-muted-foreground">-</span>;
       return (
         <div className="py-2">

@@ -32,13 +32,12 @@ export interface QuotationData {
   project: {
     type: QUOTE_TYPE;
     projectName: string;
-    deliveryAddress: string;
     deliveryDate: string;
     deliveryWindow: string;
   };
   products: Array<{
     name: string;
-    code: string;
+    deliveryAddress: string;
     truckType: string;
     capacity: string;
     quantity: string;
@@ -100,6 +99,7 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           <ProductsTablePdf
             products={data.products}
             includeDeliveryPrices={data.inclDeliveryCost}
+            quoteType={data.project.type}
           />
 
           {/* Summary & Payment */}

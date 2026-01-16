@@ -20,7 +20,6 @@ export function quotationToFormValues(
       deliveryWindowStart: '',
       deliveryWindowEnd: '',
       expiryDate: undefined,
-      deliveryAddress: '',
       phone: '',
       email: '',
       createdAt: new Date(),
@@ -31,7 +30,7 @@ export function quotationToFormValues(
   }
 
   // Helper to format Date to HH:MM time string
-  const formatTimeString = (dateString?: string) => {
+  const formatTimeString = (dateString?: string | null) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour12: false,
@@ -53,10 +52,9 @@ export function quotationToFormValues(
     expiryDate: quotation?.expiryDate
       ? new Date(quotation.expiryDate)
       : undefined,
-    deliveryAddress: quotation?.deliveryAddress?.formattedAddress || '',
-    email: quotation?.email || quotation?.customerDto?.email || '',
+    email: quotation?.email || quotation?.customerWithAddressResponseDto?.email || '',
     phone: normalizePhoneNumber(
-      quotation?.phone || quotation?.customerDto?.phone || ''
+      quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),
     createdAt: quotation?.createdAt
       ? new Date(quotation.createdAt)

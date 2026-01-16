@@ -25,10 +25,10 @@ function formatDate(dateString: string | null | undefined): string {
       day === 1 || day === 21 || day === 31
         ? 'st'
         : day === 2 || day === 22
-          ? 'nd'
-          : day === 3 || day === 23
-            ? 'rd'
-            : 'th';
+        ? 'nd'
+        : day === 3 || day === 23
+        ? 'rd'
+        : 'th';
 
     return `${day}${suffix} ${month}, ${year}`;
   } catch {
@@ -74,11 +74,8 @@ export function transformQuoteData(
     quoteNumber,
     quoteType,
     customerName,
-    customerEmail,
-    customerPhone,
-    customerDto,
+    customerWithAddressResponseDto,
     projectName,
-    deliveryAddress,
     deliveryStartDate,
     deliveryWindowStart,
     deliveryWindowEnd,
@@ -95,9 +92,12 @@ export function transformQuoteData(
   const products =
     quoteItems?.map((item) => ({
       name: item.productName || 'Unknown Product',
-      code: `P-${item.productId}`,
+      deliveryAddress:
+        item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
       truckType: item.truckType || 'N/A',
-      capacity: `${item.totalQuantityRequired || 0} ${item.productSellUom || 'units'} per delivery`,
+      capacity: `${item.totalQuantityRequired || 0} ${
+        item.productSellUom || 'units'
+      } per delivery`,
       quantity: `${item.productSellQty || 0} ${item.productSellUom || ''}`,
       totalPrice: item.totalProductSellPrice || 0, // Product price only
       deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
@@ -106,7 +106,10 @@ export function transformQuoteData(
   // Calculate totals (prices are in cents from backend)
   // Calculate product subtotal (sum of all totalProductSellPrice)
   const productSubtotal = quoteItems
-    ? quoteItems.reduce((sum, item) => sum + (item.totalProductSellPrice || 0), 0)
+    ? quoteItems.reduce(
+        (sum, item) => sum + (item.totalProductSellPrice || 0),
+        0
+      )
     : 0;
 
   // Calculate delivery subtotal (sum of all totalTruckSellPrice)
@@ -117,35 +120,35 @@ export function transformQuoteData(
   // Subtotal is the total sell price (ex-GST) - should be product + delivery
   const subtotal = totalSellPrice || 0;
   // GST is 10% of the subtotal
-  const gst = Math.round(subtotal * 0.10);
+  const gst = Math.round(subtotal * 0.1);
   // Total is subtotal + GST
   const total = subtotal + gst;
 
   // Total quantity calculation from all products
   const totalQuantity = quoteItems
-    ? `${quoteItems.reduce((sum, item) => sum + (item.productSellQty || 0), 0)} ${quoteItems[0]?.productSellUom || 'units'}`
+    ? `${quoteItems.reduce(
+        (sum, item) => sum + (item.productSellQty || 0),
+        0
+      )} ${quoteItems[0]?.productSellUom || 'units'}`
     : '0 units';
 
-  // Format billing address from stripeTenantDetailsSnapshot using Australian standard
-  const billingAddressFormatted = formatAustralianAddress(
-    stripeTenantDetailsSnapshot?.billingAddress
+  const customerBillingAddress = formatAustralianAddress(
+    customerWithAddressResponseDto?.billingAddress?.formattedAddress
   );
-  const billingAddressLine1 =
-    billingAddressFormatted?.line1 || 'Suite 1102/132 Arthur St';
-  const billingAddressLine2 =
-    billingAddressFormatted?.line2 || 'NORTH SYDNEY NSW 2060';
-  const billingAddressLine3 =
-    billingAddressFormatted?.line3 || 'AUSTRALIA';
 
   // Determine customer display name based on customer type
   let customerDisplayName: string;
-  if (customerDto?.customerType === 'BUSINESS') {
+  if (customerWithAddressResponseDto?.customerType === 'BUSINESS') {
     // For business: use businessName, fallback to contactName
     customerDisplayName =
-      customerDto.businessName || customerDto.contactName || customerName || 'N/A';
-  } else if (customerDto?.customerType === 'INDIVIDUAL') {
+      customerWithAddressResponseDto.businessName ||
+      customerWithAddressResponseDto.contactName ||
+      customerName ||
+      'N/A';
+  } else if (customerWithAddressResponseDto?.customerType === 'INDIVIDUAL') {
     // For individual: use contactName
-    customerDisplayName = customerDto.contactName || customerName || 'N/A';
+    customerDisplayName =
+      customerWithAddressResponseDto.contactName || customerName || 'N/A';
   } else {
     // Default: use top-level customerName
     customerDisplayName = customerName || 'N/A';
@@ -163,27 +166,17 @@ export function transformQuoteData(
     },
     customer: {
       customerName: customerDisplayName,
-      email: customerEmail || customerDto?.email || 'N/A',
-      phone: customerPhone || customerDto?.phone || 'N/A',
+      email: quoteDto?.email || 'N/A',
+      phone: quoteDto?.phone || 'N/A',
       billingAddress: {
-        line1: billingAddressLine1,
-        line2: billingAddressLine2,
-        line3: billingAddressLine3,
+        line1: customerBillingAddress?.line1 || 'N/A',
+        line2: customerBillingAddress?.line2 || 'N/A',
+        line3: customerBillingAddress?.line3 || 'N/A',
       },
     },
     project: {
       type: (quoteType as QuoteType) || QuoteType.DELIVERY,
       projectName: projectName || 'N/A',
-      deliveryAddress: (() => {
-        const formatted = formatAustralianAddress(
-          deliveryAddress?.formattedAddress
-        );
-        if (!formatted) return 'N/A';
-        // Return multi-line string (will be displayed with white-space: pre-line CSS)
-        const lines = [formatted.line1, formatted.line2, formatted.line3]
-          .filter(Boolean);
-        return lines.length > 0 ? lines.join('\n') : 'N/A';
-      })(),
       deliveryDate: formatDate(deliveryStartDate),
       deliveryWindow: formatDeliveryWindow(
         deliveryWindowStart,
@@ -220,10 +213,8 @@ export function transformQuoteData(
         phone: stripeTenantDetailsSnapshot?.contactNumber || '(02) 7229 1427',
         addressLine1:
           footerAddressFormatted?.line1 || 'Suite 1102/132 Arthur St',
-        addressLine2:
-          footerAddressFormatted?.line2 || 'NORTH SYDNEY NSW 2060',
-        addressLine3:
-          footerAddressFormatted?.line3 || 'AUSTRALIA',
+        addressLine2: footerAddressFormatted?.line2 || 'NORTH SYDNEY NSW 2060',
+        addressLine3: footerAddressFormatted?.line3 || 'AUSTRALIA',
         website:
           stripeTenantDetailsSnapshot?.website || 'www.quarrylink.com.au',
         businessName:

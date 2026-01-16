@@ -30,6 +30,7 @@ export interface QuarrySupplierProduct {
   quarrySupplier?: {
     id: number;
     name: string;
+    address?: Address;
   };
   quarrySupplierId: number;
   productId: number;
@@ -71,6 +72,7 @@ export interface QuarrySupplierProduct {
   availableUnits: string[];
   version: number;
 }
+
 
 export type QuarriesWithProduct = QuarrySupplierProduct;
 

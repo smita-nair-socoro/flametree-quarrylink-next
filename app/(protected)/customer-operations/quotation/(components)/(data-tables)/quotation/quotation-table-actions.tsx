@@ -92,7 +92,8 @@ export function QuotationTableActions({
           </DropdownMenuItem>
 
           {/* Preview Quote - available for DRAFT and PENDING */}
-          {(quotation.status === 'DRAFT' || quotation.status === 'PENDING') && (
+          {(quotation.quoteStatus === 'DRAFT' ||
+            quotation.quoteStatus === 'PENDING') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handlePreview}>
@@ -103,7 +104,7 @@ export function QuotationTableActions({
           )}
 
           {/* Status-specific actions */}
-          {quotation.status === 'DRAFT' && (
+          {quotation.quoteStatus === 'DRAFT' && (
             <>
               <DropdownMenuSeparator />
 
@@ -114,7 +115,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'PENDING' && (
+          {quotation.quoteStatus === 'PENDING' && (
             <>
               <DropdownMenuSeparator />
 
@@ -132,7 +133,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'APPROVED' && (
+          {quotation.quoteStatus === 'APPROVED' && (
             <>
               <DropdownMenuSeparator />
 
@@ -153,7 +154,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'CONVERTED_TO_JOB' && (
+          {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDuplicate}>
@@ -163,7 +164,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'EXPIRED' && (
+          {quotation.quoteStatus === 'EXPIRED' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleExtendExpiry}>
@@ -190,8 +191,8 @@ export function QuotationTableActions({
           </DropdownMenuItem> */}
 
           {/* Archive - always at the bottom for applicable statuses */}
-          {quotation.status !== 'ARCHIVED' &&
-            quotation.status !== 'PENDING' && (
+          {quotation.quoteStatus !== 'ARCHIVED' &&
+            quotation.quoteStatus !== 'PENDING' && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

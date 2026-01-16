@@ -33,6 +33,50 @@ export const CustomerReportingQueryOptions = () =>
     staleTime: 5_000,
   });
 
+export const CustomerDeliveryAddressesQueryOptions = (
+  customerId: number,
+  limit?: number
+) =>
+  queryOptions({
+    queryKey: CustomerKeys.deliveryAddresses(customerId, limit),
+    queryFn: () => APIClient.customers.getDeliveryAddresses(customerId, limit),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!customerId,
+  });
+
+/**
+ * Mutation hook for updating delivery address usage (inUse status).
+ * Used when removing a delivery address from suggestions.
+ */
+export const useUpdateDeliveryAddressUsage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      customerDeliveryAddressId,
+      inUse,
+    }: {
+      customerId: number;
+      customerDeliveryAddressId: number;
+      inUse: boolean;
+    }) =>
+      APIClient.customers.updateDeliveryAddressUsage(
+        customerId,
+        customerDeliveryAddressId,
+        inUse
+      ),
+
+    onSuccess: (_data, variables) => {
+      // Invalidate all delivery addresses queries for this customer (partial match)
+      queryClient.invalidateQueries({
+        queryKey: [...CustomerKeys.all, 'delivery-addresses', variables.customerId],
+      });
+    },
+  });
+};
+
 /**
  * Mutation hook for creating a new customer.
  * Automatically invalidates the customers list cache on success.
