@@ -105,7 +105,7 @@ export default function QuoteLineItemForm({
   // - Collection: Use selected quarry supplier's address
   const pinnedAddress = isCollection
     ? selectedQuarrySupplierProduct?.quarrySupplier?.addressDto
-    : selectedQuotation?.customerDto?.billingAddress;
+    : selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
     [pinnedAddress]
@@ -224,7 +224,7 @@ export default function QuoteLineItemForm({
                       }
                     >
                       <FormLabel>Collection Address*</FormLabel>
-                    <FormControl>
+                      <FormControl>
                         <AddressAutoComplete
                           address={addressInput}
                           setAddress={setAddressInput}

@@ -55,9 +55,10 @@ export default function QuoteReviewDocument({
     useUpdatePublicQuoteStatus();
 
   // Use API data if available, otherwise fall back to mock data
-  const quotationData = quoteData
-    ? transformQuoteData(quoteData)
-    : mockQuotationData;
+  const quotationData = useMemo(
+    () => (quoteData ? transformQuoteData(quoteData) : mockQuotationData),
+    [quoteData]
+  );
 
   // Get status directly from the transformed quotation data
   const currentQuoteStatus = quotationData.navbar.status;

@@ -52,9 +52,9 @@ export function quotationToFormValues(
     expiryDate: quotation?.expiryDate
       ? new Date(quotation.expiryDate)
       : undefined,
-    email: quotation?.email || quotation?.customerDto?.email || '',
+    email: quotation?.email || quotation?.customerWithAddressResponseDto?.email || '',
     phone: normalizePhoneNumber(
-      quotation?.phone || quotation?.customerDto?.phone || ''
+      quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),
     createdAt: quotation?.createdAt
       ? new Date(quotation.createdAt)

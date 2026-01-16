@@ -88,7 +88,9 @@ const getDialogConfigs = (
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
   const customerName = quotationData?.customerName;
-  const customerEmail = quotationData?.customerEmail;
+  const customerEmail =
+    quotationData?.email ||
+    quotationData?.customerWithAddressResponseDto?.email;
   const totalSellPrice = quotationData?.totalSellPrice
     ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
@@ -775,14 +777,8 @@ export function useQuotationActions(
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
       // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      let customerEmail = quotationDetailData.email;
-      if (!customerEmail) {
-        customerEmail = 'charlie.peng@socoro.com.au';
-      }
-
       const transformed = {
         ...quotationDetailData,
-        customerEmail: customerEmail,
       } as Quotation;
 
       return transformed;

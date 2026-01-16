@@ -2,7 +2,7 @@ import {
   QUOTE_TYPE as QuoteType,
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
-import { CustomerDTO } from './customer';
+import { CustomerWithAddressResponseDTO } from './customer';
 import { CustomerDeliveryAddress } from './address';
 
 // DTO type for API response (uses camelCase from backend)
@@ -12,11 +12,9 @@ export interface QuotationDTO {
   quoteType: QuoteType;
   customerId: number;
   customerName: string;
-  customerEmail: string;
   email: string;
   phone: string;
-  customerPhone: string;
-  customerDto: CustomerDTO;
+  customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
   accountManagerSub: string;
   accountManagerName: string;
   projectName: string;
