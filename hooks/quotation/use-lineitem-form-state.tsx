@@ -21,6 +21,8 @@ import {
 } from '@/lib/utils/error-message-helper';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
+import { AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
+import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 
@@ -114,6 +116,27 @@ export function useLineItemFormState({
     mode: 'onChange',
     defaultValues: getFormValuesFromLineItem(),
   });
+
+  const [addressInput, setAddressInput] = React.useState<AddressType>(() =>
+    toAddressType(selectedLineItem?.customerDeliveryAddress?.address ?? null)
+  );
+  const [addressSearchInput, setAddressSearchInput] = React.useState('');
+
+  React.useEffect(() => {
+    if (!isEditing || !selectedLineItem?.customerDeliveryAddress?.address) {
+      return;
+    }
+    setAddressInput(
+      toAddressType(selectedLineItem.customerDeliveryAddress.address)
+    );
+  }, [isEditing, selectedLineItem?.customerDeliveryAddress?.address]);
+
+  const watchedAddress = form.watch('address');
+  React.useEffect(() => {
+    if (!watchedAddress) return;
+    if (watchedAddress === addressInput.formattedAddress) return;
+    setAddressInput((prev) => ({ ...prev, formattedAddress: watchedAddress }));
+  }, [watchedAddress, addressInput.formattedAddress]);
 
   // When viewing/editing an existing line item, ensure the loaded values become the
   // baseline defaults; otherwise RHF can consider async/programmatic updates as "dirty".
@@ -619,11 +642,47 @@ export function useLineItemFormState({
       console.error('No quotation selected');
       return;
     }
-    const quoteItemData: QuotationLineItem & { address?: string } = {
+    const customerId =
+      selectedQuotation?.customerId ||
+      selectedQuotation?.customerWithAddressResponseDto?.id ||
+      0;
+    const originalAddress = selectedLineItem?.customerDeliveryAddress?.address;
+    const mappedAddress = toAddressPayload(addressInput, originalAddress);
+    const addressPayload = mappedAddress
+      ? (({ id, ...rest }) => rest)(mappedAddress)
+      : undefined;
+    const customerDeliveryAddress: CustomerDeliveryAddress | undefined =
+      addressPayload && customerId
+        ? {
+            ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
+              ? { id: selectedLineItem.customerDeliveryAddress.id }
+              : {}),
+            customerId,
+            addressId:
+              isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
+                ? selectedLineItem.customerDeliveryAddress.addressId
+                : mappedAddress?.id,
+            address: addressPayload,
+            inUse: true,
+            lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
+            version: selectedLineItem?.customerDeliveryAddress?.version ?? 0,
+            createdBy: selectedLineItem?.customerDeliveryAddress?.createdBy,
+            createdAt: selectedLineItem?.customerDeliveryAddress?.createdAt,
+            updatedAt: selectedLineItem?.customerDeliveryAddress?.updatedAt,
+            lastModifiedBy:
+              selectedLineItem?.customerDeliveryAddress?.lastModifiedBy,
+          }
+        : undefined;
+
+    const quoteItemData: QuotationLineItem = {
       quoteId: selectedQuotation?.id || 0,
-      address: values.address,
       productId: values.productId,
       quarrySupplierId: values.quarrySupplierId,
+      customerDeliveryAddressId:
+        isEditing && selectedLineItem?.customerDeliveryAddress?.id
+          ? customerDeliveryAddress?.id
+          : undefined,
+      customerDeliveryAddress,
       productName:
         (productOptions.find((p) => p.value === values.productId)
           ?.label as string) || '',
@@ -652,6 +711,7 @@ export function useLineItemFormState({
       totalQuantityRequired: values.productSellQty,
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty,
+      requiredLoads: selectedLineItem?.requiredLoads,
       version: 1,
     };
 
@@ -702,6 +762,10 @@ export function useLineItemFormState({
     selectedQuotation,
     selectedQuarrySupplierProduct,
     quoteType,
+    addressInput,
+    setAddressInput,
+    addressSearchInput,
+    setAddressSearchInput,
     productOptions,
     quarryOptions,
     truckTypeOptions,

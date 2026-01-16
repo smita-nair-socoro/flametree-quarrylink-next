@@ -25,7 +25,6 @@ import {
 import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import { AddressType } from '@/lib/types/address';
 import { toAddressType } from '@/lib/utils/address-helper';
 
 interface FormProps {
@@ -56,6 +55,10 @@ export default function QuoteLineItemForm({
     selectedQuotation,
     selectedQuarrySupplierProduct,
     quoteType,
+    addressInput,
+    setAddressInput,
+    addressSearchInput,
+    setAddressSearchInput,
     productOptions,
     quarryOptions,
     truckTypeOptions,
@@ -78,27 +81,6 @@ export default function QuoteLineItemForm({
   }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
 
   const isCollection = quoteType === 'COLLECTION';
-  const watchedAddress = quotationLineItemForm.watch('address');
-  const [addressInput, setAddressInput] = React.useState<AddressType>(() => ({
-    address1: '',
-    address2: '',
-    formattedAddress: quotationLineItemForm.getValues('address') || '',
-    city: '',
-    region: '',
-    postalCode: '',
-    country: '',
-    lat: 0,
-    lng: 0,
-    googlePlaceId: '',
-  }));
-  const [addressSearchInput, setAddressSearchInput] = React.useState('');
-
-  React.useEffect(() => {
-    const nextValue = watchedAddress || '';
-    if (nextValue !== addressInput.formattedAddress) {
-      setAddressInput((prev) => ({ ...prev, formattedAddress: nextValue }));
-    }
-  }, [watchedAddress, addressInput.formattedAddress]);
 
   // Determine pinned address based on quote type:
   // - Delivery: Use customer's billing address

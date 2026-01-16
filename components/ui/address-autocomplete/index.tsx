@@ -358,8 +358,15 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     }
   };
 
-  const handleSelectSuggestion = (suggestedAddress: string) => {
-    setAddress({ ...address, formattedAddress: suggestedAddress });
+  const handleSelectSuggestion = (
+    suggestedAddress: string,
+    addressOverride?: AddressType
+  ) => {
+    const nextAddress = addressOverride ?? {
+      ...address,
+      formattedAddress: suggestedAddress,
+    };
+    setAddress(nextAddress);
     if (onChange) {
       onChange(suggestedAddress);
     }
@@ -453,7 +460,7 @@ interface CommonProps {
   pinnedAddress?: AddressType;
   historyAddresses?: SuggestedAddress[];
   isCollection?: boolean;
-  onSelectSuggestion?: (address: string) => void;
+  onSelectSuggestion?: (address: string, addressOverride?: AddressType) => void;
   onDeleteHistoryAddress?: (id: string) => void;
   ariaInvalid?: boolean;
   ariaDescribedBy?: string;
@@ -635,7 +642,9 @@ function AddressAutoCompleteInput(props: CommonProps) {
                     {pinnedAddressFormatted && onSelectSuggestion && (
                       <CommandPrimitive.Item
                         value={pinnedAddressFormatted}
-                        onSelect={() => onSelectSuggestion(pinnedAddressFormatted)}
+                        onSelect={() =>
+                          onSelectSuggestion(pinnedAddressFormatted, pinnedAddress)
+                        }
                         className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center"
                         onMouseDown={(e) => e.preventDefault()}
                       >
@@ -651,7 +660,9 @@ function AddressAutoCompleteInput(props: CommonProps) {
                         <CommandPrimitive.Item
                           key={addr.id}
                           value={addr.formattedAddress}
-                          onSelect={() => onSelectSuggestion?.(addr.formattedAddress)}
+                          onSelect={() =>
+                            onSelectSuggestion?.(addr.formattedAddress)
+                          }
                           className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center group"
                           onMouseDown={(e) => e.preventDefault()}
                         >
