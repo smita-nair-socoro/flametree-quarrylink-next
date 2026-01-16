@@ -42,6 +42,8 @@ interface AddressAutoCompleteProps {
   isCollection?: boolean;
   // Forwarded from `FormControl` (react-hook-form + shadcn)
   rhfAriaProps?: RHFAriaProps;
+  // Customer delivery address history
+  historyAddresses?: SuggestedAddress[];
 }
 
 interface AutocompleteSuggestion {
@@ -58,6 +60,7 @@ interface SuggestedAddress {
   id: string;
   formattedAddress: string;
   isPinned?: boolean;
+  addressType?: AddressType;
 }
 
 const MOCK_HISTORY_ADDRESSES: SuggestedAddress[] = [
@@ -178,6 +181,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     pinnedAddress,
     isCollection = false,
     rhfAriaProps,
+    historyAddresses: historyAddressesProp,
   } = props;
 
   // Also support `FormControl` passing aria props directly (via Radix Slot)
@@ -193,9 +197,9 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
-  const [historyAddresses, setHistoryAddresses] = useState<SuggestedAddress[]>(
-    MOCK_HISTORY_ADDRESSES
-  );
+
+  // Use provided historyAddresses or fall back to mock data
+  const historyAddresses = historyAddressesProp ?? MOCK_HISTORY_ADDRESSES;
 
   useEffect(() => {
     if (value && value !== address.formattedAddress) {
@@ -373,9 +377,10 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSearchInput('');
   };
 
-  const handleDeleteHistoryAddress = (id: string) => {
-    setHistoryAddresses((prev) => prev.filter((addr) => addr.id !== id));
-  };
+  // Only allow deletion when using mock data (not prop-based addresses)
+  const handleDeleteHistoryAddress = historyAddressesProp
+    ? undefined
+    : undefined; // Disable deletion for now since we're using prop-based addresses
 
   return (
     <>
@@ -661,7 +666,10 @@ function AddressAutoCompleteInput(props: CommonProps) {
                           key={addr.id}
                           value={addr.formattedAddress}
                           onSelect={() =>
-                            onSelectSuggestion?.(addr.formattedAddress)
+                            onSelectSuggestion?.(
+                              addr.formattedAddress,
+                              addr.addressType
+                            )
                           }
                           className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center group"
                           onMouseDown={(e) => e.preventDefault()}

@@ -16,9 +16,9 @@ export interface Address {
 }
 
 export interface CustomerDeliveryAddress {
-  id: number;
+  id?: number;
   customerId: number;
-  addressId: number;
+  addressId?: number;
   address: Address;
   inUse: boolean;
   lastUsedAt?: string;

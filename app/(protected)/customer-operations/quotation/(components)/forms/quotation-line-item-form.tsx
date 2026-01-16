@@ -71,6 +71,7 @@ export default function QuoteLineItemForm({
     handleSubmit,
     onSubmit,
     isPending,
+    customerDeliveryAddressSuggestions,
   } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
 
   // Report dirty-state to parent dialog
@@ -86,7 +87,7 @@ export default function QuoteLineItemForm({
   // - Delivery: Use customer's billing address
   // - Collection: Use selected quarry supplier's address
   const pinnedAddress = isCollection
-    ? selectedQuarrySupplierProduct?.quarrySupplier?.addressDto
+    ? selectedQuarrySupplierProduct?.quarrySupplier?.address
     : selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
@@ -154,6 +155,7 @@ export default function QuoteLineItemForm({
                         isCollection={false}
                         onChange={field.onChange}
                         onBlur={field.onBlur}
+                        historyAddresses={customerDeliveryAddressSuggestions}
                       />
                     </FormControl>
                     <FormMessage />

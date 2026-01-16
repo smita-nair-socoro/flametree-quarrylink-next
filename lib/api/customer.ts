@@ -33,6 +33,18 @@ export const CustomerReportingQueryOptions = () =>
     staleTime: 5_000,
   });
 
+export const CustomerDeliveryAddressesQueryOptions = (
+  customerId: number,
+  limit?: number
+) =>
+  queryOptions({
+    queryKey: CustomerKeys.deliveryAddresses(customerId, limit),
+    queryFn: () => APIClient.customers.getDeliveryAddresses(customerId, limit),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!customerId,
+  });
+
 /**
  * Mutation hook for creating a new customer.
  * Automatically invalidates the customers list cache on success.
