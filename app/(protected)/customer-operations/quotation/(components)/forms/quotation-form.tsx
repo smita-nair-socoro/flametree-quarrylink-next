@@ -249,7 +249,6 @@ export default function QuotationForm({
         notifySuccess('Quote updated successfully');
         onSaved?.();
         onSuccess?.();
-        onCancel?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 

@@ -683,7 +683,6 @@ export function useLineItemFormState({
       form.reset();
       onSaved?.();
       onSuccess?.();
-      onCancel?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} line item:`,
