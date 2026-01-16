@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 export interface Product {
   name: string;
@@ -22,11 +23,14 @@ export interface Product {
 export interface ProductsServicesProps {
   products: Product[];
   includeDeliveryPrices?: boolean;
+  quoteType?: QUOTE_TYPE;
 }
 
 const createColumns = (
-  includeDeliveryPrices: boolean
+  includeDeliveryPrices: boolean,
+  quoteType?: QUOTE_TYPE
 ): ColumnDef<Product>[] => {
+  const isCollection = quoteType === 'COLLECTION';
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'name',
@@ -57,24 +61,29 @@ const createColumns = (
       ),
       size: 160,
     },
-    {
-      accessorKey: 'truckType',
-      header: 'Truck Configuration',
-      cell: ({ row }) => (
-        <div>
-          <p className="text-gray-900 text-sm">{row.original.truckType}</p>
-          <p className="text-gray-500 text-xs">{row.original.capacity}</p>
-        </div>
-      ),
-      size: 160,
-    },
+    ...(isCollection
+      ? []
+      : [
+          {
+            accessorKey: 'truckType',
+            header: 'Truck Configuration',
+            cell: ({ row }) => (
+              <div>
+                <p className="text-gray-900 text-sm">
+                  {row.original.truckType}
+                </p>
+              </div>
+            ),
+            size: 160,
+          } as ColumnDef<Product>,
+        ]),
     {
       accessorKey: 'quantity',
       header: 'Quantity',
       cell: ({ row }) => (
         <p className="text-gray-900 text-sm">{row.original.quantity}</p>
       ),
-      size: 70,
+      size: 100,
     },
   ];
 
@@ -117,6 +126,7 @@ const createColumns = (
 export function ProductsServices({
   products,
   includeDeliveryPrices = false,
+  quoteType,
 }: ProductsServicesProps) {
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">
@@ -125,7 +135,7 @@ export function ProductsServices({
       </h2>
       <Separator className="mb-4" />
       <DataTableClient
-        columns={createColumns(includeDeliveryPrices)}
+        columns={createColumns(includeDeliveryPrices, quoteType)}
         data={products}
         simpleTable={true}
         isShowHideColumns={false}

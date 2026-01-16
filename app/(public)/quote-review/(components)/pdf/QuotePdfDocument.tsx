@@ -99,6 +99,7 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           <ProductsTablePdf
             products={data.products}
             includeDeliveryPrices={data.inclDeliveryCost}
+            quoteType={data.project.type}
           />
 
           {/* Summary & Payment */}
