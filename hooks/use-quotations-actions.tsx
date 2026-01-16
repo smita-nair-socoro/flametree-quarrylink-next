@@ -82,7 +82,8 @@ const getDialogConfigs = (
   setNewExpiryDate?: (date: Date) => void,
   includeDeliveryPrices?: boolean,
   setIncludeDeliveryPrices?: (value: boolean) => void,
-  onPreviewClick?: () => void
+  onPreviewClick?: () => void,
+  isCollectionType?: boolean
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -125,37 +126,39 @@ const getDialogConfigs = (
               Are you sure you want to send this quote to the customer?
             </span>
 
-            {/* Include Delivery Prices Toggle Section */}
-            <div className="border border-[#E5E7EB] rounded-lg p-4 bg-white">
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                  <div className="font-base text-[16px] text-[#101828] mb-1">
-                    Include Delivery Prices
+            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
+            {!isCollectionType && (
+              <div className="border border-[#E5E7EB] rounded-lg p-4 bg-white">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <div className="font-base text-[16px] text-[#101828] mb-1">
+                      Include Delivery Prices
+                    </div>
+                    <p className="text-[13px] text-[#6A7282]">
+                      {includeDeliveryPrices
+                        ? 'Delivery prices will be shown as separate line items in the customer quote.'
+                        : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
+                    </p>
                   </div>
-                  <p className="text-[13px] text-[#6A7282]">
-                    {includeDeliveryPrices
-                      ? 'Delivery prices will be shown as separate line items in the customer quote.'
-                      : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
-                  </p>
+                  <Switch
+                    checked={includeDeliveryPrices}
+                    onCheckedChange={setIncludeDeliveryPrices}
+                    className="data-[state=checked]:bg-[#F54900]"
+                  />
                 </div>
-                <Switch
-                  checked={includeDeliveryPrices}
-                  onCheckedChange={setIncludeDeliveryPrices}
-                  className="data-[state=checked]:bg-[#F54900]"
-                />
-              </div>
 
-              {/* Preview Quote Button */}
-              <Button
-                variant="default"
-                size="lg"
-                onClick={onPreviewClick}
-                className="mt-3 text-orange-600 border-base-input hover:bg-orange-200 bg-orange-100"
-              >
-                <Eye className="h-5 w-5 mr-2" />
-                Preview Quote
-              </Button>
-            </div>
+                {/* Preview Quote Button */}
+                <Button
+                  variant="default"
+                  size="lg"
+                  onClick={onPreviewClick}
+                  className="mt-3 text-orange-600 border-base-input hover:bg-orange-200 bg-orange-100"
+                >
+                  <Eye className="h-5 w-5 mr-2" />
+                  Preview Quote
+                </Button>
+              </div>
+            )}
 
             {/* Quote Delivery Section */}
             <div className="border border-[#FFD6A7] rounded-lg p-4 bg-[#FFF7ED]">
@@ -205,6 +208,7 @@ const getDialogConfigs = (
       },
     };
   } else if (selectedAction?.key === 'previewQuote') {
+    // For COLLECTION type, this dialog won't be shown (handled in action handler)
     return {
       previewQuote: {
         title: 'Preview Quote',
@@ -231,26 +235,28 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-4">
-            {/* Include Delivery Prices Toggle Section */}
-            <div className="border border-[#E5E5E5] rounded-lg p-4 bg-[#FFFFFF]">
-              <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                  <div className="font-base text-[16px] text-[#101828] mb-2">
-                    Include Delivery Prices
+            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
+            {!isCollectionType && (
+              <div className="border border-[#E5E5E5] rounded-lg p-4 bg-[#FFFFFF]">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <div className="font-base text-[16px] text-[#101828] mb-2">
+                      Include Delivery Prices
+                    </div>
+                    <p className="text-[14px] text-[#6B7280] leading-relaxed">
+                      {includeDeliveryPrices
+                        ? 'Delivery prices will be shown as separate line items in the customer quote.'
+                        : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
+                    </p>
                   </div>
-                  <p className="text-[14px] text-[#6B7280] leading-relaxed">
-                    {includeDeliveryPrices
-                      ? 'Delivery prices will be shown as separate line items in the customer quote.'
-                      : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
-                  </p>
+                  <Switch
+                    checked={includeDeliveryPrices}
+                    onCheckedChange={setIncludeDeliveryPrices}
+                    className="data-[state=checked]:bg-[#F54900]"
+                  />
                 </div>
-                <Switch
-                  checked={includeDeliveryPrices}
-                  onCheckedChange={setIncludeDeliveryPrices}
-                  className="data-[state=checked]:bg-[#F54900]"
-                />
               </div>
-            </div>
+            )}
           </div>
         ),
         confirmText: 'Preview Quote',
@@ -844,6 +850,9 @@ export function useQuotationActions(
     }
   };
 
+  // Determine if the quotation is COLLECTION type (no delivery prices)
+  const isCollectionType = quotationToUse?.quoteType === 'COLLECTION';
+
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
     selectedAction || undefined,
@@ -851,7 +860,8 @@ export function useQuotationActions(
     setNewExpiryDate,
     includeDeliveryPrices,
     setIncludeDeliveryPrices,
-    handlePreviewFromDialog
+    handlePreviewFromDialog,
+    isCollectionType
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1135,7 +1145,16 @@ export function useQuotationActions(
       setViewOpen(true);
     },
 
-    preview: createDialogAction('previewQuote'),
+    preview: () => {
+      // For COLLECTION type, skip the modal and go directly to preview
+      if (isCollectionType) {
+        handlePreviewQuote();
+        return;
+      }
+      // For DELIVERY type, show the modal with delivery toggle
+      setSelectedAction({ key: 'previewQuote' });
+      setActiveDialog('previewQuote');
+    },
 
     download: () => {
       console.log('Download quotation:', quotationId);

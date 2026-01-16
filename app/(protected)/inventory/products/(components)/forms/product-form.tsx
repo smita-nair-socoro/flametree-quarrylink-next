@@ -53,9 +53,15 @@ interface FormProps {
   onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
-export default function ProductForm({ id, onCancel, className }: FormProps) {
+export default function ProductForm({
+  id,
+  onCancel,
+  className,
+  onDirtyChange,
+}: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
 
@@ -158,6 +164,11 @@ export default function ProductForm({ id, onCancel, className }: FormProps) {
             last_modified_by: '',
           },
   });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(productForm.formState.isDirty);
+  }, [productForm.formState.isDirty, onDirtyChange]);
 
   // Update form values when product data is loaded (for editing mode)
   React.useEffect(() => {

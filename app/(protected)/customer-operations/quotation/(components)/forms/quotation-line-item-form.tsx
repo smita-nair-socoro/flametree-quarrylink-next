@@ -16,7 +16,7 @@ import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
-import { CurrencyInput } from '@/components/ui/input-mask';
+import { CurrencyInput, QuantityInput } from '@/components/ui/input-mask';
 import {
   Tooltip,
   TooltipContent,
@@ -30,6 +30,7 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
   canEdit?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuoteLineItemForm({
@@ -37,6 +38,7 @@ export default function QuoteLineItemForm({
   onCancel,
   className,
   canEdit,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -58,6 +60,14 @@ export default function QuoteLineItemForm({
     onSubmit,
     isPending,
   } = useLineItemFormState({ id, canEdit, onCancel });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    // In "view details" (read-only) mode, we don't want to block closing with
+    // a dirty-state warning because users cannot make intentional edits.
+    onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
+  }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
   const isCollection = quoteType === 'COLLECTION';
 
   return (
@@ -191,7 +201,25 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
                         <FormControl>
-                          <Input
+                          <QuantityInput
+                            unit={
+                              quotationLineItemForm.watch('productCostUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
@@ -267,7 +295,25 @@ export default function QuoteLineItemForm({
                       <FormItem>
                         <FormLabel>QTY*</FormLabel>
                         <FormControl>
-                          <Input
+                          <QuantityInput
+                            unit={
+                              quotationLineItemForm.watch('productSellUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
@@ -383,7 +429,29 @@ export default function QuoteLineItemForm({
                         <FormItem>
                           <FormLabel>QTY*</FormLabel>
                           <FormControl>
-                            <Input
+                            <QuantityInput
+                              unit={
+                                quotationLineItemForm.watch('truckCostUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'HOURLY'
+                                  ? 'HOURLY'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'LOAD'
+                                  ? 'LOAD'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'KM'
+                                  ? 'KM'
+                                  : ''
+                              }
                               className="w-full"
                               {...field}
                               disabled={isReadOnly}
@@ -461,7 +529,25 @@ export default function QuoteLineItemForm({
                         <FormItem>
                           <FormLabel>QTY*</FormLabel>
                           <FormControl>
-                            <Input
+                            <QuantityInput
+                              unit={
+                                quotationLineItemForm.watch('truckSellUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'KG_20'
+                                  ? 'Bags'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'BULKA'
+                                  ? 'Bags'
+                                  : ''
+                              }
                               className="w-full"
                               {...field}
                               disabled={isReadOnly}

@@ -32,6 +32,8 @@ import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { useSelectedClient } from '@/app/stores/client-store';
+import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
+import { ActionDialog } from './action-dialog';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -111,6 +113,19 @@ interface AddProductDrawerDialogProps {
   /** Whether to preserve empty badge space in renderBadges */
   preserveEmptyBadgeSpace?: boolean;
 
+  /** When true, shows a confirm dialog on close if the child form is dirty. Defaults to true. */
+  confirmOnCloseIfDirty?: boolean;
+  /** Optional customization for the unsaved-changes confirm dialog title */
+  unsavedConfirmTitle?: string;
+  /** Optional customization for the unsaved-changes confirm dialog description */
+  unsavedConfirmDescription?: string;
+  /** Optional customization for the unsaved-changes confirm primary button text */
+  unsavedConfirmConfirmText?: string;
+  /** Optional customization for the unsaved-changes confirm cancel button text */
+  unsavedConfirmCancelText?: string;
+  /** Optional list of detail bullet points for the unsaved-changes confirm dialog */
+  unsavedConfirmDetails?: string[];
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
@@ -129,6 +144,10 @@ interface ChildFormProps {
   id?: number;
   onCancel: () => void;
   onSuccess: () => void;
+  /** Child forms can call this to indicate dirty state changes */
+  onDirtyChange?: (isDirty: boolean) => void;
+  /** Convenience callback to signal the form has been successfully saved */
+  onSaved?: () => void;
 }
 
 export function FormDialog({
@@ -150,6 +169,12 @@ export function FormDialog({
   headerClassName,
   children,
   preserveEmptyBadgeSpace = true,
+  confirmOnCloseIfDirty = true,
+  unsavedConfirmTitle,
+  unsavedConfirmDescription,
+  unsavedConfirmConfirmText,
+  unsavedConfirmCancelText,
+  unsavedConfirmDetails,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
@@ -158,6 +183,8 @@ export function FormDialog({
   const setOpen = onOpenChangeProp ?? setUncontrolledOpen;
 
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = React.useState(false);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = React.useState(false);
 
   /**
    * Radix (Dialog/DropdownMenu) uses a "dismissable layer" stack that can set
@@ -266,6 +293,13 @@ export function FormDialog({
     }
   }, [id, open]);
 
+  // Reset dirty state whenever dialog is opened
+  React.useEffect(() => {
+    if (open) {
+      setHasUnsavedChanges(false);
+    }
+  }, [open]);
+
   const triggerNode = trigger ? (
     React.isValidElement(trigger) ? (
       React.cloneElement(trigger, { onClick: () => handleOpen(false) })
@@ -280,10 +314,28 @@ export function FormDialog({
     )
   );
 
-  const close = () => {
+  const forceClose = () => {
     setOpen(false);
     // Reset effectiveId when closing
     setEffectiveId(id);
+  };
+
+  const close = () => {
+    if (confirmOnCloseIfDirty && hasUnsavedChanges) {
+      setShowUnsavedConfirm(true);
+      return;
+    }
+    forceClose();
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setHasUnsavedChanges(false);
+      setOpen(true);
+      return;
+    }
+    // Attempt to close
+    close();
   };
 
   // If children is a single ReactElement, auto-inject id/onCancel/onSuccess
@@ -291,7 +343,12 @@ export function FormDialog({
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
         id: effectiveId,
         onCancel: close,
-        onSuccess: close,
+        onSuccess: () => {
+          setHasUnsavedChanges(false);
+          forceClose();
+        },
+        onDirtyChange: (dirty: boolean) => setHasUnsavedChanges(Boolean(dirty)),
+        onSaved: () => setHasUnsavedChanges(false),
       })
     : children;
 
@@ -396,7 +453,7 @@ export function FormDialog({
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{triggerNode}</DialogTrigger>
         <DialogContent
           className={clsx(
@@ -416,13 +473,32 @@ export function FormDialog({
         >
           {dialogInner}
         </DialogContent>
+        <EnhancedConfirmDialog
+          open={showUnsavedConfirm}
+          onOpenChangeAction={setShowUnsavedConfirm}
+          title={unsavedConfirmTitle ?? 'Discard changes?'}
+          description={
+            unsavedConfirmDescription ??
+            'You have unsaved changes. If you close now, your changes will be lost.'
+          }
+          details={unsavedConfirmDetails}
+          cancelText={unsavedConfirmCancelText ?? 'Keep editing'}
+          confirmText={unsavedConfirmConfirmText ?? 'Discard'}
+          confirmVariant="destructive"
+          hideCloseButton
+          isDirtyStateWarning
+          onConfirmAction={() => {
+            setHasUnsavedChanges(false);
+            forceClose();
+          }}
+        />
       </Dialog>
     );
   }
 
   // For mobile, also apply viewport-based sizing to the drawer
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent className="flex flex-col max-w-[95vh] h-auto">
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
@@ -449,6 +525,22 @@ export function FormDialog({
         >
           {contentNode}
         </div>
+        <ActionDialog
+          open={showUnsavedConfirm}
+          onOpenChangeAction={setShowUnsavedConfirm}
+          title={unsavedConfirmTitle ?? 'Discard changes?'}
+          description={
+            unsavedConfirmDescription ??
+            'You have unsaved changes. If you close now, your changes will be lost.'
+          }
+          cancelText={unsavedConfirmCancelText ?? 'Keep editing'}
+          confirmText={unsavedConfirmConfirmText ?? 'Discard'}
+          confirmVariant="destructive"
+          onConfirmAction={() => {
+            setHasUnsavedChanges(false);
+            forceClose();
+          }}
+        />
       </DrawerContent>
     </Drawer>
   );

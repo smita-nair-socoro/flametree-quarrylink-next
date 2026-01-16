@@ -59,7 +59,7 @@ export const pdfStyles = StyleSheet.create({
   page: {
     fontSize: fontSize.sm,
     paddingTop: 172,
-    paddingBottom: 90,
+    paddingBottom: 130,
     paddingHorizontal: 40,
     fontFamily: 'Geist',
     backgroundColor: colors.white,
