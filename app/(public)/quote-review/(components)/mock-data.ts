@@ -41,7 +41,7 @@ export const mockQuotationData = {
   products: [
     {
       name: 'Slate Stone E3',
-      code: 'P-1224446',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
       quantity: '120 T',
@@ -50,7 +50,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Slate Stone E5',
-      code: 'P-1224445',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '85 T per delivery',
       quantity: '120 T',
@@ -59,7 +59,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Marble Slab B2',
-      code: 'ABC-34332',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
       quantity: '120 T',
@@ -68,7 +68,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Sandstone Panel D4',
-      code: 'GH-232323',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'B-Double',
       capacity: '95 T per delivery',
       quantity: '120 T',
@@ -77,7 +77,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Granite Block A1',
-      code: 'FF-443994',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '60 T per delivery',
       quantity: '120 T',
@@ -86,7 +86,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Slate Stone E3',
-      code: 'P-1224446',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
       quantity: '120 T',
@@ -95,7 +95,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Slate Stone E5',
-      code: 'P-1224445',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '85 T per delivery',
       quantity: '120 T',
@@ -104,7 +104,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Marble Slab B2',
-      code: 'ABC-34332',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
       quantity: '120 T',
@@ -113,7 +113,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Sandstone Panel D4',
-      code: 'GH-232323',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'B-Double',
       capacity: '95 T per delivery',
       quantity: '120 T',
@@ -122,7 +122,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Granite Block A1',
-      code: 'FF-443994',
+      deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '60 T per delivery',
       quantity: '120 T',

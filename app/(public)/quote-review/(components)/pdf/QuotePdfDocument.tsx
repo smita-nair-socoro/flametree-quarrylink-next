@@ -37,7 +37,7 @@ export interface QuotationData {
   };
   products: Array<{
     name: string;
-    code: string;
+    deliveryAddress: string;
     truckType: string;
     capacity: string;
     quantity: string;

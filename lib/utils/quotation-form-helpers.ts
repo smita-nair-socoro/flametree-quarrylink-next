@@ -30,7 +30,7 @@ export function quotationToFormValues(
   }
 
   // Helper to format Date to HH:MM time string
-  const formatTimeString = (dateString?: string) => {
+  const formatTimeString = (dateString?: string | null) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour12: false,

@@ -5,7 +5,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 
 export interface Product {
   name: string;
-  code: string;
+  deliveryAddress: string;
   truckType: string;
   capacity: string;
   quantity: string;
@@ -64,7 +64,7 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
             {/* Product Column */}
             <View style={{ width: colWidths.product, paddingRight: 8 }}>
               <Text style={styles.productName}>{product.name}</Text>
-              <Text style={styles.productCode}>{product.code}</Text>
+              <Text style={styles.productCode}>{product.deliveryAddress}</Text>
             </View>
 
             {/* Truck Configuration Column */}

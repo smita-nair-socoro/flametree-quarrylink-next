@@ -94,7 +94,8 @@ export function transformQuoteData(
   const products =
     quoteItems?.map((item) => ({
       name: item.productName || 'Unknown Product',
-      code: `P-${item.productId}`,
+      deliveryAddress:
+        item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
       truckType: item.truckType || 'N/A',
       capacity: `${item.totalQuantityRequired || 0} ${item.productSellUom || 'units'} per delivery`,
       quantity: `${item.productSellQty || 0} ${item.productSellUom || ''}`,

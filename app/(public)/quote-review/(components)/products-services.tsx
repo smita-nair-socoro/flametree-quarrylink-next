@@ -11,7 +11,7 @@ import {
 
 export interface Product {
   name: string;
-  code: string;
+  deliveryAddress: string;
   truckType: string;
   capacity: string;
   quantity: string;
@@ -46,11 +46,11 @@ const createColumns = (
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <p className="text-gray-500 text-xs truncate">
-                {row.original.code}
+                {row.original.deliveryAddress}
               </p>
             </TooltipTrigger>
             <TooltipContent variant="white">
-              <p>{row.original.code}</p>
+              <p>{row.original.deliveryAddress}</p>
             </TooltipContent>
           </Tooltip>
         </div>

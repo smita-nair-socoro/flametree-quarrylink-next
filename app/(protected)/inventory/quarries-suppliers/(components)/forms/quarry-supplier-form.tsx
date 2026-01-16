@@ -479,7 +479,6 @@ export default function QuarrySupplierForm({
       quarrySupplierForm,
       onSaved,
       onSuccess,
-      onCancel,
       isEditing,
       id,
       selectedQuarrySupplier?.version,

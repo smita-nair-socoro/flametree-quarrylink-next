@@ -15,11 +15,14 @@ export interface Address {
   version: number;
 }
 
-export interface CustomerDeliveryAddress extends Address {
+export interface CustomerDeliveryAddress {
+  id: number;
   customerId: number;
   addressId: number;
+  address: Address;
   inUse: boolean;
   lastUsedAt?: string;
+  version: number;
   createdBy?: string;
   createdAt?: string;
   updatedAt?: string;
