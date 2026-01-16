@@ -674,6 +674,7 @@ export default function QuotationForm({
                       buttonTitle="Add New Product"
                       dialogWidth="700px"
                       contentClass="-mt-5"
+                      preventAutoFocus
                     >
                       <QuotationLineItemForm canEdit={canEdit} />
                     </FormDialog>

@@ -74,8 +74,6 @@ export function transformQuoteData(
     quoteNumber,
     quoteType,
     customerName,
-    email,
-    phone,
     customerWithAddressResponseDto,
     projectName,
     deliveryStartDate,
