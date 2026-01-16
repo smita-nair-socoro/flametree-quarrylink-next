@@ -32,6 +32,8 @@ type Props = {
   id?: number;
   canEdit?: boolean;
   onCancel?: () => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
 };
 
 type PricingBreakdown = {
@@ -57,7 +59,13 @@ type QuarrySupplierProductDetailExt = quarrySupplierProductDetail & {
   isActive?: boolean;
 };
 
-export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
+export function useLineItemFormState({
+  id,
+  canEdit,
+  onCancel,
+  onSuccess,
+  onSaved,
+}: Props) {
   const isEditing = Boolean(id && id > 0);
   const isReadOnly = isEditing && !canEdit;
 
@@ -673,7 +681,8 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         notifySuccess('Line item Added');
       }
       form.reset();
-      onCancel?.();
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} line item:`,

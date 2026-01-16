@@ -43,6 +43,7 @@ interface FormProps {
   productId?: number;
   quarrySupplierId?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
@@ -52,6 +53,8 @@ export default function SupplierForm({
   productId,
   quarrySupplierId,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   onDirtyChange,
 }: FormProps) {
@@ -254,7 +257,8 @@ export default function SupplierForm({
       const fieldName = key === 'bulka' ? 'margin_bulka' : `margin_${key}`;
       supplierForm.setValue(
         fieldName as keyof z.infer<typeof NewSupplierFormSchema>,
-        marginValue
+        marginValue,
+        { shouldDirty: false }
       );
     });
   }, [
@@ -552,10 +556,9 @@ export default function SupplierForm({
         );
       }
 
-      // Close form on success
-      if (onCancel) {
-        onCancel();
-      }
+      // Clear dirty state in parent dialog, then close
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} quarry supplier product:`,

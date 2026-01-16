@@ -51,6 +51,7 @@ import { Separator } from '@/components/ui/separator';
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
@@ -59,6 +60,8 @@ interface FormProps {
 export default function ProductForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   onDirtyChange,
 }: FormProps) {
@@ -132,6 +135,46 @@ export default function ProductForm({
     }));
   }, [materialsData]);
 
+  // Compare quarry-supplier-product audit data and product audit data
+  // And choose the latest audit data (for last modified by and updated at)
+  const latestAuditData = React.useMemo(() => {
+    if (!selectedProduct) return null;
+
+    const toEpochMs = (iso?: string | null) => {
+      if (!iso) return 0;
+      const ms = Date.parse(iso);
+      return Number.isNaN(ms) ? 0 : ms;
+    };
+
+    const candidates = [
+      {
+        lastModifiedBy: selectedProduct.lastModifiedBy,
+        updatedAt: selectedProduct.updatedAt,
+      },
+      ...(selectedProduct.quarrySupplierProducts ?? []).map(
+        (quarrySupplierProduct) => {
+          // Some API responses include audit fields on this object but the
+          // TS type may not (yet) reflect them everywhere.
+          const audit = quarrySupplierProduct as unknown as {
+            lastModifiedBy?: string | null;
+            updatedAt?: string | null;
+          };
+
+          return {
+            lastModifiedBy: audit.lastModifiedBy ?? undefined,
+            updatedAt: audit.updatedAt ?? undefined,
+          };
+        }
+      ),
+    ];
+
+    return candidates.reduce((latest, current) => {
+      return toEpochMs(current.updatedAt) > toEpochMs(latest.updatedAt)
+        ? current
+        : latest;
+    });
+  }, [selectedProduct]);
+
   // TODO: Zod Validation
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
@@ -146,11 +189,11 @@ export default function ProductForm({
             created_at: selectedProduct.createdAt
               ? new Date(selectedProduct.createdAt)
               : undefined,
-            updated_at: selectedProduct.updatedAt
-              ? new Date(selectedProduct.updatedAt)
+            updated_at: latestAuditData?.updatedAt
+              ? new Date(latestAuditData.updatedAt)
               : undefined,
             created_by: selectedProduct.createdBy || '',
-            last_modified_by: selectedProduct.lastModifiedBy || '',
+            last_modified_by: latestAuditData?.lastModifiedBy || '',
           }
         : {
             product_name: '',
@@ -182,14 +225,20 @@ export default function ProductForm({
         created_at: selectedProduct.createdAt
           ? new Date(selectedProduct.createdAt)
           : undefined,
-        updated_at: selectedProduct.updatedAt
-          ? new Date(selectedProduct.updatedAt)
+        updated_at: latestAuditData?.updatedAt
+          ? new Date(latestAuditData.updatedAt)
           : undefined,
         created_by: selectedProduct.createdBy || '',
-        last_modified_by: selectedProduct.lastModifiedBy || '',
+        last_modified_by: latestAuditData?.lastModifiedBy || '',
       });
     }
-  }, [isEditing, productJustCreated, selectedProduct, productForm]);
+  }, [
+    isEditing,
+    productJustCreated,
+    selectedProduct,
+    latestAuditData,
+    productForm,
+  ]);
 
   // Update total supplier count when product data is loaded
   React.useEffect(() => {
@@ -224,10 +273,9 @@ export default function ProductForm({
         });
         console.log('Product updated successfully!');
 
-        // Close form after update
-        if (onCancel) {
-          onCancel();
-        }
+        // Clear dirty state in parent dialog, then close
+        onSaved?.();
+        onSuccess?.();
       } else {
         // Create new product
         const createdProduct = await createProduct.mutateAsync(payload);
@@ -475,6 +523,7 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Density Tonnage per m3"
                           isNumber
+                          allowDecimal
                           {...field}
                         />
                       </FormControl>
@@ -736,7 +785,7 @@ export default function ProductForm({
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.lastModifiedBy || 'N/A'}
+                    {latestAuditData?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
 
@@ -763,8 +812,8 @@ export default function ProductForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.updatedAt
-                      ? new Date(selectedProduct.updatedAt).toLocaleDateString(
+                    {latestAuditData?.updatedAt
+                      ? new Date(latestAuditData.updatedAt).toLocaleDateString(
                           'en-AU',
                           {
                             day: '2-digit',

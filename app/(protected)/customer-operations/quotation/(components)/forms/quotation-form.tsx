@@ -60,6 +60,7 @@ interface FormProps {
   canEdit?: boolean;
   isDuplicate?: boolean;
   onDirtyChange?: (isDirty: boolean) => void;
+  onSaved?: () => void;
 }
 
 export default function QuotationForm({
@@ -69,6 +70,8 @@ export default function QuotationForm({
   canEdit,
   isDuplicate,
   onDirtyChange,
+  onSuccess,
+  onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -211,7 +214,8 @@ export default function QuotationForm({
         }
 
         notifySuccess('Quote created successfully');
-        onCancel?.();
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error creating quotation:', error);
 
@@ -243,7 +247,8 @@ export default function QuotationForm({
           ...transformed,
         });
         notifySuccess('Quote updated successfully');
-        onCancel?.();
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 
