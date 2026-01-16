@@ -26,6 +26,7 @@ import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { toAddressType } from '@/lib/utils/address-helper';
+import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 
 interface FormProps {
   id?: number;
@@ -72,6 +73,7 @@ export default function QuoteLineItemForm({
     onSubmit,
     isPending,
     customerDeliveryAddressSuggestions,
+    handleDeleteDeliveryAddress,
   } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
 
   // Report dirty-state to parent dialog
@@ -80,6 +82,27 @@ export default function QuoteLineItemForm({
     // a dirty-state warning because users cannot make intentional edits.
     onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
   }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
+  // State for delete delivery address confirmation dialog
+  const [deleteAddressDialogOpen, setDeleteAddressDialogOpen] =
+    React.useState(false);
+  const [addressToDeleteId, setAddressToDeleteId] = React.useState<
+    string | null
+  >(null);
+
+  // Handler to show confirmation dialog before deleting
+  const handleDeleteAddressClick = React.useCallback((id: string) => {
+    setAddressToDeleteId(id);
+    setDeleteAddressDialogOpen(true);
+  }, []);
+
+  // Handler to confirm deletion
+  const handleConfirmDeleteAddress = React.useCallback(() => {
+    if (addressToDeleteId) {
+      handleDeleteDeliveryAddress(addressToDeleteId);
+    }
+    setAddressToDeleteId(null);
+  }, [addressToDeleteId, handleDeleteDeliveryAddress]);
 
   const isCollection = quoteType === 'COLLECTION';
 
@@ -156,6 +179,7 @@ export default function QuoteLineItemForm({
                         onChange={field.onChange}
                         onBlur={field.onBlur}
                         historyAddresses={customerDeliveryAddressSuggestions}
+                        onDeleteHistoryAddress={handleDeleteAddressClick}
                       />
                     </FormControl>
                     <FormMessage />
@@ -870,6 +894,19 @@ export default function QuoteLineItemForm({
           </div>
         </form>
       </Form>
+
+      {/* Confirmation dialog for removing delivery address from suggestions */}
+      <EnhancedConfirmDialog
+        open={deleteAddressDialogOpen}
+        onOpenChangeAction={setDeleteAddressDialogOpen}
+        title="Remove Delivery Address"
+        description="Are you sure you want to remove this delivery address from this customer?"
+        content="This address will no longer appear in the suggestions list for this customer."
+        cancelText="Cancel"
+        confirmText="Remove"
+        confirmVariant="destructive"
+        onConfirmAction={handleConfirmDeleteAddress}
+      />
     </div>
   );
 }

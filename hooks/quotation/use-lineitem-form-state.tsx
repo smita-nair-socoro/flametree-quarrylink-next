@@ -10,7 +10,10 @@ import {
   ProductsListQueryOptions,
   ProductDetailWithQuarrySupplierProductQueryOptions,
 } from '@/lib/api/product';
-import { CustomerDeliveryAddressesQueryOptions } from '@/lib/api/customer';
+import {
+  CustomerDeliveryAddressesQueryOptions,
+  useUpdateDeliveryAddressUsage,
+} from '@/lib/api/customer';
 import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
@@ -212,6 +215,23 @@ export function useLineItemFormState({
     ...CustomerDeliveryAddressesQueryOptions(customerId, 5),
     enabled: !!customerId && isDeliveryQuote && !isEditing,
   });
+
+  // Mutation to update delivery address usage (for deleting from suggestions)
+  const updateDeliveryAddressUsage = useUpdateDeliveryAddressUsage();
+
+  // Handler to remove a delivery address from suggestions
+  const handleDeleteDeliveryAddress = React.useCallback(
+    (customerDeliveryAddressId: string) => {
+      if (!customerId) return;
+
+      updateDeliveryAddressUsage.mutate({
+        customerId,
+        customerDeliveryAddressId: Number(customerDeliveryAddressId),
+        inUse: false,
+      });
+    },
+    [customerId, updateDeliveryAddressUsage]
+  );
 
   // Get billing address for comparison (pinned address for delivery quotes)
   const billingAddress =
@@ -868,5 +888,6 @@ export function useLineItemFormState({
     onSubmit,
     isPending: createQuoteItem.isPending || updateQuoteItem.isPending,
     customerDeliveryAddressSuggestions,
+    handleDeleteDeliveryAddress,
   };
 }

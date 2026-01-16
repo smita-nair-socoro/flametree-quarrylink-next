@@ -44,6 +44,8 @@ interface AddressAutoCompleteProps {
   rhfAriaProps?: RHFAriaProps;
   // Customer delivery address history
   historyAddresses?: SuggestedAddress[];
+  // Handler to delete a delivery address from suggestions
+  onDeleteHistoryAddress?: (id: string) => void;
 }
 
 interface AutocompleteSuggestion {
@@ -182,6 +184,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     isCollection = false,
     rhfAriaProps,
     historyAddresses: historyAddressesProp,
+    onDeleteHistoryAddress: onDeleteHistoryAddressProp,
   } = props;
 
   // Also support `FormControl` passing aria props directly (via Radix Slot)
@@ -377,10 +380,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSearchInput('');
   };
 
-  // Only allow deletion when using mock data (not prop-based addresses)
-  const handleDeleteHistoryAddress = historyAddressesProp
-    ? undefined
-    : undefined; // Disable deletion for now since we're using prop-based addresses
+  // Use the provided delete handler for prop-based addresses
+  const handleDeleteHistoryAddress = onDeleteHistoryAddressProp;
 
   return (
     <>
