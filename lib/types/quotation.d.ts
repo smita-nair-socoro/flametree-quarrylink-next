@@ -3,7 +3,7 @@ import {
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
 import { CustomerDTO } from './customer';
-import { Address, CustomerDeliveryAddress } from './address';
+import { CustomerDeliveryAddress } from './address';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -86,8 +86,6 @@ export interface QuotationLineItem {
   version?: number;
   isDeleted?: boolean;
 }
-
-
 
 export interface StripeTenantDetailsSnapshot {
   tenantName: string;

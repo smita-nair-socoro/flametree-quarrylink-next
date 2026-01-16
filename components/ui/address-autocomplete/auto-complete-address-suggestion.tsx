@@ -184,7 +184,7 @@ export default function AutoCompleteAddressSuggestion({
     if (value && value !== address.formattedAddress) {
       setAddress((prev) => ({ ...prev, formattedAddress: value }));
     }
-  }, [value]);
+  }, [value, address.formattedAddress]);
 
   // Handle address component changes
   useEffect(() => {
@@ -208,12 +208,14 @@ export default function AutoCompleteAddressSuggestion({
       }
     }
   }, [
+    address,
     address.address1,
     address.address2,
     address.city,
     address.region,
     address.postalCode,
     address.country,
+    onChange,
   ]);
 
   // Fetch place details when a place is selected

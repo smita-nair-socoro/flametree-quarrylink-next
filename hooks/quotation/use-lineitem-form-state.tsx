@@ -20,7 +20,7 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QuotationLineItem } from '@/lib/types/quotation';
-import { QuarrySupplierProductDetail } from '@/lib/types/quarry';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 
@@ -199,13 +199,13 @@ export function useLineItemFormState({
     const currentQuarryId = Number(watchedQuarrySupplierId || 0);
     if (!details || details.id !== currentProductId || !currentQuarryId)
       return undefined;
-    const qsps: QuarrySupplierProductDetail[] = Array.isArray(
+    const qsps: QuarrySupplierProduct[] = Array.isArray(
       details.quarrySupplierProducts
     )
-      ? (details.quarrySupplierProducts as QuarrySupplierProductDetail[])
+      ? (details.quarrySupplierProducts as QuarrySupplierProduct[])
       : [];
     return qsps.find(
-      (qsp: QuarrySupplierProductDetail) =>
+      (qsp: QuarrySupplierProduct) =>
         Number(qsp?.quarrySupplierId || 0) === currentQuarryId
     );
   }, [
@@ -280,13 +280,13 @@ export function useLineItemFormState({
     ) {
       return;
     }
-    const qsps: QuarrySupplierProductDetail[] = Array.isArray(
+    const qsps: QuarrySupplierProduct[] = Array.isArray(
       details.quarrySupplierProducts
     )
-      ? (details.quarrySupplierProducts as QuarrySupplierProductDetail[])
+      ? (details.quarrySupplierProducts as QuarrySupplierProduct[])
       : [];
     const matched = qsps.find(
-      (qsp: QuarrySupplierProductDetail) =>
+      (qsp: QuarrySupplierProduct) =>
         Number(qsp?.quarrySupplierId || 0) === currentQuarryId
     );
     const supplierProductName = matched?.supplierProductName || '';
@@ -322,7 +322,7 @@ export function useLineItemFormState({
   const productUnitOptions: SelectOption[] = React.useMemo(() => {
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetail
+      | QuarrySupplierProduct
       | undefined;
     if (qsp?.availableForSaleTn) opts.push({ label: 'TN', value: 'TN' });
     if (qsp?.availableForSaleM3) opts.push({ label: 'm³', value: 'M3' });
@@ -335,7 +335,7 @@ export function useLineItemFormState({
   const truckUnitOptions: SelectOption[] = React.useMemo(() => {
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetail
+      | QuarrySupplierProduct
       | undefined;
     if (qsp?.availableForTruckRateTn) opts.push({ label: 'TN', value: 'TN' });
     if (qsp?.availableForTruckRateM3) opts.push({ label: 'm³', value: 'M3' });
@@ -353,7 +353,7 @@ export function useLineItemFormState({
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetail
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -394,7 +394,7 @@ export function useLineItemFormState({
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetail
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -439,7 +439,7 @@ export function useLineItemFormState({
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetail
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -483,7 +483,7 @@ export function useLineItemFormState({
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetail
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 

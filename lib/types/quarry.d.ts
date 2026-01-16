@@ -73,36 +73,6 @@ export interface QuarrySupplierProduct {
   version: number;
 }
 
-export interface QuarrySupplierProductDetail {
-  quarrySupplier?: {
-    id: number;
-    name: string;
-  };
-  quarrySupplierId: number;
-  supplierProductName: string;
-  availableForSaleTn: boolean;
-  availableForSaleM3: boolean;
-  availableForSale20kg: boolean;
-  availableForSaleBulka: boolean;
-  perTnCostPrice: number;
-  perM3CostPrice: number;
-  per20kgCostPrice: number;
-  perBulkaCostPrice: number;
-  perTnSellPrice?: number;
-  perM3SellPrice?: number;
-  per20kgSellPrice?: number;
-  perBulkaSellPrice?: number;
-  tnTruckRate: number;
-  m3TruckRate: number;
-  hourlyTruckRate: number;
-  loadTruckRate: number;
-  kmTruckRate: number;
-  availableForTruckRateTn: boolean;
-  availableForTruckRateM3: boolean;
-  availableForTruckRateHour: boolean;
-  availableForTruckRateLoad: boolean;
-  availableForTruckRateKm: boolean;
-}
 
 export type QuarriesWithProduct = QuarrySupplierProduct;
 

@@ -477,6 +477,8 @@ export default function QuarrySupplierForm({
       createQuarryMutation,
       updateQuarryMutation,
       quarrySupplierForm,
+      onSaved,
+      onSuccess,
       onCancel,
       isEditing,
       id,
