@@ -65,29 +65,6 @@ interface SuggestedAddress {
   addressType?: AddressType;
 }
 
-const MOCK_HISTORY_ADDRESSES: SuggestedAddress[] = [
-  {
-    id: 'history-1',
-    formattedAddress: '456 Market St, Suite 200, Melbourne, VIC 3000, Australia',
-  },
-  {
-    id: 'history-2',
-    formattedAddress: '789 George St, Brisbane, QLD 4000, Australia',
-  },
-  {
-    id: 'history-3',
-    formattedAddress: '101 Collins St, Level 80, Perth, WA 6000, Australia',
-  },
-  {
-    id: 'history-4',
-    formattedAddress: '200 King William St, Adelaide, SA 5000, Australia',
-  },
-  {
-    id: 'history-5',
-    formattedAddress: '300 Elizabeth St, Hobart, TAS 7000, Australia',
-  },
-];
-
 const formatAddressToString = (address: AddressType | undefined): string => {
   if (!address) {
     return '';
@@ -201,8 +178,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  // Use provided historyAddresses or fall back to mock data
-  const historyAddresses = historyAddressesProp ?? MOCK_HISTORY_ADDRESSES;
+  const historyAddresses = historyAddressesProp ?? [];
 
   useEffect(() => {
     if (value && value !== address.formattedAddress) {
@@ -642,14 +618,18 @@ function AddressAutoCompleteInput(props: CommonProps) {
                 {showInitialSuggestions && (
                   <>
                     <div className="px-3 py-2 text-xs font-medium text-muted-foreground">
-                      Suggested {isCollection ? 'Collection' : 'Delivery'} Addresses
+                      Suggested {isCollection ? 'Collection' : 'Delivery'}{' '}
+                      Addresses
                     </div>
 
                     {pinnedAddressFormatted && onSelectSuggestion && (
                       <CommandPrimitive.Item
                         value={pinnedAddressFormatted}
                         onSelect={() =>
-                          onSelectSuggestion(pinnedAddressFormatted, pinnedAddress)
+                          onSelectSuggestion(
+                            pinnedAddressFormatted,
+                            pinnedAddress
+                          )
                         }
                         className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center"
                         onMouseDown={(e) => e.preventDefault()}
@@ -748,7 +728,10 @@ function AddressAutoCompleteInput(props: CommonProps) {
                 )}
 
                 <CommandEmpty>
-                  {showAutocompleteSuggestions && !autocompleteLoading && hasNoResults && null}
+                  {showAutocompleteSuggestions &&
+                    !autocompleteLoading &&
+                    hasNoResults &&
+                    null}
                 </CommandEmpty>
               </CommandGroup>
             </div>
