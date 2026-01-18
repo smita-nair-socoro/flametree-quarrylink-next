@@ -7,6 +7,7 @@ const TruckString = z.string();
 export const NewQuotationLineItemFormSchema = z
   .object({
     quoteType: z.nativeEnum(QUOTE_TYPE, { message: 'Required' }),
+    address: z.string().nonempty({ message: 'Required' }),
     productId: z.coerce.number().min(1, { message: 'Required' }),
     quarrySupplierId: z.coerce.number().min(1, { message: 'Required' }),
     supplierProductName: z.string().nonempty({ message: 'Required' }),

@@ -48,10 +48,10 @@ export function QuotationBulkActions({
     ];
 
     const archivable = selectedQuotations.filter((q) =>
-      archivableStatuses.includes(q.status as string)
+      archivableStatuses.includes(q.quoteStatus as string)
     );
     const nonArchivable = selectedQuotations.filter(
-      (q) => !archivableStatuses.includes(q.status as string)
+      (q) => !archivableStatuses.includes(q.quoteStatus as string)
     );
 
     return { archivable, nonArchivable };
@@ -139,7 +139,7 @@ export function QuotationBulkActions({
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <TableBadges
-                            names={[quotation.status]}
+                            names={[quotation.quoteStatus]}
                             visibleCount={1}
                           />
                         </div>
@@ -185,7 +185,7 @@ export function QuotationBulkActions({
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <TableBadges
-                            names={[quotation.status]}
+                            names={[quotation.quoteStatus]}
                             visibleCount={1}
                           />
                         </div>

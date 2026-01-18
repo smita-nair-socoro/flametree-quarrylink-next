@@ -15,6 +15,20 @@ export interface Address {
   version: number;
 }
 
+export interface CustomerDeliveryAddress {
+  id?: number;
+  customerId: number;
+  addressId?: number;
+  address: Address;
+  inUse: boolean;
+  lastUsedAt?: string;
+  version: number;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
+}
+
 // Legacy address type (keep for compatibility)
 export interface AddressType {
   address1: string;

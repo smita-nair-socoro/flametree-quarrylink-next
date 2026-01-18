@@ -88,7 +88,9 @@ const getDialogConfigs = (
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
   const customerName = quotationData?.customerName;
-  const customerEmail = quotationData?.customerEmail;
+  const customerEmail =
+    quotationData?.email ||
+    quotationData?.customerWithAddressResponseDto?.email;
   const totalSellPrice = quotationData?.totalSellPrice
     ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
@@ -775,15 +777,8 @@ export function useQuotationActions(
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
       // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      let customerEmail = quotationDetailData.email;
-      if (!customerEmail) {
-        customerEmail = 'charlie.peng@socoro.com.au';
-      }
-
       const transformed = {
         ...quotationDetailData,
-        status: quotationDetailData.quoteStatus,
-        customerEmail: customerEmail,
       } as Quotation;
 
       return transformed;
@@ -798,7 +793,7 @@ export function useQuotationActions(
     }
   }, [detailedQuotation, setSelectedQuotation]);
 
-  // Prefer detailed quotation (with deliveryAddress/line items), then provided prop, then store fallback
+  // Prefer detailed quotation (with line items), then provided prop, then store fallback
   const resolvedQuotation =
     detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
 
@@ -889,21 +884,17 @@ export function useQuotationActions(
     setActiveDialog('sendToCustomer');
   };
 
-  // Build a safe payload for update actions (keeps deliveryAddress + status)
+  // Build a safe payload for update actions (keeps status)
   const buildUpdatePayload = (
     overrides: Partial<QuotationDTO>
   ): Partial<QuotationDTO> | null => {
     if (!resolvedQuotation) return null;
 
-    const { status, ...quotationData } = resolvedQuotation;
-    // const { status, quoteItems, ...quotationData } = resolvedQuotation;
+    const { quoteStatus, ...quotationData } = resolvedQuotation;
+    // const { quoteStatus, quoteItems, ...quotationData } = resolvedQuotation;
     return {
       ...quotationData,
-      quoteStatus: overrides.quoteStatus ?? status,
-      deliveryAddress:
-        overrides.deliveryAddress ??
-        detailedQuotation?.deliveryAddress ??
-        resolvedQuotation.deliveryAddress,
+      quoteStatus: overrides.quoteStatus ?? quoteStatus,
       ...overrides,
     };
   };
@@ -1202,7 +1193,7 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit = resolvedQuotation?.status === 'DRAFT';
+  const canEdit = resolvedQuotation?.quoteStatus === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}

@@ -4,8 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
-import { toAddressType } from '@/lib/utils/address-helper';
-import type { AddressType } from '@/lib/types/address';
 import type { Quotation } from '@/lib/types/quotation';
 import type { QuotationPricingBreakdown } from '@/lib/utils/quote-helpers';
 
@@ -26,7 +24,6 @@ function calculateQuotationTotals(pricingBreakdown: QuotationPricingBreakdown) {
  * - Fetching quotation details from API
  * - Dynamic labels based on quote type
  * - Pricing calculations with GST
- * - Delivery address state management
  * - Customer phone/email auto-fill
  */
 export function useQuotationFormState(
@@ -49,10 +46,7 @@ export function useQuotationFormState(
 
   const getDetailedQuotation = React.useMemo(() => {
     if (isEditing && quotationDetailData) {
-      return {
-        ...quotationDetailData,
-        status: quotationDetailData.quoteStatus,
-      } as Quotation;
+      return quotationDetailData as Quotation;
     }
     return null;
   }, [isEditing, quotationDetailData]);
@@ -62,11 +56,6 @@ export function useQuotationFormState(
 
   // ===== DYNAMIC LABELS =====
   const quoteType = quotationForm.watch('quoteType');
-
-  const addressLabel = React.useMemo(() => {
-    if (!quoteType) return 'Address';
-    return quoteType === 'DELIVERY' ? 'Delivery Address' : 'Collection Address';
-  }, [quoteType]);
 
   const dateLabel = React.useMemo(() => {
     if (!quoteType) return 'Delivery Date';
@@ -93,39 +82,6 @@ export function useQuotationFormState(
     [pricingBreakdown]
   );
 
-  // ===== ADDRESS STATE =====
-  const [deliveryAddress, setDeliveryAddress] = React.useState<AddressType>(
-    () => toAddressType(null)
-  );
-  const [searchInput, setSearchInput] = React.useState('');
-
-  React.useEffect(() => {
-    if (isEditing && currentQuotation?.deliveryAddress) {
-      const normalizedAddress = toAddressType(currentQuotation.deliveryAddress);
-      setDeliveryAddress(normalizedAddress);
-      quotationForm.setValue(
-        'deliveryAddress',
-        normalizedAddress.formattedAddress
-      );
-    }
-  }, [isEditing, currentQuotation, quotationForm]);
-
-  React.useEffect(() => {
-    if (deliveryAddress.formattedAddress) {
-      quotationForm.setValue(
-        'deliveryAddress',
-        deliveryAddress.formattedAddress
-      );
-    }
-  }, [deliveryAddress.formattedAddress, quotationForm]);
-
-  const handleAddressChange = React.useCallback((newAddress: AddressType) => {
-    setDeliveryAddress(newAddress);
-    if (newAddress.formattedAddress) {
-      setSearchInput('');
-    }
-  }, []);
-
   // ===== CUSTOMER AUTO-FILL =====
   const customerId = quotationForm.watch('customerId');
 
@@ -151,7 +107,6 @@ export function useQuotationFormState(
     detailError: detailError as Error | null,
 
     // Labels
-    addressLabel,
     dateLabel,
     timeWindowLabel,
 
@@ -160,10 +115,5 @@ export function useQuotationFormState(
     gst,
     totalInvoiceIncGST,
 
-    // Address
-    deliveryAddress,
-    handleAddressChange,
-    searchInput,
-    setSearchInput,
   };
 }

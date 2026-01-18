@@ -126,6 +126,9 @@ interface AddProductDrawerDialogProps {
   /** Optional list of detail bullet points for the unsaved-changes confirm dialog */
   unsavedConfirmDetails?: string[];
 
+  /** When true, prevents auto-focus on any element when the dialog opens */
+  preventAutoFocus?: boolean;
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
@@ -175,6 +178,7 @@ export function FormDialog({
   unsavedConfirmConfirmText,
   unsavedConfirmCancelText,
   unsavedConfirmDetails,
+  preventAutoFocus,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
@@ -233,7 +237,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quoteNumber;
-    finalPrimaryBadges = [selectedQuotation.status];
+    finalPrimaryBadges = [selectedQuotation.quoteStatus];
     finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
@@ -470,6 +474,7 @@ export function FormDialog({
               : 'min(90vw, 800px)',
             maxHeight: '95vh',
           }}
+          onOpenAutoFocus={preventAutoFocus ? (e) => e.preventDefault() : undefined}
         >
           {dialogInner}
         </DialogContent>
@@ -500,7 +505,10 @@ export function FormDialog({
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
-      <DrawerContent className="flex flex-col max-w-[95vh] h-auto">
+      <DrawerContent
+        className="flex flex-col max-w-[95vh] h-auto"
+        onOpenAutoFocus={preventAutoFocus ? (e) => e.preventDefault() : undefined}
+      >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
             <DrawerTitle className="text-start text-2xl">
