@@ -50,7 +50,7 @@ export interface QuotationLineItem {
   productId: number;
   quarrySupplierId: number;
   customerDeliveryAddressId?: number;
-  customerDeliveryAddress?: CustomerDeliveryAddress;
+  customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
   quarryProductId?: number;
   productName: string;
   quarryName: string;
@@ -64,7 +64,8 @@ export interface QuotationLineItem {
   productSellPrice: number;
   totalProductSellPrice: number;
   truckType: string;
-  truckCostUom: string;0
+  truckCostUom: string;
+  0;
   truckCostQty: number;
   truckCostPrice: number;
   totalTruckCostPrice: number;
@@ -76,7 +77,6 @@ export interface QuotationLineItem {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
-  requiredLoads?: number;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
