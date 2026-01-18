@@ -47,16 +47,16 @@ export interface CustomerDTO {
   jobsCount: number;
   paymentType: string;
   version: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
 
   // Optional metadata fields
   accountManagerName?: string;
   accountManagerEmail?: string;
   remainingCredit?: number;
-  isDeleted?: boolean;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
 
   // BUSINESS type specific fields
   businessName?: string;
@@ -91,16 +91,16 @@ export interface CustomerWithAddressResponseDTO {
   jobsCount: number;
   paymentType: string;
   version: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
 
   // Optional metadata fields
   accountManagerName?: string;
   accountManagerEmail?: string;
   remainingCredit?: number;
-  isDeleted?: boolean;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
 
   // BUSINESS type specific fields
   businessName?: string;

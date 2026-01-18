@@ -339,15 +339,17 @@ export default function QuotationForm({
           )}
 
           {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (
-            <div className="border border-blue-600 bg-blue-50 p-4 rounded-md mb-4 flex flex-col">
-              <div className="flex items-center gap-2 text-blue-900 font-medium text-sm">
-                <Info className="h-4 w-4" />
-                <span>This quote was declined</span>
+            <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+              <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
+                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <div className="flex flex-col">
+                  <span>
+                    Customer declined this quote due to {'{DROP DOWN REASON}'}
+                    .*Note: {'{TEXT BOX}'} (Declined on DD/MM/YY at 24:00.
+                  </span>
+                  <span>Edit to return to Draft status.)</span>
+                </div>
               </div>
-              <span className="text-muted-foreground ml-6 text-sm">
-                You can edit and save changes. It will automatically return to
-                Draft status
-              </span>
             </div>
           )}
 
@@ -487,7 +489,6 @@ export default function QuotationForm({
                 </FormItem>
               )}
             />
-
 
             {isEditing && (
               <FormField

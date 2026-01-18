@@ -64,7 +64,7 @@ export interface QuotationLineItem {
   productSellPrice: number;
   totalProductSellPrice: number;
   truckType: string;
-  truckCostUom: string;
+  truckCostUom: string;0
   truckCostQty: number;
   truckCostPrice: number;
   totalTruckCostPrice: number;
@@ -77,12 +77,12 @@ export interface QuotationLineItem {
   allocatedQuantity: number;
   remainingQuantity: number;
   requiredLoads?: number;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
-  version?: number;
-  isDeleted?: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+  version: number;
+  isDeleted: boolean;
 }
 
 export interface StripeTenantDetailsSnapshot {
