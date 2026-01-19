@@ -159,7 +159,6 @@ export default function CustomerForm({
     },
   });
 
-  console.count('CustomerForm render');
   // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(customerForm.formState.isDirty);
@@ -283,7 +282,7 @@ export default function CustomerForm({
     if (current === address.formattedAddress) return;
 
     customerForm.setValue('billing_address', address.formattedAddress, {
-      shouldDirty: false, // ✅ prevent dirty flip
+      shouldDirty: false,
       shouldTouch: false,
       shouldValidate: true,
     });
