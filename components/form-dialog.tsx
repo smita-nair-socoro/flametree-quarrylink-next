@@ -318,11 +318,10 @@ export function FormDialog({
     )
   );
 
-  const forceClose = () => {
+  const forceClose = React.useCallback(() => {
     setOpen(false);
-    // Reset effectiveId when closing
     setEffectiveId(id);
-  };
+  }, [setOpen, id]);
 
   const close = () => {
     if (confirmOnCloseIfDirty && hasUnsavedChanges) {
@@ -342,17 +341,26 @@ export function FormDialog({
     close();
   };
 
-  // If children is a single ReactElement, auto-inject id/onCancel/onSuccess
+  const handleChildSuccess = React.useCallback(() => {
+    setHasUnsavedChanges(false);
+    forceClose();
+  }, [forceClose]);
+
+  const handleChildDirtyChange = React.useCallback((dirty: boolean) => {
+    setHasUnsavedChanges(Boolean(dirty));
+  }, []);
+
+  const handleChildSaved = React.useCallback(() => {
+    setHasUnsavedChanges(false);
+  }, []);
+
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
         id: effectiveId,
         onCancel: close,
-        onSuccess: () => {
-          setHasUnsavedChanges(false);
-          forceClose();
-        },
-        onDirtyChange: (dirty: boolean) => setHasUnsavedChanges(Boolean(dirty)),
-        onSaved: () => setHasUnsavedChanges(false),
+        onSuccess: handleChildSuccess,
+        onDirtyChange: handleChildDirtyChange,
+        onSaved: handleChildSaved,
       })
     : children;
 
@@ -474,7 +482,9 @@ export function FormDialog({
               : 'min(90vw, 800px)',
             maxHeight: '95vh',
           }}
-          onOpenAutoFocus={preventAutoFocus ? (e) => e.preventDefault() : undefined}
+          onOpenAutoFocus={
+            preventAutoFocus ? (e) => e.preventDefault() : undefined
+          }
         >
           {dialogInner}
         </DialogContent>
@@ -507,7 +517,9 @@ export function FormDialog({
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent
         className="flex flex-col max-w-[95vh] h-auto"
-        onOpenAutoFocus={preventAutoFocus ? (e) => e.preventDefault() : undefined}
+        onOpenAutoFocus={
+          preventAutoFocus ? (e) => e.preventDefault() : undefined
+        }
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
