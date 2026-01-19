@@ -337,20 +337,56 @@ export default function QuotationForm({
             </div>
           )}
 
-          {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (
-            <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
-              <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
-                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <div className="flex flex-col">
-                  <span>
-                    Customer declined this quote due to {'{DROP DOWN REASON}'}.
-                    Note: {'{TEXT BOX}'} Declined on {'DD/MM/YY at 24:00'}.
-                  </span>
-                  <span>Edit to return to Draft status.</span>
+          {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (() => {
+            // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
+            const declineReasonRaw = currentQuotation?.declineReason || '';
+            const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
+            const declineNote = noteParts.join('-').trim();
+
+            // Map reason keys to human-readable labels
+            const reasonLabels: Record<string, string> = {
+              price_too_high: 'Price too high',
+              timeline_conflict: 'Timeline conflict',
+              scope_changed: 'Scope changed',
+              customer_unresponsive: 'Customer unresponsive',
+              competitor_selected: 'Competitor selected',
+              project_cancelled: 'Project cancelled',
+              other: 'Other',
+            };
+            const reasonLabel = reasonLabels[reasonKey] || reasonKey;
+
+            // Format customerResponseAt date
+            const responseDate = currentQuotation?.customerResponseAt
+              ? new Date(currentQuotation.customerResponseAt)
+              : null;
+            const formattedDate = responseDate
+              ? `${responseDate.toLocaleDateString('en-AU', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: '2-digit',
+                })} at ${responseDate.toLocaleTimeString('en-AU', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                })}`
+              : '';
+
+            return (
+              <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+                <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span>
+                      Customer declined this quote due to {reasonLabel}.
+                      {declineNote && ` *Note: ${declineNote}`}
+                      {formattedDate && ` (Declined on ${formattedDate}).`}
+                    </span>
+                    <span>Edit to return to Draft status.</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           <div
             className={cn(
