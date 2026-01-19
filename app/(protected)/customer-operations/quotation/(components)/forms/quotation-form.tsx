@@ -344,10 +344,10 @@ export default function QuotationForm({
                 <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <div className="flex flex-col">
                   <span>
-                    Customer declined this quote due to {'{DROP DOWN REASON}'}
-                    .*Note: {'{TEXT BOX}'} (Declined on DD/MM/YY at 24:00.
+                    Customer declined this quote due to {'{DROP DOWN REASON}'}.
+                    Note: {'{TEXT BOX}'} Declined on {'DD/MM/YY at 24:00'}.
                   </span>
-                  <span>Edit to return to Draft status.)</span>
+                  <span>Edit to return to Draft status.</span>
                 </div>
               </div>
             </div>
