@@ -14,9 +14,12 @@ import {
   CustomerDeliveryAddressesQueryOptions,
   useUpdateDeliveryAddressUsage,
 } from '@/lib/api/customer';
-import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
-import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
+import {
+  useCreateQuoteItem,
+  useGetQuoteItemById,
+  useUpdateQuoteItem,
+} from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
 import {
@@ -60,7 +63,11 @@ export function useLineItemFormState({
   const isEditing = Boolean(id && id > 0);
   const isReadOnly = isEditing && !canEdit;
 
-  const selectedLineItem = useSelectedLineItem();
+  const quoteItemId = Number(id || 0);
+  const { data: selectedLineItem, isLoading: isLineItemLoading } = useQuery({
+    ...useGetQuoteItemById(quoteItemId),
+    enabled: isEditing && quoteItemId > 0,
+  });
   const selectedQuotation = useSelectedQuotation();
   const quoteType = selectedQuotation?.quoteType;
   const createQuoteItem = useCreateQuoteItem();
@@ -898,7 +905,10 @@ export function useLineItemFormState({
     totalInvoiceIncGST,
     handleSubmit,
     onSubmit,
-    isPending: createQuoteItem.isPending || updateQuoteItem.isPending,
+    isPending:
+      isLineItemLoading ||
+      createQuoteItem.isPending ||
+      updateQuoteItem.isPending,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
   };
