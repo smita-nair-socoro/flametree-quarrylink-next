@@ -32,10 +32,12 @@ const Base = z.object({
   truck_m3_rate: z.coerce.number().optional(),
   truck_hourly_rate: z.coerce.number().optional(),
   truck_load_rate: z.coerce.number().optional(),
+  truck_km_rate: z.coerce.number().optional(),
   available_truck_tn_rate: z.boolean(),
   available_truck_m3_rate: z.boolean(),
   available_truck_hourly_rate: z.boolean(),
   available_truck_load_rate: z.boolean(),
+  available_truck_km_rate: z.boolean(),
 });
 
 export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
@@ -82,6 +84,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
     'm3_rate',
     'hourly_rate',
     'load_rate',
+    'km_rate',
   ] as const;
 
   const hasAnyTruckRateAvailable = truckUnits.some(
@@ -111,5 +114,4 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
       }
     }
   }
-
 });

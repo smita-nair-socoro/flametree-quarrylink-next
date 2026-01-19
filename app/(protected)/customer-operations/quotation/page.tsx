@@ -50,8 +50,6 @@ export default function QuotationsPage() {
 
     return list.map((quotation) => ({
       ...quotation,
-      quoteId: quotation.id,
-      status: quotation.quoteStatus,
     })) as Quotation[];
   }, [quotationsData]);
 

@@ -34,6 +34,7 @@ import {
   TenantDetails,
   TenantCompleteDetails,
 } from '../types/client';
+import { CustomerDeliveryAddress } from '../types/address';
 
 type RequestBody = BodyInit | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -578,6 +579,28 @@ export const APIClient = {
       appClient.Put<CustomerDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
         body: data,
       }),
+    getDeliveryAddresses: (customerId: number, limit?: number) =>
+      appClient.Get<CustomerDeliveryAddress[]>(
+        `/socoro/quarrylink/api/customer/${customerId}/delivery-addresses`,
+        {
+          queryString: {
+            limit: limit?.toString(),
+          },
+        }
+      ),
+    updateDeliveryAddressUsage: (
+      customerId: number,
+      customerDeliveryAddressId: number,
+      inUse: boolean
+    ) =>
+      appClient.Put(
+        `/socoro/quarrylink/api/customer/${customerId}/delivery-addresses/${customerDeliveryAddressId}/usage`,
+        {
+          queryString: {
+            inUse,
+          },
+        }
+      ),
   },
 
   quotations: {
@@ -733,6 +756,10 @@ export const APIClient = {
       appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
         body: convertKeysToCamelCase(data),
       }),
+    getQuoteItemById: (id: number) =>
+      appClient.Get<QuotationLineItem>(
+        `/socoro/quarrylink/api/quoteItem/${id}`
+      ),
     updateQuoteItem: (id: number, data: Partial<QuotationLineItem>) =>
       appClient.Put<QuotationLineItem>(
         `/socoro/quarrylink/api/quoteItem/${id}`,

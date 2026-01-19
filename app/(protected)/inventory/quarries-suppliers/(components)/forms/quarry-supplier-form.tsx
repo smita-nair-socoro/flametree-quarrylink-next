@@ -45,16 +45,21 @@ import { addNewRecordId } from '@/lib/utils';
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
   onTypeChange?: (type: QuarryType) => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuarrySupplierForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   onTypeChange,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -230,6 +235,11 @@ export default function QuarrySupplierForm({
     },
   });
 
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(quarrySupplierForm.formState.isDirty);
+  }, [quarrySupplierForm.formState.isDirty, onDirtyChange]);
+
   // Clear selected quarry/supplier and reset form when creating new (not editing)
   React.useEffect(() => {
     if (!isEditing) {
@@ -391,7 +401,9 @@ export default function QuarrySupplierForm({
           );
         } else {
           // Create new quarry/supplier
-          const newQuarrySupplier = await createQuarryMutation.mutateAsync(quarrySupplierData);
+          const newQuarrySupplier = await createQuarryMutation.mutateAsync(
+            quarrySupplierData
+          );
 
           // Add the new record ID to sessionStorage for highlighting
           if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
@@ -405,10 +417,9 @@ export default function QuarrySupplierForm({
           );
         }
 
-        // Close the form dialog on success
-        if (onCancel) {
-          onCancel();
-        }
+        // Clear dirty state in parent dialog, then close
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error(
           `Error ${isEditing ? 'updating' : 'creating'} ${
@@ -466,7 +477,8 @@ export default function QuarrySupplierForm({
       createQuarryMutation,
       updateQuarryMutation,
       quarrySupplierForm,
-      onCancel,
+      onSaved,
+      onSuccess,
       isEditing,
       id,
       selectedQuarrySupplier?.version,

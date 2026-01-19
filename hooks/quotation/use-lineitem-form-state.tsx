@@ -10,23 +10,26 @@ import {
   ProductsListQueryOptions,
   ProductDetailWithQuarrySupplierProductQueryOptions,
 } from '@/lib/api/product';
-import { useSelectedLineItem } from '@/app/stores/line-item-quotation';
-import { useSelectedQuotation } from '@/app/stores/quotation-store';
-import { useCreateQuoteItem, useUpdateQuoteItem } from '@/lib/api/quotation';
-import { notifyError, notifySuccess } from '@/lib/toast';
 import {
-  centsToDollars,
-  centsToDollarsNum,
-  dollarsToCents,
-} from '@/lib/utils/currency';
+  CustomerDeliveryAddressesQueryOptions,
+  useUpdateDeliveryAddressUsage,
+} from '@/lib/api/customer';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import {
+  useCreateQuoteItem,
+  useGetQuoteItemById,
+  useUpdateQuoteItem,
+} from '@/lib/api/quotation';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import {
-  QuotationLineItem,
-  quarrySupplierProductDetail,
-} from '@/lib/types/quotation';
+import { QuotationLineItem } from '@/lib/types/quotation';
+import { QuarrySupplierProduct } from '@/lib/types/quarry';
+import { AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
+import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 
@@ -36,6 +39,8 @@ type Props = {
   id?: number;
   canEdit?: boolean;
   onCancel?: () => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
 };
 
 type PricingBreakdown = {
@@ -48,56 +53,56 @@ type PricingBreakdown = {
   grossProfitPercentage: number;
 };
 
-type QuarrySupplierProductDetailExt = quarrySupplierProductDetail & {
-  perTnSellPrice?: number;
-  perM3SellPrice?: number;
-  per20kgSellPrice?: number;
-  perBulkaSellPrice?: number;
-  availableForTruckRateTn?: boolean;
-  availableForTruckRateM3?: boolean;
-  availableForTruckRateHour?: boolean;
-  availableForTruckRateLoad?: boolean;
-  isActive?: boolean;
-};
-
-export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
-  const [isEditing] = React.useState(Boolean(id));
+export function useLineItemFormState({
+  id,
+  canEdit,
+  onCancel,
+  onSuccess,
+  onSaved,
+}: Props) {
+  const isEditing = Boolean(id && id > 0);
   const isReadOnly = isEditing && !canEdit;
 
-  const selectedLineItem = useSelectedLineItem();
+  const quoteItemId = Number(id || 0);
+  const { data: selectedLineItem, isLoading: isLineItemLoading } = useQuery({
+    ...useGetQuoteItemById(quoteItemId),
+    enabled: isEditing && quoteItemId > 0,
+  });
   const selectedQuotation = useSelectedQuotation();
   const quoteType = selectedQuotation?.quoteType;
   const createQuoteItem = useCreateQuoteItem();
   const updateQuoteItem = useUpdateQuoteItem();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(NewQuotationLineItemFormSchema),
-    mode: 'onChange',
-    defaultValues: {
+  const getFormValuesFromLineItem = React.useCallback((): FormValues => {
+    return {
       quoteType: selectedQuotation?.quoteType ?? QUOTE_TYPE.DELIVERY,
-      productId: isEditing ? selectedLineItem?.productId : 0,
+      address: isEditing
+        ? selectedLineItem?.customerDeliveryAddress?.address
+            ?.formattedAddress ?? ''
+        : '',
+      productId: isEditing ? selectedLineItem?.productId ?? 0 : 0,
       quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
       supplierProductName: isEditing
-        ? selectedLineItem?.supplierProductName
+        ? selectedLineItem?.supplierProductName ?? ''
         : '',
-      productCostUom: isEditing ? selectedLineItem?.productCostUom : '',
-      productCostQty: isEditing ? selectedLineItem?.productCostQty : 0,
+      productCostUom: isEditing ? selectedLineItem?.productCostUom ?? '' : '',
+      productCostQty: isEditing ? selectedLineItem?.productCostQty ?? 0 : 0,
       productCostPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.productCostPrice || 0)
         : 0,
-      productSellUom: isEditing ? selectedLineItem?.productSellUom : '',
-      productSellQty: isEditing ? selectedLineItem?.productSellQty : 0,
+      productSellUom: isEditing ? selectedLineItem?.productSellUom ?? '' : '',
+      productSellQty: isEditing ? selectedLineItem?.productSellQty ?? 0 : 0,
       productSellPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.productSellPrice || 0)
         : 0,
-      truckType: isEditing ? selectedLineItem?.truckType : '',
-      truckCostUom: isEditing ? selectedLineItem?.truckCostUom : '',
-      truckCostQty: isEditing ? selectedLineItem?.truckCostQty : 0,
+      truckType: isEditing ? selectedLineItem?.truckType ?? '' : '',
+      truckCostUom: isEditing ? selectedLineItem?.truckCostUom ?? '' : '',
+      truckCostQty: isEditing ? selectedLineItem?.truckCostQty ?? 0 : 0,
       truckCostPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.truckCostPrice || 0)
         : 0,
-      truckSellUom: isEditing ? selectedLineItem?.truckSellUom : '',
-      truckSellQty: isEditing ? selectedLineItem?.truckSellQty : 0,
+      truckSellUom: isEditing ? selectedLineItem?.truckSellUom ?? '' : '',
+      truckSellQty: isEditing ? selectedLineItem?.truckSellQty ?? 0 : 0,
       truckSellPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.truckSellPrice || 0)
         : 0,
@@ -113,28 +118,88 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       totalTruckSellPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.totalTruckSellPrice || 0)
         : 0,
-      grossProfit: isEditing ? selectedLineItem?.grossProfit : 0,
-    },
+      grossProfit: isEditing ? selectedLineItem?.grossProfit ?? 0 : 0,
+    };
+  }, [isEditing, selectedLineItem, selectedQuotation?.quoteType]);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(NewQuotationLineItemFormSchema),
+    mode: 'onChange',
+    defaultValues: getFormValuesFromLineItem(),
   });
+
+  const [addressInput, setAddressInput] = React.useState<AddressType>(() =>
+    toAddressType(selectedLineItem?.customerDeliveryAddress?.address ?? null)
+  );
+  const [addressSearchInput, setAddressSearchInput] = React.useState('');
+
+  React.useEffect(() => {
+    if (!isEditing) {
+      // Reset address when creating a new line item
+      setAddressInput({
+        address1: '',
+        address2: '',
+        formattedAddress: '',
+        city: '',
+        region: '',
+        postalCode: '',
+        country: '',
+        lat: 0,
+        lng: 0,
+        googlePlaceId: '',
+      });
+      setAddressSearchInput('');
+      return;
+    }
+    if (!selectedLineItem?.customerDeliveryAddress?.address) {
+      return;
+    }
+    setAddressInput(
+      toAddressType(selectedLineItem.customerDeliveryAddress.address)
+    );
+  }, [isEditing, selectedLineItem?.customerDeliveryAddress?.address]);
+
+  const watchedAddress = form.watch('address');
+  React.useEffect(() => {
+    if (!watchedAddress) return;
+    if (watchedAddress === addressInput.formattedAddress) return;
+    setAddressInput((prev) => ({ ...prev, formattedAddress: watchedAddress }));
+  }, [watchedAddress, addressInput.formattedAddress]);
+
+  // When viewing/editing an existing line item, ensure the loaded values become the
+  // baseline defaults; otherwise RHF can consider async/programmatic updates as "dirty".
+  React.useEffect(() => {
+    if (!isEditing) return;
+    if (!selectedLineItem) return;
+    if (id && selectedLineItem?.id && selectedLineItem.id !== id) return;
+    form.reset(getFormValuesFromLineItem(), {
+      keepDirty: false,
+      keepTouched: false,
+    });
+  }, [form, getFormValuesFromLineItem, id, isEditing, selectedLineItem]);
 
   // Keep quoteType in sync (drives conditional validation + UI)
   React.useEffect(() => {
     if (!quoteType) return;
-    form.setValue('quoteType', quoteType, { shouldValidate: true });
+    form.setValue('quoteType', quoteType, {
+      shouldValidate: true,
+      shouldDirty: false,
+    });
   }, [quoteType, form]);
 
   // If collection, zero out truck fields so they don't affect totals / submit payload
   React.useEffect(() => {
     if (quoteType !== QUOTE_TYPE.COLLECTION) return;
-    form.setValue('truckType', '', { shouldValidate: true });
-    form.setValue('truckCostUom', '', { shouldValidate: true });
-    form.setValue('truckCostQty', 0, { shouldValidate: true });
-    form.setValue('truckCostPrice', 0, { shouldValidate: true });
-    form.setValue('truckSellUom', '', { shouldValidate: true });
-    form.setValue('truckSellQty', 0, { shouldValidate: true });
-    form.setValue('truckSellPrice', 0, { shouldValidate: true });
-    form.setValue('totalTruckCostPrice', 0, { shouldValidate: true });
-    form.setValue('totalTruckSellPrice', 0, { shouldValidate: true });
+    const opts = { shouldValidate: true, shouldDirty: false } as const;
+    form.setValue('truckType', '', opts);
+    form.setValue('truckCostUom', '', opts);
+    form.setValue('truckCostQty', 0, opts);
+    form.setValue('truckCostPrice', 0, opts);
+    form.setValue('truckSellUom', '', opts);
+    form.setValue('truckSellQty', 0, opts);
+    form.setValue('truckSellPrice', 0, opts);
+    form.setValue('totalTruckCostPrice', 0, opts);
+    form.setValue('totalTruckSellPrice', 0, opts);
   }, [quoteType, form]);
 
   // Products
@@ -146,6 +211,57 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       value: product.id,
     }));
   }, [products]);
+
+  // Customer delivery addresses (for DELIVERY quote type)
+  const customerId =
+    selectedQuotation?.customerId ||
+    selectedQuotation?.customerWithAddressResponseDto?.id ||
+    0;
+  const isDeliveryQuote = quoteType === QUOTE_TYPE.DELIVERY;
+  const { data: deliveryAddresses } = useQuery({
+    ...CustomerDeliveryAddressesQueryOptions(customerId, 5),
+    enabled: !!customerId && isDeliveryQuote && !isEditing,
+  });
+
+  // Mutation to update delivery address usage (for deleting from suggestions)
+  const updateDeliveryAddressUsage = useUpdateDeliveryAddressUsage();
+
+  // Handler to remove a delivery address from suggestions
+  const handleDeleteDeliveryAddress = React.useCallback(
+    (customerDeliveryAddressId: string) => {
+      if (!customerId) return;
+
+      updateDeliveryAddressUsage.mutate({
+        customerId,
+        customerDeliveryAddressId: Number(customerDeliveryAddressId),
+        inUse: false,
+      });
+    },
+    [customerId, updateDeliveryAddressUsage]
+  );
+
+  // Get billing address for comparison (pinned address for delivery quotes)
+  const billingAddress =
+    selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
+  const billingAddressFormatted = billingAddress?.formattedAddress || '';
+
+  // Transform delivery addresses to suggested address format
+  // Filter out addresses that match the pinned/billing address
+  const customerDeliveryAddressSuggestions = React.useMemo(() => {
+    if (!deliveryAddresses || !Array.isArray(deliveryAddresses)) return [];
+    return deliveryAddresses
+      .filter((addr) => {
+        const formattedAddr = addr.address?.formattedAddress || '';
+        // Exclude if it matches the billing address (pinned address)
+        return formattedAddr !== billingAddressFormatted;
+      })
+      .map((addr) => ({
+        id: String(addr.id),
+        formattedAddress: addr.address?.formattedAddress || '',
+        addressType: addr.address ? toAddressType(addr.address) : undefined,
+        customerDeliveryAddress: addr,
+      }));
+  }, [deliveryAddresses, billingAddressFormatted]);
 
   // Selected product id
   const selectedProductId = Number(form.watch('productId') || 0);
@@ -188,13 +304,13 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     const currentQuarryId = Number(watchedQuarrySupplierId || 0);
     if (!details || details.id !== currentProductId || !currentQuarryId)
       return undefined;
-    const qsps: QuarrySupplierProductDetailExt[] = Array.isArray(
+    const qsps: QuarrySupplierProduct[] = Array.isArray(
       details.quarrySupplierProducts
     )
-      ? (details.quarrySupplierProducts as QuarrySupplierProductDetailExt[])
+      ? (details.quarrySupplierProducts as QuarrySupplierProduct[])
       : [];
     return qsps.find(
-      (qsp: QuarrySupplierProductDetailExt) =>
+      (qsp: QuarrySupplierProduct) =>
         Number(qsp?.quarrySupplierId || 0) === currentQuarryId
     );
   }, [
@@ -205,31 +321,57 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   ]);
 
   // Reset dependent fields when product changes
+  const isCollectionQuote = quoteType === QUOTE_TYPE.COLLECTION;
   React.useEffect(() => {
     const currentProductId = Number(form.getValues('productId') || 0);
     const initialProductId = Number(
       isEditing ? selectedLineItem?.productId : 0
     );
     if (currentProductId !== initialProductId) {
-      form.setValue('quarrySupplierId', 0);
-      form.setValue('supplierProductName', '');
-      form.setValue('productCostUom', '');
-      form.setValue('productCostQty', 0);
-      form.setValue('productCostPrice', 0);
-      form.setValue('productSellUom', '');
-      form.setValue('productSellQty', 0);
-      form.setValue('productSellPrice', 0);
-      form.setValue('truckType', '');
-      form.setValue('truckCostUom', '');
-      form.setValue('truckCostQty', 0);
-      form.setValue('truckCostPrice', 0);
-      form.setValue('truckSellUom', '');
-      form.setValue('truckSellQty', 0);
-      form.setValue('truckSellPrice', 0);
-    }
-  }, [selectedProductId, isEditing, selectedLineItem?.productId, form]);
+      const opts = { shouldDirty: false } as const;
+      form.setValue('quarrySupplierId', 0, opts);
+      form.setValue('supplierProductName', '', opts);
+      form.setValue('productCostUom', '', opts);
+      form.setValue('productCostQty', 0, opts);
+      form.setValue('productCostPrice', 0, opts);
+      form.setValue('productSellUom', '', opts);
+      form.setValue('productSellQty', 0, opts);
+      form.setValue('productSellPrice', 0, opts);
+      form.setValue('truckType', '', opts);
+      form.setValue('truckCostUom', '', opts);
+      form.setValue('truckCostQty', 0, opts);
+      form.setValue('truckCostPrice', 0, opts);
+      form.setValue('truckSellUom', '', opts);
+      form.setValue('truckSellQty', 0, opts);
+      form.setValue('truckSellPrice', 0, opts);
 
-  // Reset pricing when quarry changes
+      // Clear address when product changes for Collection quotes
+      if (isCollectionQuote) {
+        form.setValue('address', '', opts);
+        setAddressInput({
+          address1: '',
+          address2: '',
+          formattedAddress: '',
+          city: '',
+          region: '',
+          postalCode: '',
+          country: '',
+          lat: 0,
+          lng: 0,
+          googlePlaceId: '',
+        });
+        setAddressSearchInput('');
+      }
+    }
+  }, [
+    selectedProductId,
+    isEditing,
+    selectedLineItem?.productId,
+    form,
+    isCollectionQuote,
+  ]);
+
+  // Reset pricing and address when quarry changes
   const quarryId = form.watch('quarrySupplierId');
   React.useEffect(() => {
     const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
@@ -237,22 +379,47 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0
     );
     if (currentQuarryId !== initialQuarryId) {
-      form.setValue('supplierProductName', '');
-      form.setValue('productCostUom', '');
-      form.setValue('productCostQty', 0);
-      form.setValue('productCostPrice', 0);
-      form.setValue('productSellUom', '');
-      form.setValue('productSellQty', 0);
-      form.setValue('productSellPrice', 0);
-      form.setValue('truckType', '');
-      form.setValue('truckCostUom', '');
-      form.setValue('truckCostQty', 0);
-      form.setValue('truckCostPrice', 0);
-      form.setValue('truckSellUom', '');
-      form.setValue('truckSellQty', 0);
-      form.setValue('truckSellPrice', 0);
+      const opts = { shouldDirty: false } as const;
+      form.setValue('supplierProductName', '', opts);
+      form.setValue('productCostUom', '', opts);
+      form.setValue('productCostQty', 0, opts);
+      form.setValue('productCostPrice', 0, opts);
+      form.setValue('productSellUom', '', opts);
+      form.setValue('productSellQty', 0, opts);
+      form.setValue('productSellPrice', 0, opts);
+      form.setValue('truckType', '', opts);
+      form.setValue('truckCostUom', '', opts);
+      form.setValue('truckCostQty', 0, opts);
+      form.setValue('truckCostPrice', 0, opts);
+      form.setValue('truckSellUom', '', opts);
+      form.setValue('truckSellQty', 0, opts);
+      form.setValue('truckSellPrice', 0, opts);
+
+      // Clear address when quarry changes for Collection quotes
+      if (isCollectionQuote) {
+        form.setValue('address', '', opts);
+        setAddressInput({
+          address1: '',
+          address2: '',
+          formattedAddress: '',
+          city: '',
+          region: '',
+          postalCode: '',
+          country: '',
+          lat: 0,
+          lng: 0,
+          googlePlaceId: '',
+        });
+        setAddressSearchInput('');
+      }
     }
-  }, [quarryId, isEditing, selectedLineItem?.quarrySupplierId, form]);
+  }, [
+    quarryId,
+    isEditing,
+    selectedLineItem?.quarrySupplierId,
+    form,
+    isCollectionQuote,
+  ]);
 
   // Populate supplierProductName from product details response
   React.useEffect(() => {
@@ -267,18 +434,21 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     ) {
       return;
     }
-    const qsps: QuarrySupplierProductDetailExt[] = Array.isArray(
+    const qsps: QuarrySupplierProduct[] = Array.isArray(
       details.quarrySupplierProducts
     )
-      ? (details.quarrySupplierProducts as QuarrySupplierProductDetailExt[])
+      ? (details.quarrySupplierProducts as QuarrySupplierProduct[])
       : [];
     const matched = qsps.find(
-      (qsp: QuarrySupplierProductDetailExt) =>
+      (qsp: QuarrySupplierProduct) =>
         Number(qsp?.quarrySupplierId || 0) === currentQuarryId
     );
     const supplierProductName = matched?.supplierProductName || '';
     if (supplierProductName) {
-      form.setValue('supplierProductName', supplierProductName);
+      // Don't mark as dirty for auto-population.
+      form.setValue('supplierProductName', supplierProductName, {
+        shouldDirty: false,
+      });
     }
   }, [quarryId, selectedProductId, productDetailsQuery.data, form]);
 
@@ -306,7 +476,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   const productUnitOptions: SelectOption[] = React.useMemo(() => {
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProduct
       | undefined;
     if (qsp?.availableForSaleTn) opts.push({ label: 'TN', value: 'TN' });
     if (qsp?.availableForSaleM3) opts.push({ label: 'm³', value: 'M3' });
@@ -319,7 +489,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
   const truckUnitOptions: SelectOption[] = React.useMemo(() => {
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProduct
       | undefined;
     if (qsp?.availableForTruckRateTn) opts.push({ label: 'TN', value: 'TN' });
     if (qsp?.availableForTruckRateM3) opts.push({ label: 'm³', value: 'M3' });
@@ -327,6 +497,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       opts.push({ label: 'Hourly', value: 'HOURLY' });
     if (qsp?.availableForTruckRateLoad)
       opts.push({ label: 'Load', value: 'LOAD' });
+    if (qsp?.availableForTruckRateKm) opts.push({ label: 'km', value: 'KM' });
     return opts;
   }, [selectedQuarrySupplierProduct]);
 
@@ -336,7 +507,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -352,21 +523,21 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let price = 0;
     switch (productCostUom) {
       case 'TN':
-        price = Number(centsToDollars(qsp.perTnCostPrice || 0));
+        price = centsToDollarsNum(qsp.perTnCostPrice || 0);
         break;
       case 'M3':
-        price = Number(centsToDollars(qsp.perM3CostPrice || 0));
+        price = centsToDollarsNum(qsp.perM3CostPrice || 0);
         break;
       case 'KG_20':
-        price = Number(centsToDollars(qsp.per20kgCostPrice || 0));
+        price = centsToDollarsNum(qsp.per20kgCostPrice || 0);
         break;
       case 'BULKA':
-        price = Number(centsToDollars(qsp.perBulkaCostPrice || 0));
+        price = centsToDollarsNum(qsp.perBulkaCostPrice || 0);
         break;
       default:
         price = 0;
     }
-    form.setValue('productCostPrice', price || 0);
+    form.setValue('productCostPrice', price || 0, { shouldDirty: false });
   }, [
     productCostUom,
     selectedQuarrySupplierProduct,
@@ -377,7 +548,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -393,21 +564,21 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let price = 0;
     switch (productSellUom) {
       case 'TN':
-        price = Number(centsToDollars(qsp.perTnSellPrice || 0));
+        price = centsToDollarsNum(qsp.perTnSellPrice || 0);
         break;
       case 'M3':
-        price = Number(centsToDollars(qsp.perM3SellPrice || 0));
+        price = centsToDollarsNum(qsp.perM3SellPrice || 0);
         break;
       case 'KG_20':
-        price = Number(centsToDollars(qsp.per20kgSellPrice || 0));
+        price = centsToDollarsNum(qsp.per20kgSellPrice || 0);
         break;
       case 'BULKA':
-        price = Number(centsToDollars(qsp.perBulkaSellPrice || 0));
+        price = centsToDollarsNum(qsp.perBulkaSellPrice || 0);
         break;
       default:
         price = 0;
     }
-    form.setValue('productSellPrice', price || 0);
+    form.setValue('productSellPrice', price || 0, { shouldDirty: false });
   }, [
     productSellUom,
     selectedQuarrySupplierProduct,
@@ -422,7 +593,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -438,21 +609,24 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let rate = 0;
     switch (truckCostUom) {
       case 'TN':
-        rate = Number(centsToDollars(qsp.tnTruckRate || 0));
+        rate = centsToDollarsNum(qsp.tnTruckRate || 0);
         break;
       case 'M3':
-        rate = Number(centsToDollars(qsp.m3TruckRate || 0));
+        rate = centsToDollarsNum(qsp.m3TruckRate || 0);
         break;
       case 'HOURLY':
-        rate = Number(centsToDollars(qsp.hourlyTruckRate || 0));
+        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0);
         break;
       case 'LOAD':
-        rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        rate = centsToDollarsNum(qsp.loadTruckRate || 0);
+        break;
+      case 'KM':
+        rate = centsToDollarsNum(qsp.kmTruckRate || 0);
         break;
       default:
         rate = 0;
     }
-    form.setValue('truckCostPrice', rate || 0);
+    form.setValue('truckCostPrice', rate || 0, { shouldDirty: false });
   }, [
     truckCostUom,
     selectedQuarrySupplierProduct,
@@ -463,7 +637,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
-      | QuarrySupplierProductDetailExt
+      | QuarrySupplierProduct
       | undefined;
     if (!qsp) return;
 
@@ -479,21 +653,24 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     let rate = 0;
     switch (truckSellUom) {
       case 'TN':
-        rate = Number(centsToDollars(qsp.tnTruckRate || 0));
+        rate = centsToDollarsNum(qsp.tnTruckRate || 0);
         break;
       case 'M3':
-        rate = Number(centsToDollars(qsp.m3TruckRate || 0));
+        rate = centsToDollarsNum(qsp.m3TruckRate || 0);
         break;
       case 'HOURLY':
-        rate = Number(centsToDollars(qsp.hourlyTruckRate || 0));
+        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0);
         break;
       case 'LOAD':
-        rate = Number(centsToDollars(qsp.loadTruckRate || 0));
+        rate = centsToDollarsNum(qsp.loadTruckRate || 0);
+        break;
+      case 'KM':
+        rate = centsToDollarsNum(qsp.kmTruckRate || 0);
         break;
       default:
         rate = 0;
     }
-    form.setValue('truckSellPrice', rate || 0);
+    form.setValue('truckSellPrice', rate || 0, { shouldDirty: false });
   }, [
     truckSellUom,
     selectedQuarrySupplierProduct,
@@ -508,8 +685,8 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     const currentTruckType = form.getValues('truckType');
     const initialTruckType = isEditing ? selectedLineItem?.truckType : '';
     if (currentTruckType !== initialTruckType) {
-      form.setValue('truckCostUom', '');
-      form.setValue('truckSellUom', '');
+      form.setValue('truckCostUom', '', { shouldDirty: false });
+      form.setValue('truckSellUom', '', { shouldDirty: false });
     }
   }, [truckType, isEditing, selectedLineItem?.truckType, form]);
 
@@ -558,11 +735,12 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       grossProfitPercentage,
     });
 
-    form.setValue('totalProductCostPrice', totalProductCostPrice);
-    form.setValue('totalTruckCostPrice', totalTruckCostPrice);
-    form.setValue('totalProductSellPrice', totalProductSellPrice);
-    form.setValue('totalTruckSellPrice', totalTruckSellPrice);
-    form.setValue('grossProfit', grossProfit);
+    const opts = { shouldDirty: false } as const;
+    form.setValue('totalProductCostPrice', totalProductCostPrice, opts);
+    form.setValue('totalTruckCostPrice', totalTruckCostPrice, opts);
+    form.setValue('totalProductSellPrice', totalProductSellPrice, opts);
+    form.setValue('totalTruckSellPrice', totalTruckSellPrice, opts);
+    form.setValue('grossProfit', grossProfit, opts);
   }, [
     productCostQty,
     productCostPrice,
@@ -592,10 +770,43 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       console.error('No quotation selected');
       return;
     }
-    const quoteItemData: QuotationLineItem = {
+    const customerId =
+      selectedQuotation?.customerId ||
+      selectedQuotation?.customerWithAddressResponseDto?.id ||
+      0;
+    const originalAddress = selectedLineItem?.customerDeliveryAddress?.address;
+    const mappedAddress = toAddressPayload(addressInput, originalAddress);
+    const addressPayload = mappedAddress
+      ? (({ id, ...rest }) => rest)(mappedAddress)
+      : undefined;
+    const customerDeliveryAddress:
+      | Partial<CustomerDeliveryAddress>
+      | undefined =
+      addressPayload && customerId
+        ? {
+            ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
+              ? { id: selectedLineItem.customerDeliveryAddress.id }
+              : {}),
+            customerId,
+            addressId:
+              isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
+                ? selectedLineItem.customerDeliveryAddress.addressId
+                : mappedAddress?.id,
+            address: addressPayload,
+            inUse: true,
+            lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
+          }
+        : undefined;
+
+    const quoteItemData: Partial<QuotationLineItem> = {
       quoteId: selectedQuotation?.id || 0,
       productId: values.productId,
       quarrySupplierId: values.quarrySupplierId,
+      customerDeliveryAddressId:
+        isEditing && selectedLineItem?.customerDeliveryAddress?.id
+          ? customerDeliveryAddress?.id
+          : undefined,
+      customerDeliveryAddress,
       productName:
         (productOptions.find((p) => p.value === values.productId)
           ?.label as string) || '',
@@ -624,7 +835,7 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
       totalQuantityRequired: values.productSellQty,
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty,
-      version: 1,
+      version: selectedLineItem?.version || 1,
     };
 
     if (isEditing && selectedLineItem?.id) {
@@ -643,7 +854,8 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
         notifySuccess('Line item Added');
       }
       form.reset();
-      onCancel?.();
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} line item:`,
@@ -670,7 +882,13 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     isReadOnly,
     form,
     selectedLineItem,
+    selectedQuotation,
+    selectedQuarrySupplierProduct,
     quoteType,
+    addressInput,
+    setAddressInput,
+    addressSearchInput,
+    setAddressSearchInput,
     productOptions,
     quarryOptions,
     truckTypeOptions,
@@ -682,6 +900,11 @@ export function useLineItemFormState({ id, canEdit, onCancel }: Props) {
     totalInvoiceIncGST,
     handleSubmit,
     onSubmit,
-    isPending: createQuoteItem.isPending || updateQuoteItem.isPending,
+    isPending:
+      isLineItemLoading ||
+      createQuoteItem.isPending ||
+      updateQuoteItem.isPending,
+    customerDeliveryAddressSuggestions,
+    handleDeleteDeliveryAddress,
   };
 }

@@ -141,7 +141,7 @@ export function DataTableClient<TData, TValue>({
   onRowSelectionChange,
   rowSelectionFilter,
   bulkActionsSlot,
-  defaultSorting = [], // Default to empty array if not provided
+  defaultSorting, // Default sorting configuration (optional)
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -236,6 +236,11 @@ export function DataTableClient<TData, TValue>({
     }
   };
 
+  const defaultSortingState = useMemo(
+    () => defaultSorting ?? [],
+    [defaultSorting]
+  );
+
   // Initialize state with sessionStorage values or defaults
   const [pagination, setPagination] = useState<PaginationState>(() => {
     if (isMobile) return defaultPagination;
@@ -243,8 +248,8 @@ export function DataTableClient<TData, TValue>({
   });
 
   const [sorting, setSorting] = useState<SortingState>(() => {
-    if (isMobile) return defaultSorting;
-    return loadFromStorage('sorting', defaultSorting);
+    if (isMobile) return defaultSortingState;
+    return loadFromStorage('sorting', defaultSortingState);
   });
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
@@ -348,7 +353,7 @@ export function DataTableClient<TData, TValue>({
 
       // Reset all state to defaults
       setPagination(defaultPagination);
-      setSorting(defaultSorting);
+      setSorting(defaultSortingState);
       setColumnFilters(defaultColumnFilters);
       setActiveColumnFilters(defaultColumnFilters);
       setGlobalFilter(defaultGlobalFilter);
@@ -356,7 +361,7 @@ export function DataTableClient<TData, TValue>({
       setColumnVisibility(defaultColumnVisibility);
       setPaginationSize(defaultPaginationSize);
     }
-  }, [isMobile, tableId, getStorageKey, defaultSorting]);
+  }, [isMobile, tableId, getStorageKey, defaultSortingState]);
 
   // Enhanced state setters that save to localStorage (only when not mobile)
   const handlePaginationChange = (updater: Updater<PaginationState>) => {

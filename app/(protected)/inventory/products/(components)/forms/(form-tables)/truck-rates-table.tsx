@@ -50,6 +50,11 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       label: 'Load Rate',
       data: { unit: 'per load' },
     },
+    {
+      id: 'km_rate',
+      label: 'Distance Rate',
+      data: { unit: 'per KM' },
+    },
   ];
 
   // Cells configuration

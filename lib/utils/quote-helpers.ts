@@ -1,12 +1,8 @@
 import { QUOTE_STATUS, QUOTE_TYPE } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
-import type { Address, AddressType } from '../types/address';
-import { toAddressPayload } from './address-helper';
 import { toLocalDateTime } from './date';
 import { centsToDollarsNum } from './currency';
-import { notifyError } from '../toast';
 import { formatPhoneNumber } from './phone-helper';
-import { custom } from 'zod';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
   switch (status) {
@@ -118,8 +114,6 @@ export const transformFormDataToQuoteDto = (
     accountManagerSub: string;
     quoteNumber?: string;
     lineItemsCount?: number;
-    deliveryAddress: AddressType | null;
-    originalDeliveryAddress?: Address | null;
   }
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
@@ -136,8 +130,6 @@ export const transformFormDataToQuoteDto = (
     quoteType: formData.quoteType as QUOTE_TYPE,
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,
-    customerEmail: (formData.email as string) || '',
-    customerPhone: formatPhoneNumber(formData.phone as string) || '',
     email: (formData.email as string) || '',
     phone: formatPhoneNumber(formData.phone as string) || '',
     projectName: formData.projectName as string,
@@ -147,7 +139,6 @@ export const transformFormDataToQuoteDto = (
     accountManagerName: additionalData.accountManagerName,
     version: 1,
     lineItemsCount: additionalData.lineItemsCount ?? 0,
-    deliveryAddress: additionalData.deliveryAddress,
     // TEMPORARY: Mock data for backend testing
     createdBy: 'admin',
     createdAt: '2025-12-01T22:19:50.710',
@@ -156,17 +147,6 @@ export const transformFormDataToQuoteDto = (
     totalCostPrice: 1200.0,
     totalSellPrice: 1800.0,
   };
-
-  // Map UI address shape (AddressType) to backend Address payload
-  const mappedAddress = toAddressPayload(
-    additionalData.deliveryAddress,
-    additionalData.originalDeliveryAddress
-  );
-  if (!mappedAddress) {
-    notifyError('⚠️ Address may be missing!');
-  } else {
-    transformed.deliveryAddress = mappedAddress as Address;
-  }
 
   if (deliveryDate) {
     transformed.deliveryStartDate = toLocalDateTime(deliveryDate);

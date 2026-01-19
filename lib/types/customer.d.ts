@@ -47,16 +47,60 @@ export interface CustomerDTO {
   jobsCount: number;
   paymentType: string;
   version: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
 
   // Optional metadata fields
   accountManagerName?: string;
   accountManagerEmail?: string;
   remainingCredit?: number;
-  isDeleted?: boolean;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
+
+  // BUSINESS type specific fields
+  businessName?: string;
+  businessEmail?: string;
+  businessPhone?: string;
+  legalName?: string;
+  tradingName?: string;
+  abn?: string;
+  acn?: string;
+  vatNumber?: string;
+
+  // INDIVIDUAL type specific fields
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  govId?: string;
+}
+
+export interface CustomerWithAddressResponseDTO {
+  id?: number; // Optional for create, required for update
+  customerType: CUSTOMER_TYPE;
+  contactName: string;
+  phone: string;
+  email: string;
+  billingAddressId?: number;
+  billingAddress: Address;
+  creditLimit: number;
+  accountManagerSub: string;
+  invoiceDueDate: number;
+  paymentTermType: string;
+  customerStatus: CUSTOMER_STATUS;
+  jobsCount: number;
+  paymentType: string;
+  version: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+
+  // Optional metadata fields
+  accountManagerName?: string;
+  accountManagerEmail?: string;
+  remainingCredit?: number;
 
   // BUSINESS type specific fields
   businessName?: string;

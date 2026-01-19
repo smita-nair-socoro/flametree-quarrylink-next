@@ -40,6 +40,7 @@ interface InviteUserFormProps {
   onSuccess?: () => void;
   teamMemberCount: number;
   roleOptions: readonly FormSelectOption[];
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function InviteUserForm({
@@ -47,6 +48,7 @@ export default function InviteUserForm({
   onSuccess,
   teamMemberCount,
   roleOptions,
+  onDirtyChange,
 }: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [agreedToBilling, setAgreedToBilling] = React.useState(false);
@@ -94,6 +96,11 @@ export default function InviteUserForm({
       role: '',
     },
   });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(form.formState.isDirty);
+  }, [form.formState.isDirty, onDirtyChange]);
 
   const onSubmit = async (data: z.infer<typeof InviteUserFormSchema>) => {
     console.log('Invite user data:', data);

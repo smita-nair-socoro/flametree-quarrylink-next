@@ -201,7 +201,11 @@ const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
 
 ABNInput.displayName = 'ABNInput';
 
-type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix'>;
+type UnitType = 'TN' | 'm3' | 'Bags' | 'HOURLY' | 'LOAD' | 'KM' | '';
+
+type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix' | 'suffix'> & {
+  unit?: UnitType;
+};
 
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
@@ -210,6 +214,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       decimalPlaces = 2,
       allowNegative = false,
       placeholder = '0.00',
+      unit,
       ...props
     },
     ref
@@ -223,6 +228,21 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       allowNegative={allowNegative}
       placeholder={placeholder}
       prefix={<DollarSignIcon size={19} />}
+      suffix={
+        unit === 'm3'
+          ? '/m³'
+          : unit === 'TN'
+          ? '/t'
+          : unit === 'Bags'
+          ? '/Bag'
+          : unit === 'HOURLY'
+          ? '/Hour'
+          : unit === 'LOAD'
+          ? '/Load'
+          : unit === 'KM'
+          ? '/km'
+          : undefined
+      }
     />
   )
 );

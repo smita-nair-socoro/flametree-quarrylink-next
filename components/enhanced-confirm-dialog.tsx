@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface EnhancedConfirmDialogProps {
   open: boolean;
@@ -33,6 +34,9 @@ interface EnhancedConfirmDialogProps {
   confirmIcon?: React.ReactNode;
   titleIcon?: React.ReactNode;
   onConfirmAction: () => void;
+  /** When true, hides the top-right X close button */
+  hideCloseButton?: boolean;
+  isDirtyStateWarning?: boolean;
 }
 
 export function EnhancedConfirmDialog({
@@ -51,6 +55,8 @@ export function EnhancedConfirmDialog({
   confirmIcon,
   titleIcon,
   onConfirmAction,
+  hideCloseButton = false,
+  isDirtyStateWarning = false,
 }: EnhancedConfirmDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = confirmCustomColor
@@ -63,10 +69,15 @@ export function EnhancedConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" showCloseButton={!hideCloseButton}>
         <DialogHeader>
           <DialogTitle>
-            <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                'flex items-center gap-2',
+                isDirtyStateWarning ? '-mt-4' : ''
+              )}
+            >
               {titleIcon && titleIcon}
               {title}
             </div>

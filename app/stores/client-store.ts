@@ -38,7 +38,7 @@ export const useClientStore = create<ClientStore>()(
 
       getClientsByStatus: (status) => {
         const state = get();
-        return state.clients.filter((c) => c.client_status === status);
+        return state.clients.filter((c) => c.clientStatus === status);
       },
     }),
     { name: 'client-store' }

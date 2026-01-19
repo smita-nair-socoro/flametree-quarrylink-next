@@ -24,19 +24,28 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
+import AddressAutoComplete from '@/components/ui/address-autocomplete';
+import { toAddressType } from '@/lib/utils/address-helper';
+import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 
 interface FormProps {
   id?: number;
   className?: string;
   onCancel?: () => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
   canEdit?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuoteLineItemForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   canEdit,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -44,7 +53,13 @@ export default function QuoteLineItemForm({
     isReadOnly,
     form: quotationLineItemForm,
     selectedLineItem,
+    selectedQuotation,
+    selectedQuarrySupplierProduct,
     quoteType,
+    addressInput,
+    setAddressInput,
+    addressSearchInput,
+    setAddressSearchInput,
     productOptions,
     quarryOptions,
     truckTypeOptions,
@@ -57,8 +72,50 @@ export default function QuoteLineItemForm({
     handleSubmit,
     onSubmit,
     isPending,
-  } = useLineItemFormState({ id, canEdit, onCancel });
+    customerDeliveryAddressSuggestions,
+    handleDeleteDeliveryAddress,
+  } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    // In "view details" (read-only) mode, we don't want to block closing with
+    // a dirty-state warning because users cannot make intentional edits.
+    onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
+  }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
+  // State for delete delivery address confirmation dialog
+  const [deleteAddressDialogOpen, setDeleteAddressDialogOpen] =
+    React.useState(false);
+  const [addressToDeleteId, setAddressToDeleteId] = React.useState<
+    string | null
+  >(null);
+
+  // Handler to show confirmation dialog before deleting
+  const handleDeleteAddressClick = React.useCallback((id: string) => {
+    setAddressToDeleteId(id);
+    setDeleteAddressDialogOpen(true);
+  }, []);
+
+  // Handler to confirm deletion
+  const handleConfirmDeleteAddress = React.useCallback(() => {
+    if (addressToDeleteId) {
+      handleDeleteDeliveryAddress(addressToDeleteId);
+    }
+    setAddressToDeleteId(null);
+  }, [addressToDeleteId, handleDeleteDeliveryAddress]);
+
   const isCollection = quoteType === 'COLLECTION';
+
+  // Determine pinned address based on quote type:
+  // - Delivery: Use customer's billing address
+  // - Collection: Use selected quarry supplier's address
+  const pinnedAddress = isCollection
+    ? selectedQuarrySupplierProduct?.quarrySupplier?.address
+    : selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
+  const pinnedAddressType = React.useMemo(
+    () => toAddressType(pinnedAddress),
+    [pinnedAddress]
+  );
 
   return (
     <div className="w-full relative">
@@ -96,6 +153,40 @@ export default function QuoteLineItemForm({
               isPending && 'pointer-events-none'
             )}
           >
+            {!isCollection && (
+              <FormField
+                control={quotationLineItemForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Delivery Address*</FormLabel>
+                    <FormControl>
+                      <AddressAutoComplete
+                        address={addressInput}
+                        setAddress={setAddressInput}
+                        searchInput={addressSearchInput}
+                        setSearchInput={setAddressSearchInput}
+                        dialogTitle="Delivery Address"
+                        placeholder="Enter site address..."
+                        readOnly={isReadOnly}
+                        useSuggestions
+                        pinnedAddress={pinnedAddressType}
+                        isCollection={false}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        historyAddresses={customerDeliveryAddressSuggestions}
+                        onDeleteHistoryAddress={handleDeleteAddressClick}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             {/* Product Information */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
@@ -129,6 +220,39 @@ export default function QuoteLineItemForm({
                 }
                 disabled={!selectedProductId || isReadOnly}
               />
+
+              {isCollection && (
+                <FormField
+                  control={quotationLineItemForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem
+                      className={
+                        isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>Collection Address*</FormLabel>
+                      <FormControl>
+                        <AddressAutoComplete
+                          address={addressInput}
+                          setAddress={setAddressInput}
+                          searchInput={addressSearchInput}
+                          setSearchInput={setAddressSearchInput}
+                          dialogTitle="Collection Address"
+                          placeholder="Enter site address..."
+                          readOnly={isReadOnly}
+                          useSuggestions
+                          pinnedAddress={pinnedAddressType}
+                          isCollection
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={quotationLineItemForm.control}
@@ -230,6 +354,24 @@ export default function QuoteLineItemForm({
                             decimalPlaces={2}
                             allowNegative={false}
                             disabled={isReadOnly}
+                            unit={
+                              quotationLineItemForm.watch('productCostUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -306,6 +448,24 @@ export default function QuoteLineItemForm({
                             decimalPlaces={2}
                             allowNegative={false}
                             disabled={isReadOnly}
+                            unit={
+                              quotationLineItemForm.watch('productSellUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -422,6 +582,28 @@ export default function QuoteLineItemForm({
                               decimalPlaces={2}
                               allowNegative={false}
                               disabled={isReadOnly}
+                              unit={
+                                quotationLineItemForm.watch('truckCostUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'HOURLY'
+                                  ? 'HOURLY'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'LOAD'
+                                  ? 'LOAD'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'KM'
+                                  ? 'KM'
+                                  : ''
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -500,6 +682,28 @@ export default function QuoteLineItemForm({
                               decimalPlaces={2}
                               allowNegative={false}
                               disabled={isReadOnly}
+                              unit={
+                                quotationLineItemForm.watch('truckSellUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'HOURLY'
+                                  ? 'HOURLY'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'LOAD'
+                                  ? 'LOAD'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'KM'
+                                  ? 'KM'
+                                  : ''
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -694,6 +898,19 @@ export default function QuoteLineItemForm({
           </div>
         </form>
       </Form>
+
+      {/* Confirmation dialog for removing delivery address from suggestions */}
+      <EnhancedConfirmDialog
+        open={deleteAddressDialogOpen}
+        onOpenChangeAction={setDeleteAddressDialogOpen}
+        title="Remove Delivery Address"
+        description="Are you sure you want to remove this delivery address from this customer?"
+        content="This address will no longer appear in the suggestions list for this customer."
+        cancelText="Cancel"
+        confirmText="Remove"
+        confirmVariant="destructive"
+        onConfirmAction={handleConfirmDeleteAddress}
+      />
     </div>
   );
 }
