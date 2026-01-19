@@ -314,13 +314,16 @@ export const useUpdatePublicQuoteStatus = () => {
     mutationFn: async ({
       status,
       token,
+      declineReason,
     }: {
       status: 'APPROVED' | 'DECLINED';
       token: string;
+      declineReason?: string;
     }) => {
       const response = await APIClient.quotations.updatePublicQuoteStatus(
         status,
-        token
+        token,
+        declineReason
       );
       return response;
     },
