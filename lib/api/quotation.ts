@@ -160,8 +160,13 @@ export const useSendToCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, inclDeliveryCost }: { id: number; inclDeliveryCost: boolean }) =>
-      APIClient.quotations.sendToCustomer(id, inclDeliveryCost),
+    mutationFn: ({
+      id,
+      inclDeliveryCost,
+    }: {
+      id: number;
+      inclDeliveryCost: boolean;
+    }) => APIClient.quotations.sendToCustomer(id, inclDeliveryCost),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
@@ -229,6 +234,18 @@ export const useCreateQuoteItem = () => {
     },
   });
 };
+
+/**
+ * Query options for fetching a quote item by id.
+ */
+export const useGetQuoteItemById = (id: number) =>
+  queryOptions({
+    queryKey: QuotationKeys.quoteItem(id),
+    queryFn: async () => {
+      const data = await APIClient.quotations.getQuoteItemById(id);
+      return data as QuotationLineItem;
+    },
+  });
 
 /**
  * Mutation hook for updating an existing quote item.
