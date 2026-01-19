@@ -65,7 +65,6 @@ export interface QuotationLineItem {
   totalProductSellPrice: number;
   truckType: string;
   truckCostUom: string;
-  0;
   truckCostQty: number;
   truckCostPrice: number;
   totalTruckCostPrice: number;
