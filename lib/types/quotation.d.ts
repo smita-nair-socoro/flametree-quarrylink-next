@@ -50,7 +50,7 @@ export interface QuotationLineItem {
   productId: number;
   quarrySupplierId: number;
   customerDeliveryAddressId?: number;
-  customerDeliveryAddress?: CustomerDeliveryAddress;
+  customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
   quarryProductId?: number;
   productName: string;
   quarryName: string;
@@ -76,13 +76,12 @@ export interface QuotationLineItem {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
-  requiredLoads?: number;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
-  version?: number;
-  isDeleted?: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+  version: number;
+  isDeleted: boolean;
 }
 
 export interface StripeTenantDetailsSnapshot {
