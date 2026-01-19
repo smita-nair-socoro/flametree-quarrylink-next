@@ -232,7 +232,7 @@ const getDialogConfigs = (
                 <span className="font-medium text-base text-[#101828]">
                   {customerName}
                 </span>
-                <span className="text-base text-[#6B7280] text-[#6A7282]">
+                <span className="text-base text-[#6B7280]">
                   {PLACEHOLDER_CUSTOMER_DATA.accNumber} •{' '}
                   {PLACEHOLDER_CUSTOMER_DATA.email}
                 </span>
@@ -393,9 +393,9 @@ export function useCustomerActions(
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const dialogConfigs = getDialogConfigs(
-    customerData,
-    selectedAction || undefined
+  const dialogConfigs = React.useMemo(
+    () => getDialogConfigs(customerData, selectedAction || undefined),
+    [customerData, selectedAction]
   );
 
   const actions = {
@@ -509,13 +509,6 @@ export function useCustomerActions(
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
-        // Ensure dropdown menu state is reset when dialog closes
-        if (!open) {
-          // Small delay to ensure proper cleanup
-          setTimeout(() => {
-            setViewOpen(false);
-          }, 100);
-        }
       }}
       headerButtons={<CustomerActionButtons customer={customerData} />}
       hideTrigger
