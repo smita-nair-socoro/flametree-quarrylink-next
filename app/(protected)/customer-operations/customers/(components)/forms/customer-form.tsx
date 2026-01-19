@@ -282,7 +282,7 @@ export default function CustomerForm({
     if (current === address.formattedAddress) return;
 
     customerForm.setValue('billing_address', address.formattedAddress, {
-      shouldDirty: false, // ✅ prevent dirty flip
+      shouldDirty: false,
       shouldTouch: false,
       shouldValidate: true,
     });

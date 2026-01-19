@@ -347,7 +347,7 @@ export function FormDialog({
   }, [forceClose]);
 
   const handleChildDirtyChange = React.useCallback((dirty: boolean) => {
-    setHasUnsavedChanges(Boolean(dirty));
+    setHasUnsavedChanges((prev) => (prev === dirty ? prev : dirty));
   }, []);
 
   const handleChildSaved = React.useCallback(() => {
