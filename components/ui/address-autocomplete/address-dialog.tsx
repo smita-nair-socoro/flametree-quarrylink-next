@@ -270,7 +270,8 @@ export default function AddressDialog(
 
     // Get country code from country name
     const countryData = Country.getAllCountries().find(
-      (c) => c.name.toLowerCase() === (address.country || 'Australia').toLowerCase()
+      (c) =>
+        c.name.toLowerCase() === (address.country || 'Australia').toLowerCase()
     );
     setCountryCode(countryData?.isoCode || 'AU');
 

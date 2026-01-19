@@ -44,6 +44,7 @@ export const QuotationKeys = {
   list: () => [...QuotationKeys.all, 'list'] as const,
   detail: (id: number) => [...QuotationKeys.all, 'detail', id] as const,
   reporting: () => [...QuotationKeys.all, 'reporting'] as const,
+  quoteItem: (id: number) => [...QuotationKeys.all, 'quote-item', id] as const,
 };
 
 export const TenantKeys = {

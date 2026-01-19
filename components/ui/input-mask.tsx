@@ -201,7 +201,11 @@ const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
 
 ABNInput.displayName = 'ABNInput';
 
-type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix'>;
+type UnitType = 'TN' | 'm3' | 'Bags' | 'HOURLY' | 'LOAD' | 'KM' | '';
+
+type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix' | 'suffix'> & {
+  unit?: UnitType;
+};
 
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
@@ -210,6 +214,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       decimalPlaces = 2,
       allowNegative = false,
       placeholder = '0.00',
+      unit,
       ...props
     },
     ref
@@ -223,46 +228,15 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       allowNegative={allowNegative}
       placeholder={placeholder}
       prefix={<DollarSignIcon size={19} />}
-    />
-  )
-);
-
-CurrencyInput.displayName = 'CurrencyInput';
-
-type QuantityUnit = 'TN' | 'm3' | 'Bags' | 'HOURLY' | 'LOAD' | 'KM' | '';
-type QuantityInputProps = Omit<InputMaskProps, 'type' | 'suffix'> & {
-  unit: QuantityUnit;
-};
-
-const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputProps>(
-  (
-    {
-      thousandSeparator = true,
-      decimalPlaces = 2,
-      allowNegative = false,
-      placeholder = '0',
-      unit,
-      ...props
-    },
-    ref
-  ) => (
-    <InputMask
-      {...props}
-      ref={ref}
-      type="number"
-      thousandSeparator={thousandSeparator}
-      decimalPlaces={decimalPlaces}
-      allowNegative={allowNegative}
-      placeholder={placeholder}
       suffix={
         unit === 'm3'
           ? '/m³'
           : unit === 'TN'
-          ? '/TN'
+          ? '/t'
           : unit === 'Bags'
-          ? '/Bags'
+          ? '/Bag'
           : unit === 'HOURLY'
-          ? '/Hourly'
+          ? '/Hour'
           : unit === 'LOAD'
           ? '/Load'
           : unit === 'KM'
@@ -273,7 +247,7 @@ const QuantityInput = React.forwardRef<HTMLInputElement, QuantityInputProps>(
   )
 );
 
-QuantityInput.displayName = 'QuantityInput';
+CurrencyInput.displayName = 'CurrencyInput';
 
 type NumberInputProps = Omit<InputMaskProps, 'type'>;
 
@@ -305,4 +279,4 @@ NumberInput.displayName = 'NumberInput';
 // Add more compoenets here
 // eg. Quatnity like 5 TN, 2 kg and so on
 
-export { InputMask, ABNInput, CurrencyInput, QuantityInput, NumberInput };
+export { InputMask, ABNInput, CurrencyInput, NumberInput };
