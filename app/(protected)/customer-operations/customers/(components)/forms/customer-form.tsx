@@ -159,7 +159,6 @@ export default function CustomerForm({
     },
   });
 
-  console.count('CustomerForm render');
   // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(customerForm.formState.isDirty);
