@@ -49,7 +49,7 @@ export function QuoteNavbar({
   // Dynamic styling based on tenant
   const bgColor = isQuarryLink
     ? 'bg-gradient-to-r from-[#8E51FF] to-[#553199]'
-    : 'bg-[#F5F5F5]';
+    : 'bg-[#e4e4e4]';
   const textColor = isQuarryLink ? 'text-white' : 'text-black';
   const labelColor = isQuarryLink ? 'text-white' : 'text-black';
   const downloadBtnClass = isQuarryLink
