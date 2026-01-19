@@ -32,22 +32,22 @@ const createColumns = (
       accessorKey: 'name',
       header: 'Product',
       cell: ({ row }) => (
-        <div className="max-w-full">
+        <div className="min-w-0">
           <p
-            className="font-semibold text-gray-900 text-sm truncate"
+            className="font-semibold text-gray-900 text-sm"
             title={row.original.name}
           >
             {row.original.name}
           </p>
           <p
-            className="text-gray-500 text-xs truncate"
+            className="text-gray-500 text-xs whitespace-normal"
             title={row.original.deliveryAddress}
           >
             {row.original.deliveryAddress}
           </p>
         </div>
       ),
-      size: 160,
+      size: 250,
     },
     ...(isCollection
       ? []

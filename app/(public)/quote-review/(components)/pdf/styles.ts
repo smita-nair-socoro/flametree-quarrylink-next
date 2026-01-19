@@ -6,6 +6,9 @@ Font.register({
   src: '/fonts/Geist.ttf',
 });
 
+// Disable word hyphenation - keeps words intact when wrapping
+Font.registerHyphenationCallback((word) => [word]);
+
 // Brand colors matching the web design
 export const colors = {
   // Primary brand colors
