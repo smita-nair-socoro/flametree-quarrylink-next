@@ -23,10 +23,10 @@ export interface CustomerDeliveryAddress {
   inUse: boolean;
   lastUsedAt?: string;
   version: number;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
 }
 
 // Legacy address type (keep for compatibility)

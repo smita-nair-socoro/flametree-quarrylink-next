@@ -779,7 +779,9 @@ export function useLineItemFormState({
     const addressPayload = mappedAddress
       ? (({ id, ...rest }) => rest)(mappedAddress)
       : undefined;
-    const customerDeliveryAddress: CustomerDeliveryAddress | undefined =
+    const customerDeliveryAddress:
+      | Partial<CustomerDeliveryAddress>
+      | undefined =
       addressPayload && customerId
         ? {
             ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
@@ -793,16 +795,10 @@ export function useLineItemFormState({
             address: addressPayload,
             inUse: true,
             lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
-            version: selectedLineItem?.customerDeliveryAddress?.version ?? 0,
-            createdBy: selectedLineItem?.customerDeliveryAddress?.createdBy,
-            createdAt: selectedLineItem?.customerDeliveryAddress?.createdAt,
-            updatedAt: selectedLineItem?.customerDeliveryAddress?.updatedAt,
-            lastModifiedBy:
-              selectedLineItem?.customerDeliveryAddress?.lastModifiedBy,
           }
         : undefined;
 
-    const quoteItemData: QuotationLineItem = {
+    const quoteItemData: Partial<QuotationLineItem> = {
       quoteId: selectedQuotation?.id || 0,
       productId: values.productId,
       quarrySupplierId: values.quarrySupplierId,
@@ -839,8 +835,7 @@ export function useLineItemFormState({
       totalQuantityRequired: values.productSellQty,
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty,
-      requiredLoads: selectedLineItem?.requiredLoads,
-      version: 1,
+      version: selectedLineItem?.version || 1,
     };
 
     if (isEditing && selectedLineItem?.id) {
