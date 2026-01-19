@@ -780,6 +780,20 @@ export const APIClient = {
 
     convertToDraft: (id: number) =>
       appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
+    updateQuoteDecision: (
+      id: number,
+      status: 'APPROVED' | 'DECLINED',
+      declineReason?: string
+    ) => {
+      const body: { status: string; declineReason?: string } = { status };
+      if (status === 'DECLINED' && declineReason) {
+        body.declineReason = declineReason;
+      }
+      return appClient.Put<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/decision`,
+        { body }
+      );
+    },
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),

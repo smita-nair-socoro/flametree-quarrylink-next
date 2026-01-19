@@ -41,6 +41,7 @@ import {
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
+  useUpdateQuoteDecision,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
@@ -852,6 +853,7 @@ export function useQuotationActions(
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -1082,25 +1084,21 @@ export function useQuotationActions(
       return;
     }
 
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId) {
       notifyError(extractErrorMessage('Unable to decline quotation'));
       return;
     }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.DECLINED,
-      });
+      // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+      const composedDeclineReason = declineNotes.trim()
+        ? `${declineReason}-${declineNotes.trim()}`
+        : declineReason;
 
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      // TODO: Once API is updated, include declineReason and declineNotes in the request
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
+      await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
+        status: 'DECLINED',
+        declineReason: composedDeclineReason,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);
