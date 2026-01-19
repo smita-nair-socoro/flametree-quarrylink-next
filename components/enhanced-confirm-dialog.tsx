@@ -16,7 +16,7 @@ interface EnhancedConfirmDialogProps {
   title: string;
   description?: string;
   details?: string[];
-  content?: string;
+  content?: React.ReactNode;
   additionalInfo?: {
     label: string;
     value: string;
@@ -87,7 +87,7 @@ export function EnhancedConfirmDialog({
 
         {content && (
           <>
-            <div className="border-t border-gray-200 -mx-6"></div>
+            {description && <div className="border-t border-gray-200 -mx-6"></div>}
             <div className="text-sm text-gray-600">{content}</div>
           </>
         )}

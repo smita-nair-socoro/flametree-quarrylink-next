@@ -19,6 +19,8 @@ export interface QuotationDTO {
   accountManagerName: string;
   projectName: string;
   quoteStatus: QuoteStatus;
+  declineReason?: string;
+  customerResponseAt?: string;
   jobId: number;
   deliveryStartDate: string | null;
   expiryDate: string | null;

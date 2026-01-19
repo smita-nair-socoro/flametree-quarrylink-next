@@ -25,6 +25,14 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
@@ -33,6 +41,7 @@ import {
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
+  useUpdateQuoteDecision,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
@@ -56,6 +65,7 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
 }
 
 interface SelectedAction {
@@ -83,7 +93,14 @@ const getDialogConfigs = (
   includeDeliveryPrices?: boolean,
   setIncludeDeliveryPrices?: (value: boolean) => void,
   onPreviewClick?: () => void,
-  isCollectionType?: boolean
+  isCollectionType?: boolean,
+  declineReason?: string,
+  setDeclineReason?: (reason: string) => void,
+  declineNotes?: string,
+  setDeclineNotes?: (notes: string) => void,
+  showDeclineValidationError?: boolean,
+  setShowDeclineValidationError?: (show: boolean) => void,
+  isDeclineFormValid?: boolean
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -389,27 +406,90 @@ const getDialogConfigs = (
                 </div>
               </div>
             </div>
+
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What happens when Quote is declined:
-              </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Quote status changes from Pending to Declined</li>
-                <li> Customer is notified or declined status</li>
-                <li> Quote cannot be converted to a job</li>
-                <li> Quote can be reactivated later if needed</li>
-              </ul>
+              <label className="text-sm font-normal text-[#364153]">
+                Reason for declining <span className="text-[#E7000B]">*</span>
+              </label>
+              <Select
+                value={declineReason}
+                onValueChange={(value) => {
+                  if (setDeclineReason) {
+                    setDeclineReason(value);
+                  }
+                  if (setShowDeclineValidationError) {
+                    setShowDeclineValidationError(false);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a reason..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="price_too_high">Price too high</SelectItem>
+                  <SelectItem value="timeline_conflict">
+                    Timeline conflict
+                  </SelectItem>
+                  <SelectItem value="scope_changed">Scope changed</SelectItem>
+                  <SelectItem value="customer_unresponsive">
+                    Customer unresponsive
+                  </SelectItem>
+                  <SelectItem value="competitor_selected">
+                    Competitor selected
+                  </SelectItem>
+                  <SelectItem value="project_cancelled">
+                    Project cancelled
+                  </SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {showDeclineValidationError && !declineReason && (
+                <p className="text-xs text-[#E7000B]">Please select a reason</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-normal text-[#6A7282]">
+                Additional notes{' '}
+                {declineReason === 'other' ? (
+                  <span className="text-[#E7000B]">*</span>
+                ) : (
+                  '(Optional)'
+                )}
+              </label>
+              <Textarea
+                value={declineNotes}
+                onChange={(e) => {
+                  if (setDeclineNotes) {
+                    setDeclineNotes(e.target.value);
+                  }
+                  if (setShowDeclineValidationError) {
+                    setShowDeclineValidationError(false);
+                  }
+                }}
+                placeholder="Add any additional details about declining this quote..."
+                className="min-h-[80px] resize-none"
+              />
+              {showDeclineValidationError &&
+                declineReason === 'other' &&
+                !String(declineNotes).trim() && (
+                  <p className="text-xs text-[#E7000B]">
+                    Please provide additional notes when selecting
+                    &quot;Other&quot;
+                  </p>
+                )}
             </div>
 
             <div className="flex flex-col gap-2">
               <span className="font-medium text-[14px] text-[#101828]">
-                What continues to work:
+                What happens when quote is declined:
               </span>
               <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Quote remains accessible for reference</li>
-                <li> Historical data is preserved</li>
-                <li> Quote can be edited and resent</li>
-                <li> Customer relationship management continues</li>
+                <li>Quote status changes from Pending to Declined</li>
+                <li>Customer is notified of declined status</li>
+                <li>
+                  Quote can be edited and resent to customer later if needed
+                </li>
               </ul>
             </div>
           </div>
@@ -417,6 +497,7 @@ const getDialogConfigs = (
         confirmText: 'Decline Quote',
         confirmVariant: 'destructive',
         confirmCustomColor: '#E7000B',
+        confirmDisabled: !isDeclineFormValid,
       },
     };
   } else if (selectedAction?.key === 'convertToDraft') {
@@ -751,13 +832,28 @@ export function useQuotationActions(
     weekFromToday.setDate(weekFromToday.getDate() + 7);
     return weekFromToday;
   });
-  const [includeDeliveryPrices, setIncludeDeliveryPrices] =
-    React.useState(quotationData?.inclDeliveryCost ?? false);
+
+  // Decline form state
+  const [declineReason, setDeclineReason] = React.useState<string>('');
+  const [declineNotes, setDeclineNotes] = React.useState<string>('');
+  const [showDeclineValidationError, setShowDeclineValidationError] =
+    React.useState(false);
+
+  // Decline form validation
+  const isDeclineFormValid = React.useMemo(() => {
+    if (!declineReason) return false;
+    if (declineReason === 'other' && !declineNotes.trim()) return false;
+    return true;
+  }, [declineReason, declineNotes]);
+  const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
+    quotationData?.inclDeliveryCost ?? false
+  );
 
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -765,6 +861,16 @@ export function useQuotationActions(
       const weekFromToday = new Date();
       weekFromToday.setDate(weekFromToday.getDate() + 7);
       setNewExpiryDate(weekFromToday);
+    }
+  }, [selectedAction?.key]);
+
+  // Reset decline form when decline dialog opens or closes
+  React.useEffect(() => {
+    if (selectedAction?.key === 'decline') {
+      // Reset form to initial state when opening
+      setDeclineReason('');
+      setDeclineNotes('');
+      setShowDeclineValidationError(false);
     }
   }, [selectedAction?.key]);
 
@@ -856,7 +962,14 @@ export function useQuotationActions(
     includeDeliveryPrices,
     setIncludeDeliveryPrices,
     handlePreviewFromDialog,
-    isCollectionType
+    isCollectionType,
+    declineReason,
+    setDeclineReason,
+    declineNotes,
+    setDeclineNotes,
+    showDeclineValidationError,
+    setShowDeclineValidationError,
+    isDeclineFormValid
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -965,28 +1078,35 @@ export function useQuotationActions(
   };
 
   const handleDecline = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    // Validate form before submitting
+    if (!isDeclineFormValid) {
+      setShowDeclineValidationError(true);
+      return;
+    }
+
+    if (!quotationId) {
       notifyError(extractErrorMessage('Unable to decline quotation'));
       return;
     }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.DECLINED,
-      });
+      // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+      const composedDeclineReason = declineNotes.trim()
+        ? `${declineReason}-${declineNotes.trim()}`
+        : declineReason;
 
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
+      await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
+        status: 'DECLINED',
+        declineReason: composedDeclineReason,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);
       setSelectedAction(null);
+      // Reset form after successful decline
+      setDeclineReason('');
+      setDeclineNotes('');
+      setShowDeclineValidationError(false);
     } catch (error) {
       console.error('Failed to decline quotation:', error);
       notifyError(extractErrorMessage(error));
@@ -1183,6 +1303,7 @@ export function useQuotationActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
+        confirmDisabled={config.confirmDisabled}
         onConfirmAction={async () => {
           const handler = actionHandlers[key];
           if (handler) {

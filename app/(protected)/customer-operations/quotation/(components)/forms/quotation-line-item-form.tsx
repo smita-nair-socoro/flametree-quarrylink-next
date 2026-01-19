@@ -904,8 +904,12 @@ export default function QuoteLineItemForm({
         open={deleteAddressDialogOpen}
         onOpenChangeAction={setDeleteAddressDialogOpen}
         title="Remove Delivery Address"
-        description="Are you sure you want to remove this delivery address from this customer?"
-        content="This address will no longer appear in the suggestions list for this customer."
+        content={
+          <>
+            <p className="mb-3">Are you sure you want to remove this delivery address from your suggestions?</p>
+            <p>This will not affect existing quotes or historical records, but the address will no longer appear as a suggestion for this customer.</p>
+          </>
+        }
         cancelText="Cancel"
         confirmText="Remove"
         confirmVariant="destructive"

@@ -76,7 +76,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   // Dynamic styles based on tenant
   const headerStyle = isQuarryLink
     ? styles.headerGradient
-    : { ...styles.headerGradient, backgroundColor: '#F5F5F5' };
+    : { ...styles.headerGradient, backgroundColor: '#e4e4e4' };
   const textColor = isQuarryLink ? '#FFFFFF' : '#000000';
 
   return (

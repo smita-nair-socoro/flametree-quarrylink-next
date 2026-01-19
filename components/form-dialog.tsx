@@ -300,7 +300,6 @@ export function FormDialog({
   // Reset dirty state whenever dialog is opened
   React.useEffect(() => {
     if (open) {
-      console.log('setHasUnsavedChanges called');
       setHasUnsavedChanges(false);
     }
   }, [open]);
@@ -319,7 +318,6 @@ export function FormDialog({
     )
   );
 
-  console.count('FormDialog render');
   const forceClose = React.useCallback(() => {
     setOpen(false);
     setEffectiveId(id);

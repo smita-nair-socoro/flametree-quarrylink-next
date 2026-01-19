@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -338,20 +337,56 @@ export default function QuotationForm({
             </div>
           )}
 
-          {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (
-            <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
-              <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
-                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <div className="flex flex-col">
-                  <span>
-                    Customer declined this quote due to {'{DROP DOWN REASON}'}.
-                    Note: {'{TEXT BOX}'} Declined on {'DD/MM/YY at 24:00'}.
-                  </span>
-                  <span>Edit to return to Draft status.</span>
+          {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (() => {
+            // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
+            const declineReasonRaw = currentQuotation?.declineReason || '';
+            const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
+            const declineNote = noteParts.join('-').trim();
+
+            // Map reason keys to human-readable labels
+            const reasonLabels: Record<string, string> = {
+              price_too_high: 'Price too high',
+              timeline_conflict: 'Timeline conflict',
+              scope_changed: 'Scope changed',
+              customer_unresponsive: 'Customer unresponsive',
+              competitor_selected: 'Competitor selected',
+              project_cancelled: 'Project cancelled',
+              other: 'Other',
+            };
+            const reasonLabel = reasonLabels[reasonKey] || reasonKey;
+
+            // Format customerResponseAt date
+            const responseDate = currentQuotation?.customerResponseAt
+              ? new Date(currentQuotation.customerResponseAt)
+              : null;
+            const formattedDate = responseDate
+              ? `${responseDate.toLocaleDateString('en-AU', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: '2-digit',
+                })} at ${responseDate.toLocaleTimeString('en-AU', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                })}`
+              : '';
+
+            return (
+              <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+                <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
+                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <div className="flex flex-col">
+                    <span>
+                      Customer declined this quote due to {reasonLabel}.
+                      {declineNote && ` *Note: ${declineNote}`}
+                      {formattedDate && ` (Declined on ${formattedDate}).`}
+                    </span>
+                    <span>Edit to return to Draft status.</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           <div
             className={cn(
@@ -493,6 +528,50 @@ export default function QuotationForm({
             {isEditing && (
               <FormField
                 control={quotationForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Customer Email*</FormLabel>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          className="max-w-[250px]"
+                          backgroundClassName="bg-gray-900 text-white"
+                          arrowClassName="bg-gray-900 fill-gray-900"
+                        >
+                          <p className="text-xs">
+                            Recipient email address for this quote only.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Email"
+                        {...field}
+                        disabled={isEditing && !canEdit}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {isEditing && (
+              <FormField
+                control={quotationForm.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem
@@ -502,7 +581,24 @@ export default function QuotationForm({
                         : 'col-span-2'
                     }
                   >
-                    <FormLabel>Phone*</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Customer Phone*</FormLabel>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          className="max-w-[250px]"
+                          backgroundClassName="bg-gray-900 text-white"
+                          arrowClassName="bg-gray-900 fill-gray-900"
+                        >
+                          <p className="text-xs">
+                            Contact phone number for this quote only.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <FormControl>
                       <PhoneInput
                         className="w-full"
@@ -518,66 +614,34 @@ export default function QuotationForm({
               />
             )}
 
-            <FormField
-              control={quotationForm.control}
-              name="deliveryStartDate"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>{dateLabel}*</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChangeAction={field.onChange}
-                      placeholder="Pick a date"
-                      disabled={{ before: today }}
-                      readOnly={isEditing && !canEdit}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            {/* Delivery Time Window Section */}
+            <div
+              className={cn(
+                'col-span-2',
+                isEditing && isDesktop ? 'grid grid-cols-4 gap-4' : 'grid grid-cols-1 gap-2'
               )}
-            />
-
-            {isEditing && (
+            >
+              <h3 className="font-bold col-span-full mb-2">{timeWindowLabel}</h3>
               <FormField
                 control={quotationForm.control}
-                name="email"
+                name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1 gap-0'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Email*</FormLabel>
+                  <FormItem className={isEditing && isDesktop ? 'col-span-2' : ''}>
+                    <FormLabel>{dateLabel}*</FormLabel>
                     <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Email"
-                        {...field}
-                        disabled={isEditing && !canEdit}
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        placeholder="Pick a date"
+                        disabled={{ before: today }}
+                        readOnly={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
 
-            <div
-              className={cn(
-                'grid grid-cols-2 gap-2',
-                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-              )}
-            >
-              <h3 className="font-bold col-span-2">{timeWindowLabel}</h3>
               <FormField
                 control={quotationForm.control}
                 name="deliveryWindowStart"
@@ -620,35 +684,39 @@ export default function QuotationForm({
                 )}
               />
             </div>
-            <FormField
-              control={quotationForm.control}
-              name="expiryDate"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Expiry Date</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChangeAction={field.onChange}
-                      placeholder="Pick a date"
-                      disabled={{ before: today }}
-                      readOnly={isEditing && !canEdit}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    If the quote is not approved by the expiry date, it will
-                    automatically expire and no longer be valid.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+            {/* Expiry Date Section */}
+            <div
+              className={cn(
+                'col-span-2 mb-6',
+                isEditing && isDesktop ? 'grid grid-cols-2 gap-4' : 'grid grid-cols-1 gap-2'
               )}
-            />
+            >
+              <FormField
+                control={quotationForm.control}
+                name="expiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expiry Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        placeholder="Pick a date"
+                        disabled={{ before: today }}
+                        readOnly={isEditing && !canEdit}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex items-center">
+                <p className="text-sm text-muted-foreground">
+                  If the quote is not approved by the expiry date, it will
+                  automatically expire and no longer be valid.
+                </p>
+              </div>
+            </div>
 
             {isEditing && (
               <div

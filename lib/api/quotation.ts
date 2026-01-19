@@ -314,15 +314,55 @@ export const useUpdatePublicQuoteStatus = () => {
     mutationFn: async ({
       status,
       token,
+      declineReason,
     }: {
       status: 'APPROVED' | 'DECLINED';
       token: string;
+      declineReason?: string;
     }) => {
       const response = await APIClient.quotations.updatePublicQuoteStatus(
         status,
-        token
+        token,
+        declineReason
       );
       return response;
+    },
+  });
+};
+
+/**
+ * Mutation hook for updating quote decision (approve/decline) with authentication.
+ * Used on the admin side for authenticated users.
+ */
+export const useUpdateQuoteDecision = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      declineReason,
+    }: {
+      id: number;
+      status: 'APPROVED' | 'DECLINED';
+      declineReason?: string;
+    }) => {
+      const response = await APIClient.quotations.updateQuoteDecision(
+        id,
+        status,
+        declineReason
+      );
+      return response;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
 };

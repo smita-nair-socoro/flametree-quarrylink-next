@@ -356,9 +356,13 @@ export default function QuoteReviewDocument({
       return;
     }
 
-    // TODO: Once API is updated, include declineReason and declineNotes in the request
+    // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+    const composedDeclineReason = declineNotes.trim()
+      ? `${declineReason}-${declineNotes.trim()}`
+      : declineReason;
+
     updateQuoteStatus(
-      { status: 'DECLINED', token },
+      { status: 'DECLINED', token, declineReason: composedDeclineReason },
       {
         onSuccess: () => {
           setQuoteStatus(QuoteStatus.DECLINED);
