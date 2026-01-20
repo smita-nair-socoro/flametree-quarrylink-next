@@ -12,7 +12,7 @@ export const NewQuotationLineItemFormSchema = z
     quarrySupplierId: z.coerce.number().min(1, { message: 'Required' }),
     supplierProductName: z.string().nonempty({ message: 'Required' }),
     productCostUom: z.string().nonempty({ message: 'Required' }),
-    productCostQty: z.coerce.number().min(1, { message: 'Required' }),
+    productCostQty: z.coerce.number().optional(),
     productCostPrice: z.coerce.number().min(1, { message: 'Required' }),
     productSellUom: z.string().nonempty({ message: 'Required' }),
     productSellQty: z.coerce.number().min(1, { message: 'Required' }),

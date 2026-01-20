@@ -504,6 +504,76 @@ export function useLineItemFormState({
   // Auto-fill product pricing on UOM changes
   const productCostUom = form.watch('productCostUom');
   const productSellUom = form.watch('productSellUom');
+  const productSellQty = form.watch('productSellQty');
+
+  // Auto-calculate product cost quantity based on sell quantity/UOM and density
+  React.useEffect(() => {
+    const density = Number(productDetailsQuery.data?.densityTonnagePerM3 || 0);
+    const from = form.getValues('productSellUom') || '';
+    const to = form.getValues('productCostUom') || '';
+    const qty = Number(form.getValues('productSellQty') || 0);
+
+    if (!qty || qty <= 0) {
+      form.setValue('productCostQty', 0, { shouldDirty: false, shouldValidate: true });
+      return;
+    }
+
+    // Helper conversion via TN
+    const toTn = (q: number, unit: string): number => {
+      switch (unit) {
+        case 'TN':
+          return q;
+        case 'M3':
+          return density > 0 ? q * density : 0;
+        case 'KG_20':
+          return q / 50; // 50 x 20kg bags = 1 tonne
+        case 'BULKA':
+          return density > 0 ? q * density : 0; // 1 bulka = 1 m3
+        default:
+          return 0;
+      }
+    };
+    const fromTn = (tn: number, unit: string): number => {
+      switch (unit) {
+        case 'TN':
+          return tn;
+        case 'M3':
+          return density > 0 ? tn * density : 0;
+        case 'KG_20':
+          return tn * 50;
+        case 'BULKA':
+          return density > 0 ? tn / density : 0; // 1 bulka = 1 m3
+        default:
+          return 0;
+      }
+    };
+
+    if (!from || !to) {
+      // If units are not selected yet, clear cost qty
+      form.setValue('productCostQty', 0, { shouldDirty: false });
+      return;
+    }
+
+    // If the same unit, cost qty = sell qty
+    if (from === to) {
+      form.setValue('productCostQty', qty, { shouldDirty: false });
+      return;
+    }
+
+    // Convert via TN
+    const tn = toTn(qty, from);
+    const converted = fromTn(tn, to);
+    form.setValue('productCostQty', Number.isFinite(converted) ? converted : 0, {
+      shouldDirty: false,
+      shouldValidate: true,
+    });
+  }, [
+    productSellQty,
+    productSellUom,
+    productCostUom,
+    productDetailsQuery.data?.densityTonnagePerM3,
+    form,
+  ]);
 
   React.useEffect(() => {
     const qsp = selectedQuarrySupplierProduct as
@@ -705,7 +775,6 @@ export function useLineItemFormState({
   const productCostPrice = form.watch('productCostPrice');
   const truckCostQty = form.watch('truckCostQty');
   const truckCostPrice = form.watch('truckCostPrice');
-  const productSellQty = form.watch('productSellQty');
   const productSellPrice = form.watch('productSellPrice');
   const truckSellQty = form.watch('truckSellQty');
   const truckSellPrice = form.watch('truckSellPrice');
