@@ -22,31 +22,49 @@ const getInitials = (tenantName: string): string => {
     .join('');
 };
 
-// Status badge colors mapping
+// Status badge colors mapping - matches BADGE_COLORS in lib/utils
 const getStatusBadgeStyle = (status: string) => {
   switch (status) {
     case 'APPROVED':
       return {
-        backgroundColor: '#DCFCE7',
-        borderColor: '#16A34A',
-        color: '#16A34A',
+        backgroundColor: '#DCFCE7', // green-100
+        borderColor: '#166534', // green-900
+        color: '#166534',
       };
     case 'DECLINED':
       return {
-        backgroundColor: '#FEE2E2',
-        borderColor: '#DC2626',
-        color: '#DC2626',
+        backgroundColor: '#FFEDD5', // orange-100
+        borderColor: '#9A3412', // orange-800
+        color: '#9A3412',
       };
     case 'PENDING':
       return {
-        backgroundColor: '#FEF9C3',
-        borderColor: '#854D0E',
-        color: '#854D0E',
+        backgroundColor: '#FEF9C3', // yellow-100
+        borderColor: '#713F12', // yellow-900
+        color: '#713F12',
       };
     case 'DRAFT':
       return {
-        backgroundColor: '#F3F4F6',
-        borderColor: '#6B7280',
+        backgroundColor: '#F3F4F6', // gray-100
+        borderColor: '#1F2937', // gray-800
+        color: '#1F2937',
+      };
+    case 'CONVERTED_TO_JOB':
+      return {
+        backgroundColor: '#DBEAFE', // blue-100
+        borderColor: '#1E3A8A', // blue-900
+        color: '#1E3A8A',
+      };
+    case 'EXPIRED':
+      return {
+        backgroundColor: '#FEE2E2', // red-100
+        borderColor: '#7F1D1D', // red-900
+        color: '#7F1D1D',
+      };
+    case 'ARCHIVED':
+      return {
+        backgroundColor: '#F3F4F6', // gray-100
+        borderColor: '#6B7280', // gray-500
         color: '#6B7280',
       };
     default:
@@ -145,7 +163,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
                     { color: statusStyle.color },
                   ]}
                 >
-                  {status}
+                  {status.replace(/_/g, ' ')}
                 </Text>
               </View>
             </View>
