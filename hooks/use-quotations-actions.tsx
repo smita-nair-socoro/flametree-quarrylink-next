@@ -1,11 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import {
-  Quotation,
-  QuotationDTO,
-  PublicQuoteLinkResponse,
-} from '@/lib/types/quotation';
+import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
@@ -36,7 +32,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
-  QuotationPreviewQueryOptions,
   useConvertToDraft,
   useExtendExpiryDate,
   useUpdateQuotation,
@@ -72,18 +67,6 @@ interface SelectedAction {
   key: string;
 }
 
-const encodeQuotationPayload = (
-  quotationData?: Quotation | PublicQuoteLinkResponse | null
-) => {
-  if (!quotationData) return null;
-  try {
-    const json = JSON.stringify(quotationData);
-    return encodeURIComponent(json);
-  } catch (error) {
-    console.error('Failed to encode quotation preview payload', error);
-    return null;
-  }
-};
 
 const getDialogConfigs = (
   quotationData?: Quotation | null,
@@ -913,42 +896,16 @@ export function useQuotationActions(
     }
   }, [resolvedQuotation?.inclDeliveryCost]);
 
-  const handlePreviewFromDialog = async () => {
+  const handlePreviewFromDialog = () => {
     if (!quotationId) {
       notifyError('Unable to preview quotation');
       return;
     }
 
-    try {
-      // Fetch preview data from API
-      const queryClient = (await import('@tanstack/react-query')).QueryClient;
-      const client = new queryClient();
-      const previewData = await client.fetchQuery(
-        QuotationPreviewQueryOptions(quotationId)
-      );
-
-      if (!previewData) {
-        notifyError('Failed to load preview data');
-        return;
-      }
-
-      // Override inclDeliveryCost with toggle value for preview
-      previewData.quoteDto.inclDeliveryCost = includeDeliveryPrices;
-
-      // Encode the preview data
-      const encodedPayload = encodeQuotationPayload(previewData);
-      if (!encodedPayload) {
-        notifyError('Failed to encode preview data');
-        return;
-      }
-
-      // Open preview in new tab
-      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
-      window.open(previewUrl, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      console.error('Failed to preview quotation:', error);
-      notifyError(extractErrorMessage(error));
-    }
+    // Open preview in new tab with inclDeliveryCost as URL parameter
+    // The preview page will fetch data from API and override inclDeliveryCost with this value
+    const previewUrl = `/quote-review/?quoteId=${quotationId}&inclDeliveryCost=${includeDeliveryPrices}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Determine if the quotation is COLLECTION type (no delivery prices)
@@ -1187,40 +1144,14 @@ export function useQuotationActions(
       return;
     }
 
-    try {
-      // Fetch preview data from API
-      const queryClient = (await import('@tanstack/react-query')).QueryClient;
-      const client = new queryClient();
-      const previewData = await client.fetchQuery(
-        QuotationPreviewQueryOptions(quotationId)
-      );
+    // Open preview in new tab with inclDeliveryCost as URL parameter
+    // The preview page will fetch data from API and override inclDeliveryCost with this value
+    const previewUrl = `/quote-review/?quoteId=${quotationId}&inclDeliveryCost=${includeDeliveryPrices}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
 
-      if (!previewData) {
-        notifyError('Failed to load preview data');
-        return;
-      }
-
-      // Override inclDeliveryCost with toggle value for preview mode
-      previewData.quoteDto.inclDeliveryCost = includeDeliveryPrices;
-
-      // Encode the preview data
-      const encodedPayload = encodeQuotationPayload(previewData);
-      if (!encodedPayload) {
-        notifyError('Failed to encode preview data');
-        return;
-      }
-
-      // Open preview in new tab
-      const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
-      window.open(previewUrl, '_blank', 'noopener,noreferrer');
-
-      // Close the modal after opening preview
-      setActiveDialog(null);
-      setSelectedAction(null);
-    } catch (error) {
-      console.error('Failed to preview quotation:', error);
-      notifyError(extractErrorMessage(error));
-    }
+    // Close the modal after opening preview
+    setActiveDialog(null);
+    setSelectedAction(null);
   };
 
   // Map action keys to their handlers
