@@ -91,17 +91,12 @@ export function QuotationTableActions({
             View Details
           </DropdownMenuItem>
 
-          {/* Preview Quote - available for DRAFT and PENDING */}
-          {(quotation.quoteStatus === 'DRAFT' ||
-            quotation.quoteStatus === 'PENDING') && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handlePreview}>
-                <FileSearch className="h-4 w-4 mr-2" />
-                Preview Quote
-              </DropdownMenuItem>
-            </>
-          )}
+          {/* Preview Quote - available for all statuses */}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handlePreview}>
+            <FileSearch className="h-4 w-4 mr-2" />
+            Preview Quote
+          </DropdownMenuItem>
 
           {/* Status-specific actions */}
           {quotation.quoteStatus === 'DRAFT' && (
