@@ -75,13 +75,11 @@ export function QuotationActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {/* Current stage hide it: Duplicate */}
-            {/* <DropdownMenuItem onClick={actions.duplicate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Duplicate
-            </DropdownMenuItem> */}
-
-            {/* Preview Quote - available for DRAFT and PENDING */}
+            {/* Preview Quote - available for all statuses */}
+            <DropdownMenuItem onClick={actions.preview}>
+              <FileSearch className="h-4 w-4 mr-2" />
+              Preview Quote
+            </DropdownMenuItem>
 
             {/* Status-specific actions */}
             {quotation.quoteStatus === 'DRAFT' && (
@@ -108,13 +106,6 @@ export function QuotationActionButtons({
                   Decline
                 </DropdownMenuItem>
               </>
-            )}
-            {(quotation.quoteStatus === 'DRAFT' ||
-              quotation.quoteStatus === 'PENDING') && (
-              <DropdownMenuItem onClick={actions.preview}>
-                <FileSearch className="h-4 w-4 mr-2" />
-                Preview Quote
-              </DropdownMenuItem>
             )}
             {quotation.quoteStatus === 'DECLINED' && (
               <DropdownMenuItem onClick={actions.convertToDraft}>
@@ -211,28 +202,28 @@ export function QuotationActionButtons({
           Duplicate
         </Button> */}
 
+        {/* Preview Quote - available for all statuses */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={actions.preview}
+          className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+        >
+          <FileSearch className="h-4 w-4 mr-2" />
+          Preview Quote
+        </Button>
+
         {/* Status-specific primary actions */}
         {quotation.quoteStatus === 'DRAFT' && (
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.sendToCustomer}
-              className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Send to Customer
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.preview}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
-            >
-              <FileSearch className="h-4 w-4 mr-2" />
-              Preview Quote
-            </Button>
-          </>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={actions.sendToCustomer}
+            className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Send to Customer
+          </Button>
         )}
 
         {quotation.quoteStatus === 'PENDING' && (
@@ -245,15 +236,6 @@ export function QuotationActionButtons({
             >
               <Send className="h-4 w-4 mr-2" />
               Re-Send To Customer
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.preview}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
-            >
-              <FileSearch className="h-4 w-4 mr-2" />
-              Preview Quote
             </Button>
             <Button
               variant="ghost"
