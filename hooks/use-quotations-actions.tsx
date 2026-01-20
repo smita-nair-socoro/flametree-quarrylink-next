@@ -1138,7 +1138,7 @@ export function useQuotationActions(
     }
   };
 
-  const handlePreviewQuote = () => {
+  const handlePreviewQuote = async () => {
     if (!quotationId) {
       notifyError('Unable to preview quotation');
       return;
