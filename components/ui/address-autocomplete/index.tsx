@@ -16,15 +16,7 @@ import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { cn } from '@/lib/utils';
-
-// Generate a UUID v4 for session token
-function generateSessionToken(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
+import { v4 as uuidv4 } from 'uuid';
 
 type RHFAriaProps = {
   id?: string;
@@ -187,7 +179,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
   // Session token for Google Places API - reuse within a session, regenerate after selection
-  const sessionTokenRef = useRef<string>(generateSessionToken());
+  const sessionTokenRef = useRef<string>(uuidv4());
 
   const historyAddresses = historyAddressesProp ?? [];
 
@@ -307,7 +299,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       } finally {
         setDetailsLoading(false);
         // Generate new session token after place details are fetched (session complete)
-        sessionTokenRef.current = generateSessionToken();
+        sessionTokenRef.current = uuidv4();
       }
     };
 
