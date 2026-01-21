@@ -74,6 +74,7 @@ export default function QuoteLineItemForm({
     isPending,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
+    productDetails,
   } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
 
   // Report dirty-state to parent dialog
@@ -285,8 +286,8 @@ export default function QuoteLineItemForm({
                 <Separator className="mb-4" />
               </div>
 
- {/* Sell Pricing */}
- <div className="space-y-2">
+              {/* Sell Pricing */}
+              <div className="space-y-2">
                 <span className="block text-sm font-medium text-[#737373]">
                   Sell Pricing
                 </span>
@@ -376,7 +377,18 @@ export default function QuoteLineItemForm({
                       </FormItem>
                     )}
                   />
+                  <div className="col-span-3 -mt-3 mb-3">
+                    {productDetails?.densityTonnagePerM3 && productDetails.densityTonnagePerM3 > 0 && (
+                  <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
+                    <div className="text-sm font-semibold text-purple-900">
+                      CONVERSION: 1 TN = {(1 / productDetails.densityTonnagePerM3).toFixed(2)} m³ = {(1 / productDetails.densityTonnagePerM3).toFixed(2)} Bulka = 50 x 20kg
+                    </div>
+                  </div>
+                )}
+                  </div>
                 </div>
+                {/* Conversion Info Box */}
+                
               </div>
 
               {/* Cost Pricing */}
@@ -540,20 +552,25 @@ export default function QuoteLineItemForm({
                     <FormField
                       control={quotationLineItemForm.control}
                       name="truckSellQty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>QTY*</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              disabled={isReadOnly}
-                              isNumber
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const truckSellUom = quotationLineItemForm.watch('truckSellUom');
+                        const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
+                        const isEnabled = truckSellUom && manualInputUoms.includes(truckSellUom);
+                        return (
+                          <FormItem>
+                            <FormLabel>QTY*</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                disabled={isReadOnly || !isEnabled}
+                                isNumber
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     <FormField
@@ -641,20 +658,25 @@ export default function QuoteLineItemForm({
                     <FormField
                       control={quotationLineItemForm.control}
                       name="truckCostQty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>QTY*</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              disabled={isReadOnly}
-                              isNumber
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const truckCostUom = quotationLineItemForm.watch('truckCostUom');
+                        const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
+                        const isEnabled = truckCostUom && manualInputUoms.includes(truckCostUom);
+                        return (
+                          <FormItem>
+                            <FormLabel>QTY*</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                disabled={isReadOnly || !isEnabled}
+                                isNumber
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     <FormField

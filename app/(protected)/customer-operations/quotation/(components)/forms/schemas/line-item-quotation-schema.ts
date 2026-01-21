@@ -49,14 +49,14 @@ export const NewQuotationLineItemFormSchema = z
         message: 'Required',
       });
     }
-    if ((values.truckCostQty || 0) < 1) {
+    if ((values.truckCostQty || 0) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['truckCostQty'],
         message: 'Required',
       });
     }
-    if ((values.truckCostPrice || 0) < 1) {
+    if ((values.truckCostPrice || 0) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['truckCostPrice'],
@@ -70,28 +70,28 @@ export const NewQuotationLineItemFormSchema = z
         message: 'Required',
       });
     }
-    if ((values.truckSellQty || 0) < 1) {
+    if ((values.truckSellQty || 0) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['truckSellQty'],
         message: 'Required',
       });
     }
-    if ((values.truckSellPrice || 0) < 1) {
+    if ((values.truckSellPrice || 0) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['truckSellPrice'],
         message: 'Required',
       });
     }
-    if ((values.totalTruckCostPrice || 0) < 1) {
+    if ((values.totalTruckCostPrice || 0) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['totalTruckCostPrice'],
         message: 'Required',
       });
     }
-    if ((values.totalTruckSellPrice || 0) < 1) {
+    if ((values.totalTruckSellPrice || 0) <= 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['totalTruckSellPrice'],

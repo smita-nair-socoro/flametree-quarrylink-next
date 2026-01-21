@@ -96,9 +96,9 @@ export function transformQuoteData(
         item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
       truckType: item.truckType || 'N/A',
       capacity: `${item.totalQuantityRequired || 0} ${
-        item.productSellUom || 'units'
+        item.productSellUom === 'KG_20' ? 'x 20kg' :  item.productSellUom || 'units'
       } per delivery`,
-      quantity: `${item.productSellQty || 0} ${item.productSellUom || ''}`,
+      quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
       totalPrice: item.totalProductSellPrice || 0, // Product price only
       deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
     })) || [];
