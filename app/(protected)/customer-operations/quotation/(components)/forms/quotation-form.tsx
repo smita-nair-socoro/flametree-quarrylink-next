@@ -377,11 +377,21 @@ export default function QuotationForm({
                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <div className="flex flex-col">
                       <span>
-                        Customer declined this quote due to {reasonLabel}.
-                        {declineNote && ` *Note: ${declineNote}`}
-                        {formattedDate && ` (Declined on ${formattedDate}).`}
+                        This quote was declined by the customer — Reason:{' '}
+                        {reasonLabel}
+                        {formattedDate && ` (${formattedDate})`}.
                       </span>
-                      <span>Edit to return to Draft status.</span>
+                      {declineNote && (
+                        <span>
+                          Note: {declineNote}. Select &quot;Convert to
+                          Draft&quot; to edit.
+                        </span>
+                      )}
+                      {!declineNote && (
+                        <span>
+                          Select &quot;Convert to Draft&quot; to edit.
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -827,7 +837,9 @@ export default function QuotationForm({
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">GST (10%):</span>
-                        <span className="text-sm font-normal">${pricingBreakdown.gst}</span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.gst}
+                        </span>
                       </div>
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-semibold">
