@@ -32,8 +32,8 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
     <View style={styles.section} wrap={false}>
       <View style={styles.separator} />
       <View style={styles.twoColumn}>
-        {/* Left Column - Summary & Terms */}
-        <View style={styles.column}>
+        {/* Left Column - Summary */}
+        <View style={[styles.column, { justifyContent: 'center' }]}>
           {/* Summary Section */}
           <Text style={styles.summaryHeading}>Summary</Text>
           <View style={styles.mb12}>
