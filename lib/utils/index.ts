@@ -117,6 +117,31 @@ export function addNewRecordId(tableId: string, recordId: number | string) {
 }
 
 /**
+ * Remove a record ID from the table's "new records" list in sessionStorage
+ * This is called when a record is deleted to clean up the pinned rows
+ */
+export function removeNewRecordId(tableId: string, recordId: number | string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `${tableId}_newRecordIds`;
+    const existing = getSessionStorage<string[]>(key, []);
+    const updated = Array.isArray(existing) ? [...existing] : [];
+
+    // Remove the ID if it exists in the list
+    const recordKey = String(recordId);
+    const existingIndex = updated.indexOf(recordKey);
+    if (existingIndex !== -1) {
+      updated.splice(existingIndex, 1);
+      setSessionStorage(key, updated);
+      // Dispatch custom event to notify DataTable components
+      window.dispatchEvent(new Event('sessionStorageUpdated'));
+    }
+  } catch (err) {
+    console.log('failed to remove new record ID from sessionStorage:', err);
+  }
+}
+
+/**
  * A sorting function you can reuse on any date-string column.
  * Returns negative if a < b, positive if a > b.
  */
