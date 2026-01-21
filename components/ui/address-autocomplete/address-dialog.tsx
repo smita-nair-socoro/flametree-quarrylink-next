@@ -92,7 +92,9 @@ export function createAddressSchema(address: AddressFields) {
         .min(1, {
           message: 'Postal code is required',
         })
-        .regex(/^\d{4}$/, 'Invalid postal code'),
+        // Global postal code format: allows alphanumeric, spaces, and hyphens (1-12 chars)
+        // Covers formats like: AU "2000", US "90210" or "90210-1234", UK "SW1A 1AA", CA "K1A 0B1"
+        .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
     };
   }
 

@@ -39,6 +39,18 @@ export const fetchPublicQuoteByToken = async (
   return response;
 };
 
+/**
+ * Fetch quote preview data for authenticated preview mode.
+ * Used when admin previews a quote before sending to customer.
+ */
+export const fetchQuotePreview = async (
+  quoteId: number
+): Promise<PublicQuoteLinkResponse> => {
+  const response = await APIClient.quotations.preview(quoteId);
+  console.log('[Quotation][preview] response:', response);
+  return response;
+};
+
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],

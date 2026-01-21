@@ -10,12 +10,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Delete, Loader2, Pencil, Pin, Plus, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { cn } from '@/lib/utils';
+import { v4 as uuidv4 } from 'uuid';
 
 type RHFAriaProps = {
   id?: string;
@@ -177,6 +178,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [adrAddress, setAdrAddress] = useState('');
   const [detailsLoading, setDetailsLoading] = useState(false);
+  // Session token for Google Places API - reuse within a session, regenerate after selection
+  const sessionTokenRef = useRef<string>(uuidv4());
 
   const historyAddresses = historyAddressesProp ?? [];
 
@@ -232,7 +235,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           return;
         }
 
-        const url = `https://places.googleapis.com/v1/${selectedPlaceId}`;
+        // Include sessionToken in Place Details request for proper session billing
+        const url = `https://places.googleapis.com/v1/${selectedPlaceId}?sessionToken=${sessionTokenRef.current}`;
         const response = await fetch(url, {
           headers: {
             'X-Goog-Api-Key': apiKey,
@@ -294,6 +298,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         console.error('Error fetching place details:', error);
       } finally {
         setDetailsLoading(false);
+        // Generate new session token after place details are fetched (session complete)
+        sessionTokenRef.current = uuidv4();
       }
     };
 
@@ -421,6 +427,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           ariaInvalid={ariaInvalid}
           ariaDescribedBy={ariaDescribedBy}
           inputId={inputId}
+          sessionTokenRef={sessionTokenRef}
         />
       )}
     </>
@@ -447,6 +454,7 @@ interface CommonProps {
   ariaInvalid?: boolean;
   ariaDescribedBy?: string;
   inputId?: string;
+  sessionTokenRef: React.RefObject<string>;
 }
 
 function AddressAutoCompleteInput(props: CommonProps) {
@@ -470,6 +478,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     ariaInvalid,
     ariaDescribedBy,
     inputId,
+    sessionTokenRef,
   } = props;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -506,13 +515,11 @@ function AddressAutoCompleteInput(props: CommonProps) {
         }
 
         const url = 'https://places.googleapis.com/v1/places:autocomplete';
-        const primaryTypes = [
-          'street_address',
-          'subpremise',
-          'route',
-          'street_number',
-          'landmark',
-        ];
+        // Use valid primary types from Places API (New) Table A/B
+        // 'geocode' returns addresses and geographic locations
+        // 'street_address' is a valid primary type for precise street addresses
+        // Note: street_number, route are address component types, NOT valid for includedPrimaryTypes
+        const primaryTypes = ['street_address', 'subpremise', 'premise'];
 
         const response = await fetch(url, {
           method: 'POST',
@@ -523,7 +530,9 @@ function AddressAutoCompleteInput(props: CommonProps) {
           body: JSON.stringify({
             input: debouncedSearchInput,
             includedPrimaryTypes: primaryTypes,
-            includedRegionCodes: ['AU'],
+            // Session token for proper billing - same token used in Place Details
+            sessionToken: sessionTokenRef.current,
+            // No includedRegionCodes = global search
           }),
         });
 
