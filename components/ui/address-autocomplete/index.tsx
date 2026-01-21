@@ -231,7 +231,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           console.error(
             'Place details fetch failed:',
             response.status,
-            response.statusText
+            response.statusText,
           );
           return;
         }
@@ -340,7 +340,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
 
   const handleSelectSuggestion = (
     suggestedAddress: string,
-    addressOverride?: AddressType
+    addressOverride?: AddressType,
   ) => {
     const nextAddress = addressOverride ?? {
       ...address,
@@ -531,7 +531,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           console.error(
             'Autocomplete fetch failed:',
             response.status,
-            response.statusText
+            response.statusText,
           );
           const errorText = await response.text();
           console.error('Error response:', errorText);
@@ -550,8 +550,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     };
 
     fetchSuggestions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchInput]);
+  }, [debouncedSearchInput, sessionTokenRef]);
 
   const hasSearched = debouncedSearchInput.trim().length > 0;
   const hasNoResults =
@@ -574,7 +573,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           'flex h-9 w-full items-center rounded-md border border-input px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring md:text-sm',
           ariaInvalid
             ? 'border-destructive focus-within:border-destructive focus-within:ring-destructive/20'
-            : null
+            : null,
         )}
       >
         <CommandPrimitive.Input
@@ -629,7 +628,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                         onSelect={() =>
                           onSelectSuggestion(
                             pinnedAddressFormatted,
-                            pinnedAddress
+                            pinnedAddress,
                           )
                         }
                         className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center"
@@ -650,7 +649,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                           onSelect={() =>
                             onSelectSuggestion?.(
                               addr.formattedAddress,
-                              addr.addressType
+                              addr.addressType,
                             )
                           }
                           className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center group"
@@ -698,7 +697,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                             onSelect={() => {
                               setSearchInput('');
                               setSelectedPlaceId(
-                                prediction.placePrediction.place
+                                prediction.placePrediction.place,
                               );
                               setIsOpenDialog(true);
                             }}
