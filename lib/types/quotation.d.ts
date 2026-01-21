@@ -138,9 +138,7 @@ export interface QuotationDisplayData {
   }>;
   summary: {
     totalProducts: number;
-    totalQuantity: string;
     estimatedDelivery: string;
-    termsAndConditions: string[];
     subtotal: number;
     gst: number;
     total: number;
