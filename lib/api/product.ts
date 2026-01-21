@@ -7,6 +7,7 @@ import {
 import { APIClient } from './APIClient';
 import { ProductKeys } from './keys';
 import { Product } from '../types/product';
+import { removeNewRecordId } from '../utils';
 
 export const ProductsListQueryOptions = () =>
   queryOptions({
@@ -85,6 +86,10 @@ export const useDeleteProduct = () => {
     onSuccess: (response, variables) => {
       console.log('[Mutation] Delete product response:', response);
       console.log('[Mutation] Delete product variables:', { id: variables });
+      
+      // Remove the deleted product ID from sessionStorage
+      removeNewRecordId('product_main_data_table', variables);
+      
       queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
       queryClient.invalidateQueries({ queryKey: ProductKeys.all });
       queryClient.invalidateQueries({
