@@ -180,47 +180,28 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [detailsLoading, setDetailsLoading] = useState(false);
   // Session token for Google Places API - reuse within a session, regenerate after selection
   const sessionTokenRef = useRef<string>(uuidv4());
+  // Ref to track current address to avoid stale closures
+  const addressRef = useRef(address);
+
+  // Keep addressRef in sync with address prop
+  useEffect(() => {
+    addressRef.current = address;
+  }, [address]);
 
   const historyAddresses = historyAddressesProp ?? [];
 
+  // Sync value prop to address (only when value changes externally)
+  // Note: Empty values are ignored - clearing is handled explicitly via handleReset
   useEffect(() => {
-    if (value && value !== address.formattedAddress) {
-      setAddress({ ...address, formattedAddress: value });
-    }
-  }, [value, address, address.formattedAddress, setAddress]);
+    if (!value) return;
 
-  useEffect(() => {
-    if (
-      address.address1 ||
-      address.city ||
-      address.region ||
-      address.postalCode ||
-      address.country
-    ) {
-      const formatted = formatAddressFromComponents(address);
-      if (formatted !== address.formattedAddress) {
-        const updatedAddress = {
-          ...address,
-          formattedAddress: formatted,
-        };
-        setAddress(updatedAddress);
-        // Notify react-hook-form of the change
-        if (onChange && formatted) {
-          onChange(formatted);
-        }
-      }
-    }
-  }, [
-    address.address1,
-    address.address2,
-    address.city,
-    address.region,
-    address.postalCode,
-    address.country,
-    address,
-    setAddress,
-    onChange,
-  ]);
+    const currentAddress = addressRef.current;
+    // Early return if already in sync to prevent unnecessary updates
+    if (currentAddress.formattedAddress === value) return;
+
+    // Update only formattedAddress, preserving other address fields
+    setAddress({ ...currentAddress, formattedAddress: value });
+  }, [value, setAddress]);
 
   useEffect(() => {
     const fetchPlaceDetails = async () => {
@@ -288,7 +269,17 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           googlePlaceId: selectedPlaceId, // Store the Google Place ID
         };
 
-        setAddress(formattedData);
+        // Only update if the address actually changed
+        const currentAddress = addressRef.current;
+        const same =
+          currentAddress.googlePlaceId === formattedData.googlePlaceId &&
+          currentAddress.formattedAddress === formattedData.formattedAddress &&
+          currentAddress.lat === formattedData.lat &&
+          currentAddress.lng === formattedData.lng;
+
+        if (!same) {
+          setAddress(formattedData);
+        }
         setAdrAddress(data.adrFormatAddress || '');
         // Notify react-hook-form of the change
         if (onChange && formattedAddress) {
@@ -315,7 +306,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         formattedAddress: searchInput.trim(),
       };
       setAddress(updatedAddress);
-      // Notify react-hook-form of the change
+      // Notify react-hook-form of the change when user manually enters
       if (onChange) {
         onChange(searchInput.trim());
       }
@@ -559,6 +550,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     };
 
     fetchSuggestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchInput]);
 
   const hasSearched = debouncedSearchInput.trim().length > 0;

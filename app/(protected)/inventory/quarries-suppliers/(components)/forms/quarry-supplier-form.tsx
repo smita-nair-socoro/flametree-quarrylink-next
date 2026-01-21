@@ -302,10 +302,18 @@ export default function QuarrySupplierForm({
 
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
-      setAddress(newAddress);
+      setAddress((prev) => {
+        const same =
+          prev.formattedAddress === newAddress.formattedAddress &&
+          prev.googlePlaceId === newAddress.googlePlaceId &&
+          prev.lat === newAddress.lat &&
+          prev.lng === newAddress.lng;
+
+        return same ? prev : newAddress;
+      });
+
       if (newAddress.formattedAddress) {
         setSearchInput('');
-        // Trigger validation for the address field
         quarrySupplierForm.trigger('address');
       }
     },
@@ -587,11 +595,11 @@ export default function QuarrySupplierForm({
                 <FormLabel className="mb-3">Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
+                    value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleTypeChange(value);
                     }}
-                    defaultValue={field.value}
                     className="grid grid-flow-col auto-cols-max gap-4"
                   >
                     <FormItem className="flex items-center gap-3">

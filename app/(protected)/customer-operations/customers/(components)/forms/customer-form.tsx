@@ -273,7 +273,8 @@ export default function CustomerForm({
       created_by: selectedCustomer?.createdBy ?? 'current_user',
       last_modified_by: selectedCustomer?.lastModifiedBy ?? 'current_user',
     });
-  }, [isEditing, selectedCustomerId]); // ✅ only stable deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, selectedCustomerId]); 
 
   React.useEffect(() => {
     if (!address.formattedAddress) return;
@@ -290,10 +291,18 @@ export default function CustomerForm({
 
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
-      setAddress(newAddress);
+      setAddress((prev) => {
+        const same =
+          prev.formattedAddress === newAddress.formattedAddress &&
+          prev.googlePlaceId === newAddress.googlePlaceId &&
+          prev.lat === newAddress.lat &&
+          prev.lng === newAddress.lng;
+
+        return same ? prev : newAddress;
+      });
+
       if (newAddress.formattedAddress) {
         setSearchInput('');
-        // Trigger validation for the billing_address field
         customerForm.trigger('billing_address');
       }
     },
@@ -668,11 +677,11 @@ export default function CustomerForm({
                 <FormLabel>Customer Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
+                    value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleFormFieldChange('customer_type', value);
                     }}
-                    defaultValue={field.value}
                     className="grid grid-flow-col auto-cols-max gap-4"
                   >
                     <FormItem className="flex items-center gap-3">
@@ -710,11 +719,11 @@ export default function CustomerForm({
                 <FormLabel>Payment Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
+                    value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleFormFieldChange('payment_type', value);
                     }}
-                    defaultValue={field.value}
                     className="grid grid-flow-col auto-cols-max gap-4"
                   >
                     <FormItem className="flex items-center gap-3">
