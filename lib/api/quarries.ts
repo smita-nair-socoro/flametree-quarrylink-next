@@ -7,6 +7,7 @@ import {
 import { APIClient } from './APIClient';
 import { QuarryKeys } from './keys';
 import { Quarry } from '../types/quarry';
+import { removeNewRecordId } from '../utils';
 
 export const QuarryListQueryOptions = () =>
   queryOptions({
@@ -116,6 +117,9 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
           queryKey: QuarryKeys.detail(variables.id),
         });
         queryClient.invalidateQueries({ queryKey: QuarryKeys.all });
+        
+        // Remove the deleted quarry/supplier ID from sessionStorage
+        removeNewRecordId('quarry_suppliers_table', variables.id);
       }
     },
     onError: (error, variables) => {

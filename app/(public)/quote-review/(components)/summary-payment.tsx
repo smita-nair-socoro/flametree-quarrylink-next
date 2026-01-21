@@ -6,9 +6,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 
 export interface SummaryPaymentProps {
   totalProducts: number;
-  totalQuantity: string;
   estimatedDelivery: string;
-  termsAndConditions: string[];
   subtotal: number;
   gst: number;
   total: number;
@@ -19,9 +17,7 @@ export interface SummaryPaymentProps {
 
 export function SummaryPayment({
   totalProducts,
-  totalQuantity,
   estimatedDelivery,
-  // termsAndConditions,
   subtotal,
   gst,
   total,
@@ -33,7 +29,7 @@ export function SummaryPayment({
 
   return (
     <div className="bg-[rgba(245,245,245,0.3)] border-b-[1.25px] border-[rgba(229,229,229,1)] px-8 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Column - Summary */}
         <div>
           <h2 className="font-semibold mb-4 text-base text-gray-900">
@@ -47,32 +43,10 @@ export function SummaryPayment({
             </p>
 
             <p className="text-[#0A0A0A] text-sm">
-              <span className="font-bold">Total Quantity:</span> {totalQuantity}
-            </p>
-
-            <p className="text-[#0A0A0A] text-sm">
               <span className="font-bold">Estimated Delivery:</span>{' '}
               {estimatedDelivery}
             </p>
           </div>
-
-          {/* Terms & Conditions
-          <div>
-            <h3 className="font-semibold text-[rgba(10,10,10,1)] mb-3 text-base">
-              Terms & Conditions
-            </h3>
-            <ul className="space-y-2">
-              {termsAndConditions.map((term, index) => (
-                <li
-                  key={index}
-                  className="text-[rgba(115,115,115,1)] flex text-sm"
-                >
-                  <span className="mr-2">•</span>
-                  <span>{term}</span>
-                </li>
-              ))}
-            </ul>
-          </div> */}
         </div>
 
         {/* Right Column - Payment Breakdown */}
