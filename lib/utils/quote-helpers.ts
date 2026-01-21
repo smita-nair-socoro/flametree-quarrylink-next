@@ -1,7 +1,7 @@
 import { QUOTE_STATUS, QUOTE_TYPE } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toLocalDateTime } from './date';
-import { centsToDollarsNum } from './currency';
+import { centsToDollars } from './currency';
 import { formatPhoneNumber } from './phone-helper';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
@@ -34,7 +34,7 @@ export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
 
 const combineDateAndTime = (
   date: Date | undefined,
-  timeString: string
+  timeString: string,
 ): string | null => {
   if (!date || !timeString) return null;
 
@@ -53,7 +53,7 @@ const combineDateAndTime = (
  * @returns The next quote number (e.g., "Q0016")
  */
 export const generateNextQuoteNumber = (
-  latestQuoteNumber?: string | null
+  latestQuoteNumber?: string | null,
 ): string => {
   if (!latestQuoteNumber) {
     return 'Q0001';
@@ -78,7 +78,7 @@ export const generateNextQuoteNumber = (
  * @returns The latest/maximum quote number string
  */
 export const getLatestQuoteNumber = (
-  existingQuotes: { quoteNumber: string }[]
+  existingQuotes: { quoteNumber: string }[],
 ): string | null => {
   if (!existingQuotes || existingQuotes.length === 0) {
     return null;
@@ -92,7 +92,8 @@ export const getLatestQuoteNumber = (
         : null;
     })
     .filter(
-      (n): n is { num: number; original: string } => n !== null && !isNaN(n.num)
+      (n): n is { num: number; original: string } =>
+        n !== null && !isNaN(n.num),
     );
 
   if (numbers.length === 0) {
@@ -100,7 +101,7 @@ export const getLatestQuoteNumber = (
   }
 
   const maxEntry = numbers.reduce((max, current) =>
-    current.num > max.num ? current : max
+    current.num > max.num ? current : max,
   );
 
   return maxEntry.original;
@@ -114,7 +115,7 @@ export const transformFormDataToQuoteDto = (
     accountManagerSub: string;
     quoteNumber?: string;
     lineItemsCount?: number;
-  }
+  },
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
   const expiryDate = formData.expiryDate as Date | undefined;
@@ -154,7 +155,7 @@ export const transformFormDataToQuoteDto = (
 
   const windowStart = combineDateAndTime(
     deliveryDate,
-    formData.deliveryWindowStart as string
+    formData.deliveryWindowStart as string,
   );
   if (windowStart) {
     transformed.deliveryWindowStart = windowStart;
@@ -162,7 +163,7 @@ export const transformFormDataToQuoteDto = (
 
   const windowEnd = combineDateAndTime(
     deliveryDate,
-    formData.deliveryWindowEnd as string
+    formData.deliveryWindowEnd as string,
   );
   if (windowEnd) {
     transformed.deliveryWindowEnd = windowEnd;
@@ -175,18 +176,22 @@ export const transformFormDataToQuoteDto = (
  * Quotation pricing breakdown interface
  */
 
+const GST_RATE = 0.1;
+
 export interface QuotationPricingBreakdown {
-  totalProductCostPrice: number;
-  totalTruckCostPrice: number;
-  totalProductSellPrice: number;
-  totalTruckSellPrice: number;
-  totalInvoice: number;
-  grossProfit: number;
+  totalProductCostPrice: string | number;
+  totalTruckCostPrice: string | number;
+  totalProductSellPrice: string | number;
+  totalTruckSellPrice: string | number;
+  totalInvoice: string | number;
+  grossProfit: string | number;
   grossProfitPercentage: number;
+  gst: string | number;
+  totalInvoiceIncGST: string | number;
 }
 
 export const calculateQuotationPricing = (
-  lineItems: QuotationLineItem[] | undefined | null
+  lineItems: QuotationLineItem[] | undefined | null,
 ): QuotationPricingBreakdown => {
   // Handle empty or null line items
   if (!lineItems || lineItems.length === 0) {
@@ -198,25 +203,27 @@ export const calculateQuotationPricing = (
       totalInvoice: 0,
       grossProfit: 0,
       grossProfitPercentage: 0,
+      gst: 0,
+      totalInvoiceIncGST: 0,
     };
   }
 
   // Sum up the values (in cents)
   const totalProductCostCents = lineItems.reduce(
     (sum, item) => sum + (item.totalProductCostPrice || 0),
-    0
+    0,
   );
   const totalTruckCostCents = lineItems.reduce(
     (sum, item) => sum + (item.totalTruckCostPrice || 0),
-    0
+    0,
   );
   const totalProductSellCents = lineItems.reduce(
     (sum, item) => sum + (item.totalProductSellPrice || 0),
-    0
+    0,
   );
   const totalTruckSellCents = lineItems.reduce(
     (sum, item) => sum + (item.totalTruckSellPrice || 0),
-    0
+    0,
   );
 
   const totalCostCents = totalProductCostCents + totalTruckCostCents;
@@ -226,13 +233,18 @@ export const calculateQuotationPricing = (
     totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
 
   // Convert cents to dollars for display
+  const gstCents = totalInvoiceCents * GST_RATE;
+  const totalInvoiceCentsWithGST = totalInvoiceCents + gstCents;
+
   return {
-    totalProductCostPrice: centsToDollarsNum(totalProductCostCents),
-    totalTruckCostPrice: centsToDollarsNum(totalTruckCostCents),
-    totalProductSellPrice: centsToDollarsNum(totalProductSellCents),
-    totalTruckSellPrice: centsToDollarsNum(totalTruckSellCents),
-    totalInvoice: centsToDollarsNum(totalInvoiceCents),
-    grossProfit: centsToDollarsNum(grossProfitCents),
     grossProfitPercentage: grossProfitPercentage,
+    totalProductCostPrice: centsToDollars(totalProductCostCents),
+    totalTruckCostPrice: centsToDollars(totalTruckCostCents),
+    totalProductSellPrice: centsToDollars(totalProductSellCents),
+    totalTruckSellPrice: centsToDollars(totalTruckSellCents),
+    totalInvoice: centsToDollars(totalInvoiceCents),
+    grossProfit: centsToDollars(grossProfitCents),
+    gst: centsToDollars(gstCents),
+    totalInvoiceIncGST: centsToDollars(totalInvoiceCentsWithGST),
   };
 };

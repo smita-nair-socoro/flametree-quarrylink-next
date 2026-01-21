@@ -79,7 +79,7 @@ export default function QuotationForm({
     resolver: zodResolver(NewQuotationFormSchema),
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
-      isEditing
+      isEditing,
     ),
   });
 
@@ -94,8 +94,6 @@ export default function QuotationForm({
     dateLabel,
     timeWindowLabel,
     pricingBreakdown,
-    gst,
-    totalInvoiceIncGST,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
   const isCollectionQuote =
     currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
@@ -139,7 +137,7 @@ export default function QuotationForm({
       if (!subOrName) return '';
       return users.find((u) => u.sub === subOrName)?.name || subOrName;
     },
-    [users]
+    [users],
   );
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
@@ -147,20 +145,20 @@ export default function QuotationForm({
     const subscription = quotationForm.watch((value, { name }) => {
       if (name === 'customerId' && value.customerId) {
         const selectedCustomer = customers.find(
-          (c) => c.id === value.customerId
+          (c) => c.id === value.customerId,
         );
 
         if (selectedCustomer) {
           // Update phone and email fields whenever customer changes
           quotationForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || ''
+            normalizePhoneNumber(selectedCustomer.phone || '') || '',
           );
           quotationForm.setValue('email', selectedCustomer.email || '');
 
           quotationForm.setValue(
             'accountManagerSub',
-            selectedCustomer.accountManagerSub || ''
+            selectedCustomer.accountManagerSub || '',
           );
         }
       }
@@ -175,7 +173,7 @@ export default function QuotationForm({
     // Check for missing email when creating a quotation
     if (!isEditing && !values.email?.trim()) {
       notifyError(
-        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.'
+        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.',
       );
       return;
     }
@@ -217,7 +215,7 @@ export default function QuotationForm({
         const messageFromErr = err?.message || extractedMessage;
 
         notifyError(
-          messageFromErr || 'Failed to create quote. Please try again.'
+          messageFromErr || 'Failed to create quote. Please try again.',
         );
       }
     } else {
@@ -249,7 +247,7 @@ export default function QuotationForm({
 
         // Fallback error using extracted message
         notifyError(
-          messageFromErr || 'Failed to update quote. Please try again.'
+          messageFromErr || 'Failed to update quote. Please try again.',
         );
       }
     }
@@ -302,7 +300,7 @@ export default function QuotationForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -321,7 +319,7 @@ export default function QuotationForm({
             'p-1 w-full flex flex-col',
             className,
             (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none'
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -337,56 +335,58 @@ export default function QuotationForm({
             </div>
           )}
 
-          {isEditing && currentQuotation?.quoteStatus === 'DECLINED' && (() => {
-            // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
-            const declineReasonRaw = currentQuotation?.declineReason || '';
-            const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
-            const declineNote = noteParts.join('-').trim();
+          {isEditing &&
+            currentQuotation?.quoteStatus === 'DECLINED' &&
+            (() => {
+              // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
+              const declineReasonRaw = currentQuotation?.declineReason || '';
+              const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
+              const declineNote = noteParts.join('-').trim();
 
-            // Map reason keys to human-readable labels
-            const reasonLabels: Record<string, string> = {
-              price_too_high: 'Price too high',
-              timeline_conflict: 'Timeline conflict',
-              scope_changed: 'Scope changed',
-              customer_unresponsive: 'Customer unresponsive',
-              competitor_selected: 'Competitor selected',
-              project_cancelled: 'Project cancelled',
-              other: 'Other',
-            };
-            const reasonLabel = reasonLabels[reasonKey] || reasonKey;
+              // Map reason keys to human-readable labels
+              const reasonLabels: Record<string, string> = {
+                price_too_high: 'Price too high',
+                timeline_conflict: 'Timeline conflict',
+                scope_changed: 'Scope changed',
+                customer_unresponsive: 'Customer unresponsive',
+                competitor_selected: 'Competitor selected',
+                project_cancelled: 'Project cancelled',
+                other: 'Other',
+              };
+              const reasonLabel = reasonLabels[reasonKey] || reasonKey;
 
-            // Format customerResponseAt date
-            const responseDate = currentQuotation?.customerResponseAt
-              ? new Date(currentQuotation.customerResponseAt)
-              : null;
-            const formattedDate = responseDate
-              ? `${responseDate.toLocaleDateString('en-AU', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: '2-digit',
-                })} at ${responseDate.toLocaleTimeString('en-AU', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false,
-                })}`
-              : '';
+              // Format customerResponseAt date
+              const responseDate = currentQuotation?.customerResponseAt
+                ? new Date(currentQuotation.customerResponseAt)
+                : null;
+              const formattedDate = responseDate
+                ? `${responseDate.toLocaleDateString('en-AU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                  })} at ${responseDate.toLocaleTimeString('en-AU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}`
+                : '';
 
-            return (
-              <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
-                <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
-                  <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <div className="flex flex-col">
-                    <span>
-                      Customer declined this quote due to {reasonLabel}.
-                      {declineNote && ` *Note: ${declineNote}`}
-                      {formattedDate && ` (Declined on ${formattedDate}).`}
-                    </span>
-                    <span>Edit to return to Draft status.</span>
+              return (
+                <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+                  <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
+                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span>
+                        Customer declined this quote due to {reasonLabel}.
+                        {declineNote && ` *Note: ${declineNote}`}
+                        {formattedDate && ` (Declined on ${formattedDate}).`}
+                      </span>
+                      <span>Edit to return to Draft status.</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           <div
             className={cn(
@@ -396,7 +396,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none'
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -618,15 +618,21 @@ export default function QuotationForm({
             <div
               className={cn(
                 'col-span-2',
-                isEditing && isDesktop ? 'grid grid-cols-4 gap-4' : 'grid grid-cols-1 gap-2'
+                isEditing && isDesktop
+                  ? 'grid grid-cols-4 gap-4'
+                  : 'grid grid-cols-1 gap-2',
               )}
             >
-              <h3 className="font-bold col-span-full mb-2">{timeWindowLabel}</h3>
+              <h3 className="font-bold col-span-full mb-2">
+                {timeWindowLabel}
+              </h3>
               <FormField
                 control={quotationForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem className={isEditing && isDesktop ? 'col-span-2' : ''}>
+                  <FormItem
+                    className={isEditing && isDesktop ? 'col-span-2' : ''}
+                  >
                     <FormLabel>{dateLabel}*</FormLabel>
                     <FormControl>
                       <DatePicker
@@ -688,7 +694,9 @@ export default function QuotationForm({
             <div
               className={cn(
                 'col-span-2 mb-6',
-                isEditing && isDesktop ? 'grid grid-cols-2 gap-4' : 'grid grid-cols-1 gap-2'
+                isEditing && isDesktop
+                  ? 'grid grid-cols-2 gap-4'
+                  : 'grid grid-cols-1 gap-2',
               )}
             >
               <FormField
@@ -723,7 +731,7 @@ export default function QuotationForm({
                 className={cn(
                   isDesktop
                     ? 'flex justify-between items-center col-span-2 mb-5'
-                    : 'flex flex-col gap-4 col-span-1'
+                    : 'flex flex-col gap-4 col-span-1',
                 )}
               >
                 <div>
@@ -735,7 +743,7 @@ export default function QuotationForm({
                   <div
                     className={cn(
                       'flex items-center gap-2',
-                      !isDesktop && 'mt-2'
+                      !isDesktop && 'mt-2',
                     )}
                   >
                     <FormDialog
@@ -761,7 +769,7 @@ export default function QuotationForm({
                       return (
                         <DataTableClient
                           columns={getQuotationLineItemColumns(
-                            currentQuotation?.quoteType
+                            currentQuotation?.quoteType,
                           )}
                           data={quoteItemsData}
                           simpleTable={true}
@@ -778,7 +786,7 @@ export default function QuotationForm({
                           Product Cost (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
+                          ${pricingBreakdown.totalProductCostPrice}
                         </span>
                       </div>
                       {!isCollectionQuote && (
@@ -787,7 +795,7 @@ export default function QuotationForm({
                             Truck Cost (Total):
                           </span>
                           <span className="text-sm font-normal">
-                            ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
+                            ${pricingBreakdown.totalTruckCostPrice}
                           </span>
                         </div>
                       )}
@@ -796,7 +804,7 @@ export default function QuotationForm({
                           Product Sell (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
+                          ${pricingBreakdown.totalProductSellPrice}
                         </span>
                       </div>
                       {!isCollectionQuote && (
@@ -805,7 +813,7 @@ export default function QuotationForm({
                             Truck Sell (Total):
                           </span>
                           <span className="text-sm font-normal">
-                            ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
+                            ${pricingBreakdown.totalTruckSellPrice}
                           </span>
                         </div>
                       )}
@@ -814,19 +822,19 @@ export default function QuotationForm({
                           Subtotal (ex-GST):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalInvoice.toFixed(2)}
+                          ${pricingBreakdown.totalInvoice}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">GST (10%):</span>
-                        <span className="text-sm font-normal">${gst}</span>
+                        <span className="text-sm font-normal">${pricingBreakdown.gst}</span>
                       </div>
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-semibold">
                           Total Invoice (Incl. GST):
                         </span>
                         <span className="text-sm font-semibold">
-                          ${totalInvoiceIncGST}
+                          ${pricingBreakdown.totalInvoiceIncGST}
                         </span>
                       </div>
                     </div>
@@ -835,7 +843,7 @@ export default function QuotationForm({
                         Gross Profit:
                       </span>
                       <span className="text-sm font-semibold">
-                        ${pricingBreakdown.grossProfit.toFixed(2)} (
+                        ${pricingBreakdown.grossProfit} (
                         {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
                       </span>
                     </div>
@@ -863,7 +871,7 @@ export default function QuotationForm({
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {getUserNameBySub(
-                            quotationForm.watch('lastModifiedBy')
+                            quotationForm.watch('lastModifiedBy'),
                           ) || 'Jaywoo Choi'}
                         </p>
                       </div>
@@ -875,7 +883,7 @@ export default function QuotationForm({
                         <p className="text-sm text-muted-foreground">
                           {quotationForm.watch('createdAt')
                             ? new Date(
-                                quotationForm.watch('createdAt')
+                                quotationForm.watch('createdAt'),
                               ).toLocaleDateString('en-AU', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -892,7 +900,7 @@ export default function QuotationForm({
                         <p className="text-sm text-muted-foreground">
                           {quotationForm.watch('updatedAt')
                             ? new Date(
-                                quotationForm.watch('updatedAt')
+                                quotationForm.watch('updatedAt'),
                               ).toLocaleDateString('en-AU', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -926,8 +934,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                    ? 'Save Changes'
-                    : 'Add Quote'}
+                      ? 'Save Changes'
+                      : 'Add Quote'}
                 </Button>
               </div>
             )}
@@ -948,8 +956,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                    ? 'Save Changes'
-                    : 'Add Quote'}
+                      ? 'Save Changes'
+                      : 'Add Quote'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
