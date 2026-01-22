@@ -33,7 +33,7 @@ const handleRevoke = (invitation: PendingInvitation) => {
 // Roles options for the form
 const rolesOptions: readonly FormSelectOption[] = [
   // { label: 'User', value: Role.USER },
-  { label: 'User', value: Role.ADMIN },
+  { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
 
