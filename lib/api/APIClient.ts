@@ -749,6 +749,10 @@ export const APIClient = {
           },
         }
       ),
+    duplicate: (id: number) =>
+      appClient.Post<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/duplicate`,
+      ),
     sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
