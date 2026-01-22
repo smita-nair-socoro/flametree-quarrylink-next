@@ -31,6 +31,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
+import { CustomerCard } from '@/components/mobile/customer-card';
 
 export default function CustomersPage() {
   const setSelectedCustomer = useCustomerStore(
@@ -134,6 +135,25 @@ export default function CustomersPage() {
     actions.view();
   };
 
+  // Mobile card renderer
+  const renderCustomerCard = React.useCallback(
+    (customer: CustomerDTO, onViewDetails?: () => void) => (
+      <CustomerCard
+        id={customer.id}
+        businessName={customer.businessName}
+        contactName={customer.contactName}
+        customerType={customer.customerType}
+        customerStatus={customer.customerStatus}
+        email={customer.email}
+        creditLimit={customer.creditLimit}
+        paymentType={customer.paymentType}
+        accountManagerName={customer.accountManagerName}
+        onViewDetails={onViewDetails}
+      />
+    ),
+    []
+  );
+
   // Transform the API data to match our component expectations
   const items: CustomerDTO[] =
     customersData?.map((customer) => {
@@ -205,6 +225,7 @@ export default function CustomersPage() {
               searchPlaceHolder="Search customers..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'customer_name', desc: false }]}
+              mobileCardRenderer={renderCustomerCard}
             />
           </div>
         )}

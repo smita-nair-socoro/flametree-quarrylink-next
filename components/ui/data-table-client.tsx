@@ -99,6 +99,7 @@ interface DataTableProps<TData, TValue> {
   bulkActionsSlot?: React.ReactNode; // Slot for bulk action buttons
   allowClicksInsideModal?: boolean; // Allow row clicks when table is inside a modal/dialog (default: false)
   defaultSorting?: SortingState; // Default sorting configuration
+  mobileCardRenderer?: (row: TData, onViewDetails?: () => void) => React.ReactNode; // Render function for mobile cards
 }
 
 export type FacetDefinition = {
@@ -142,6 +143,7 @@ export function DataTableClient<TData, TValue>({
   rowSelectionFilter,
   bulkActionsSlot,
   defaultSorting, // Default sorting configuration (optional)
+  mobileCardRenderer, // Render function for mobile cards
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -297,6 +299,10 @@ export function DataTableClient<TData, TValue>({
   const [rowSelection, setRowSelection] =
     useState<RowSelectionState>(defaultRowSelection);
 
+  // Mobile "Load More" state
+  const [mobileVisibleCount, setMobileVisibleCount] = useState(10);
+  const MOBILE_PAGE_SIZE = 10;
+
   // Sync temp filters when drawer opens
   useEffect(() => {
     if (drawerOpen) {
@@ -313,6 +319,13 @@ export function DataTableClient<TData, TValue>({
   useEffect(() => {
     setColumnFilters(debouncedColumnFilters);
   }, [debouncedColumnFilters]);
+
+  // Reset mobile visible count when filters or search change
+  useEffect(() => {
+    if (isMobile) {
+      setMobileVisibleCount(MOBILE_PAGE_SIZE);
+    }
+  }, [globalFilter, columnFilters, isMobile]);
   // Notify parent of selection changes
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
@@ -949,7 +962,74 @@ export function DataTableClient<TData, TValue>({
         <div className="mb-3">{bulkActionsSlot}</div>
       )}
 
-      {/* Table Container with External Scroll */}
+      {/* Mobile Card View */}
+      {isMobile && mobileCardRenderer ? (
+        <div className="space-y-3">
+          {/* Card list */}
+          {(() => {
+            const filteredRows = table.getFilteredRowModel().rows;
+            const visibleRows = filteredRows.slice(0, mobileVisibleCount);
+            const hasMore = filteredRows.length > mobileVisibleCount;
+
+            if (visibleRows.length === 0) {
+              return (
+                <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
+                  <div className="flex justify-center mb-4">
+                    <Image
+                      src="/empty-table.svg"
+                      alt="No data available"
+                      width={128}
+                      height={128}
+                      className="w-32 h-auto"
+                    />
+                  </div>
+                  <h3 className="text-gray-700 font-medium mb-1">
+                    No items are available
+                  </h3>
+                </div>
+              );
+            }
+
+            return (
+              <>
+                {visibleRows.map((row) => {
+                  const handleViewDetails = onRowClick
+                    ? () => onRowClick(row.original)
+                    : undefined;
+                  return (
+                    <div key={row.id}>
+                      {mobileCardRenderer(row.original, handleViewDetails)}
+                    </div>
+                  );
+                })}
+
+                {/* Load More button */}
+                {hasMore && (
+                  <div className="flex justify-center pt-2">
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE)
+                      }
+                      className="w-full"
+                    >
+                      Load More ({filteredRows.length - mobileVisibleCount}{' '}
+                      remaining)
+                    </Button>
+                  </div>
+                )}
+
+                {/* Total count */}
+                <div className="text-center text-sm text-muted-foreground pt-2">
+                  Showing {visibleRows.length} of {filteredRows.length} items
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      ) : (
+        <>
+          {/* Table Container with External Scroll */}
       <div className="overflow-x-auto">
         <div
           className={cn(
@@ -1223,6 +1303,8 @@ export function DataTableClient<TData, TValue>({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
