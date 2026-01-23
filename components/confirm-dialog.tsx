@@ -43,7 +43,7 @@ export function ConfirmDialog({
           </div>
         )}
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end md:gap-2">
           <Button variant="outline" onClick={() => onOpenChangeAction(false)}>
             Cancel
           </Button>
