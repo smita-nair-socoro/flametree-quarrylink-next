@@ -634,7 +634,7 @@ export function DataTableClient<TData, TValue>({
           {/* Single line: Search Bar + Filters + Show/Hide Columns */}
           <div ref={toolbarContainerRef} className="flex items-center gap-2">
             {/* Search Bar - Fixed width */}
-            <div className="flex-shrink-0">
+            <div className="flex-1 min-w-0 md:flex-shrink-0 md:flex-none">
               <InputIcon
                 placeholder={searchPlaceHolder}
                 type="search"

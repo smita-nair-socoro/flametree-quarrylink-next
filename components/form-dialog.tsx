@@ -516,7 +516,7 @@ export function FormDialog({
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent
-        className="flex flex-col max-w-[95vh] h-auto"
+        className="flex flex-col w-full max-w-[95vw] h-auto data-[vaul-drawer-direction=bottom]:inset-0 data-[vaul-drawer-direction=bottom]:m-auto data-[vaul-drawer-direction=bottom]:max-h-[95vh] data-[vaul-drawer-direction=bottom]:w-[95vw] data-[vaul-drawer-direction=bottom]:rounded-lg"
         onOpenAutoFocus={
           preventAutoFocus ? (e) => e.preventDefault() : undefined
         }
