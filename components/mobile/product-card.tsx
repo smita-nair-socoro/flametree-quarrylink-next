@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal, Eye, Tag, Box } from 'lucide-react';
+import { Tag, Box } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -9,38 +9,17 @@ import {
   CardTitle,
   CardAction,
 } from '../ui/card';
-import { Button } from '../ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '../ui/dropdown-menu';
 import { TableBadges } from '../table-badges';
-import { PRODUCT_STATUS } from '@/lib/types/product-enums';
+import { ProductDetails } from '@/lib/types/product';
+import { ProductTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/products/product-table-actions';
 
 export interface ProductCardProps {
-  id?: number;
-  productName: string;
-  productCode: string;
-  status: PRODUCT_STATUS;
-  materialName: string;
-  onViewDetails?: () => void;
+  product: ProductDetails;
 }
 
-export function ProductCard({
-  productName,
-  productCode,
-  status,
-  materialName,
-  onViewDetails,
-}: ProductCardProps) {
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
-
-  const handleViewDetails = () => {
-    setDropdownOpen(false);
-    onViewDetails?.();
-  };
+export function ProductCard({ product }: ProductCardProps) {
+  const { productName, productCode, status, material } = product;
+  const materialName = material?.name || '';
 
   return (
     <Card className="gap-3 py-4">
@@ -55,19 +34,7 @@ export function ProductCard({
           </div>
         </div>
         <CardAction>
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleViewDetails}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ProductTableActions product={product} />
         </CardAction>
       </CardHeader>
 

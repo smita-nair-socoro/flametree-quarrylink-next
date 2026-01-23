@@ -137,20 +137,7 @@ export default function CustomersPage() {
 
   // Mobile card renderer
   const renderCustomerCard = React.useCallback(
-    (customer: CustomerDTO, onViewDetails?: () => void) => (
-      <CustomerCard
-        id={customer.id}
-        businessName={customer.businessName}
-        contactName={customer.contactName}
-        customerType={customer.customerType}
-        customerStatus={customer.customerStatus}
-        email={customer.email}
-        creditLimit={customer.creditLimit}
-        paymentType={customer.paymentType}
-        accountManagerName={customer.accountManagerName}
-        onViewDetails={onViewDetails}
-      />
-    ),
+    (customer: CustomerDTO) => <CustomerCard customer={customer} />,
     []
   );
 

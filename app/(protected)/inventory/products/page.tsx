@@ -113,18 +113,7 @@ export default function ProductsPage() {
 
   // Mobile card renderer
   const renderProductCard = React.useCallback(
-    (product: ProductDetails, onViewDetails?: () => void) => {
-      return (
-        <ProductCard
-          id={product.id}
-          productName={product.productName}
-          productCode={product.productCode}
-          status={product.status}
-          materialName={product.material?.name || ''}
-          onViewDetails={onViewDetails}
-        />
-      );
-    },
+    (product: ProductDetails) => <ProductCard product={product} />,
     [],
   );
 

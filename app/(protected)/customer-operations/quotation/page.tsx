@@ -152,20 +152,9 @@ export default function QuotationsPage() {
 
   // Mobile card renderer
   const renderQuotationCard = React.useCallback(
-    (quotation: Quotation, onViewDetails?: () => void) => {
+    (quotation: Quotation) => {
       return (
-        <QuotationCard
-          id={quotation.id}
-          projectName={quotation.projectName}
-          quoteNumber={quotation.quoteNumber}
-          quoteStatus={quotation.quoteStatus}
-          quoteType={quotation.quoteType}
-          customerName={quotation.customerName}
-          totalSellPrice={quotation.totalSellPrice}
-          expiryDate={quotation.expiryDate}
-          accountManagerName={quotation.accountManagerName}
-          onViewDetails={onViewDetails}
-        />
+        <QuotationCard quotation={quotation} />
       );
     },
     [],

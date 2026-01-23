@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal, Eye } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -9,42 +8,27 @@ import {
   CardTitle,
   CardAction,
 } from '../ui/card';
-import { Button } from '../ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '../ui/dropdown-menu';
 import { TableBadges } from '../table-badges';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
+import { CustomerDTO } from '@/lib/types/customer';
+import { CustomerTableActions } from '@/app/(protected)/customer-operations/customers/(components)/(data-tables)/customer/customer-table-actions';
 
 export interface CustomerCardProps {
-  id?: number;
-  businessName?: string;
-  contactName: string;
-  customerType: string;
-  customerStatus: string;
-  email: string;
-  creditLimit: number;
-  paymentType: string;
-  accountManagerName?: string;
-  onViewDetails?: () => void;
+  customer: CustomerDTO;
 }
 
-export function CustomerCard({
-  businessName,
-  contactName,
-  customerType,
-  customerStatus,
-  email,
-  creditLimit,
-  paymentType,
-  accountManagerName,
-  onViewDetails,
-}: CustomerCardProps) {
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+export function CustomerCard({ customer }: CustomerCardProps) {
+  const {
+    businessName,
+    contactName,
+    customerType,
+    customerStatus,
+    email,
+    creditLimit,
+    paymentType,
+    accountManagerName,
+  } = customer;
 
   // Format credit limit as currency
   const formattedCreditLimit = React.useMemo(() => {
@@ -67,11 +51,6 @@ export function CustomerCard({
       ? businessName?.trim() || contactName
       : contactName;
 
-  const handleViewDetails = () => {
-    setDropdownOpen(false);
-    onViewDetails?.();
-  };
-
   return (
     <Card className="gap-3 py-4">
       <CardHeader className="pb-0 gap-0">
@@ -79,19 +58,7 @@ export function CustomerCard({
           {displayName}
         </CardTitle>
         <CardAction>
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleViewDetails}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <CustomerTableActions customer={customer} />
         </CardAction>
       </CardHeader>
 
