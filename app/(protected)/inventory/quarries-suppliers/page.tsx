@@ -6,7 +6,16 @@ import QuarrySupplierForm from './(components)/forms/quarry-supplier-form';
 import { Quarry } from '@/lib/types/quarry';
 import { QuarryType, QuarryStatus } from '@/lib/types/quarry-enums';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
-import { Plus, DollarSign, Building, Mountain, Factory } from 'lucide-react';
+import {
+  Plus,
+  DollarSign,
+  Building,
+  Mountain,
+  Factory,
+  MapPin,
+  Mail,
+  Phone,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuarryListQueryOptions,
@@ -21,7 +30,9 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
-import { QuarrySupplierCard } from '@/components/mobile/quarry-supplier-card';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { QuarrySupplierTableActions } from './(components)/(data-tables)/quarries/quarry-supplier-table-actions';
 
 export default function QuarriesSuppliersPage() {
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
@@ -168,12 +179,47 @@ export default function QuarriesSuppliersPage() {
     actions.view();
   };
 
-  const renderQuarrySupplierCard = React.useCallback(
-    (quarrySupplier: Quarry) => (
-      <QuarrySupplierCard quarrySupplier={quarrySupplier} />
-    ),
-    []
-  );
+  const renderQuarrySupplierCard = React.useCallback((quarrySupplier: Quarry) => {
+    const suburb =
+      quarrySupplier.suburb || quarrySupplier.address?.suburb || '';
+
+    return (
+      <MobileCard
+        title={quarrySupplier.name}
+        badges={
+          <>
+            <TableBadges
+              names={[quarrySupplier.quarrySupplierType]}
+              visibleCount={1}
+            />
+            {quarrySupplier.status && (
+              <TableBadges names={[quarrySupplier.status]} visibleCount={1} />
+            )}
+          </>
+        }
+        actions={
+          <QuarrySupplierTableActions quarrySupplier={quarrySupplier} />
+        }
+        fields={[
+          {
+            icon: <MapPin className="h-4 w-4" />,
+            label: 'Suburb',
+            value: suburb || '-',
+          },
+          {
+            icon: <Mail className="h-4 w-4" />,
+            label: 'Email',
+            value: quarrySupplier.email || '-',
+          },
+          {
+            icon: <Phone className="h-4 w-4" />,
+            label: 'Phone',
+            value: quarrySupplier.phone || '-',
+          },
+        ]}
+      />
+    );
+  }, []);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'quarry_supplier_type', title: 'Type', icon: Plus },

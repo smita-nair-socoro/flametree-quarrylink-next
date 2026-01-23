@@ -13,6 +13,9 @@ import {
   Activity,
   Building2,
   Loader2,
+  User,
+  Mail,
+  CreditCard,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -26,12 +29,16 @@ import { useAuth } from '@/hooks/use-auth';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { centsToDollars } from '@/lib/utils/currency';
+import { formatCustomerStatus } from '@/lib/utils/customer-helper';
+import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
 
 import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { CustomerCard } from '@/components/mobile/customer-card';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
 
 export default function CustomersPage() {
   const setSelectedCustomer = useCustomerStore(
@@ -136,10 +143,51 @@ export default function CustomersPage() {
   };
 
   // Mobile card renderer
-  const renderCustomerCard = React.useCallback(
-    (customer: CustomerDTO) => <CustomerCard customer={customer} />,
-    []
-  );
+  const renderCustomerCard = React.useCallback((customer: CustomerDTO) => {
+    const formattedStatus = formatCustomerStatus(
+      customer.customerStatus as CUSTOMER_STATUS
+    );
+    const displayName =
+      customer.customerType === 'BUSINESS'
+        ? customer.businessName?.trim() || customer.contactName
+        : customer.contactName;
+    const formattedCreditLimit = centsToDollars(customer.creditLimit);
+
+    return (
+      <MobileCard
+        title={displayName}
+        badges={
+          <>
+            <TableBadges names={[customer.customerType]} visibleCount={1} />
+            <TableBadges names={[formattedStatus]} visibleCount={1} />
+          </>
+        }
+        actions={<CustomerTableActions customer={customer} />}
+        fields={[
+          {
+            icon: <User className="h-4 w-4" />,
+            label: 'Contact',
+            value: customer.contactName,
+          },
+          {
+            icon: <Mail className="h-4 w-4" />,
+            label: 'Email',
+            value: customer.email,
+          },
+          {
+            icon: <CreditCard className="h-4 w-4" />,
+            label: 'Credit Limit',
+            value: `$${formattedCreditLimit}`,
+          },
+          {
+            icon: <User className="h-4 w-4" />,
+            label: 'Account Manager',
+            value: customer.accountManagerName || '-',
+          },
+        ]}
+      />
+    );
+  }, []);
 
   // Transform the API data to match our component expectations
   const items: CustomerDTO[] =

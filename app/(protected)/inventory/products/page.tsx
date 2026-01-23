@@ -3,7 +3,7 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Plus, Gem, PackageX, TrendingUp, Package } from 'lucide-react';
+import { Plus, Gem, PackageX, TrendingUp, Package, Tag, Box } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery } from '@tanstack/react-query';
@@ -25,7 +25,9 @@ import {
   useSelectedProduct,
 } from '@/app/stores/product-store';
 import { useProductActions } from '@/hooks/use-product-actions';
-import { ProductCard } from '@/components/mobile/product-card';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { ProductTableActions } from './(components)/(data-tables)/products/product-table-actions';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -112,10 +114,37 @@ export default function ProductsPage() {
   };
 
   // Mobile card renderer
-  const renderProductCard = React.useCallback(
-    (product: ProductDetails) => <ProductCard product={product} />,
-    [],
-  );
+  const renderProductCard = React.useCallback((product: ProductDetails) => {
+    const materialName = product.material?.name || '';
+
+    return (
+      <MobileCard
+        title={product.productName}
+        description={
+          <>
+            <Tag className="h-3.5 w-3.5" />
+            <span className="truncate">{product.productCode}</span>
+          </>
+        }
+        badges={
+          <>
+            {product.status && <TableBadges names={[product.status]} visibleCount={1} />}
+            {materialName && (
+              <TableBadges names={[materialName]} visibleCount={1} />
+            )}
+          </>
+        }
+        actions={<ProductTableActions product={product} />}
+        fields={[
+          {
+            icon: <Box className="h-4 w-4" />,
+            label: 'Material',
+            value: materialName,
+          },
+        ]}
+      />
+    );
+  }, []);
 
   // Transform the API data to match our component expectations
   const items: ProductDetails[] = React.useMemo(
