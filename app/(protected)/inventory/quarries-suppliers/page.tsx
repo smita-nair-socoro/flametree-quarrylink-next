@@ -21,6 +21,7 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
+import { QuarrySupplierCard } from '@/components/mobile/quarry-supplier-card';
 
 export default function QuarriesSuppliersPage() {
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
@@ -167,6 +168,13 @@ export default function QuarriesSuppliersPage() {
     actions.view();
   };
 
+  const renderQuarrySupplierCard = React.useCallback(
+    (quarrySupplier: Quarry) => (
+      <QuarrySupplierCard quarrySupplier={quarrySupplier} />
+    ),
+    []
+  );
+
   const facetDefs: FacetDefinition[] = [
     { column: 'quarry_supplier_type', title: 'Type', icon: Plus },
     { column: 'status', title: 'Status', icon: Plus },
@@ -221,6 +229,7 @@ export default function QuarriesSuppliersPage() {
             searchPlaceHolder="Search Quarries & Suppliers..."
             onRowClick={handleRowClick}
             defaultSorting={[{ id: 'name', desc: false }]}
+            mobileCardRenderer={renderQuarrySupplierCard}
           />
         )}
       </div>
