@@ -57,7 +57,7 @@ export default function QuotationsPage() {
   const { data: reportingData } = useQuery(QuotationReportingQueryOptions());
 
   const setSelectedQuotation = useQuotationStore(
-    (state) => state.setSelectedQuotation
+    (state) => state.setSelectedQuotation,
   );
   const setQuotations = useQuotationStore((state) => state.setQuotations);
 
@@ -93,7 +93,7 @@ export default function QuotationsPage() {
       title: 'Total Quotations',
       value: reportingData?.totalQuotesRaisedThisMonth || 0,
       description: `${formatNumberThousandSeparator(
-        reportingData?.totalQuotesPercentageChangeVsLastMonth || 0
+        reportingData?.totalQuotesPercentageChangeVsLastMonth || 0,
       )}% vs last month`,
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
@@ -112,10 +112,10 @@ export default function QuotationsPage() {
     {
       title: 'Total Quote Value',
       value: `$${centsToDollars(
-        reportingData?.totalValueOfQuotesRaisedThisMonth || 0
+        reportingData?.totalValueOfQuotesRaisedThisMonth || 0,
       )}`,
       description: `${formatNumberThousandSeparator(
-        reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0
+        reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0,
       )}% vs last month`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -141,7 +141,7 @@ export default function QuotationsPage() {
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
-    selectedQuotationForActions
+    selectedQuotationForActions,
   );
 
   const handleRowClick = (quotation: Quotation) => {
@@ -152,21 +152,23 @@ export default function QuotationsPage() {
 
   // Mobile card renderer
   const renderQuotationCard = React.useCallback(
-    (quotation: Quotation, onViewDetails?: () => void) => (
-      <QuotationCard
-        id={quotation.id}
-        projectName={quotation.projectName}
-        quoteNumber={quotation.quoteNumber}
-        quoteStatus={quotation.quoteStatus}
-        quoteType={quotation.quoteType}
-        customerName={quotation.customerName}
-        totalSellPrice={quotation.totalSellPrice}
-        expiryDate={quotation.expiryDate}
-        accountManagerName={quotation.accountManagerName}
-        onViewDetails={onViewDetails}
-      />
-    ),
-    []
+    (quotation: Quotation, onViewDetails?: () => void) => {
+      return (
+        <QuotationCard
+          id={quotation.id}
+          projectName={quotation.projectName}
+          quoteNumber={quotation.quoteNumber}
+          quoteStatus={quotation.quoteStatus}
+          quoteType={quotation.quoteType}
+          customerName={quotation.customerName}
+          totalSellPrice={quotation.totalSellPrice}
+          expiryDate={quotation.expiryDate}
+          accountManagerName={quotation.accountManagerName}
+          onViewDetails={onViewDetails}
+        />
+      );
+    },
+    [],
   );
 
   // const handleRowSelectionChange = (selected: Quotation[]) => {

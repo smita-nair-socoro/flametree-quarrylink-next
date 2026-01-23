@@ -25,12 +25,13 @@ import {
   useSelectedProduct,
 } from '@/app/stores/product-store';
 import { useProductActions } from '@/hooks/use-product-actions';
+import { ProductCard } from '@/components/mobile/product-card';
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setSelectedProduct = useProductStore(
-    (state) => state.setSelectedProduct
+    (state) => state.setSelectedProduct,
   );
   const selectedProductForActions = useSelectedProduct();
 
@@ -38,7 +39,7 @@ export default function ProductsPage() {
 
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     selectedProductForActions?.id,
-    selectedProductForActions
+    selectedProductForActions,
   );
 
   // Use React Query to fetch products data
@@ -56,7 +57,7 @@ export default function ProductsPage() {
       title: 'Highest Revenue Product',
       value: reportingData?.mostQuotedProductName || '',
       description: `$${centsToDollars(
-        reportingData?.mostQuotedProductValueThisMonth || 0
+        reportingData?.mostQuotedProductValueThisMonth || 0,
       )} this month`,
       icon: Gem,
       iconBgColor: 'bg-[#FEF3C6]',
@@ -110,6 +111,23 @@ export default function ProductsPage() {
     actions.view();
   };
 
+  // Mobile card renderer
+  const renderProductCard = React.useCallback(
+    (product: ProductDetails, onViewDetails?: () => void) => {
+      return (
+        <ProductCard
+          id={product.id}
+          productName={product.productName}
+          productCode={product.productCode}
+          status={product.status}
+          materialName={product.material?.name || ''}
+          onViewDetails={onViewDetails}
+        />
+      );
+    },
+    [],
+  );
+
   // Transform the API data to match our component expectations
   const items: ProductDetails[] = React.useMemo(
     () =>
@@ -123,15 +141,15 @@ export default function ProductsPage() {
           material: product.material || { id: 0, name: '', version: 0 },
         } as ProductDetails;
       }) || [],
-    [productsData]
+    [productsData],
   );
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(
-    'linkedQuarrySupplierId'
+    'linkedQuarrySupplierId',
   );
   const linkedQuarrySupplierNameParam = searchParams.get(
-    'linkedQuarrySupplierName'
+    'linkedQuarrySupplierName',
   );
 
   const linkedProductIdsSet = React.useMemo(() => {
@@ -221,6 +239,7 @@ export default function ProductsPage() {
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'product_name', desc: false }]}
+              mobileCardRenderer={renderProductCard}
             />
           </>
         )}
