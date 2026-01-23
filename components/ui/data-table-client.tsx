@@ -99,7 +99,10 @@ interface DataTableProps<TData, TValue> {
   bulkActionsSlot?: React.ReactNode; // Slot for bulk action buttons
   allowClicksInsideModal?: boolean; // Allow row clicks when table is inside a modal/dialog (default: false)
   defaultSorting?: SortingState; // Default sorting configuration
-  mobileCardRenderer?: (row: TData, onViewDetails?: () => void) => React.ReactNode; // Render function for mobile cards
+  mobileCardRenderer?: (
+    row: TData,
+    onViewDetails?: () => void,
+  ) => React.ReactNode; // Render function for mobile cards
 }
 
 export type FacetDefinition = {
@@ -149,7 +152,7 @@ export function DataTableClient<TData, TValue>({
 
   const getStorageKey = useCallback(
     (key: string) => `${tableId}_${key}`,
-    [tableId]
+    [tableId],
   );
 
   // Read new record IDs from sessionStorage - use state with event listener
@@ -157,7 +160,7 @@ export function DataTableClient<TData, TValue>({
     try {
       const stored = getSessionStorage<string[]>(
         getStorageKey('newRecordIds'),
-        []
+        [],
       );
       const ids = Array.isArray(stored) ? stored : [];
       return ids;
@@ -172,7 +175,7 @@ export function DataTableClient<TData, TValue>({
       try {
         const stored = getSessionStorage<string[]>(
           getStorageKey('newRecordIds'),
-          []
+          [],
         );
         const ids = Array.isArray(stored) ? stored : [];
         setNewRecordIds(ids);
@@ -192,7 +195,7 @@ export function DataTableClient<TData, TValue>({
   // Convert to Set for fast lookup (only once per newRecordIds change)
   const newRecordIdsSet = useMemo(
     () => new Set<string>(newRecordIds),
-    [newRecordIds]
+    [newRecordIds],
   );
 
   // Row pinning state (use TanStack Table row pinning instead of reordering data)
@@ -200,9 +203,9 @@ export function DataTableClient<TData, TValue>({
     const presentIds = new Set(
       (data as Array<TData & { id?: number | string; sub?: string }>)
         .map((r) =>
-          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined
+          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined,
         )
-        .filter((v): v is string => v !== undefined)
+        .filter((v): v is string => v !== undefined),
     );
     const top = newRecordIds.filter((id) => presentIds.has(id));
     return { top, bottom: [] };
@@ -213,9 +216,9 @@ export function DataTableClient<TData, TValue>({
     const presentIds = new Set(
       (data as Array<TData & { id?: number | string; sub?: string }>)
         .map((r) =>
-          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined
+          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined,
         )
-        .filter((v): v is string => v !== undefined)
+        .filter((v): v is string => v !== undefined),
     );
     const top = newRecordIds.filter((id) => presentIds.has(id));
     setRowPinning((prev) => ({ ...prev, top }));
@@ -240,7 +243,7 @@ export function DataTableClient<TData, TValue>({
 
   const defaultSortingState = useMemo(
     () => defaultSorting ?? [],
-    [defaultSorting]
+    [defaultSorting],
   );
 
   // Initialize state with sessionStorage values or defaults
@@ -284,7 +287,7 @@ export function DataTableClient<TData, TValue>({
     () => {
       if (isMobile) return defaultColumnVisibility;
       return loadFromStorage('columnVisibility', defaultColumnVisibility);
-    }
+    },
   );
 
   const [paginationSize, setPaginationSize] = useState(() => {
@@ -330,7 +333,7 @@ export function DataTableClient<TData, TValue>({
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
       const selectedRowIds = Object.keys(rowSelection).filter(
-        (key) => rowSelection[key]
+        (key) => rowSelection[key],
       );
       const selectedRows = selectedRowIds
         .map((id) => {
@@ -594,7 +597,7 @@ export function DataTableClient<TData, TValue>({
       }
       if (existingFilter) {
         return old.map((filter) =>
-          filter.id === columnId ? { ...filter, value: values } : filter
+          filter.id === columnId ? { ...filter, value: values } : filter,
         );
       }
       return [...old, { id: columnId, value: values }];
@@ -628,9 +631,9 @@ export function DataTableClient<TData, TValue>({
   })();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 md:space-y-4">
       {!simpleTable && (
-        <div className="space-y-3">
+        <div className="space-y-4 md:space-y-3">
           {/* Single line: Search Bar + Filters + Show/Hide Columns */}
           <div ref={toolbarContainerRef} className="flex items-center gap-2">
             {/* Search Bar - Fixed width */}
@@ -641,7 +644,7 @@ export function DataTableClient<TData, TValue>({
                 value={table.getState().globalFilter ?? ''}
                 onChange={(e) => table.setGlobalFilter(String(e.target.value))}
                 startIcon={<Search size={18} />}
-                className="h-8 w-full md:w-[350px] lg:w-[450px] bg-white"
+                className="w-full md:w-[350px] lg:w-[450px] bg-white"
                 endIcon={
                   isSearching ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -658,7 +661,7 @@ export function DataTableClient<TData, TValue>({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8"
+                      className="h-11 md:h-8"
                       data-filter-button
                     >
                       <Filter size={16} className="mr-2" />
@@ -686,7 +689,7 @@ export function DataTableClient<TData, TValue>({
                         {facetedWithCounts.map((filter) => {
                           const currentFilterValues =
                             (tempColumnFilters.find(
-                              (f) => f.id === filter.column
+                              (f) => f.id === filter.column,
                             )?.value as string[]) || [];
 
                           return (
@@ -712,12 +715,12 @@ export function DataTableClient<TData, TValue>({
                                     .sort((a, b) =>
                                       a.label
                                         .toLowerCase()
-                                        .localeCompare(b.label.toLowerCase())
+                                        .localeCompare(b.label.toLowerCase()),
                                     )
                                     .map((option) => {
                                       const isSelected =
                                         currentFilterValues.includes(
-                                          option.value
+                                          option.value,
                                         );
                                       const displayLabel =
                                         option.label.includes('_')
@@ -731,7 +734,7 @@ export function DataTableClient<TData, TValue>({
                                           onClick={() => {
                                             const newValues = isSelected
                                               ? currentFilterValues.filter(
-                                                  (v) => v !== option.value
+                                                  (v) => v !== option.value,
                                                 )
                                               : [
                                                   ...currentFilterValues,
@@ -739,7 +742,7 @@ export function DataTableClient<TData, TValue>({
                                                 ];
                                             handleTempFilterChange(
                                               filter.column,
-                                              newValues
+                                              newValues,
                                             );
                                           }}
                                         >
@@ -749,7 +752,7 @@ export function DataTableClient<TData, TValue>({
                                                 'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
                                                 isSelected
                                                   ? 'bg-primary text-primary-foreground'
-                                                  : 'opacity-50'
+                                                  : 'opacity-50',
                                               )}
                                             >
                                               {isSelected && (
@@ -808,7 +811,7 @@ export function DataTableClient<TData, TValue>({
                       'transition-opacity duration-200',
                       shouldHideControl
                         ? 'opacity-0 pointer-events-none absolute'
-                        : 'opacity-100'
+                        : 'opacity-100',
                     )}
                   >
                     <DropdownMenu>
@@ -863,7 +866,7 @@ export function DataTableClient<TData, TValue>({
                     'flex gap-2 transition-opacity duration-200',
                     shouldShowMobileFilters
                       ? 'opacity-0 pointer-events-none absolute'
-                      : 'opacity-100'
+                      : 'opacity-100',
                   )}
                 >
                   {facetedWithCounts.map((filter) => (
@@ -908,7 +911,7 @@ export function DataTableClient<TData, TValue>({
                       'ml-auto flex-shrink-0 transition-opacity duration-200',
                       shouldShowMobileFilters
                         ? 'opacity-0 pointer-events-none absolute'
-                        : 'opacity-100'
+                        : 'opacity-100',
                     )}
                   >
                     <DropdownMenu>
@@ -1030,280 +1033,287 @@ export function DataTableClient<TData, TValue>({
       ) : (
         <>
           {/* Table Container with External Scroll */}
-      <div className="overflow-x-auto">
-        <div
-          className={cn(
-            simpleTable ? '' : 'rounded-md border pt-2',
-            'bg-white',
-            'min-w-fit'
-          )}
-        >
-          <Table className="w-full">
-            <TableHeader>
-              {table.getHeaderGroups().map((hg) => (
-                <TableRow
-                  key={hg.id}
-                  className={cn(simpleTable ? 'border-b border-border' : '')}
-                >
-                  {hg.headers.map((header, headerIndex) => (
-                    <TableHead
-                      key={header.id}
-                      className={cn(
-                        'text-muted-foreground whitespace-nowrap',
-                        simpleTable && 'border-b-0 font-medium',
-                        !simpleTable && 'first:pl-4 last:pr-4 py-2',
-                        !simpleTable && headerIndex === 0 && 'rounded-tl-md',
-                        !simpleTable &&
-                          headerIndex === hg.headers.length - 1 &&
-                          'rounded-tr-md',
-                        // Only force right-alignment on "Actions" columns (or non-simple tables where we expect an actions column)
-                        ((header.column.id === 'actions' &&
-                          headerIndex === hg.headers.length - 1) ||
-                          (!simpleTable &&
-                            headerIndex === hg.headers.length - 1)) &&
-                          'w-auto text-right'
-                      )}
-                      style={
-                        useColumnSizing
-                          ? {
-                              width: header.column.columnDef.size
-                                ? `${header.column.columnDef.size}px`
-                                : undefined,
-                              minWidth: header.column.columnDef.size
-                                ? `${header.column.columnDef.size}px`
-                                : undefined,
-                              maxWidth: header.column.columnDef.size
-                                ? `${header.column.columnDef.size}px`
-                                : undefined,
-                            }
-                          : undefined
-                      }
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {displayRows.length > 0 ? (
-                displayRows.map((row) => {
-                  // Check if this row is newly added (by checking ID against sessionStorage)
-                  const isNewRecord = newRecordIdsSet.has(row.id);
-
-                  return (
+          <div className="overflow-x-auto">
+            <div
+              className={cn(
+                simpleTable ? '' : 'rounded-md border pt-2',
+                'bg-white',
+                'min-w-fit',
+              )}
+            >
+              <Table className="w-full">
+                <TableHeader>
+                  {table.getHeaderGroups().map((hg) => (
                     <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
+                      key={hg.id}
                       className={cn(
-                        simpleTable
-                          ? 'border-b border-border hover:bg-transparent'
-                          : 'bg-white hover:bg-gray-100',
-                        !simpleTable && onRowClick && 'cursor-pointer',
-                        row.getIsSelected() &&
-                          '!bg-[#EFF6FF] hover:!bg-blue-100',
-                        isNewRecord &&
-                          '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500'
+                        simpleTable ? 'border-b border-border' : '',
                       )}
-                      onClick={(e) => {
-                        // Prevent row click if clicking on buttons or interactive elements
-                        const target = e.target as HTMLElement;
-                        const isInteractiveElement = target.closest(
-                          'button, a, [role="button"], [role="menuitem"], [data-radix-dropdown-menu-item], input, select, textarea'
-                        );
-
-                        if (allowClicksInsideModal) {
-                          // Special mode: Allow clicks inside modals (for tables like UserAccessTab)
-                          if (!isInteractiveElement && onRowClick) {
-                            onRowClick(row.original);
-                          }
-                        } else {
-                          // Default mode: Block clicks if modal is open (safe default)
-                          const hasOpenModal = document.querySelector(
-                            '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]'
-                          );
-                          const isInsideModal = target.closest(
-                            '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]'
-                          );
-
-                          if (
-                            !isInteractiveElement &&
-                            !hasOpenModal &&
-                            !isInsideModal &&
-                            onRowClick
-                          ) {
-                            onRowClick(row.original);
-                          }
-                        }
-                      }}
                     >
-                      {row.getVisibleCells().map((cell, cellIndex) => (
-                        <TableCell
-                          key={cell.id}
+                      {hg.headers.map((header, headerIndex) => (
+                        <TableHead
+                          key={header.id}
                           className={cn(
-                            simpleTable && 'border-b-0',
-                            'whitespace-nowrap',
+                            'text-muted-foreground whitespace-nowrap',
+                            simpleTable && 'border-b-0 font-medium',
                             !simpleTable && 'first:pl-4 last:pr-4 py-2',
-                            ((cell.column.id === 'actions' &&
-                              cellIndex === row.getVisibleCells().length - 1) ||
+                            !simpleTable &&
+                              headerIndex === 0 &&
+                              'rounded-tl-md',
+                            !simpleTable &&
+                              headerIndex === hg.headers.length - 1 &&
+                              'rounded-tr-md',
+                            // Only force right-alignment on "Actions" columns (or non-simple tables where we expect an actions column)
+                            ((header.column.id === 'actions' &&
+                              headerIndex === hg.headers.length - 1) ||
                               (!simpleTable &&
-                                cellIndex ===
-                                  row.getVisibleCells().length - 1)) &&
-                              'w-auto text-right'
+                                headerIndex === hg.headers.length - 1)) &&
+                              'w-auto text-right',
                           )}
                           style={
                             useColumnSizing
                               ? {
-                                  width: cell.column.columnDef.size
-                                    ? `${cell.column.columnDef.size}px`
+                                  width: header.column.columnDef.size
+                                    ? `${header.column.columnDef.size}px`
                                     : undefined,
-                                  minWidth: cell.column.columnDef.size
-                                    ? `${cell.column.columnDef.size}px`
+                                  minWidth: header.column.columnDef.size
+                                    ? `${header.column.columnDef.size}px`
                                     : undefined,
-                                  maxWidth: cell.column.columnDef.size
-                                    ? `${cell.column.columnDef.size}px`
+                                  maxWidth: header.column.columnDef.size
+                                    ? `${header.column.columnDef.size}px`
                                     : undefined,
                                 }
                               : undefined
                           }
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow
-                  className={cn(simpleTable && 'border-b-0', 'bg-white')}
-                >
-                  <TableCell
-                    colSpan={columns.length}
-                    className={cn('border-b-0 p-0')}
-                  >
-                    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center mt-2">
-                      {/* Empty state icon */}
-                      <div className="flex justify-center mb-4">
-                        <Image
-                          src="/empty-table.svg"
-                          alt="No data available"
-                          width={128}
-                          height={128}
-                          className="w-32 h-auto"
-                        />
-                      </div>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {displayRows.length > 0 ? (
+                    displayRows.map((row) => {
+                      // Check if this row is newly added (by checking ID against sessionStorage)
+                      const isNewRecord = newRecordIdsSet.has(row.id);
 
-                      {/* Empty state text */}
-                      <h3 className="text-gray-700 font-medium mb-1">
-                        No items are available
-                      </h3>
+                      return (
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && 'selected'}
+                          className={cn(
+                            simpleTable
+                              ? 'border-b border-border hover:bg-transparent'
+                              : 'bg-white hover:bg-gray-100',
+                            !simpleTable && onRowClick && 'cursor-pointer',
+                            row.getIsSelected() &&
+                              '!bg-[#EFF6FF] hover:!bg-blue-100',
+                            isNewRecord &&
+                              '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                          )}
+                          onClick={(e) => {
+                            // Prevent row click if clicking on buttons or interactive elements
+                            const target = e.target as HTMLElement;
+                            const isInteractiveElement = target.closest(
+                              'button, a, [role="button"], [role="menuitem"], [data-radix-dropdown-menu-item], input, select, textarea',
+                            );
+
+                            if (allowClicksInsideModal) {
+                              // Special mode: Allow clicks inside modals (for tables like UserAccessTab)
+                              if (!isInteractiveElement && onRowClick) {
+                                onRowClick(row.original);
+                              }
+                            } else {
+                              // Default mode: Block clicks if modal is open (safe default)
+                              const hasOpenModal = document.querySelector(
+                                '[data-state="open"][role="dialog"], [data-radix-dialog-overlay], [data-slot="dialog-overlay"]',
+                              );
+                              const isInsideModal = target.closest(
+                                '[role="dialog"], [data-radix-dialog-content], [data-slot="dialog-content"]',
+                              );
+
+                              if (
+                                !isInteractiveElement &&
+                                !hasOpenModal &&
+                                !isInsideModal &&
+                                onRowClick
+                              ) {
+                                onRowClick(row.original);
+                              }
+                            }
+                          }}
+                        >
+                          {row.getVisibleCells().map((cell, cellIndex) => (
+                            <TableCell
+                              key={cell.id}
+                              className={cn(
+                                simpleTable && 'border-b-0',
+                                'whitespace-nowrap',
+                                !simpleTable && 'first:pl-4 last:pr-4 py-2',
+                                ((cell.column.id === 'actions' &&
+                                  cellIndex ===
+                                    row.getVisibleCells().length - 1) ||
+                                  (!simpleTable &&
+                                    cellIndex ===
+                                      row.getVisibleCells().length - 1)) &&
+                                  'w-auto text-right',
+                              )}
+                              style={
+                                useColumnSizing
+                                  ? {
+                                      width: cell.column.columnDef.size
+                                        ? `${cell.column.columnDef.size}px`
+                                        : undefined,
+                                      minWidth: cell.column.columnDef.size
+                                        ? `${cell.column.columnDef.size}px`
+                                        : undefined,
+                                      maxWidth: cell.column.columnDef.size
+                                        ? `${cell.column.columnDef.size}px`
+                                        : undefined,
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow
+                      className={cn(simpleTable && 'border-b-0', 'bg-white')}
+                    >
+                      <TableCell
+                        colSpan={columns.length}
+                        className={cn('border-b-0 p-0')}
+                      >
+                        <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center mt-2">
+                          {/* Empty state icon */}
+                          <div className="flex justify-center mb-4">
+                            <Image
+                              src="/empty-table.svg"
+                              alt="No data available"
+                              width={128}
+                              height={128}
+                              className="w-32 h-auto"
+                            />
+                          </div>
+
+                          {/* Empty state text */}
+                          <h3 className="text-gray-700 font-medium mb-1">
+                            No items are available
+                          </h3>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Pagination Controls */}
+          {!simpleTable && (
+            <div className="overflow-x-auto">
+              <div className="min-w-full py-2">
+                <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
+                  <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
+                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                      Total Records:
+                      <span className="text-accent-foreground ml-2">
+                        {table.getFilteredRowModel().rows.length}
+                      </span>
+                    </p>
+
+                    <Separator
+                      orientation="vertical"
+                      className="text-accent-foreground"
+                    />
+
+                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                      Rows per page
+                    </p>
+                    <Select
+                      value={paginationSize}
+                      onValueChange={handlePaginationSizeChange}
+                    >
+                      <SelectTrigger className="h-8 w-[80px]">
+                        <SelectValue placeholder={pageSizeTriggerContent} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {paginationSizeSelect.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Page nav */}
+                  <div className="flex items-center space-x-4">
+                    <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
+                      Page {pagination.pageIndex + 1} of {table.getPageCount()}
                     </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Pagination Controls */}
-      {!simpleTable && (
-        <div className="overflow-x-auto">
-          <div className="min-w-full py-2">
-            <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-              <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
-                <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                  Total Records:
-                  <span className="text-accent-foreground ml-2">
-                    {table.getFilteredRowModel().rows.length}
-                  </span>
-                </p>
-
-                <Separator
-                  orientation="vertical"
-                  className="text-accent-foreground"
-                />
-
-                <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                  Rows per page
-                </p>
-                <Select
-                  value={paginationSize}
-                  onValueChange={handlePaginationSizeChange}
-                >
-                  <SelectTrigger className="h-8 w-[80px]">
-                    <SelectValue placeholder={pageSizeTriggerContent} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {paginationSizeSelect.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Page nav */}
-              <div className="flex items-center space-x-4">
-                <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
-                  Page {pagination.pageIndex + 1} of {table.getPageCount()}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    className="hidden h-8 w-8 p-0 lg:flex"
-                    onClick={() => table.setPageIndex(0)}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    <span className="sr-only">First page</span>
-                    <ChevronsLeft size={15} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    <span className="sr-only">Previous page</span>
-                    <ChevronLeft size={15} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    <span className="sr-only">Next page</span>
-                    <ChevronRight size={15} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="hidden h-8 w-8 p-0 lg:flex"
-                    onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    <span className="sr-only">Last page</span>
-                    <ChevronsRight size={15} />
-                  </Button>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        className="hidden h-8 w-8 p-0 lg:flex"
+                        onClick={() => table.setPageIndex(0)}
+                        disabled={!table.getCanPreviousPage()}
+                      >
+                        <span className="sr-only">First page</span>
+                        <ChevronsLeft size={15} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                      >
+                        <span className="sr-only">Previous page</span>
+                        <ChevronLeft size={15} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                      >
+                        <span className="sr-only">Next page</span>
+                        <ChevronRight size={15} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="hidden h-8 w-8 p-0 lg:flex"
+                        onClick={() =>
+                          table.setPageIndex(table.getPageCount() - 1)
+                        }
+                        disabled={!table.getCanNextPage()}
+                      >
+                        <span className="sr-only">Last page</span>
+                        <ChevronsRight size={15} />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
         </>
       )}
     </div>
