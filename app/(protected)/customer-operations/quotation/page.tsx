@@ -30,6 +30,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { QuotationCard } from '@/components/mobile/quotation-card';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -149,6 +150,25 @@ export default function QuotationsPage() {
     actions.view();
   };
 
+  // Mobile card renderer
+  const renderQuotationCard = React.useCallback(
+    (quotation: Quotation, onViewDetails?: () => void) => (
+      <QuotationCard
+        id={quotation.id}
+        projectName={quotation.projectName}
+        quoteNumber={quotation.quoteNumber}
+        quoteStatus={quotation.quoteStatus}
+        quoteType={quotation.quoteType}
+        customerName={quotation.customerName}
+        totalSellPrice={quotation.totalSellPrice}
+        expiryDate={quotation.expiryDate}
+        accountManagerName={quotation.accountManagerName}
+        onViewDetails={onViewDetails}
+      />
+    ),
+    []
+  );
+
   // const handleRowSelectionChange = (selected: Quotation[]) => {
   //   setSelectedQuotations(selected);
   // };
@@ -232,6 +252,7 @@ export default function QuotationsPage() {
               onRowClick={handleRowClick}
               enableRowSelection={false}
               defaultSorting={[{ id: 'created_at', desc: true }]}
+              mobileCardRenderer={renderQuotationCard}
             />
           </>
         )}

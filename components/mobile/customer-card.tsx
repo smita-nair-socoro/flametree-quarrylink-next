@@ -64,7 +64,7 @@ export function CustomerCard({
   // For BUSINESS type, show businessName; for INDIVIDUAL, show contactName
   const displayName =
     customerType === 'BUSINESS'
-      ? (businessName?.trim() || contactName)
+      ? businessName?.trim() || contactName
       : contactName;
 
   const handleViewDetails = () => {
