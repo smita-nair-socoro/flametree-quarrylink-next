@@ -754,10 +754,10 @@ export const APIClient = {
         `/socoro/quarrylink/api/quote/${id}/duplicate`,
       ),
     bulkArchive: (ids: number[]) =>
-      appClient.Put<void>(
-        `/socoro/quarrylink/api/quote/bulk-archive`,
+      appClient.Post<void>(
+        `/socoro/quarrylink/api/quote/archive`,
         {
-          body: { ids },
+          body: { quoteIds: ids },
         }
       ),
     sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
