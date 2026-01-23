@@ -753,6 +753,13 @@ export const APIClient = {
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/duplicate`,
       ),
+    bulkArchive: (ids: number[]) =>
+      appClient.Put<void>(
+        `/socoro/quarrylink/api/quote/bulk-archive`,
+        {
+          body: { ids },
+        }
+      ),
     sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
