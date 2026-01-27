@@ -25,6 +25,7 @@ import {
 import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
+import { AddressType } from '@/lib/types/address';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 
@@ -81,6 +82,22 @@ export default function QuoteLineItemForm({
   React.useEffect(() => {
     onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
   }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
+  // Handler for address changes with functional updates to prevent unnecessary rerenders
+  const handleAddressChange = React.useCallback(
+    (newAddress: AddressType) => {
+      setAddressInput((prev) => {
+        const same =
+          prev.formattedAddress === newAddress.formattedAddress &&
+          prev.googlePlaceId === newAddress.googlePlaceId &&
+          prev.lat === newAddress.lat &&
+          prev.lng === newAddress.lng;
+
+        return same ? prev : newAddress;
+      });
+    },
+    [setAddressInput]
+  );
 
   // State for delete delivery address confirmation dialog
   const [deleteAddressDialogOpen, setDeleteAddressDialogOpen] =
@@ -166,7 +183,7 @@ export default function QuoteLineItemForm({
                     <FormControl>
                       <AddressAutoComplete
                         address={addressInput}
-                        setAddress={setAddressInput}
+                        setAddress={handleAddressChange}
                         searchInput={addressSearchInput}
                         setSearchInput={setAddressSearchInput}
                         dialogTitle="Delivery Address"
@@ -234,7 +251,7 @@ export default function QuoteLineItemForm({
                       <FormControl>
                         <AddressAutoComplete
                           address={addressInput}
-                          setAddress={setAddressInput}
+                          setAddress={handleAddressChange}
                           searchInput={addressSearchInput}
                           setSearchInput={setAddressSearchInput}
                           dialogTitle="Collection Address"

@@ -2,20 +2,8 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
-import { UsersListQueryOptions } from '@/lib/api/user';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
 import type { Quotation } from '@/lib/types/quotation';
-import type { QuotationPricingBreakdown } from '@/lib/utils/quote-helpers';
-
-const GST_RATE = 0.1;
-
-function calculateQuotationTotals(pricingBreakdown: QuotationPricingBreakdown) {
-  const gst = (Number(pricingBreakdown.totalInvoice) * GST_RATE).toFixed(2);
-  const totalInvoiceIncGST = (
-    Number(pricingBreakdown.totalInvoice) + Number(gst)
-  ).toFixed(2);
-  return { gst, totalInvoiceIncGST };
-}
 
 /**
  * Consolidated hook for managing all quotation form state and data
@@ -77,11 +65,6 @@ export function useQuotationFormState(
     return calculateQuotationPricing(currentQuotation.quoteItems);
   }, [isEditing, currentQuotation]);
 
-  const { gst, totalInvoiceIncGST } = React.useMemo(
-    () => calculateQuotationTotals(pricingBreakdown),
-    [pricingBreakdown]
-  );
-
   // ===== CUSTOMER AUTO-FILL =====
   const customerId = quotationForm.watch('customerId');
 
@@ -110,10 +93,7 @@ export function useQuotationFormState(
     dateLabel,
     timeWindowLabel,
 
-    // Pricing
+    // Pricing (includes gst and totalInvoiceIncGST)
     pricingBreakdown,
-    gst,
-    totalInvoiceIncGST,
-
   };
 }

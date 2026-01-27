@@ -498,6 +498,8 @@ export function useLineItemFormState({
     if (qsp?.availableForTruckRateLoad)
       opts.push({ label: 'Load', value: 'LOAD' });
     if (qsp?.availableForTruckRateKm) opts.push({ label: 'km', value: 'KM' });
+    if (qsp?.availableForTruckRate20kg) opts.push({ label: '20kg', value: 'KG_20' });
+    if (qsp?.availableForTruckRateBulka) opts.push({ label: 'Bulka', value: 'BULKA' });
     return opts;
   }, [selectedQuarrySupplierProduct]);
 
@@ -699,6 +701,12 @@ export function useLineItemFormState({
       case 'KM':
         rate = centsToDollarsNum(qsp.kmTruckRate || 0);
         break;
+      case 'KG_20':
+        rate = centsToDollarsNum(qsp.kg20TruckRate || 0);
+        break;
+      case 'BULKA':
+        rate = centsToDollarsNum(qsp.bulkaTruckRate || 0);
+        break;
       default:
         rate = 0;
     }
@@ -742,6 +750,12 @@ export function useLineItemFormState({
         break;
       case 'KM':
         rate = centsToDollarsNum(qsp.kmTruckRate || 0);
+        break;
+      case 'KG_20':
+        rate = centsToDollarsNum(qsp.kg20TruckRate || 0);
+        break;
+      case 'BULKA':
+        rate = centsToDollarsNum(qsp.bulkaTruckRate || 0);
         break;
       default:
         rate = 0;

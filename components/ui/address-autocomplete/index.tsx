@@ -180,47 +180,28 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const [detailsLoading, setDetailsLoading] = useState(false);
   // Session token for Google Places API - reuse within a session, regenerate after selection
   const sessionTokenRef = useRef<string>(uuidv4());
+  // Ref to track current address to avoid stale closures
+  const addressRef = useRef(address);
+
+  // Keep addressRef in sync with address prop
+  useEffect(() => {
+    addressRef.current = address;
+  }, [address]);
 
   const historyAddresses = historyAddressesProp ?? [];
 
+  // Sync value prop to address (only when value changes externally)
+  // Note: Empty values are ignored - clearing is handled explicitly via handleReset
   useEffect(() => {
-    if (value && value !== address.formattedAddress) {
-      setAddress({ ...address, formattedAddress: value });
-    }
-  }, [value, address, address.formattedAddress, setAddress]);
+    if (!value) return;
 
-  useEffect(() => {
-    if (
-      address.address1 ||
-      address.city ||
-      address.region ||
-      address.postalCode ||
-      address.country
-    ) {
-      const formatted = formatAddressFromComponents(address);
-      if (formatted !== address.formattedAddress) {
-        const updatedAddress = {
-          ...address,
-          formattedAddress: formatted,
-        };
-        setAddress(updatedAddress);
-        // Notify react-hook-form of the change
-        if (onChange && formatted) {
-          onChange(formatted);
-        }
-      }
-    }
-  }, [
-    address.address1,
-    address.address2,
-    address.city,
-    address.region,
-    address.postalCode,
-    address.country,
-    address,
-    setAddress,
-    onChange,
-  ]);
+    const currentAddress = addressRef.current;
+    // Early return if already in sync to prevent unnecessary updates
+    if (currentAddress.formattedAddress === value) return;
+
+    // Update only formattedAddress, preserving other address fields
+    setAddress({ ...currentAddress, formattedAddress: value });
+  }, [value, setAddress]);
 
   useEffect(() => {
     const fetchPlaceDetails = async () => {
@@ -250,7 +231,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           console.error(
             'Place details fetch failed:',
             response.status,
-            response.statusText
+            response.statusText,
           );
           return;
         }
@@ -288,7 +269,17 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           googlePlaceId: selectedPlaceId, // Store the Google Place ID
         };
 
-        setAddress(formattedData);
+        // Only update if the address actually changed
+        const currentAddress = addressRef.current;
+        const same =
+          currentAddress.googlePlaceId === formattedData.googlePlaceId &&
+          currentAddress.formattedAddress === formattedData.formattedAddress &&
+          currentAddress.lat === formattedData.lat &&
+          currentAddress.lng === formattedData.lng;
+
+        if (!same) {
+          setAddress(formattedData);
+        }
         setAdrAddress(data.adrFormatAddress || '');
         // Notify react-hook-form of the change
         if (onChange && formattedAddress) {
@@ -315,7 +306,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         formattedAddress: searchInput.trim(),
       };
       setAddress(updatedAddress);
-      // Notify react-hook-form of the change
+      // Notify react-hook-form of the change when user manually enters
       if (onChange) {
         onChange(searchInput.trim());
       }
@@ -349,7 +340,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
 
   const handleSelectSuggestion = (
     suggestedAddress: string,
-    addressOverride?: AddressType
+    addressOverride?: AddressType,
   ) => {
     const nextAddress = addressOverride ?? {
       ...address,
@@ -540,7 +531,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           console.error(
             'Autocomplete fetch failed:',
             response.status,
-            response.statusText
+            response.statusText,
           );
           const errorText = await response.text();
           console.error('Error response:', errorText);
@@ -559,7 +550,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
     };
 
     fetchSuggestions();
-  }, [debouncedSearchInput]);
+  }, [debouncedSearchInput, sessionTokenRef]);
 
   const hasSearched = debouncedSearchInput.trim().length > 0;
   const hasNoResults =
@@ -582,7 +573,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           'flex h-9 w-full items-center rounded-md border border-input px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring md:text-sm',
           ariaInvalid
             ? 'border-destructive focus-within:border-destructive focus-within:ring-destructive/20'
-            : null
+            : null,
         )}
       >
         <CommandPrimitive.Input
@@ -637,7 +628,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                         onSelect={() =>
                           onSelectSuggestion(
                             pinnedAddressFormatted,
-                            pinnedAddress
+                            pinnedAddress,
                           )
                         }
                         className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center"
@@ -658,7 +649,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                           onSelect={() =>
                             onSelectSuggestion?.(
                               addr.formattedAddress,
-                              addr.addressType
+                              addr.addressType,
                             )
                           }
                           className="flex select-text cursor-pointer gap-2 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-center group"
@@ -706,7 +697,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                             onSelect={() => {
                               setSearchInput('');
                               setSelectedPlaceId(
-                                prediction.placePrediction.place
+                                prediction.placePrediction.place,
                               );
                               setIsOpenDialog(true);
                             }}

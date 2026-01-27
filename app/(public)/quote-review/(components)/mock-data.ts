@@ -134,12 +134,7 @@ export const mockQuotationData = {
   // Summary and payment
   summary: {
     totalProducts: 5,
-    totalQuantity: '600 tonnes, 45 m³',
     estimatedDelivery: '23rd August, 2026',
-    termsAndConditions: [
-      'Delivery subject to weather conditions',
-      'Quote valid for 14 days from issue date',
-    ],
     subtotal: 27010000.0,
     gst: 2843250.0,
     total: 31275750.0,

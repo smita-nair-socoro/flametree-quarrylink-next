@@ -25,10 +25,10 @@ function formatDate(dateString: string | null | undefined): string {
       day === 1 || day === 21 || day === 31
         ? 'st'
         : day === 2 || day === 22
-        ? 'nd'
-        : day === 3 || day === 23
-        ? 'rd'
-        : 'th';
+          ? 'nd'
+          : day === 3 || day === 23
+            ? 'rd'
+            : 'th';
 
     return `${day}${suffix} ${month}, ${year}`;
   } catch {
@@ -41,7 +41,7 @@ function formatDate(dateString: string | null | undefined): string {
  */
 function formatDeliveryWindow(
   windowStart: string | null | undefined,
-  windowEnd: string | null | undefined
+  windowEnd: string | null | undefined,
 ): string {
   if (!windowStart || !windowEnd) return 'N/A';
 
@@ -67,7 +67,7 @@ function formatDeliveryWindow(
  * Transform API response to display format
  */
 export function transformQuoteData(
-  apiResponse: PublicQuoteLinkResponse
+  apiResponse: PublicQuoteLinkResponse,
 ): QuotationDisplayData {
   const { quoteDto, stripeTenantDetailsSnapshot } = apiResponse;
   const {
@@ -108,7 +108,7 @@ export function transformQuoteData(
   const productSubtotal = quoteItems
     ? quoteItems.reduce(
         (sum, item) => sum + (item.totalProductSellPrice || 0),
-        0
+        0,
       )
     : 0;
 
@@ -124,16 +124,8 @@ export function transformQuoteData(
   // Total is subtotal + GST
   const total = subtotal + gst;
 
-  // Total quantity calculation from all products
-  const totalQuantity = quoteItems
-    ? `${quoteItems.reduce(
-        (sum, item) => sum + (item.productSellQty || 0),
-        0
-      )} ${quoteItems[0]?.productSellUom || 'units'}`
-    : '0 units';
-
   const customerBillingAddress = formatAustralianAddress(
-    customerWithAddressResponseDto?.billingAddress?.formattedAddress
+    customerWithAddressResponseDto?.billingAddress?.formattedAddress,
   );
 
   // Determine customer display name based on customer type
@@ -180,18 +172,13 @@ export function transformQuoteData(
       deliveryDate: formatDate(deliveryStartDate),
       deliveryWindow: formatDeliveryWindow(
         deliveryWindowStart,
-        deliveryWindowEnd
+        deliveryWindowEnd,
       ),
     },
     products,
     summary: {
       totalProducts: quoteItems?.length || 0,
-      totalQuantity,
       estimatedDelivery: formatDate(deliveryStartDate),
-      termsAndConditions: [
-        'Delivery subject to weather conditions',
-        'Quote valid for 14 days from issue date',
-      ],
       subtotal,
       gst,
       total,
@@ -205,7 +192,7 @@ export function transformQuoteData(
     footer: (() => {
       // Format footer address using Australian standard (same as billing address)
       const footerAddressFormatted = formatAustralianAddress(
-        stripeTenantDetailsSnapshot?.billingAddress
+        stripeTenantDetailsSnapshot?.billingAddress,
       );
       return {
         email:
