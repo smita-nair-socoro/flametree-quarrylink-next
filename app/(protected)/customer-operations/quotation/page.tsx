@@ -37,7 +37,7 @@ import { Button } from '@/components/ui/button';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { QuotationTableActions } from './(components)/(data-tables)/quotation/quotation-table-actions';
-import { parseISO, formatDistanceToNow, format } from 'date-fns';
+import { parseISO, format } from 'date-fns';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -163,7 +163,7 @@ export default function QuotationsPage() {
       ? `$${centsToDollars(quotation.totalSellPrice)}`
       : '$0.00';
     const expiryDate = quotation.expiryDate || '-';
-    
+
     const date = parseISO(expiryDate);
     const formattedExpiryDate = format(date, 'dd MMM yyyy');
 
