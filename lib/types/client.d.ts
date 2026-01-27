@@ -88,3 +88,7 @@ export interface TenantCompleteDetails {
   tenantDetails: TenantDetails;
   subscriptionAndInvoices: SubscriptionsAndInvoices;
 }
+
+export interface TenantLogoUploadResponse {
+  s3Key: string;
+}

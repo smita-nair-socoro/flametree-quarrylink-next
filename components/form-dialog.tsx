@@ -516,7 +516,7 @@ export function FormDialog({
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerTrigger asChild>{triggerNode}</DrawerTrigger>
       <DrawerContent
-        className="fflex flex-col max-w-[95vh] h-auto"
+        className="flex flex-col max-w-[95vh] h-auto"
         onOpenAutoFocus={
           preventAutoFocus ? (e) => e.preventDefault() : undefined
         }

@@ -8,13 +8,13 @@ import {
   SettingsIcon,
   Shield,
   UsersRound,
-  // Palette,
+  Palette,
 } from 'lucide-react';
 import SettingsTab from './(components)/tabs/settings-tab';
 import TeamAdminTab from './(components)/tabs/team-admin-tab';
 import RolesTab from './(components)/tabs/roles-tab';
 import BillingTab from './(components)/tabs/billing-tab';
-// import BrandingTab from './(components)/tabs/branding-tab';
+import BrandingTab from './(components)/tabs/branding-tab';
 
 export default function UserRolesPage() {
   const tabs = [
@@ -38,11 +38,11 @@ export default function UserRolesPage() {
       content: <BillingTab />,
       icon: <CreditCard className="w-4 h-4" />,
     },
-    // {
-    //   name: 'Branding',
-    //   content: <BrandingTab />,
-    //   icon: <Palette className="w-4 h-4" />,
-    // },
+    {
+      name: 'Branding',
+      content: <BrandingTab />,
+      icon: <Palette className="w-4 h-4" />,
+    },
   ];
 
   return (

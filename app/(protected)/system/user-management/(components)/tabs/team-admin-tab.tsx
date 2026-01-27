@@ -32,7 +32,8 @@ const handleRevoke = (invitation: PendingInvitation) => {
 
 // Roles options for the form
 const rolesOptions: readonly FormSelectOption[] = [
-  { label: 'User', value: Role.USER },
+  // { label: 'User', value: Role.USER },
+  { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
 
@@ -85,7 +86,7 @@ export default function TeamAdminTab() {
         invited_by: 'System', // API doesn't provide this, using placeholder
         expires_at: user.createdAt
           ? new Date(
-              new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000
+              new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
             ).toISOString() // 7 days from creation
           : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }));
@@ -95,7 +96,7 @@ export default function TeamAdminTab() {
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
-    (state) => state.setSelectedTeamMember
+    (state) => state.setSelectedTeamMember,
   );
 
   // Separate state for the actions hook (like customer implementation)
@@ -106,7 +107,7 @@ export default function TeamAdminTab() {
     selectedTeamMemberForActions?.sub,
     selectedTeamMemberForActions,
     rolesOptions,
-    1
+    1,
   );
 
   // Handle row click to open member details
@@ -122,7 +123,7 @@ export default function TeamAdminTab() {
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
     () => createTeamMemberColumns(rolesOptions, 1),
-    [] // rolesOptions is a constant, no need to track it
+    [], // rolesOptions is a constant, no need to track it
   );
 
   const facetDefs: FacetDefinition[] = [
@@ -180,7 +181,7 @@ export default function TeamAdminTab() {
                   data={enabledUsers.filter(
                     (member) =>
                       member.status !== UserStatus.DELETED &&
-                      member.status !== UserStatus.INACTIVE
+                      member.status !== UserStatus.INACTIVE,
                   )}
                   columns={columns}
                   facetDefination={facetDefs}
