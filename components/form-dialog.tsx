@@ -432,7 +432,7 @@ export function FormDialog({
         className={clsx(
           'flex flex-row justify-between flex-shrink-0 px-5 pt-6',
           headerButtonsAlign === 'start' ? 'items-start' : 'items-center',
-          headerClassName || 'pb-2'
+          headerClassName || 'pb-2',
         )}
       >
         <div>
@@ -455,7 +455,7 @@ export function FormDialog({
         className={clsx(
           getScrollAreaMaxHeight(),
           'rounded-md overflow-auto px-5',
-          contentClass
+          contentClass,
         )}
       >
         <div>{contentNode}</div>
@@ -471,15 +471,15 @@ export function FormDialog({
           className={clsx(
             'flex flex-col p-0 w-full',
             'overflow-hidden rounded-lg',
-            'scrollbar-gutter-stable'
+            'scrollbar-gutter-stable',
           )}
           style={{
             width: '100%',
             maxWidth: dialogWidth
               ? `min(${dialogWidth}, 95vw)`
               : isEditing
-              ? 'min(95vw, 1100px)'
-              : 'min(90vw, 800px)',
+                ? 'min(95vw, 1100px)'
+                : 'min(90vw, 800px)',
             maxHeight: '95vh',
           }}
           onOpenAutoFocus={
