@@ -9,7 +9,6 @@
 
 
   "GOOGLE_MAPS_API_KEY": "AIzaSyA8f37TitR0sIDvFNJC7sezDFumiZqZZOE",
-  "MICROSOFT_CLARITY_ID": "v88amv038n",
   "API_URL": "https://api.dev.quarrylink.com.au",
   "SENTRY_DSN": null
 }

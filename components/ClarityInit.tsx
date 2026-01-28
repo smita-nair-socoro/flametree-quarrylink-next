@@ -1,7 +1,6 @@
 'use client';
 import { useEffect } from 'react';
 import Clarity from '@microsoft/clarity';
-import { useConfig } from '@/lib/providers/ConfigProvider';
 
 // Type definition for Microsoft Clarity
 interface MicrosoftClarity {
@@ -23,21 +22,21 @@ interface MicrosoftClarity {
 }
 
 export default function ClarityInit() {
-  const config = useConfig();
 
   useEffect(() => {
-    const clarityProjectId =
-      config.MICROSOFT_CLARITY_ID || '';
+    const clarityProjectId = '801q4p82q3';
+    console.log('clarityProjectId', clarityProjectId);
 
     if (clarityProjectId && typeof window !== 'undefined') {
       const clarity = Clarity as MicrosoftClarity;
+      console.log('clarity', clarity);
       clarity.init(clarityProjectId);
     } else if (!clarityProjectId) {
       console.warn(
         'Microsoft Clarity project ID not found.'
       );
     }
-  }, [config]);
+  }, []);
 
   return null;
 }
