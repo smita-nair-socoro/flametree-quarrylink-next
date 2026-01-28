@@ -92,12 +92,12 @@ export const navItems = [
       },
     ],
   },
-  {
-    title: 'Tenant Management',
-    url: '/system/tenant-management',
-    icon: Settings2,
-    plan: 'ESSENTIAL',
-  },
+  // {
+  //   title: 'Tenant Management',
+  //   url: '/system/tenant-management',
+  //   icon: Settings2,
+  //   plan: 'ESSENTIAL',
+  // },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
