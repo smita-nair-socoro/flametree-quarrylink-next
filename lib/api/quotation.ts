@@ -378,3 +378,19 @@ export const useUpdateQuoteDecision = () => {
     },
   });
 };
+
+/**
+ * Mutation hook for bulk archiving quotations.
+ * Automatically invalidates the quotations list cache on success.
+ */
+export const useBulkArchiveQuotations = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => APIClient.quotations.bulkArchive(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
