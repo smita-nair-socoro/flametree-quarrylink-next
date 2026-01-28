@@ -43,18 +43,6 @@ export function TeamSwitcher({
     isLoading,
     isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
-  React.useEffect(() => {
-    if (tenantCompleteDetails) {
-      console.log(
-        '🏢 [TeamSwitcher] Tenant Complete Details:',
-        tenantCompleteDetails
-      );
-      console.log(
-        '🏷️ [TeamSwitcher] Tenant Name:',
-        tenantCompleteDetails.tenantDetails?.tenantName
-      );
-    }
-  }, [tenantCompleteDetails]);
 
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
