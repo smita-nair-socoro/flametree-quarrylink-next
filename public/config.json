@@ -7,7 +7,9 @@
   "AMPLIFY_AUTH_USER_POOL_ID": "ap-southeast-2_DxliDLvi2",
   "AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID": "6emlq6b36lcon72f9a6nbl1fn5",
 
+
   "GOOGLE_MAPS_API_KEY": "AIzaSyA8f37TitR0sIDvFNJC7sezDFumiZqZZOE",
+  "MICROSOFT_CLARITY_ID": "v88amv038n",
   "API_URL": "https://api.dev.quarrylink.com.au",
   "SENTRY_DSN": null
 }

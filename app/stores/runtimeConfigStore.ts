@@ -9,6 +9,7 @@ export type RuntimeConfig = {
   GOOGLE_MAPS_API_KEY: string;
   API_URL: string;
   SENTRY_DSN?: string | null;
+  MICROSOFT_CLARITY_ID?: string | null;
 };
 
 // Internal variable
