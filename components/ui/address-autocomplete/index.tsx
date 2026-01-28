@@ -267,6 +267,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           lat,
           lng,
           googlePlaceId: selectedPlaceId, // Store the Google Place ID
+          locationSource: 'AUTOCOMPLETE_PLACE',
         };
 
         // Only update if the address actually changed
@@ -304,6 +305,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
+        locationSource: 'MANUAL',
       };
       setAddress(updatedAddress);
       // Notify react-hook-form of the change when user manually enters
@@ -319,7 +321,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSelectedPlaceId('');
     setAdrAddress('');
     setSearchInput('');
-    const resetAddress = {
+    const resetAddress: AddressType = {
       address1: '',
       address2: '',
       formattedAddress: '',
@@ -330,6 +332,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       lat: 0,
       lng: 0,
       googlePlaceId: '',
+      locationSource: undefined,
     };
     setAddress(resetAddress);
     // Notify react-hook-form of the change
@@ -379,10 +382,11 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             onChange={onChange}
           >
             <Button
-              disabled={detailsLoading}
+              disabled={detailsLoading || readOnly}
               size="icon"
               variant="outline"
               className="shrink-0"
+              title="Edit address and location"
             >
               <Pencil className="size-4" />
             </Button>
@@ -393,6 +397,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             size="icon"
             variant="outline"
             className="shrink-0"
+            disabled={readOnly}
+            title="Clear address"
           >
             <Delete className="size-4" />
           </Button>

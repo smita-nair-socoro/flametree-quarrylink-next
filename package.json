@@ -42,6 +42,7 @@
     "@tanstack/react-query-devtools": "^5.81.2",
     "@tanstack/react-table": "^8.21.3",
     "@types/jspdf": "^2.0.0",
+    "@vis.gl/react-google-maps": "^1.7.1",
     "aws-amplify": "^6.6.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
