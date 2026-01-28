@@ -545,6 +545,24 @@ export function DataTableClient<TData, TValue>({
     },
   });
 
+  // Notify parent of selection changes
+  useEffect(() => {
+    if (enableRowSelection && onRowSelectionChange) {
+      const selectedRowIds = Object.keys(rowSelection).filter(
+        (key) => rowSelection[key]
+      );
+      const selectedRows = selectedRowIds
+        .map((id) => {
+          // Use table.getRow to get the row by its ID (which could be the actual row id or index)
+          const row = table.getRow(id);
+          return row?.original;
+        })
+        .filter((row): row is TData => row !== undefined);
+      onRowSelectionChange(selectedRows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection, table]);
+
   // Clear temporary pinning on page unload or when table unmounts
   useEffect(() => {
     const handler = () => {
