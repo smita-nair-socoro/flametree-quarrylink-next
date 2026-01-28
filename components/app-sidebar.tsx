@@ -4,7 +4,6 @@ import * as React from 'react';
 import {
   LayoutDashboard,
   Package,
-  Settings2, 
   Truck,
   Users,
 } from 'lucide-react';
