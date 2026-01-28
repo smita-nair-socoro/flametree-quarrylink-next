@@ -3,7 +3,7 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Plus, Gem, PackageX, TrendingUp, Package } from 'lucide-react';
+import { Plus, Gem, PackageX, TrendingUp, Package, Tag, Box } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery } from '@tanstack/react-query';
@@ -25,12 +25,15 @@ import {
   useSelectedProduct,
 } from '@/app/stores/product-store';
 import { useProductActions } from '@/hooks/use-product-actions';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { ProductTableActions } from './(components)/(data-tables)/products/product-table-actions';
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setSelectedProduct = useProductStore(
-    (state) => state.setSelectedProduct
+    (state) => state.setSelectedProduct,
   );
   const selectedProductForActions = useSelectedProduct();
 
@@ -38,7 +41,7 @@ export default function ProductsPage() {
 
   const { actions, confirmDialogs, viewDialog } = useProductActions(
     selectedProductForActions?.id,
-    selectedProductForActions
+    selectedProductForActions,
   );
 
   // Use React Query to fetch products data
@@ -56,7 +59,7 @@ export default function ProductsPage() {
       title: 'Highest Revenue Product',
       value: reportingData?.mostQuotedProductName || '',
       description: `$${centsToDollars(
-        reportingData?.mostQuotedProductValueThisMonth || 0
+        reportingData?.mostQuotedProductValueThisMonth || 0,
       )} this month`,
       icon: Gem,
       iconBgColor: 'bg-[#FEF3C6]',
@@ -110,6 +113,39 @@ export default function ProductsPage() {
     actions.view();
   };
 
+  // Mobile card renderer
+  const renderProductCard = React.useCallback((product: ProductDetails) => {
+    const materialName = product.material?.name || '';
+
+    return (
+      <MobileCard
+        title={product.productName}
+        description={
+          <>
+            <Tag className="h-3.5 w-3.5" />
+            <span className="truncate">{product.productCode}</span>
+          </>
+        }
+        badges={
+          <>
+            {product.status && <TableBadges names={[product.status]} visibleCount={1} />}
+            {materialName && (
+              <TableBadges names={[materialName]} visibleCount={1} />
+            )}
+          </>
+        }
+        actions={<ProductTableActions product={product} />}
+        fields={[
+          {
+            icon: <Box className="h-4 w-4" />,
+            label: 'Material',
+            value: materialName,
+          },
+        ]}
+      />
+    );
+  }, []);
+
   // Transform the API data to match our component expectations
   const items: ProductDetails[] = React.useMemo(
     () =>
@@ -123,15 +159,15 @@ export default function ProductsPage() {
           material: product.material || { id: 0, name: '', version: 0 },
         } as ProductDetails;
       }) || [],
-    [productsData]
+    [productsData],
   );
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(
-    'linkedQuarrySupplierId'
+    'linkedQuarrySupplierId',
   );
   const linkedQuarrySupplierNameParam = searchParams.get(
-    'linkedQuarrySupplierName'
+    'linkedQuarrySupplierName',
   );
 
   const linkedProductIdsSet = React.useMemo(() => {
@@ -221,6 +257,7 @@ export default function ProductsPage() {
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'product_name', desc: false }]}
+              mobileCardRenderer={renderProductCard}
             />
           </>
         )}
