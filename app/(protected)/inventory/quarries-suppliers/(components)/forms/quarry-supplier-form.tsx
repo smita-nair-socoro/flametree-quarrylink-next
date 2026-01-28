@@ -41,6 +41,7 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -921,15 +922,7 @@ export default function QuarrySupplierForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.createdAt
-                      ? new Date(
-                          selectedQuarrySupplier.createdAt
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedQuarrySupplier?.createdAt)}
                   </p>
                 </div>
 
@@ -938,15 +931,7 @@ export default function QuarrySupplierForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.updatedAt
-                      ? new Date(
-                          selectedQuarrySupplier.updatedAt
-                        ).toLocaleDateString('en-AU', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit',
-                        })
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedQuarrySupplier?.updatedAt)}
                   </p>
                 </div>
               </div>

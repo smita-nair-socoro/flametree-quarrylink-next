@@ -1,4 +1,213 @@
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+
+/**
+ * ============================================================================
+ * TIMEZONE-AWARE DATE FORMATTING UTILITIES
+ * ============================================================================
+ * These functions convert UTC dates from the backend to the user's local
+ * browser timezone for display. All display dates should use these functions
+ * to ensure consistent timezone handling across the application.
+ * ============================================================================
+ */
+
+/**
+ * Parse a date string from the backend, treating it as UTC.
+ * The backend sends timestamps without the 'Z' suffix, so we need to
+ * append it to ensure JavaScript interprets the time as UTC.
+ *
+ * @param dateString - Date string from backend (e.g., "2025-01-28T06:00:00")
+ * @returns Date object representing the UTC time in local timezone
+ */
+function parseAsUTC(dateString: string): Date {
+  // If already has timezone indicator, parse as-is
+  if (dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) {
+    return parseISO(dateString);
+  }
+  // Otherwise, append Z to treat as UTC
+  return parseISO(dateString + 'Z');
+}
+
+/**
+ * Format a date string to the user's local timezone.
+ * Converts UTC dates from backend to browser local time for display.
+ *
+ * @param dateString - ISO-8601 date string (e.g., "2025-01-28T14:00:00Z")
+ * @param formatPattern - date-fns format pattern (default: 'dd MMM yyyy')
+ * @returns Formatted date string in local timezone (e.g., "29 Jan 2025")
+ *
+ * @example
+ * // Backend returns UTC: "2025-01-28T14:00:00Z"
+ * // User in Sydney (UTC+11) sees: "29 Jan 2025" (1am next day)
+ * formatLocalDate("2025-01-28T14:00:00Z") // Returns "29 Jan 2025"
+ */
+export function formatLocalDate(
+  dateString: string | Date | null | undefined,
+  formatPattern: string = 'dd MMM yyyy',
+): string {
+  if (!dateString) return '—';
+
+  try {
+    const date =
+      typeof dateString === 'string' ? parseAsUTC(dateString) : dateString;
+    return format(date, formatPattern);
+  } catch {
+    return '—';
+  }
+}
+
+/**
+ * Format a date with ordinal suffix in the user's local timezone.
+ * Output format: "15th July, 2025"
+ *
+ * @param dateString - ISO-8601 date string
+ * @returns Formatted date with ordinal (e.g., "15th July, 2025")
+ */
+export function formatDateWithOrdinal(
+  dateString: string | Date | null | undefined,
+): string {
+  if (!dateString) return 'N/A';
+
+  try {
+    const date =
+      typeof dateString === 'string' ? parseAsUTC(dateString) : dateString;
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+
+    const suffix =
+      day === 1 || day === 21 || day === 31
+        ? 'st'
+        : day === 2 || day === 22
+          ? 'nd'
+          : day === 3 || day === 23
+            ? 'rd'
+            : 'th';
+
+    return `${day}${suffix} ${month}, ${year}`;
+  } catch {
+    return typeof dateString === 'string' ? dateString : 'N/A';
+  }
+}
+
+/**
+ * Format a time range from two date strings in the user's local timezone.
+ * Output format: "9:00 AM - 5:00 PM"
+ *
+ * @param startDateString - ISO-8601 date string for start time
+ * @param endDateString - ISO-8601 date string for end time
+ * @returns Formatted time range (e.g., "9:00 AM - 5:00 PM")
+ */
+export function formatTimeRange(
+  startDateString: string | null | undefined,
+  endDateString: string | null | undefined,
+): string {
+  if (!startDateString || !endDateString) return 'N/A';
+
+  try {
+    const start =
+      typeof startDateString === 'string'
+        ? parseAsUTC(startDateString)
+        : startDateString;
+    const end =
+      typeof endDateString === 'string'
+        ? parseAsUTC(endDateString)
+        : endDateString;
+
+    const formatTime = (date: Date) => {
+      return date.toLocaleString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
+    };
+
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  } catch {
+    return 'N/A';
+  }
+}
+
+/**
+ * Format a date and time in the user's local timezone.
+ * Output format: "29 Jan 2025, 1:00 AM"
+ *
+ * @param dateString - ISO-8601 date string
+ * @returns Formatted date and time (e.g., "29 Jan 2025, 1:00 AM")
+ */
+export function formatLocalDateTime(
+  dateString: string | Date | null | undefined,
+): string {
+  if (!dateString) return '—';
+
+  try {
+    const date =
+      typeof dateString === 'string' ? parseAsUTC(dateString) : dateString;
+    return format(date, 'dd MMM yyyy, h:mm a');
+  } catch {
+    return '—';
+  }
+}
+
+/**
+ * Format a date in short format using browser's local timezone and locale.
+ * Output format: "29/01/25" (dd/mm/yy based on user's locale)
+ *
+ * The date is converted to user's local timezone, so the same UTC timestamp
+ * may show different dates for users in different timezones.
+ *
+ * @param dateString - ISO-8601 date string or Date object
+ * @returns Formatted date with 2-digit year (e.g., "29/01/25")
+ */
+export function formatLocalDateShort(
+  dateString: string | Date | null | undefined,
+): string {
+  if (!dateString) return '—';
+
+  try {
+    const date =
+      typeof dateString === 'string' ? parseAsUTC(dateString) : dateString;
+    // Uses browser's default locale (undefined = auto-detect)
+    return date.toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+    });
+  } catch {
+    return '—';
+  }
+}
+
+/**
+ * Format a date with full month name using browser's local timezone and locale.
+ * Output format: "29 January 2025" (based on user's locale)
+ *
+ * @param dateString - ISO-8601 date string or Date object
+ * @returns Formatted date with full month name
+ */
+export function formatLocalDateLong(
+  dateString: string | Date | null | undefined,
+): string {
+  if (!dateString) return '—';
+
+  try {
+    const date =
+      typeof dateString === 'string' ? parseAsUTC(dateString) : dateString;
+    // Uses browser's default locale (undefined = auto-detect)
+    return date.toLocaleDateString(undefined, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return '—';
+  }
+}
+
+/**
+ * ============================================================================
+ * DATE CALCULATION UTILITIES
+ * ============================================================================
+ */
 
 export function GetTomorrowDate(): Date {
   const d = new Date();
@@ -18,7 +227,7 @@ export function GetTodaysDate(): Date {
 function formatRelativeTime(
   diffInSeconds: number,
   suffix: string = '',
-  justNowText: string = 'Just now'
+  justNowText: string = 'Just now',
 ): string {
   // If the date is very recent
   if (diffInSeconds < 5) {
@@ -69,10 +278,12 @@ function formatRelativeTime(
 
 /**
  * Get relative time for past dates (e.g., "2 days ago", "5 hours ago")
+ * Uses parseISO for consistent timezone handling with other date utilities.
  */
 export function getRelativeTime(date: Date | string | number): string {
   const now = new Date();
-  const pastDate = new Date(date);
+  const pastDate =
+    typeof date === 'string' ? parseAsUTC(date) : new Date(date);
   const diffInSeconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
 
   return formatRelativeTime(diffInSeconds, 'ago', 'Just now');
@@ -80,32 +291,17 @@ export function getRelativeTime(date: Date | string | number): string {
 
 /**
  * Get relative time for future dates without suffix (e.g., "2 days", "5 hours")
+ * Uses parseISO for consistent timezone handling with other date utilities.
  */
 export function getRelativeTimeFuture(date: Date | string | number): string {
   const now = new Date();
-  const futureDate = new Date(date);
+  const futureDate =
+    typeof date === 'string' ? parseAsUTC(date) : new Date(date);
   const diffInSeconds = Math.floor(
     (futureDate.getTime() - now.getTime()) / 1000
   );
 
   return formatRelativeTime(diffInSeconds, '', 'Now');
-}
-
-/**
- * Format a date using a pattern (e.g., 'd MMM yyyy', 'h:mm a')
- * Returns '—' if the date is invalid
- */
-export function formatDate(
-  value: string | number | Date | null | undefined,
-  pattern: string
-): string {
-  if (!value) return '—';
-
-  try {
-    return format(new Date(value), pattern);
-  } catch {
-    return '—';
-  }
 }
 
 /**
@@ -147,7 +343,8 @@ export const formatEpochDateDdMmYyyy = (epochSeconds?: number): string => {
 export const formatEpochMonthYear = (epochSeconds?: number): string => {
   if (!epochSeconds) return '-';
   const d = new Date(epochSeconds * 1000);
-  return new Intl.DateTimeFormat('en-AU', {
+  // Uses browser's default locale (undefined = auto-detect)
+  return new Intl.DateTimeFormat(undefined, {
     month: 'long',
     year: 'numeric',
   }).format(d);

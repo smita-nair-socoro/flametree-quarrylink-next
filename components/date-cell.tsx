@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { parseISO, formatDistanceToNow, format } from 'date-fns';
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
+import { formatLocalDate, getRelativeTime } from '@/lib/utils/date';
 
 export interface DateCellProps {
   /** an ISO-8601 timestamp string */
@@ -23,12 +23,9 @@ export const DateCell: React.FC<DateCellProps> = ({
   if (!dateString) {
     return <span className="text-muted-foreground">-</span>;
   }
-
-  const date = parseISO(dateString);
-
-  const displayDate = format(date, 'dd MMM yyyy');
-
-  const relative = formatDistanceToNow(date, { addSuffix: true });
+  // Use unified date formatting utilities for consistent timezone handling
+  const displayDate = formatLocalDate(dateString);
+  const relative = getRelativeTime(dateString);
 
   return (
     <Tooltip>
