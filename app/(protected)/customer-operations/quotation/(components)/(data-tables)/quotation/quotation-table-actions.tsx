@@ -10,7 +10,7 @@ import {
   Archive,
   Timer,
   FileSearch,
-  // Copy, used in duplicate action
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -177,13 +177,12 @@ export function QuotationTableActions({
             Download PDF
           </DropdownMenuItem> */}
 
-          {/* Hide Duplicate Quote at current stage*/}
-          {/* <DropdownMenuSeparator />
+          <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate Quote
-          </DropdownMenuItem> */}
+          </DropdownMenuItem>
 
           {/* Archive - always at the bottom for applicable statuses */}
           {quotation.quoteStatus !== 'ARCHIVED' &&
