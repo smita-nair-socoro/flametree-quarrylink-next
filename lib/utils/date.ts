@@ -166,12 +166,8 @@ export function formatLocalDateShort(
   try {
     const date =
       typeof dateString === 'string' ? parseAsUTC(dateString) : dateString;
-    // Uses browser's default locale (undefined = auto-detect)
-    return date.toLocaleDateString(undefined, {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
-    });
+    // Use dd/MM/yy format consistently (day/month/year)
+    return format(date, 'dd/MM/yy');
   } catch {
     return '—';
   }
