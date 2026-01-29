@@ -40,6 +40,48 @@ import { CustomerDeliveryAddress } from '../types/address';
 type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
 
+/**
+ * Known date field keys from backend DTOs.
+ * Only these keys will have 'Z' appended when normalizeUtc is enabled.
+ */
+const UTC_DATE_KEYS = new Set([
+  // camelCase
+  'createdAt',
+  'updatedAt',
+  'lastLoginAt',
+  'lastUsedAt',
+  'customerResponseAt',
+  'convertedAt',
+  'deliveryStartDate',
+  'expiryDate',
+  'deliveryDate',
+  'dateOfBirth',
+  'invoiceDueDate',
+  'deliveryWindowStart',
+  'deliveryWindowEnd',
+  'nextBilling',
+  // snake_case (legacy)
+  'created_at',
+  'updated_at',
+  'last_login_at',
+  'expires_at',
+  'invoice_date',
+  'invoice_due_date',
+]);
+
+/**
+ * JSON reviver that appends 'Z' to known date field strings lacking timezone.
+ * Only processes whitelisted keys for minimal performance overhead.
+ */
+function reviveUtcDateKeys(key: string, value: unknown): unknown {
+  if (!UTC_DATE_KEYS.has(key)) return value;
+  if (typeof value !== 'string') return value;
+
+  // Already has timezone indicator (Z or +/-HH:MM)
+  const hasTz = value.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(value);
+  return hasTz ? value : value + 'Z';
+}
+
 export interface HttpConfig {
   /**
    * One of "GET", "POST", "PUT", "PATCH", "DELETE", etc.
@@ -95,6 +137,12 @@ export interface HttpConfig {
    * If you pass this, we will use it instead of window.fetch
    */
   fetch?: typeof fetch;
+
+  /**
+   * If true, appends 'Z' to known date field strings that lack timezone info.
+   * This treats backend datetimes as UTC. Default: true.
+   */
+  normalizeUtc?: boolean;
 }
 
 /**
@@ -286,7 +334,13 @@ export async function HttpClient<T = unknown>(
     // otherwise, just resolve the Response object returned by window.fetch
     // and the consumer can call await response.text() if needed.
     if (isJson) {
-      const json = (await response.json()) as T;
+      const text = await response.text();
+      const shouldNormalizeUtc = config.normalizeUtc !== false; // default true
+      const json = (
+        shouldNormalizeUtc
+          ? JSON.parse(text, reviveUtcDateKeys)
+          : JSON.parse(text)
+      ) as T;
       if ((init.method || 'GET') === 'DELETE') {
         console.log('[HttpClient] DELETE success (JSON):', {
           endpoint,
