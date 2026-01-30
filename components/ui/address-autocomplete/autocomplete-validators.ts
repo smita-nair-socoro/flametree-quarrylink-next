@@ -1,5 +1,29 @@
 import type { AddressType } from '@/lib/types/address';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+
+// Default values for missing address fields
+const DEFAULT_ADDRESS_VALUES = {
+  city: 'Sydney',
+  region: 'NSW',
+  postalCode: '1234',
+  country: 'Australia',
+} as const;
+
+/**
+ * Fills in missing address fields with default values.
+ * Used when Google Places API doesn't return complete address data.
+ */
+export const fillMissingAddressFields = (address: AddressType): AddressType => {
+  return {
+    ...address,
+    city: address.city?.trim() || DEFAULT_ADDRESS_VALUES.city,
+    region: address.region?.trim() || DEFAULT_ADDRESS_VALUES.region,
+    postalCode: address.postalCode?.trim() || DEFAULT_ADDRESS_VALUES.postalCode,
+    country: address.country?.trim() || DEFAULT_ADDRESS_VALUES.country,
+    googlePlaceId: address.googlePlaceId || `fallback_${uuidv4()}`,
+  };
+};
 
 /**
  * Checks if the autocomplete address is valid.

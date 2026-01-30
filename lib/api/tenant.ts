@@ -1,4 +1,9 @@
-import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { TenantKeys } from './keys';
 
@@ -25,3 +30,19 @@ export const TenantCompleteDetailsQueryOptions = () =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+/**
+ * Mutation hook for uploading a tenant logo.
+ * Automatically invalidates tenant-related caches on success.
+ */
+export const useUploadTenantLogo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => APIClient.tenants.uploadLogo(file),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TenantKeys.all });
+    },
+  });
+};

@@ -33,10 +33,11 @@ import {
   SubscriptionsAndInvoices,
   TenantDetails,
   TenantCompleteDetails,
+  TenantLogoUploadResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 
-type RequestBody = BodyInit | object | Record<string, unknown> | null;
+type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
 
 export interface HttpConfig {
@@ -154,7 +155,6 @@ export async function HttpClient<T = unknown>(
     headers: {
       Accept: '*/*',
       'x-requested-with': 'XMLHttpRequest',
-      'Content-Type': 'application/json',
     },
   };
 
@@ -174,9 +174,11 @@ export async function HttpClient<T = unknown>(
   }
 
   if (config.body) {
-    init.body = JSON.stringify(config.body);
-
-    if (typeof config.body === 'object') {
+    // Handle FormData separately - don't stringify and let browser set Content-Type with boundary
+    if (config.body instanceof FormData) {
+      init.body = config.body;
+    } else {
+      init.body = JSON.stringify(config.body);
       init.headers = {
         ...init.headers,
         'Content-Type': 'application/json',
@@ -749,6 +751,17 @@ export const APIClient = {
           },
         }
       ),
+    duplicate: (id: number) =>
+      appClient.Post<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/duplicate`,
+      ),
+    bulkArchive: (ids: number[]) =>
+      appClient.Post<void>(
+        `/socoro/quarrylink/api/quote/archive`,
+        {
+          body: { quoteIds: ids },
+        }
+      ),
     sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
@@ -832,5 +845,13 @@ export const APIClient = {
       appClient.Get<TenantCompleteDetails>(
         `/socoro/quarrylink/api/tenant/tenant-complete-details`
       ),
+    uploadLogo: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return appClient.Post<TenantLogoUploadResponse>(
+        `/socoro/quarrylink/api/tenant/logo`,
+        { body: formData }
+      );
+    },
   },
 };

@@ -84,6 +84,8 @@ export interface LinkedQuarrySupplierProduct {
   hourlyTruckRate: number;
   loadTruckRate: number;
   kmTruckRate: number;
+  kg20TruckRate: number;
+  bulkaTruckRate: number;
 
   availableForSaleTn: boolean;
   availableForSaleM3: boolean;
@@ -95,6 +97,8 @@ export interface LinkedQuarrySupplierProduct {
   availableForTruckRateHour: boolean;
   availableForTruckRateLoad: boolean;
   availableForTruckRateKm: boolean;
+  availableForTruckRate20kg: boolean;
+  availableForTruckRateBulka: boolean;
 
   isActive: boolean;
   version: number;
