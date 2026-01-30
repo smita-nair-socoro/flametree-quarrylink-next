@@ -28,15 +28,38 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useLocalStorageState } from '@/hooks/use-localstorage';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 
+/** Default open state for nav sections by subscription plan */
+function getDefaultOpenStatesForPlan(plan: string | undefined): Record<string, boolean> {
+  if (!plan) return {};
+  const planUpper = plan.toUpperCase();
+  // ESSENTIAL: only Customer Operations and Inventory & Production open
+  if (planUpper === 'ESSENTIALS') {
+    return {
+      '/customer-operations': true,
+      '/inventory': true,
+      '/logistics': false,
+    };
+  }
+  // PLUS or PRO: open all sections with subitems
+  if (planUpper === 'PLUS' || planUpper === 'PRO') {
+    return {
+      '/customer-operations': true,
+      '/inventory': true,
+      '/logistics': true,
+    };
+  }
+  return {};
+}
+
 export function NavMain({
   items,
+  subscriptionPlan,
 }: {
   items: {
     title: string;
@@ -50,16 +73,24 @@ export function NavMain({
       plan?: string;
     }[];
   }[];
+  subscriptionPlan?: string;
 }) {
   const pathname = usePathname();
   const { state, open, openMobile, isMobile } = useSidebar();
   const isMobileDevice = useIsMobile();
-  const [openStates, setOpenStates] = useLocalStorageState<
-    Record<string, boolean>
-  >('nav-open-states', {});
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
   const [forceUpdate, setForceUpdate] = useState(0);
   const isDisabled = (plan?: string) => plan === 'PRO' || plan === 'PLUS';
   const getPlanLabel = (plan?: string) => (plan ? plan.toUpperCase() : '');
+
+  // When subscription plan is available, set open states to plan-based defaults (no persistence)
+  useEffect(() => {
+    if (!subscriptionPlan) return;
+    const defaults = getDefaultOpenStatesForPlan(subscriptionPlan);
+    if (Object.keys(defaults).length > 0) {
+      setOpenStates(defaults);
+    }
+  }, [subscriptionPlan]);
 
   useEffect(() => {
     if (pathname) {

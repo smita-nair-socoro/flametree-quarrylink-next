@@ -51,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setAttributes(null);
 
-      // Clear all sessionStorage to reset table states and other session data
       if (typeof window !== 'undefined') {
         sessionStorage.clear();
       }
