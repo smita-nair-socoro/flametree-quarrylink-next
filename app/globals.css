@@ -111,3 +111,14 @@ input:-webkit-autofill:active {
   background-color: white !important;
   background-clip: content-box !important;
 }
+
+/* Hide number input spinners (arrows) across browsers */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
