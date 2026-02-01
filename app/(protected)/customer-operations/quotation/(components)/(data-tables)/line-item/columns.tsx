@@ -19,14 +19,30 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     header: () => {
       return <div>Product</div>;
     },
-    cell: (info) => {
-      const value = (info.getValue() as string) || 'N/A';
+    cell: ({ row }) => {
+      const productName = row.original.productName || 'N/A';
+      const deliveryAddress =
+        row.original.customerDeliveryAddress?.address?.formattedAddress || '';
       return (
-        <div
-          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-          title={value}
-        >
-          {value}
+        <div className="min-w-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]">
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <p className="font-semibold text-gray-900 text-sm truncate">
+                {productName}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>{productName}</p>
+            </TooltipContent>
+          </Tooltip>
+          {deliveryAddress && (
+            <p
+              className="text-gray-500 text-xs whitespace-normal"
+              title={deliveryAddress}
+            >
+              {deliveryAddress}
+            </p>
+          )}
         </div>
       );
     },
@@ -41,12 +57,18 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
       return (
-        <div
-          className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-          title={value}
-        >
-          {value}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div
+              className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
+            >
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'quarryName',
@@ -115,10 +137,18 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
         row.original.productSellUom === 'KG_20'
           ? 'x 20kg'
           : row.original.productSellUom;
+      const displayText = `${productSellQty} ${productSellUom}`;
       return (
-        <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
-          {productSellQty} {productSellUom}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
+              {displayText}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{displayText}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'Product Sell QTY',
@@ -132,12 +162,18 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     cell: ({ row }) => {
       const value = row.original.truckType || 'N/A';
       return (
-        <div
-          className="truncate block w-[30px] sm:w-[30px] md:w-[70px] lg:w-[90px] xl:w-[120px]"
-          title={value}
-        >
-          {value}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div
+              className="truncate block w-[30px] sm:w-[30px] md:w-[70px] lg:w-[90px] xl:w-[120px]"
+            >
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'Truck Type',

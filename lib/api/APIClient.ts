@@ -1,4 +1,4 @@
-import { baseUrl, getUser } from '../utils';
+import { baseUrl, getTenantId, getUser } from '../utils';
 import { handleLogout } from '../auth/authManager';
 import {
   LinkedProduct,
@@ -36,10 +36,11 @@ import {
   SubscriptionsAndInvoices,
   TenantDetails,
   TenantCompleteDetails,
+  TenantLogoUploadResponse,
 } from '../types/client';
-// import { getTenantId } from '../utils';
+import { CustomerDeliveryAddress } from '../types/address';
 
-type RequestBody = BodyInit | object | Record<string, unknown> | null;
+type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
 
 export interface HttpConfig {
@@ -157,12 +158,11 @@ export async function HttpClient<T = unknown>(
     headers: {
       Accept: '*/*',
       'x-requested-with': 'XMLHttpRequest',
-      'Content-Type': 'application/json',
     },
   };
 
   const authUser = await getUser(); // ✅ Properly awaited
-  // const tenantId = await getTenantId(); // ✅ Properly awaited
+  const tenantId = await getTenantId();
 
   if (authUser?.access_token && authUser.id_token) {
     init.headers = {
@@ -170,16 +170,18 @@ export async function HttpClient<T = unknown>(
       Authorization: `Bearer ${authUser.id_token}`,
       // 'access-token': authUser.access_token,
       // 'id-token': authUser.id_token,
-      // 'tenant-id': tenantId || '',
+      'X-Tenant-ID': tenantId || '',
     };
   } else {
     return Promise.reject(new Error('Token expired or invalid.'));
   }
 
   if (config.body) {
-    init.body = JSON.stringify(config.body);
-
-    if (typeof config.body === 'object') {
+    // Handle FormData separately - don't stringify and let browser set Content-Type with boundary
+    if (config.body instanceof FormData) {
+      init.body = config.body;
+    } else {
+      init.body = JSON.stringify(config.body);
       init.headers = {
         ...init.headers,
         'Content-Type': 'application/json',
@@ -582,6 +584,28 @@ export const APIClient = {
       appClient.Put<CustomerDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
         body: data,
       }),
+    getDeliveryAddresses: (customerId: number, limit?: number) =>
+      appClient.Get<CustomerDeliveryAddress[]>(
+        `/socoro/quarrylink/api/customer/${customerId}/delivery-addresses`,
+        {
+          queryString: {
+            limit: limit?.toString(),
+          },
+        }
+      ),
+    updateDeliveryAddressUsage: (
+      customerId: number,
+      customerDeliveryAddressId: number,
+      inUse: boolean
+    ) =>
+      appClient.Put(
+        `/socoro/quarrylink/api/customer/${customerId}/delivery-addresses/${customerDeliveryAddressId}/usage`,
+        {
+          queryString: {
+            inUse,
+          },
+        }
+      ),
   },
 
   quotations: {
@@ -622,7 +646,8 @@ export const APIClient = {
     },
     updatePublicQuoteStatus: async (
       status: 'APPROVED' | 'DECLINED',
-      token: string
+      token: string,
+      declineReason?: string
     ) => {
       const apiBase = baseUrl();
       if (!apiBase) {
@@ -631,15 +656,22 @@ export const APIClient = {
         );
       }
 
-      const url = `${apiBase}/socoro/quarrylink/api/quote/public/link/${status}?token=${encodeURIComponent(
+      const url = `${apiBase}/socoro/quarrylink/api/quote/public/link/decision?token=${encodeURIComponent(
         token
       )}`;
+
+      const body: { status: string; declineReason?: string } = { status };
+      if (status === 'DECLINED' && declineReason) {
+        body.declineReason = declineReason;
+      }
 
       const response = await fetch(url, {
         method: 'PUT',
         headers: {
           Accept: '*/*',
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -722,9 +754,23 @@ export const APIClient = {
           },
         }
       ),
-    sendToCustomer: (id: number) =>
+    duplicate: (id: number) =>
       appClient.Post<QuotationDTO>(
-        `/socoro/quarrylink/api/quote/${id}/send-to-customer`
+        `/socoro/quarrylink/api/quote/${id}/duplicate`,
+      ),
+    bulkArchive: (ids: number[]) =>
+      appClient.Post<void>(
+        `/socoro/quarrylink/api/quote/archive`,
+        {
+          body: { quoteIds: ids },
+        }
+      ),
+    sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
+      appClient.Post<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
+        {
+          body: { inclDeliveryCost },
+        }
       ),
     preview: (id: number) =>
       appClient.Get<PublicQuoteLinkResponse>(
@@ -734,6 +780,10 @@ export const APIClient = {
       appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
         body: convertKeysToCamelCase(data),
       }),
+    getQuoteItemById: (id: number) =>
+      appClient.Get<QuotationLineItem>(
+        `/socoro/quarrylink/api/quoteItem/${id}`
+      ),
     updateQuoteItem: (id: number, data: Partial<QuotationLineItem>) =>
       appClient.Put<QuotationLineItem>(
         `/socoro/quarrylink/api/quoteItem/${id}`,
@@ -746,6 +796,20 @@ export const APIClient = {
 
     convertToDraft: (id: number) =>
       appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
+    updateQuoteDecision: (
+      id: number,
+      status: 'APPROVED' | 'DECLINED',
+      declineReason?: string
+    ) => {
+      const body: { status: string; declineReason?: string } = { status };
+      if (status === 'DECLINED' && declineReason) {
+        body.declineReason = declineReason;
+      }
+      return appClient.Put<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/decision`,
+        { body }
+      );
+    },
   },
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
@@ -795,5 +859,13 @@ export const APIClient = {
       appClient.Get<TenantCompleteDetails>(
         `/socoro/quarrylink/api/tenant/tenant-complete-details`
       ),
+    uploadLogo: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return appClient.Post<TenantLogoUploadResponse>(
+        `/socoro/quarrylink/api/tenant/logo`,
+        { body: formData }
+      );
+    },
   },
 };

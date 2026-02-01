@@ -2,8 +2,8 @@ import {
   QUOTE_TYPE as QuoteType,
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
-import { CustomerDTO } from './customer';
-import { Address } from './address';
+import { CustomerWithAddressResponseDTO } from './customer';
+import { CustomerDeliveryAddress } from './address';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -12,15 +12,15 @@ export interface QuotationDTO {
   quoteType: QuoteType;
   customerId: number;
   customerName: string;
-  customerEmail: string;
   email: string;
-  customerPhone: string;
-  customerDto: CustomerDTO;
+  phone: string;
+  customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
   accountManagerSub: string;
   accountManagerName: string;
   projectName: string;
   quoteStatus: QuoteStatus;
-  deliveryAddress: Address;
+  declineReason?: string;
+  customerResponseAt?: string;
   jobId: number;
   deliveryStartDate: string | null;
   expiryDate: string | null;
@@ -33,6 +33,7 @@ export interface QuotationDTO {
   grossProfit: number;
   grossProfitPercentage: number;
   lineItemsCount: number;
+  inclDeliveryCost: boolean;
   convertedAt?: string;
   version: number;
   isDeleted: boolean;
@@ -43,48 +44,15 @@ export interface QuotationDTO {
   quoteItems: QuotationLineItem[];
 }
 
-// Frontend type (same as DTO, uses camelCase)
-export interface Quotation {
-  id: number;
-  quoteNumber: string;
-  quoteType: QuoteType;
-  customerId: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  customerDto: CustomerDTO;
-  accountManagerSub: string;
-  accountManagerName: string;
-  projectName: string;
-  status: QuoteStatus;
-  deliveryAddress: Address;
-  jobId: number;
-  deliveryStartDate: string;
-  expiryDate: string;
-  deliveryWindowStart: string;
-  deliveryWindowEnd: string;
-  totalCostPrice: number;
-  totalSellPrice: number;
-  totalTruckSellPrice: number;
-  totalTruckCostPrice: number;
-  grossProfit: number;
-  grossProfitPercentage: number;
-  lineItemsCount: number;
-  convertedAt?: string;
-  version: number;
-  isDeleted: boolean;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
-  quoteItems: QuotationLineItem[];
-}
+export type Quotation = QuotationDTO;
 
 export interface QuotationLineItem {
   id?: number;
   quoteId: number;
   productId: number;
   quarrySupplierId: number;
+  customerDeliveryAddressId?: number;
+  customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
   quarryProductId?: number;
   productName: string;
   quarryName: string;
@@ -110,36 +78,18 @@ export interface QuotationLineItem {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
-  createdBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  lastModifiedBy?: string;
-  version?: number;
-  isDeleted?: boolean;
-}
-
-export interface quarrySupplierProductDetail {
-  availableForSaleTn: boolean;
-  availableForSaleM3: boolean;
-  availableForSale20kg: boolean;
-  availableForSaleBulka: boolean;
-  perTnCostPrice: number;
-  perM3CostPrice: number;
-  per20kgCostPrice: number;
-  perBulkaCostPrice: number;
-  tnTruckRate: number;
-  m3TruckRate: number;
-  hourlyTruckRate: number;
-  loadTruckRate: number;
-  quarryName: string;
-  quarrySupplierId: number;
-  supplierProductName: string;
-  supplierProductCode: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+  version: number;
+  isDeleted: boolean;
 }
 
 export interface StripeTenantDetailsSnapshot {
   tenantName: string;
   businessName: string;
+  abn: string;
   billingAddress: string;
   website: string;
   email: string;
@@ -152,6 +102,7 @@ export interface PublicQuoteLinkResponse {
 }
 
 export interface QuotationDisplayData {
+  inclDeliveryCost: boolean;
   navbar: {
     quoteNumber: string;
     dateIssued: string;
@@ -167,32 +118,32 @@ export interface QuotationDisplayData {
     billingAddress: {
       line1: string;
       line2: string;
-      country: string;
+      line3: string;
     };
   };
   project: {
     type: QuoteType;
     projectName: string;
-    deliveryAddress: string;
     deliveryDate: string;
     deliveryWindow: string;
   };
   products: Array<{
     name: string;
-    code: string;
+    deliveryAddress: string;
     truckType: string;
     capacity: string;
     quantity: string;
     totalPrice: number;
+    deliveryPrice?: number;
   }>;
   summary: {
     totalProducts: number;
-    totalQuantity: string;
     estimatedDelivery: string;
-    termsAndConditions: string[];
     subtotal: number;
     gst: number;
     total: number;
+    productSubtotal?: number;
+    deliverySubtotal?: number;
   };
   proceedActions: {
     validUntil: string;
@@ -203,8 +154,10 @@ export interface QuotationDisplayData {
     phone: string;
     addressLine1: string;
     addressLine2: string;
+    addressLine3: string;
     website: string;
     businessName: string;
+    abn: string;
   };
 }
 

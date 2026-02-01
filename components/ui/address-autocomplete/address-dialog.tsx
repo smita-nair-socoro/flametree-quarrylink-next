@@ -19,6 +19,7 @@ import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
 import { AddressType } from '@/lib/types/address';
+import { fillMissingAddressFields } from './autocomplete-validators';
 import { CountrySelect } from '../country-select';
 import { StateSelect } from '../state-select';
 import { Country } from 'country-state-city';
@@ -92,7 +93,9 @@ export function createAddressSchema(address: AddressFields) {
         .min(1, {
           message: 'Postal code is required',
         })
-        .regex(/^\d{4}$/, 'Invalid postal code'),
+        // Global postal code format: allows alphanumeric, spaces, and hyphens (1-12 chars)
+        // Covers formats like: AU "2000", US "90210" or "90210-1234", UK "SW1A 1AA", CA "K1A 0B1"
+        .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
     };
   }
 
@@ -242,7 +245,8 @@ export default function AddressDialog(
         'postal-code': postalCode,
       });
 
-      setAddress({
+      // Fill missing fields with defaults (googlePlaceId if not present)
+      setAddress(fillMissingAddressFields({
         ...address,
         city,
         region,
@@ -251,7 +255,7 @@ export default function AddressDialog(
         postalCode,
         country,
         formattedAddress: newFormattedAddress,
-      });
+      }));
       // Notify react-hook-form of the change
       if (onChange) {
         onChange(newFormattedAddress);
@@ -270,7 +274,8 @@ export default function AddressDialog(
 
     // Get country code from country name
     const countryData = Country.getAllCountries().find(
-      (c) => c.name.toLowerCase() === (address.country || 'Australia').toLowerCase()
+      (c) =>
+        c.name.toLowerCase() === (address.country || 'Australia').toLowerCase()
     );
     setCountryCode(countryData?.isoCode || 'AU');
 

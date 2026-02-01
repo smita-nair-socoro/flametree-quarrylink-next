@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Quote #{quoteNumber} approved by customer</title>
+    <title>Quote #{quoteNumber} declined</title>
     <style>
       body {
         margin: 0;
@@ -26,10 +26,13 @@
         gap: 12px;
       }
       .navbar-other {
-        background-color: #f5f5f5;
+        background-color: #e4e4e4;
       }
       .navbar-title-other {
         color: #000000 !important;
+      }
+      .border-other {
+        border-left: 4px solid #000000 !important;
       }
       .navbar-logo {
         width: 40px;
@@ -95,25 +98,20 @@
         color: #111827;
         font-weight: 600;
       }
-      .button-container {
-        margin: 30px 0;
-        text-align: center;
+      .contact-info {
+        background-color: #f9fafb;
+        border-left: 4px solid #7c3aed;
+        padding: 15px;
+        margin: 20px 0;
       }
-      .btn-primary {
-        display: inline-block;
-        padding: 12px 24px;
-        border-radius: 6px;
-        background-color: #7c3aed;
-        color: #ffffff !important;
+      .contact-info p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #374151;
+      }
+      .contact-info strong {
+        color: #111827;
         font-weight: 600;
-        text-decoration: none;
-      }
-      .btn-other {
-        background-color: #000000;
-        color: #ffffff !important;
-      }
-      .border-other {
-        border-left: 4px solid #000000 !important;
       }
       .card-footer {
         margin-top: 20px;
@@ -163,13 +161,7 @@
         overflow-wrap: break-word;
         padding: 0 15px;
         white-space: normal;
-      }
-      .footer-column-center {
         text-align: center;
-        max-width: 180px;
-      }
-      .footer-column-right {
-        text-align: right;
       }
       .footer-link {
         color: #ffffffe5 !important;
@@ -188,82 +180,79 @@
         <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
       <div class="card">
-        <div class="header">Hi {accountManagerName},</div>
+        <div class="header">Hi {customerContactFirstName},</div>
 
         <div class="content">
           <p>
-            Good news! A quote has been approved and is ready for next steps.
+            Thank you for reviewing your quote. We've recorded your decision to
+            decline this quote.
           </p>
         </div>
 
         <div class="block-details {BorderColorClass}">
           <p><strong>Quote Number:</strong> {quoteNumber}</p>
-          <p><strong>Customer:</strong> {customerName}</p>
           <p><strong>Project:</strong> {projectName}</p>
           <p><strong>Quote Type:</strong> {quoteType}</p>
           <p><strong>Total Value:</strong> ${totalValue} ex GST</p>
-          <p><strong>Approved By:</strong> {customerContactFirstName}</p>
-          <p><strong>Approval Date:</strong> {approvalDate}</p>
         </div>
 
         <div class="content">
           <p>
-            The customer has been notified that you'll be in contact to arrange
-            next steps and confirm delivery details.
+            If you'd like to discuss alternative options, revisions to this
+            quote, or have any questions, please contact your Account Manager:
           </p>
         </div>
 
-        <div class="button-container">
-          <a href="{quoteUrl}" class="btn-primary {buttonColorClass}"
-            >View Quote Details</a
-          >
+        <div class="contact-info {BorderColorClass}">
+          <p><strong>{accountManagerName}</strong></p>
+          <p>{accountManagerEmail}</p>
+        </div>
+
+        <div class="content">
+          <p>We're here to help find a solution that works for your project.</p>
         </div>
 
         <div class="card-footer">
           <p>
-            You're receiving this because you are the Account Manager for this
-            quote in QuarryLink.
+            You're receiving this because you declined a quote from
+            {BusinessName} via QuarryLink.
           </p>
         </div>
       </div>
 
       <div class="info-footer">
-        <!-- Simple footer row for QuarryLink -->
-        <div class="footer-row {quarrylinkFooterClass}">
+        <!-- Unified footer row -->
+        <div class="footer-row">
           <div class="footer-column-left">
-            <div>(02) 7229 1427</div>
+            <div style="font-weight: 600; margin-bottom: 6px">
+              Business Details
+            </div>
+            <div>{BusinessName}</div>
+            <div>ABN: {TenantABN}</div>
           </div>
           <div class="footer-column-center">
-            <div>www.quarrylink.com.au</div>
+            <div style="font-weight: 600; margin-bottom: 6px">
+              Office Address
+            </div>
+            <div>{TenantAddress}</div>
           </div>
           <div class="footer-column-right">
-            <div>support@quarrylink.com.au</div>
-          </div>
-        </div>
-
-        <!-- Detailed footer row for other businesses -->
-        <div class="footer-row {otherFooterClass}">
-          <div class="footer-column-left">
+            <div style="font-weight: 600; margin-bottom: 6px">
+              Business Contact
+            </div>
+            <div>{TenantPhone}</div>
             <div>
               <a href="mailto:{TenantEmail}" class="footer-link"
                 >{TenantEmail}</a
               >
             </div>
-            <div>{TenantPhone}</div>
-          </div>
-          <div class="footer-column-center">
-            <div>{TenantAddress}</div>
-          </div>
-          <div class="footer-column-right">
-            <div>Website</div>
-            <div>
-              <a href="{TenantWebsite}" class="footer-link">{TenantWebsite}</a>
-            </div>
           </div>
         </div>
 
         <div class="border-top"></div>
-        <p class="footer-copyright">© 2025 QuarryLink. All rights reserved.</p>
+        <p class="footer-copyright">
+          © 2026 {BusinessName}. All rights reserved.
+        </p>
       </div>
     </div>
   </body>

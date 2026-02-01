@@ -14,7 +14,6 @@ export interface QuoteNavbarProps {
   accountManager: string;
   status: QuoteStatus;
   onDownloadPDF?: () => void;
-  isPreviewMode?: boolean;
   tenantDetails?: StripeTenantDetailsSnapshot;
 }
 
@@ -40,7 +39,6 @@ export function QuoteNavbar({
   accountManager,
   status,
   onDownloadPDF,
-  isPreviewMode = false,
   tenantDetails,
 }: QuoteNavbarProps) {
   // Determine if this is QuarryLink or a custom tenant
@@ -51,7 +49,7 @@ export function QuoteNavbar({
   // Dynamic styling based on tenant
   const bgColor = isQuarryLink
     ? 'bg-gradient-to-r from-[#8E51FF] to-[#553199]'
-    : 'bg-[#F5F5F5]';
+    : 'bg-[#e4e4e4]';
   const textColor = isQuarryLink ? 'text-white' : 'text-black';
   const labelColor = isQuarryLink ? 'text-white' : 'text-black';
   const downloadBtnClass = isQuarryLink
@@ -82,17 +80,15 @@ export function QuoteNavbar({
 
         {/* Download Button & Quote Number */}
         <div className="grid grid-cols-2 gap-8 w-full items-center md:w-auto md:flex md:flex-row md:gap-4 md:justify-end">
-          {!isPreviewMode && (
-            <Button
-              onClick={onDownloadPDF}
-              variant="secondary"
-              className={`${downloadBtnClass} whitespace-nowrap justify-self-start w-fit`}
-              size="default"
-            >
-              <Download className="w-4 h-4" />
-              Download PDF
-            </Button>
-          )}
+          <Button
+            onClick={onDownloadPDF}
+            variant="secondary"
+            className={`${downloadBtnClass} whitespace-nowrap justify-self-start w-fit`}
+            size="default"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </Button>
 
           <div className="text-left md:text-right">
             <div className="font-bold text-[29px] break-words">

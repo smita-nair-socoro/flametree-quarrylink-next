@@ -3,7 +3,10 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import QuoteReviewDocument from './(components)/quote-review-document';
-import { fetchPublicQuoteByToken } from '@/lib/api/quotation';
+import {
+  fetchPublicQuoteByToken,
+  fetchQuotePreview,
+} from '@/lib/api/quotation';
 import { Spinner } from '@/components/ui/spinner';
 import { PublicQuoteLinkResponse } from '@/lib/types/quotation';
 
@@ -11,7 +14,9 @@ function QuoteReviewContent() {
   const searchParams = useSearchParams();
   const quoteId = searchParams.get('quoteId') || '0';
   const token = searchParams.get('token');
-  const payload = searchParams.get('payload');
+  // Preview mode: inclDeliveryCost parameter controls delivery price display
+  const inclDeliveryCostParam = searchParams.get('inclDeliveryCost');
+  const isPreviewMode = inclDeliveryCostParam !== null;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,25 +25,28 @@ function QuoteReviewContent() {
   );
 
   useEffect(() => {
-    // Case 1: Authenticated preview with payload
-    if (payload) {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const decoded = decodeURIComponent(payload);
-        const data = JSON.parse(decoded) as PublicQuoteLinkResponse;
-        console.log('[QuoteReview] preview payload:', data);
-        setQuoteData(data);
-      } catch (err) {
-        console.error('Failed to decode preview payload:', err);
-        setError('Failed to load preview data.');
-      } finally {
-        setIsLoading(false);
-      }
+    // Case 1: Authenticated preview mode (admin previewing before sending)
+    if (isPreviewMode && quoteId && quoteId !== '0') {
+      setIsLoading(true);
+      setError(null);
+
+      fetchQuotePreview(Number(quoteId))
+        .then((res) => {
+          // Override inclDeliveryCost with the URL parameter value
+          const inclDeliveryCost = inclDeliveryCostParam === 'true';
+          res.quoteDto.inclDeliveryCost = inclDeliveryCost;
+          console.log('[QuoteReview] preview mode - inclDeliveryCost:', inclDeliveryCost);
+          setQuoteData(res);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch quote preview:', err);
+          setError('Failed to load preview data.');
+        })
+        .finally(() => setIsLoading(false));
       return;
     }
 
-    // Case 2: Public access with token
+    // Case 2: Public access with token (customer viewing via email link)
     if (!token) {
       setError('Link token is missing.');
       return;
@@ -49,7 +57,7 @@ function QuoteReviewContent() {
 
     fetchPublicQuoteByToken(token)
       .then((res) => {
-        console.log('[QuoteReview] public link payload:', res);
+        console.log('[QuoteReview] public link mode - inclDeliveryCost:', res.quoteDto.inclDeliveryCost);
         setQuoteData(res);
       })
       .catch((err) => {
@@ -57,9 +65,9 @@ function QuoteReviewContent() {
         setError('Link is invalid or has expired.');
       })
       .finally(() => setIsLoading(false));
-  }, [token, payload]);
+  }, [token, isPreviewMode, quoteId, inclDeliveryCostParam]);
 
-  if (!token && !payload) {
+  if (!token && !isPreviewMode) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-red-600 text-center px-4">

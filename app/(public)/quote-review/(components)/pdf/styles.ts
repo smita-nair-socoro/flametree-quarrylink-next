@@ -6,6 +6,9 @@ Font.register({
   src: '/fonts/Geist.ttf',
 });
 
+// Disable word hyphenation - keeps words intact when wrapping
+Font.registerHyphenationCallback((word) => [word]);
+
 // Brand colors matching the web design
 export const colors = {
   // Primary brand colors
@@ -59,7 +62,7 @@ export const pdfStyles = StyleSheet.create({
   page: {
     fontSize: fontSize.sm,
     paddingTop: 172,
-    paddingBottom: 90,
+    paddingBottom: 130,
     paddingHorizontal: 40,
     fontFamily: 'Geist',
     backgroundColor: colors.white,
@@ -207,9 +210,10 @@ export const pdfStyles = StyleSheet.create({
 
   footerGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '70%',
+    justifyContent: 'space-between',
+    width: '100%',
     alignSelf: 'center',
+    paddingHorizontal: 20,
   },
 
   footerColumn: {
@@ -230,12 +234,21 @@ export const pdfStyles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 
+  footerColumnHeader: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.white,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+
   footerText: {
     fontSize: fontSize.sm,
     color: colors.white,
     textAlign: 'center',
     marginBottom: 2,
-    opacity: 0.9,
+    opacity: 0.7,
   },
 
   footerLink: {
@@ -243,7 +256,8 @@ export const pdfStyles = StyleSheet.create({
     color: colors.white,
     textAlign: 'center',
     textDecoration: 'none',
-    opacity: 0.9,
+    opacity: 0.7,
+    marginBottom: 2,
   },
 
   footerSeparator: {
@@ -426,6 +440,7 @@ export const pdfStyles = StyleSheet.create({
 
   tableRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors.gray200,
     paddingVertical: 10,
@@ -495,6 +510,24 @@ export const pdfStyles = StyleSheet.create({
     color: colors.gray900,
   },
 
+  // Delivery price badge (purple background)
+  deliveryPriceBadge: {
+    backgroundColor: '#F3EEFF',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    flexGrow: 0,
+    flexShrink: 0,
+  },
+
+  deliveryPriceText: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: '#8E51FF',
+  },
+
   // Summary section
   summaryHeading: {
     fontSize: fontSize.base,
@@ -555,7 +588,7 @@ export const pdfStyles = StyleSheet.create({
   paymentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 4,
   },
 
   paymentLabel: {
@@ -572,11 +605,26 @@ export const pdfStyles = StyleSheet.create({
     color: colors.gray900,
   },
 
+  // Delivery subtotal (purple text)
+  deliverySubtotalLabel: {
+    fontSize: fontSize.base,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: '#8E51FF',
+  },
+
+  deliverySubtotalValue: {
+    fontSize: fontSize.base,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: '#8E51FF',
+  },
+
   totalSeparator: {
     borderTopWidth: 1,
     borderTopColor: colors.gray300,
-    paddingTop: 8,
-    marginTop: 8,
+    paddingTop: 4,
+    marginTop: 4,
   },
 
   totalRow: {

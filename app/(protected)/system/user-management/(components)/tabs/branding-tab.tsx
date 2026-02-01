@@ -18,16 +18,17 @@ import { Spinner } from '@/components/ui/spinner';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { delay } from '@/lib/utils/time';
 import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { useUploadTenantLogo } from '@/lib/api/tenant';
 
 export default function BrandingTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isNarrow = useMediaQuery('(max-width: 550px)');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const uploadLogoMutation = useUploadTenantLogo();
+  const isSubmitting = uploadLogoMutation.isPending;
   const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = React.useState<string | null>(
     null
@@ -86,18 +87,22 @@ export default function BrandingTab() {
     }
   };
 
-  async function onSubmit() {
-    try {
-      setIsSubmitting(true);
-      // Simulate API call delay
-      await delay(500);
-      notifySuccess('Branding Updated');
-    } catch (error) {
-      console.log('Error updating branding:', error);
-      notifyError('Update Failed');
-    } finally {
-      setIsSubmitting(false);
+  async function onSubmit(data: z.infer<typeof BrandingSchema>) {
+    const file = data.company_logo;
+    if (!file) {
+      notifyError('Please select a logo to upload');
+      return;
     }
+
+    uploadLogoMutation.mutate(file, {
+      onSuccess: () => {
+        notifySuccess('Logo uploaded successfully');
+      },
+      onError: (error) => {
+        console.error('Error uploading logo:', error);
+        notifyError('Failed to upload logo');
+      },
+    });
   }
 
   // Handle form validation errors
@@ -204,7 +209,7 @@ export default function BrandingTab() {
                                 </>
                               ) : (
                                 <>
-                                  <span className="truncate max-w-[150px] hover:bg-accent p-1 rounded-md">
+                                  <span className="truncate max-w-[150px] hover:bg-accent p-1 rounded-md" title={selectedFileName || ''}>
                                     {selectedFileName}
                                   </span>
                                   {logoPreview && (

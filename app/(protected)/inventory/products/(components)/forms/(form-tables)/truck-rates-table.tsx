@@ -41,6 +41,16 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       data: { unit: 'per m³' },
     },
     {
+      id: 'kg_rate',
+      label: '20kg Rate',
+      data: { unit: 'per 20kg' },
+    },
+    {
+      id: 'bulka_rate',
+      label: 'Bulka Rate',
+      data: { unit: 'per bulka' },
+    },
+    {
       id: 'hourly_rate',
       label: 'Hourly Rate',
       data: { unit: 'per hour' },
@@ -49,6 +59,11 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       id: 'load_rate',
       label: 'Load Rate',
       data: { unit: 'per load' },
+    },
+    {
+      id: 'km_rate',
+      label: 'Distance Rate',
+      data: { unit: 'per KM' },
     },
   ];
 

@@ -43,15 +43,20 @@ interface FormProps {
   productId?: number;
   quarrySupplierId?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function SupplierForm({
   productId,
   quarrySupplierId,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(quarrySupplierId && productId));
@@ -136,12 +141,23 @@ export default function SupplierForm({
       truck_m3_rate: 0,
       truck_hourly_rate: 0,
       truck_load_rate: 0,
+      truck_km_rate: 0,
+      truck_kg_rate: 0,
+      truck_bulka_rate: 0,
       available_truck_tn_rate: true,
       available_truck_m3_rate: false,
       available_truck_hourly_rate: false,
       available_truck_load_rate: false,
+      available_truck_km_rate: false,
+      available_truck_kg_rate: false,
+      available_truck_bulka_rate: false,
     },
   });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(supplierForm.formState.isDirty);
+  }, [supplierForm.formState.isDirty, onDirtyChange]);
 
   // Update form when data is loaded in edit mode
   React.useEffect(() => {
@@ -172,10 +188,16 @@ export default function SupplierForm({
         truck_m3_rate: (data.m3TruckRate || 0) / 100,
         truck_hourly_rate: (data.hourlyTruckRate || 0) / 100,
         truck_load_rate: (data.loadTruckRate || 0) / 100,
+        truck_km_rate: (data.kmTruckRate || 0) / 100,
+        truck_kg_rate: (data.kg20TruckRate || 0) / 100,
+        truck_bulka_rate: (data.bulkaTruckRate || 0) / 100,
         available_truck_tn_rate: data.availableForTruckRateTn ?? true,
         available_truck_m3_rate: data.availableForTruckRateM3 ?? false,
         available_truck_hourly_rate: data.availableForTruckRateHour ?? false,
         available_truck_load_rate: data.availableForTruckRateLoad ?? false,
+        available_truck_km_rate: data.availableForTruckRateKm ?? false,
+        available_truck_kg_rate: data.availableForTruckRate20kg ?? false,
+        available_truck_bulka_rate: data.availableForTruckRateBulka ?? false,
       });
     }
   }, [isEditing, convertedQuarrySupplierProduct, supplierForm]);
@@ -243,7 +265,8 @@ export default function SupplierForm({
       const fieldName = key === 'bulka' ? 'margin_bulka' : `margin_${key}`;
       supplierForm.setValue(
         fieldName as keyof z.infer<typeof NewSupplierFormSchema>,
-        marginValue
+        marginValue,
+        { shouldDirty: false }
       );
     });
   }, [
@@ -425,8 +448,11 @@ export default function SupplierForm({
         'sell_price_bulka',
         'truck_tn_rate',
         'truck_m3_rate',
+        'truck_kg_rate',
+        'truck_bulka_rate',
         'truck_hourly_rate',
         'truck_load_rate',
+        'truck_km_rate',
       ] as const;
 
       priceFieldsToConvert.forEach((field) => {
@@ -466,14 +492,20 @@ export default function SupplierForm({
         m3TruckRate: processedValues.truck_m3_rate,
         hourlyTruckRate: processedValues.truck_hourly_rate,
         loadTruckRate: processedValues.truck_load_rate,
+        kmTruckRate: processedValues.truck_km_rate,
+        kg20TruckRate: processedValues.truck_kg_rate,
+        bulkaTruckRate: processedValues.truck_bulka_rate,
         availableForSaleTn: processedValues.available_for_sale_tn,
         availableForSaleM3: processedValues.available_for_sale_m3,
         availableForSale20kg: processedValues.available_for_sale_kg,
         availableForSaleBulka: processedValues.available_for_sale_bulka,
         availableForTruckRateTn: processedValues.available_truck_tn_rate,
         availableForTruckRateM3: processedValues.available_truck_m3_rate,
+        availableForTruckRate20kg: processedValues.available_truck_kg_rate,
+        availableForTruckRateBulka: processedValues.available_truck_bulka_rate,
         availableForTruckRateHour: processedValues.available_truck_hourly_rate,
         availableForTruckRateLoad: processedValues.available_truck_load_rate,
+        availableForTruckRateKm: processedValues.available_truck_km_rate,
         isActive: true,
         version: convertedQuarrySupplierProduct?.version || 0,
       };
@@ -538,10 +570,9 @@ export default function SupplierForm({
         );
       }
 
-      // Close form on success
-      if (onCancel) {
-        onCancel();
-      }
+      // Clear dirty state in parent dialog, then close
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} quarry supplier product:`,

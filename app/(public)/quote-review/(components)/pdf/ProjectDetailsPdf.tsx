@@ -6,7 +6,6 @@ import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 export interface ProjectDetailsPdfProps {
   type: QUOTE_TYPE;
   projectName: string;
-  deliveryAddress: string;
   deliveryDate: string;
   deliveryWindow: string;
 }
@@ -14,7 +13,6 @@ export interface ProjectDetailsPdfProps {
 export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
   type,
   projectName,
-  deliveryAddress,
   deliveryDate,
   deliveryWindow,
 }) => {
@@ -46,12 +44,6 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
         <View style={styles.quarterColumn}>
           <Text style={styles.label}>Project Name</Text>
           <Text style={styles.valueSmall}>{projectName}</Text>
-        </View>
-
-        {/* Delivery Address */}
-        <View style={styles.quarterColumn}>
-          <Text style={styles.label}>Delivery Address</Text>
-          <Text style={styles.valueSmall}>{deliveryAddress}</Text>
         </View>
 
         {/* Delivery Date */}

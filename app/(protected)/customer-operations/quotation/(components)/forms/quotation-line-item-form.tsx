@@ -22,21 +22,31 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, TriangleAlertIcon } from 'lucide-react';
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
+import AddressAutoComplete from '@/components/ui/address-autocomplete';
+import { AddressType } from '@/lib/types/address';
+import { toAddressType } from '@/lib/utils/address-helper';
+import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 
 interface FormProps {
   id?: number;
   className?: string;
   onCancel?: () => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
   canEdit?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function QuoteLineItemForm({
   id,
   onCancel,
+  onSuccess,
+  onSaved,
   className,
   canEdit,
+  onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -44,7 +54,13 @@ export default function QuoteLineItemForm({
     isReadOnly,
     form: quotationLineItemForm,
     selectedLineItem,
+    selectedQuotation,
+    selectedQuarrySupplierProduct,
     quoteType,
+    addressInput,
+    setAddressInput,
+    addressSearchInput,
+    setAddressSearchInput,
     productOptions,
     quarryOptions,
     truckTypeOptions,
@@ -57,8 +73,65 @@ export default function QuoteLineItemForm({
     handleSubmit,
     onSubmit,
     isPending,
-  } = useLineItemFormState({ id, canEdit, onCancel });
+    customerDeliveryAddressSuggestions,
+    handleDeleteDeliveryAddress,
+    productDetails,
+  } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(!isReadOnly && quotationLineItemForm.formState.isDirty);
+  }, [isReadOnly, quotationLineItemForm.formState.isDirty, onDirtyChange]);
+
+  // Handler for address changes with functional updates to prevent unnecessary rerenders
+  const handleAddressChange = React.useCallback(
+    (newAddress: AddressType) => {
+      setAddressInput((prev) => {
+        const same =
+          prev.formattedAddress === newAddress.formattedAddress &&
+          prev.googlePlaceId === newAddress.googlePlaceId &&
+          prev.lat === newAddress.lat &&
+          prev.lng === newAddress.lng;
+
+        return same ? prev : newAddress;
+      });
+    },
+    [setAddressInput]
+  );
+
+  // State for delete delivery address confirmation dialog
+  const [deleteAddressDialogOpen, setDeleteAddressDialogOpen] =
+    React.useState(false);
+  const [addressToDeleteId, setAddressToDeleteId] = React.useState<
+    string | null
+  >(null);
+
+  // Handler to show confirmation dialog before deleting
+  const handleDeleteAddressClick = React.useCallback((id: string) => {
+    setAddressToDeleteId(id);
+    setDeleteAddressDialogOpen(true);
+  }, []);
+
+  // Handler to confirm deletion
+  const handleConfirmDeleteAddress = React.useCallback(() => {
+    if (addressToDeleteId) {
+      handleDeleteDeliveryAddress(addressToDeleteId);
+    }
+    setAddressToDeleteId(null);
+  }, [addressToDeleteId, handleDeleteDeliveryAddress]);
+
   const isCollection = quoteType === 'COLLECTION';
+
+  // Determine pinned address based on quote type:
+  // - Delivery: Use customer's billing address
+  // - Collection: Use selected quarry supplier's address
+  const pinnedAddress = isCollection
+    ? selectedQuarrySupplierProduct?.quarrySupplier?.address
+    : selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
+  const pinnedAddressType = React.useMemo(
+    () => toAddressType(pinnedAddress),
+    [pinnedAddress]
+  );
 
   return (
     <div className="w-full relative">
@@ -96,6 +169,40 @@ export default function QuoteLineItemForm({
               isPending && 'pointer-events-none'
             )}
           >
+            {!isCollection && (
+              <FormField
+                control={quotationLineItemForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Delivery Address*</FormLabel>
+                    <FormControl>
+                      <AddressAutoComplete
+                        address={addressInput}
+                        setAddress={handleAddressChange}
+                        searchInput={addressSearchInput}
+                        setSearchInput={setAddressSearchInput}
+                        dialogTitle="Delivery Address"
+                        placeholder="Enter site address..."
+                        readOnly={isReadOnly}
+                        useSuggestions
+                        pinnedAddress={pinnedAddressType}
+                        isCollection={false}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        historyAddresses={customerDeliveryAddressSuggestions}
+                        onDeleteHistoryAddress={handleDeleteAddressClick}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             {/* Product Information */}
             <div className="flex flex-col">
               <div className="flex flex-col gap-2">
@@ -130,6 +237,39 @@ export default function QuoteLineItemForm({
                 disabled={!selectedProductId || isReadOnly}
               />
 
+              {isCollection && (
+                <FormField
+                  control={quotationLineItemForm.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem
+                      className={
+                        isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>Collection Address*</FormLabel>
+                      <FormControl>
+                        <AddressAutoComplete
+                          address={addressInput}
+                          setAddress={handleAddressChange}
+                          searchInput={addressSearchInput}
+                          setSearchInput={setAddressSearchInput}
+                          dialogTitle="Collection Address"
+                          placeholder="Enter site address..."
+                          readOnly={isReadOnly}
+                          useSuggestions
+                          pinnedAddress={pinnedAddressType}
+                          isCollection
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <FormField
                 control={quotationLineItemForm.control}
                 name="supplierProductName"
@@ -161,81 +301,6 @@ export default function QuoteLineItemForm({
                   Product Pricing
                 </span>
                 <Separator className="mb-4" />
-              </div>
-
-              {/* Cost Pricing */}
-              <div className="space-y-2">
-                <span className="block text-sm font-medium text-[#737373]">
-                  Cost Pricing
-                </span>
-                <div
-                  className={
-                    isDesktop ? 'grid grid-cols-3 gap-4' : 'flex flex-col gap-3'
-                  }
-                >
-                  <FormSelect
-                    control={quotationLineItemForm.control}
-                    name="productCostUom"
-                    label="Unit of Measure*"
-                    searchLabel="Unit of Measure"
-                    showSearch={false}
-                    options={productUnitOptions}
-                    placeholder="Select Unit of Measure"
-                    disabled={isReadOnly}
-                  />
-
-                  <FormField
-                    control={quotationLineItemForm.control}
-                    name="productCostQty"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>QTY*</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={quotationLineItemForm.control}
-                    name="productCostPrice"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-1">
-                          Cost Per Unit*
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>(ex-GST)</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </FormLabel>
-                        <FormControl>
-                          <CurrencyInput
-                            id="productCostPrice"
-                            className="w-full"
-                            value={field.value}
-                            onValueChange={(value) =>
-                              field.onChange(value === '' ? 0 : value)
-                            }
-                            decimalPlaces={2}
-                            allowNegative={false}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
 
               {/* Sell Pricing */}
@@ -270,6 +335,7 @@ export default function QuoteLineItemForm({
                             className="w-full"
                             {...field}
                             disabled={isReadOnly}
+                            isNumber
                           />
                         </FormControl>
                         <FormMessage />
@@ -304,6 +370,129 @@ export default function QuoteLineItemForm({
                             decimalPlaces={2}
                             allowNegative={false}
                             disabled={isReadOnly}
+                            unit={
+                              quotationLineItemForm.watch('productSellUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productSellUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="col-span-3 -mt-3 mb-3">
+                    {productDetails?.densityTonnagePerM3 && productDetails.densityTonnagePerM3 > 0 && (
+                  <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
+                    <div className="text-sm font-semibold text-purple-900">
+                      CONVERSION: 1 TN = {(1 / productDetails.densityTonnagePerM3).toFixed(2)} m³ = {(1 / productDetails.densityTonnagePerM3).toFixed(2)} Bulka = 50 x 20kg
+                    </div>
+                  </div>
+                )}
+                  </div>
+                </div>
+                {/* Conversion Info Box */}
+                
+              </div>
+
+              {/* Cost Pricing */}
+              <div className="space-y-2">
+                <span className="block text-sm font-medium text-[#737373]">
+                  Cost Pricing
+                </span>
+                <div
+                  className={
+                    isDesktop ? 'grid grid-cols-3 gap-4' : 'flex flex-col gap-3'
+                  }
+                >
+                  <FormSelect
+                    control={quotationLineItemForm.control}
+                    name="productCostUom"
+                    label="Unit of Measure*"
+                    searchLabel="Unit of Measure"
+                    showSearch={false}
+                    options={productUnitOptions}
+                    placeholder="Select Unit of Measure"
+                    disabled={isReadOnly}
+                  />
+
+                  <FormField
+                    control={quotationLineItemForm.control}
+                    name="productCostQty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>QTY*</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="w-full"
+                            {...field}
+                            disabled
+                            isNumber
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={quotationLineItemForm.control}
+                    name="productCostPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          Cost Per Unit*
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>(ex-GST)</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </FormLabel>
+                        <FormControl>
+                          <CurrencyInput
+                            id="productCostPrice"
+                            className="w-full"
+                            value={field.value}
+                            onValueChange={(value) =>
+                              field.onChange(value === '' ? 0 : value)
+                            }
+                            decimalPlaces={2}
+                            allowNegative={false}
+                            disabled={isReadOnly}
+                            unit={
+                              quotationLineItemForm.watch('productCostUom') ===
+                              'TN'
+                                ? 'TN'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'M3'
+                                ? 'm3'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'KG_20'
+                                ? 'Bags'
+                                : quotationLineItemForm.watch(
+                                    'productCostUom'
+                                  ) === 'BULKA'
+                                ? 'Bags'
+                                : ''
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -312,6 +501,25 @@ export default function QuoteLineItemForm({
                   />
                 </div>
               </div>
+
+             
+
+              {pricingBreakdown.totalProductCostPrice >
+                pricingBreakdown.totalProductSellPrice && (
+                <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
+                  <div className="flex items-start gap-2">
+                    <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                    <div className="flex-1 text-sm">
+                      <p className="font-semibold">Review Product Pricing</p>
+                      <p className="text-[#364153]">
+                        This line item will generate a loss based on current
+                        costs. If this is expected, you can continue. Otherwise,
+                        adjust the price to restore profitability.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Truck Configuration */}
@@ -333,83 +541,7 @@ export default function QuoteLineItemForm({
                   disabled={isReadOnly}
                 />
 
-                <div className="space-y-2">
-                  <span className="block text-sm font-medium text-[#737373]">
-                    Cost Pricing
-                  </span>
-                  <div
-                    className={
-                      isDesktop
-                        ? 'grid grid-cols-3 gap-4'
-                        : 'flex flex-col gap-3'
-                    }
-                  >
-                    <FormSelect
-                      control={quotationLineItemForm.control}
-                      name="truckCostUom"
-                      label="Unit of Measure*"
-                      searchLabel="Unit of Measure"
-                      showSearch={false}
-                      options={truckUnitOptions}
-                      placeholder="Select Unit of Measure"
-                      disabled={
-                        !quotationLineItemForm.watch('truckType') || isReadOnly
-                      }
-                    />
-
-                    <FormField
-                      control={quotationLineItemForm.control}
-                      name="truckCostQty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>QTY*</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              disabled={isReadOnly}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={quotationLineItemForm.control}
-                      name="truckCostPrice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-1">
-                            Cost Per Unit*
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>(ex-GST)</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </FormLabel>
-                          <FormControl>
-                            <CurrencyInput
-                              id="truckCostPrice"
-                              className="w-full"
-                              value={field.value}
-                              onValueChange={(value) =>
-                                field.onChange(value === '' ? 0 : value)
-                              }
-                              decimalPlaces={2}
-                              allowNegative={false}
-                              disabled={isReadOnly}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+               
                 <div className="space-y-2">
                   <span className="block text-sm font-medium text-[#737373]">
                     Sell Pricing
@@ -437,19 +569,25 @@ export default function QuoteLineItemForm({
                     <FormField
                       control={quotationLineItemForm.control}
                       name="truckSellQty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>QTY*</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              disabled={isReadOnly}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      render={({ field }) => {
+                        const truckSellUom = quotationLineItemForm.watch('truckSellUom');
+                        const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
+                        const isEnabled = truckSellUom && manualInputUoms.includes(truckSellUom);
+                        return (
+                          <FormItem>
+                            <FormLabel>QTY*</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                disabled={isReadOnly || !isEnabled}
+                                isNumber
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
                     />
 
                     <FormField
@@ -479,6 +617,28 @@ export default function QuoteLineItemForm({
                               decimalPlaces={2}
                               allowNegative={false}
                               disabled={isReadOnly}
+                              unit={
+                                quotationLineItemForm.watch('truckSellUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'HOURLY'
+                                  ? 'HOURLY'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'LOAD'
+                                  ? 'LOAD'
+                                  : quotationLineItemForm.watch(
+                                      'truckSellUom'
+                                    ) === 'KM'
+                                  ? 'KM'
+                                  : ''
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -487,6 +647,129 @@ export default function QuoteLineItemForm({
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <span className="block text-sm font-medium text-[#737373]">
+                    Cost Pricing
+                  </span>
+                  <div
+                    className={
+                      isDesktop
+                        ? 'grid grid-cols-3 gap-4'
+                        : 'flex flex-col gap-3'
+                    }
+                  >
+                    <FormSelect
+                      control={quotationLineItemForm.control}
+                      name="truckCostUom"
+                      label="Unit of Measure*"
+                      searchLabel="Unit of Measure"
+                      showSearch={false}
+                      options={truckUnitOptions}
+                      placeholder="Select Unit of Measure"
+                      disabled={
+                        !quotationLineItemForm.watch('truckType') || isReadOnly
+                      }
+                    />
+
+                    <FormField
+                      control={quotationLineItemForm.control}
+                      name="truckCostQty"
+                      render={({ field }) => {
+                        const truckCostUom = quotationLineItemForm.watch('truckCostUom');
+                        const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
+                        const isEnabled = truckCostUom && manualInputUoms.includes(truckCostUom);
+                        return (
+                          <FormItem>
+                            <FormLabel>QTY*</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                disabled={isReadOnly || !isEnabled}
+                                isNumber
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    <FormField
+                      control={quotationLineItemForm.control}
+                      name="truckCostPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-1">
+                            Cost Per Unit*
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>(ex-GST)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </FormLabel>
+                          <FormControl>
+                            <CurrencyInput
+                              id="truckCostPrice"
+                              className="w-full"
+                              value={field.value}
+                              onValueChange={(value) =>
+                                field.onChange(value === '' ? 0 : value)
+                              }
+                              decimalPlaces={2}
+                              allowNegative={false}
+                              disabled={isReadOnly}
+                              unit={
+                                quotationLineItemForm.watch('truckCostUom') ===
+                                'TN'
+                                  ? 'TN'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'M3'
+                                  ? 'm3'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'HOURLY'
+                                  ? 'HOURLY'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'LOAD'
+                                  ? 'LOAD'
+                                  : quotationLineItemForm.watch(
+                                      'truckCostUom'
+                                    ) === 'KM'
+                                  ? 'KM'
+                                  : ''
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {pricingBreakdown.totalTruckCostPrice >
+                  pricingBreakdown.totalTruckSellPrice && (
+                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
+                    <div className="flex items-start gap-2">
+                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                      <div className="flex-1 text-sm">
+                        <p className="font-semibold">Review Truck Pricing</p>
+                        <p className="text-[#364153]">
+                          The truck configuration will generate a loss based on
+                          current costs. If this is expected, you can continue.
+                          Otherwise, adjust the price to restore profitability.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -657,6 +940,23 @@ export default function QuoteLineItemForm({
           </div>
         </form>
       </Form>
+
+      {/* Confirmation dialog for removing delivery address from suggestions */}
+      <EnhancedConfirmDialog
+        open={deleteAddressDialogOpen}
+        onOpenChangeAction={setDeleteAddressDialogOpen}
+        title="Remove Delivery Address"
+        content={
+          <>
+            <p className="mb-3">Are you sure you want to remove this delivery address from your suggestions?</p>
+            <p>This will not affect existing quotes or historical records, but the address will no longer appear as a suggestion for this customer.</p>
+          </>
+        }
+        cancelText="Cancel"
+        confirmText="Remove"
+        confirmVariant="destructive"
+        onConfirmAction={handleConfirmDeleteAddress}
+      />
     </div>
   );
 }

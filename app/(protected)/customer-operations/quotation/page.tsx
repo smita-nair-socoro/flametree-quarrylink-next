@@ -13,6 +13,10 @@ import {
   Clock,
   Wallet,
   AlertCircle,
+  Calendar,
+  DollarSign,
+  Hash,
+  User,
 } from 'lucide-react';
 import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
@@ -30,6 +34,11 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { QuotationTableActions } from './(components)/(data-tables)/quotation/quotation-table-actions';
+import { parseISO, format } from 'date-fns';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -50,15 +59,13 @@ export default function QuotationsPage() {
 
     return list.map((quotation) => ({
       ...quotation,
-      quoteId: quotation.id,
-      status: quotation.quoteStatus,
     })) as Quotation[];
   }, [quotationsData]);
 
   const { data: reportingData } = useQuery(QuotationReportingQueryOptions());
 
   const setSelectedQuotation = useQuotationStore(
-    (state) => state.setSelectedQuotation
+    (state) => state.setSelectedQuotation,
   );
   const setQuotations = useQuotationStore((state) => state.setQuotations);
 
@@ -94,7 +101,7 @@ export default function QuotationsPage() {
       title: 'Total Quotations',
       value: reportingData?.totalQuotesRaisedThisMonth || 0,
       description: `${formatNumberThousandSeparator(
-        reportingData?.totalQuotesPercentageChangeVsLastMonth || 0
+        reportingData?.totalQuotesPercentageChangeVsLastMonth || 0,
       )}% vs last month`,
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
@@ -113,10 +120,10 @@ export default function QuotationsPage() {
     {
       title: 'Total Quote Value',
       value: `$${centsToDollars(
-        reportingData?.totalValueOfQuotesRaisedThisMonth || 0
+        reportingData?.totalValueOfQuotesRaisedThisMonth || 0,
       )}`,
       description: `${formatNumberThousandSeparator(
-        reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0
+        reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0,
       )}% vs last month`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -134,15 +141,15 @@ export default function QuotationsPage() {
     },
   ];
 
-  // // State for bulk selection
-  // const [selectedQuotations, setSelectedQuotations] = React.useState<
-  //   Quotation[]
-  // >([]);
-  // const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
+  // State for bulk selection
+  const [selectedQuotations, setSelectedQuotations] = React.useState<
+    Quotation[]
+  >([]);
+  const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
-    selectedQuotationForActions
+    selectedQuotationForActions,
   );
 
   const handleRowClick = (quotation: Quotation) => {
@@ -151,15 +158,74 @@ export default function QuotationsPage() {
     actions.view();
   };
 
+  const handleRowSelectionChange = (selected: Quotation[]) => {
+    setSelectedQuotations(selected);
+  };
+  // Mobile card renderer
+  const renderQuotationCard = React.useCallback((quotation: Quotation) => {
+    const formattedTotal = quotation.totalSellPrice
+      ? `$${centsToDollars(quotation.totalSellPrice)}`
+      : '$0.00';
+    const expiryDate = quotation.expiryDate || '-';
+
+    const date = parseISO(expiryDate);
+    const formattedExpiryDate = format(date, 'dd MMM yyyy');
+
+    return (
+      <MobileCard
+        title={quotation.projectName || 'Untitled Project'}
+        description={
+          <>
+            <Hash className="h-3.5 w-3.5" />
+            <span className="truncate">{quotation.quoteNumber}</span>
+          </>
+        }
+        badges={
+          <>
+            {quotation.quoteStatus && (
+              <TableBadges names={[quotation.quoteStatus]} visibleCount={1} />
+            )}
+            {quotation.quoteType && (
+              <TableBadges names={[quotation.quoteType]} visibleCount={1} />
+            )}
+          </>
+        }
+        actions={<QuotationTableActions quotation={quotation} />}
+        fields={[
+          {
+            icon: <User className="h-4 w-4" />,
+            label: 'Customer',
+            value: quotation.customerName,
+          },
+          {
+            icon: <DollarSign className="h-4 w-4" />,
+            label: 'Total',
+            value: formattedTotal,
+          },
+          {
+            icon: <Calendar className="h-4 w-4" />,
+            label: 'Expiry',
+            value: formattedExpiryDate,
+          },
+          {
+            icon: <User className="h-4 w-4" />,
+            label: 'Account Manager',
+            value: quotation.accountManagerName || '-',
+          },
+        ]}
+      />
+    );
+  }, []);
+
   // const handleRowSelectionChange = (selected: Quotation[]) => {
   //   setSelectedQuotations(selected);
   // };
 
-  // const handleClearSelection = () => {
-  //   setSelectedQuotations([]);
-  //   // Force re-render of table to clear checkboxes
-  //   setRowSelectionKey((prev) => prev + 1);
-  // };
+  const handleClearSelection = () => {
+    setSelectedQuotations([]);
+    // Force re-render of table to clear checkboxes
+    setRowSelectionKey((prev) => prev + 1);
+  };
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
@@ -221,7 +287,7 @@ export default function QuotationsPage() {
               </div>
             )}
             <DataTableClient
-              // key={rowSelectionKey}
+              key={rowSelectionKey}
               tableId={
                 linkedQuotationIdsSet
                   ? 'quotation_linked_data_table'
@@ -232,8 +298,17 @@ export default function QuotationsPage() {
               facetDefination={facetDefs}
               searchPlaceHolder="Search quotes..."
               onRowClick={handleRowClick}
-              enableRowSelection={false}
+              enableRowSelection={true}
+              onRowSelectionChange={handleRowSelectionChange}
               defaultSorting={[{ id: 'created_at', desc: true }]}
+              mobileCardRenderer={renderQuotationCard}
+              bulkActionsSlot={
+                <QuotationBulkActions
+                  selectedQuotations={selectedQuotations}
+                  onClearSelection={handleClearSelection}
+                />
+            }
+            
             />
           </>
         )}

@@ -128,7 +128,7 @@ export function SelectOptions({
             )}
             disabled={disabled}
           >
-            <span className="flex-1 text-left truncate">
+            <span className="flex-1 text-left truncate" title={selectedOption ? selectedOption.label : placeholder}>
               {selectedOption ? selectedOption.label : placeholder}
             </span>
             <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />

@@ -182,7 +182,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                   )}
                   disabled={disabled}
                 >
-                  <span className="flex-1 text-left truncate">
+                  <span className="flex-1 text-left truncate" title={field.value ? options.find((o) => o.value === field.value)?.label : placeholder}>
                     {field.value
                       ? options.find((o) => o.value === field.value)?.label
                       : placeholder}

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,7 +22,6 @@ import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/li
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate } from '@/lib/utils/date';
-import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -59,6 +57,8 @@ interface FormProps {
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
+  onDirtyChange?: (isDirty: boolean) => void;
+  onSaved?: () => void;
 }
 
 export default function QuotationForm({
@@ -67,6 +67,9 @@ export default function QuotationForm({
   className,
   canEdit,
   isDuplicate,
+  onDirtyChange,
+  onSuccess,
+  onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
@@ -76,28 +79,21 @@ export default function QuotationForm({
     resolver: zodResolver(NewQuotationFormSchema),
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
-      isEditing
+      isEditing,
     ),
   });
 
   const createQuotation = useCreateQuotation();
   const updateQuotation = useUpdateQuotation();
 
-  // All form state management: data fetching, labels, pricing, address, customer auto-fill
+  // All form state management: data fetching, labels, pricing, customer auto-fill
   const {
     currentQuotation,
     isLoadingDetail,
     detailError,
-    addressLabel,
     dateLabel,
     timeWindowLabel,
     pricingBreakdown,
-    gst,
-    totalInvoiceIncGST,
-    deliveryAddress,
-    handleAddressChange,
-    searchInput,
-    setSearchInput,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
   const isCollectionQuote =
     currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
@@ -108,6 +104,11 @@ export default function QuotationForm({
       quotationForm.reset(quotationToFormValues(currentQuotation, true));
     }
   }, [isEditing, currentQuotation, quotationForm]);
+
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(quotationForm.formState.isDirty);
+  }, [quotationForm.formState.isDirty, onDirtyChange]);
 
   // Fetch customers from API
   const { data: customers = [] } = useQuery(CustomersListQueryOptions());
@@ -136,7 +137,7 @@ export default function QuotationForm({
       if (!subOrName) return '';
       return users.find((u) => u.sub === subOrName)?.name || subOrName;
     },
-    [users]
+    [users],
   );
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
@@ -144,20 +145,20 @@ export default function QuotationForm({
     const subscription = quotationForm.watch((value, { name }) => {
       if (name === 'customerId' && value.customerId) {
         const selectedCustomer = customers.find(
-          (c) => c.id === value.customerId
+          (c) => c.id === value.customerId,
         );
 
         if (selectedCustomer) {
           // Update phone and email fields whenever customer changes
           quotationForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || ''
+            normalizePhoneNumber(selectedCustomer.phone || '') || '',
           );
           quotationForm.setValue('email', selectedCustomer.email || '');
 
           quotationForm.setValue(
             'accountManagerSub',
-            selectedCustomer.accountManagerSub || ''
+            selectedCustomer.accountManagerSub || '',
           );
         }
       }
@@ -172,7 +173,7 @@ export default function QuotationForm({
     // Check for missing email when creating a quotation
     if (!isEditing && !values.email?.trim()) {
       notifyError(
-        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.'
+        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.',
       );
       return;
     }
@@ -190,9 +191,9 @@ export default function QuotationForm({
         const transformed = transformFormDataToQuoteDto(values, {
           customerName,
           accountManagerName,
-          accountManagerSub: values.accountManagerSub,
+          accountManagerSub:
+            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
           lineItemsCount: 0,
-          deliveryAddress: deliveryAddress,
         });
 
         const newQuotation = await createQuotation.mutateAsync(transformed);
@@ -203,7 +204,8 @@ export default function QuotationForm({
         }
 
         notifySuccess('Quote created successfully');
-        onCancel?.();
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error creating quotation:', error);
 
@@ -213,7 +215,7 @@ export default function QuotationForm({
         const messageFromErr = err?.message || extractedMessage;
 
         notifyError(
-          messageFromErr || 'Failed to create quote. Please try again.'
+          messageFromErr || 'Failed to create quote. Please try again.',
         );
       }
     } else {
@@ -221,11 +223,10 @@ export default function QuotationForm({
       const transformed = transformFormDataToQuoteDto(values, {
         customerName,
         accountManagerName,
-        accountManagerSub: values.accountManagerSub,
+        accountManagerSub:
+          values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
         quoteNumber: currentQuotation?.quoteNumber || '',
         lineItemsCount: 0,
-        deliveryAddress: deliveryAddress,
-        originalDeliveryAddress: currentQuotation?.deliveryAddress || null,
       });
 
       try {
@@ -234,7 +235,8 @@ export default function QuotationForm({
           ...transformed,
         });
         notifySuccess('Quote updated successfully');
-        onCancel?.();
+        onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 
@@ -245,7 +247,7 @@ export default function QuotationForm({
 
         // Fallback error using extracted message
         notifyError(
-          messageFromErr || 'Failed to update quote. Please try again.'
+          messageFromErr || 'Failed to update quote. Please try again.',
         );
       }
     }
@@ -298,7 +300,7 @@ export default function QuotationForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -317,11 +319,11 @@ export default function QuotationForm({
             'p-1 w-full flex flex-col',
             className,
             (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none'
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
-          {isEditing && currentQuotation?.status === 'PENDING' && (
+          {isEditing && currentQuotation?.quoteStatus === 'PENDING' && (
             <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
               <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
                 <Info className="h-4 w-4" />
@@ -333,18 +335,68 @@ export default function QuotationForm({
             </div>
           )}
 
-          {isEditing && currentQuotation?.status === 'DECLINED' && (
-            <div className="border border-blue-600 bg-blue-50 p-4 rounded-md mb-4 flex flex-col">
-              <div className="flex items-center gap-2 text-blue-900 font-medium text-sm">
-                <Info className="h-4 w-4" />
-                <span>This quote was declined</span>
-              </div>
-              <span className="text-muted-foreground ml-6 text-sm">
-                You can edit and save changes. It will automatically return to
-                Draft status
-              </span>
-            </div>
-          )}
+          {isEditing &&
+            currentQuotation?.quoteStatus === 'DECLINED' &&
+            (() => {
+              // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
+              const declineReasonRaw = currentQuotation?.declineReason || '';
+              const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
+              const declineNote = noteParts.join('-').trim();
+
+              // Map reason keys to human-readable labels
+              const reasonLabels: Record<string, string> = {
+                price_too_high: 'Price too high',
+                timeline_conflict: 'Timeline conflict',
+                scope_changed: 'Scope changed',
+                customer_unresponsive: 'Customer unresponsive',
+                competitor_selected: 'Competitor selected',
+                project_cancelled: 'Project cancelled',
+                other: 'Other',
+              };
+              const reasonLabel = reasonLabels[reasonKey] || reasonKey;
+
+              // Format customerResponseAt date
+              const responseDate = currentQuotation?.customerResponseAt
+                ? new Date(currentQuotation.customerResponseAt)
+                : null;
+              const formattedDate = responseDate
+                ? `${responseDate.toLocaleDateString('en-AU', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                  })} at ${responseDate.toLocaleTimeString('en-AU', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}`
+                : '';
+
+              return (
+                <div className="border border-[#FB2C36] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+                  <div className="flex items-start gap-2 text-[#82181A] font-medium text-sm">
+                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span>
+                        This quote was declined by the customer — Reason:{' '}
+                        {reasonLabel}
+                        {formattedDate && ` (${formattedDate})`}.
+                      </span>
+                      {declineNote && (
+                        <span>
+                          Note: {declineNote}. Select &quot;Convert to
+                          Draft&quot; to edit.
+                        </span>
+                      )}
+                      {!declineNote && (
+                        <span>
+                          Select &quot;Convert to Draft&quot; to edit.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
           <div
             className={cn(
@@ -354,7 +406,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none'
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -483,34 +535,49 @@ export default function QuotationForm({
               )}
             />
 
-            <FormField
-              control={quotationForm.control}
-              name="deliveryAddress"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>{addressLabel}*</FormLabel>
-                  <FormControl>
-                    <AddressAutoComplete
-                      address={deliveryAddress}
-                      setAddress={handleAddressChange}
-                      searchInput={searchInput}
-                      setSearchInput={setSearchInput}
-                      dialogTitle="Enter Address"
-                      placeholder="Enter site address..."
-                      readOnly={isEditing && !canEdit}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {isEditing && (
+              <FormField
+                control={quotationForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Customer Email*</FormLabel>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          className="max-w-[250px]"
+                          backgroundClassName="bg-gray-900 text-white"
+                          arrowClassName="bg-gray-900 fill-gray-900"
+                        >
+                          <p className="text-xs">
+                            Recipient email address for this quote only.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Email"
+                        {...field}
+                        disabled={isEditing && !canEdit}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {isEditing && (
               <FormField
@@ -524,7 +591,24 @@ export default function QuotationForm({
                         : 'col-span-2'
                     }
                   >
-                    <FormLabel>Phone*</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Customer Phone*</FormLabel>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="right"
+                          className="max-w-[250px]"
+                          backgroundClassName="bg-gray-900 text-white"
+                          arrowClassName="bg-gray-900 fill-gray-900"
+                        >
+                          <p className="text-xs">
+                            Contact phone number for this quote only.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <FormControl>
                       <PhoneInput
                         className="w-full"
@@ -540,66 +624,40 @@ export default function QuotationForm({
               />
             )}
 
-            <FormField
-              control={quotationForm.control}
-              name="deliveryStartDate"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>{dateLabel}*</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChangeAction={field.onChange}
-                      placeholder="Pick a date"
-                      disabled={{ before: today }}
-                      readOnly={isEditing && !canEdit}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            {/* Delivery Time Window Section */}
+            <div
+              className={cn(
+                'col-span-2',
+                isEditing && isDesktop
+                  ? 'grid grid-cols-4 gap-4'
+                  : 'grid grid-cols-1 gap-2',
               )}
-            />
-
-            {isEditing && (
+            >
+              <h3 className="font-bold col-span-full mb-2">
+                {timeWindowLabel}
+              </h3>
               <FormField
                 control={quotationForm.control}
-                name="email"
+                name="deliveryStartDate"
                 render={({ field }) => (
                   <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1 gap-0'
-                        : 'col-span-2'
-                    }
+                    className={isEditing && isDesktop ? 'col-span-2' : ''}
                   >
-                    <FormLabel>Email*</FormLabel>
+                    <FormLabel>{dateLabel}*</FormLabel>
                     <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Email"
-                        {...field}
-                        disabled={isEditing && !canEdit}
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        placeholder="Pick a date"
+                        disabled={{ before: today }}
+                        readOnly={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
 
-            <div
-              className={cn(
-                'grid grid-cols-2 gap-2',
-                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-              )}
-            >
-              <h3 className="font-bold col-span-2">{timeWindowLabel}</h3>
               <FormField
                 control={quotationForm.control}
                 name="deliveryWindowStart"
@@ -642,42 +700,48 @@ export default function QuotationForm({
                 )}
               />
             </div>
-            <FormField
-              control={quotationForm.control}
-              name="expiryDate"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Expiry Date</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChangeAction={field.onChange}
-                      placeholder="Pick a date"
-                      disabled={{ before: today }}
-                      readOnly={isEditing && !canEdit}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    If the quote is not approved by the expiry date, it will
-                    automatically expire and no longer be valid.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+            {/* Expiry Date Section */}
+            <div
+              className={cn(
+                'col-span-2 mb-6',
+                isEditing && isDesktop
+                  ? 'grid grid-cols-2 gap-4'
+                  : 'grid grid-cols-1 gap-2',
               )}
-            />
+            >
+              <FormField
+                control={quotationForm.control}
+                name="expiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expiry Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        placeholder="Pick a date"
+                        disabled={{ before: today }}
+                        readOnly={isEditing && !canEdit}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex items-center">
+                <p className="text-sm text-muted-foreground">
+                  If the quote is not approved by the expiry date, it will
+                  automatically expire and no longer be valid.
+                </p>
+              </div>
+            </div>
 
             {isEditing && (
               <div
                 className={cn(
                   isDesktop
                     ? 'flex justify-between items-center col-span-2 mb-5'
-                    : 'flex flex-col gap-4 col-span-1'
+                    : 'flex flex-col gap-4 col-span-1',
                 )}
               >
                 <div>
@@ -689,7 +753,7 @@ export default function QuotationForm({
                   <div
                     className={cn(
                       'flex items-center gap-2',
-                      !isDesktop && 'mt-2'
+                      !isDesktop && 'mt-2',
                     )}
                   >
                     <FormDialog
@@ -697,6 +761,7 @@ export default function QuotationForm({
                       buttonTitle="Add New Product"
                       dialogWidth="700px"
                       contentClass="-mt-5"
+                      preventAutoFocus
                     >
                       <QuotationLineItemForm canEdit={canEdit} />
                     </FormDialog>
@@ -714,7 +779,7 @@ export default function QuotationForm({
                       return (
                         <DataTableClient
                           columns={getQuotationLineItemColumns(
-                            currentQuotation?.quoteType
+                            currentQuotation?.quoteType,
                           )}
                           data={quoteItemsData}
                           simpleTable={true}
@@ -731,7 +796,7 @@ export default function QuotationForm({
                           Product Cost (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductCostPrice.toFixed(2)}
+                          ${pricingBreakdown.totalProductCostPrice}
                         </span>
                       </div>
                       {!isCollectionQuote && (
@@ -740,7 +805,7 @@ export default function QuotationForm({
                             Truck Cost (Total):
                           </span>
                           <span className="text-sm font-normal">
-                            ${pricingBreakdown.totalTruckCostPrice.toFixed(2)}
+                            ${pricingBreakdown.totalTruckCostPrice}
                           </span>
                         </div>
                       )}
@@ -749,7 +814,7 @@ export default function QuotationForm({
                           Product Sell (Total):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductSellPrice.toFixed(2)}
+                          ${pricingBreakdown.totalProductSellPrice}
                         </span>
                       </div>
                       {!isCollectionQuote && (
@@ -758,7 +823,7 @@ export default function QuotationForm({
                             Truck Sell (Total):
                           </span>
                           <span className="text-sm font-normal">
-                            ${pricingBreakdown.totalTruckSellPrice.toFixed(2)}
+                            ${pricingBreakdown.totalTruckSellPrice}
                           </span>
                         </div>
                       )}
@@ -767,19 +832,21 @@ export default function QuotationForm({
                           Subtotal (ex-GST):
                         </span>
                         <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalInvoice.toFixed(2)}
+                          ${pricingBreakdown.totalInvoice}
                         </span>
                       </div>
                       <div className="flex justify-between py-3 -mt-3">
                         <span className="text-sm font-normal">GST (10%):</span>
-                        <span className="text-sm font-normal">${gst}</span>
+                        <span className="text-sm font-normal">
+                          ${pricingBreakdown.gst}
+                        </span>
                       </div>
                       <div className="flex justify-between py-3">
                         <span className="text-sm font-semibold">
                           Total Invoice (Incl. GST):
                         </span>
                         <span className="text-sm font-semibold">
-                          ${totalInvoiceIncGST}
+                          ${pricingBreakdown.totalInvoiceIncGST}
                         </span>
                       </div>
                     </div>
@@ -788,7 +855,7 @@ export default function QuotationForm({
                         Gross Profit:
                       </span>
                       <span className="text-sm font-semibold">
-                        ${pricingBreakdown.grossProfit.toFixed(2)} (
+                        ${pricingBreakdown.grossProfit} (
                         {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
                       </span>
                     </div>
@@ -816,7 +883,7 @@ export default function QuotationForm({
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {getUserNameBySub(
-                            quotationForm.watch('lastModifiedBy')
+                            quotationForm.watch('lastModifiedBy'),
                           ) || 'Jaywoo Choi'}
                         </p>
                       </div>
@@ -828,7 +895,7 @@ export default function QuotationForm({
                         <p className="text-sm text-muted-foreground">
                           {quotationForm.watch('createdAt')
                             ? new Date(
-                                quotationForm.watch('createdAt')
+                                quotationForm.watch('createdAt'),
                               ).toLocaleDateString('en-AU', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -845,7 +912,7 @@ export default function QuotationForm({
                         <p className="text-sm text-muted-foreground">
                           {quotationForm.watch('updatedAt')
                             ? new Date(
-                                quotationForm.watch('updatedAt')
+                                quotationForm.watch('updatedAt'),
                               ).toLocaleDateString('en-AU', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -879,8 +946,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                    ? 'Save Changes'
-                    : 'Add Quote'}
+                      ? 'Save Changes'
+                      : 'Add Quote'}
                 </Button>
               </div>
             )}
@@ -901,8 +968,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                    ? 'Save Changes'
-                    : 'Add Quote'}
+                      ? 'Save Changes'
+                      : 'Add Quote'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}

@@ -95,12 +95,12 @@ export function ActionDialog({
         {content && <>{content}</>}
 
         {!hideSeparator && (<div className="border-t border-gray-200"></div>)}
-        <div 
+        <div
           className={cn(
-            'grid space-x-2', 
-            cancelActionNeeded 
-              ? 'grid-cols-2' 
-              : 'grid-cols-1'
+            'flex flex-col-reverse gap-3 md:grid md:gap-2',
+            cancelActionNeeded
+              ? 'md:grid-cols-2'
+              : 'md:grid-cols-1'
             )}>
           {cancelActionNeeded &&(
             <Button
@@ -108,20 +108,20 @@ export function ActionDialog({
               onClick={() => onOpenChangeAction(false)}
               className={cn(
                 confirmActionNeeded
-                  ? 'h-10'
+                  ? ''
                   : cancelButtonClass
                   ? cancelButtonClass
-                  : 'col-span-2 h-11'
+                  : 'md:col-span-2'
             )}
           >
             {cancelText}
           </Button>
           )}
-          
+
           {confirmActionNeeded && (
             <Button
               variant={confirmCustomColor ? undefined : confirmVariant}
-              className={cn('h-10', confirmCustomClass)}
+              className={cn(confirmCustomClass)}
               style={customButtonStyle}
               disabled={confirmDisabled}
               onClick={() => {

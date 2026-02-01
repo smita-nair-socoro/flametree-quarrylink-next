@@ -4,6 +4,11 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { ColumnDef } from '@tanstack/react-table';
 import { Invoice } from '@/lib/types/user';
 import { InvoiceTableActions } from './inoice-table-actions';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const invoiceColumns: ColumnDef<Invoice>[] = [
   {
@@ -44,9 +49,16 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
         currency: 'USD',
       }).format(dollars);
       return (
-        <div className="py-2 font-medium w-36 max-w-36 truncate">
-          {formatted}
-        </div>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
       );
     },
     meta: 'Invoice Amount',

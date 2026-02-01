@@ -21,6 +21,14 @@ import { PublicQuoteLinkResponse } from '@/lib/types/quotation';
 import { transformQuoteData } from './types/quote-transformer';
 import { useUpdatePublicQuoteStatus } from '@/lib/api/quotation';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -35,6 +43,9 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState<string>('');
+  const [declineNotes, setDeclineNotes] = useState<string>('');
+  const [showValidationError, setShowValidationError] = useState(false);
 
   // Check if we're in preview mode (no token means authenticated preview)
   const isPreviewMode = !token;
@@ -44,21 +55,32 @@ export default function QuoteReviewDocument({
     useUpdatePublicQuoteStatus();
 
   // Use API data if available, otherwise fall back to mock data
-  const quotationData = quoteData
-    ? transformQuoteData(quoteData)
-    : mockQuotationData;
+  const quotationData = useMemo(
+    () => (quoteData ? transformQuoteData(quoteData) : mockQuotationData),
+    [quoteData]
+  );
 
   // Get status directly from the transformed quotation data
   const currentQuoteStatus = quotationData.navbar.status;
 
   // State for quote status (will be updated when user approves/declines)
-  const [quoteStatus, setQuoteStatus] = useState<QuoteStatus>(
-    currentQuoteStatus
-  );
+  const [quoteStatus, setQuoteStatus] =
+    useState<QuoteStatus>(currentQuoteStatus);
 
   // State for navbar status (will be updated when user approves/declines)
   const [navbarStatus, setNavbarStatus] =
     useState<QuoteStatus>(currentQuoteStatus);
+
+  // Validation: Check if decline form is valid
+  const isDeclineFormValid = useMemo(() => {
+    // Must have a reason selected
+    if (!declineReason) return false;
+
+    // If reason is "other", must have notes
+    if (declineReason === 'other' && !String(declineNotes).trim()) return false;
+
+    return true;
+  }, [declineReason, declineNotes]);
 
   const approveDialogDescription = useMemo(() => {
     const { project, navbar, customer, summary } = quotationData;
@@ -148,7 +170,7 @@ export default function QuoteReviewDocument({
 
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
-    const declineNotes = [
+    const declineNotesInfo = [
       'Quote status changes from Pending to Declined',
       'Your account manager is notified of declined status',
     ];
@@ -194,12 +216,79 @@ export default function QuoteReviewDocument({
           </div>
         </div>
 
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-normal text-[#364153]">
+              Reason for declining <span className="text-[#E7000B]">*</span>
+            </label>
+            <Select
+              value={declineReason}
+              onValueChange={(value) => {
+                setDeclineReason(value);
+                setShowValidationError(false);
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a reason..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="price_too_high">Price too high</SelectItem>
+                <SelectItem value="timeline_conflict">
+                  Timeline conflict
+                </SelectItem>
+                <SelectItem value="scope_changed">Scope changed</SelectItem>
+                <SelectItem value="customer_unresponsive">
+                  Customer unresponsive
+                </SelectItem>
+                <SelectItem value="competitor_selected">
+                  Competitor selected
+                </SelectItem>
+                <SelectItem value="project_cancelled">
+                  Project cancelled
+                </SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            {showValidationError && !declineReason && (
+              <p className="text-xs text-[#E7000B]">Please select a reason</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-normal text-[#6A7282]">
+              Additional notes{' '}
+              {declineReason === 'other' ? (
+                <span className="text-[#E7000B]">*</span>
+              ) : (
+                '(Optional)'
+              )}
+            </label>
+            <Textarea
+              value={declineNotes}
+              onChange={(e) => {
+                setDeclineNotes(e.target.value);
+                setShowValidationError(false);
+              }}
+              placeholder="Add any additional details about declining this quote..."
+              className="min-h-[80px] resize-none"
+            />
+            {showValidationError &&
+              declineReason === 'other' &&
+              !String(declineNotes).trim() && (
+                <p className="text-xs text-[#E7000B]">
+                  Please provide additional notes when selecting
+                  &quot;Other&quot;
+                </p>
+              )}
+          </div>
+        </div>
+
         <div className="space-y-3">
           <p className="font-medium text-base text-[#101828]">
             What happens when quote is declined:
           </p>
           <ul className=" text-sm text-[#6A7282]">
-            {declineNotes.map((note) => (
+            {declineNotesInfo.map((note) => (
               <li key={note} className="flex items-start gap-2">
                 <span className="mt-[8px] h-[4px] w-[4px] rounded-full bg-[#6A7282]"></span>
                 <span>{note}</span>
@@ -209,7 +298,7 @@ export default function QuoteReviewDocument({
         </div>
       </div>
     );
-  }, [quotationData]);
+  }, [quotationData, declineReason, showValidationError, declineNotes]);
 
   // Check if quote is expired - show expired page
   if (currentQuoteStatus === QuoteStatus.EXPIRED) {
@@ -225,7 +314,6 @@ export default function QuoteReviewDocument({
   }
 
   const handleDownloadPDF = async () => {
-    console.log('Download PDF clicked for quote:', quoteId);
     try {
       await downloadQuotePdf(
         quotationData,
@@ -244,8 +332,6 @@ export default function QuoteReviewDocument({
   };
 
   const handleApprove = async () => {
-    console.log('Approve quotation:', quoteId);
-
     updateQuoteStatus(
       { status: 'APPROVED', token },
       {
@@ -264,16 +350,29 @@ export default function QuoteReviewDocument({
   };
 
   const handleDecline = async () => {
-    console.log('Decline quotation:', quoteId);
+    // Validate form before submitting
+    if (!isDeclineFormValid) {
+      setShowValidationError(true);
+      return;
+    }
+
+    // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+    const composedDeclineReason = declineNotes.trim()
+      ? `${declineReason}-${declineNotes.trim()}`
+      : declineReason;
 
     updateQuoteStatus(
-      { status: 'DECLINED', token },
+      { status: 'DECLINED', token, declineReason: composedDeclineReason },
       {
         onSuccess: () => {
           setQuoteStatus(QuoteStatus.DECLINED);
           setNavbarStatus(QuoteStatus.DECLINED);
           setDeclineDialogOpen(false);
           notifySuccess('Quote declined successfully');
+          // Reset form after successful decline
+          setDeclineReason('');
+          setDeclineNotes('');
+          setShowValidationError(false);
         },
         onError: (error) => {
           console.error('Failed to decline quote:', error);
@@ -301,12 +400,20 @@ export default function QuoteReviewDocument({
       {/* Decline Dialog */}
       <ActionDialog
         open={declineDialogOpen}
-        onOpenChangeAction={setDeclineDialogOpen}
+        onOpenChangeAction={(open) => {
+          setDeclineDialogOpen(open);
+          if (!open) {
+            // Reset form when dialog closes
+            setDeclineReason('');
+            setDeclineNotes('');
+            setShowValidationError(false);
+          }
+        }}
         title="Decline Quote"
         description={declineDialogDescription}
         confirmText={isUpdatingStatus ? 'Declining...' : 'Decline Quote'}
         confirmVariant="destructive"
-        confirmDisabled={isUpdatingStatus}
+        confirmDisabled={isUpdatingStatus || !isDeclineFormValid}
         onConfirmAction={handleDecline}
       />
 
@@ -318,7 +425,6 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
-            isPreviewMode={isPreviewMode}
           />
 
           {/* Status Banner */}
@@ -335,10 +441,17 @@ export default function QuoteReviewDocument({
           <Separator />
 
           {/* Products & Services */}
-          <ProductsServices products={quotationData.products} />
+          <ProductsServices
+            products={quotationData.products}
+            includeDeliveryPrices={quotationData.inclDeliveryCost}
+            quoteType={quotationData.project.type}
+          />
           <Separator className="mb-8" />
           {/* Summary & Payment */}
-          <SummaryPayment {...quotationData.summary} />
+          <SummaryPayment
+            {...quotationData.summary}
+            includeDeliveryPrices={quotationData.inclDeliveryCost}
+          />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions - only show if not in preview mode */}
           {!isPreviewMode && (

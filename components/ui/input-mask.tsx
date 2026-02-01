@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { DollarSignIcon } from 'lucide-react';
 
 interface InputMaskProps
   extends Omit<React.ComponentProps<typeof Input>, 'type' | 'prefix'> {
@@ -155,7 +154,7 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
       value: displayValue,
       onChange: handleChange,
       inputMode: getInputMode(),
-      className: cn(prefix || suffix ? 'px-3' : '', className),
+      className: cn(prefix || suffix ? '' : '', className),
     };
 
     // If prefix or suffix is provided, we need to wrap the input in a div with a relative position
@@ -170,7 +169,7 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
           <Input
             {...inputProps}
             className={cn(
-              prefix ? 'pl-10' : '',
+              prefix ? 'pl-8' : '',
               suffix ? 'pr-10' : '',
               className
             )}
@@ -201,7 +200,11 @@ const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
 
 ABNInput.displayName = 'ABNInput';
 
-type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix'>;
+type UnitType = 'TN' | 'm3' | 'Bags' | 'HOURLY' | 'LOAD' | 'KM' | '';
+
+type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix' | 'suffix'> & {
+  unit?: UnitType;
+};
 
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
@@ -210,6 +213,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       decimalPlaces = 2,
       allowNegative = false,
       placeholder = '0.00',
+      unit,
       ...props
     },
     ref
@@ -222,7 +226,22 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       decimalPlaces={decimalPlaces}
       allowNegative={allowNegative}
       placeholder={placeholder}
-      prefix={<DollarSignIcon size={19} />}
+      prefix={<span className="text-md">$</span>}
+      suffix={
+        unit === 'm3'
+          ? '/m³'
+          : unit === 'TN'
+          ? '/t'
+          : unit === 'Bags'
+          ? '/Bag'
+          : unit === 'HOURLY'
+          ? '/Hour'
+          : unit === 'LOAD'
+          ? '/Load'
+          : unit === 'KM'
+          ? '/km'
+          : undefined
+      }
     />
   )
 );

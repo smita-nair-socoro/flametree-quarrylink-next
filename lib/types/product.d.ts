@@ -3,6 +3,7 @@ import { Quotation } from './quotation';
 import { JobDetails } from './job';
 import { QuarrySupplierProduct } from './quarry';
 import { QuarryType } from './quarry-enums';
+import { Address } from './address';
 
 export interface Product {
   id: number;
@@ -82,6 +83,9 @@ export interface LinkedQuarrySupplierProduct {
   m3TruckRate: number;
   hourlyTruckRate: number;
   loadTruckRate: number;
+  kmTruckRate: number;
+  kg20TruckRate: number;
+  bulkaTruckRate: number;
 
   availableForSaleTn: boolean;
   availableForSaleM3: boolean;
@@ -92,6 +96,9 @@ export interface LinkedQuarrySupplierProduct {
   availableForTruckRateM3: boolean;
   availableForTruckRateHour: boolean;
   availableForTruckRateLoad: boolean;
+  availableForTruckRateKm: boolean;
+  availableForTruckRate20kg: boolean;
+  availableForTruckRateBulka: boolean;
 
   isActive: boolean;
   version: number;
@@ -105,7 +112,7 @@ export interface LinkedProduct {
   quarrySupplierType: QuarryType;
   email: string;
   phone: string;
-  addressId: number;
+  addressDto?: Address;
   openingClosingInfo: string;
   notes: string;
   weighbridgeInfo: string;

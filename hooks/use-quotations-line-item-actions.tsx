@@ -136,7 +136,7 @@ export function useQuotationLineItemActions(
   const selectedQuotation = useSelectedQuotation();
 
   // Only allow editing if quote status is DRAFT
-  const canEdit = selectedQuotation?.status === 'DRAFT';
+  const canEdit = selectedQuotation?.quoteStatus === 'DRAFT';
 
   // Delete mutation
   const deleteQuoteItem = useDeleteQuoteItem();

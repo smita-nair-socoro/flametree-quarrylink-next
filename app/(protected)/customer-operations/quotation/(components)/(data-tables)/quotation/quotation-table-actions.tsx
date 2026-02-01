@@ -10,7 +10,7 @@ import {
   Archive,
   Timer,
   FileSearch,
-  // Copy, used in duplicate action
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -91,19 +91,15 @@ export function QuotationTableActions({
             View Details
           </DropdownMenuItem>
 
-          {/* Preview Quote - available for DRAFT and PENDING */}
-          {(quotation.status === 'DRAFT' || quotation.status === 'PENDING') && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handlePreview}>
-                <FileSearch className="h-4 w-4 mr-2" />
-                Preview Quote
-              </DropdownMenuItem>
-            </>
-          )}
+          {/* Preview Quote - available for all statuses */}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handlePreview}>
+            <FileSearch className="h-4 w-4 mr-2" />
+            Preview Quote
+          </DropdownMenuItem>
 
           {/* Status-specific actions */}
-          {quotation.status === 'DRAFT' && (
+          {quotation.quoteStatus === 'DRAFT' && (
             <>
               <DropdownMenuSeparator />
 
@@ -114,7 +110,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'PENDING' && (
+          {quotation.quoteStatus === 'PENDING' && (
             <>
               <DropdownMenuSeparator />
 
@@ -132,7 +128,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'APPROVED' && (
+          {quotation.quoteStatus === 'APPROVED' && (
             <>
               <DropdownMenuSeparator />
 
@@ -153,7 +149,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'CONVERTED_TO_JOB' && (
+          {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDuplicate}>
@@ -163,7 +159,7 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.status === 'EXPIRED' && (
+          {quotation.quoteStatus === 'EXPIRED' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleExtendExpiry}>
@@ -181,17 +177,16 @@ export function QuotationTableActions({
             Download PDF
           </DropdownMenuItem> */}
 
-          {/* Hide Duplicate Quote at current stage*/}
-          {/* <DropdownMenuSeparator />
+          <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={handleDuplicate}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate Quote
-          </DropdownMenuItem> */}
+          </DropdownMenuItem>
 
           {/* Archive - always at the bottom for applicable statuses */}
-          {quotation.status !== 'ARCHIVED' &&
-            quotation.status !== 'PENDING' && (
+          {quotation.quoteStatus !== 'ARCHIVED' &&
+            quotation.quoteStatus !== 'PENDING' && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -1,11 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import {
-  Quotation,
-  QuotationDTO,
-  PublicQuoteLinkResponse,
-} from '@/lib/types/quotation';
+import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
@@ -19,22 +15,32 @@ import {
   RotateCcw,
   // Quote,
   Send,
+  Eye,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useQuery } from '@tanstack/react-query';
 import {
   QuotationWithLineItemsQueryOptions,
-  QuotationPreviewQueryOptions,
   useConvertToDraft,
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
+  useUpdateQuoteDecision,
 } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   extractErrorMessage,
-  extractErrorData,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
@@ -54,50 +60,37 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
 }
 
 interface SelectedAction {
   key: string;
 }
 
-const encodeQuotationPayload = (
-  quotationData?: Quotation | PublicQuoteLinkResponse | null
-) => {
-  if (!quotationData) return null;
-  try {
-    const json = JSON.stringify(quotationData);
-    return encodeURIComponent(json);
-  } catch (error) {
-    console.error('Failed to encode quotation preview payload', error);
-    return null;
-  }
-};
-
-const openQuotePreviewWindow = (
-  quotationId?: number,
-  quotationData?: Quotation | null
-) => {
-  if (typeof window === 'undefined') return;
-  if (!quotationId) return;
-
-  const encodedPayload = encodeQuotationPayload(quotationData);
-  if (!encodedPayload) return;
-
-  // Use search params for static site compatibility (S3 + CloudFront)
-  const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
-  window.open(previewUrl, '_blank', 'noopener,noreferrer');
-};
 
 const getDialogConfigs = (
   quotationData?: Quotation | null,
   selectedAction?: SelectedAction,
   newExpiryDate?: Date,
-  setNewExpiryDate?: (date: Date) => void
+  setNewExpiryDate?: (date: Date) => void,
+  includeDeliveryPrices?: boolean,
+  setIncludeDeliveryPrices?: (value: boolean) => void,
+  onPreviewClick?: () => void,
+  isCollectionType?: boolean,
+  declineReason?: string,
+  setDeclineReason?: (reason: string) => void,
+  declineNotes?: string,
+  setDeclineNotes?: (notes: string) => void,
+  showDeclineValidationError?: boolean,
+  setShowDeclineValidationError?: (show: boolean) => void,
+  isDeclineFormValid?: boolean
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
   const customerName = quotationData?.customerName;
-  const customerEmail = quotationData?.customerEmail;
+  const customerEmail =
+    quotationData?.email ||
+    quotationData?.customerWithAddressResponseDto?.email;
   const totalSellPrice = quotationData?.totalSellPrice
     ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
@@ -109,20 +102,22 @@ const getDialogConfigs = (
       sendToCustomer: {
         title: 'Send Quote',
         description: (
-          <div className="flex justify-start items-center gap-2">
-            <div className="flex w-[40px] h-[40px] justify-center bg-[#FFF7ED] rounded-full">
-              <span className="flex items-center justify-center">
-                <Send className="h-[20px] w-[20px] text-[#F54900]" />
-              </span>
+          <div className="flex justify-start items-center gap-3">
+            <div className="flex w-[40px] h-[40px] justify-center items-center bg-[#FFF7ED] rounded-full flex-shrink-0">
+              <Send className="h-[20px] w-[20px] text-[#F54900]" />
             </div>
-            <div className="flex flex-col gap-1">
-              <span className="font-medium">{projectName}</span>
-              <div className="flex justify-start gap-2">
-                <span className="text-sm text-[#6A7282]">
+            <div className="flex flex-col gap-0.5">
+              <span className="font-semibold text-[16px] text-[#101828]">
+                {projectName}
+              </span>
+              <div className="flex justify-start items-center gap-1.5">
+                <span className="text-[14px] text-[#6A7282]">
                   {quotationNumber}
                 </span>
-                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-                <span className="text-sm text-[#6A7282]">{projectName}</span>
+                <span className="text-[14px] text-[#6A7282]">•</span>
+                <span className="text-[14px] text-[#6A7282]">
+                  {customerName}
+                </span>
               </div>
             </div>
           </div>
@@ -132,37 +127,77 @@ const getDialogConfigs = (
             <span className="text-[14px] text-[#364153] font-normal">
               Are you sure you want to send this quote to the customer?
             </span>
-            <div className="border-1 border-[#FFD6A7] rounded-md p-[16.625px] bg-[#FFF7ED]">
-              <div className="flex justify-start gap-2 self-stretch">
+
+            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
+            {!isCollectionType && (
+              <div className="border border-[#E5E7EB] rounded-lg p-4 bg-white">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <div className="font-base text-[16px] text-[#101828] mb-1">
+                      Include Delivery Prices
+                    </div>
+                    <p className="text-[13px] text-[#6A7282]">
+                      {includeDeliveryPrices
+                        ? 'Delivery prices will be shown as separate line items in the customer quote.'
+                        : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={includeDeliveryPrices}
+                    onCheckedChange={setIncludeDeliveryPrices}
+                    className="data-[state=checked]:bg-[#F54900]"
+                  />
+                </div>
+
+                {/* Preview Quote Button */}
+                <Button
+                  variant="default"
+                  size="lg"
+                  onClick={onPreviewClick}
+                  className="mt-3 text-orange-600 border-base-input hover:bg-orange-200 bg-orange-100"
+                >
+                  <Eye className="h-5 w-5 mr-2" />
+                  Preview Quote
+                </Button>
+              </div>
+            )}
+
+            {/* Quote Delivery Section */}
+            <div className="border border-[#FFD6A7] rounded-lg p-4 bg-[#FFF7ED]">
+              <div className="flex justify-start gap-3 self-stretch">
                 <Send className="h-[20px] w-[20px] text-[#F54900] flex-shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
-                  <span className="text-[16px] text-[#F54900] font-medium">
+                  <span className="text-[16px] text-[#F54900] font-semibold">
                     Quote Delivery
                   </span>
                   <span className="text-[14px] font-normal text-[#F54900]">
-                    This quote will be sent via email to {customerEmail} and the
-                    status will change to Pending
+                    The quote will be sent via email to {customerEmail} and the
+                    status will change to Pending.
                   </span>
                 </div>
               </div>
             </div>
+
+            {/* What happens when quote is sent */}
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What happens when Quote is sent:
+              <span className="font-semibold text-[14px] text-[#101828]">
+                What happens when quote is sent:
               </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Quote status changes from Draft to Pending</li>
-                <li> Customer receives email with PDF quote</li>
-                <li> Approval process begins</li>
-                <li> Quote can no longer be edited</li>
+              <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-5">
+                <li>Quote status changes from Draft to Pending</li>
+                <li>Customer receives email with PDF quote</li>
+                <li>Approval process begins</li>
+                <li>Quote can no longer be edited</li>
               </ul>
             </div>
+
+            {/* Customer Email */}
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
+              <span className="font-semibold text-[14px] text-[#101828]">
                 Customer Email:
               </span>
-              <div className="rounded-md p-1 bg-[#E5E5E5]">
-                <span className="text-[14px] font-normal text-[#6A7282] p-2">
+              <div className="rounded-md px-3 py-2 bg-[#F3F4F6]">
+                <span className="text-[14px] font-normal text-[#6A7282]">
                   {customerEmail}
                 </span>
               </div>
@@ -170,6 +205,63 @@ const getDialogConfigs = (
           </div>
         ),
         confirmText: 'Send Quote',
+        confirmVariant: 'default',
+        confirmCustomColor: '#F54900',
+      },
+    };
+  } else if (selectedAction?.key === 'previewQuote') {
+    // For COLLECTION type, this dialog won't be shown (handled in action handler)
+    return {
+      previewQuote: {
+        title: 'Preview Quote',
+        description: (
+          <div className="flex justify-start items-center gap-3">
+            <div className="flex w-[40px] h-[40px] justify-center items-center bg-[#FFF7ED] rounded-full flex-shrink-0">
+              <Send className="h-[20px] w-[20px] text-[#F54900]" />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <span className="font-semibold text-[16px] text-[#101828]">
+                {projectName}
+              </span>
+              <div className="flex justify-start items-center gap-1.5">
+                <span className="text-[14px] text-[#6A7282]">
+                  {quotationNumber}
+                </span>
+                <span className="text-[14px] text-[#6A7282]">•</span>
+                <span className="text-[14px] text-[#6A7282]">
+                  {customerName}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-4">
+            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
+            {!isCollectionType && (
+              <div className="border border-[#E5E5E5] rounded-lg p-4 bg-[#FFFFFF]">
+                <div className="flex justify-between items-start gap-3">
+                  <div className="flex-1">
+                    <div className="font-base text-[16px] text-[#101828] mb-2">
+                      Include Delivery Prices
+                    </div>
+                    <p className="text-[14px] text-[#6B7280] leading-relaxed">
+                      {includeDeliveryPrices
+                        ? 'Delivery prices will be shown as separate line items in the customer quote.'
+                        : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={includeDeliveryPrices}
+                    onCheckedChange={setIncludeDeliveryPrices}
+                    className="data-[state=checked]:bg-[#F54900]"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ),
+        confirmText: 'Preview Quote',
         confirmVariant: 'default',
         confirmCustomColor: '#F54900',
       },
@@ -297,27 +389,90 @@ const getDialogConfigs = (
                 </div>
               </div>
             </div>
+
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-[14px] text-[#101828]">
-                What happens when Quote is declined:
-              </span>
-              <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Quote status changes from Pending to Declined</li>
-                <li> Customer is notified or declined status</li>
-                <li> Quote cannot be converted to a job</li>
-                <li> Quote can be reactivated later if needed</li>
-              </ul>
+              <label className="text-sm font-normal text-[#364153]">
+                Reason for declining <span className="text-[#E7000B]">*</span>
+              </label>
+              <Select
+                value={declineReason}
+                onValueChange={(value) => {
+                  if (setDeclineReason) {
+                    setDeclineReason(value);
+                  }
+                  if (setShowDeclineValidationError) {
+                    setShowDeclineValidationError(false);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a reason..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="price_too_high">Price too high</SelectItem>
+                  <SelectItem value="timeline_conflict">
+                    Timeline conflict
+                  </SelectItem>
+                  <SelectItem value="scope_changed">Scope changed</SelectItem>
+                  <SelectItem value="customer_unresponsive">
+                    Customer unresponsive
+                  </SelectItem>
+                  <SelectItem value="competitor_selected">
+                    Competitor selected
+                  </SelectItem>
+                  <SelectItem value="project_cancelled">
+                    Project cancelled
+                  </SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              {showDeclineValidationError && !declineReason && (
+                <p className="text-xs text-[#E7000B]">Please select a reason</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-normal text-[#6A7282]">
+                Additional notes{' '}
+                {declineReason === 'other' ? (
+                  <span className="text-[#E7000B]">*</span>
+                ) : (
+                  '(Optional)'
+                )}
+              </label>
+              <Textarea
+                value={declineNotes}
+                onChange={(e) => {
+                  if (setDeclineNotes) {
+                    setDeclineNotes(e.target.value);
+                  }
+                  if (setShowDeclineValidationError) {
+                    setShowDeclineValidationError(false);
+                  }
+                }}
+                placeholder="Add any additional details about declining this quote..."
+                className="min-h-[80px] resize-none"
+              />
+              {showDeclineValidationError &&
+                declineReason === 'other' &&
+                !String(declineNotes).trim() && (
+                  <p className="text-xs text-[#E7000B]">
+                    Please provide additional notes when selecting
+                    &quot;Other&quot;
+                  </p>
+                )}
             </div>
 
             <div className="flex flex-col gap-2">
               <span className="font-medium text-[14px] text-[#101828]">
-                What continues to work:
+                What happens when quote is declined:
               </span>
               <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Quote remains accessible for reference</li>
-                <li> Historical data is preserved</li>
-                <li> Quote can be edited and resent</li>
-                <li> Customer relationship management continues</li>
+                <li>Quote status changes from Pending to Declined</li>
+                <li>Customer is notified of declined status</li>
+                <li>
+                  Quote can be edited and resent to customer later if needed
+                </li>
               </ul>
             </div>
           </div>
@@ -325,6 +480,7 @@ const getDialogConfigs = (
         confirmText: 'Decline Quote',
         confirmVariant: 'destructive',
         confirmCustomColor: '#E7000B',
+        confirmDisabled: !isDeclineFormValid,
       },
     };
   } else if (selectedAction?.key === 'convertToDraft') {
@@ -660,10 +816,27 @@ export function useQuotationActions(
     return weekFromToday;
   });
 
+  // Decline form state
+  const [declineReason, setDeclineReason] = React.useState<string>('');
+  const [declineNotes, setDeclineNotes] = React.useState<string>('');
+  const [showDeclineValidationError, setShowDeclineValidationError] =
+    React.useState(false);
+
+  // Decline form validation
+  const isDeclineFormValid = React.useMemo(() => {
+    if (!declineReason) return false;
+    if (declineReason === 'other' && !declineNotes.trim()) return false;
+    return true;
+  }, [declineReason, declineNotes]);
+  const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
+    quotationData?.inclDeliveryCost ?? false
+  );
+
   const extendExpiryMutation = useExtendExpiryDate();
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
   React.useEffect(() => {
@@ -674,8 +847,18 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
+  // Reset decline form when decline dialog opens or closes
+  React.useEffect(() => {
+    if (selectedAction?.key === 'decline') {
+      // Reset form to initial state when opening
+      setDeclineReason('');
+      setDeclineNotes('');
+      setShowDeclineValidationError(false);
+    }
+  }, [selectedAction?.key]);
+
   // Fetch detailed quotation data with line items from backend
-  const { data: quotationDetailData, isLoading: isLoadingDetail } = useQuery(
+  const { data: quotationDetailData } = useQuery(
     QuotationWithLineItemsQueryOptions(quotationId || 0)
   );
 
@@ -683,15 +866,8 @@ export function useQuotationActions(
   const detailedQuotation = React.useMemo(() => {
     if (quotationDetailData) {
       // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      let customerEmail = quotationDetailData.email;
-      if (!customerEmail) {
-        customerEmail = 'charlie.peng@socoro.com.au';
-      }
-
       const transformed = {
         ...quotationDetailData,
-        status: quotationDetailData.quoteStatus,
-        customerEmail: customerEmail,
       } as Quotation;
 
       return transformed;
@@ -706,18 +882,51 @@ export function useQuotationActions(
     }
   }, [detailedQuotation, setSelectedQuotation]);
 
-  // Prefer detailed quotation (with deliveryAddress/line items), then provided prop, then store fallback
+  // Prefer detailed quotation (with line items), then provided prop, then store fallback
   const resolvedQuotation =
     detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
 
   // Use detailed data if available, otherwise fall back to list/store data
   const quotationToUse = resolvedQuotation;
 
+  // Sync includeDeliveryPrices with backend value when quotation data changes
+  React.useEffect(() => {
+    if (resolvedQuotation?.inclDeliveryCost !== undefined) {
+      setIncludeDeliveryPrices(resolvedQuotation.inclDeliveryCost);
+    }
+  }, [resolvedQuotation?.inclDeliveryCost]);
+
+  const handlePreviewFromDialog = () => {
+    if (!quotationId) {
+      notifyError('Unable to preview quotation');
+      return;
+    }
+
+    // Open preview in new tab with inclDeliveryCost as URL parameter
+    // The preview page will fetch data from API and override inclDeliveryCost with this value
+    const previewUrl = `/quote-review/?quoteId=${quotationId}&inclDeliveryCost=${includeDeliveryPrices}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // Determine if the quotation is COLLECTION type (no delivery prices)
+  const isCollectionType = quotationToUse?.quoteType === 'COLLECTION';
+
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
     selectedAction || undefined,
     newExpiryDate,
-    setNewExpiryDate
+    setNewExpiryDate,
+    includeDeliveryPrices,
+    setIncludeDeliveryPrices,
+    handlePreviewFromDialog,
+    isCollectionType,
+    declineReason,
+    setDeclineReason,
+    declineNotes,
+    setDeclineNotes,
+    showDeclineValidationError,
+    setShowDeclineValidationError,
+    isDeclineFormValid
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -745,21 +954,17 @@ export function useQuotationActions(
     setActiveDialog('sendToCustomer');
   };
 
-  // Build a safe payload for update actions (keeps deliveryAddress + status)
+  // Build a safe payload for update actions (keeps status)
   const buildUpdatePayload = (
     overrides: Partial<QuotationDTO>
   ): Partial<QuotationDTO> | null => {
     if (!resolvedQuotation) return null;
 
-    const { status, ...quotationData } = resolvedQuotation;
-    // const { status, quoteItems, ...quotationData } = resolvedQuotation;
+    const { quoteStatus, ...quotationData } = resolvedQuotation;
+    // const { quoteStatus, quoteItems, ...quotationData } = resolvedQuotation;
     return {
       ...quotationData,
-      quoteStatus: overrides.quoteStatus ?? status,
-      deliveryAddress:
-        overrides.deliveryAddress ??
-        detailedQuotation?.deliveryAddress ??
-        resolvedQuotation.deliveryAddress,
+      quoteStatus: overrides.quoteStatus ?? quoteStatus,
       ...overrides,
     };
   };
@@ -772,7 +977,10 @@ export function useQuotationActions(
     }
 
     try {
-      await sendToCustomerMutation.mutateAsync(quotationId);
+      await sendToCustomerMutation.mutateAsync({
+        id: quotationId,
+        inclDeliveryCost: includeDeliveryPrices,
+      });
 
       notifySuccess('Quotation sent to customer');
       setActiveDialog(null);
@@ -827,28 +1035,35 @@ export function useQuotationActions(
   };
 
   const handleDecline = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    // Validate form before submitting
+    if (!isDeclineFormValid) {
+      setShowDeclineValidationError(true);
+      return;
+    }
+
+    if (!quotationId) {
       notifyError(extractErrorMessage('Unable to decline quotation'));
       return;
     }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.DECLINED,
-      });
+      // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+      const composedDeclineReason = declineNotes.trim()
+        ? `${declineReason}-${declineNotes.trim()}`
+        : declineReason;
 
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
+      await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
+        status: 'DECLINED',
+        declineReason: composedDeclineReason,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);
       setSelectedAction(null);
+      // Reset form after successful decline
+      setDeclineReason('');
+      setDeclineNotes('');
+      setShowDeclineValidationError(false);
     } catch (error) {
       console.error('Failed to decline quotation:', error);
       notifyError(extractErrorMessage(error));
@@ -923,9 +1138,26 @@ export function useQuotationActions(
     }
   };
 
+  const handlePreviewQuote = async () => {
+    if (!quotationId) {
+      notifyError('Unable to preview quotation');
+      return;
+    }
+
+    // Open preview in new tab with inclDeliveryCost as URL parameter
+    // The preview page will fetch data from API and override inclDeliveryCost with this value
+    const previewUrl = `/quote-review/?quoteId=${quotationId}&inclDeliveryCost=${includeDeliveryPrices}`;
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+
+    // Close the modal after opening preview
+    setActiveDialog(null);
+    setSelectedAction(null);
+  };
+
   // Map action keys to their handlers
   const actionHandlers: Record<string, () => Promise<void>> = {
     sendToCustomer: handleSendToCustomer,
+    previewQuote: handlePreviewQuote,
     approve: handleApprove,
     decline: handleDecline,
     convertToDraft: handleConvertToDraft,
@@ -955,39 +1187,15 @@ export function useQuotationActions(
       setViewOpen(true);
     },
 
-    preview: async () => {
-      if (!quotationId) {
-        notifyError('Unable to preview quotation');
+    preview: () => {
+      // For COLLECTION type, skip the modal and go directly to preview
+      if (isCollectionType) {
+        handlePreviewQuote();
         return;
       }
-
-      try {
-        // Fetch preview data from API
-        const queryClient = (await import('@tanstack/react-query')).QueryClient;
-        const client = new queryClient();
-        const previewData = await client.fetchQuery(
-          QuotationPreviewQueryOptions(quotationId)
-        );
-
-        if (!previewData) {
-          notifyError('Failed to load preview data');
-          return;
-        }
-
-        // Encode the preview data
-        const encodedPayload = encodeQuotationPayload(previewData);
-        if (!encodedPayload) {
-          notifyError('Failed to encode preview data');
-          return;
-        }
-
-        // Open preview in new tab
-        const previewUrl = `/quote-review/?quoteId=${quotationId}&payload=${encodedPayload}`;
-        window.open(previewUrl, '_blank', 'noopener,noreferrer');
-      } catch (error) {
-        console.error('Failed to preview quotation:', error);
-        notifyError(extractErrorMessage(error));
-      }
+      // For DELIVERY type, show the modal with delivery toggle
+      setSelectedAction({ key: 'previewQuote' });
+      setActiveDialog('previewQuote');
     },
 
     download: () => {
@@ -1026,6 +1234,7 @@ export function useQuotationActions(
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
+        confirmDisabled={config.confirmDisabled}
         onConfirmAction={async () => {
           const handler = actionHandlers[key];
           if (handler) {
@@ -1036,7 +1245,7 @@ export function useQuotationActions(
     );
   });
 
-  const canEdit = resolvedQuotation?.status === 'DRAFT';
+  const canEdit = resolvedQuotation?.quoteStatus === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}

@@ -4,7 +4,6 @@ import * as React from 'react';
 import {
   LayoutDashboard,
   Package,
-  // Settings2,
   Truck,
   Users,
 } from 'lucide-react';
@@ -24,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import { UserDetailQueryOptions } from '@/lib/api/user';
 
 export const navItems = [
   {
@@ -79,6 +79,7 @@ export const navItems = [
     title: 'Logistics',
     url: '/logistics',
     icon: Truck,
+    plan: 'PLUS',
     items: [
       { title: 'Drivers', url: '/logistics/drivers', plan: 'PLUS' },
       { title: 'Trucks', url: '/logistics/trucks', plan: 'PLUS' },
@@ -106,32 +107,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
 
+  // Fetch current user details so name/email reflect updates immediately after saving in settings
+  const { data: currentUser } = useQuery(
+    UserDetailQueryOptions(amplifyUser?.userId || ''),
+  );
+
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
       console.log(
         '🏢 [AppSidebar] Tenant Complete Details:',
-        tenantCompleteDetails
+        tenantCompleteDetails,
       );
       console.log(
         '🏷️ [AppSidebar] Tenant Name:',
-        tenantCompleteDetails.tenantDetails?.tenantName
+        tenantCompleteDetails.tenantDetails?.tenantName,
       );
       console.log(
         '📋 [AppSidebar] Subscription Plan:',
         tenantCompleteDetails.subscriptionAndInvoices?.subscriptions
-          ?.subscriptions?.[0]?.subscriptionPlan
+          ?.subscriptions?.[0]?.subscriptionPlan,
       );
     }
   }, [tenantCompleteDetails]);
 
   const displayName =
+    currentUser?.name ||
     attributes?.name ||
     amplifyUser?.signInDetails?.loginId ||
     amplifyUser?.username ||
     'Unknown Name';
   const email =
+    currentUser?.email ||
     attributes?.email ||
     amplifyUser?.signInDetails?.loginId ||
     amplifyUser?.username ||

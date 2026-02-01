@@ -1,5 +1,29 @@
 import type { AddressType } from '@/lib/types/address';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+
+// Default values for missing address fields
+const DEFAULT_ADDRESS_VALUES = {
+  city: 'Sydney',
+  region: 'NSW',
+  postalCode: '1234',
+  country: 'Australia',
+} as const;
+
+/**
+ * Fills in missing address fields with default values.
+ * Used when Google Places API doesn't return complete address data.
+ */
+export const fillMissingAddressFields = (address: AddressType): AddressType => {
+  return {
+    ...address,
+    city: address.city?.trim() || DEFAULT_ADDRESS_VALUES.city,
+    region: address.region?.trim() || DEFAULT_ADDRESS_VALUES.region,
+    postalCode: address.postalCode?.trim() || DEFAULT_ADDRESS_VALUES.postalCode,
+    country: address.country?.trim() || DEFAULT_ADDRESS_VALUES.country,
+    googlePlaceId: address.googlePlaceId || `fallback_${uuidv4()}`,
+  };
+};
 
 /**
  * Checks if the autocomplete address is valid.
@@ -20,11 +44,13 @@ export const isValidAutocomplete = (
     streetDetailsOptional: z.string().optional(),
     formattedAddress: z.string().min(1, 'Formatted address is required'),
     city: z.string().min(1, 'City is required'),
-    state: z.string().min(1, 'State is required'),
+    state: z.string().optional(), // State/region may not be required for all countries
     postcode: z
       .string()
       .min(1, 'Postal code is required')
-      .regex(/^\d{4}$/, 'Invalid postal code'),
+      // Global postal code format: allows alphanumeric, spaces, and hyphens (1-12 chars)
+      // Covers formats like: AU "2000", US "90210" or "90210-1234", UK "SW1A 1AA", CA "K1A 0B1"
+      .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
 
     country: z.string().min(1, 'Country is required'),
     latitude: z.number().nonnegative(),

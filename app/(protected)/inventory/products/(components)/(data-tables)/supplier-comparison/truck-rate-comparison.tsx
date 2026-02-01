@@ -17,14 +17,21 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
     header: ({}) => {
       return <div>Supplier</div>;
     },
-    cell: (info) => (
-      <div
-        className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]"
-        title={info.getValue() as string}
-      >
-        {info.getValue() as string}
-      </div>
-    ),
+    cell: (info) => {
+      const value = info.getValue() as string;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[60px] sm:w-[80px] md:w-[90px] lg:w-[100px] xl:w-[120px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
     meta: 'Name',
   },
   {
@@ -80,6 +87,59 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
     },
     meta: 'truck m3 rate',
   },
+
+  {
+    id: 'truck_kg_rate',
+    accessorFn: (row) => row.kg20TruckRate,
+    header: ({}) => {
+      return (
+        <div className="flex items-center gap-1 w-[75px]">
+          kg Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const kgRate = row.original.kg20TruckRate
+        ? centsToDollars(row.original.kg20TruckRate)
+        : '0.00';
+      return <div>${kgRate}</div>;
+    },
+    meta: 'truck kg rate',
+  },
+  {
+    id: 'truck_bulka_rate',
+    accessorFn: (row) => row.bulkaTruckRate,
+    header: ({}) => {
+      return (
+        <div className="flex items-center gap-1 w-[90px]">
+          Bulka Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const bulkaRate = row.original.bulkaTruckRate
+        ? centsToDollars(row.original.bulkaTruckRate)
+        : '0.00';
+      return <div>${bulkaRate}</div>;
+    },
+    meta: 'truck bulka rate',
+  },
   {
     id: 'truck_hourly_rate',
     accessorFn: (row) => row.hourlyTruckRate,
@@ -128,8 +188,34 @@ export const truckRateComparisonColumn: ColumnDef<QuarriesWithProduct>[] = [
       const loadRate = row.original.loadTruckRate
         ? centsToDollars(row.original.loadTruckRate)
         : '0.00';
-      return <div className="text-left">${loadRate}</div>;
+      return <div className="">${loadRate}</div>;
     },
     meta: 'truck load rate',
+  },
+  {
+    id: 'truck_distance_rate',
+    accessorFn: (row) => row.kmTruckRate,
+    header: ({}) => {
+      return (
+        <div className="flex items-center gap-1 -ml-10 w-[110px]">
+          Distance Rate{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    },
+    cell: ({ row }) => {
+      const distanceRate = row.original.kmTruckRate
+        ? centsToDollars(row.original.kmTruckRate)
+        : '0.00';
+      return <div className="-ml-10">${distanceRate}</div>;
+    },
+    meta: 'truck distance rate',
   },
 ];

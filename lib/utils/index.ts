@@ -3,6 +3,7 @@ import { compareAsc, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import { jwtDecode } from 'jwt-decode';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,9 +34,16 @@ export async function getUser() {
 
 export async function getTenantId() {
   try {
-    const user = await getCurrentUser();
-    // Extract tenant ID from user attributes if available
-    return user.signInDetails?.loginId || user.username || '';
+    const session = await fetchAuthSession();
+    const idToken = session.tokens?.idToken?.toString();
+    if (!idToken) return '';
+
+    type CognitoIdTokenClaims = Record<string, unknown> & {
+      'custom:tenant_id': string;
+    };
+
+    const decoded = jwtDecode<CognitoIdTokenClaims>(idToken);
+    return decoded['custom:tenant_id'] ?? '';
   } catch (error) {
     console.error('Failed to get user:', error);
     return null;
@@ -105,6 +113,31 @@ export function addNewRecordId(tableId: string, recordId: number | string) {
     window.dispatchEvent(new Event('sessionStorageUpdated'));
   } catch (err) {
     console.log('failed to add new record ID to sessionStorage:', err);
+  }
+}
+
+/**
+ * Remove a record ID from the table's "new records" list in sessionStorage
+ * This is called when a record is deleted to clean up the pinned rows
+ */
+export function removeNewRecordId(tableId: string, recordId: number | string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `${tableId}_newRecordIds`;
+    const existing = getSessionStorage<string[]>(key, []);
+    const updated = Array.isArray(existing) ? [...existing] : [];
+
+    // Remove the ID if it exists in the list
+    const recordKey = String(recordId);
+    const existingIndex = updated.indexOf(recordKey);
+    if (existingIndex !== -1) {
+      updated.splice(existingIndex, 1);
+      setSessionStorage(key, updated);
+      // Dispatch custom event to notify DataTable components
+      window.dispatchEvent(new Event('sessionStorageUpdated'));
+    }
+  } catch (err) {
+    console.log('failed to remove new record ID from sessionStorage:', err);
   }
 }
 

@@ -44,6 +44,8 @@ import { toAddressPayload } from '@/lib/utils/address-helper';
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
+  onSaved?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
   onCancel?: () => void;
 }
@@ -51,11 +53,13 @@ interface FormProps {
 export default function CustomerForm({
   id,
   onCancel,
+  onSaved,
+  onDirtyChange,
   className,
   onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id));
+  const isEditing = Boolean(id);
   const selectedCustomer = useSelectedCustomer();
 
   // Fetch users (account managers)
@@ -139,8 +143,8 @@ export default function CustomerForm({
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing
-        ? selectedCustomer?.paymentTermType || 'of the following month'
-        : 'of the following month',
+        ? selectedCustomer?.paymentTermType || 'OFFOLLOWINGMONTH'
+        : 'OFFOLLOWINGMONTH',
       payment_terms_day: isEditing ? selectedCustomer?.invoiceDueDate || 0 : 0,
       account_manager: isEditing
         ? selectedCustomer?.accountManagerSub || ''
@@ -155,13 +159,18 @@ export default function CustomerForm({
     },
   });
 
+  // Report dirty-state to parent dialog
+  React.useEffect(() => {
+    onDirtyChange?.(customerForm.formState.isDirty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerForm.formState.isDirty]);
+
   const handleFormFieldChange = (
     field: 'customer_type' | 'payment_type',
     value: string
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
-      customerForm.setValue('customer_type', value);
       if (value === 'INDIVIDUAL') {
         // Clear business-specific fields
         customerForm.setValue('business_name', '');
@@ -180,7 +189,6 @@ export default function CustomerForm({
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
-      customerForm.setValue('payment_type', value);
       if (value === 'PREPAID') {
         customerForm.setValue('credit_limit', 0);
         customerForm.setValue('payment_terms_day', 0);
@@ -188,93 +196,113 @@ export default function CustomerForm({
     }
   };
 
-  // Effect to reset form when selected customer changes
+  const selectedCustomerId = selectedCustomer?.id;
+  const didInitRef = React.useRef<number | null>(null);
+
   React.useEffect(() => {
-    if (selectedCustomer && isEditing) {
-      const paymentType =
-        selectedCustomer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
-      setSelectedCustomerType(selectedCustomer.customerType);
-      setSelectedPaymentType(paymentType);
+    if (!isEditing) return;
+    if (!selectedCustomerId) return;
 
-      // Set the search input and address state from billing address
-      if (selectedCustomer.billingAddress) {
-        setSearchInput(selectedCustomer.billingAddress.formattedAddress || '');
-        setAddress({
-          address1: selectedCustomer.billingAddress.streetDetailsPrimary || '',
-          address2: selectedCustomer.billingAddress.streetDetailsOptional || '',
-          formattedAddress:
-            selectedCustomer.billingAddress.formattedAddress || '',
-          city: selectedCustomer.billingAddress.city || '',
-          region: selectedCustomer.billingAddress.state || '',
-          postalCode: selectedCustomer.billingAddress.postcode || '',
-          country: selectedCustomer.billingAddress.country || '',
-          lat: selectedCustomer.billingAddress.latitude || 0,
-          lng: selectedCustomer.billingAddress.longitude || 0,
-          googlePlaceId: selectedCustomer.billingAddress.googlePlaceId,
-        });
-      }
+    // only run when the selected customer id changes
+    if (didInitRef.current === selectedCustomerId) return;
+    didInitRef.current = selectedCustomerId;
 
-      customerForm.reset({
-        customer_type: selectedCustomer.customerType,
-        payment_type: paymentType,
-        business_name: selectedCustomer.businessName,
-        business_email: selectedCustomer.businessEmail || '',
-        business_phone:
-          normalizePhoneNumber(selectedCustomer.businessPhone) || '',
-        abn: selectedCustomer.abn === 'N/A' ? '' : selectedCustomer.abn,
-        contact_person_name:
-          selectedCustomer.customerType === 'INDIVIDUAL'
-            ? selectedCustomer.contactName
-            : '',
-        contact_person_first_name:
-          selectedCustomer.customerType === 'BUSINESS'
-            ? selectedCustomer.firstName || ''
-            : '',
-        contact_person_last_name:
-          selectedCustomer.customerType === 'BUSINESS'
-            ? selectedCustomer.lastName || ''
-            : '',
-        contact_person_email: selectedCustomer.email,
-        contact_person_phone:
-          normalizePhoneNumber(selectedCustomer.phone) || '',
-        credit_limit:
-          selectedCustomer.creditLimit === 0
-            ? 0
-            : selectedCustomer.creditLimit / 100, // Convert from cents to dollars
-        payment_terms_day: selectedCustomer.invoiceDueDate,
-        payment_terms:
-          selectedCustomer.paymentTermType === 'N/A'
-            ? ''
-            : selectedCustomer.paymentTermType,
-        account_manager: selectedCustomer.accountManagerSub,
-        billing_address:
-          selectedCustomer.billingAddress?.formattedAddress || '',
-        created_at: selectedCustomer.createdAt
-          ? new Date(selectedCustomer.createdAt)
-          : undefined,
-        updated_at: selectedCustomer.updatedAt
-          ? new Date(selectedCustomer.updatedAt)
-          : undefined,
-        created_by: selectedCustomer.createdBy,
-        last_modified_by: selectedCustomer.lastModifiedBy,
+    const paymentType =
+      selectedCustomer?.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
+
+    setSelectedCustomerType(selectedCustomer?.customerType ?? 'BUSINESS');
+    setSelectedPaymentType(paymentType);
+
+    if (selectedCustomer?.billingAddress) {
+      setSearchInput(selectedCustomer.billingAddress.formattedAddress || '');
+      setAddress({
+        address1: selectedCustomer.billingAddress.streetDetailsPrimary || '',
+        address2: selectedCustomer.billingAddress.streetDetailsOptional || '',
+        formattedAddress:
+          selectedCustomer.billingAddress.formattedAddress || '',
+        city: selectedCustomer.billingAddress.city || '',
+        region: selectedCustomer.billingAddress.state || '',
+        postalCode: selectedCustomer.billingAddress.postcode || '',
+        country: selectedCustomer.billingAddress.country || '',
+        lat: selectedCustomer.billingAddress.latitude || 0,
+        lng: selectedCustomer.billingAddress.longitude || 0,
+        googlePlaceId: selectedCustomer.billingAddress.googlePlaceId,
       });
     }
-  }, [selectedCustomer, isEditing, customerForm]);
+
+    customerForm.reset({
+      customer_type: selectedCustomer?.customerType ?? 'BUSINESS',
+      payment_type: paymentType,
+      business_name: selectedCustomer?.businessName ?? '',
+      business_email: selectedCustomer?.businessEmail ?? '',
+      business_phone:
+        normalizePhoneNumber(selectedCustomer?.businessPhone ?? '') ?? '',
+      abn: selectedCustomer?.abn === 'N/A' ? '' : selectedCustomer?.abn ?? '',
+      contact_person_name:
+        selectedCustomer?.customerType === 'INDIVIDUAL'
+          ? selectedCustomer?.contactName ?? ''
+          : '',
+      contact_person_first_name:
+        selectedCustomer?.customerType === 'BUSINESS'
+          ? selectedCustomer?.firstName ?? ''
+          : '',
+      contact_person_last_name:
+        selectedCustomer?.customerType === 'BUSINESS'
+          ? selectedCustomer?.lastName ?? ''
+          : '',
+      contact_person_email: selectedCustomer?.email ?? '',
+      contact_person_phone:
+        normalizePhoneNumber(selectedCustomer?.phone ?? '') ?? '',
+      credit_limit: selectedCustomer?.creditLimit
+        ? selectedCustomer.creditLimit / 100
+        : 0,
+      payment_terms_day: selectedCustomer?.invoiceDueDate ?? 0,
+      payment_terms:
+        selectedCustomer?.paymentTermType &&
+        selectedCustomer.paymentTermType !== 'N/A'
+          ? selectedCustomer.paymentTermType
+          : '',
+      account_manager: selectedCustomer?.accountManagerSub ?? '',
+      billing_address: selectedCustomer?.billingAddress?.formattedAddress ?? '',
+      created_at: selectedCustomer?.createdAt
+        ? new Date(selectedCustomer.createdAt)
+        : undefined,
+      updated_at: selectedCustomer?.updatedAt
+        ? new Date(selectedCustomer.updatedAt)
+        : undefined,
+      created_by: selectedCustomer?.createdBy ?? 'current_user',
+      last_modified_by: selectedCustomer?.lastModifiedBy ?? 'current_user',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, selectedCustomerId]); 
 
   React.useEffect(() => {
-    if (address.formattedAddress) {
-      customerForm.setValue('billing_address', address.formattedAddress);
-      // Trigger validation when address is set
-      customerForm.trigger('billing_address');
-    }
+    if (!address.formattedAddress) return;
+
+    const current = customerForm.getValues('billing_address');
+    if (current === address.formattedAddress) return;
+
+    customerForm.setValue('billing_address', address.formattedAddress, {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: true,
+    });
   }, [address.formattedAddress, customerForm]);
 
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
-      setAddress(newAddress);
+      setAddress((prev) => {
+        const same =
+          prev.formattedAddress === newAddress.formattedAddress &&
+          prev.googlePlaceId === newAddress.googlePlaceId &&
+          prev.lat === newAddress.lat &&
+          prev.lng === newAddress.lng;
+
+        return same ? prev : newAddress;
+      });
+
       if (newAddress.formattedAddress) {
         setSearchInput('');
-        // Trigger validation for the billing_address field
         customerForm.trigger('billing_address');
       }
     },
@@ -380,10 +408,12 @@ export default function CustomerForm({
         customerData.lastModifiedBy = values.last_modified_by;
       } else {
         // Update customer: set update fields
-        customerData.createdAt = selectedCustomer?.createdAt ?? new Date().toISOString();
+        customerData.createdAt =
+          selectedCustomer?.createdAt ?? new Date().toISOString();
         customerData.updatedAt = now;
         customerData.lastModifiedBy = values.last_modified_by;
-        customerData.createdBy = selectedCustomer?.createdBy ?? values.created_by;
+        customerData.createdBy =
+          selectedCustomer?.createdBy ?? values.created_by;
         customerData.isDeleted = selectedCustomer?.isDeleted ?? false;
       }
 
@@ -437,6 +467,7 @@ export default function CustomerForm({
       }
 
       onSuccess?.();
+      onSaved?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} customer:`,
@@ -646,11 +677,11 @@ export default function CustomerForm({
                 <FormLabel>Customer Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
+                    value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleFormFieldChange('customer_type', value);
                     }}
-                    defaultValue={field.value}
                     className="grid grid-flow-col auto-cols-max gap-4"
                   >
                     <FormItem className="flex items-center gap-3">
@@ -688,11 +719,11 @@ export default function CustomerForm({
                 <FormLabel>Payment Type*</FormLabel>
                 <FormControl>
                   <RadioGroup
+                    value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value);
                       handleFormFieldChange('payment_type', value);
                     }}
-                    defaultValue={field.value}
                     className="grid grid-flow-col auto-cols-max gap-4"
                   >
                     <FormItem className="flex items-center gap-3">
@@ -1069,6 +1100,7 @@ export default function CustomerForm({
                           className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
                           placeholder="Days"
                           {...field}
+                          isNumber
                           onChange={(e) => {
                             field.onChange(e);
                             // Trigger validation for both payment_terms_day and payment_terms fields

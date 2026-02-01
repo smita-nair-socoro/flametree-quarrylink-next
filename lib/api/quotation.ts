@@ -39,6 +39,18 @@ export const fetchPublicQuoteByToken = async (
   return response;
 };
 
+/**
+ * Fetch quote preview data for authenticated preview mode.
+ * Used when admin previews a quote before sending to customer.
+ */
+export const fetchQuotePreview = async (
+  quoteId: number
+): Promise<PublicQuoteLinkResponse> => {
+  const response = await APIClient.quotations.preview(quoteId);
+  console.log('[Quotation][preview] response:', response);
+  return response;
+};
+
 export const QuotationWithLineItemsQueryOptions = (quotationId: number) =>
   queryOptions({
     queryKey: [...QuotationKeys.detail(quotationId), 'with-line-items'],
@@ -84,8 +96,13 @@ export const useCreateQuotation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<QuotationDTO>) =>
-      APIClient.quotations.create(data),
+    mutationFn: (data: Partial<QuotationDTO>) => {
+      const dataWithDefaults = {
+        inclDeliveryCost: false,
+        ...data,
+      };
+      return APIClient.quotations.create(dataWithDefaults);
+    },
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
@@ -102,8 +119,13 @@ export const useUpdateQuotation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<QuotationDTO>) =>
-      APIClient.quotations.update(data),
+    mutationFn: (data: Partial<QuotationDTO>) => {
+      const dataWithDefaults = {
+        inclDeliveryCost: false,
+        ...data,
+      };
+      return APIClient.quotations.update(dataWithDefaults);
+    },
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
@@ -150,7 +172,13 @@ export const useSendToCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => APIClient.quotations.sendToCustomer(id),
+    mutationFn: ({
+      id,
+      inclDeliveryCost,
+    }: {
+      id: number;
+      inclDeliveryCost: boolean;
+    }) => APIClient.quotations.sendToCustomer(id, inclDeliveryCost),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
@@ -220,6 +248,18 @@ export const useCreateQuoteItem = () => {
 };
 
 /**
+ * Query options for fetching a quote item by id.
+ */
+export const useGetQuoteItemById = (id: number) =>
+  queryOptions({
+    queryKey: QuotationKeys.quoteItem(id),
+    queryFn: async () => {
+      const data = await APIClient.quotations.getQuoteItemById(id);
+      return data as QuotationLineItem;
+    },
+  });
+
+/**
  * Mutation hook for updating an existing quote item.
  * Automatically invalidates the quotations cache on success.
  */
@@ -286,15 +326,71 @@ export const useUpdatePublicQuoteStatus = () => {
     mutationFn: async ({
       status,
       token,
+      declineReason,
     }: {
       status: 'APPROVED' | 'DECLINED';
       token: string;
+      declineReason?: string;
     }) => {
       const response = await APIClient.quotations.updatePublicQuoteStatus(
         status,
-        token
+        token,
+        declineReason
       );
       return response;
+    },
+  });
+};
+
+/**
+ * Mutation hook for updating quote decision (approve/decline) with authentication.
+ * Used on the admin side for authenticated users.
+ */
+export const useUpdateQuoteDecision = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      declineReason,
+    }: {
+      id: number;
+      status: 'APPROVED' | 'DECLINED';
+      declineReason?: string;
+    }) => {
+      const response = await APIClient.quotations.updateQuoteDecision(
+        id,
+        status,
+        declineReason
+      );
+      return response;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: QuotationKeys.detail(data.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for bulk archiving quotations.
+ * Automatically invalidates the quotations list cache on success.
+ */
+export const useBulkArchiveQuotations = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (ids: number[]) => APIClient.quotations.bulkArchive(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },
   });
 };

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Quotation } from '@/lib/types/quotation';
 import { TableBadges } from '@/components/table-badges';
 import { cn } from '@/lib/utils';
-import { useQuotationStore } from '@/app/stores/quotation-store';
+import { useBulkArchiveQuotations } from '@/lib/api/quotation';
+import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   Dialog,
   DialogContent,
@@ -35,9 +36,7 @@ export function QuotationBulkActions({
     'archivable' | 'non-archivable'
   >('archivable');
 
-  const bulkArchiveQuotations = useQuotationStore(
-    (state) => state.bulkArchiveQuotations
-  );
+  const bulkArchiveMutation = useBulkArchiveQuotations();
 
   const { archivable, nonArchivable } = useMemo(() => {
     const archivableStatuses = [
@@ -48,10 +47,10 @@ export function QuotationBulkActions({
     ];
 
     const archivable = selectedQuotations.filter((q) =>
-      archivableStatuses.includes(q.status as string)
+      archivableStatuses.includes(q.quoteStatus as string)
     );
     const nonArchivable = selectedQuotations.filter(
-      (q) => !archivableStatuses.includes(q.status as string)
+      (q) => !archivableStatuses.includes(q.quoteStatus as string)
     );
 
     return { archivable, nonArchivable };
@@ -64,12 +63,22 @@ export function QuotationBulkActions({
     }
   };
 
-  const handleArchive = () => {
+  const handleArchive = async () => {
     if (archivable.length > 0) {
       const ids = archivable.map((q) => q.id);
-      bulkArchiveQuotations(ids);
-      setDialogOpen(false);
-      onClearSelection();
+      try {
+        await bulkArchiveMutation.mutateAsync(ids);
+        notifySuccess(
+          `Successfully archived ${archivable.length} quotation${
+            archivable.length !== 1 ? 's' : ''
+          }`
+        );
+        setDialogOpen(false);
+        onClearSelection();
+      } catch (error) {
+        console.error('Error archiving quotations:', error);
+        notifyError('Failed to archive quotations. Please try again.');
+      }
     }
   };
 
@@ -139,7 +148,7 @@ export function QuotationBulkActions({
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <TableBadges
-                            names={[quotation.status]}
+                            names={[quotation.quoteStatus]}
                             visibleCount={1}
                           />
                         </div>
@@ -185,7 +194,7 @@ export function QuotationBulkActions({
                           </span>
                           <span className="text-gray-600 text-base">•</span>
                           <TableBadges
-                            names={[quotation.status]}
+                            names={[quotation.quoteStatus]}
                             visibleCount={1}
                           />
                         </div>
@@ -230,11 +239,12 @@ export function QuotationBulkActions({
               <Button
                 className="h-10 bg-[#6B7280] border-[#6B7280] text-white"
                 onClick={handleArchive}
+                disabled={bulkArchiveMutation.isPending}
               >
                 <span className="pr-[7px] h-4 w-4 flex items-center justify-center">
                   <Archive className="h-4 w-4" />
                 </span>
-                Archive
+                {bulkArchiveMutation.isPending ? 'Archiving...' : 'Archive'}
               </Button>
             )}
           </div>

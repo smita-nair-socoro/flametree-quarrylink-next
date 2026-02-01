@@ -1,8 +1,9 @@
 import { Role, UserStatus } from './user-enums';
 
 export interface User {
-  sub: string;
-  username: string;
+  sub: string; // AWS Cognito user ID (UUID) - this is the primary user identifier
+  fullName: string;
+  username: string; // Same as sub
   email: string;
   enabled: boolean;
   status: string; // "ACTIVE", "INACTIVE", "PENDING", etc.

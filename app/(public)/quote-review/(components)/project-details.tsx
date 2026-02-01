@@ -7,7 +7,6 @@ import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 export interface ProjectDetailsProps {
   type: QUOTE_TYPE;
   projectName: string;
-  deliveryAddress: string;
   deliveryDate: string;
   deliveryWindow: string;
 }
@@ -15,7 +14,6 @@ export interface ProjectDetailsProps {
 export function ProjectDetails({
   type,
   projectName,
-  deliveryAddress,
   deliveryDate,
   deliveryWindow,
 }: ProjectDetailsProps) {
@@ -29,7 +27,7 @@ export function ProjectDetails({
         <TableBadges names={[type]} />
       </div>
 
-      <div className="gap-8 grid grid-cols-1 md:grid-cols-4">
+      <div className="gap-8 grid grid-cols-1 md:grid-cols-3">
         {/* Project Name */}
         <div>
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
@@ -37,16 +35,6 @@ export function ProjectDetails({
           </h3>
           <p className="text-sm text-gray-600">
             {projectName}
-          </p>
-        </div>
-
-        {/* Delivery Address */}
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
-            Delivery Address
-          </h3>
-          <p className="text-sm text-gray-600">
-            {deliveryAddress}
           </p>
         </div>
 

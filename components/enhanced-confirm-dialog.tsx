@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface EnhancedConfirmDialogProps {
   open: boolean;
@@ -15,7 +16,7 @@ interface EnhancedConfirmDialogProps {
   title: string;
   description?: string;
   details?: string[];
-  content?: string;
+  content?: React.ReactNode;
   additionalInfo?: {
     label: string;
     value: string;
@@ -33,6 +34,9 @@ interface EnhancedConfirmDialogProps {
   confirmIcon?: React.ReactNode;
   titleIcon?: React.ReactNode;
   onConfirmAction: () => void;
+  /** When true, hides the top-right X close button */
+  hideCloseButton?: boolean;
+  isDirtyStateWarning?: boolean;
 }
 
 export function EnhancedConfirmDialog({
@@ -51,6 +55,8 @@ export function EnhancedConfirmDialog({
   confirmIcon,
   titleIcon,
   onConfirmAction,
+  hideCloseButton = false,
+  isDirtyStateWarning = false,
 }: EnhancedConfirmDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = confirmCustomColor
@@ -63,10 +69,15 @@ export function EnhancedConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" showCloseButton={!hideCloseButton}>
         <DialogHeader>
           <DialogTitle>
-            <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                'flex items-center gap-2',
+                isDirtyStateWarning ? '-mt-4' : ''
+              )}
+            >
               {titleIcon && titleIcon}
               {title}
             </div>
@@ -76,7 +87,7 @@ export function EnhancedConfirmDialog({
 
         {content && (
           <>
-            <div className="border-t border-gray-200 -mx-6"></div>
+            {description && <div className="border-t border-gray-200 -mx-6"></div>}
             <div className="text-sm text-gray-600">{content}</div>
           </>
         )}
@@ -108,7 +119,7 @@ export function EnhancedConfirmDialog({
           </>
         )}
         <div className="border-t border-gray-200 -mx-6"></div>
-        <div className="flex justify-end space-x-2">
+        <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-end md:gap-2">
           <Button variant="outline" onClick={() => onOpenChangeAction(false)}>
             {cancelText}
           </Button>
