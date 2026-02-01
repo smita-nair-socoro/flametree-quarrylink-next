@@ -144,8 +144,8 @@ export default function CustomerForm({
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing
-        ? selectedCustomer?.paymentTermType || 'of the following month'
-        : 'of the following month',
+        ? selectedCustomer?.paymentTermType || 'OFFOLLOWINGMONTH'
+        : 'OFFOLLOWINGMONTH',
       payment_terms_day: isEditing ? selectedCustomer?.invoiceDueDate || 0 : 0,
       account_manager: isEditing
         ? selectedCustomer?.accountManagerSub || ''

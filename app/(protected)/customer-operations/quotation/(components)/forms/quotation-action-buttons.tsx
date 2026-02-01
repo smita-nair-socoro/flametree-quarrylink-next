@@ -69,7 +69,7 @@ export function QuotationActionButtons({
 
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 px-3">
+            <Button variant="outline" size="sm">
               <MoreHorizontal className="h-4 w-4 mr-2" />
               Actions
             </Button>

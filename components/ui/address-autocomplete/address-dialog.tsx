@@ -19,6 +19,7 @@ import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
 import { AddressType } from '@/lib/types/address';
+import { fillMissingAddressFields } from './autocomplete-validators';
 import { CountrySelect } from '../country-select';
 import { StateSelect } from '../state-select';
 import { Country } from 'country-state-city';
@@ -244,7 +245,8 @@ export default function AddressDialog(
         'postal-code': postalCode,
       });
 
-      setAddress({
+      // Fill missing fields with defaults (googlePlaceId if not present)
+      setAddress(fillMissingAddressFields({
         ...address,
         city,
         region,
@@ -253,7 +255,7 @@ export default function AddressDialog(
         postalCode,
         country,
         formattedAddress: newFormattedAddress,
-      });
+      }));
       // Notify react-hook-form of the change
       if (onChange) {
         onChange(newFormattedAddress);

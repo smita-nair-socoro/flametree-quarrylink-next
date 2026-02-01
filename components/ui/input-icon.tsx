@@ -7,6 +7,7 @@ interface InputIconProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onStartIconClick?: React.MouseEventHandler<HTMLButtonElement>;
   onEndIconClick?: React.MouseEventHandler<HTMLButtonElement>;
   className?: string;
+  wrapperClassName?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export const InputIcon = forwardRef<HTMLInputElement, InputIconProps>(
       onStartIconClick,
       onEndIconClick,
       className,
+      wrapperClassName,
       ...props
     },
     ref
@@ -31,21 +33,22 @@ export const InputIcon = forwardRef<HTMLInputElement, InputIconProps>(
     const padRight = hasEnd ? 'pr-10' : '';
 
     return (
-      <div className={cn('relative w-full', className)}>
+      <div className={cn('relative w-full', wrapperClassName)}>
         <input
           ref={ref}
           {...props}
           className={cn(
-            'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive',
+            'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-input flex h-11 md:h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive',
             padLeft,
-            padRight
+            padRight,
+            className
           )}
         />
         {hasStart && (
           <button
             type="button"
             onClick={onStartIconClick}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute left-3 top-0 bottom-0 flex items-center text-muted-foreground hover:text-foreground"
           >
             {startIcon}
           </button>
@@ -54,7 +57,7 @@ export const InputIcon = forwardRef<HTMLInputElement, InputIconProps>(
           <button
             type="button"
             onClick={onEndIconClick}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 top-0 bottom-0 flex items-center text-muted-foreground hover:text-foreground"
           >
             {endIcon}
           </button>

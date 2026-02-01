@@ -4,7 +4,6 @@ import * as React from 'react';
 import {
   LayoutDashboard,
   Package,
-  Settings2, 
   Truck,
   Users,
 } from 'lucide-react';
@@ -92,12 +91,12 @@ export const navItems = [
       },
     ],
   },
-  {
-    title: 'Tenant Management',
-    url: '/system/tenant-management',
-    icon: Settings2,
-    plan: 'ESSENTIAL',
-  },
+  // {
+  //   title: 'Tenant Management',
+  //   url: '/system/tenant-management',
+  //   icon: Settings2,
+  //   plan: 'ESSENTIAL',
+  // },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
