@@ -37,7 +37,11 @@ export function MobileCard({
             </div>
           )}
         </div>
-        {actions && <CardAction>{actions}</CardAction>}
+        {actions && (
+          <CardAction className="[&_button]:size-9 [&_button]:border [&_button]:border-input [&_button]:shadow-xs">
+            {actions}
+          </CardAction>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-3 pt-0">
