@@ -307,7 +307,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
         locationSource: 'MANUAL',
-      };
+      });
       setAddress(updatedAddress);
       // Notify react-hook-form of the change when user manually enters
       if (onChange) {
