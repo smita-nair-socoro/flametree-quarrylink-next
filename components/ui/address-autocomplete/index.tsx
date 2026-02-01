@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
+import { fillMissingAddressFields } from './autocomplete-validators';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
@@ -279,7 +280,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           currentAddress.lng === formattedData.lng;
 
         if (!same) {
-          setAddress(formattedData);
+          setAddress(fillMissingAddressFields(formattedData));
         }
         setAdrAddress(data.adrFormatAddress || '');
         // Notify react-hook-form of the change
@@ -301,7 +302,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const handleManualEntry = () => {
     // Pre-populate with search input if available
     if (searchInput.trim()) {
-      const updatedAddress: AddressType = {
+      const updatedAddress = fillMissingAddressFields({
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
@@ -345,10 +346,12 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     suggestedAddress: string,
     addressOverride?: AddressType,
   ) => {
-    const nextAddress = addressOverride ?? {
+    const baseAddress = addressOverride ?? {
       ...address,
       formattedAddress: suggestedAddress,
     };
+    // Fill missing fields with defaults (city, region, postalCode, country, googlePlaceId)
+    const nextAddress = fillMissingAddressFields(baseAddress);
     setAddress(nextAddress);
     if (onChange) {
       onChange(suggestedAddress);

@@ -13,12 +13,19 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type React from 'react';
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { type ZodError, z } from 'zod';
 import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
 import { AddressType } from '@/lib/types/address';
+import { fillMissingAddressFields } from './autocomplete-validators';
 import { CountrySelect } from '../country-select';
 import { StateSelect } from '../state-select';
 import { Country } from 'country-state-city';
@@ -113,7 +120,7 @@ const FORWARD_GEOCODE_DEBOUNCE_MS = 700;
 const MAP_UPDATE_IGNORE_WINDOW_MS = 800;
 
 export default function AddressDialog(
-  props: React.PropsWithChildren<AddressDialogProps>
+  props: React.PropsWithChildren<AddressDialogProps>,
 ) {
   const {
     children,
@@ -166,7 +173,8 @@ export default function AddressDialog(
       // Get country code from country name
       const countryData = Country.getAllCountries().find(
         (c) =>
-          c.name.toLowerCase() === (address.country || 'Australia').toLowerCase()
+          c.name.toLowerCase() ===
+          (address.country || 'Australia').toLowerCase(),
       );
       setCountryCode(countryData?.isoCode || 'AU');
     }
@@ -215,25 +223,31 @@ export default function AddressDialog(
       // Replace each class content with its corresponding value
       Object.entries(addressComponents).forEach(([key, value]) => {
         if (key !== 'address2') {
-          const regex = new RegExp(`(<span class="${key}">)[^<]*(</span>)`, 'g');
+          const regex = new RegExp(
+            `(<span class="${key}">)[^<]*(</span>)`,
+            'g',
+          );
           updatedAddressString = updatedAddressString.replace(
             regex,
-            `$1${value}$2`
+            `$1${value}$2`,
           );
         }
       });
 
       // Remove all span tags
-      updatedAddressString = updatedAddressString.replace(/<\/?span[^>]*>/g, '');
+      updatedAddressString = updatedAddressString.replace(
+        /<\/?span[^>]*>/g,
+        '',
+      );
 
       // Add address2 just after address1 if provided
       if (addressComponents.address2) {
         const address1Regex = new RegExp(
-          `${addressComponents['street-address']}`
+          `${addressComponents['street-address']}`,
         );
         updatedAddressString = updatedAddressString.replace(
           address1Regex,
-          `${addressComponents['street-address']}, ${addressComponents.address2}`
+          `${addressComponents['street-address']}, ${addressComponents.address2}`,
         );
       }
 
@@ -246,7 +260,7 @@ export default function AddressDialog(
 
       return updatedAddressString;
     },
-    []
+    [],
   );
 
   /**
@@ -261,7 +275,7 @@ export default function AddressDialog(
       lastUpdateSourceRef.current = { source: 'form', time: Date.now() };
       setGeocodeError(null);
     },
-    []
+    [],
   );
 
   /**
@@ -279,7 +293,7 @@ export default function AddressDialog(
       lastUpdateSourceRef.current = { source: 'form', time: Date.now() };
       setGeocodeError(null);
     },
-    []
+    [],
   );
 
   /**
@@ -315,7 +329,7 @@ export default function AddressDialog(
             // Optionally preserve country if geocode returns none
             // (useful for pins in remote areas where only coords are known)
             preserveCountryIfMissing: false,
-          }
+          },
         );
 
         setDraftAddress(normalizedAddress);
@@ -324,7 +338,7 @@ export default function AddressDialog(
         if (normalizedAddress.country) {
           const countryData = Country.getAllCountries().find(
             (c) =>
-              c.name.toLowerCase() === normalizedAddress.country.toLowerCase()
+              c.name.toLowerCase() === normalizedAddress.country.toLowerCase(),
           );
           if (countryData) {
             setCountryCode(countryData.isoCode);
@@ -361,7 +375,7 @@ export default function AddressDialog(
         setIsReverseGeocoding(false);
       }
     },
-    []
+    [],
   );
 
   /**
@@ -484,24 +498,40 @@ export default function AddressDialog(
       return;
     }
 
-    // Compute formattedAddress using adrAddressDraft
-    const newFormattedAddress = updateAndFormatAddress(
-      adrAddressDraft,
-      draftAddress
-    );
+    if (
+      address2 !== address.address2 ||
+      postalCode !== address.postalCode ||
+      address1 !== address.address1 ||
+      city !== address.city ||
+      region !== address.region ||
+      country !== address.country
+    ) {
+      const newFormattedAddress = updateAndFormatAddress(adrAddress, {
+        'street-address': address1,
+        address2,
+        locality: city,
+        region,
+        'postal-code': postalCode,
+      });
 
-    const finalAddress: AddressType = {
-      ...draftAddress,
-      formattedAddress: newFormattedAddress,
-    };
-
-    setAddress(finalAddress);
-
-    // Notify react-hook-form of the change
-    if (onChange) {
-      onChange(newFormattedAddress);
+      // Fill missing fields with defaults (googlePlaceId if not present)
+      setAddress(
+        fillMissingAddressFields({
+          ...address,
+          city,
+          region,
+          address2,
+          address1,
+          postalCode,
+          country,
+          formattedAddress: newFormattedAddress,
+        }),
+      );
+      // Notify react-hook-form of the change
+      if (onChange) {
+        onChange(newFormattedAddress);
+      }
     }
-
     setOpen(false);
   };
 
@@ -618,7 +648,9 @@ export default function AddressDialog(
                   <Label htmlFor="region">State / Province / Region</Label>
                   <StateSelect
                     value={draftAddress.region}
-                    onChange={(stateName) => updateDraftField('region', stateName)}
+                    onChange={(stateName) =>
+                      updateDraftField('region', stateName)
+                    }
                     countryCode={countryCode}
                     disabled={isLoading}
                     placeholder="Select state/region"
