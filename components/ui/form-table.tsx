@@ -130,7 +130,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                 <FormControl>
                   <Input
                     placeholder={cell.placeholder || ''}
-                    className={cn('h-9 w-full', cell.className)}
+                    className={cn('h-11 md:h-9 w-full', cell.className)}
                     {...field}
                   />
                 </FormControl>
@@ -152,7 +152,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     decimalPlaces={cell.decimalPlaces ?? 2}
                     thousandSeparator={cell.thousandSeparator ?? true}
                     placeholder={cell.placeholder || '$0.00'}
-                    className={cn('h-9 w-full', cell.className)}
+                    className={cn('h-11 md:h-9 w-full', cell.className)}
                     onValueChange={(value) => {
                       field.onChange(value);
                     }}
@@ -177,7 +177,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     placeholder={cell.placeholder || '0'}
                     min={cell.min}
                     max={cell.max}
-                    className={cn('h-9 w-full', cell.className)}
+                    className={cn('h-11 md:h-9 w-full', cell.className)}
                     {...field}
                   />
                 </FormControl>
