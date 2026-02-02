@@ -34,6 +34,7 @@ import {
   TenantDetails,
   TenantCompleteDetails,
   TenantLogoUploadResponse,
+  TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 
@@ -853,5 +854,7 @@ export const APIClient = {
         { body: formData }
       );
     },
+    getLogo: () =>
+      appClient.Get<TenantLogoResponse>(`/socoro/quarrylink/api/tenant/logo`),
   },
 };
