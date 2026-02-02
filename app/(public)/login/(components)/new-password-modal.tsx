@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { confirmSignIn } from 'aws-amplify/auth';
+import { APIClient } from '@/lib/api/APIClient';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   Dialog,
@@ -30,6 +30,7 @@ interface NewPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  tempPassword: string;
 }
 
 const newPasswordSchema = z
@@ -58,6 +59,7 @@ export function NewPasswordModal({
   isOpen,
   onClose,
   onSuccess,
+  tempPassword,
 }: NewPasswordModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -76,31 +78,27 @@ export function NewPasswordModal({
     setIsLoading(true);
 
     try {
-      // For NEW_PASSWORD_REQUIRED challenge, we only need the new password
-      // The verification code (if needed) should be handled by Cognito automatically
-      const { isSignedIn } = await confirmSignIn({
-        challengeResponse: values.newPassword,
+      // Use our own API to change password
+      // tempPassword (from login form) is used as oldPassword
+      const response = await APIClient.users.changePassword({
+        oldPassword: tempPassword,
+        newPassword: values.newPassword,
       });
 
-      if (isSignedIn) {
+      if (response.success) {
         notifySuccess('Password updated successfully! Welcome to QuarryLink.');
         onSuccess();
         handleClose();
+      } else {
+        notifyError(response.message || 'Failed to update password.');
       }
     } catch (error: unknown) {
       console.error('New password error:', error);
 
-      const errorObj = error as { name?: string };
+      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
+      const errorMessage = errorObj.response?.data?.message || errorObj.message || 'Failed to update password. Please try again.';
 
-      if (errorObj.name === 'InvalidPasswordException') {
-        notifyError('Password does not meet requirements');
-      } else if (errorObj.name === 'InvalidParameterException') {
-        notifyError('Invalid password format or missing required attributes');
-      } else if (errorObj.name === 'CodeMismatchException') {
-        notifyError('Verification failed. Please try signing in again.');
-      } else {
-        notifyError('Failed to update password. Please try again.');
-      }
+      notifyError(errorMessage);
     } finally {
       setIsLoading(false);
     }
