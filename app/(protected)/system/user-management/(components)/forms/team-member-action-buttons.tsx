@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Key, Trash2, RotateCcwSquare } from 'lucide-react';
+import { Trash2, RotateCcwSquare } from 'lucide-react';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { User } from '@/lib/types/user';
 import { UserStatus } from '@/lib/types/user-enums';
@@ -45,14 +45,7 @@ export function TeamMemberActionButtons({
             Resend Invitation
           </Button>
         ) : (
-          <Button
-            variant="outline"
-            className="rounded-none px-4 h-auto py-1.5 gap-2 bg-white border-0 border-r"
-            onClick={actions.resetPassword}
-          >
-            <Key className="h-4 w-4" />
-            Reset Password
-          </Button>
+          null
         )}
 
         <Button
