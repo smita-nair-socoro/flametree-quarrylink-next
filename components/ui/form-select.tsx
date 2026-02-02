@@ -182,9 +182,9 @@ export function FormSelect<TFieldValues extends FieldValues>({
                   )}
                   disabled={disabled}
                 >
-                  <span className="flex-1 text-left truncate" title={field.value ? options.find((o) => o.value === field.value)?.label : placeholder}>
-                    {field.value
-                      ? options.find((o) => o.value === field.value)?.label
+                  <span className="flex-1 text-left truncate" title={field.value != null && field.value !== '' ? options.find((o) => String(o.value) === String(field.value))?.label : placeholder}>
+                    {field.value != null && field.value !== ''
+                      ? options.find((o) => String(o.value) === String(field.value))?.label
                       : placeholder}
                   </span>
                   <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />
@@ -208,6 +208,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                     {options.map((opt) => (
                       <CommandItem
                         key={opt.value}
+                        value={String(opt.value)}
                         onSelect={() => {
                           field.onChange(opt.value);
                           onChange?.(String(opt.value));
@@ -219,7 +220,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         <Check
                           className={cn(
                             'ml-auto h-4 w-4',
-                            field.value === opt.value
+                            String(field.value) === String(opt.value)
                               ? 'opacity-100'
                               : 'opacity-0'
                           )}
