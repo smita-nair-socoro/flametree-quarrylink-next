@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Key, Delete } from 'lucide-react';
+import { MoreHorizontal, Eye, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -43,11 +43,6 @@ export function UserTableActions({
     actions.viewEdit();
   };
 
-  const handleResetPassword = () => {
-    setDropdownOpen(false);
-    actions.resetPassword();
-  };
-
   const handleDelete = () => {
     setDropdownOpen(false);
     actions.delete();
@@ -69,12 +64,6 @@ export function UserTableActions({
               <Eye className="h-4 w-4 mr-2" />
               View/Edit User
             </DropdownMenuItem>
-
-            <DropdownMenuItem onClick={handleResetPassword}>
-              <Key className="h-4 w-4 mr-2" />
-              Reset Password
-            </DropdownMenuItem>
-
           <DropdownMenuItem
             onClick={handleDelete}
             className="text-destructive focus:text-destructive"

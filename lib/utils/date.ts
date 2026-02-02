@@ -301,6 +301,95 @@ export function getRelativeTimeFuture(date: Date | string | number): string {
 }
 
 /**
+ * Calendar-day difference in local time (so "30 Jan" vs "2 Feb" = 3 days).
+ * Uses local midnight for both dates to match displayed dates.
+ */
+function getCalendarDayDiffInSeconds(now: Date, target: Date): number {
+  const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const targetLocal = new Date(
+    target.getFullYear(),
+    target.getMonth(),
+    target.getDate(),
+  );
+  return Math.round((nowLocal.getTime() - targetLocal.getTime()) / 1000);
+}
+
+/**
+ * Format relative time using calendar-day difference for days and above,
+ * so "30 Jan" and "29 Jan" show "3 days ago" and "4 days ago" correctly.
+ */
+function formatRelativeTimeCalendarDays(
+  diffInSeconds: number,
+  suffix: string,
+  justNowText: string,
+): string {
+  if (diffInSeconds < 5) return justNowText;
+  const addSuffix = (text: string) => (suffix ? `${text} ${suffix}` : text);
+
+  if (diffInSeconds < 60) {
+    return addSuffix(`${diffInSeconds} sec${diffInSeconds === 1 ? '' : 's'}`);
+  }
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) {
+    return addSuffix(`${diffInMinutes} min${diffInMinutes === 1 ? '' : 's'}`);
+  }
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return addSuffix(`${diffInHours} hour${diffInHours === 1 ? '' : 's'}`);
+  }
+  // Use calendar days for day/week/month/year so displayed dates match
+  const diffInDays = Math.floor(diffInSeconds / 86400);
+  if (diffInDays < 7) {
+    return addSuffix(`${diffInDays} day${diffInDays === 1 ? '' : 's'}`);
+  }
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) {
+    return addSuffix(`${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'}`);
+  }
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) {
+    return addSuffix(`${diffInMonths} month${diffInMonths === 1 ? '' : 's'}`);
+  }
+  const diffInYears = Math.floor(diffInDays / 365);
+  return addSuffix(`${diffInYears} year${diffInYears === 1 ? '' : 's'}`);
+}
+
+/**
+ * Get relative time for any date: past ("2 days ago") or future ("in 2 days").
+ * Uses calendar-day difference for day+ so "30 Jan" = 3 days ago, "29 Jan" = 4 days ago.
+ * Backend sends UTC (no Z); we parse as UTC then compare in local calendar days.
+ */
+export function getRelativeTimePastOrFuture(
+  date: Date | string | number,
+): string {
+  const now = new Date();
+  const target =
+    typeof date === 'string' ? parseAsUTC(date) : new Date(date);
+
+  const diffInSeconds = target.getTime() - now.getTime();
+
+  if (diffInSeconds >= 0) {
+    if (diffInSeconds < 5 * 1000) return 'Now';
+    // Future: calendar days from now to target (target - now)
+    const calendarDiffSec = -getCalendarDayDiffInSeconds(now, target);
+    const relative = formatRelativeTimeCalendarDays(
+      Math.max(0, calendarDiffSec),
+      '',
+      'Now',
+    );
+    return relative === 'Now' ? 'Now' : `in ${relative.toLowerCase()}`;
+  }
+
+  // Past: calendar days from target to now (now - target)
+  const calendarDiffSec = getCalendarDayDiffInSeconds(now, target);
+  return formatRelativeTimeCalendarDays(
+    calendarDiffSec,
+    'ago',
+    'Just now',
+  );
+}
+
+/**
  * Converts a JavaScript Date to LocalDateTime format (without timezone).
  * Format: YYYY-MM-DDTHH:mm:ss.SSS
  *
@@ -322,6 +411,25 @@ export function toLocalDateTime(date: Date): string {
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const seconds = String(date.getSeconds()).padStart(2, '0');
   const ms = String(date.getMilliseconds()).padStart(3, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}`;
+}
+
+/**
+ * Format a Date as UTC (offset 0) without the "Z" suffix.
+ * Use for backend APIs that expect UTC LocalDateTime-style strings.
+ *
+ * @param date - The date to convert
+ * @returns String in UTC format without Z (e.g., "2026-01-23T00:00:00.000")
+ */
+export function toUTCDateTimeWithoutZ(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  const ms = String(date.getUTCMilliseconds()).padStart(3, '0');
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}`;
 }

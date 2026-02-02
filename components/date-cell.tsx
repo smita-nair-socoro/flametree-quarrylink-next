@@ -6,10 +6,13 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { formatLocalDate, getRelativeTime } from '@/lib/utils/date';
+import {
+  formatLocalDate,
+  getRelativeTimePastOrFuture,
+} from '@/lib/utils/date';
 
 export interface DateCellProps {
-  /** an ISO-8601 timestamp string */
+  /** Backend timestamp (UTC, without Z). Parsed as UTC and shown in local time. */
   dateString: string;
   /** Tooltip placement */
   side?: 'top' | 'right' | 'bottom' | 'left';
@@ -19,13 +22,12 @@ export const DateCell: React.FC<DateCellProps> = ({
   dateString,
   side = 'top',
 }) => {
-  // Handle null, undefined, or empty string
   if (!dateString) {
     return <span className="text-muted-foreground">-</span>;
   }
-  // Use unified date formatting utilities for consistent timezone handling
+  // Backend sends UTC (no Z); parse as UTC, display in local time, relative from that instant
   const displayDate = formatLocalDate(dateString);
-  const relative = getRelativeTime(dateString);
+  const relative = getRelativeTimePastOrFuture(dateString);
 
   return (
     <Tooltip>
