@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { confirmSignIn } from 'aws-amplify/auth';
 import { APIClient } from '@/lib/api/APIClient';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
@@ -78,8 +79,17 @@ export function NewPasswordModal({
     setIsLoading(true);
 
     try {
-      // Use our own API to change password
-      // tempPassword (from login form) is used as oldPassword
+      // Step 1: Complete Cognito sign-in to get authenticated and obtain tokens
+      const { isSignedIn } = await confirmSignIn({
+        challengeResponse: values.newPassword,
+      });
+
+      if (!isSignedIn) {
+        notifyError('Authentication failed. Please try again.');
+        return;
+      }
+
+      // Step 2: Now we have tokens, call our API to change the password
       const response = await APIClient.users.changePassword({
         oldPassword: tempPassword,
         newPassword: values.newPassword,
@@ -95,10 +105,20 @@ export function NewPasswordModal({
     } catch (error: unknown) {
       console.error('New password error:', error);
 
-      const errorObj = error as { message?: string; response?: { data?: { message?: string } } };
-      const errorMessage = errorObj.response?.data?.message || errorObj.message || 'Failed to update password. Please try again.';
+      const errorObj = error as { name?: string; message?: string; response?: { data?: { message?: string } } };
 
-      notifyError(errorMessage);
+      // Handle Cognito errors
+      if (errorObj.name === 'InvalidPasswordException') {
+        notifyError('Password does not meet requirements');
+      } else if (errorObj.name === 'InvalidParameterException') {
+        notifyError('Invalid password format or missing required attributes');
+      } else if (errorObj.name === 'CodeMismatchException') {
+        notifyError('Verification failed. Please try signing in again.');
+      } else {
+        // Handle API errors
+        const errorMessage = errorObj.response?.data?.message || errorObj.message || 'Failed to update password. Please try again.';
+        notifyError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
