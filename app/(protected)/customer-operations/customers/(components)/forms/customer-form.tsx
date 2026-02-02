@@ -40,6 +40,7 @@ import { useCreateCustomer, useUpdateCustomer } from '@/lib/api/customer';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { toAddressPayload } from '@/lib/utils/address-helper';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -1210,16 +1211,7 @@ export default function CustomerForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.createdAt
-                      ? new Date(selectedCustomer.createdAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedCustomer?.createdAt)}
                   </p>
                 </div>
 
@@ -1228,16 +1220,7 @@ export default function CustomerForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.updatedAt
-                      ? new Date(selectedCustomer.updatedAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedCustomer?.updatedAt)}
                   </p>
                 </div>
               </div>

@@ -28,6 +28,7 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -874,15 +875,7 @@ export default function QuoteLineItemForm({
                       Created Date:
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLineItem?.createdAt
-                        ? new Date(
-                            selectedLineItem.createdAt
-                          ).toLocaleDateString('en-AU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          })
-                        : 'N/A'}
+                      {formatLocalDateShort(selectedLineItem?.createdAt)}
                     </p>
                   </div>
 
@@ -891,15 +884,7 @@ export default function QuoteLineItemForm({
                       Modified Date:
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {selectedLineItem?.updatedAt
-                        ? new Date(
-                            selectedLineItem.updatedAt || ''
-                          ).toLocaleDateString('en-AU', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          })
-                        : 'N/A'}
+                      {formatLocalDateShort(selectedLineItem?.updatedAt)}
                     </p>
                   </div>
                 </div>

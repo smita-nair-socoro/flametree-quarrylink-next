@@ -80,11 +80,6 @@ export function NewPasswordModal({
       // The verification code (if needed) should be handled by Cognito automatically
       const { isSignedIn } = await confirmSignIn({
         challengeResponse: values.newPassword,
-        options: {
-          userAttributes: {
-            name: 'QuarryLink User', // Default name for new users
-          },
-        },
       });
 
       if (isSignedIn) {
