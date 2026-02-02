@@ -492,7 +492,7 @@ export default function QuotationForm({
               label="Account Manager*"
               searchLabel="Account Managers"
               options={userOptions}
-              placeholder="Select Account Manager"
+              placeholder="Select Customer First"
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }

@@ -73,7 +73,6 @@ export default function CustomerForm({
       })),
     [users]
   );
-  console.log('accountManagerOptions', accountManagerOptions);
 
   // Mutation hooks
   const createCustomer = useCreateCustomer();
