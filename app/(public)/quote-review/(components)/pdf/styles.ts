@@ -103,6 +103,16 @@ export const pdfStyles = StyleSheet.create({
     marginRight: 8,
   },
 
+  tenantLogo: {
+    width: 30,
+    height: 30,
+    marginRight: 8,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.black,
+    objectFit: 'cover',
+  },
+
   initialsLogo: {
     width: 30,
     height: 30,

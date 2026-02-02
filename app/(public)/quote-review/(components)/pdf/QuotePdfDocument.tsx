@@ -18,6 +18,7 @@ export interface QuotationData {
     validUntil: string;
     accountManager: string;
     status: QUOTE_STATUS;
+    logoUrl?: string;
   };
   customer: {
     customerName: string;

@@ -4,6 +4,7 @@ import {
 } from './quotation-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
 import { CustomerDeliveryAddress } from './address';
+import { TenantLogoResponse } from './client';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -99,6 +100,7 @@ export interface StripeTenantDetailsSnapshot {
 export interface PublicQuoteLinkResponse {
   quoteDto: QuotationDTO;
   stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
+  tenantLogoResponse?: TenantLogoResponse;
 }
 
 export interface QuotationDisplayData {
@@ -110,6 +112,7 @@ export interface QuotationDisplayData {
     accountManager: string;
     status: QuoteStatus;
     tenantDetails?: StripeTenantDetailsSnapshot;
+    logoUrl?: string;
   };
   customer: {
     customerName: string;
