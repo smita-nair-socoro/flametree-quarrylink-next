@@ -79,9 +79,10 @@ export function NewPasswordModal({
     setIsLoading(true);
 
     try {
-      // Step 1: Complete Cognito sign-in to get authenticated and obtain tokens
+      // Step 1: Complete Cognito sign-in with temp password to get tokens
+      // We pass the temp password as the "new" password to complete auth without changing it
       const { isSignedIn } = await confirmSignIn({
-        challengeResponse: values.newPassword,
+        challengeResponse: tempPassword,
       });
 
       if (!isSignedIn) {
