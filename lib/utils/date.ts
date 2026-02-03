@@ -18,7 +18,7 @@ import { format, parseISO } from 'date-fns';
  * @param dateString - Date string from backend (e.g., "2025-01-28T06:00:00")
  * @returns Date object representing the UTC time in local timezone
  */
-function parseAsUTC(dateString: string): Date {
+export function parseAsUTC(dateString: string): Date {
   // If already has timezone indicator, parse as-is
   if (dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) {
     return parseISO(dateString);
