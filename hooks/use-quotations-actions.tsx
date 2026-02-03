@@ -142,11 +142,23 @@ const getDialogConfigs = (
                         : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
                     </p>
                   </div>
+                  {/* Desktop: Switch */}
                   <Switch
                     checked={includeDeliveryPrices}
                     onCheckedChange={setIncludeDeliveryPrices}
-                    className="data-[state=checked]:bg-[#F54900]"
+                    className="hidden md:flex data-[state=checked]:bg-[#F54900]"
                   />
+                  {/* Mobile: Single Radio as toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setIncludeDeliveryPrices?.(!includeDeliveryPrices)}
+                    className="flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 border-input transition-colors data-[checked=true]:border-[#F54900]"
+                    data-checked={includeDeliveryPrices}
+                  >
+                    {includeDeliveryPrices && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F54900]" />
+                    )}
+                  </button>
                 </div>
 
                 {/* Preview Quote Button */}
@@ -251,11 +263,23 @@ const getDialogConfigs = (
                         : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
                     </p>
                   </div>
+                  {/* Desktop: Switch */}
                   <Switch
                     checked={includeDeliveryPrices}
                     onCheckedChange={setIncludeDeliveryPrices}
-                    className="data-[state=checked]:bg-[#F54900]"
+                    className="hidden md:flex data-[state=checked]:bg-[#F54900]"
                   />
+                  {/* Mobile: Single Radio as toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setIncludeDeliveryPrices?.(!includeDeliveryPrices)}
+                    className="flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 border-input transition-colors data-[checked=true]:border-[#F54900]"
+                    data-checked={includeDeliveryPrices}
+                  >
+                    {includeDeliveryPrices && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F54900]" />
+                    )}
+                  </button>
                 </div>
               </div>
             )}
@@ -1188,6 +1212,12 @@ export function useQuotationActions(
     },
 
     preview: () => {
+      console.log('Preview clicked', {
+        isCollectionType,
+        quotationId,
+        quoteType: quotationToUse?.quoteType,
+        expiryDate: quotationToUse?.expiryDate,
+      });
       // For COLLECTION type, skip the modal and go directly to preview
       if (isCollectionType) {
         handlePreviewQuote();
