@@ -100,7 +100,7 @@ export interface StripeTenantDetailsSnapshot {
 export interface PublicQuoteLinkResponse {
   quoteDto: QuotationDTO;
   stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
-  tenantLogoResponse?: TenantLogoResponse;
+  tenantLogoDto?: TenantLogoResponse;
 }
 
 export interface QuotationDisplayData {

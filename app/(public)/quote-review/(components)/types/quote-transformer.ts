@@ -15,7 +15,7 @@ import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 export function transformQuoteData(
   apiResponse: PublicQuoteLinkResponse,
 ): QuotationDisplayData {
-  const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoResponse } = apiResponse;
+  const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto } = apiResponse;
   const {
     quoteNumber,
     quoteType,
@@ -101,7 +101,7 @@ export function transformQuoteData(
       accountManager: accountManagerName || 'N/A',
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
       tenantDetails: stripeTenantDetailsSnapshot,
-      logoUrl: tenantLogoResponse?.logoPublicS3Url,
+      logoUrl: tenantLogoDto?.logoPublicS3Url,
     },
     customer: {
       customerName: customerDisplayName,
