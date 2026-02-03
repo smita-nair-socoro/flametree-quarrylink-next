@@ -171,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={navItems} subscriptionPlan={subscriptionPlan} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
