@@ -86,7 +86,7 @@ export function NavMain({
             pathname === item.url ||
             pathname === `${item.url}/` ||
             item.items?.some(
-              (sub) => pathname === sub.url || pathname === `${sub.url}/`
+              (sub) => pathname === sub.url || pathname === `${sub.url}/`,
             );
           const isOpen = openStates[item.url] ?? false;
 
@@ -134,10 +134,10 @@ export function NavMain({
                             ? 'bg-[#7138F5] text-white'
                             : 'text-white hover:bg-[#7138F533]'
                         } ${
-                        itemIsDisabled
-                          ? 'pointer-events-none opacity-40 text-[#94a3b8]'
-                          : ''
-                      }`}
+                          itemIsDisabled
+                            ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                            : ''
+                        }`}
                     >
                       <span className="truncate whitespace-nowrap overflow-hidden">
                         {item.title}
@@ -167,7 +167,7 @@ export function NavMain({
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
-                      <Tooltip delayDuration={300}>
+                      <Tooltip delayDuration={300} mobileClickable={false}>
                         <TooltipTrigger asChild>
                           <span className="truncate whitespace-nowrap text-white">
                             {item.title}
@@ -207,7 +207,7 @@ export function NavMain({
                       }`}
                     >
                       {item.icon && <item.icon className="text-white" />}
-                      <Tooltip delayDuration={300}>
+                      <Tooltip delayDuration={300} mobileClickable={false}>
                         <TooltipTrigger asChild>
                           <span className="truncate whitespace-nowrap">
                             {item.title}
@@ -246,12 +246,12 @@ export function NavMain({
                                   ? 'bg-[#7138F5] text-white font-medium'
                                   : 'text-white hover:bg-[#7138F533]'
                               } ${
-                              subDisabled
-                                ? 'pointer-events-none opacity-40 text-[#94a3b8]'
-                                : ''
-                            }`}
+                                subDisabled
+                                  ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                                  : ''
+                              }`}
                           >
-                            <Tooltip delayDuration={300}>
+                            <Tooltip delayDuration={300} mobileClickable={false}>
                               <TooltipTrigger asChild>
                                 <span className="truncate whitespace-nowrap overflow-hidden">
                                   {sub.title}
@@ -299,7 +299,7 @@ export function NavMain({
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
-                      <Tooltip delayDuration={300}>
+                      <Tooltip delayDuration={300} mobileClickable={false}>
                         <TooltipTrigger asChild>
                           <span className="truncate whitespace-nowrap text-white">
                             {item.title}
@@ -338,7 +338,7 @@ export function NavMain({
                               href={sub.url}
                               className="flex items-center w-full justify-between gap-2 min-w-0"
                             >
-                              <Tooltip delayDuration={300}>
+                              <Tooltip delayDuration={300} mobileClickable={false}>
                                 <TooltipTrigger asChild>
                                   <span className="text-white truncate whitespace-nowrap overflow-hidden">
                                     {sub.title}

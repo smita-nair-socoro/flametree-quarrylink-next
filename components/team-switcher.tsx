@@ -130,7 +130,7 @@ export function TeamSwitcher({
             {isPending ? (
               <Skeleton className="h-4 w-36 bg-white/30" />
             ) : (
-              <Tooltip delayDuration={300}>
+              <Tooltip delayDuration={300} mobileClickable={false}>
                 <TooltipTrigger asChild>
                   <span className="truncate font-medium text-white">
                     {activeClient.name}

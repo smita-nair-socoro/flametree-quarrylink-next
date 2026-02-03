@@ -16,24 +16,91 @@ function TooltipProvider({
   );
 }
 
+// Context to share touch device state and open control between Tooltip and TooltipTrigger
+const TooltipContext = React.createContext<{
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  mobileClickable: boolean;
+}>({
+  open: false,
+  setOpen: () => {},
+  mobileClickable: true,
+});
+
+// Check for touch device - runs once on module load to avoid hydration issues
+const isTouchDevice =
+  typeof window !== 'undefined' &&
+  ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+interface TooltipProps extends React.ComponentProps<
+  typeof TooltipPrimitive.Root
+> {
+  /**
+   * When true, tooltip will show/hide on click instead of hover on touch devices.
+   * Default is true - set to false for navigation items that should not intercept clicks.
+   */
+  mobileClickable?: boolean;
+}
+
 function Tooltip({
+  mobileClickable = true,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+}: TooltipProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+
+  // Use controlled mode when mobileClickable is enabled on touch devices
+  const shouldControlInternally = mobileClickable && isTouchDevice;
+
+  const open = shouldControlInternally ? internalOpen : controlledOpen;
+  const onOpenChange = shouldControlInternally
+    ? setInternalOpen
+    : controlledOnOpenChange;
+
   return (
-    <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
-    </TooltipProvider>
+    <TooltipContext.Provider
+      value={{ open: internalOpen, setOpen: setInternalOpen, mobileClickable }}
+    >
+      <TooltipProvider>
+        <TooltipPrimitive.Root
+          data-slot="tooltip"
+          open={open}
+          onOpenChange={onOpenChange}
+          {...props}
+        />
+      </TooltipProvider>
+    </TooltipContext.Provider>
   );
 }
 
 function TooltipTrigger({
+  onClick,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+  const { open, setOpen, mobileClickable } = React.useContext(TooltipContext);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (mobileClickable && isTouchDevice) {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(!open);
+    }
+    onClick?.(e);
+  };
+
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      onClick={handleClick}
+      {...props}
+    />
+  );
 }
 
-interface TooltipContentProps
-  extends React.ComponentProps<typeof TooltipPrimitive.Content> {
+interface TooltipContentProps extends React.ComponentProps<
+  typeof TooltipPrimitive.Content
+> {
   variant?: 'default' | 'table' | 'purple' | 'white';
   backgroundClassName?: string;
   arrowClassName?: string;
@@ -58,7 +125,7 @@ function TooltipContent({
           className={cn(
             'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
             backgroundClassName || 'bg-primary text-primary-foreground',
-            className
+            className,
           )}
           {...props}
         >
@@ -66,7 +133,7 @@ function TooltipContent({
           <TooltipPrimitive.Arrow
             className={cn(
               'z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]',
-              arrowClassName || 'bg-primary fill-primary'
+              arrowClassName || 'bg-primary fill-primary',
             )}
           />
         </TooltipPrimitive.Content>
@@ -104,7 +171,7 @@ function TooltipContent({
         className={cn(
           'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
           styles.content,
-          className
+          className,
         )}
         {...props}
       >
@@ -112,7 +179,7 @@ function TooltipContent({
         <TooltipPrimitive.Arrow
           className={cn(
             'z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]',
-            styles.arrow
+            styles.arrow,
           )}
         />
       </TooltipPrimitive.Content>
