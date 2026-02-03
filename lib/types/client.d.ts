@@ -92,3 +92,8 @@ export interface TenantCompleteDetails {
 export interface TenantLogoUploadResponse {
   s3Key: string;
 }
+
+export interface TenantLogoResponse {
+  logoPublicS3Url: string;
+  tenantBusinessName: string;
+}

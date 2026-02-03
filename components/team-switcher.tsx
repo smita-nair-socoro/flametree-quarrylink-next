@@ -2,7 +2,10 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import {
+  TenantCompleteDetailsQueryOptions,
+  TenantLogoQueryOptions,
+} from '@/lib/api/tenant';
 
 import {
   SidebarMenu,
@@ -22,6 +25,7 @@ import {
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function TeamSwitcher({
   client,
@@ -44,7 +48,11 @@ export function TeamSwitcher({
     isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
 
+  const { data: tenantLogo } = useQuery(TenantLogoQueryOptions());
+
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
+
+  const logoUrl = tenantLogo?.logoPublicS3Url;
 
   const tenantName =
     tenantCompleteDetails?.tenantDetails?.tenantName ?? client?.name;
@@ -79,11 +87,12 @@ export function TeamSwitcher({
                 size="lg"
                 className="cursor-default bg-[#7138F5] hover:bg-[#7138F533] pointer-events-auto"
               >
-                <div className="bg-white border border-purple-300 text-purple-500 flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <span className="text-sm font-semibold">
+                <Avatar className="size-8 rounded-lg border border-purple-300">
+                  <AvatarImage src={logoUrl} alt={activeClient.name || 'Logo'} />
+                  <AvatarFallback className="rounded-lg bg-white text-purple-500 text-sm font-semibold">
                     {activeClient.initials}
-                  </span>
-                </div>
+                  </AvatarFallback>
+                </Avatar>
               </SidebarMenuButton>
             </HoverCardTrigger>
             <HoverCardContent
@@ -93,11 +102,12 @@ export function TeamSwitcher({
               sideOffset={8}
             >
               <div className="flex items-center gap-2.5 px-3 py-2 bg-[#7138F5] rounded-lg">
-                <div className="bg-white border border-purple-300 text-purple-500 flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <span className="text-sm font-semibold">
+                <Avatar className="size-8 rounded-lg border border-purple-300">
+                  <AvatarImage src={logoUrl} alt={activeClient.name || 'Logo'} />
+                  <AvatarFallback className="rounded-lg bg-white text-purple-500 text-sm font-semibold">
                     {activeClient.initials}
-                  </span>
-                </div>
+                  </AvatarFallback>
+                </Avatar>
                 <span className="text-sm font-semibold text-white truncate">
                   {activeClient.name}
                 </span>
@@ -117,15 +127,16 @@ export function TeamSwitcher({
           size="lg"
           className="cursor-default bg-[#7138F5] hover:bg-[#7138F533] pointer-events-none"
         >
-          <div className="bg-white border border-purple-300 text-purple-500 flex aspect-square size-8 items-center justify-center rounded-lg">
-            {isPending ? (
-              <Skeleton className="h-3 w-4 bg-black/10" />
-            ) : (
-              <span className="text-sm font-semibold">
-                {activeClient.initials}
-              </span>
-            )}
-          </div>
+          <Avatar className="size-8 rounded-lg border border-purple-300">
+            <AvatarImage src={logoUrl} alt={activeClient.name || 'Logo'} />
+            <AvatarFallback className="rounded-lg bg-white text-purple-500 text-sm font-semibold">
+              {isPending ? (
+                <Skeleton className="h-3 w-4 bg-black/10" />
+              ) : (
+                activeClient.initials
+              )}
+            </AvatarFallback>
+          </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
             {isPending ? (
               <Skeleton className="h-4 w-36 bg-white/30" />
