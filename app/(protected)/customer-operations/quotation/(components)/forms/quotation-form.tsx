@@ -21,7 +21,7 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
-import { GetTodaysDate } from '@/lib/utils/date';
+import { GetTodaysDate, formatLocalDateShort, formatLocalDateTime } from '@/lib/utils/date';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -356,19 +356,8 @@ export default function QuotationForm({
               const reasonLabel = reasonLabels[reasonKey] || reasonKey;
 
               // Format customerResponseAt date
-              const responseDate = currentQuotation?.customerResponseAt
-                ? new Date(currentQuotation.customerResponseAt)
-                : null;
-              const formattedDate = responseDate
-                ? `${responseDate.toLocaleDateString('en-AU', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                  })} at ${responseDate.toLocaleTimeString('en-AU', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                  })}`
+              const formattedDate = currentQuotation?.customerResponseAt
+                ? formatLocalDateTime(currentQuotation.customerResponseAt)
                 : '';
 
               return (
@@ -503,7 +492,7 @@ export default function QuotationForm({
               label="Account Manager*"
               searchLabel="Account Managers"
               options={userOptions}
-              placeholder="Select Account Manager"
+              placeholder="Select Customer First"
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
@@ -893,15 +882,7 @@ export default function QuotationForm({
                           Created Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('createdAt')
-                            ? new Date(
-                                quotationForm.watch('createdAt'),
-                              ).toLocaleDateString('en-AU', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: '2-digit',
-                              })
-                            : '10/02/25'}
+                          {formatLocalDateShort(quotationForm.watch('createdAt')) || '—'}
                         </p>
                       </div>
 
@@ -910,15 +891,7 @@ export default function QuotationForm({
                           Modified Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {quotationForm.watch('updatedAt')
-                            ? new Date(
-                                quotationForm.watch('updatedAt'),
-                              ).toLocaleDateString('en-AU', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: '2-digit',
-                              })
-                            : '21/04/25'}
+                          {formatLocalDateShort(quotationForm.watch('updatedAt')) || '—'}
                         </p>
                       </div>
                     </div>

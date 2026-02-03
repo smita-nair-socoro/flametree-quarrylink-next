@@ -41,6 +41,7 @@ import { CustomerDeliveryAddress } from '../types/address';
 type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
 
+
 export interface HttpConfig {
   /**
    * One of "GET", "POST", "PUT", "PATCH", "DELETE", etc.
@@ -96,6 +97,12 @@ export interface HttpConfig {
    * If you pass this, we will use it instead of window.fetch
    */
   fetch?: typeof fetch;
+
+  /**
+   * If true, appends 'Z' to known date field strings that lack timezone info.
+   * This treats backend datetimes as UTC. Default: true.
+   */
+  normalizeUtc?: boolean;
 }
 
 /**

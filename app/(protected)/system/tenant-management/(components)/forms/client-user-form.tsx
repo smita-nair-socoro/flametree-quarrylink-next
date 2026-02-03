@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
-import { getRelativeTime, formatDate } from '@/lib/utils/date';
+import { getRelativeTime, formatLocalDate } from '@/lib/utils/date';
 import { EditClientUserFormSchema } from './schemas/client-user-form-schema';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -118,9 +118,7 @@ export function EditClientUserForm({
   }, [form, defaultValues]);
 
   const joinedDate = initialData?.createdAt || undefined;
-  const formattedJoined = joinedDate
-    ? formatDate(joinedDate, 'd MMM yyyy')
-    : '—';
+  const formattedJoined = formatLocalDate(joinedDate);
 
   const lastLoginRelative = initialData?.lastLoginAt
     ? getRelativeTime(initialData.lastLoginAt)
