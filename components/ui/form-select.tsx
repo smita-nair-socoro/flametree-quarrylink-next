@@ -166,7 +166,18 @@ export function FormSelect<TFieldValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field }) => {
+        const selectedOption = options.find(
+          (o) => String(o.value) === String(field.value)
+        );
+        const hasValidSelection =
+          field.value != null &&
+          field.value !== '' &&
+          field.value !== 0 &&
+          selectedOption != null;
+        const selectedLabel = selectedOption?.label;
+
+        return (
         <FormItem className={formItemClassName}>
           {label && <FormLabel>{label}</FormLabel>}
           <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -177,15 +188,13 @@ export function FormSelect<TFieldValues extends FieldValues>({
                   role="combobox"
                   className={cn(
                     'w-full flex items-center justify-between overflow-hidden whitespace-nowrap',
-                    !field.value && 'text-muted-foreground',
+                    !hasValidSelection && 'text-muted-foreground',
                     className
                   )}
                   disabled={disabled}
                 >
-                  <span className="flex-1 text-left truncate" title={field.value ? options.find((o) => o.value === field.value)?.label : placeholder}>
-                    {field.value
-                      ? options.find((o) => o.value === field.value)?.label
-                      : placeholder}
+                  <span className="flex-1 text-left truncate" title={hasValidSelection ? selectedLabel : placeholder}>
+                    {hasValidSelection ? selectedLabel : placeholder}
                   </span>
                   <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />
                 </Button>
@@ -208,6 +217,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                     {options.map((opt) => (
                       <CommandItem
                         key={opt.value}
+                        value={`${opt.label} __${String(opt.value)}`}
                         onSelect={() => {
                           field.onChange(opt.value);
                           onChange?.(String(opt.value));
@@ -219,7 +229,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         <Check
                           className={cn(
                             'ml-auto h-4 w-4',
-                            field.value === opt.value
+                            String(field.value) === String(opt.value)
                               ? 'opacity-100'
                               : 'opacity-0'
                           )}
@@ -251,7 +261,8 @@ export function FormSelect<TFieldValues extends FieldValues>({
           </Popover>
           {showErrorMessage && <FormMessage />}
         </FormItem>
-      )}
+      );
+      }}
     />
   );
 }

@@ -127,10 +127,11 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       data.payment_terms_day !== undefined &&
       data.payment_terms_day !== null
     ) {
-      if (
-        data.payment_terms === 'of the following month' ||
-        data.payment_terms === 'of the current month'
-      ) {
+      // Compare against select option values (codes), not labels
+      // OFFOLLOWINGMONTH / OFCURRENTMONTH => 1..31
+      // DAYSAFTERBILLDATE / DAYSAFTERBILLMONTH => 1..99
+      const terms = String(data.payment_terms);
+      if (terms === 'OFFOLLOWINGMONTH' || terms === 'OFCURRENTMONTH') {
         if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
           ctx.addIssue({
             path: ['payment_terms_day'],
@@ -139,8 +140,8 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
           });
         }
       } else if (
-        data.payment_terms === 'day(s) after the invoice date' ||
-        data.payment_terms === 'day(s) after the invoice month'
+        terms === 'DAYSAFTERBILLDATE' ||
+        terms === 'DAYSAFTERBILLMONTH'
       ) {
         if (data.payment_terms_day < 1 || data.payment_terms_day > 99) {
           ctx.addIssue({

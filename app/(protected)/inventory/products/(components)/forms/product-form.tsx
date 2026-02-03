@@ -47,6 +47,7 @@ import {
 import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { ProductDetails } from '@/lib/types/product';
 import { Separator } from '@/components/ui/separator';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -794,16 +795,7 @@ export default function ProductForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.createdAt
-                      ? new Date(selectedProduct.createdAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedProduct?.createdAt)}
                   </p>
                 </div>
 
@@ -812,16 +804,7 @@ export default function ProductForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {latestAuditData?.updatedAt
-                      ? new Date(latestAuditData.updatedAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(latestAuditData?.updatedAt)}
                   </p>
                 </div>
               </div>

@@ -111,3 +111,46 @@ input:-webkit-autofill:active {
   background-color: white !important;
   background-clip: content-box !important;
 }
+
+/* Mobile UX Enhancements - Only apply on mobile devices */
+@media (max-width: 767px) {
+  /* Prevent iOS auto-zoom on input focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  /* Increased touch target size for buttons */
+  button,
+  .btn,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Enhanced touch area for radio/checkboxes */
+  input[type="radio"],
+  input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+
+  label {
+    padding: 8px 0;
+    cursor: pointer;
+  }
+}
+/* Hide number input spinners (arrows) across browsers */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
