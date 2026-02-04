@@ -233,15 +233,19 @@ export const calculateQuotationPricing = (
 
   const totalCostCents = totalProductCostCents + totalTruckCostCents;
   const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
-  const grossProfitCents = totalInvoiceCents - totalCostCents;
-  const grossProfitPercentage =
-    totalInvoiceCents > 0 ? (grossProfitCents / totalInvoiceCents) * 100 : 0;
 
   // Convert cents to dollars for display
   const gstCents = totalInvoiceCents * GST_RATE;
   const totalInvoiceCentsWithGST = totalInvoiceCents + gstCents;
   const costGstCents = totalCostCents * GST_RATE;
   const totalCostCentsWithGST = totalCostCents + costGstCents;
+
+  // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
+  const grossProfitCents = totalInvoiceCentsWithGST - totalCostCentsWithGST;
+  const grossProfitPercentage =
+    totalInvoiceCentsWithGST > 0
+      ? (grossProfitCents / totalInvoiceCentsWithGST) * 100
+      : 0;
 
   return {
     grossProfitPercentage: grossProfitPercentage,

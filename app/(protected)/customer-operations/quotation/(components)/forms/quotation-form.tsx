@@ -99,6 +99,7 @@ export default function QuotationForm({
     timeWindowLabel,
     pricingBreakdown,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
+
   const isCollectionQuote =
     currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
 
@@ -782,134 +783,135 @@ export default function QuotationForm({
                     })()}
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    {(() => {
-                      const separatorBorder =
-                        'border-t border-dashed border-purple-300';
-                      return (
-                        <>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Cost Summary */}
-                            <div className="md:col-span-1 md:col-start-2 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
-                              <h3 className="text-lg font-bold mb-3">
-                                Cost Summary
-                              </h3>
-                              <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
-                                <div>
-                                  <span>Product Cost</span>
-                                  <span>
-                                    ${pricingBreakdown.totalProductCostPrice}
-                                  </span>
-                                </div>
-                                {!isCollectionQuote && (
+                  {(currentQuotation?.lineItemsCount ?? 0) > 0 && (
+                    <div className="flex flex-col gap-3">
+                      {(() => {
+                        const separatorBorder =
+                          'border-t border-dashed border-purple-300';
+                        return (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {/* Cost Summary */}
+                              <div className="md:col-span-1 md:col-start-2 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
+                                <h3 className="text-lg font-bold mb-3">
+                                  Cost Summary
+                                </h3>
+                                <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                                   <div>
-                                    <span>Truck Cost</span>
+                                    <span>Product Cost</span>
                                     <span>
-                                      ${pricingBreakdown.totalTruckCostPrice}
+                                      ${pricingBreakdown.totalProductCostPrice}
                                     </span>
                                   </div>
-                                )}
-                                <div className={`pt-2 ${separatorBorder}`}>
-                                  <span>Subtotal (ex-GST)</span>
-                                  <span>
-                                    ${pricingBreakdown.costSubtotalExGST}
-                                  </span>
+                                  {!isCollectionQuote && (
+                                    <div>
+                                      <span>Truck Cost</span>
+                                      <span>
+                                        ${pricingBreakdown.totalTruckCostPrice}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span>Subtotal (ex-GST)</span>
+                                    <span>
+                                      ${pricingBreakdown.costSubtotalExGST}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span>GST (10%)</span>
+                                    <span>${pricingBreakdown.costGst}</span>
+                                  </div>
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span className="font-bold text-lg">
+                                      Total Cost
+                                    </span>
+                                    <span className="font-bold text-lg">
+                                      ${pricingBreakdown.totalCost}
+                                    </span>
+                                  </div>
                                 </div>
-                                <div>
-                                  <span>GST (10%)</span>
-                                  <span>${pricingBreakdown.costGst}</span>
-                                </div>
-                                <div className={`pt-2 ${separatorBorder}`}>
-                                  <span className="font-bold text-lg">
-                                    Total Cost
-                                  </span>
-                                  <span className="font-bold text-lg">
-                                    ${pricingBreakdown.totalCost}
-                                  </span>
+                              </div>
+                              {/* Sale Summary */}
+                              <div className="md:col-span-1 md:col-start-3 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
+                                <h3 className="text-lg font-bold mb-3">
+                                  Sale Summary
+                                </h3>
+                                <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
+                                  <div>
+                                    <span>Product Sell</span>
+                                    <span>
+                                      ${pricingBreakdown.totalProductSellPrice}
+                                    </span>
+                                  </div>
+                                  {!isCollectionQuote && (
+                                    <div>
+                                      <span>Truck Sell</span>
+                                      <span>
+                                        ${pricingBreakdown.totalTruckSellPrice}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span>Subtotal (ex-GST)</span>
+                                    <span>
+                                      ${pricingBreakdown.invoiceSubtotalExGST}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span>GST (10%)</span>
+                                    <span>${pricingBreakdown.invoiceGst}</span>
+                                  </div>
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span className="font-bold text-lg">
+                                      Total Invoice
+                                    </span>
+                                    <span className="font-bold text-lg">
+                                      ${pricingBreakdown.totalInvoice}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                            {/* Sale Summary */}
-                            <div className="md:col-span-1 md:col-start-3 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
-                              <h3 className="text-lg font-bold mb-3">
-                                Sale Summary
-                              </h3>
-                              <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
-                                <div>
-                                  <span>Product Sell</span>
-                                  <span>
-                                    ${pricingBreakdown.totalProductSellPrice}
-                                  </span>
-                                </div>
-                                {!isCollectionQuote && (
-                                  <div>
-                                    <span>Truck Sell</span>
-                                    <span>
-                                      ${pricingBreakdown.totalTruckSellPrice}
-                                    </span>
-                                  </div>
+                            {/* Gross Profit */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="flex justify-end items-center gap-2 py-3 px-4 bg-gray-200 rounded-lg md:col-span-2 md:col-start-2">
+                                <span className="text-lg font-semibold">
+                                  Gross Profit:
+                                </span>
+                                {pricingBreakdown.grossProfitPercentage >= 0 ? (
+                                  <TrendingUp className="w-5 h-5 text-green-600 shrink-0" />
+                                ) : (
+                                  <TrendingDown className="w-5 h-5 text-red-600 shrink-0" />
                                 )}
-                                <div className={`pt-2 ${separatorBorder}`}>
-                                  <span>Subtotal (ex-GST)</span>
-                                  <span>
-                                    ${pricingBreakdown.invoiceSubtotalExGST}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span>GST (10%)</span>
-                                  <span>${pricingBreakdown.invoiceGst}</span>
-                                </div>
-                                <div className={`pt-2 ${separatorBorder}`}>
-                                  <span className="font-bold text-lg">
-                                    Total Invoice
-                                  </span>
-                                  <span className="font-bold text-lg">
-                                    ${pricingBreakdown.totalInvoice}
-                                  </span>
-                                </div>
+                                <span
+                                  className={cn(
+                                    'text-lg font-bold',
+                                    pricingBreakdown.grossProfitPercentage >= 0
+                                      ? 'text-green-600'
+                                      : 'text-red-600'
+                                  )}
+                                >
+                                  {pricingBreakdown.grossProfitPercentage?.toFixed(
+                                    2
+                                  )}
+                                  %
+                                </span>
+                                <span className="text-lg font-medium ml-5">
+                                  {Number(pricingBreakdown.grossProfit) >= 0
+                                    ? ''
+                                    : '-'}
+                                  $
+                                  {Math.abs(
+                                    Number(pricingBreakdown.grossProfit)
+                                  ).toFixed(2)}
+                                </span>
                               </div>
                             </div>
-                          </div>
-                          {/* Gross Profit */}
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="flex justify-end items-center gap-2 py-3 px-4 bg-gray-200 rounded-lg md:col-span-2 md:col-start-2">
-                              <span className="text-lg font-semibold">
-                                Gross Profit:
-                              </span>
-                              {pricingBreakdown.grossProfitPercentage >= 0 ? (
-                                <TrendingUp className="w-5 h-5 text-green-600 shrink-0" />
-                              ) : (
-                                <TrendingDown className="w-5 h-5 text-red-600 shrink-0" />
-                              )}
-                              <span
-                                className={cn(
-                                  'text-lg font-bold',
-                                  pricingBreakdown.grossProfitPercentage >= 0
-                                    ? 'text-green-600'
-                                    : 'text-red-600'
-                                )}
-                              >
-                                {pricingBreakdown.grossProfitPercentage?.toFixed(
-                                  2
-                                )}
-                                %
-                              </span>
-                              <span className="text-lg font-medium ml-5">
-                                {Number(pricingBreakdown.grossProfit) >= 0
-                                  ? ''
-                                  : '-'}
-                                $
-                                {Math.abs(
-                                  Number(pricingBreakdown.grossProfit)
-                                ).toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
 
                 {!isDuplicate && (
