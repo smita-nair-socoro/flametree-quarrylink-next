@@ -2,7 +2,7 @@ Hi {customerContactFirstName},
 
 This is a reminder that your quote will expire soon.
 
-This quote expires in 7 days on {expiryDate}
+This quote expires on {expiryDate}
 
 Quote Number: {quoteNumber}
 Project: {projectName}
