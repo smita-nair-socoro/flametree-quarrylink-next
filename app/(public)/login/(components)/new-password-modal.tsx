@@ -45,7 +45,7 @@ const newPasswordSchema = z
         {
           message:
             'Password must contain uppercase, lowercase, number, and special character',
-        }
+        },
       ),
     confirmPassword: z
       .string()
@@ -106,7 +106,11 @@ export function NewPasswordModal({
     } catch (error: unknown) {
       console.error('New password error:', error);
 
-      const errorObj = error as { name?: string; message?: string; response?: { data?: { message?: string } } };
+      const errorObj = error as {
+        name?: string;
+        message?: string;
+        response?: { data?: { message?: string } };
+      };
 
       // Handle Cognito errors
       if (errorObj.name === 'InvalidPasswordException') {
@@ -117,7 +121,10 @@ export function NewPasswordModal({
         notifyError('Verification failed. Please try signing in again.');
       } else {
         // Handle API errors
-        const errorMessage = errorObj.response?.data?.message || errorObj.message || 'Failed to update password. Please try again.';
+        const errorMessage =
+          errorObj.response?.data?.message ||
+          errorObj.message ||
+          'Failed to update password. Please try again or contact the Admin for help.';
         notifyError(errorMessage);
       }
     } finally {
