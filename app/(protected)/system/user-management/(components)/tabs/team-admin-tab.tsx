@@ -58,11 +58,6 @@ export default function TeamAdminTab() {
     }
   }, [error]);
 
-  // Filter only enabled users (FOR NOW)
-  const enabledUsers = React.useMemo(() => {
-    return (users || []).filter((u) => u.enabled === true);
-  }, [users]);
-
   // Helper function to convert groups array to Role string for display
   const getHighestRole = (groups: string[] | undefined): Role => {
     if (!groups || !Array.isArray(groups)) return Role.USER;
@@ -76,7 +71,7 @@ export default function TeamAdminTab() {
 
   // Convert pending users from API to PendingInvitation format
   const pendingInvitations: PendingInvitation[] = React.useMemo(() => {
-    const pending = enabledUsers
+    const pending = (users || [])
       .filter((user) => user.status === UserStatus.PENDING)
       .map((user) => ({
         id: user.id || 0, // Fallback to 0 if no id (should use sub for unique identifier)
@@ -92,7 +87,7 @@ export default function TeamAdminTab() {
       }));
 
     return pending;
-  }, [enabledUsers]);
+  }, [users]);
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
@@ -118,7 +113,7 @@ export default function TeamAdminTab() {
   };
 
   // Calculate team member count based on actual data
-  const teamMemberCount = enabledUsers.length;
+  const teamMemberCount = (users || []).length;
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
@@ -128,7 +123,6 @@ export default function TeamAdminTab() {
 
   const facetDefs: FacetDefinition[] = [
     { column: 'role', title: 'Role', icon: Plus },
-    { column: 'status', title: 'Status', icon: Plus },
   ];
 
   return (
@@ -178,11 +172,7 @@ export default function TeamAdminTab() {
                 )}
                 <DataTableClient
                   tableId="team_member_data_table"
-                  data={enabledUsers.filter(
-                    (member) =>
-                      member.status !== UserStatus.DELETED &&
-                      member.status !== UserStatus.INACTIVE,
-                  )}
+                  data={users || []}
                   columns={columns}
                   facetDefination={facetDefs}
                   searchPlaceHolder="Search team members..."

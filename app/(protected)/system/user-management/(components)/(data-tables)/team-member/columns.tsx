@@ -1,10 +1,8 @@
 'use client';
-import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { TeamMemberTableActions } from './team-member-table-actions';
 import { User } from '@/lib/types/user';
-import { UserStatus } from '@/lib/types/user-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
 
 export const createTeamMemberColumns = (
@@ -56,31 +54,6 @@ export const createTeamMemberColumns = (
     },
     meta: 'Role',
     size: 120,
-  },
-  {
-    id: 'status',
-    accessorFn: (row) => row.status,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
-    },
-    cell: ({ getValue }) => {
-      const status = getValue<string>() as UserStatus;
-      const formattedStatus =
-        status === UserStatus.ACTIVE
-          ? 'ACTIVE'
-          : status === UserStatus.PENDING
-          ? 'PENDING'
-          : status === UserStatus.INACTIVE
-          ? 'INACTIVE'
-          : status;
-      return (
-        <div className="py-2">
-          <TableBadges names={[formattedStatus]} visibleCount={1} />
-        </div>
-      );
-    },
-    meta: 'Status',
-    size: 10,
   },
   // {
   //   id: 'lastLoginAt',
