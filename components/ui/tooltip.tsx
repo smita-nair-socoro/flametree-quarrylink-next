@@ -21,16 +21,59 @@ const TooltipContext = React.createContext<{
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   mobileClickable: boolean;
+  isTouchOnly: boolean;
 }>({
   open: false,
   setOpen: () => {},
   mobileClickable: true,
+  isTouchOnly: false,
 });
 
-// Check for touch device - runs once on module load to avoid hydration issues
-const isTouchDevice =
-  typeof window !== 'undefined' &&
-  ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+// Hook to detect touch-only devices (excludes touch + mouse laptops)
+// Uses any-hover/any-pointer to check if ANY input device can hover/has fine pointer
+function useIsTouchOnly() {
+  const [isTouchOnly, setIsTouchOnly] = React.useState(false);
+
+  React.useEffect(() => {
+    // Safety check for SSR and older browsers
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
+      return;
+    }
+
+    // Use any-hover/any-pointer: checks if ANY input device has the capability
+    // This is better than hover/pointer which only checks the "primary" device
+    const hoverQuery = window.matchMedia('(any-hover: hover)');
+    const pointerQuery = window.matchMedia('(any-pointer: fine)');
+
+    const updateTouchOnly = () => {
+      const hasTouch =
+        'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      // If ANY device can hover OR has fine pointer, treat as non-touch-only
+      // This properly excludes touch laptops with mouse/trackpad
+      const canHover = hoverQuery.matches;
+      const hasFinePointer = pointerQuery.matches;
+
+      setIsTouchOnly(hasTouch && !canHover && !hasFinePointer);
+    };
+
+    // Initial check
+    updateTouchOnly();
+
+    // Listen for changes (e.g., user connects/disconnects mouse on iPad)
+    hoverQuery.addEventListener('change', updateTouchOnly);
+    pointerQuery.addEventListener('change', updateTouchOnly);
+
+    return () => {
+      hoverQuery.removeEventListener('change', updateTouchOnly);
+      pointerQuery.removeEventListener('change', updateTouchOnly);
+    };
+  }, []);
+
+  return isTouchOnly;
+}
 
 interface TooltipProps extends React.ComponentProps<
   typeof TooltipPrimitive.Root
@@ -49,9 +92,10 @@ function Tooltip({
   ...props
 }: TooltipProps) {
   const [internalOpen, setInternalOpen] = React.useState(false);
+  const isTouchOnly = useIsTouchOnly();
 
-  // Use controlled mode when mobileClickable is enabled on touch devices
-  const shouldControlInternally = mobileClickable && isTouchDevice;
+  // Use controlled mode when mobileClickable is enabled on touch-only devices
+  const shouldControlInternally = mobileClickable && isTouchOnly;
 
   const open = shouldControlInternally ? internalOpen : controlledOpen;
   const onOpenChange = shouldControlInternally
@@ -60,7 +104,12 @@ function Tooltip({
 
   return (
     <TooltipContext.Provider
-      value={{ open: internalOpen, setOpen: setInternalOpen, mobileClickable }}
+      value={{
+        open: internalOpen,
+        setOpen: setInternalOpen,
+        mobileClickable,
+        isTouchOnly,
+      }}
     >
       <TooltipProvider>
         <TooltipPrimitive.Root
@@ -78,10 +127,11 @@ function TooltipTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  const { open, setOpen, mobileClickable } = React.useContext(TooltipContext);
+  const { open, setOpen, mobileClickable, isTouchOnly } =
+    React.useContext(TooltipContext);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (mobileClickable && isTouchDevice) {
+    if (mobileClickable && isTouchOnly) {
       e.preventDefault();
       e.stopPropagation();
       setOpen(!open);
