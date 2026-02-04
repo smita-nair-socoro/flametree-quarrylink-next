@@ -851,18 +851,20 @@ export default function QuotationForm({
                                 )}
                                 <div className={`pt-2 ${separatorBorder}`}>
                                   <span>Subtotal (ex-GST)</span>
-                                  <span>${pricingBreakdown.totalInvoice}</span>
+                                  <span>
+                                    ${pricingBreakdown.invoiceSubtotalExGST}
+                                  </span>
                                 </div>
                                 <div>
                                   <span>GST (10%)</span>
-                                  <span>${pricingBreakdown.gst}</span>
+                                  <span>${pricingBreakdown.invoiceGst}</span>
                                 </div>
                                 <div className={`pt-2 ${separatorBorder}`}>
                                   <span className="font-bold text-lg">
                                     Total Invoice
                                   </span>
                                   <span className="font-bold text-lg">
-                                    ${pricingBreakdown.totalInvoiceIncGST}
+                                    ${pricingBreakdown.totalInvoice}
                                   </span>
                                 </div>
                               </div>

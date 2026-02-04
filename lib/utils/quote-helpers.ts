@@ -182,15 +182,14 @@ export interface QuotationPricingBreakdown {
   totalTruckCostPrice: string | number;
   totalProductSellPrice: string | number;
   totalTruckSellPrice: string | number;
-  totalInvoice: string | number;
   grossProfit: string | number;
   grossProfitPercentage: number;
-  gst: string | number;
-  totalInvoiceIncGST: string | number;
-  /** Cost summary: subtotal ex-GST, GST, and total cost (display strings) */
   costSubtotalExGST: string | number;
   costGst: string | number;
   totalCost: string | number;
+  invoiceSubtotalExGST: string | number;
+  invoiceGst: string | number;
+  totalInvoice: string | number;
 }
 
 export const calculateQuotationPricing = (
@@ -203,14 +202,14 @@ export const calculateQuotationPricing = (
       totalTruckCostPrice: 0,
       totalProductSellPrice: 0,
       totalTruckSellPrice: 0,
-      totalInvoice: 0,
       grossProfit: 0,
       grossProfitPercentage: 0,
-      gst: 0,
-      totalInvoiceIncGST: 0,
       costSubtotalExGST: 0,
       costGst: 0,
       totalCost: 0,
+      invoiceSubtotalExGST: 0,
+      invoiceGst: 0,
+      totalInvoice: 0,
     };
   }
 
@@ -250,12 +249,12 @@ export const calculateQuotationPricing = (
     totalTruckCostPrice: centsToDollars(totalTruckCostCents),
     totalProductSellPrice: centsToDollars(totalProductSellCents),
     totalTruckSellPrice: centsToDollars(totalTruckSellCents),
-    totalInvoice: centsToDollars(totalInvoiceCents),
     grossProfit: centsToDollars(grossProfitCents),
-    gst: centsToDollars(gstCents),
-    totalInvoiceIncGST: centsToDollars(totalInvoiceCentsWithGST),
     costSubtotalExGST: centsToDollars(totalCostCents),
     costGst: centsToDollars(costGstCents),
     totalCost: centsToDollars(totalCostCentsWithGST),
+    invoiceSubtotalExGST: centsToDollars(totalInvoiceCents),
+    invoiceGst: centsToDollars(gstCents),
+    totalInvoice: centsToDollars(totalInvoiceCentsWithGST),
   };
 };
