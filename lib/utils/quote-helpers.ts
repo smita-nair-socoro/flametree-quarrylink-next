@@ -34,7 +34,7 @@ export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
 
 const combineDateAndTime = (
   date: Date | undefined,
-  timeString: string,
+  timeString: string
 ): string | null => {
   if (!date || !timeString) return null;
 
@@ -53,7 +53,7 @@ const combineDateAndTime = (
  * @returns The next quote number (e.g., "Q0016")
  */
 export const generateNextQuoteNumber = (
-  latestQuoteNumber?: string | null,
+  latestQuoteNumber?: string | null
 ): string => {
   if (!latestQuoteNumber) {
     return 'Q0001';
@@ -78,7 +78,7 @@ export const generateNextQuoteNumber = (
  * @returns The latest/maximum quote number string
  */
 export const getLatestQuoteNumber = (
-  existingQuotes: { quoteNumber: string }[],
+  existingQuotes: { quoteNumber: string }[]
 ): string | null => {
   if (!existingQuotes || existingQuotes.length === 0) {
     return null;
@@ -92,8 +92,7 @@ export const getLatestQuoteNumber = (
         : null;
     })
     .filter(
-      (n): n is { num: number; original: string } =>
-        n !== null && !isNaN(n.num),
+      (n): n is { num: number; original: string } => n !== null && !isNaN(n.num)
     );
 
   if (numbers.length === 0) {
@@ -101,7 +100,7 @@ export const getLatestQuoteNumber = (
   }
 
   const maxEntry = numbers.reduce((max, current) =>
-    current.num > max.num ? current : max,
+    current.num > max.num ? current : max
   );
 
   return maxEntry.original;
@@ -115,7 +114,7 @@ export const transformFormDataToQuoteDto = (
     accountManagerSub: string;
     quoteNumber?: string;
     lineItemsCount?: number;
-  },
+  }
 ): Partial<QuotationDTO> => {
   const deliveryDate = formData.deliveryStartDate as Date | undefined;
   const expiryDate = formData.expiryDate as Date | undefined;
@@ -155,7 +154,7 @@ export const transformFormDataToQuoteDto = (
 
   const windowStart = combineDateAndTime(
     deliveryDate,
-    formData.deliveryWindowStart as string,
+    formData.deliveryWindowStart as string
   );
   if (windowStart) {
     transformed.deliveryWindowStart = windowStart;
@@ -163,7 +162,7 @@ export const transformFormDataToQuoteDto = (
 
   const windowEnd = combineDateAndTime(
     deliveryDate,
-    formData.deliveryWindowEnd as string,
+    formData.deliveryWindowEnd as string
   );
   if (windowEnd) {
     transformed.deliveryWindowEnd = windowEnd;
@@ -188,10 +187,14 @@ export interface QuotationPricingBreakdown {
   grossProfitPercentage: number;
   gst: string | number;
   totalInvoiceIncGST: string | number;
+  /** Cost summary: subtotal ex-GST, GST, and total cost (display strings) */
+  costSubtotalExGST: string | number;
+  costGst: string | number;
+  totalCost: string | number;
 }
 
 export const calculateQuotationPricing = (
-  lineItems: QuotationLineItem[] | undefined | null,
+  lineItems: QuotationLineItem[] | undefined | null
 ): QuotationPricingBreakdown => {
   // Handle empty or null line items
   if (!lineItems || lineItems.length === 0) {
@@ -205,25 +208,28 @@ export const calculateQuotationPricing = (
       grossProfitPercentage: 0,
       gst: 0,
       totalInvoiceIncGST: 0,
+      costSubtotalExGST: 0,
+      costGst: 0,
+      totalCost: 0,
     };
   }
 
   // Sum up the values (in cents)
   const totalProductCostCents = lineItems.reduce(
     (sum, item) => sum + (item.totalProductCostPrice || 0),
-    0,
+    0
   );
   const totalTruckCostCents = lineItems.reduce(
     (sum, item) => sum + (item.totalTruckCostPrice || 0),
-    0,
+    0
   );
   const totalProductSellCents = lineItems.reduce(
     (sum, item) => sum + (item.totalProductSellPrice || 0),
-    0,
+    0
   );
   const totalTruckSellCents = lineItems.reduce(
     (sum, item) => sum + (item.totalTruckSellPrice || 0),
-    0,
+    0
   );
 
   const totalCostCents = totalProductCostCents + totalTruckCostCents;
@@ -235,6 +241,8 @@ export const calculateQuotationPricing = (
   // Convert cents to dollars for display
   const gstCents = totalInvoiceCents * GST_RATE;
   const totalInvoiceCentsWithGST = totalInvoiceCents + gstCents;
+  const costGstCents = totalCostCents * GST_RATE;
+  const totalCostCentsWithGST = totalCostCents + costGstCents;
 
   return {
     grossProfitPercentage: grossProfitPercentage,
@@ -246,5 +254,8 @@ export const calculateQuotationPricing = (
     grossProfit: centsToDollars(grossProfitCents),
     gst: centsToDollars(gstCents),
     totalInvoiceIncGST: centsToDollars(totalInvoiceCentsWithGST),
+    costSubtotalExGST: centsToDollars(totalCostCents),
+    costGst: centsToDollars(costGstCents),
+    totalCost: centsToDollars(totalCostCentsWithGST),
   };
 };
