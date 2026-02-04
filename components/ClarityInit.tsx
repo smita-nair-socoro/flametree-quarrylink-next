@@ -24,7 +24,7 @@ interface MicrosoftClarity {
 export default function ClarityInit() {
 
   useEffect(() => {
-    const clarityProjectId = '801q4p82q3';
+    const clarityProjectId = 'v88amv038n';
     console.log('clarityProjectId', clarityProjectId);
 
     if (clarityProjectId && typeof window !== 'undefined') {
