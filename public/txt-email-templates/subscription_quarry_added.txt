@@ -1,0 +1,16 @@
+Hi {tenantPrimaryContactName},
+
+Your QuarryLink subscription has been updated.
+
+{userName} has added a new quarry to your account, which has increased your monthly subscription by $250 ex-GST.
+
+Quarry added: {quarryName}
+Your new monthly subscription total is: ${newTotal} ex-GST
+
+This change will be reflected in your next billing cycle. You can view your full subscription details anytime by visiting your account settings.
+
+View Subscription Details: {subscriptionUrl}
+
+If you have any questions about this change or your billing, please don't hesitate to reach out to our support team.
+
+You're receiving this as the main contact for your QuarryLink account.
