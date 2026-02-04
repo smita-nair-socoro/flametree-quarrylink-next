@@ -1,6 +1,9 @@
 'use client';
+
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Clarity from '@microsoft/clarity';
+import { getTenantId } from '@/lib/utils';
 
 // Type definition for Microsoft Clarity
 interface MicrosoftClarity {
@@ -21,22 +24,29 @@ interface MicrosoftClarity {
   event: (eventName: string) => void;
 }
 
+const clarityProjectId = 'v88amv038n';
+
 export default function ClarityInit() {
+  const pathname = usePathname();
 
   useEffect(() => {
-    const clarityProjectId = 'v88amv038n';
-    console.log('clarityProjectId', clarityProjectId);
-
-    if (clarityProjectId && typeof window !== 'undefined') {
-      const clarity = Clarity as MicrosoftClarity;
-      console.log('clarity', clarity);
-      clarity.init(clarityProjectId);
-    } else if (!clarityProjectId) {
-      console.warn(
-        'Microsoft Clarity project ID not found.'
-      );
-    }
+    if (typeof window === 'undefined' || !clarityProjectId) return;
+    (Clarity as MicrosoftClarity).init(clarityProjectId);
   }, []);
+
+  // On every route change: tag page and refresh tenant for filtering/segmentation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const clarity = Clarity as MicrosoftClarity;
+
+    if (pathname) {
+      clarity.setTag('page', pathname);
+    }
+
+    getTenantId().then((tenantId) => {
+      clarity.setTag('tenantId', tenantId ?? '');
+    });
+  }, [pathname]);
 
   return null;
 }
