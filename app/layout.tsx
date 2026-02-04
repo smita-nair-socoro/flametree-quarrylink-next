@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AppAuthProviders } from '@/lib/providers/AuthProviders';
 import { ConfigProvider } from '@/lib/providers/ConfigProvider';
 import VersionLogger from '@/components/VersionLogger';
+import ClarityInit from '@/components/ClarityInit';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,6 +38,7 @@ export default function RootLayout({
         <ConfigProvider>
           <AppAuthProviders>
             <VersionLogger />
+            <ClarityInit />
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
