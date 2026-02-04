@@ -82,8 +82,6 @@ export function SubscriptionPlanCard({
             <p className="font-normal text-muted-foreground leading-relaxed text-[11px]">
               {description}
             </p>
-
-          
           </div>
         </CardContent>
       </Card>
