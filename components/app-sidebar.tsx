@@ -8,8 +8,8 @@ import {
   Users,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import Clarity from '@microsoft/clarity';
 
+import { claritySafe } from '@/lib/clarity';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { QuarryLinkBranding } from '@/components/quarrylink-branding';
@@ -157,22 +157,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
       ?.subscriptions?.[0]?.subscriptionPlan;
 
-  // Set Clarity tags for filtering/segmentation when tenant and user data are available
+  // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
   React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const clarity = Clarity as { setTag: (key: string, value: string) => void };
-    if (tenantCompleteDetails?.tenantDetails?.tenantName) {
-      clarity.setTag('tenantName', tenantCompleteDetails.tenantDetails.tenantName);
-    }
-    if (subscriptionPlan) {
-      clarity.setTag('subscriptionPlan', subscriptionPlan);
-    }
-    if (displayName) {
-      clarity.setTag('userName', displayName);
-    }
-    if (email) {
-      clarity.setTag('userEmail', email);
-    }
+    claritySafe((c) => {
+      if (tenantCompleteDetails?.tenantDetails?.tenantName) {
+        c('set', 'tenantName', tenantCompleteDetails.tenantDetails.tenantName);
+      }
+      if (subscriptionPlan) {
+        c('set', 'subscriptionPlan', subscriptionPlan);
+      }
+      if (displayName) {
+        c('set', 'userName', displayName);
+      }
+      if (email) {
+        c('set', 'userEmail', email);
+      }
+    });
   }, [tenantCompleteDetails, subscriptionPlan, displayName, email]);
 
   return (
