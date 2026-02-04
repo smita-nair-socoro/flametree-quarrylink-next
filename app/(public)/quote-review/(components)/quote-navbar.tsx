@@ -73,10 +73,12 @@ export function QuoteNavbar({
               className="flex-shrink-0"
             />
           ) : logoUrl ? (
-            <img
+            <Image
               src={logoUrl}
               alt={`${displayName} logo`}
-              className="flex-shrink-0 w-[55px] h-[55px] rounded-lg border-2 border-black object-cover"
+              width={60}
+              height={60}
+              className="flex-shrink-0 w-[60px] h-[60px] rounded-lg border-2 border-black object-cover"
             />
           ) : (
             <InitialsLogo tenantName={displayName} />
