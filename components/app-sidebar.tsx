@@ -8,6 +8,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import Clarity from '@microsoft/clarity';
 
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -155,6 +156,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const subscriptionPlan =
     tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
       ?.subscriptions?.[0]?.subscriptionPlan;
+
+  // Set Clarity tags for filtering/segmentation when tenant and user data are available
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const clarity = Clarity as { setTag: (key: string, value: string) => void };
+    if (tenantCompleteDetails?.tenantDetails?.tenantName) {
+      clarity.setTag('tenantName', tenantCompleteDetails.tenantDetails.tenantName);
+    }
+    if (subscriptionPlan) {
+      clarity.setTag('subscriptionPlan', subscriptionPlan);
+    }
+    if (displayName) {
+      clarity.setTag('userName', displayName);
+    }
+    if (email) {
+      clarity.setTag('userEmail', email);
+    }
+  }, [tenantCompleteDetails, subscriptionPlan, displayName, email]);
 
   return (
     <Sidebar collapsible="icon" {...props}>
