@@ -4,24 +4,11 @@ import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Clarity from '@microsoft/clarity';
 import { getTenantId } from '@/lib/utils';
+import { claritySafe } from '@/lib/clarity';
 
-// Type definition for Microsoft Clarity
-interface MicrosoftClarity {
+// Type for npm package init only
+interface MicrosoftClarityInit {
   init: (projectId: string) => void;
-  setTag: (key: string, value: string | string[]) => void;
-  identify: (
-    customId: string,
-    customSessionId?: string,
-    customPageId?: string,
-    friendlyName?: string
-  ) => void;
-  consent: (consent?: boolean) => void;
-  consentV2: (consentOptions?: {
-    ad_Storage: 'granted' | 'denied';
-    analytics_Storage: 'granted' | 'denied';
-  }) => void;
-  upgrade: (reason: string) => void;
-  event: (eventName: string) => void;
 }
 
 const clarityProjectId = 'v88amv038n';
@@ -31,20 +18,18 @@ export default function ClarityInit() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !clarityProjectId) return;
-    (Clarity as MicrosoftClarity).init(clarityProjectId);
+    (Clarity as MicrosoftClarityInit).init(clarityProjectId);
   }, []);
 
-  // On every route change: tag page and refresh tenant for filtering/segmentation
+  // On every route change: tag page and tenant (only after window.clarity is ready)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const clarity = Clarity as MicrosoftClarity;
-
-    if (pathname) {
-      clarity.setTag('page', pathname);
-    }
+    if (!pathname) return;
 
     getTenantId().then((tenantId) => {
-      clarity.setTag('tenantId', tenantId ?? '');
+      claritySafe((c) => {
+        c('set', 'page', pathname);
+        c('set', 'tenantId', tenantId ?? '');
+      });
     });
   }, [pathname]);
 
