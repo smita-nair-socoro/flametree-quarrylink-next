@@ -420,12 +420,33 @@ Title: Your Quote is Ready - Quote #{quoteNumber} - {projectName}
 
 HTML: [quote_sent_to_customer-email-template.html](../public/email-templates/quote_sent_to_customer-email-template.html)
 
-TXT: Missing (quote_sent_to_customer-email-template.txt)
+TXT: [quote_sent_to_customer-email-template.txt](../public/txt-email-templates/quote_sent_to_customer-email-template.txt)
 
 TXT Content:
 
 ```txt
-(Missing TXT template)
+Hi {customerContactFirstName},
+
+Your quote is ready to review and approve.
+
+Quote Number: {quoteNumber}
+Project: {projectName}
+Quote Type: {quoteType}
+Total Value: ${totalValue} ex GST
+Expiry Date: {expiryDate}
+
+Click the link below to review your quote, download a PDF copy, and approve or decline:
+
+Link to the Quote: {quoteUrl}
+
+Please review and respond before the expiry date to secure these rates and terms.
+
+If you have any questions or need changes to this quote, please contact your Account Manager:
+
+{accountManagerName}
+{accountManagerEmail}
+
+You're receiving this because a quote has been sent to you from {BusinessName} via QuarryLink.
 ```
 
 ## subscription_quarry_added.html
