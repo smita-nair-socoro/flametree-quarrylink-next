@@ -40,6 +40,7 @@ import { useCreateCustomer, useUpdateCustomer } from '@/lib/api/customer';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { toAddressPayload } from '@/lib/utils/address-helper';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -143,8 +144,8 @@ export default function CustomerForm({
       credit_limit:
         isEditing && selectedCustomer ? selectedCustomer.creditLimit / 100 : 0, // Convert from cents to dollars
       payment_terms: isEditing
-        ? selectedCustomer?.paymentTermType || 'of the following month'
-        : 'of the following month',
+        ? selectedCustomer?.paymentTermType || 'OFFOLLOWINGMONTH'
+        : 'OFFOLLOWINGMONTH',
       payment_terms_day: isEditing ? selectedCustomer?.invoiceDueDate || 0 : 0,
       account_manager: isEditing
         ? selectedCustomer?.accountManagerSub || ''
@@ -1210,16 +1211,7 @@ export default function CustomerForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.createdAt
-                      ? new Date(selectedCustomer.createdAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedCustomer?.createdAt)}
                   </p>
                 </div>
 
@@ -1228,16 +1220,7 @@ export default function CustomerForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedCustomer?.updatedAt
-                      ? new Date(selectedCustomer.updatedAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedCustomer?.updatedAt)}
                   </p>
                 </div>
               </div>

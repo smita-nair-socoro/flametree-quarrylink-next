@@ -1,4 +1,5 @@
 import { normalizePhoneNumber } from './phone-helper';
+import { parseAsUTC } from './date';
 import type { Quotation } from '../types/quotation';
 
 /**
@@ -45,12 +46,12 @@ export function quotationToFormValues(
     accountManagerSub: quotation?.accountManagerSub || '',
     projectName: quotation?.projectName || '',
     deliveryStartDate: quotation?.deliveryStartDate
-      ? new Date(quotation.deliveryStartDate)
+      ? parseAsUTC(quotation.deliveryStartDate)
       : undefined,
     deliveryWindowStart: formatTimeString(quotation?.deliveryWindowStart),
     deliveryWindowEnd: formatTimeString(quotation?.deliveryWindowEnd),
     expiryDate: quotation?.expiryDate
-      ? new Date(quotation.expiryDate)
+      ? parseAsUTC(quotation.expiryDate)
       : undefined,
     email: quotation?.email || quotation?.customerWithAddressResponseDto?.email || '',
     phone: normalizePhoneNumber(

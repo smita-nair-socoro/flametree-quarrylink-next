@@ -7,61 +7,7 @@ import {
   QUOTE_TYPE as QuoteType,
 } from '@/lib/types/quotation-enums';
 import { formatAustralianAddress } from '@/lib/utils/address-helper';
-
-/**
- * Format date to readable string like "15th July, 2026"
- */
-function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return 'N/A';
-
-  try {
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = date.toLocaleString('en-US', { month: 'long' });
-    const year = date.getFullYear();
-
-    // Add ordinal suffix (st, nd, rd, th)
-    const suffix =
-      day === 1 || day === 21 || day === 31
-        ? 'st'
-        : day === 2 || day === 22
-          ? 'nd'
-          : day === 3 || day === 23
-            ? 'rd'
-            : 'th';
-
-    return `${day}${suffix} ${month}, ${year}`;
-  } catch {
-    return dateString;
-  }
-}
-
-/**
- * Format delivery window time range
- */
-function formatDeliveryWindow(
-  windowStart: string | null | undefined,
-  windowEnd: string | null | undefined,
-): string {
-  if (!windowStart || !windowEnd) return 'N/A';
-
-  try {
-    const start = new Date(windowStart);
-    const end = new Date(windowEnd);
-
-    const formatTime = (date: Date) => {
-      return date.toLocaleString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-      });
-    };
-
-    return `${formatTime(start)} - ${formatTime(end)}`;
-  } catch {
-    return 'N/A';
-  }
-}
+import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 
 /**
  * Transform API response to display format
@@ -69,7 +15,7 @@ function formatDeliveryWindow(
 export function transformQuoteData(
   apiResponse: PublicQuoteLinkResponse,
 ): QuotationDisplayData {
-  const { quoteDto, stripeTenantDetailsSnapshot } = apiResponse;
+  const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto } = apiResponse;
   const {
     quoteNumber,
     quoteType,
@@ -96,9 +42,9 @@ export function transformQuoteData(
         item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
       truckType: item.truckType || 'N/A',
       capacity: `${item.totalQuantityRequired || 0} ${
-        item.productSellUom || 'units'
+        item.productSellUom === 'KG_20' ? 'x 20kg' :  item.productSellUom || 'units'
       } per delivery`,
-      quantity: `${item.productSellQty || 0} ${item.productSellUom || ''}`,
+      quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
       totalPrice: item.totalProductSellPrice || 0, // Product price only
       deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
     })) || [];
@@ -150,11 +96,12 @@ export function transformQuoteData(
     inclDeliveryCost: inclDeliveryCost ?? false,
     navbar: {
       quoteNumber: quoteNumber || 'N/A',
-      dateIssued: formatDate(createdAt),
-      validUntil: formatDate(expiryDate),
+      dateIssued: formatDateWithOrdinal(createdAt),
+      validUntil: formatDateWithOrdinal(expiryDate),
       accountManager: accountManagerName || 'N/A',
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
       tenantDetails: stripeTenantDetailsSnapshot,
+      logoUrl: tenantLogoDto?.logoPublicS3Url,
     },
     customer: {
       customerName: customerDisplayName,
@@ -169,16 +116,13 @@ export function transformQuoteData(
     project: {
       type: (quoteType as QuoteType) || QuoteType.DELIVERY,
       projectName: projectName || 'N/A',
-      deliveryDate: formatDate(deliveryStartDate),
-      deliveryWindow: formatDeliveryWindow(
-        deliveryWindowStart,
-        deliveryWindowEnd,
-      ),
+      deliveryDate: formatDateWithOrdinal(deliveryStartDate),
+      deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd),
     },
     products,
     summary: {
       totalProducts: quoteItems?.length || 0,
-      estimatedDelivery: formatDate(deliveryStartDate),
+      estimatedDelivery: formatDateWithOrdinal(deliveryStartDate),
       subtotal,
       gst,
       total,
@@ -186,7 +130,7 @@ export function transformQuoteData(
       deliverySubtotal,
     },
     proceedActions: {
-      validUntil: formatDate(expiryDate),
+      validUntil: formatDateWithOrdinal(expiryDate),
       accountManager: accountManagerName || 'N/A',
     },
     footer: (() => {

@@ -41,6 +41,16 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       data: { unit: 'per m³' },
     },
     {
+      id: 'kg_rate',
+      label: '20kg Rate',
+      data: { unit: 'per 20kg' },
+    },
+    {
+      id: 'bulka_rate',
+      label: 'Bulka Rate',
+      data: { unit: 'per bulka' },
+    },
+    {
       id: 'hourly_rate',
       label: 'Hourly Rate',
       data: { unit: 'per hour' },

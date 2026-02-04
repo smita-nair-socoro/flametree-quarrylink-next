@@ -34,11 +34,13 @@ import {
   TenantDetails,
   TenantCompleteDetails,
   TenantLogoUploadResponse,
+  TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 
 type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
+
 
 export interface HttpConfig {
   /**
@@ -95,6 +97,12 @@ export interface HttpConfig {
    * If you pass this, we will use it instead of window.fetch
    */
   fetch?: typeof fetch;
+
+  /**
+   * If true, appends 'Z' to known date field strings that lack timezone info.
+   * This treats backend datetimes as UTC. Default: true.
+   */
+  normalizeUtc?: boolean;
 }
 
 /**
@@ -751,6 +759,17 @@ export const APIClient = {
           },
         }
       ),
+    duplicate: (id: number) =>
+      appClient.Post<QuotationDTO>(
+        `/socoro/quarrylink/api/quote/${id}/duplicate`,
+      ),
+    bulkArchive: (ids: number[]) =>
+      appClient.Post<void>(
+        `/socoro/quarrylink/api/quote/archive`,
+        {
+          body: { quoteIds: ids },
+        }
+      ),
     sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
@@ -842,5 +861,7 @@ export const APIClient = {
         { body: formData }
       );
     },
+    getLogo: () =>
+      appClient.Get<TenantLogoResponse>(`/socoro/quarrylink/api/tenant/logo`),
   },
 };

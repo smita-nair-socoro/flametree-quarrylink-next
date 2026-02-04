@@ -34,6 +34,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { QuotationTableActions } from './(components)/(data-tables)/quotation/quotation-table-actions';
@@ -140,11 +141,11 @@ export default function QuotationsPage() {
     },
   ];
 
-  // // State for bulk selection
-  // const [selectedQuotations, setSelectedQuotations] = React.useState<
-  //   Quotation[]
-  // >([]);
-  // const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
+  // State for bulk selection
+  const [selectedQuotations, setSelectedQuotations] = React.useState<
+    Quotation[]
+  >([]);
+  const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
     selectedQuotationForActions?.id,
@@ -157,6 +158,9 @@ export default function QuotationsPage() {
     actions.view();
   };
 
+  const handleRowSelectionChange = (selected: Quotation[]) => {
+    setSelectedQuotations(selected);
+  };
   // Mobile card renderer
   const renderQuotationCard = React.useCallback((quotation: Quotation) => {
     const formattedTotal = quotation.totalSellPrice
@@ -217,11 +221,11 @@ export default function QuotationsPage() {
   //   setSelectedQuotations(selected);
   // };
 
-  // const handleClearSelection = () => {
-  //   setSelectedQuotations([]);
-  //   // Force re-render of table to clear checkboxes
-  //   setRowSelectionKey((prev) => prev + 1);
-  // };
+  const handleClearSelection = () => {
+    setSelectedQuotations([]);
+    // Force re-render of table to clear checkboxes
+    setRowSelectionKey((prev) => prev + 1);
+  };
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
@@ -283,7 +287,7 @@ export default function QuotationsPage() {
               </div>
             )}
             <DataTableClient
-              // key={rowSelectionKey}
+              key={rowSelectionKey}
               tableId={
                 linkedQuotationIdsSet
                   ? 'quotation_linked_data_table'
@@ -294,9 +298,17 @@ export default function QuotationsPage() {
               facetDefination={facetDefs}
               searchPlaceHolder="Search quotes..."
               onRowClick={handleRowClick}
-              enableRowSelection={false}
+              enableRowSelection={true}
+              onRowSelectionChange={handleRowSelectionChange}
               defaultSorting={[{ id: 'created_at', desc: true }]}
               mobileCardRenderer={renderQuotationCard}
+              bulkActionsSlot={
+                <QuotationBulkActions
+                  selectedQuotations={selectedQuotations}
+                  onClearSelection={handleClearSelection}
+                />
+            }
+            
             />
           </>
         )}

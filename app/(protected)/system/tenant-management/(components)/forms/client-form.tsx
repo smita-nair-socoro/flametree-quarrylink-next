@@ -29,6 +29,7 @@ import { User } from '@/lib/types/user';
 import Step1CompanyDetails from './steps/step-1-company-details';
 import Step2Subscription from './steps/step-2-subscription';
 import Step3Summary from './steps/step-3-summary';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -507,16 +508,7 @@ export default function ClientForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedClient?.createdAt
-                      ? new Date(selectedClient.createdAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedClient?.createdAt)}
                   </p>
                 </div>
 
@@ -525,16 +517,7 @@ export default function ClientForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedClient?.updatedAt
-                      ? new Date(selectedClient.updatedAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedClient?.updatedAt)}
                   </p>
                 </div>
               </div>

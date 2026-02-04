@@ -4,7 +4,6 @@ import * as React from 'react';
 import {
   LayoutDashboard,
   Package,
-  // Settings2, for tenant management
   Truck,
   Users,
 } from 'lucide-react';
@@ -172,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={navItems} subscriptionPlan={subscriptionPlan} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

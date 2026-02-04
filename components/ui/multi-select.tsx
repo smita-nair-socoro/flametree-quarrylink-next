@@ -125,7 +125,7 @@ export const MultiSelect = React.forwardRef<
             {...props}
             onClick={() => setIsPopoverOpen((o) => !o)}
             className={cn(
-              'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
+              'flex w-full p-1 rounded-md border min-h-11 md:min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
               className
             )}
           >

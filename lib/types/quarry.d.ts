@@ -62,12 +62,15 @@ export interface QuarrySupplierProduct {
   hourlyTruckRate: number;
   loadTruckRate: number;
   kmTruckRate: number;
+  kg20TruckRate: number;
+  bulkaTruckRate: number;
   availableForTruckRateTn: boolean;
   availableForTruckRateM3: boolean;
   availableForTruckRateHour: boolean;
   availableForTruckRateLoad: boolean;
   availableForTruckRateKm: boolean;
-
+  availableForTruckRate20kg: boolean;
+  availableForTruckRateBulka: boolean;
   isActive: boolean;
   availableUnits: string[];
   version: number;
