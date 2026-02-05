@@ -129,7 +129,7 @@ function Tab({
                 {tabs.map((tab) => (
                   <SelectItem key={tab.name} value={tab.name}>
                     <div className="flex items-center gap-2">
-                      {tab.icon && tab.icon}
+                      {tab.icon}
                       <span>{tab.name}</span>
                     </div>
                   </SelectItem>
@@ -152,12 +152,12 @@ function Tab({
               >
                 {variant === 'underline' ? (
                   <>
-                    {tab.icon && tab.icon}
+                    {tab.icon}
                     <span>{tab.name}</span>
                   </>
                 ) : (
                   <div className="flex items-center gap-2">
-                    {tab.icon && tab.icon}
+                    {tab.icon}
                     <span>{tab.name}</span>
                   </div>
                 )}
@@ -179,12 +179,12 @@ function Tab({
             >
               {variant === 'underline' ? (
                 <>
-                  {tab.icon && tab.icon}
+                  {tab.icon}
                   <span>{tab.name}</span>
                 </>
               ) : (
                 <div className="flex items-center gap-2">
-                  {tab.icon && tab.icon}
+                  {tab.icon}
                   <span>{tab.name}</span>
                 </div>
               )}
