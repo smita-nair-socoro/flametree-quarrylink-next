@@ -17,7 +17,6 @@ export default function RolesTab() {
       price: '$116 user / month',
       planName: 'QuarryLink Essentials',
       description: 'Your Digital Foundation',
-      minUsers: 10,
       tone: 'essentials' as const,
       permissions: [
         {
@@ -84,7 +83,6 @@ export default function RolesTab() {
       price: '$233 user / month',
       planName: 'QuarryLink Plus',
       description: 'Automate Your Workflows',
-      minUsers: 10,
       tone: 'plus' as const,
       permissions: [
         {
@@ -150,7 +148,6 @@ export default function RolesTab() {
       price: 'Custome Pricing / Contact Us',
       planName: 'QuarryLink Pro',
       description: 'See Everything, Control Everything',
-      minUsers: 10,
       tone: 'pro' as const,
       permissions: [
         {
@@ -252,7 +249,6 @@ export default function RolesTab() {
               price={plan.price}
               planName={plan.planName}
               description={plan.description}
-              minUsers={plan.minUsers}
               tone={plan.tone}
               isSelected={selectedPlanId === plan.id}
               onClick={() => setSelectedPlanId(plan.id)}
