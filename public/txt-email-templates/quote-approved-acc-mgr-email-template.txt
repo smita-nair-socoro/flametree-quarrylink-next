@@ -1,0 +1,17 @@
+Hi {accountManagerName},
+
+Good news! A quote has been approved and is ready for next steps.
+
+Quote Number: {quoteNumber}
+Customer: {customerName}
+Project: {projectName}
+Quote Type: {quoteType}
+Total Value: ${totalValue} ex GST
+Approved By: {customerContactFirstName}
+Approval Date: {approvalDate}
+
+The customer has been notified that you'll be in contact to arrange next steps and confirm delivery details.
+
+View Quote Details: {quoteUrl}
+
+You're receiving this because you are the Account Manager for this quote in QuarryLink.

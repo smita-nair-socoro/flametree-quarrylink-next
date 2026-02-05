@@ -4,7 +4,13 @@ import { useQuery } from '@tanstack/react-query';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User, UserDelete } from '@/lib/types/user';
-import { AlertTriangle, Users, Briefcase, Trash2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Users,
+  Briefcase,
+  Trash2,
+  TriangleAlert,
+} from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { EditTeamMemberForm } from '@/app/(protected)/system/user-management/(components)/forms/team-member-form';
 import { FormSelectOption } from '@/components/ui/form-select';
@@ -167,7 +173,7 @@ export function useTeamMemberActions(
         <div className="bg-[#FFE2E2] border border-[#E7000B] rounded-md p-3 flex gap-3 text-[#E7000B]">
           <Trash2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold mb-1">Permanent Deletion</p>
+            <p className="text-base font-semibold mb-1">Permanent Deletion</p>
             <p className="text-sm">
               This action cannot be undone. The user will be permanently removed
               from the system and will lose access immediately.
@@ -187,7 +193,7 @@ export function useTeamMemberActions(
       <div className="flex flex-col gap-4">
         {/* Dependency reassignment warning - Only show when hasDependencies */}
         {hasDependencies && (
-          <div className="bg-orange-50 border border-orange-400 rounded-md p-3 flex text-orange-800">
+          <div className="bg-orange-50 border border-orange-400 rounded-md p-3 flex text-orange-800 flex gap-3">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             <p className="text-sm font-medium">
               This user has data that needs reassignment:
@@ -273,6 +279,21 @@ export function useTeamMemberActions(
             <li>User cannot log in or access any data</li>
             <li>Historical records remain for audit purposes</li>
           </ul>
+        </div>
+
+        <div className="rounded-lg border border-orange-500 bg-orange-50 p-3">
+          <div className="flex gap-3">
+            <TriangleAlert className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-orange-500">
+                Changes in Subscription Plan
+              </h4>
+              <p className="text-sm font-normal text-orange-500">
+                Removing a user will reduce the total number of users on your
+                subscription
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     ),

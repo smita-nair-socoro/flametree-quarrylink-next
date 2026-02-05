@@ -88,11 +88,11 @@ const getDialogConfigs = (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FFEDD4] rounded-full">
-                <TriangleAlert className="h-[21px] w-[21px] text-[#F54900]" />
+                <TriangleAlert className="h-5 w-5 text-[#F54900]" />
               </div>
               <span className="font-semibold text-[17.4px]">{name}</span>
             </div>
-            <span className="text-[14px] text-[#000000] mt-3">
+            <span className="text-md mt-3">
               Are you sure you want to delete this{' '}
               {type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}?
             </span>
@@ -100,28 +100,11 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            {/* <div className="flex flex-col gap-3">
-              <span className="font-semibold text-[14px] text-[#000000]">
-                Current Status:
-              </span>
-              <div className="flex flex-col gap-2">
-                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
-                  15 line items - all fully delivered ✓
-                </div>
-                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
-                  0 tonnes remaining to deliver ✓
-                </div>
-                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
-                  All associated dockets completed ✓
-                </div>
-              </div>
-            </div> */}
-
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#000000]">
                 Warnings:
               </span>
-              <ul className="text-[12.1px] text-[#4A5565] space-y-1 list-disc list-outside pl-5">
+              <ul className="text-sm text-[#4A5565] space-y-1 list-disc list-outside pl-5">
                 <li>Products cannot be used in new quotes</li>
                 <li>Pricing configuration will be preserved</li>
                 <li>Existing quotes/jobs remain unchanged</li>

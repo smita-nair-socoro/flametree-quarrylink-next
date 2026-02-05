@@ -1,0 +1,17 @@
+Hi {userName},
+
+Welcome to QuarryLink!
+
+An account has been created for you by {superAdminName} at {tenantName}.
+
+To activate your account and log in, use the link below to set your password:
+
+Activate Account & Set Password: {activationUrl}
+
+Once you've set your password, you'll have access to QuarryLink.
+
+If you have any questions or need help getting started, please reach out to your account administrator or contact our support team.
+
+We're excited to have you on board!
+
+You're receiving this email because an account was created for you on QuarryLink.
