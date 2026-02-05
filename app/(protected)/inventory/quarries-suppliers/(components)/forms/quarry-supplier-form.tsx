@@ -26,7 +26,6 @@ import { Address, AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
-import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-suppliers/(components)/quarry-subscription-actions';
 import { useCreateQuarry, useUpdateQuarry } from '@/lib/api/quarries';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
@@ -75,23 +74,6 @@ export default function QuarrySupplierForm({
     (state) => state.setSelectedQuarrySupplier
   );
 
-  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
-    React.useState(false);
-  const [pendingSubmission, setPendingSubmission] = React.useState<z.infer<
-    typeof QuarrySupplierFormSchema
-  > | null>(null);
-  const [mockBillingCycle] = React.useState<'monthly' | 'yearly'>('monthly');
-  const subscriptionMock = React.useMemo(
-    () => ({
-      billingCycle: mockBillingCycle,
-      monthlyFee: 99,
-      yearlyFee: 999,
-      planLimit: 1,
-      currentOwnedQuarries: 1,
-    }),
-    [mockBillingCycle]
-  );
-
   // Initialize states with selected quarry/supplier data
   // Only use selectedQuarrySupplier data when editing
   const [selectedType, setSelectedType] = React.useState<QuarryType>(
@@ -100,23 +82,6 @@ export default function QuarrySupplierForm({
       : QuarryType.QUARRY
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  // Capture the original type when editing so we can detect supplier -> quarry conversions.
-  // This matters for subscription logic: converting a supplier to a quarry increases owned quarry count.
-  const originalTypeRef = React.useRef<QuarryType | null>(null);
-  React.useEffect(() => {
-    if (!isEditing) {
-      originalTypeRef.current = null;
-      return;
-    }
-
-    if (
-      originalTypeRef.current === null &&
-      selectedQuarrySupplier?.quarrySupplierType
-    ) {
-      originalTypeRef.current = selectedQuarrySupplier.quarrySupplierType;
-    }
-  }, [isEditing, selectedQuarrySupplier?.quarrySupplierType]);
 
   // Address state for AddressAutoComplete (uses AddressType)
   // Initialize with backend data when editing
@@ -496,56 +461,12 @@ export default function QuarrySupplierForm({
     ]
   );
 
-  const willExceedQuarryLimit = React.useCallback(
-    (targetType: QuarryType) => {
-      if (targetType !== QuarryType.QUARRY) return false;
-
-      const isCreatingNewQuarry = !isEditing;
-      const isConvertingSupplierToQuarry =
-        isEditing &&
-        originalTypeRef.current === QuarryType.SUPPLIER &&
-        targetType === QuarryType.QUARRY;
-
-      if (!isCreatingNewQuarry && !isConvertingSupplierToQuarry) return false;
-
-      return (
-        subscriptionMock.currentOwnedQuarries + 1 > subscriptionMock.planLimit
-      );
-    },
-    [isEditing, subscriptionMock]
-  );
-
   const handleFormSubmit = React.useCallback(
     async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
-      if (willExceedQuarryLimit(values.quarry_supplier_type as QuarryType)) {
-        setPendingSubmission(values);
-        setIsSubscriptionDialogOpen(true);
-        return;
-      }
-
       await submitQuarrySupplier(values);
     },
-    [willExceedQuarryLimit, submitQuarrySupplier]
+    [submitQuarrySupplier]
   );
-
-  const handleSubscriptionConfirm = React.useCallback(() => {
-    if (!pendingSubmission) return;
-
-    submitQuarrySupplier(pendingSubmission).finally(() => {
-      setPendingSubmission(null);
-    });
-  }, [pendingSubmission, submitQuarrySupplier]);
-
-  const handleSubscriptionDialogToggle = React.useCallback((open: boolean) => {
-    setIsSubscriptionDialogOpen(open);
-    if (!open) {
-      setPendingSubmission(null);
-    }
-  }, []);
-
-  const watchedQuarryName = quarrySupplierForm.watch('name');
-  const locationDescriptor =
-    selectedType === QuarryType.QUARRY ? 'Owned Location' : 'Supplier';
 
   return (
     <div className="w-full relative">
@@ -566,15 +487,6 @@ export default function QuarrySupplierForm({
           </div>
         </div>
       )}
-
-      <QuarrySubscriptionActions
-        open={isSubscriptionDialogOpen}
-        onOpenChange={handleSubscriptionDialogToggle}
-        onConfirm={handleSubscriptionConfirm}
-        quarryName={watchedQuarryName || 'Mountain View Quarry'}
-        locationType={locationDescriptor}
-        subscriptionDetails={subscriptionMock}
-      />
 
       <Form {...quarrySupplierForm}>
         <form
