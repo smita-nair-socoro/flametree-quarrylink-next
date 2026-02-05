@@ -1,0 +1,22 @@
+Hi {customerContactFirstName},
+
+This is a reminder that your quote will expire soon.
+
+This quote expires on {expiryDate}
+
+Quote Number: {quoteNumber}
+Project: {projectName}
+Quote Type: {quoteType}
+Total Value: ${totalValue} ex GST
+Expiry Date: {expiryDate}
+
+Review & Approve Quote: {quoteUrl}
+
+After the expiry date, this quote will no longer be valid and pricing may change.
+
+If you need more time or have any questions, please contact your Account Manager:
+
+{accountManagerName}
+{accountManagerEmail}
+
+You're receiving this because you have a pending quote from {BusinessName} via QuarryLink.

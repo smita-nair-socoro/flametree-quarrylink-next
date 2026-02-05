@@ -1,0 +1,17 @@
+Hi {customerContactFirstName},
+
+Your quote has been approved.
+
+Quote Number: {quoteNumber}
+Project: {projectName}
+Quote Type: {quoteType}
+Total Value: ${totalValue} ex GST
+
+Your Account Manager will be in contact shortly to arrange next steps.
+
+If you have any questions in the meantime, please contact:
+
+{accountManagerName}
+{accountManagerEmail}
+
+You're receiving this because your quote from {BusinessName} has been approved via QuarryLink.

@@ -1,0 +1,11 @@
+Hi {accountManagerName},
+
+{customerName} has been reassigned to you as their Account Manager in QuarryLink.
+
+Customer: {customerName}
+
+View Customer Profile: {customerProfileUrl}
+
+This customer has existing history in the system, so you may want to review their account to get up to speed.
+
+You're receiving this because you've been assigned as the Account Manager for this customer in QuarryLink.
