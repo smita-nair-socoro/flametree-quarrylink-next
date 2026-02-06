@@ -101,6 +101,17 @@ interface AddProductDrawerDialogProps {
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
+  /**
+   * When set, used for customer header (title/badges) instead of store's selectedCustomer.
+   * Use when the dialog is driven by get-customer-by-id (caller fetches and passes the customer).
+   */
+  headerCustomer?: {
+    businessName?: string;
+    contactName?: string;
+    customerStatus?: string;
+    customerType?: string;
+  } | null;
+
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
 
@@ -167,6 +178,7 @@ export function FormDialog({
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
+  headerCustomer: headerCustomerProp,
   headerSeparator,
   contentClass,
   headerClassName,
@@ -241,10 +253,17 @@ export function FormDialog({
     finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
-  if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId = selectedCustomer.businessName;
-    finalPrimaryBadges = [selectedCustomer.customerStatus];
-    finalSecondaryBadges = [selectedCustomer.customerType];
+  const customerForHeader = headerCustomerProp ?? selectedCustomer;
+  if (headerInfo?.useSelectedCustomer && customerForHeader) {
+    const c = customerForHeader as {
+      businessName?: string;
+      contactName?: string;
+      customerStatus?: string;
+      customerType?: string;
+    };
+    finalCustomId = c.businessName?.trim() || c.contactName || '';
+    finalPrimaryBadges = c.customerStatus ? [c.customerStatus] : [];
+    finalSecondaryBadges = c.customerType ? [c.customerType] : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -356,12 +375,12 @@ export function FormDialog({
 
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-        id: effectiveId,
-        onCancel: close,
-        onSuccess: handleChildSuccess,
-        onDirtyChange: handleChildDirtyChange,
-        onSaved: handleChildSaved,
-      })
+      id: effectiveId,
+      onCancel: close,
+      onSuccess: handleChildSuccess,
+      onDirtyChange: handleChildDirtyChange,
+      onSaved: handleChildSaved,
+    })
     : children;
 
   const formatBadgeText = (text?: string | number | null): string => {

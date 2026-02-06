@@ -27,7 +27,6 @@ import { AddressType } from '@/lib/types/address';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
-import { useSelectedCustomer } from '@/app/stores/customer-store';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { useQuery } from '@tanstack/react-query';
@@ -36,7 +35,11 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { useCreateCustomer, useUpdateCustomer } from '@/lib/api/customer';
+import {
+  useCreateCustomer,
+  useUpdateCustomer,
+  CustomerDetailQueryOptions,
+} from '@/lib/api/customer';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { toAddressPayload } from '@/lib/utils/address-helper';
@@ -61,7 +64,13 @@ export default function CustomerForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
-  const selectedCustomer = useSelectedCustomer();
+  const customerId = id ?? 0;
+
+  // Single source of truth: fetch customer by id when editing (get-by-id endpoint)
+  const { data: selectedCustomer, isLoading: isCustomerLoading } = useQuery({
+    ...CustomerDetailQueryOptions(customerId),
+    enabled: isEditing && customerId > 0,
+  });
 
   // Fetch users (account managers)
   const { data: users = [] } = useQuery(UsersListQueryOptions());
@@ -260,7 +269,7 @@ export default function CustomerForm({
       payment_terms_day: selectedCustomer?.invoiceDueDate ?? 0,
       payment_terms:
         selectedCustomer?.paymentTermType &&
-        selectedCustomer.paymentTermType !== 'N/A'
+          selectedCustomer.paymentTermType !== 'N/A'
           ? selectedCustomer.paymentTermType
           : '',
       account_manager: selectedCustomer?.accountManagerSub ?? '',
@@ -275,7 +284,7 @@ export default function CustomerForm({
       last_modified_by: selectedCustomer?.lastModifiedBy ?? 'current_user',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, selectedCustomerId]); 
+  }, [isEditing, selectedCustomerId]);
 
   React.useEffect(() => {
     if (!address.formattedAddress) return;
@@ -363,7 +372,7 @@ export default function CustomerForm({
       const billingAddressIdFromExisting =
         (isEditing && selectedCustomer
           ? selectedCustomer.billingAddressId ??
-            selectedCustomer.billingAddress?.id
+          selectedCustomer.billingAddress?.id
           : undefined) ?? billingAddressData?.id;
 
       // Build the CustomerDTO payload
@@ -420,9 +429,8 @@ export default function CustomerForm({
 
       // Handle BUSINESS type specific fields
       if (values.customer_type === 'BUSINESS') {
-        customerData.contactName = `${values.contact_person_first_name || ''} ${
-          values.contact_person_last_name || ''
-        }`.trim();
+        customerData.contactName = `${values.contact_person_first_name || ''} ${values.contact_person_last_name || ''
+          }`.trim();
         customerData.businessName = values.business_name || '';
         customerData.businessEmail = values.business_email || '';
         customerData.businessPhone = values.business_phone || '';
@@ -547,6 +555,16 @@ export default function CustomerForm({
       {
         description: 'Check required fields',
       }
+    );
+  }
+
+  // Show loading when editing and customer is still being fetched by id
+  if (isEditing && isCustomerLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[200px] gap-4 p-8">
+        <Spinner size="medium" />
+        <p className="text-muted-foreground">Loading customer...</p>
+      </div>
     );
   }
 
@@ -1247,8 +1265,8 @@ export default function CustomerForm({
                     ? 'Saving Changes...'
                     : 'Adding Customer...'
                   : isEditing
-                  ? 'Save Changes'
-                  : 'Add Customer'}
+                    ? 'Save Changes'
+                    : 'Add Customer'}
               </Button>
             </div>
           )}
@@ -1270,8 +1288,8 @@ export default function CustomerForm({
                     ? 'Saving Changes...'
                     : 'Adding Customer...'
                   : isEditing
-                  ? 'Save Changes'
-                  : 'Add Customer'}
+                    ? 'Save Changes'
+                    : 'Add Customer'}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

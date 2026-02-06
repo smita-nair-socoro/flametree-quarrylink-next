@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -92,8 +93,6 @@ export const useCustomerStats = () => {
     };
   });
 };
-
-import { useMemo } from 'react';
 
 export const useCustomerByIdOptimized = (id: number) => {
   const customers = useCustomers();

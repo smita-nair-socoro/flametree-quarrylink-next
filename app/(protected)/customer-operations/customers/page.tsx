@@ -22,7 +22,6 @@ import {
   CustomersListQueryOptions,
   CustomerReportingQueryOptions,
 } from '@/lib/api/customer';
-import { useCustomerStore } from '@/app/stores/customer-store';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -41,15 +40,14 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 
 export default function CustomersPage() {
-  const setSelectedCustomer = useCustomerStore(
-    (state) => state.setSelectedCustomer
-  );
-  const [selectedCustomerForActions, setSelectedCustomerForActions] =
-    React.useState<CustomerDTO | null>(null);
+  // Only used for row click: which customer to show in the view dialog.
+  // Dropdown "View Details" passes customer.id directly via its own useCustomerActions(customer.id).
+  const [selectedCustomerId, setSelectedCustomerId] = React.useState<
+    number | null
+  >(null);
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    selectedCustomerForActions?.id,
-    selectedCustomerForActions
+    selectedCustomerId ?? undefined
   );
 
   // Role-based feature detection
@@ -85,9 +83,8 @@ export default function CustomersPage() {
     {
       title: 'Total Customers',
       value: reportingData?.totalCustomers || 0,
-      description: `+${
-        reportingData?.totalCustomersChangePercentThisMonth || 0
-      } this month`,
+      description: `+${reportingData?.totalCustomersChangePercentThisMonth || 0
+        } this month`,
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -96,9 +93,8 @@ export default function CustomersPage() {
     {
       title: 'Active Customers',
       value: reportingData?.totalActiveCustomers || 0,
-      description: `${
-        reportingData?.activeCustomersPercentOfTotal || 0
-      }% of total`,
+      description: `${reportingData?.activeCustomersPercentOfTotal || 0
+        }% of total`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -107,9 +103,8 @@ export default function CustomersPage() {
     {
       title: 'Total Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
-      description: `${
-        reportingData?.businessCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.businessCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
       iconColor: 'text-[#8E51FF]',
@@ -118,9 +113,8 @@ export default function CustomersPage() {
     {
       title: 'Total Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
-      description: `${
-        reportingData?.individualCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.individualCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
       iconColor: 'text-[#DB2777]',
@@ -135,10 +129,9 @@ export default function CustomersPage() {
     }
   }, [isError, error]);
 
-  // Handle row click to open customer details
+  // Handle row click: set which customer to view, then open the page's view dialog
   const handleRowClick = (customer: CustomerDTO) => {
-    setSelectedCustomer(customer);
-    setSelectedCustomerForActions(customer);
+    setSelectedCustomerId(customer.id ?? null);
     actions.view();
   };
 

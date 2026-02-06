@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
-import { useCustomerStore } from '@/app/stores/customer-store';
 
 interface CustomerTableActionsProps {
   customer: CustomerDTO;
@@ -22,18 +21,10 @@ interface CustomerTableActionsProps {
 export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    customer.id,
-    customer
-  );
-
-  // const isArchived = customer.customerStatus === 'ARCHIVED';
-
-  const setSelectedCustomer = useCustomerStore(
-    (state) => state.setSelectedCustomer
+    customer.id
   );
 
   const handleView = () => {
-    setSelectedCustomer(customer);
     setDropdownOpen(false); // Close dropdown before opening modal
     actions.view();
   };
