@@ -1,0 +1,11 @@
+Hi {accountManagerName},
+
+You've been assigned as the Account Manager for a new customer in QuarryLink.
+
+Customer: {customerName}
+
+View Customer Profile: {customerProfileUrl}
+
+If you have any questions about this customer or need to update their details, you can access everything through their profile.
+
+You're receiving this because you've been assigned as the Account Manager for this customer in QuarryLink.

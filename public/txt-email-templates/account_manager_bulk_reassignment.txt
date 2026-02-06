@@ -1,0 +1,9 @@
+Hi {accountManagerName},
+
+{previousAccountManagerName} has been removed from QuarryLink, and their customers have been reassigned to you.
+
+You are now the Account Manager for the following customers:
+
+{customerLists}
+
+You're receiving this because customers have been reassigned to you in QuarryLink.
