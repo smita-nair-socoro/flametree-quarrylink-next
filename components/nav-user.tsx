@@ -149,7 +149,7 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <Tooltip delayDuration={300}>
+                <Tooltip delayDuration={300} mobileClickable={false}>
                   <TooltipTrigger asChild>
                     <span className="truncate font-medium text-white">
                       {user.name}
@@ -159,7 +159,7 @@ export function NavUser({
                     <p>{user.name}</p>
                   </TooltipContent>
                 </Tooltip>
-                <Tooltip delayDuration={300}>
+                <Tooltip delayDuration={300} mobileClickable={false}>
                   <TooltipTrigger asChild>
                     <span className="truncate text-xs text-white">
                       {user.email}
@@ -186,7 +186,7 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <Tooltip delayDuration={300}>
+                  <Tooltip delayDuration={300} mobileClickable={false}>
                     <TooltipTrigger asChild>
                       <span className="truncate font-medium">{user.name}</span>
                     </TooltipTrigger>
@@ -194,7 +194,7 @@ export function NavUser({
                       <p>{user.name}</p>
                     </TooltipContent>
                   </Tooltip>
-                  <Tooltip delayDuration={300}>
+                  <Tooltip delayDuration={300} mobileClickable={false}>
                     <TooltipTrigger asChild>
                       <span className="truncate text-xs">{user.email}</span>
                     </TooltipTrigger>
