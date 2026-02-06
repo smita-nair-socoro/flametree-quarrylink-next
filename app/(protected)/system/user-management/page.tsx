@@ -58,12 +58,13 @@ export default function UserRolesPage() {
           />
         </div>
       </div>
-      <div className="w-full flex">
+      <div className="w-full flex min-w-0">
         <Tab
           tabs={tabs}
-          className="w-full"
-          tabsClassName="h-15 w-full flex flex-nowrap items-center justify-start overflow-x-auto px-2"
-          tabsTriggerClassName="h-10 w-auto flex-shrink-0 min-w-[200px] justify-center px-2"
+          className="w-full min-w-0"
+          tabsClassName="h-15 w-full overflow-x-auto flex-nowrap"
+          tabsTriggerClassName="h-13 flex-1 justify-center"
+          enableDropdownOnMobile={true}
         />
       </div>
     </div>
