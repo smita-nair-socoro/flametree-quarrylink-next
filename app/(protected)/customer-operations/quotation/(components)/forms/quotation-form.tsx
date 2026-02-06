@@ -343,22 +343,10 @@ export default function QuotationForm({
           {isEditing &&
             currentQuotation?.quoteStatus === 'DECLINED' &&
             (() => {
-              // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
+              // Parse decline reason - format: "Reason label" or "Reason label-additional notes"
               const declineReasonRaw = currentQuotation?.declineReason || '';
-              const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
+              const [reasonLabel, ...noteParts] = declineReasonRaw.split('-');
               const declineNote = noteParts.join('-').trim();
-
-              // Map reason keys to human-readable labels
-              const reasonLabels: Record<string, string> = {
-                price_too_high: 'Price too high',
-                timeline_conflict: 'Timeline conflict',
-                scope_changed: 'Scope changed',
-                customer_unresponsive: 'Customer unresponsive',
-                competitor_selected: 'Competitor selected',
-                project_cancelled: 'Project cancelled',
-                other: 'Other',
-              };
-              const reasonLabel = reasonLabels[reasonKey] || reasonKey;
 
               // Format customerResponseAt date
               const formattedDate = currentQuotation?.customerResponseAt
