@@ -81,8 +81,8 @@ export default function TeamAdminTab() {
         invited_by: 'System', // API doesn't provide this, using placeholder
         expires_at: user.createdAt
           ? new Date(
-              new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
-            ).toISOString() // 7 days from creation
+            new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
+          ).toISOString() // 7 days from creation
           : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }));
 
@@ -111,9 +111,6 @@ export default function TeamAdminTab() {
     setSelectedTeamMemberForActions(member);
     actions.viewEdit();
   };
-
-  // Calculate team member count based on actual data
-  const teamMemberCount = (users || []).length;
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
@@ -147,14 +144,10 @@ export default function TeamAdminTab() {
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
                 buttonTitle="Invite User"
-                headerClassName="pb-2 h-[32px] pt-10"
+                headerClassName="pb-2 h-[32px] pb-6"
                 preserveEmptyBadgeSpace={false}
-                key={teamMemberCount}
               >
-                <InviteUserForm
-                  teamMemberCount={teamMemberCount}
-                  roleOptions={rolesOptions}
-                />
+                <InviteUserForm roleOptions={rolesOptions} />
               </FormDialog>
             </div>
           </div>
