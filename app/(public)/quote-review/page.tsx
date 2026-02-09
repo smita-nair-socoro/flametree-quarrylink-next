@@ -94,6 +94,11 @@ function QuoteReviewContent() {
     );
   }
 
+  // Show expired page when quote is expired (detected from API error)
+  if (isExpired) {
+    return <QuoteExpired />;
+  }
+
   return (
     <>
       {isLoading && (
