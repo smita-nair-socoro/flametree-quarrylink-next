@@ -300,8 +300,8 @@ export default function QuoteReviewDocument({
     );
   }, [quotationData, declineReason, showValidationError, declineNotes]);
 
-  // Check if quote is expired - show expired page
-  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+  // Check if quote is expired - show expired page (only for public access, not preview mode)
+  if (!isPreviewMode && currentQuoteStatus === QuoteStatus.EXPIRED) {
     // Get email information from API data or footer fallback
     const accountManagerEmail = undefined; // Account manager email not available in current API
     const businessEmail = quotationData.footer.email;
