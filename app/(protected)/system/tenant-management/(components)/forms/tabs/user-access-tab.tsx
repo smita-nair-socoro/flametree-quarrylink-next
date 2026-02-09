@@ -84,7 +84,6 @@ export default function UserAccessTab({
                 key={teamMemberCount}
               >
                 <InviteUserForm
-                  teamMemberCount={teamMemberCount}
                   roleOptions={rolesOptions}
                 />
               </FormDialog>
