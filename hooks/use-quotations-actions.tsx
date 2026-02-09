@@ -155,11 +155,25 @@ const getDialogConfigs = (
                         : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
                     </p>
                   </div>
+                  {/* Desktop: Switch */}
                   <Switch
                     checked={includeDeliveryPrices}
                     onCheckedChange={setIncludeDeliveryPrices}
-                    className="data-[state=checked]:bg-[#F54900]"
+                    className="hidden md:flex data-[state=checked]:bg-[#F54900]"
                   />
+                  {/* Mobile: Single Radio as toggle */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIncludeDeliveryPrices?.(!includeDeliveryPrices)
+                    }
+                    className="flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 border-input transition-colors data-[checked=true]:border-[#F54900]"
+                    data-checked={includeDeliveryPrices}
+                  >
+                    {includeDeliveryPrices && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F54900]" />
+                    )}
+                  </button>
                 </div>
 
                 {/* Preview Quote Button */}
@@ -209,7 +223,7 @@ const getDialogConfigs = (
               <span className="font-semibold text-[14px] text-[#101828]">
                 Recipient Emails*
               </span>
-              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px]">
                 {customerEmail && (
                   <span
                     className={
@@ -281,7 +295,7 @@ const getDialogConfigs = (
                       }
                     }
                   }}
-                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground"
+                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
               <span className="text-[12px] text-[#6B7280]">
@@ -338,11 +352,25 @@ const getDialogConfigs = (
                         : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
                     </p>
                   </div>
+                  {/* Desktop: Switch */}
                   <Switch
                     checked={includeDeliveryPrices}
                     onCheckedChange={setIncludeDeliveryPrices}
-                    className="data-[state=checked]:bg-[#F54900]"
+                    className="hidden md:flex data-[state=checked]:bg-[#F54900]"
                   />
+                  {/* Mobile: Single Radio as toggle */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIncludeDeliveryPrices?.(!includeDeliveryPrices)
+                    }
+                    className="flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 border-input transition-colors data-[checked=true]:border-[#F54900]"
+                    data-checked={includeDeliveryPrices}
+                  >
+                    {includeDeliveryPrices && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F54900]" />
+                    )}
+                  </button>
                 </div>
               </div>
             )}
@@ -1151,10 +1179,22 @@ export function useQuotationActions(
     }
 
     try {
-      // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+      // Map reason keys to human-readable labels for the backend
+      const reasonLabels: Record<string, string> = {
+        price_too_high: 'Price too high',
+        timeline_conflict: 'Timeline conflict',
+        scope_changed: 'Scope changed',
+        customer_unresponsive: 'Customer unresponsive',
+        competitor_selected: 'Competitor selected',
+        project_cancelled: 'Project cancelled',
+        other: 'Other',
+      };
+      const reasonLabel = reasonLabels[declineReason] || declineReason;
+
+      // Compose decline reason: "{reasonLabel}-{declineNote}" or "{reasonLabel}"
       const composedDeclineReason = declineNotes.trim()
-        ? `${declineReason}-${declineNotes.trim()}`
-        : declineReason;
+        ? `${reasonLabel}-${declineNotes.trim()}`
+        : reasonLabel;
 
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
@@ -1292,6 +1332,12 @@ export function useQuotationActions(
     },
 
     preview: () => {
+      console.log('Preview clicked', {
+        isCollectionType,
+        quotationId,
+        quoteType: quotationToUse?.quoteType,
+        expiryDate: quotationToUse?.expiryDate,
+      });
       // For COLLECTION type, skip the modal and go directly to preview
       if (isCollectionType) {
         handlePreviewQuote();

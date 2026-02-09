@@ -106,14 +106,16 @@ export function PricingConfigurationTable({
         const marginIcon =
           marginValue > 0 ? (
             <TrendingUp className="w-4 h-4 text-green-600" />
-          ) : (
+          ) : marginValue < 0 ? (
             <TrendingDown className="w-4 h-4 text-red-600" />
+          ) : (
+            <span className="w-4 h-4 text-gray-600" />
           );
 
         const displayValue = `${marginValue.toFixed(2)}%`;
 
         // Determine text color based on margin value
-        const textColor = marginValue <= 0 ? 'text-red-600' : 'text-green-600';
+        const textColor = marginValue > 0 ? 'text-green-600' : marginValue < 0 ? 'text-red-600' : 'text-gray-600';
 
         return (
           <div className="flex justify-start gap-2">

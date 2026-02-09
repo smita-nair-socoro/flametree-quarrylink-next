@@ -196,11 +196,30 @@ export function FormTable<T extends FieldValues = FieldValues>({
               <FormItem>
                 <FormControl>
                   <div className="flex items-center space-x-2">
+                    {/* Desktop: Switch */}
                     <Switch
                       checked={field.value as boolean}
                       onCheckedChange={field.onChange}
                       disabled={isDisabled}
+                      className="hidden md:flex"
                     />
+                    {/* Mobile: Single Radio as toggle */}
+                    <button
+                      type="button"
+                      onClick={() => !isDisabled && field.onChange(!field.value)}
+                      disabled={isDisabled}
+                      className={cn(
+                        'flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 transition-colors',
+                        field.value
+                          ? 'border-primary'
+                          : 'border-input',
+                        isDisabled && 'opacity-50 cursor-not-allowed'
+                      )}
+                    >
+                      {field.value && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                      )}
+                    </button>
                   </div>
                 </FormControl>
               </FormItem>

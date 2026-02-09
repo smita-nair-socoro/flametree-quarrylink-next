@@ -21,7 +21,11 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DatePicker } from '@/components/date-picker';
-import { GetTodaysDate, formatLocalDateShort, formatLocalDateTime } from '@/lib/utils/date';
+import {
+  GetTodaysDate,
+  formatLocalDateShort,
+  formatLocalDateTime,
+} from '@/lib/utils/date';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -32,7 +36,7 @@ import { useCreateQuotation, useUpdateQuotation } from '@/lib/api/quotation';
 import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { Info, HelpCircle } from 'lucide-react';
+import { Info, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
 import {
   Tooltip,
@@ -79,7 +83,7 @@ export default function QuotationForm({
     resolver: zodResolver(NewQuotationFormSchema),
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
-      isEditing,
+      isEditing
     ),
   });
 
@@ -95,6 +99,7 @@ export default function QuotationForm({
     timeWindowLabel,
     pricingBreakdown,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
+
   const isCollectionQuote =
     currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
 
@@ -137,7 +142,7 @@ export default function QuotationForm({
       if (!subOrName) return '';
       return users.find((u) => u.sub === subOrName)?.name || subOrName;
     },
-    [users],
+    [users]
   );
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
@@ -145,20 +150,20 @@ export default function QuotationForm({
     const subscription = quotationForm.watch((value, { name }) => {
       if (name === 'customerId' && value.customerId) {
         const selectedCustomer = customers.find(
-          (c) => c.id === value.customerId,
+          (c) => c.id === value.customerId
         );
 
         if (selectedCustomer) {
           // Update phone and email fields whenever customer changes
           quotationForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || '',
+            normalizePhoneNumber(selectedCustomer.phone || '') || ''
           );
           quotationForm.setValue('email', selectedCustomer.email || '');
 
           quotationForm.setValue(
             'accountManagerSub',
-            selectedCustomer.accountManagerSub || '',
+            selectedCustomer.accountManagerSub || ''
           );
         }
       }
@@ -173,7 +178,7 @@ export default function QuotationForm({
     // Check for missing email when creating a quotation
     if (!isEditing && !values.email?.trim()) {
       notifyError(
-        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.',
+        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.'
       );
       return;
     }
@@ -215,7 +220,7 @@ export default function QuotationForm({
         const messageFromErr = err?.message || extractedMessage;
 
         notifyError(
-          messageFromErr || 'Failed to create quote. Please try again.',
+          messageFromErr || 'Failed to create quote. Please try again.'
         );
       }
     } else {
@@ -247,7 +252,7 @@ export default function QuotationForm({
 
         // Fallback error using extracted message
         notifyError(
-          messageFromErr || 'Failed to update quote. Please try again.',
+          messageFromErr || 'Failed to update quote. Please try again.'
         );
       }
     }
@@ -300,7 +305,7 @@ export default function QuotationForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10',
+            isDesktop ? '' : 'pt-10'
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -319,7 +324,7 @@ export default function QuotationForm({
             'p-1 w-full flex flex-col',
             className,
             (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+              'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -338,22 +343,10 @@ export default function QuotationForm({
           {isEditing &&
             currentQuotation?.quoteStatus === 'DECLINED' &&
             (() => {
-              // Parse decline reason - format: "reason_key" or "reason_key-additional notes"
+              // Parse decline reason - format: "Reason label" or "Reason label-additional notes"
               const declineReasonRaw = currentQuotation?.declineReason || '';
-              const [reasonKey, ...noteParts] = declineReasonRaw.split('-');
+              const [reasonLabel, ...noteParts] = declineReasonRaw.split('-');
               const declineNote = noteParts.join('-').trim();
-
-              // Map reason keys to human-readable labels
-              const reasonLabels: Record<string, string> = {
-                price_too_high: 'Price too high',
-                timeline_conflict: 'Timeline conflict',
-                scope_changed: 'Scope changed',
-                customer_unresponsive: 'Customer unresponsive',
-                competitor_selected: 'Competitor selected',
-                project_cancelled: 'Project cancelled',
-                other: 'Other',
-              };
-              const reasonLabel = reasonLabels[reasonKey] || reasonKey;
 
               // Format customerResponseAt date
               const formattedDate = currentQuotation?.customerResponseAt
@@ -395,7 +388,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none',
+                'pointer-events-none'
             )}
           >
             {/* Duplicate Info Banner */}
@@ -619,7 +612,7 @@ export default function QuotationForm({
                 'col-span-2',
                 isEditing && isDesktop
                   ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-1 gap-2'
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
@@ -695,7 +688,7 @@ export default function QuotationForm({
                 'col-span-2 mb-6',
                 isEditing && isDesktop
                   ? 'grid grid-cols-2 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-1 gap-2'
               )}
             >
               <FormField
@@ -730,7 +723,7 @@ export default function QuotationForm({
                 className={cn(
                   isDesktop
                     ? 'flex justify-between items-center col-span-2 mb-5'
-                    : 'flex flex-col gap-4 col-span-1',
+                    : 'flex flex-col gap-4 col-span-1'
                 )}
               >
                 <div>
@@ -742,7 +735,7 @@ export default function QuotationForm({
                   <div
                     className={cn(
                       'flex items-center gap-2',
-                      !isDesktop && 'mt-2',
+                      !isDesktop && 'mt-2'
                     )}
                   >
                     <FormDialog
@@ -761,14 +754,14 @@ export default function QuotationForm({
 
             {isEditing && (
               <div className="col-span-full space-y-10">
-                <div className="flex flex-col gap-0">
+                <div className="flex flex-col gap-8">
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
                       return (
                         <DataTableClient
                           columns={getQuotationLineItemColumns(
-                            currentQuotation?.quoteType,
+                            currentQuotation?.quoteType
                           )}
                           data={quoteItemsData}
                           simpleTable={true}
@@ -778,77 +771,135 @@ export default function QuotationForm({
                     })()}
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    <div className="bg-gray-50 border-t px-2 border-[#E5E5E5] [&>div]:border-b [&>div]:border-dashed [&>div]:border-purple-300 [&>div:nth-child(1)]:border-b-0 [&>div:nth-child(3)]:border-b-0 [&>div:nth-child(5)]:border-b-0">
-                      <div className="flex justify-between py-3">
-                        <span className="text-sm font-normal">
-                          Product Cost (Total):
-                        </span>
-                        <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductCostPrice}
-                        </span>
-                      </div>
-                      {!isCollectionQuote && (
-                        <div className="flex justify-between py-3 -mt-3">
-                          <span className="text-sm font-normal">
-                            Truck Cost (Total):
-                          </span>
-                          <span className="text-sm font-normal">
-                            ${pricingBreakdown.totalTruckCostPrice}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between py-3">
-                        <span className="text-sm font-normal">
-                          Product Sell (Total):
-                        </span>
-                        <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalProductSellPrice}
-                        </span>
-                      </div>
-                      {!isCollectionQuote && (
-                        <div className="flex justify-between py-3 -mt-3">
-                          <span className="text-sm font-normal">
-                            Truck Sell (Total):
-                          </span>
-                          <span className="text-sm font-normal">
-                            ${pricingBreakdown.totalTruckSellPrice}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex justify-between py-3">
-                        <span className="text-sm font-normal">
-                          Subtotal (ex-GST):
-                        </span>
-                        <span className="text-sm font-normal">
-                          ${pricingBreakdown.totalInvoice}
-                        </span>
-                      </div>
-                      <div className="flex justify-between py-3 -mt-3">
-                        <span className="text-sm font-normal">GST (10%):</span>
-                        <span className="text-sm font-normal">
-                          ${pricingBreakdown.gst}
-                        </span>
-                      </div>
-                      <div className="flex justify-between py-3">
-                        <span className="text-sm font-semibold">
-                          Total Invoice (Incl. GST):
-                        </span>
-                        <span className="text-sm font-semibold">
-                          ${pricingBreakdown.totalInvoiceIncGST}
-                        </span>
-                      </div>
+                  {(currentQuotation?.lineItemsCount ?? 0) > 0 && (
+                    <div className="flex flex-col gap-3">
+                      {(() => {
+                        const separatorBorder =
+                          'border-t border-dashed border-purple-300';
+                        return (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {/* Cost Summary */}
+                              <div className="md:col-span-1 md:col-start-2 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
+                                <h3 className="text-lg font-bold mb-3">
+                                  Cost Summary
+                                </h3>
+                                <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
+                                  <div>
+                                    <span>Product Cost</span>
+                                    <span>
+                                      ${pricingBreakdown.totalProductCostPrice}
+                                    </span>
+                                  </div>
+                                  {!isCollectionQuote && (
+                                    <div>
+                                      <span>Truck Cost</span>
+                                      <span>
+                                        ${pricingBreakdown.totalTruckCostPrice}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span>Subtotal (ex-GST)</span>
+                                    <span>
+                                      ${pricingBreakdown.costSubtotalExGST}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span>GST (10%)</span>
+                                    <span>${pricingBreakdown.costGst}</span>
+                                  </div>
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span className="font-bold text-lg">
+                                      Total Cost
+                                    </span>
+                                    <span className="font-bold text-lg">
+                                      ${pricingBreakdown.totalCost}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Sale Summary */}
+                              <div className="md:col-span-1 md:col-start-3 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
+                                <h3 className="text-lg font-bold mb-3">
+                                  Sale Summary
+                                </h3>
+                                <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
+                                  <div>
+                                    <span>Product Sell</span>
+                                    <span>
+                                      ${pricingBreakdown.totalProductSellPrice}
+                                    </span>
+                                  </div>
+                                  {!isCollectionQuote && (
+                                    <div>
+                                      <span>Truck Sell</span>
+                                      <span>
+                                        ${pricingBreakdown.totalTruckSellPrice}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span>Subtotal (ex-GST)</span>
+                                    <span>
+                                      ${pricingBreakdown.invoiceSubtotalExGST}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span>GST (10%)</span>
+                                    <span>${pricingBreakdown.invoiceGst}</span>
+                                  </div>
+                                  <div className={`pt-2 ${separatorBorder}`}>
+                                    <span className="font-bold text-lg">
+                                      Total Invoice
+                                    </span>
+                                    <span className="font-bold text-lg">
+                                      ${pricingBreakdown.totalInvoice}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Gross Profit */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="flex justify-end items-center gap-2 py-3 px-4 bg-gray-200 rounded-lg md:col-span-2 md:col-start-2">
+                                <span className="text-lg font-semibold">
+                                  Gross Profit:
+                                </span>
+                                {pricingBreakdown.grossProfitPercentage >= 0 ? (
+                                  <TrendingUp className="w-5 h-5 text-green-600 shrink-0" />
+                                ) : (
+                                  <TrendingDown className="w-5 h-5 text-red-600 shrink-0" />
+                                )}
+                                <span
+                                  className={cn(
+                                    'text-lg font-bold',
+                                    pricingBreakdown.grossProfitPercentage >= 0
+                                      ? 'text-green-600'
+                                      : 'text-red-600'
+                                  )}
+                                >
+                                  {pricingBreakdown.grossProfitPercentage?.toFixed(
+                                    2
+                                  )}
+                                  %
+                                </span>
+                                <span className="text-lg font-medium ml-5">
+                                  {Number(pricingBreakdown.grossProfit) >= 0
+                                    ? ''
+                                    : '-'}
+                                  $
+                                  {Math.abs(
+                                    Number(pricingBreakdown.grossProfit)
+                                  ).toFixed(2)}
+                                </span>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
-                    <div className="flex justify-between py-3 px-2 bg-slate-200">
-                      <span className="text-sm font-semibold">
-                        Gross Profit:
-                      </span>
-                      <span className="text-sm font-semibold">
-                        ${pricingBreakdown.grossProfit} (
-                        {pricingBreakdown.grossProfitPercentage?.toFixed(2)}%)
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {!isDuplicate && (
@@ -872,7 +923,7 @@ export default function QuotationForm({
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {getUserNameBySub(
-                            quotationForm.watch('lastModifiedBy'),
+                            quotationForm.watch('lastModifiedBy')
                           ) || 'Jaywoo Choi'}
                         </p>
                       </div>
@@ -882,7 +933,9 @@ export default function QuotationForm({
                           Created Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {formatLocalDateShort(quotationForm.watch('createdAt')) || '—'}
+                          {formatLocalDateShort(
+                            quotationForm.watch('createdAt')
+                          ) || '—'}
                         </p>
                       </div>
 
@@ -891,7 +944,9 @@ export default function QuotationForm({
                           Modified Date:
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {formatLocalDateShort(quotationForm.watch('updatedAt')) || '—'}
+                          {formatLocalDateShort(
+                            quotationForm.watch('updatedAt')
+                          ) || '—'}
                         </p>
                       </div>
                     </div>
@@ -919,8 +974,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                      ? 'Save Changes'
-                      : 'Add Quote'}
+                    ? 'Save Changes'
+                    : 'Add Quote'}
                 </Button>
               </div>
             )}
@@ -941,8 +996,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                      ? 'Save Changes'
-                      : 'Add Quote'}
+                    ? 'Save Changes'
+                    : 'Add Quote'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
