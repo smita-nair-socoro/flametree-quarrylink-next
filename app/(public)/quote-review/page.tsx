@@ -37,10 +37,6 @@ function QuoteReviewContent() {
           // Override inclDeliveryCost with the URL parameter value
           const inclDeliveryCost = inclDeliveryCostParam === 'true';
           res.quoteDto.inclDeliveryCost = inclDeliveryCost;
-          console.log(
-            '[QuoteReview] preview mode - inclDeliveryCost:',
-            inclDeliveryCost,
-          );
           setQuoteData(res);
         })
         .catch((err) => {
@@ -62,10 +58,6 @@ function QuoteReviewContent() {
 
     fetchPublicQuoteByToken(token)
       .then((res) => {
-        console.log(
-          '[QuoteReview] public link mode - inclDeliveryCost:',
-          res.quoteDto.inclDeliveryCost,
-        );
         setQuoteData(res);
       })
       .catch((err) => {
