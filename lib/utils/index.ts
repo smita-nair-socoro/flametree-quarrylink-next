@@ -169,6 +169,7 @@ export const MATERIAL_TYPE_COLORS: Record<string, string> = {
   BALLAST: 'bg-pink-100 text-pink-900 border-pink-900',
   'STABILISED MATERIAL': 'bg-lime-100 text-lime-900 border-lime-900',
   'RECYCLED MATERIAL': 'bg-cyan-100 text-cyan-900 border-cyan-900',
+  WASTE: 'bg-red-100 text-red-900 border-red-900',
 };
 
 export const BADGE_COLORS: Record<string, string> = {

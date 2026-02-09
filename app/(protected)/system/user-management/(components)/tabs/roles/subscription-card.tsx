@@ -27,7 +27,6 @@ interface SubscriptionPlanCardProps {
   price: string;
   planName: string;
   description: string;
-  minUsers: number;
   tone: keyof typeof toneVariants;
   isSelected: boolean;
   onClick?: () => void;
@@ -37,7 +36,6 @@ export function SubscriptionPlanCard({
   price,
   planName,
   description,
-  minUsers,
   tone,
   isSelected = false,
   onClick,
@@ -83,11 +81,6 @@ export function SubscriptionPlanCard({
             {/* Description */}
             <p className="font-normal text-muted-foreground leading-relaxed text-[11px]">
               {description}
-            </p>
-
-            {/* Min Users */}
-            <p className="font-medium text-foreground text-[11px]">
-              {minUsers} min users
             </p>
           </div>
         </CardContent>

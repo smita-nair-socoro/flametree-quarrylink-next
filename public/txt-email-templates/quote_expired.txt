@@ -1,0 +1,20 @@
+Hi {customerContactFirstName},
+
+Your quote has expired and is no longer valid.
+
+Quote Number: {quoteNumber}
+Project: {projectName}
+Quote Type: {quoteType}
+Previous Total Value: ${totalValue} ex GST
+Expired On: {expiryDate}
+
+The rates and terms in this quote are no longer guaranteed.
+
+If you would still like to proceed with this project, please contact your Account Manager to request a new quote with current pricing:
+
+{accountManagerName}
+{accountManagerEmail}
+
+We're happy to provide a revised quote that meets your project needs.
+
+You're receiving this because your quote from {tenantBussinessName} via QuarryLink has expired.

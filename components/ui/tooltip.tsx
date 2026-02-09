@@ -16,24 +16,141 @@ function TooltipProvider({
   );
 }
 
+// Context to share touch device state and open control between Tooltip and TooltipTrigger
+const TooltipContext = React.createContext<{
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  mobileClickable: boolean;
+  isTouchOnly: boolean;
+}>({
+  open: false,
+  setOpen: () => {},
+  mobileClickable: true,
+  isTouchOnly: false,
+});
+
+// Hook to detect touch-only devices (excludes touch + mouse laptops)
+// Uses any-hover/any-pointer to check if ANY input device can hover/has fine pointer
+function useIsTouchOnly() {
+  const [isTouchOnly, setIsTouchOnly] = React.useState(false);
+
+  React.useEffect(() => {
+    // Safety check for SSR and older browsers
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
+      return;
+    }
+
+    // Use any-hover/any-pointer: checks if ANY input device has the capability
+    // This is better than hover/pointer which only checks the "primary" device
+    const hoverQuery = window.matchMedia('(any-hover: hover)');
+    const pointerQuery = window.matchMedia('(any-pointer: fine)');
+
+    const updateTouchOnly = () => {
+      const hasTouch =
+        'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      // If ANY device can hover OR has fine pointer, treat as non-touch-only
+      // This properly excludes touch laptops with mouse/trackpad
+      const canHover = hoverQuery.matches;
+      const hasFinePointer = pointerQuery.matches;
+
+      setIsTouchOnly(hasTouch && !canHover && !hasFinePointer);
+    };
+
+    // Initial check
+    updateTouchOnly();
+
+    // Listen for changes (e.g., user connects/disconnects mouse on iPad)
+    hoverQuery.addEventListener('change', updateTouchOnly);
+    pointerQuery.addEventListener('change', updateTouchOnly);
+
+    return () => {
+      hoverQuery.removeEventListener('change', updateTouchOnly);
+      pointerQuery.removeEventListener('change', updateTouchOnly);
+    };
+  }, []);
+
+  return isTouchOnly;
+}
+
+interface TooltipProps extends React.ComponentProps<
+  typeof TooltipPrimitive.Root
+> {
+  /**
+   * When true, tooltip will show/hide on click instead of hover on touch devices.
+   * Default is true - set to false for navigation items that should not intercept clicks.
+   */
+  mobileClickable?: boolean;
+}
+
 function Tooltip({
+  mobileClickable = true,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+}: TooltipProps) {
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  const isTouchOnly = useIsTouchOnly();
+
+  // Use controlled mode when mobileClickable is enabled on touch-only devices
+  const shouldControlInternally = mobileClickable && isTouchOnly;
+
+  const open = shouldControlInternally ? internalOpen : controlledOpen;
+  const onOpenChange = shouldControlInternally
+    ? setInternalOpen
+    : controlledOnOpenChange;
+
   return (
-    <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
-    </TooltipProvider>
+    <TooltipContext.Provider
+      value={{
+        open: internalOpen,
+        setOpen: setInternalOpen,
+        mobileClickable,
+        isTouchOnly,
+      }}
+    >
+      <TooltipProvider>
+        <TooltipPrimitive.Root
+          data-slot="tooltip"
+          open={open}
+          onOpenChange={onOpenChange}
+          {...props}
+        />
+      </TooltipProvider>
+    </TooltipContext.Provider>
   );
 }
 
 function TooltipTrigger({
+  onClick,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+  const { open, setOpen, mobileClickable, isTouchOnly } =
+    React.useContext(TooltipContext);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (mobileClickable && isTouchOnly) {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(!open);
+    }
+    onClick?.(e);
+  };
+
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      onClick={handleClick}
+      {...props}
+    />
+  );
 }
 
-interface TooltipContentProps
-  extends React.ComponentProps<typeof TooltipPrimitive.Content> {
+interface TooltipContentProps extends React.ComponentProps<
+  typeof TooltipPrimitive.Content
+> {
   variant?: 'default' | 'table' | 'purple' | 'white';
   backgroundClassName?: string;
   arrowClassName?: string;
@@ -58,7 +175,7 @@ function TooltipContent({
           className={cn(
             'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
             backgroundClassName || 'bg-primary text-primary-foreground',
-            className
+            className,
           )}
           {...props}
         >
@@ -66,7 +183,7 @@ function TooltipContent({
           <TooltipPrimitive.Arrow
             className={cn(
               'z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]',
-              arrowClassName || 'bg-primary fill-primary'
+              arrowClassName || 'bg-primary fill-primary',
             )}
           />
         </TooltipPrimitive.Content>
@@ -104,7 +221,7 @@ function TooltipContent({
         className={cn(
           'animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
           styles.content,
-          className
+          className,
         )}
         {...props}
       >
@@ -112,7 +229,7 @@ function TooltipContent({
         <TooltipPrimitive.Arrow
           className={cn(
             'z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]',
-            styles.arrow
+            styles.arrow,
           )}
         />
       </TooltipPrimitive.Content>

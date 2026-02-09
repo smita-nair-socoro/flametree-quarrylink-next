@@ -300,8 +300,8 @@ export default function QuoteReviewDocument({
     );
   }, [quotationData, declineReason, showValidationError, declineNotes]);
 
-  // Check if quote is expired - show expired page
-  if (currentQuoteStatus === QuoteStatus.EXPIRED) {
+  // Check if quote is expired - show expired page (only for public access, not preview mode)
+  if (!isPreviewMode && currentQuoteStatus === QuoteStatus.EXPIRED) {
     // Get email information from API data or footer fallback
     const accountManagerEmail = undefined; // Account manager email not available in current API
     const businessEmail = quotationData.footer.email;
@@ -356,10 +356,22 @@ export default function QuoteReviewDocument({
       return;
     }
 
-    // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+    // Map reason keys to human-readable labels for the backend
+    const reasonLabels: Record<string, string> = {
+      price_too_high: 'Price too high',
+      timeline_conflict: 'Timeline conflict',
+      scope_changed: 'Scope changed',
+      customer_unresponsive: 'Customer unresponsive',
+      competitor_selected: 'Competitor selected',
+      project_cancelled: 'Project cancelled',
+      other: 'Other',
+    };
+    const reasonLabel = reasonLabels[declineReason] || declineReason;
+
+    // Compose decline reason: "{reasonLabel}-{declineNote}" or "{reasonLabel}"
     const composedDeclineReason = declineNotes.trim()
-      ? `${declineReason}-${declineNotes.trim()}`
-      : declineReason;
+      ? `${reasonLabel}-${declineNotes.trim()}`
+      : reasonLabel;
 
     updateQuoteStatus(
       { status: 'DECLINED', token, declineReason: composedDeclineReason },
