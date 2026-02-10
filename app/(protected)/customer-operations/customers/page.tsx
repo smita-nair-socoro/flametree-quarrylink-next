@@ -40,14 +40,12 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 
 export default function CustomersPage() {
-  // Only used for row click: which customer to show in the view dialog.
-  // Dropdown "View Details" passes customer.id directly via its own useCustomerActions(customer.id).
-  const [selectedCustomerId, setSelectedCustomerId] = React.useState<
-    number | null
-  >(null);
+  // Row click: which customer to show in the view dialog (hook uses customerData.id).
+  const [selectedCustomerForHeader, setSelectedCustomerForHeader] =
+    React.useState<CustomerDTO | null>(null);
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    selectedCustomerId ?? undefined
+    selectedCustomerForHeader ?? undefined
   );
 
   // Role-based feature detection
@@ -131,7 +129,7 @@ export default function CustomersPage() {
 
   // Handle row click: set which customer to view, then open the page's view dialog
   const handleRowClick = (customer: CustomerDTO) => {
-    setSelectedCustomerId(customer.id ?? null);
+    setSelectedCustomerForHeader(customer);
     actions.view();
   };
 

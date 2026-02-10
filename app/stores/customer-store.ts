@@ -34,7 +34,6 @@ export const useCustomerStore = create<CustomerStore>()(
       setCustomers: (customers) => set({ customers }),
 
       setSelectedCustomer: (customer) => set({ selectedCustomer: customer }),
-
       setLoading: (loading) => set({ isLoading: loading }),
 
       // Selectors
@@ -60,8 +59,8 @@ export const useCustomerStore = create<CustomerStore>()(
         };
       },
     }),
-    { name: 'customer-store' }
-  )
+    { name: 'customer-store' },
+  ),
 );
 
 export const useSelectedCustomer = () =>
@@ -78,7 +77,7 @@ export const useCustomerById = (id: number) => {
 
 export const useCustomersByStatus = (status: string) => {
   return useCustomerStore((state) =>
-    state.customers.filter((c) => c.customerStatus === status)
+    state.customers.filter((c) => c.customerStatus === status),
   );
 };
 

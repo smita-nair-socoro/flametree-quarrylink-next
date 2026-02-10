@@ -20,9 +20,7 @@ interface CustomerTableActionsProps {
 
 export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    customer.id
-  );
+  const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
 
   const handleView = () => {
     setDropdownOpen(false); // Close dropdown before opening modal

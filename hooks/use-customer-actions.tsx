@@ -9,6 +9,7 @@ import { CustomerActionButtons } from '@/app/(protected)/customer-operations/cus
 import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { CustomerDetailQueryOptions } from '@/lib/api/customer';
+import { useCustomerStore } from '@/app/stores/customer-store';
 
 interface DialogConfig {
   title?: string;
@@ -386,13 +387,13 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useCustomerActions(customerId: number | undefined, customerData?: CustomerDTO | null) {
+export function useCustomerActions(customerData?: CustomerDTO | null) {
+  const customerId = customerData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  // Fetch customer by id when we have one (single source of truth from API)
   const dialogConfigs = React.useMemo(
     () => getDialogConfigs(customerData ?? null, selectedAction || undefined),
     [customerData, selectedAction]
@@ -400,6 +401,9 @@ export function useCustomerActions(customerId: number | undefined, customerData?
 
   const actions = {
     view: () => {
+      if (customerData != null) {
+        useCustomerStore.getState().setSelectedCustomer(customerData);
+      }
       setViewOpen(true);
     },
 
