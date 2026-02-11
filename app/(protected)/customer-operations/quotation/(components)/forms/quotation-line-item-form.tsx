@@ -31,7 +31,7 @@ import {
 import { useLineItemFormState } from '@/hooks/quotation/use-lineitem-form-state';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
-import { toAddressType } from '@/lib/utils/address-helper';
+import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { formatLocalDateShort } from '@/lib/utils/date';
 
@@ -90,15 +90,9 @@ export default function QuoteLineItemForm({
   // Handler for address changes with functional updates to prevent unnecessary rerenders
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
-      setAddressInput((prev) => {
-        const same =
-          prev.formattedAddress === newAddress.formattedAddress &&
-          prev.googlePlaceId === newAddress.googlePlaceId &&
-          prev.lat === newAddress.lat &&
-          prev.lng === newAddress.lng;
-
-        return same ? prev : newAddress;
-      });
+      setAddressInput((prev) =>
+        isSameAddress(prev, newAddress) ? prev : newAddress
+      );
     },
     [setAddressInput]
   );

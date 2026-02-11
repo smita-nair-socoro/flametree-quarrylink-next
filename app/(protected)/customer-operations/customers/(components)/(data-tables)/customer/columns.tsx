@@ -21,7 +21,21 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
         <TableClientSortableHeader column={column} title="Customer Name" />
       );
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (<Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <div
+            className="truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]"
+          >
+            {value}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent variant="white">
+          <p>{value}</p>
+        </TooltipContent>
+      </Tooltip>)
+    },
     meta: 'Customer Name',
   },
   {
@@ -48,7 +62,21 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Contact Name" />;
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (<Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <div
+            className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]"
+          >
+            {value}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent variant="white">
+          <p>{value}</p>
+        </TooltipContent>
+      </Tooltip>)
+    },
     meta: 'Contact Name',
   },
   {
@@ -57,7 +85,21 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Email" />;
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (<Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <div
+            className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]"
+          >
+            {value}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent variant="white">
+          <p>{value}</p>
+        </TooltipContent>
+      </Tooltip>)
+    },
     meta: 'Email',
   },
 
@@ -65,7 +107,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     id: 'credit_limit',
     accessorFn: (row) => row.creditLimit,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Credit Limit" />;
+      return <TableClientSortableHeader column={column} title="Credit" />;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.creditLimit.toString());

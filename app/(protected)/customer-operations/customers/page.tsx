@@ -40,13 +40,7 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 
 export default function CustomersPage() {
-  // Row click: which customer to show in the view dialog (hook uses customerData.id).
-  const [selectedCustomerForHeader, setSelectedCustomerForHeader] =
-    React.useState<CustomerDTO | null>(null);
-
-  const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    selectedCustomerForHeader ?? undefined
-  );
+  const { actions, confirmDialogs, viewDialog } = useCustomerActions();
 
   // Role-based feature detection
   const { attributes } = useAuth();
@@ -127,10 +121,9 @@ export default function CustomersPage() {
     }
   }, [isError, error]);
 
-  // Handle row click: set which customer to view, then open the page's view dialog
+  // Handle row click: pass clicked customer so store updates before dialog opens
   const handleRowClick = (customer: CustomerDTO) => {
-    setSelectedCustomerForHeader(customer);
-    actions.view();
+    actions.view(customer);
   };
 
   // Mobile card renderer
