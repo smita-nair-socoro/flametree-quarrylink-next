@@ -532,17 +532,17 @@ export default function ProductForm({
               >
                 <div className="flex flex-col gap-0">
                   <span className="text-lg font-semibold">
-                    Supplier Information
+                    Quarry / Supplier Information
                   </span>
                   {isEditing ? (
                     <span className="text-sm text-gray-500">
                       {totalSupplier}{' '}
-                      {totalSupplier === 1 ? 'supplier' : 'suppliers'}{' '}
+                      {totalSupplier === 1 ? 'quarry / supplier' : 'quarry / suppliers'}{' '}
                       configured with pricing and truck rates
                     </span>
                   ) : (
                     <span className="text-sm text-gray-500">
-                      Add suppliers after creating the product
+                      Add quarry / supplier after creating the product
                     </span>
                   )}
                 </div>
@@ -572,7 +572,7 @@ export default function ProductForm({
                   {(isEditing || productJustCreated) && (
                     <FormDialog
                       dialogTitle="Add New Supplier"
-                      buttonTitle="Add Supplier"
+                      buttonTitle="Add Quarry / Supplier"
                       dialogWidth="700px"
                       contentClass="-mt-5"
                     >

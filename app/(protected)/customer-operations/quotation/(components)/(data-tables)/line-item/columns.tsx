@@ -52,7 +52,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     id: 'quarryName',
     accessorFn: (row) => row.quarryName,
     header: () => {
-      return <div>Supplier</div>;
+      return <div>Quarry / Supplier</div>;
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
