@@ -101,8 +101,6 @@ interface AddProductDrawerDialogProps {
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
-
-
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
 
@@ -246,8 +244,12 @@ export function FormDialog({
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
     finalCustomId =
       selectedCustomer.businessName || selectedCustomer.contactName;
-    finalPrimaryBadges = selectedCustomer.customerStatus ? [selectedCustomer.customerStatus] : [];
-    finalSecondaryBadges = selectedCustomer.customerType ? [selectedCustomer.customerType] : [];
+    finalPrimaryBadges = selectedCustomer.customerStatus
+      ? [selectedCustomer.customerStatus]
+      : [];
+    finalSecondaryBadges = selectedCustomer.customerType
+      ? [selectedCustomer.customerType]
+      : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -363,12 +365,12 @@ export function FormDialog({
 
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-      id: effectiveId,
-      onCancel: close,
-      onSuccess: handleChildSuccess,
-      onDirtyChange: handleChildDirtyChange,
-      onSaved: handleChildSaved,
-    })
+        id: effectiveId,
+        onCancel: close,
+        onSuccess: handleChildSuccess,
+        onDirtyChange: handleChildDirtyChange,
+        onSaved: handleChildSaved,
+      })
     : children;
 
   const formatBadgeText = (text?: string | number | null): string => {

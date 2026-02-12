@@ -47,7 +47,7 @@ export function QuotationActionButtons({
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
-    useQuotationActions(quotation?.id, quotation);
+    useQuotationActions(quotation);
 
   // Early returns for null quotation or new quotation
   if (!quotation) {

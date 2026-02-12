@@ -22,11 +22,7 @@ export function QuotationLineItemTableActions({
 }: QutationLineItemTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useQuotationLineItemActions(
-    quotationLineItem.id,
     quotationLineItem
-  );
-  const setSelectedQuotationLineItem = useQuotationLineItemStore(
-    (state) => state.setSelectedLineItem
   );
 
   const createHandler =
@@ -36,13 +32,9 @@ export function QuotationLineItemTableActions({
       actionFn();
     };
 
-  const handleView = createHandler(actions.view, () =>
-    setSelectedQuotationLineItem(quotationLineItem)
-  );
+  const handleView = createHandler(actions.view);
 
-  const handleDelete = createHandler(actions.remove, () =>
-    setSelectedQuotationLineItem(quotationLineItem)
-  );
+  const handleDelete = createHandler(actions.remove);
 
   return (
     <div>

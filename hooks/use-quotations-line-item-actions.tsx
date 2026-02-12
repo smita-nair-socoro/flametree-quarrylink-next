@@ -123,14 +123,24 @@ const getDialogConfigs = (
   return {};
 };
 
+import { useQuotationLineItemStore } from '@/app/stores/line-item-quotation';
+
 export function useQuotationLineItemActions(
-  lineItemId: number | undefined,
   lineItemData?: QuotationLineItem | null
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+
+  const selectedLineItem = useQuotationLineItemStore(
+    (state) => state.selectedLineItem
+  );
+  const setSelectedLineItem = useQuotationLineItemStore(
+    (state) => state.setSelectedLineItem
+  );
+
+  const lineItemId = selectedLineItem?.id;
 
   // Get selected quotation to check status
   const selectedQuotation = useSelectedQuotation();
@@ -154,7 +164,11 @@ export function useQuotationLineItemActions(
   };
 
   const actions = {
-    view: () => {
+    view: (lineItem?: QuotationLineItem | null) => {
+      const toSelect = lineItem ?? lineItemData;
+      if (toSelect) {
+        setSelectedLineItem(toSelect);
+      }
       setViewOpen(true);
     },
     remove: createDialogAction('remove'),
