@@ -30,9 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useQuery } from '@tanstack/react-query';
 import {
-  QuotationWithLineItemsQueryOptions,
+  // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
   useExtendExpiryDate,
   useUpdateQuotation,
@@ -96,7 +95,7 @@ const getDialogConfigs = (
   additionalRecipientEmails?: string[],
   setAdditionalRecipientEmails?: (emails: string[]) => void,
   recipientEmailInputValue?: string,
-  setRecipientEmailInputValue?: (value: string) => void
+  setRecipientEmailInputValue?: (value: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -254,7 +253,7 @@ const getDialogConfigs = (
                       variant="ghost"
                       onClick={() => {
                         const next = additionalRecipientEmails.filter(
-                          (_, i) => i !== idx
+                          (_, i) => i !== idx,
                         );
                         setAdditionalRecipientEmails?.(next);
                       }}
@@ -284,7 +283,7 @@ const getDialogConfigs = (
                         (s) =>
                           /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) &&
                           !additionalRecipientEmails?.includes(s) &&
-                          s !== customerEmail
+                          s !== customerEmail,
                       );
                       if (valid.length) {
                         setAdditionalRecipientEmails?.([
@@ -910,21 +909,25 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useQuotationActions(
-  quotationId: number | undefined,
-  quotationData?: Quotation | null
-) {
+export function useQuotationActions(quotationData?: Quotation | null) {
   const fallbackQuotation = useQuotationStore((state) =>
-    quotationId ? state.getQuotationById(quotationId) : null
+    state.selectedQuotation?.id
+      ? state.getQuotationById(state.selectedQuotation.id)
+      : null,
+  );
+  const selectedQuotation = useQuotationStore(
+    (state) => state.selectedQuotation,
   );
   const setSelectedQuotation = useQuotationStore(
-    (state) => state.setSelectedQuotation
+    (state) => state.setSelectedQuotation,
   );
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [duplicateOpen, setDuplicateOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+
+  const quotationId = selectedQuotation?.id;
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
     const weekFromToday = new Date();
     weekFromToday.setDate(weekFromToday.getDate() + 7);
@@ -948,7 +951,7 @@ export function useQuotationActions(
     return true;
   }, [declineReason, declineNotes]);
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
-    quotationData?.inclDeliveryCost ?? false
+    quotationData?.inclDeliveryCost ?? false,
   );
 
   const extendExpiryMutation = useExtendExpiryDate();
@@ -984,34 +987,12 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
-  // Fetch detailed quotation data with line items from backend
-  const { data: quotationDetailData } = useQuery(
-    QuotationWithLineItemsQueryOptions(quotationId || 0)
-  );
+  // Fetch detailed quotation data with line items from backend - REMOVED
 
-  // Convert and transform detailed quotation data
-  const detailedQuotation = React.useMemo(() => {
-    if (quotationDetailData) {
-      // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      const transformed = {
-        ...quotationDetailData,
-      } as Quotation;
+  // Update store with detailed quotation that includes line items - REMOVED
 
-      return transformed;
-    }
-    return null;
-  }, [quotationDetailData]);
-
-  // Update store with detailed quotation that includes line items
-  React.useEffect(() => {
-    if (detailedQuotation) {
-      setSelectedQuotation(detailedQuotation);
-    }
-  }, [detailedQuotation, setSelectedQuotation]);
-
-  // Prefer detailed quotation (with line items), then provided prop, then store fallback
-  const resolvedQuotation =
-    detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
+  // Prefer provided prop, then store fallback
+  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
 
   // Use detailed data if available, otherwise fall back to list/store data
   const quotationToUse = resolvedQuotation;
@@ -1022,6 +1003,13 @@ export function useQuotationActions(
       setIncludeDeliveryPrices(resolvedQuotation.inclDeliveryCost);
     }
   }, [resolvedQuotation?.inclDeliveryCost]);
+
+  // Sync resolvedQuotation to store when view is open, to ensure FormDialog (which reads from store) has fresh data
+  React.useEffect(() => {
+    if (viewOpen && resolvedQuotation) {
+      setSelectedQuotation(resolvedQuotation);
+    }
+  }, [viewOpen, resolvedQuotation, setSelectedQuotation]);
 
   const handlePreviewFromDialog = () => {
     if (!quotationId) {
@@ -1057,7 +1045,7 @@ export function useQuotationActions(
     additionalRecipientEmails,
     setAdditionalRecipientEmails,
     recipientEmailInputValue,
-    setRecipientEmailInputValue
+    setRecipientEmailInputValue,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1074,8 +1062,8 @@ export function useQuotationActions(
       if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
         notifyError(
           `Quote expired on ${expiry.toLocaleDateString(
-            'en-AU'
-          )}. Please extend the expiry date.`
+            'en-AU',
+          )}. Please extend the expiry date.`,
         );
         return;
       }
@@ -1087,12 +1075,11 @@ export function useQuotationActions(
 
   // Build a safe payload for update actions (keeps status)
   const buildUpdatePayload = (
-    overrides: Partial<QuotationDTO>
+    overrides: Partial<QuotationDTO>,
   ): Partial<QuotationDTO> | null => {
     if (!resolvedQuotation) return null;
 
     const { quoteStatus, ...quotationData } = resolvedQuotation;
-    // const { quoteStatus, quoteItems, ...quotationData } = resolvedQuotation;
     return {
       ...quotationData,
       quoteStatus: overrides.quoteStatus ?? quoteStatus,
@@ -1118,18 +1105,14 @@ export function useQuotationActions(
       setActiveDialog(null);
       setSelectedAction(null);
     } catch (error) {
-      console.log('error', error);
       const err = extractErrorResponse(error);
-      console.log('err', err);
-      // const extractedMessage = extractErrorMessage(error);
       const expiryDateErrorPhrase = 'Quote expired on';
       const isExpiryDateError = err?.message?.includes(expiryDateErrorPhrase);
-      console.log('isExpiryDateError', isExpiryDateError);
       if (isExpiryDateError) {
         notifyError(
           extractErrorMessage(
-            'Quote Expired Date is the past. Please extend the expiry date.'
-          )
+            'Quote Expired Date is the past. Please extend the expiry date.',
+          ),
         );
         return;
       }
@@ -1327,7 +1310,11 @@ export function useQuotationActions(
 
     extendExpiry: createDialogAction('extendExpiry'),
 
-    view: () => {
+    view: (quotation?: Quotation | null) => {
+      const toSelect = quotation ?? quotationData;
+      if (toSelect) {
+        setSelectedQuotation(toSelect);
+      }
       setViewOpen(true);
     },
 

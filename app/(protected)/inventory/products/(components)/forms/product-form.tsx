@@ -58,6 +58,11 @@ interface FormProps {
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
+import {
+  useProductFormState,
+  EMPTY_PRODUCT_FORM_VALUES,
+} from '@/hooks/product/use-product-form-state';
+
 export default function ProductForm({
   id,
   onCancel,
@@ -70,7 +75,6 @@ export default function ProductForm({
   const [isEditing] = React.useState(Boolean(id));
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [totalSupplier, setTotalSupplier] = React.useState(0);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
 
   // Create flow steps (only used when creating a new product)
@@ -123,7 +127,6 @@ export default function ProductForm({
   // Convert product data to snake_case (includes both product details and supplier info)
   const selectedProduct: ProductDetails | null = React.useMemo(() => {
     if (!productData) return null;
-    console.log('Product Data (with suppliers):', productData);
     return productData;
   }, [productData]);
 
@@ -136,115 +139,22 @@ export default function ProductForm({
     }));
   }, [materialsData]);
 
-  // Compare quarry-supplier-product audit data and product audit data
-  // And choose the latest audit data (for last modified by and updated at)
-  const latestAuditData = React.useMemo(() => {
-    if (!selectedProduct) return null;
-
-    const toEpochMs = (iso?: string | null) => {
-      if (!iso) return 0;
-      const ms = Date.parse(iso);
-      return Number.isNaN(ms) ? 0 : ms;
-    };
-
-    const candidates = [
-      {
-        lastModifiedBy: selectedProduct.lastModifiedBy,
-        updatedAt: selectedProduct.updatedAt,
-      },
-      ...(selectedProduct.quarrySupplierProducts ?? []).map(
-        (quarrySupplierProduct) => {
-          // Some API responses include audit fields on this object but the
-          // TS type may not (yet) reflect them everywhere.
-          const audit = quarrySupplierProduct as unknown as {
-            lastModifiedBy?: string | null;
-            updatedAt?: string | null;
-          };
-
-          return {
-            lastModifiedBy: audit.lastModifiedBy ?? undefined,
-            updatedAt: audit.updatedAt ?? undefined,
-          };
-        },
-      ),
-    ];
-
-    return candidates.reduce((latest, current) => {
-      return toEpochMs(current.updatedAt) > toEpochMs(latest.updatedAt)
-        ? current
-        : latest;
-    });
-  }, [selectedProduct]);
-
-  // TODO: Zod Validation
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
-    defaultValues:
-      isEditing && selectedProduct
-        ? {
-            product_name: selectedProduct.productName || '',
-            product_code: selectedProduct.productCode || '',
-            material_id: selectedProduct.materialId,
-            product_description: selectedProduct.productDescription || '',
-            density_tonnage_per_m3: selectedProduct.densityTonnagePerM3 || 0,
-            created_at: selectedProduct.createdAt
-              ? new Date(selectedProduct.createdAt)
-              : undefined,
-            updated_at: latestAuditData?.updatedAt
-              ? new Date(latestAuditData.updatedAt)
-              : undefined,
-            created_by: selectedProduct.createdBy || '',
-            last_modified_by: latestAuditData?.lastModifiedBy || '',
-          }
-        : {
-            product_name: '',
-            product_code: '',
-            material_id: undefined,
-            product_description: '',
-            density_tonnage_per_m3: 0,
-            created_at: undefined,
-            updated_at: undefined,
-            created_by: '',
-            last_modified_by: '',
-          },
+    defaultValues: EMPTY_PRODUCT_FORM_VALUES,
   });
+
+  const { latestAuditData, totalSupplier } = useProductFormState(
+    selectedProduct,
+    isEditing,
+    productJustCreated,
+    productForm,
+  );
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(productForm.formState.isDirty);
   }, [productForm.formState.isDirty, onDirtyChange]);
-
-  // Update form values when product data is loaded (for editing mode)
-  React.useEffect(() => {
-    if ((isEditing || productJustCreated) && selectedProduct) {
-      productForm.reset({
-        product_name: selectedProduct.productName || '',
-        product_code: selectedProduct.productCode || '',
-        material_id: selectedProduct.materialId,
-        product_description: selectedProduct.productDescription || '',
-        density_tonnage_per_m3: selectedProduct.densityTonnagePerM3 || 0,
-        created_at: selectedProduct.createdAt
-          ? new Date(selectedProduct.createdAt)
-          : undefined,
-        updated_at: latestAuditData?.updatedAt
-          ? new Date(latestAuditData.updatedAt)
-          : undefined,
-        created_by: selectedProduct.createdBy || '',
-        last_modified_by: latestAuditData?.lastModifiedBy || '',
-      });
-    }
-  }, [
-    isEditing,
-    productJustCreated,
-    selectedProduct,
-    latestAuditData,
-    productForm,
-  ]);
-
-  // Update total supplier count when product data is loaded
-  React.useEffect(() => {
-    setTotalSupplier(selectedProduct?.quarrySupplierProducts?.length || 0);
-  }, [selectedProduct?.quarrySupplierProducts]);
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();

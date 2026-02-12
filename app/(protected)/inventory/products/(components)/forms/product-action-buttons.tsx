@@ -44,7 +44,7 @@ export function ProductActionButtons({
 }: ProductActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isUnavailable = product?.isActive === false;
-  const internal = useProductActions(product?.id, product);
+  const internal = useProductActions(product);
   const actions = actionsOverride ?? internal.actions;
   const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
   const viewDialog = suppressDialogs ? null : internal.viewDialog;

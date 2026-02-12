@@ -3,7 +3,15 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Plus, Gem, PackageX, TrendingUp, Package, Tag, Box } from 'lucide-react';
+import {
+  Plus,
+  Gem,
+  PackageX,
+  TrendingUp,
+  Package,
+  Tag,
+  Box,
+} from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery } from '@tanstack/react-query';
@@ -20,10 +28,6 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import {
-  useProductStore,
-  useSelectedProduct,
-} from '@/app/stores/product-store';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
@@ -32,17 +36,8 @@ import { ProductTableActions } from './(components)/(data-tables)/products/produ
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const setSelectedProduct = useProductStore(
-    (state) => state.setSelectedProduct,
-  );
-  const selectedProductForActions = useSelectedProduct();
 
-  // Statistics cards data
-
-  const { actions, confirmDialogs, viewDialog } = useProductActions(
-    selectedProductForActions?.id,
-    selectedProductForActions,
-  );
+  const { actions, confirmDialogs, viewDialog } = useProductActions();
 
   // Use React Query to fetch products data
   const {
@@ -109,8 +104,7 @@ export default function ProductsPage() {
 
   // Handle row click to open product details
   const handleRowClick = (product: ProductDetails) => {
-    setSelectedProduct(product);
-    actions.view();
+    actions.view(product);
   };
 
   // Mobile card renderer
@@ -128,7 +122,9 @@ export default function ProductsPage() {
         }
         badges={
           <>
-            {product.status && <TableBadges names={[product.status]} visibleCount={1} />}
+            {product.status && (
+              <TableBadges names={[product.status]} visibleCount={1} />
+            )}
             {materialName && (
               <TableBadges names={[materialName]} visibleCount={1} />
             )}

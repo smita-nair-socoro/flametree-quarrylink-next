@@ -50,7 +50,7 @@ interface BlockingQuote {
 const getDialogConfigs = (
   productData?: ProductDetails | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: BlockingQuote[]
+  blockingQuotes?: BlockingQuote[],
 ): Record<string, DialogConfig> => {
   const productName = productData?.productName;
   const productCode = productData?.productCode;
@@ -66,7 +66,7 @@ const getDialogConfigs = (
   const blockingHref =
     blockingQuoteIdList.length > 0
       ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuoteIdList.join(',')
+          blockingQuoteIdList.join(','),
         )}`
       : undefined;
 
@@ -375,17 +375,14 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useProductActions(
-  productId: number | undefined,
-  productData?: ProductDetails | null
-) {
+export function useProductActions(productData?: ProductDetails | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
   const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
-    []
+    [],
   );
 
   const { mutateAsync: deleteProduct } = useDeleteProduct();
@@ -393,10 +390,12 @@ export function useProductActions(
   const selectedProduct = useProductStore((s) => s.selectedProduct);
   const setSelectedProduct = useProductStore((s) => s.setSelectedProduct);
 
+  const activeProductId = selectedProduct?.id;
+
   const dialogConfigs = getDialogConfigs(
-    productData,
+    selectedProduct ?? null,
     selectedAction || undefined,
-    blockingQuotes
+    blockingQuotes,
   );
 
   const createDialogAction = (actionKey: string, action: () => void) => {
@@ -407,68 +406,53 @@ export function useProductActions(
   };
 
   const actions = {
-    view: () => {
+    view: (product?: ProductDetails | null) => {
+      const toSelect = product ?? productData;
+      if (toSelect) {
+        setSelectedProduct(toSelect);
+      }
       setViewOpen(true);
     },
 
     unavailable: createDialogAction('unavailable', () => {
-      console.log('Unavailable product:', productId);
+      console.log('Unavailable product:', activeProductId);
     }),
 
     available: createDialogAction('available', () => {
-      console.log('Available product:', productId);
+      console.log('Available product:', activeProductId);
       // TODO: implement available logic
     }),
 
     delete: createDialogAction('delete', () => {
-      console.log('Delete product:', productId);
+      console.log('Delete product:', activeProductId);
       // TODO: implement delete logic
     }),
 
     cannotDelete: createDialogAction('cannotDelete', () => {
-      console.log('Cannot delete product:', productId);
+      console.log('Cannot delete product:', activeProductId);
       // This will show the informational modal about why deleting is not possible
     }),
 
     removeSupplier: createDialogAction('removeSupplier', () => {
-      console.log('Remove supplier:', productId);
+      console.log('Remove supplier:', activeProductId);
       // TODO: implement remove supplier logic
     }),
   };
 
   // Handle delete API call
   const handleDeleteProduct = async () => {
-    if (!productId) {
+    if (!activeProductId) {
       console.error('Product ID is required');
       return;
     }
 
     try {
-      console.log('[useProductActions] delete product start:', { productId });
-      await deleteProduct(productId);
-      console.log('[useProductActions] delete product success:', { productId });
+      await deleteProduct(activeProductId);
       notifySuccess('Product deleted successfully.');
       setViewOpen(false);
       setSelectedAction(null);
       setActiveDialog(null);
     } catch (error: unknown) {
-      const status =
-        error &&
-        typeof error === 'object' &&
-        'response' in error &&
-        (error as { response?: { status?: unknown } }).response &&
-        typeof (error as { response?: { status?: unknown } }).response
-          ?.status === 'number'
-          ? (error as { response: { status: number } }).response.status
-          : undefined;
-
-      console.error('[useProductActions] delete product failed:', {
-        productId,
-        status,
-        error,
-        errorData: extractErrorData(error),
-      });
-
       // Backend returns 409 with blocking items when deletion is blocked
       const errorData = extractErrorData(error);
       const blocked: BlockingQuote[] =
@@ -477,7 +461,7 @@ export function useProductActions(
         'blockingQuoteDtos' in errorData &&
         Array.isArray(
           (errorData as { blockingQuoteDtos?: BlockingQuote[] })
-            .blockingQuoteDtos
+            .blockingQuoteDtos,
         )
           ? (errorData as { blockingQuoteDtos: BlockingQuote[] })
               .blockingQuoteDtos
@@ -525,27 +509,29 @@ export function useProductActions(
             case 'unavailable':
               (async () => {
                 try {
-                  if (!productId) throw new Error('Product ID is required');
-                  if (!productData) throw new Error('Product data is required');
+                  if (!activeProductId)
+                    throw new Error('Product ID is required');
+                  if (!selectedProduct)
+                    throw new Error('Product data is required');
 
                   // Match ProductForm update payload, but set inactive.
                   const payload = {
-                    productName: productData.productName,
-                    productCode: productData.productCode,
-                    materialId: productData.material.id,
-                    densityTonnagePerM3: productData.densityTonnagePerM3,
-                    productDescription: productData.productDescription,
+                    productName: selectedProduct.productName,
+                    productCode: selectedProduct.productCode,
+                    materialId: selectedProduct.material.id,
+                    densityTonnagePerM3: selectedProduct.densityTonnagePerM3,
+                    productDescription: selectedProduct.productDescription,
                     isActive: false,
-                    version: productData.version ?? 0,
+                    version: selectedProduct.version ?? 0,
                   };
 
                   await updateProductMutation.mutateAsync({
-                    id: productId,
-                    data: { ...payload, id: productId },
+                    id: activeProductId,
+                    data: { ...payload, id: activeProductId },
                   });
 
                   // Keep the dialog header badges in sync (FormDialog reads from product-store)
-                  if (selectedProduct?.id === productId) {
+                  if (selectedProduct?.id === activeProductId) {
                     setSelectedProduct({
                       ...selectedProduct,
                       isActive: false,
@@ -555,7 +541,7 @@ export function useProductActions(
                   notifySuccess('Product marked as unavailable.');
                 } catch (err: unknown) {
                   notifyError(
-                    (err as Error)?.message ?? 'Failed to update product'
+                    (err as Error)?.message ?? 'Failed to update product',
                   );
                 } finally {
                   setActiveDialog(null);
@@ -566,33 +552,35 @@ export function useProductActions(
             case 'available':
               (async () => {
                 try {
-                  if (!productId) throw new Error('Product ID is required');
-                  if (!productData) throw new Error('Product data is required');
+                  if (!activeProductId)
+                    throw new Error('Product ID is required');
+                  if (!selectedProduct)
+                    throw new Error('Product data is required');
 
                   const payload = {
-                    productName: productData.productName,
-                    productCode: productData.productCode,
-                    materialId: productData.material.id,
-                    densityTonnagePerM3: productData.densityTonnagePerM3,
-                    productDescription: productData.productDescription,
+                    productName: selectedProduct.productName,
+                    productCode: selectedProduct.productCode,
+                    materialId: selectedProduct.material.id,
+                    densityTonnagePerM3: selectedProduct.densityTonnagePerM3,
+                    productDescription: selectedProduct.productDescription,
                     isActive: true,
-                    version: productData.version ?? 0,
+                    version: selectedProduct.version ?? 0,
                   };
 
                   await updateProductMutation.mutateAsync({
-                    id: productId,
-                    data: { ...payload, id: productId },
+                    id: activeProductId,
+                    data: { ...payload, id: activeProductId },
                   });
 
                   // Keep the dialog header badges in sync (FormDialog reads from product-store)
-                  if (selectedProduct?.id === productId) {
+                  if (selectedProduct?.id === activeProductId) {
                     setSelectedProduct({ ...selectedProduct, isActive: true });
                   }
 
                   notifySuccess('Product marked as available.');
                 } catch (err: unknown) {
                   notifyError(
-                    (err as Error)?.message ?? 'Failed to update product'
+                    (err as Error)?.message ?? 'Failed to update product',
                   );
                 } finally {
                   setActiveDialog(null);
@@ -609,7 +597,7 @@ export function useProductActions(
               setSelectedAction(null);
               break;
             case 'removeSupplier':
-              console.log('Remove supplier:', productId, productData);
+              console.log('Remove supplier:', activeProductId, selectedProduct);
               // TODO: implement remove supplier logic
               setActiveDialog(null);
               setSelectedAction(null);
@@ -622,7 +610,7 @@ export function useProductActions(
 
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={productId}
+      id={activeProductId}
       dialogTitle="View / Edit Product"
       open={viewOpen}
       onOpenChangeAction={(open) => {
@@ -637,7 +625,7 @@ export function useProductActions(
       }}
       headerButtons={
         <ProductActionButtons
-          product={productData}
+          product={selectedProduct ?? productData}
           actionsOverride={actions}
           suppressDialogs
         />
@@ -647,7 +635,7 @@ export function useProductActions(
         useSelectedProduct: true,
       }}
     >
-      <ProductForm id={productId} />
+      <ProductForm id={activeProductId} />
     </FormDialog>
   ) : null;
 

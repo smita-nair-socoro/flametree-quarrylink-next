@@ -1,3 +1,5 @@
+import React from 'react';
+import { UseFormReturn, FieldValues, Path } from 'react-hook-form';
 import type { Address, AddressType } from '@/lib/types/address';
 import { Country, State } from 'country-state-city';
 
@@ -30,6 +32,25 @@ export function toAddressType(address?: Address | null): AddressType {
     lng: address.longitude ?? 0,
     googlePlaceId: address.googlePlaceId ?? '',
   };
+}
+
+/**
+ * Returns true if two AddressType values refer to the same place (same formattedAddress, googlePlaceId, lat, lng).
+ * Use when updating address state from AddressAutoComplete: only replace state if the address actually changed,
+ * to avoid unnecessary re-renders and to keep referential equality when the user didn't pick a new place.
+ */
+export function isSameAddress(
+  prev: AddressType | null | undefined,
+  next: AddressType | null | undefined
+): boolean {
+  if (prev == null || next == null) return prev === next;
+  return (
+    (prev.formattedAddress ?? '') === (next.formattedAddress ?? '') &&
+    (prev.googlePlaceId == null ? '' : String(prev.googlePlaceId)) ===
+      (next.googlePlaceId == null ? '' : String(next.googlePlaceId)) &&
+    (prev.lat ?? 0) === (next.lat ?? 0) &&
+    (prev.lng ?? 0) === (next.lng ?? 0)
+  );
 }
 
 // Convert legacy AddressType back to backend Address payload
@@ -201,4 +222,44 @@ export function formatAustralianAddress(
     line2: line2 || '',
     line3: line3,
   };
+}
+
+// Hook to sync address state with a form field and handle address changes
+export function useAddressSync(
+  form: UseFormReturn<any>,
+  fieldName: string,
+  address: AddressType,
+  setAddress: React.Dispatch<React.SetStateAction<AddressType>>,
+  setSearchInput: React.Dispatch<React.SetStateAction<string>>
+) {
+  // Sync address state to form field
+  // Uses logic from customer-form to avoid unnecessary dirty states
+  React.useEffect(() => {
+    if (!address.formattedAddress) return;
+
+    const current = form.getValues(fieldName);
+    if (current === address.formattedAddress) return;
+
+    form.setValue(fieldName, address.formattedAddress, {
+      shouldDirty: false, // Don't mark dirty if just syncing (e.g. initial load)
+      shouldTouch: false,
+      shouldValidate: true,
+    });
+  }, [address.formattedAddress, form, fieldName]);
+
+  // Handler for AddressAutoComplete
+  const handleAddressChange = React.useCallback(
+    (newAddress: AddressType) => {
+      setAddress((prev) => (isSameAddress(prev, newAddress) ? prev : newAddress));
+
+      if (newAddress.formattedAddress) {
+        setSearchInput('');
+        // Trigger validation explicitly when user selects an address
+        form.trigger(fieldName);
+      }
+    },
+    [form, fieldName, setAddress, setSearchInput]
+  );
+
+  return handleAddressChange;
 }
