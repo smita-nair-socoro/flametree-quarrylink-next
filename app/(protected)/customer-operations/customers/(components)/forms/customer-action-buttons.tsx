@@ -34,7 +34,7 @@ export function CustomerActionButtons({
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    customer ?? undefined
+    customer
   );
 
   // Early returns for null quotation or new quotation
