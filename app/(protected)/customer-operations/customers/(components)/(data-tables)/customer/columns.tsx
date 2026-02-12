@@ -107,7 +107,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     id: 'credit_limit',
     accessorFn: (row) => row.creditLimit,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Credit" />;
+      return <TableClientSortableHeader column={column} title="Credit Limit" />;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.creditLimit.toString());
