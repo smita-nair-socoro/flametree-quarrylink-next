@@ -22,7 +22,31 @@ interface EmbeddedMapPickerProps {
   onLocationChange: (lat: number, lng: number) => void;
   /** Whether the map is in a loading state */
   disabled?: boolean;
+  /** Marker color: 'red' for delivery/billing, 'green' for collection */
+  markerColor?: 'red' | 'green';
 }
+
+// Map styles to hide extra labels (POI, business, road icons, transit)
+const MAP_STYLES: google.maps.MapTypeStyle[] = [
+  {
+    featureType: 'poi',
+    elementType: 'labels.text',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'poi.business',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'road',
+    elementType: 'labels.icon',
+    stylers: [{ visibility: 'off' }],
+  },
+  {
+    featureType: 'transit',
+    stylers: [{ visibility: 'off' }],
+  },
+];
 
 // Default zoom levels
 const DEFAULT_ZOOM = 4;
@@ -36,6 +60,7 @@ function MapContent({
   lng,
   onLocationChange,
   disabled,
+  markerColor = 'red',
 }: EmbeddedMapPickerProps) {
   const map = useMap();
   const [isGeolocating, setIsGeolocating] = useState(false);
@@ -141,6 +166,7 @@ function MapContent({
           zoomControl={true}
           onClick={handleMapClick}
           className="w-full h-full"
+          styles={MAP_STYLES}
         >
           {hasValidCoords && (
             <AdvancedMarker
@@ -148,7 +174,13 @@ function MapContent({
               draggable={!disabled}
               onDragEnd={handleMarkerDragEnd}
             >
-              <MapPin className="size-7 text-destructive fill-destructive/20 drop-shadow-md" />
+              <MapPin
+                className={
+                  markerColor === 'green'
+                    ? 'size-7 text-green-600 fill-green-600/20 drop-shadow-md'
+                    : 'size-7 text-destructive fill-destructive/20 drop-shadow-md'
+                }
+              />
             </AdvancedMarker>
           )}
         </Map>

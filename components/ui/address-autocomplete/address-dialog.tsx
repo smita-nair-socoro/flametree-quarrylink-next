@@ -45,6 +45,8 @@ interface AddressDialogProps {
   dialogTitle: string;
   isLoading: boolean;
   onChange?: (value: string) => void;
+  /** Whether this is a collection address (green marker) vs delivery/billing (red marker) */
+  isCollection?: boolean;
 }
 
 interface AddressFields {
@@ -132,6 +134,7 @@ export default function AddressDialog(
     adrAddress,
     isLoading,
     onChange,
+    isCollection = false,
   } = props;
 
   // Single draft state for all address fields
@@ -292,6 +295,24 @@ export default function AddressDialog(
       setAdrAddressDraft('');
       lastUpdateSourceRef.current = { source: 'form', time: Date.now() };
       setGeocodeError(null);
+    },
+    [],
+  );
+
+  /**
+   * Handle manual lat/lng input changes.
+   * Updates draft and triggers reverse geocode to sync address fields + map marker.
+   */
+  const handleLatLngChange = useCallback(
+    (field: 'lat' | 'lng', value: string) => {
+      const num = parseFloat(value);
+      if (value === '' || value === '-') {
+        // Allow typing negative numbers or clearing
+        setDraftAddress((prev) => ({ ...prev, [field]: value as unknown as number }));
+        return;
+      }
+      if (isNaN(num)) return;
+      setDraftAddress((prev) => ({ ...prev, [field]: num }));
     },
     [],
   );
@@ -543,32 +564,6 @@ export default function AddressDialog(
           </div>
         ) : (
           <form onSubmit={handleSave}>
-            {/* Embedded Map Panel */}
-            <div className="mb-4">
-              <Label className="mb-2 block">Location on Map</Label>
-              <EmbeddedMapPicker
-                lat={draftAddress.lat}
-                lng={draftAddress.lng}
-                onLocationChange={handleMapLocationChange}
-                disabled={isMapDisabled}
-              />
-              {isReverseGeocoding && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Loader2 className="size-3 animate-spin" />
-                  Getting address...
-                </p>
-              )}
-              {isForwardGeocoding && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Loader2 className="size-3 animate-spin" />
-                  Updating map...
-                </p>
-              )}
-              {geocodeError && (
-                <p className="text-xs text-amber-600 mt-1">{geocodeError}</p>
-              )}
-            </div>
-
             {/* Form Fields */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
@@ -684,6 +679,78 @@ export default function AddressDialog(
                   />
                 </div>
               </div>
+
+              {/* Lat / Lng fields */}
+              <div className="flex gap-4">
+                <div className="flex-1 flex flex-col gap-2">
+                  <Label htmlFor="lat" className="text-xs text-muted-foreground">Lat</Label>
+                  <Input
+                    value={draftAddress.lat}
+                    onChange={(e) => handleLatLngChange('lat', e.currentTarget.value)}
+                    onBlur={() => {
+                      // On blur, trigger reverse geocode if coordinates are valid
+                      const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
+                      const lng = typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng));
+                      if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        handleMapLocationChange(lat, lng);
+                      }
+                    }}
+                    disabled={isLoading}
+                    id="lat"
+                    name="lat"
+                    placeholder="Latitude"
+                    type="text"
+                    inputMode="decimal"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <Label htmlFor="lng" className="text-xs text-muted-foreground">Long</Label>
+                  <Input
+                    value={draftAddress.lng}
+                    onChange={(e) => handleLatLngChange('lng', e.currentTarget.value)}
+                    onBlur={() => {
+                      const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
+                      const lng = typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng));
+                      if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                        handleMapLocationChange(lat, lng);
+                      }
+                    }}
+                    disabled={isLoading}
+                    id="lng"
+                    name="lng"
+                    placeholder="Longitude"
+                    type="text"
+                    inputMode="decimal"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Embedded Map Panel — at the bottom */}
+            <div className="mt-4">
+              <Label className="mb-2 block">Location on Map</Label>
+              <EmbeddedMapPicker
+                lat={typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat)) || 0}
+                lng={typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng)) || 0}
+                onLocationChange={handleMapLocationChange}
+                disabled={isMapDisabled}
+                markerColor={isCollection ? 'green' : 'red'}
+              />
+              {isReverseGeocoding && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Loader2 className="size-3 animate-spin" />
+                  Getting address...
+                </p>
+              )}
+              {isForwardGeocoding && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Loader2 className="size-3 animate-spin" />
+                  Updating map...
+                </p>
+              )}
+              {geocodeError && (
+                <p className="text-xs text-amber-600 mt-1">{geocodeError}</p>
+              )}
             </div>
 
             <DialogFooter className="mt-6">

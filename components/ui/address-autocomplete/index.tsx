@@ -386,6 +386,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             open={isOpen}
             setOpen={setIsOpen}
             onChange={onChange}
+            isCollection={isCollection}
           >
             <Button
               disabled={detailsLoading || readOnly}
