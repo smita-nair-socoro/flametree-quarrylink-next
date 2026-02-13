@@ -34,7 +34,6 @@ export function CustomerActionButtons({
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    customer?.id,
     customer
   );
 

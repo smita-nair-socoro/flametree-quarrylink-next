@@ -8,6 +8,7 @@ import { TriangleAlert, CircleAlert } from 'lucide-react';
 import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
 import { extractErrorData } from '@/lib/utils/error-message-helper';
 import Link from 'next/link';
+import { useSupplierStore } from '@/app/stores/supplier-store';
 
 interface DialogConfig {
   title?: string;
@@ -40,7 +41,7 @@ interface BlockingQuote {
 const getDialogConfigs = (
   quarryData?: QuarrySupplierProduct | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: BlockingQuote[]
+  blockingQuotes?: BlockingQuote[],
 ): Record<string, DialogConfig> => {
   const quarryName = quarryData?.quarryName ?? quarryData?.supplierProductName;
   const supplierProductCode = quarryData?.supplierProductCode;
@@ -55,7 +56,7 @@ const getDialogConfigs = (
   const blockingHref =
     blockingQuoteIdList.length > 0
       ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuoteIdList.join(',')
+          blockingQuoteIdList.join(','),
         )}`
       : undefined;
 
@@ -185,8 +186,7 @@ const getDialogConfigs = (
 };
 
 export function useSupplierActions(
-  quarryId: number | undefined,
-  quarryData?: QuarrySupplierProduct | null
+  supplierData?: QuarrySupplierProduct | null,
 ) {
   const { mutateAsync: deleteQuarrySupplierProduct } =
     useDeleteQuarrySupplierProduct();
@@ -196,13 +196,19 @@ export function useSupplierActions(
     React.useState<SelectedAction | null>(null);
 
   const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
-    []
+    [],
   );
 
+  const selectedSupplier = useSupplierStore((s) => s.selectedSupplier);
+  const setSelectedSupplier = useSupplierStore((s) => s.setSelectedSupplier);
+
+  const activeQuarrySupplierId =
+    selectedSupplier?.quarrySupplierId ?? selectedSupplier?.quarrySupplier?.id;
+
   const dialogConfigs = getDialogConfigs(
-    quarryData,
+    selectedSupplier,
     selectedAction || undefined,
-    blockingQuotes
+    blockingQuotes,
   );
 
   const createDialogAction = (actionKey: string, action: () => void) => {
@@ -213,17 +219,21 @@ export function useSupplierActions(
   };
 
   const actions = {
-    view: () => {
+    view: (supplier?: QuarrySupplierProduct | null) => {
+      const toSelect = supplier ?? supplierData;
+      if (toSelect) {
+        setSelectedSupplier(toSelect);
+      }
       setViewOpen(true);
     },
 
     delete: createDialogAction('delete', () => {
-      console.log('Delete supplier:', quarryId);
+      console.log('Delete supplier:', activeQuarrySupplierId);
       // TODO: implement delete logic
     }),
 
     cannotDelete: createDialogAction('cannotDelete', () => {
-      console.log('Cannot delete supplier:', quarryId);
+      console.log('Cannot delete supplier:', activeQuarrySupplierId);
       // This will show the informational modal about why deleting is not possible
     }),
   };
@@ -255,16 +265,15 @@ export function useSupplierActions(
         onConfirmAction={async () => {
           switch (key) {
             case 'delete':
-              console.log('Delete supplier:', quarryId, quarryData);
-              if (!quarryId || !quarryData?.productId) {
+              if (!activeQuarrySupplierId || !selectedSupplier?.productId) {
                 setActiveDialog(null);
                 setSelectedAction(null);
                 break;
               }
               try {
                 await deleteQuarrySupplierProduct({
-                  quarrySupplierId: quarryId,
-                  productId: quarryData.productId,
+                  quarrySupplierId: activeQuarrySupplierId,
+                  productId: selectedSupplier.productId,
                 });
 
                 // Deleted successfully; close dialog
@@ -283,13 +292,11 @@ export function useSupplierActions(
                   'blockingQuoteDtos' in errorData &&
                   Array.isArray(
                     (errorData as { blockingQuoteDtos?: BlockingQuote[] })
-                      .blockingQuoteDtos
+                      .blockingQuoteDtos,
                   )
                     ? (errorData as { blockingQuoteDtos: BlockingQuote[] })
                         .blockingQuoteDtos
                     : [];
-
-                console.log('blocked', blocked);
 
                 if (blocked.length > 0) {
                   // Open cannotDelete modal to show info
@@ -303,7 +310,6 @@ export function useSupplierActions(
               }
               return;
             case 'cannotDelete':
-              console.log('Cannot delete supplier:', quarryId, quarryData);
               // TODO: implement cannot delete logic
               break;
           }
@@ -317,8 +323,10 @@ export function useSupplierActions(
 
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={quarryId}
-      dialogTitle={`${quarryData?.quarrySupplier?.name} - Detailed Information`}
+      id={activeQuarrySupplierId}
+      dialogTitle={`${
+        selectedSupplier?.quarrySupplier?.name
+      } - Detailed Information`}
       dialogWidth="700px"
       contentClass="-mt-5"
       open={viewOpen}
@@ -338,8 +346,11 @@ export function useSupplierActions(
       }}
     >
       <SupplierForm
-        quarrySupplierId={quarryData?.quarrySupplier?.id}
-        productId={quarryData?.productId}
+        quarrySupplierId={
+          selectedSupplier?.quarrySupplierId ??
+          selectedSupplier?.quarrySupplier?.id
+        }
+        productId={selectedSupplier?.productId}
         onCancel={() => setViewOpen(false)}
       />
     </FormDialog>

@@ -7,6 +7,7 @@ import CustomerForm from '@/app/(protected)/customer-operations/customers/(compo
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
 import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
+import { useCustomerStore } from '@/app/stores/customer-store';
 
 interface DialogConfig {
   title?: string;
@@ -15,11 +16,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -384,22 +385,26 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useCustomerActions(
-  customerId: number | undefined,
-  customerData?: CustomerDTO | null
-) {
+export function useCustomerActions(customerData?: CustomerDTO | null) {
+  const customerId = customerData?.id;
+  const selectedCustomer = useCustomerStore((s) => s.selectedCustomer);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(customerData, selectedAction || undefined),
+    () => getDialogConfigs(customerData ?? null, selectedAction || undefined),
     [customerData, selectedAction]
   );
 
   const actions = {
-    view: () => {
+    /** Pass customer when opening from row click so the store updates before the dialog opens */
+    view: (customer?: CustomerDTO | null) => {
+      const toSelect = customer ?? customerData;
+      if (toSelect != null) {
+        useCustomerStore.getState().setSelectedCustomer(toSelect);
+      }
       setViewOpen(true);
     },
 
@@ -504,13 +509,15 @@ export function useCustomerActions(
 
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={customerId}
+      id={selectedCustomer?.id}
       dialogTitle="View / Edit Customer"
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
       }}
-      headerButtons={<CustomerActionButtons customer={customerData} />}
+      headerButtons={
+        <CustomerActionButtons customer={selectedCustomer ?? undefined} />
+      }
       hideTrigger
       headerInfo={{
         useSelectedCustomer: true,
