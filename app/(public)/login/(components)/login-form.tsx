@@ -48,6 +48,7 @@ export function LoginForm({
     setShowResetPasswordConfirmationModal,
   ] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [tempPassword, setTempPassword] = useState('');
   const [wrongPasswordAttempts, setWrongPasswordAttempts] = useState(0);
   const router = useRouter();
   const { refreshUser } = useAuth();
@@ -98,6 +99,7 @@ export function LoginForm({
         if (
           nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
         ) {
+          setTempPassword(values.password);
           setShowNewPasswordModal(true);
         } else {
           notifyError('Additional authentication step required');
@@ -391,6 +393,7 @@ export function LoginForm({
         isOpen={showNewPasswordModal}
         onClose={() => setShowNewPasswordModal(false)}
         onSuccess={handleNewPasswordSuccess}
+        tempPassword={tempPassword}
       />
 
       <NewUserInfoModal

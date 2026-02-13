@@ -4,6 +4,13 @@ import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 function Tabs({ ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return <TabsPrimitive.Root data-slot="tabs" {...props} />;
@@ -67,21 +74,37 @@ interface TabItem {
 interface CustomTabsProps {
   tabs: TabItem[];
   defaultTab?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   className?: string;
   tabsClassName?: string;
   tabsTriggerClassName?: string;
   variant?: 'default' | 'underline';
+  /** When true, shows a dropdown for tab selection on viewports below md breakpoint instead of horizontal tabs */
+  enableDropdownOnMobile?: boolean;
 }
 
 function Tab({
   tabs,
   defaultTab,
+  value: controlledValue,
+  onValueChange,
   className,
   tabsClassName,
   tabsTriggerClassName,
   variant = 'default',
+  enableDropdownOnMobile = false,
 }: CustomTabsProps) {
   const defaultValue = defaultTab || tabs[0]?.name || '';
+  const [internalValue, setInternalValue] = React.useState(defaultValue);
+  const currentValue = controlledValue ?? internalValue;
+  const handleValueChange = React.useCallback(
+    (v: string) => {
+      setInternalValue(v);
+      onValueChange?.(v);
+    },
+    [onValueChange]
+  );
 
   const listStyles =
     variant === 'underline'
@@ -94,32 +117,82 @@ function Tab({
       : 'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow';
 
   return (
-    <Tabs defaultValue={defaultValue} className={className}>
-      <TabsList className={cn(listStyles, tabsClassName)}>
-        {tabs.map((tab) => (
-          <TabsTrigger
-            key={tab.name}
-            value={tab.name}
-            className={cn(
-              variant === 'default' && 'w-full',
-              triggerStyles,
-              tabsTriggerClassName
-            )}
+    <Tabs value={currentValue} onValueChange={handleValueChange} className={className}>
+      {enableDropdownOnMobile ? (
+        <>
+          <div className="w-full max-[910px]:block min-[911px]:hidden">
+            <Select value={currentValue} onValueChange={handleValueChange}>
+              <SelectTrigger className="w-full h-10">
+                <SelectValue placeholder="Select tab" />
+              </SelectTrigger>
+              <SelectContent>
+                {tabs.map((tab) => (
+                  <SelectItem key={tab.name} value={tab.name}>
+                    <div className="flex items-center gap-2">
+                      {tab.icon}
+                      <span>{tab.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <TabsList
+            className={cn(listStyles, tabsClassName, 'hidden min-[911px]:flex')}
           >
-            {variant === 'underline' ? (
-              <>
-                {tab.icon && tab.icon}
-                <span>{tab.name}</span>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                {tab.icon && tab.icon}
-                <span>{tab.name}</span>
-              </div>
-            )}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.name}
+                value={tab.name}
+                className={cn(
+                  variant === 'default' && 'w-full',
+                  triggerStyles,
+                  tabsTriggerClassName
+                )}
+              >
+                {variant === 'underline' ? (
+                  <>
+                    {tab.icon}
+                    <span>{tab.name}</span>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {tab.icon}
+                    <span>{tab.name}</span>
+                  </div>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </>
+      ) : (
+        <TabsList className={cn(listStyles, tabsClassName)}>
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.name}
+              value={tab.name}
+              className={cn(
+                variant === 'default' && 'w-full',
+                triggerStyles,
+                tabsTriggerClassName
+              )}
+            >
+              {variant === 'underline' ? (
+                <>
+                  {tab.icon}
+                  <span>{tab.name}</span>
+                </>
+              ) : (
+                <div className="flex items-center gap-2">
+                  {tab.icon}
+                  <span>{tab.name}</span>
+                </div>
+              )}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      )}
+
       {tabs.map((tab) => (
         <TabsContent key={tab.name} value={tab.name}>
           {tab.content}

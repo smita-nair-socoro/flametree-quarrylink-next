@@ -1,0 +1,12 @@
+Hi {userName},
+
+Your QuarryLink account has been deactivated by {superAdminName} at {tenantName}.
+
+You no longer have access to log in to QuarryLink.
+
+If you believe this was done in error or have any questions about your account status, please contact your account administrator:
+
+{superAdminName}
+{superAdminEmail}
+
+You're receiving this because your QuarryLink account has been deactivated.

@@ -28,17 +28,22 @@ import {
   UserDelete,
   UserUpdateDTO,
   UserDependencies,
+  ChangePasswordRequest,
+  PasswordChangeResponse,
+  PasswordResetResponse,
 } from '../types/user';
 import {
   SubscriptionsAndInvoices,
   TenantDetails,
   TenantCompleteDetails,
   TenantLogoUploadResponse,
+  TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 
 type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
+
 
 export interface HttpConfig {
   /**
@@ -95,6 +100,12 @@ export interface HttpConfig {
    * If you pass this, we will use it instead of window.fetch
    */
   fetch?: typeof fetch;
+
+  /**
+   * If true, appends 'Z' to known date field strings that lack timezone info.
+   * This treats backend datetimes as UTC. Default: true.
+   */
+  normalizeUtc?: boolean;
 }
 
 /**
@@ -762,11 +773,11 @@ export const APIClient = {
           body: { quoteIds: ids },
         }
       ),
-    sendToCustomer: (id: number, inclDeliveryCost: boolean) =>
+    sendToCustomer: (id: number, inclDeliveryCost: boolean, additionalEmailRecipients: string[]) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
         {
-          body: { inclDeliveryCost },
+          body: { inclDeliveryCost, additionalEmailRecipients },
         }
       ),
     preview: (id: number) =>
@@ -830,6 +841,17 @@ export const APIClient = {
       appClient.Get<UserDependencies>(
         `/socoro/quarrylink/api/users/${id}/dependencies`
       ),
+    changePassword: (data: ChangePasswordRequest) =>
+      appClient.Patch<PasswordChangeResponse>(
+        '/socoro/quarrylink/api/users/password',
+        {
+          body: data,
+        }
+      ),
+    resetPasswordBySuperAdmin: (id: string) =>
+      appClient.Post<PasswordResetResponse>(
+        `/socoro/quarrylink/api/users/${id}/reset-password`
+      ),
   },
 
   tenants: {
@@ -853,5 +875,7 @@ export const APIClient = {
         { body: formData }
       );
     },
+    getLogo: () =>
+      appClient.Get<TenantLogoResponse>(`/socoro/quarrylink/api/tenant/logo`),
   },
 };

@@ -47,6 +47,7 @@ import {
 import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { ProductDetails } from '@/lib/types/product';
 import { Separator } from '@/components/ui/separator';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -77,7 +78,7 @@ export default function ProductForm({
 
   // Track newly created product ID
   const [createdProductId, setCreatedProductId] = React.useState<number | null>(
-    null
+    null,
   );
   const [productJustCreated, setProductJustCreated] = React.useState(false);
 
@@ -164,7 +165,7 @@ export default function ProductForm({
             lastModifiedBy: audit.lastModifiedBy ?? undefined,
             updatedAt: audit.updatedAt ?? undefined,
           };
-        }
+        },
       ),
     ];
 
@@ -295,7 +296,7 @@ export default function ProductForm({
           setCreatedProductId(createdProduct.id as number);
           setProductJustCreated(true);
           notifySuccess(
-            'Product created successfully. You can now add suppliers.'
+            'Product created successfully. You can now add suppliers.',
           );
           setCreateStep(2);
           console.log('Product ID stored:', createdProduct.id);
@@ -307,7 +308,7 @@ export default function ProductForm({
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} product:`,
-        error
+        error,
       );
       // Extract normalized error response and message
       const err = extractErrorResponse(error);
@@ -332,7 +333,7 @@ export default function ProductForm({
 
       // Fallback error using extracted message
       notifyError(
-        messageFromErr || 'Failed to save product. Please try again.'
+        messageFromErr || 'Failed to save product. Please try again.',
       );
     } finally {
       setIsSubmitting(false);
@@ -388,7 +389,7 @@ export default function ProductForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -410,7 +411,7 @@ export default function ProductForm({
                   'h-7 w-7 rounded-full flex items-center justify-center border text-sm font-semibold',
                   createStep === 1
                     ? 'border-[#7C3AED] text-[#7C3AED]'
-                    : 'bg-[#7C3AED] border-[#7C3AED] text-white'
+                    : 'bg-[#7C3AED] border-[#7C3AED] text-white',
                 )}
               >
                 {createStep === 1 ? '1' : <Check className="h-4 w-4" />}
@@ -425,7 +426,7 @@ export default function ProductForm({
                   'h-7 w-7 rounded-full flex items-center justify-center border text-sm font-semibold',
                   createStep === 2
                     ? 'border-[#7C3AED] text-[#7C3AED]'
-                    : 'border-muted-foreground/30 text-muted-foreground'
+                    : 'border-muted-foreground/30 text-muted-foreground',
                 )}
               >
                 2
@@ -449,7 +450,7 @@ export default function ProductForm({
           className={cn(
             'gap-5 w-full flex flex-col',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
           onSubmit={productForm.handleSubmit(onSubmit)}
         >
@@ -460,7 +461,7 @@ export default function ProductForm({
                   'gap-1 w-full mt-4',
                   isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
                   className,
-                  isSubmitting && 'pointer-events-none'
+                  isSubmitting && 'pointer-events-none',
                 )}
               >
                 <FormField
@@ -559,7 +560,9 @@ export default function ProductForm({
               <div
                 className={cn(
                   'flex items-center gap-2',
-                  isEditing ? 'justify-end -mt-5 mb-3 ' : 'justify-between mb-5'
+                  isEditing
+                    ? 'justify-end -mt-5 mb-3 '
+                    : 'justify-between mb-5',
                 )}
               >
                 <Button variant="outline" type="button" onClick={onCancel}>
@@ -614,7 +617,7 @@ export default function ProductForm({
                 className={cn(
                   isDesktop
                     ? 'flex justify-between items-center'
-                    : 'flex flex-col gap-4'
+                    : 'flex flex-col gap-4',
                 )}
               >
                 <div className="flex flex-col gap-0">
@@ -637,7 +640,7 @@ export default function ProductForm({
                 <div
                   className={cn(
                     'flex items-center gap-2',
-                    !isDesktop && 'mb-2'
+                    !isDesktop && 'mb-2',
                   )}
                 >
                   {isEditing && (
@@ -673,7 +676,7 @@ export default function ProductForm({
               <ActionDialog
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
-                customWidth="!max-w-[30vw] sm:!max-w-[90vw] md:!max-w-[90vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
+                customWidth="!max-w-[95vw] sm:!max-w-[90vw] md:!max-w-[85vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
                 cancelText="Close"
                 title={`Compare All - ${totalSupplier} Suppliers`}
                 content={
@@ -732,7 +735,7 @@ export default function ProductForm({
                   columns={supplierColumns(selectedProduct?.id)}
                   data={
                     isEditing || productJustCreated
-                      ? selectedProduct?.quarrySupplierProducts ?? []
+                      ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
                   }
                   simpleTable={true}
@@ -765,7 +768,7 @@ export default function ProductForm({
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6 mb-10'
+                'space-y-6 mb-10',
               )}
             >
               <h2 className="text-lg font-semibold">Audit Information</h2>
@@ -794,16 +797,7 @@ export default function ProductForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.createdAt
-                      ? new Date(selectedProduct.createdAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(selectedProduct?.createdAt)}
                   </p>
                 </div>
 
@@ -812,16 +806,7 @@ export default function ProductForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {latestAuditData?.updatedAt
-                      ? new Date(latestAuditData.updatedAt).toLocaleDateString(
-                          'en-AU',
-                          {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                          }
-                        )
-                      : 'N/A'}
+                    {formatLocalDateShort(latestAuditData?.updatedAt)}
                   </p>
                 </div>
               </div>

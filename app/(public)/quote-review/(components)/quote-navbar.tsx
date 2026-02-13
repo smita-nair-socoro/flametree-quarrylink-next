@@ -15,6 +15,7 @@ export interface QuoteNavbarProps {
   status: QuoteStatus;
   onDownloadPDF?: () => void;
   tenantDetails?: StripeTenantDetailsSnapshot;
+  logoUrl?: string;
 }
 
 // Helper component for initials logo
@@ -40,6 +41,7 @@ export function QuoteNavbar({
   status,
   onDownloadPDF,
   tenantDetails,
+  logoUrl,
 }: QuoteNavbarProps) {
   // Determine if this is QuarryLink or a custom tenant
   const isQuarryLink =
@@ -69,6 +71,14 @@ export function QuoteNavbar({
               width={70}
               height={70}
               className="flex-shrink-0"
+            />
+          ) : logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={`${displayName} logo`}
+              width={60}
+              height={60}
+              className="flex-shrink-0 w-[60px] h-[60px] rounded-lg border-2 border-black object-cover"
             />
           ) : (
             <InitialsLogo tenantName={displayName} />

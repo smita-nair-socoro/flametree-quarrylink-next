@@ -10,11 +10,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -23,7 +22,7 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
-import { AlertTriangle, UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2, TriangleAlert } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useCreateUser } from '@/lib/api/user';
 import { User, UserCreateDTO } from '@/lib/types/user';
@@ -31,14 +30,14 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { addNewRecordId } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
-import { addNewRecordId } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
   onSuccess?: () => void;
-  teamMemberCount: number;
   roleOptions: readonly FormSelectOption[];
   onDirtyChange?: (isDirty: boolean) => void;
 }
@@ -46,18 +45,17 @@ interface InviteUserFormProps {
 export default function InviteUserForm({
   onCancel,
   onSuccess,
-  teamMemberCount,
   roleOptions,
   onDirtyChange,
 }: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [agreedToBilling, setAgreedToBilling] = React.useState(false);
+  const [agreedToSubscriptionIncrease, setAgreedToSubscriptionIncrease] =
+    React.useState(false);
 
   const { data: tenantCompleteDetails } = useQuery(
     TenantSubscriptionsAndInvoicesQueryOptions()
   );
 
-  console.log('tenantCompleteDetails', tenantCompleteDetails);
 
   // Derive plan limit and additional user cost from subscription items (productName === "USER")
   const userSubscriptionItem = React.useMemo(() => {
@@ -72,17 +70,11 @@ export default function InviteUserForm({
     return null;
   }, [tenantCompleteDetails]);
 
-  const PLAN_LIMIT =
-    typeof userSubscriptionItem?.quantity === 'number'
-      ? userSubscriptionItem.quantity
-      : 10;
-
-  const ADDITIONAL_USER_COST =
+  const currentUsersCount = userSubscriptionItem?.quantity ?? 0;
+  const additionalUserCost =
     typeof userSubscriptionItem?.unitAmountInCents === 'number'
       ? userSubscriptionItem.unitAmountInCents / 100
-      : 116;
-
-  const isOverLimit = teamMemberCount >= PLAN_LIMIT;
+      : null;
 
   // Use the create user mutation
   const createUserMutation = useCreateUser();
@@ -213,40 +205,21 @@ export default function InviteUserForm({
             isSubmitting && 'pointer-events-none'
           )}
         >
-          {/* Conditional Header Section */}
-          {!isOverLimit ? (
-            <div className="flex items-center gap-3 pb-2">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F0F9FF]">
-                <UserPlus className="h-6 w-6 text-[#0284C7]" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-medium text-[#101828]">
-                    Add New Team Member
-                  </h3>
-                </div>
-                <p className="text-sm text-[#6A7282]">
-                  Send an invitation to join your workspace
-                </p>
-              </div>
+          <div className="flex items-center gap-3 pb-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F0F9FF]">
+              <UserPlus className="h-6 w-6 text-[#0284C7]" />
             </div>
-          ) : (
-            <div className="rounded-lg border border-[#FF8C00] bg-[#FFF4E6] p-3 mb-3">
-              <div className="flex gap-3">
-                <AlertTriangle className="h-5 w-5 text-[#FF8C00] flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="text-[16px] text-[#FF8C00]">
-                    User limit reached
-                  </h4>
-                  <p className="text-[14px] text-[#FF8C00]">
-                    You've reached your plan limit of {PLAN_LIMIT} users. Adding
-                    this user will incur an additional charge of $
-                    {ADDITIONAL_USER_COST}/month per user.
-                  </p>
-                </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-medium text-[#101828]">
+                  Add New Team Member
+                </h3>
               </div>
+              <p className="text-sm text-[#6A7282]">
+                Send an invitation to join QuarryLink
+              </p>
             </div>
-          )}
+          </div>
 
           <FormField
             control={form.control}
@@ -308,8 +281,7 @@ export default function InviteUserForm({
             showSearch={false}
           />
 
-          {/* Conditional Bottom Section */}
-          {!isOverLimit ? (
+          <div className="flex flex-col gap-5">
             <div className="rounded-lg border border-[#0284C7] bg-[#F0F9FF] p-4">
               <div className="flex gap-3">
                 <UserPlus className="h-5 w-5 text-[#0284C7] flex-shrink-0 mt-0.5" />
@@ -318,65 +290,50 @@ export default function InviteUserForm({
                     Invitation Details
                   </h4>
                   <p className="text-sm font-normal text-[#0284C7]">
-                    An email invitation will be sent to the user with
-                    instructions to set up their account and access the
-                    workspace.
+                    An email invitation will be sent to the user with instructions
+                    to set up their account and access the workspace.
                   </p>
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3 mb-3">
-              <h4 className="text-sm font-medium text-[#364153]">
-                Billing Summary
-              </h4>
-              <div className="space-y-2 text-sm text-normal">
-                <div className="flex justify-between">
-                  <span className="text-[#6A7282]">Current users:</span>
-                  <span className="font-medium text-[#364153]">
-                    {teamMemberCount}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#6A7282]">Plan limit:</span>
-                  <span className="font-medium text-[#364153]">
-                    {PLAN_LIMIT} users
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-[#6A7282]">Additional users:</span>
-                  <span className="font-medium text-[#364153]">1</span>
-                </div>
-                <Separator className="my-2" />
-                <div className="flex justify-between text-sm text-[#364153] font-semibold">
-                  <span>Additional monthly cost:</span>
-                  <span>${ADDITIONAL_USER_COST.toFixed(2)}</span>
+
+            <div className="rounded-lg border border-orange-500 bg-orange-50 p-4">
+              <div className="flex gap-3">
+                <TriangleAlert className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-orange-500">
+                    Changes in Subscription Plan
+                  </h4>
+                  <div className="flex flex-col gap-2 text-orange-500">
+                    <p className="text-sm font-normal">
+                      Adding a user will increase the number of users on your
+                      subscription and {additionalUserCost != null &&
+                        `additional cost per user: $${additionalUserCost.toFixed(2)}/month`}.
+                    </p>
+                    <p className="text-sm font-semibold">Current users: {currentUsersCount}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-
-          {isOverLimit && (
             <div className="flex items-start gap-2">
               <Checkbox
-                id="billing-agreement"
-                checked={agreedToBilling}
+                id="subscription-increase-ack"
+                checked={agreedToSubscriptionIncrease}
                 onCheckedChange={(checked) =>
-                  setAgreedToBilling(checked === true)
+                  setAgreedToSubscriptionIncrease(checked === true)
                 }
               />
-              <label
-                htmlFor="billing-agreement"
+              <Label
+                htmlFor="subscription-increase-ack"
                 className="text-sm text-muted-foreground leading-tight cursor-pointer"
               >
-                I understand that adding this user will increase my monthly
-                subscription cost by ${ADDITIONAL_USER_COST}. This charge will
-                be reflected in my next billing cycle.
-              </label>
+                I acknowledge that adding this user will increase my subscription
+                and I will be charged accordingly.
+              </Label>
             </div>
-          )}
+          </div>
 
-          <Separator className="my-4" />
+
 
           <div className="flex justify-between gap-2 mb-4 mt-4">
             <Button
@@ -391,16 +348,12 @@ export default function InviteUserForm({
               form="invite-user-form"
               type="submit"
               className="flex-1 bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
-              disabled={isSubmitting || (isOverLimit && !agreedToBilling)}
+              disabled={isSubmitting || !agreedToSubscriptionIncrease}
             >
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isSubmitting
-                ? 'Sending Invitation...'
-                : isOverLimit
-                ? 'Confirm & Send Invitation'
-                : 'Send Invitation'}
+              {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
             </Button>
           </div>
         </form>

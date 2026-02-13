@@ -31,6 +31,14 @@ export const TenantCompleteDetailsQueryOptions = () =>
     staleTime: 5_000,
   });
 
+export const TenantLogoQueryOptions = () =>
+  queryOptions({
+    queryKey: [...TenantKeys.all, 'logo'],
+    queryFn: () => APIClient.tenants.getLogo(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 /**
  * Mutation hook for uploading a tenant logo.
  * Automatically invalidates tenant-related caches on success.

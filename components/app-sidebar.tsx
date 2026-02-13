@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
+import { claritySafe } from '@/lib/clarity';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { QuarryLinkBranding } from '@/components/quarrylink-branding';
@@ -127,7 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       console.log(
         '📋 [AppSidebar] Subscription Plan:',
         tenantCompleteDetails.subscriptionAndInvoices?.subscriptions
-          ?.subscriptions?.[0]?.subscriptionPlan,
+          ?.subscriptions?.[1]?.subscriptionPlan,
       );
     }
   }, [tenantCompleteDetails]);
@@ -154,7 +155,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Get subscription plan from the first active subscription
   const subscriptionPlan =
     tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
-      ?.subscriptions?.[0]?.subscriptionPlan;
+      ?.subscriptions?.[1]?.subscriptionPlan;
+
+  // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
+  React.useEffect(() => {
+    claritySafe((c) => {
+      if (tenantCompleteDetails?.tenantDetails?.tenantName) {
+        c('set', 'tenantName', tenantCompleteDetails.tenantDetails.tenantName);
+      }
+      if (subscriptionPlan) {
+        c('set', 'subscriptionPlan', subscriptionPlan);
+      }
+      if (displayName) {
+        c('set', 'userName', displayName);
+      }
+      if (email) {
+        c('set', 'userEmail', email);
+      }
+    });
+  }, [tenantCompleteDetails, subscriptionPlan, displayName, email]);
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -171,7 +190,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={navItems} subscriptionPlan={subscriptionPlan} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

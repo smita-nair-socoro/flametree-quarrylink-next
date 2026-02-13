@@ -51,6 +51,12 @@ type PricingBreakdown = {
   totalInvoice: number;
   grossProfit: number;
   grossProfitPercentage: number;
+  costSubtotalExGST: number;
+  costGst: number;
+  totalCost: number;
+  invoiceSubtotalExGST: number;
+  invoiceGst: number;
+  totalInvoiceInclGst: number;
 };
 
 export function useLineItemFormState({
@@ -498,8 +504,10 @@ export function useLineItemFormState({
     if (qsp?.availableForTruckRateLoad)
       opts.push({ label: 'Load', value: 'LOAD' });
     if (qsp?.availableForTruckRateKm) opts.push({ label: 'km', value: 'KM' });
-    if (qsp?.availableForTruckRate20kg) opts.push({ label: '20kg', value: 'KG_20' });
-    if (qsp?.availableForTruckRateBulka) opts.push({ label: 'Bulka', value: 'BULKA' });
+    if (qsp?.availableForTruckRate20kg)
+      opts.push({ label: '20kg', value: 'KG_20' });
+    if (qsp?.availableForTruckRateBulka)
+      opts.push({ label: 'Bulka', value: 'BULKA' });
     return opts;
   }, [selectedQuarrySupplierProduct]);
 
@@ -509,35 +517,41 @@ export function useLineItemFormState({
   const productSellQty = form.watch('productSellQty');
 
   // Helper conversion functions (reusable)
-  const toTn = React.useCallback((q: number, unit: string, density: number): number => {
-    switch (unit) {
-      case 'TN':
-        return q;
-      case 'M3':
-        return density > 0 ? q * density : 0;
-      case 'KG_20':
-        return q / 50; // 50 x 20kg bags = 1 tonne
-      case 'BULKA':
-        return density > 0 ? q * density : 0; // 1 bulka = 1 m3
-      default:
-        return 0;
-    }
-  }, []);
+  const toTn = React.useCallback(
+    (q: number, unit: string, density: number): number => {
+      switch (unit) {
+        case 'TN':
+          return q;
+        case 'M3':
+          return density > 0 ? q * density : 0;
+        case 'KG_20':
+          return q / 50; // 50 x 20kg bags = 1 tonne
+        case 'BULKA':
+          return density > 0 ? q * density : 0; // 1 bulka = 1 m3
+        default:
+          return 0;
+      }
+    },
+    []
+  );
 
-  const fromTn = React.useCallback((tn: number, unit: string, density: number): number => {
-    switch (unit) {
-      case 'TN':
-        return tn;
-      case 'M3':
-        return density > 0 ? tn / density : 0;
-      case 'KG_20':
-        return tn * 50;
-      case 'BULKA':
-        return density > 0 ? tn / density : 0; // 1 bulka = 1 m3
-      default:
-        return 0;
-    }
-  }, []);
+  const fromTn = React.useCallback(
+    (tn: number, unit: string, density: number): number => {
+      switch (unit) {
+        case 'TN':
+          return tn;
+        case 'M3':
+          return density > 0 ? tn / density : 0;
+        case 'KG_20':
+          return tn * 50;
+        case 'BULKA':
+          return density > 0 ? tn / density : 0; // 1 bulka = 1 m3
+        default:
+          return 0;
+      }
+    },
+    []
+  );
 
   // Auto-calculate product cost quantity based on sell quantity/UOM and density
   React.useEffect(() => {
@@ -547,7 +561,10 @@ export function useLineItemFormState({
     const qty = Number(form.getValues('productSellQty') || 0);
 
     if (!qty || qty <= 0) {
-      form.setValue('productCostQty', 0, { shouldDirty: false, shouldValidate: true });
+      form.setValue('productCostQty', 0, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
       return;
     }
 
@@ -566,8 +583,8 @@ export function useLineItemFormState({
     // Convert via TN
     const tn = toTn(qty, from, density);
     const converted = fromTn(tn, to, density);
-    const roundedConverted = Number.isFinite(converted) 
-      ? parseFloat(converted.toFixed(2)) 
+    const roundedConverted = Number.isFinite(converted)
+      ? parseFloat(converted.toFixed(2))
       : 0;
     form.setValue('productCostQty', roundedConverted, {
       shouldDirty: false,
@@ -793,7 +810,12 @@ export function useLineItemFormState({
       return; // Let user input for HOURLY, LOAD, KM
     }
 
-    if (!productSellQty || productSellQty <= 0 || !productSellUom || !currentTruckSellUom) {
+    if (
+      !productSellQty ||
+      productSellQty <= 0 ||
+      !productSellUom ||
+      !currentTruckSellUom
+    ) {
       form.setValue('truckSellQty', 0, { shouldDirty: false });
       return;
     }
@@ -828,7 +850,12 @@ export function useLineItemFormState({
       return; // Let user input for HOURLY, LOAD, KM
     }
 
-    if (!productSellQty || productSellQty <= 0 || !productSellUom || !currentTruckCostUom) {
+    if (
+      !productSellQty ||
+      productSellQty <= 0 ||
+      !productSellUom ||
+      !currentTruckCostUom
+    ) {
       form.setValue('truckCostQty', 0, { shouldDirty: false });
       return;
     }
@@ -860,6 +887,12 @@ export function useLineItemFormState({
       totalInvoice: 0,
       grossProfit: 0,
       grossProfitPercentage: 0,
+      costSubtotalExGST: 0,
+      costGst: 0,
+      totalCost: 0,
+      invoiceSubtotalExGST: 0,
+      invoiceGst: 0,
+      totalInvoiceInclGst: 0,
     });
   const productCostQty = form.watch('productCostQty');
   const productCostPrice = form.watch('productCostPrice');
@@ -878,11 +911,16 @@ export function useLineItemFormState({
       (values.productSellQty || 0) * (values.productSellPrice || 0);
     const totalTruckSellPrice =
       (values.truckSellQty || 0) * (values.truckSellPrice || 0);
+    const costSubtotalExGST = totalProductCostPrice + totalTruckCostPrice;
+    const costGst = costSubtotalExGST * 0.1;
+    const totalCost = costSubtotalExGST + costGst;
     const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
-    const totalCost = totalProductCostPrice + totalTruckCostPrice;
-    const grossProfit = totalInvoice - totalCost;
+    const invoiceGst = totalInvoice * 0.1;
+    const totalInvoiceInclGst = totalInvoice + invoiceGst;
+    // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
+    const grossProfit = totalInvoiceInclGst - totalCost;
     const grossProfitPercentage =
-      totalInvoice > 0 ? (grossProfit / totalInvoice) * 100 : 0;
+      totalInvoiceInclGst > 0 ? (grossProfit / totalInvoiceInclGst) * 100 : 0;
 
     setPricingBreakdown({
       totalProductCostPrice,
@@ -892,6 +930,12 @@ export function useLineItemFormState({
       totalInvoice,
       grossProfit,
       grossProfitPercentage,
+      costSubtotalExGST,
+      costGst,
+      totalCost,
+      invoiceSubtotalExGST: totalInvoice,
+      invoiceGst,
+      totalInvoiceInclGst,
     });
 
     const opts = { shouldDirty: false } as const;
@@ -911,12 +955,6 @@ export function useLineItemFormState({
     truckSellPrice,
     form,
   ]);
-
-  // GST
-  const gst = (Number(pricingBreakdown.totalInvoice) * 0.1).toFixed(2);
-  const totalInvoiceIncGST = (
-    Number(pricingBreakdown.totalInvoice) + Number(gst)
-  ).toFixed(2);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -984,11 +1022,11 @@ export function useLineItemFormState({
       truckType: values.truckType,
       truckCostUom: values.truckCostUom,
       truckCostQty: values.truckCostQty,
-      truckCostPrice: dollarsToCents(values.truckCostPrice),
+      truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
       totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice),
       truckSellUom: values.truckSellUom,
       truckSellQty: values.truckSellQty,
-      truckSellPrice: dollarsToCents(values.truckSellPrice),
+      truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
       totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice),
       grossProfit: dollarsToCents(values.grossProfit || 0),
       totalQuantityRequired: values.productSellQty,
@@ -1055,8 +1093,6 @@ export function useLineItemFormState({
     truckUnitOptions,
     selectedProductId,
     pricingBreakdown,
-    gst,
-    totalInvoiceIncGST,
     handleSubmit,
     onSubmit,
     isPending:

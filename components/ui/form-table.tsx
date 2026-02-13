@@ -130,7 +130,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                 <FormControl>
                   <Input
                     placeholder={cell.placeholder || ''}
-                    className={cn('h-9 w-full', cell.className)}
+                    className={cn('h-11 md:h-9 w-full', cell.className)}
                     {...field}
                   />
                 </FormControl>
@@ -152,7 +152,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     decimalPlaces={cell.decimalPlaces ?? 2}
                     thousandSeparator={cell.thousandSeparator ?? true}
                     placeholder={cell.placeholder || '$0.00'}
-                    className={cn('h-9 w-full', cell.className)}
+                    className={cn('h-11 md:h-9 w-full', cell.className)}
                     onValueChange={(value) => {
                       field.onChange(value);
                     }}
@@ -177,7 +177,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     placeholder={cell.placeholder || '0'}
                     min={cell.min}
                     max={cell.max}
-                    className={cn('h-9 w-full', cell.className)}
+                    className={cn('h-11 md:h-9 w-full', cell.className)}
                     {...field}
                   />
                 </FormControl>
@@ -196,11 +196,30 @@ export function FormTable<T extends FieldValues = FieldValues>({
               <FormItem>
                 <FormControl>
                   <div className="flex items-center space-x-2">
+                    {/* Desktop: Switch */}
                     <Switch
                       checked={field.value as boolean}
                       onCheckedChange={field.onChange}
                       disabled={isDisabled}
+                      className="hidden md:flex"
                     />
+                    {/* Mobile: Single Radio as toggle */}
+                    <button
+                      type="button"
+                      onClick={() => !isDisabled && field.onChange(!field.value)}
+                      disabled={isDisabled}
+                      className={cn(
+                        'flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 transition-colors',
+                        field.value
+                          ? 'border-primary'
+                          : 'border-input',
+                        isDisabled && 'opacity-50 cursor-not-allowed'
+                      )}
+                    >
+                      {field.value && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                      )}
+                    </button>
                   </div>
                 </FormControl>
               </FormItem>

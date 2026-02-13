@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { confirmSignIn } from 'aws-amplify/auth';
+import { APIClient } from '@/lib/api/APIClient';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   Dialog,
@@ -30,6 +31,7 @@ interface NewPasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  tempPassword: string;
 }
 
 const newPasswordSchema = z
@@ -43,7 +45,7 @@ const newPasswordSchema = z
         {
           message:
             'Password must contain uppercase, lowercase, number, and special character',
-        }
+        },
       ),
     confirmPassword: z
       .string()
@@ -58,6 +60,7 @@ export function NewPasswordModal({
   isOpen,
   onClose,
   onSuccess,
+  tempPassword,
 }: NewPasswordModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -76,27 +79,40 @@ export function NewPasswordModal({
     setIsLoading(true);
 
     try {
-      // For NEW_PASSWORD_REQUIRED challenge, we only need the new password
-      // The verification code (if needed) should be handled by Cognito automatically
+      // Step 1: Complete Cognito sign-in with temp password to get tokens
+      // We pass the temp password as the "new" password to complete auth without changing it
       const { isSignedIn } = await confirmSignIn({
-        challengeResponse: values.newPassword,
-        options: {
-          userAttributes: {
-            name: 'QuarryLink User', // Default name for new users
-          },
-        },
+        challengeResponse: tempPassword,
       });
 
-      if (isSignedIn) {
+      if (!isSignedIn) {
+        notifyError('Authentication failed. Please try again.');
+        return;
+      }
+
+      // Step 2: Now we have tokens, call our API to change the password
+      const response = await APIClient.users.changePassword({
+        oldPassword: tempPassword,
+        newPassword: values.newPassword,
+      });
+
+      if (response.success) {
         notifySuccess('Password updated successfully! Welcome to QuarryLink.');
         onSuccess();
         handleClose();
+      } else {
+        notifyError(response.message || 'Failed to update password.');
       }
     } catch (error: unknown) {
       console.error('New password error:', error);
 
-      const errorObj = error as { name?: string };
+      const errorObj = error as {
+        name?: string;
+        message?: string;
+        response?: { data?: { message?: string } };
+      };
 
+      // Handle Cognito errors
       if (errorObj.name === 'InvalidPasswordException') {
         notifyError('Password does not meet requirements');
       } else if (errorObj.name === 'InvalidParameterException') {
@@ -104,7 +120,12 @@ export function NewPasswordModal({
       } else if (errorObj.name === 'CodeMismatchException') {
         notifyError('Verification failed. Please try signing in again.');
       } else {
-        notifyError('Failed to update password. Please try again.');
+        // Handle API errors
+        const errorMessage =
+          errorObj.response?.data?.message ||
+          errorObj.message ||
+          'Failed to update password. Please try again or contact the Admin for help.';
+        notifyError(errorMessage);
       }
     } finally {
       setIsLoading(false);

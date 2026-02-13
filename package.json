@@ -1,6 +1,6 @@
 {
   "name": "quarrylink-next",
-  "version": "1.0.232",
+  "version": "1.0.256",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -12,6 +12,7 @@
     "@aws-crypto/sha256-js": "^5.2.0",
     "@googlemaps/js-api-loader": "^1.16.10",
     "@hookform/resolvers": "^5.0.1",
+    "@microsoft/clarity": "^1.0.2",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

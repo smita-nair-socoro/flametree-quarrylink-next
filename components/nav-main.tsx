@@ -28,15 +28,38 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useLocalStorageState } from '@/hooks/use-localstorage';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 
+/** Default open state for nav sections by subscription plan */
+function getDefaultOpenStatesForPlan(plan: string | undefined): Record<string, boolean> {
+  if (!plan) return {};
+  const planUpper = plan.toUpperCase();
+  // ESSENTIAL: only Customer Operations and Inventory & Production open
+  if (planUpper === 'ESSENTIALS') {
+    return {
+      '/customer-operations': true,
+      '/inventory': true,
+      '/logistics': false,
+    };
+  }
+  // PLUS or PRO: open all sections with subitems
+  if (planUpper === 'PLUS' || planUpper === 'PRO') {
+    return {
+      '/customer-operations': true,
+      '/inventory': true,
+      '/logistics': true,
+    };
+  }
+  return {};
+}
+
 export function NavMain({
   items,
+  subscriptionPlan,
 }: {
   items: {
     title: string;
@@ -50,16 +73,24 @@ export function NavMain({
       plan?: string;
     }[];
   }[];
+  subscriptionPlan?: string;
 }) {
   const pathname = usePathname();
   const { state, open, openMobile, isMobile } = useSidebar();
   const isMobileDevice = useIsMobile();
-  const [openStates, setOpenStates] = useLocalStorageState<
-    Record<string, boolean>
-  >('nav-open-states', {});
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
   const [forceUpdate, setForceUpdate] = useState(0);
   const isDisabled = (plan?: string) => plan === 'PRO' || plan === 'PLUS';
   const getPlanLabel = (plan?: string) => (plan ? plan.toUpperCase() : '');
+
+  // When subscription plan is available, set open states to plan-based defaults (no persistence)
+  useEffect(() => {
+    if (!subscriptionPlan) return;
+    const defaults = getDefaultOpenStatesForPlan(subscriptionPlan);
+    if (Object.keys(defaults).length > 0) {
+      setOpenStates(defaults);
+    }
+  }, [subscriptionPlan]);
 
   useEffect(() => {
     if (pathname) {
@@ -86,7 +117,7 @@ export function NavMain({
             pathname === item.url ||
             pathname === `${item.url}/` ||
             item.items?.some(
-              (sub) => pathname === sub.url || pathname === `${sub.url}/`
+              (sub) => pathname === sub.url || pathname === `${sub.url}/`,
             );
           const isOpen = openStates[item.url] ?? false;
 
@@ -134,10 +165,10 @@ export function NavMain({
                             ? 'bg-[#7138F5] text-white'
                             : 'text-white hover:bg-[#7138F533]'
                         } ${
-                        itemIsDisabled
-                          ? 'pointer-events-none opacity-40 text-[#94a3b8]'
-                          : ''
-                      }`}
+                          itemIsDisabled
+                            ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                            : ''
+                        }`}
                     >
                       <span className="truncate whitespace-nowrap overflow-hidden">
                         {item.title}
@@ -167,7 +198,7 @@ export function NavMain({
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
-                      <Tooltip delayDuration={300}>
+                      <Tooltip delayDuration={300} mobileClickable={false}>
                         <TooltipTrigger asChild>
                           <span className="truncate whitespace-nowrap text-white">
                             {item.title}
@@ -207,7 +238,7 @@ export function NavMain({
                       }`}
                     >
                       {item.icon && <item.icon className="text-white" />}
-                      <Tooltip delayDuration={300}>
+                      <Tooltip delayDuration={300} mobileClickable={false}>
                         <TooltipTrigger asChild>
                           <span className="truncate whitespace-nowrap">
                             {item.title}
@@ -246,12 +277,12 @@ export function NavMain({
                                   ? 'bg-[#7138F5] text-white font-medium'
                                   : 'text-white hover:bg-[#7138F533]'
                               } ${
-                              subDisabled
-                                ? 'pointer-events-none opacity-40 text-[#94a3b8]'
-                                : ''
-                            }`}
+                                subDisabled
+                                  ? 'pointer-events-none opacity-40 text-[#94a3b8]'
+                                  : ''
+                              }`}
                           >
-                            <Tooltip delayDuration={300}>
+                            <Tooltip delayDuration={300} mobileClickable={false}>
                               <TooltipTrigger asChild>
                                 <span className="truncate whitespace-nowrap overflow-hidden">
                                   {sub.title}
@@ -299,7 +330,7 @@ export function NavMain({
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
-                      <Tooltip delayDuration={300}>
+                      <Tooltip delayDuration={300} mobileClickable={false}>
                         <TooltipTrigger asChild>
                           <span className="truncate whitespace-nowrap text-white">
                             {item.title}
@@ -338,7 +369,7 @@ export function NavMain({
                               href={sub.url}
                               className="flex items-center w-full justify-between gap-2 min-w-0"
                             >
-                              <Tooltip delayDuration={300}>
+                              <Tooltip delayDuration={300} mobileClickable={false}>
                                 <TooltipTrigger asChild>
                                   <span className="text-white truncate whitespace-nowrap overflow-hidden">
                                     {sub.title}

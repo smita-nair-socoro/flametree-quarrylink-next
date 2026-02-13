@@ -1,8 +1,5 @@
 import { Role, UserStatus } from './user-enums';
 
-/**
- * User interface matching backend DTO structure
- */
 export interface User {
   sub: string; // AWS Cognito user ID (UUID) - this is the primary user identifier
   fullName: string;
@@ -28,10 +25,6 @@ export interface User {
   updatedAt?: string;
 }
 
-/**
- * DTO for creating a new user (invite user)
- * Backend expects this structure for POST /api/users
- */
 export interface UserCreateDTO {
   email: string;
   name: string;
@@ -40,10 +33,6 @@ export interface UserCreateDTO {
   confirmed: boolean; // false for new invitations
 }
 
-/**
- * DTO for updating an existing user
- * Backend expects this structure for PUT /api/users/:id
- */
 export interface UserUpdateDTO {
   name: string;
   phone?: string;
@@ -127,4 +116,19 @@ export interface UserDependencies {
   };
   counts: UserDependenciesCounts;
   canDelete: boolean;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface PasswordChangeResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
 }
