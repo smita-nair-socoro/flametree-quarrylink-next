@@ -70,7 +70,7 @@ export function createAddressSchema(address: AddressFields) {
           message: 'Address line 1 is required',
         })
         .max(100, 'Address line 1 must be less than 100 characters')
-        .regex(/^[a-zA-Z0-9\s,.&-]+$/, 'Address contains invalid characters'),
+        .regex(/^[a-zA-Z0-9\s,.&/()\-]+$/, 'Address contains invalid characters'),
     };
   }
 
@@ -499,31 +499,19 @@ export default function AddressDialog(
     }
 
     if (
-      address2 !== address.address2 ||
-      postalCode !== address.postalCode ||
-      address1 !== address.address1 ||
-      city !== address.city ||
-      region !== address.region ||
-      country !== address.country
+      draftAddress.address2 !== address.address2 ||
+      draftAddress.postalCode !== address.postalCode ||
+      draftAddress.address1 !== address.address1 ||
+      draftAddress.city !== address.city ||
+      draftAddress.region !== address.region ||
+      draftAddress.country !== address.country
     ) {
-      const newFormattedAddress = updateAndFormatAddress(adrAddress, {
-        'street-address': address1,
-        address2,
-        locality: city,
-        region,
-        'postal-code': postalCode,
-      });
+      const newFormattedAddress = updateAndFormatAddress(adrAddressDraft, draftAddress);
 
       // Fill missing fields with defaults (googlePlaceId if not present)
       setAddress(
         fillMissingAddressFields({
-          ...address,
-          city,
-          region,
-          address2,
-          address1,
-          postalCode,
-          country,
+          ...draftAddress,
           formattedAddress: newFormattedAddress,
         }),
       );

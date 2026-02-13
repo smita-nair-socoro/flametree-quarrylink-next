@@ -50,6 +50,11 @@ function buildStreetAddress(components: GeocodingAddressComponent[]): string {
   if (route) {
     return route;
   }
+  // Try post_box as fallback (e.g., "PO Box 61")
+  const postBox = getAddressComponent(components, 'post_box');
+  if (postBox) {
+    return route ? `${postBox}, ${route}` : postBox;
+  }
   // Try subpremise or premise as fallback
   const subpremise = getAddressComponent(components, 'subpremise');
   const premise = getAddressComponent(components, 'premise');
@@ -296,6 +301,78 @@ export function normalizeAddressFromMapSelection(
     // Source tracking
     locationSource: 'MAP_PIN',
   };
+}
+
+/**
+ * Result from geocoding a postal/PO Box address
+ */
+export interface GeocodedSuggestion {
+  formattedAddress: string;
+  address1: string;
+  city: string;
+  region: string;
+  postalCode: string;
+  country: string;
+  lat: number;
+  lng: number;
+  placeId: string;
+}
+
+/**
+ * Forward geocode a postal address string (e.g., "PO Box 61, Tumut NSW 2720")
+ * Used as a fallback when Places Autocomplete returns no results for postal addresses.
+ */
+export async function geocodePostalAddress(
+  input: string,
+  regionBias: string = 'au'
+): Promise<GeocodedSuggestion[]> {
+  try {
+    const apiKey = getRuntimeConfig().GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      return [];
+    }
+
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(input)}&region=${regionBias}&key=${apiKey}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      console.error('Geocoding request failed:', response.status, response.statusText);
+      return [];
+    }
+
+    const data: GeocodingResponse = await response.json();
+
+    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
+      return [];
+    }
+
+    return data.results.map((result) => {
+      const components = result.address_components;
+      const address1 = buildStreetAddress(components);
+      const city =
+        getAddressComponent(components, 'locality') ||
+        getAddressComponent(components, 'sublocality_level_1') ||
+        getAddressComponent(components, 'administrative_area_level_2');
+      const region = getAddressComponent(components, 'administrative_area_level_1');
+      const postalCode = getAddressComponent(components, 'postal_code');
+      const country = getAddressComponent(components, 'country');
+
+      return {
+        formattedAddress: result.formatted_address,
+        address1,
+        city,
+        region,
+        postalCode,
+        country,
+        lat: result.geometry.location.lat,
+        lng: result.geometry.location.lng,
+        placeId: result.place_id,
+      };
+    });
+  } catch (error) {
+    console.error('Postal address geocoding error:', error);
+    return [];
+  }
 }
 
 /**

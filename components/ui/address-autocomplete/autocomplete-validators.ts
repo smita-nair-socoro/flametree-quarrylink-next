@@ -40,7 +40,7 @@ export const isValidAutocomplete = (
       .string()
       .min(1, 'Address line 1 is required')
       .max(100, 'Address line 1 must be less than 100 characters')
-      .regex(/^[a-zA-Z0-9\s,.&]+$/, 'Invalid address'),
+      .regex(/^[a-zA-Z0-9\s,.&/()\-]+$/, 'Invalid address'),
     streetDetailsOptional: z.string().optional(),
     formattedAddress: z.string().min(1, 'Formatted address is required'),
     city: z.string().min(1, 'City is required'),
