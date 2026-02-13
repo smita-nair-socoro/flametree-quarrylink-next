@@ -6,11 +6,11 @@ import { getDefaultMapCenter, isValidCoordinates } from '@/lib/utils/geocoding';
 import {
   APIProvider,
   Map,
-  AdvancedMarker,
+  Marker,
   useMap,
   type MapMouseEvent,
 } from '@vis.gl/react-google-maps';
-import { Loader2, MapPin, LocateFixed } from 'lucide-react';
+import { Loader2, LocateFixed } from 'lucide-react';
 import { useCallback, useEffect, useState, memo } from 'react';
 
 interface EmbeddedMapPickerProps {
@@ -47,6 +47,17 @@ const MAP_STYLES: google.maps.MapTypeStyle[] = [
     stylers: [{ visibility: 'off' }],
   },
 ];
+
+// Pre-built SVG pin marker icon URLs (no google.maps dependency).
+// The SVG is sized at 28x42 so no scaledSize is needed.
+const MARKER_ICONS = {
+  red: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="42" viewBox="0 0 24 36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#ef4444"/><circle cx="12" cy="12" r="5" fill="white"/></svg>',
+  )}`,
+  green: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="42" viewBox="0 0 24 36"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24C24 5.4 18.6 0 12 0z" fill="#16a34a"/><circle cx="12" cy="12" r="5" fill="white"/></svg>',
+  )}`,
+};
 
 // Default zoom levels
 const DEFAULT_ZOOM = 4;
@@ -158,7 +169,6 @@ function MapContent({
     <div className="relative">
       <div className="relative h-[400px] w-full rounded-md overflow-hidden border">
         <Map
-          mapId="address-dialog-map"
           defaultCenter={defaultCenter}
           defaultZoom={hasValidCoords ? SELECTED_ZOOM : DEFAULT_ZOOM}
           gestureHandling="greedy"
@@ -169,19 +179,12 @@ function MapContent({
           styles={MAP_STYLES}
         >
           {hasValidCoords && (
-            <AdvancedMarker
+            <Marker
               position={{ lat, lng }}
               draggable={!disabled}
               onDragEnd={handleMarkerDragEnd}
-            >
-              <MapPin
-                className={
-                  markerColor === 'green'
-                    ? 'size-7 text-green-600 fill-green-600/20 drop-shadow-md'
-                    : 'size-7 text-destructive fill-destructive/20 drop-shadow-md'
-                }
-              />
-            </AdvancedMarker>
+              icon={MARKER_ICONS[markerColor]}
+            />
           )}
         </Map>
 
