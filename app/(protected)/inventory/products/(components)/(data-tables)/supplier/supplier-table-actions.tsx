@@ -30,20 +30,14 @@ export function SupplierTableActions({
       ...quarry,
       productId: productId || quarry.productId,
     }),
-    [quarry, productId]
+    [quarry, productId],
   );
 
-  // Support both direct id and nested quarry_supplier.id
-  const quarrySupplierId =
-    quarry?.quarrySupplierId ?? quarry?.quarrySupplier?.id;
-
-  const { actions, confirmDialogs, viewDialog } = useSupplierActions(
-    quarrySupplierId,
-    quarryWithProductId
-  );
+  const { actions, confirmDialogs, viewDialog } =
+    useSupplierActions(quarryWithProductId);
 
   const setSelectedSupplier = useSupplierStore(
-    (state) => state.setSelectedSupplier
+    (state) => state.setSelectedSupplier,
   );
 
   const handleView = () => {

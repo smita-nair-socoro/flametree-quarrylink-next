@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
 import { Quarry } from '@/lib/types/quarry';
-import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 
 interface QuarrySupplierTableActionsProps {
   quarrySupplier: Quarry;
@@ -28,17 +27,12 @@ export function QuarrySupplierTableActions({
 }: QuarrySupplierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useQuarrySupplierActions(
-    quarrySupplier.id,
     quarrySupplier
-  );
-  const setSelectedQuarrySupplier = useQuarrySupplierStore(
-    (state) => state.setSelectedQuarrySupplier
   );
 
   const handleView = () => {
-    setSelectedQuarrySupplier(quarrySupplier);
+    actions.view(quarrySupplier);
     setDropdownOpen(false);
-    actions.view();
   };
 
   const handleLinkedProducts = () => {

@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
-import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useAuth } from '@/hooks/use-auth';
 
 interface QuotationTableActionsProps {
@@ -41,10 +40,7 @@ export function QuotationTableActions({
   const isEssentials = userRole === 'Essentials';
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
-    useQuotationActions(quotation.id, quotation);
-  const setSelectedQuotation = useQuotationStore(
-    (state) => state.setSelectedQuotation
-  );
+    useQuotationActions(quotation);
 
   const createHandler =
     (actionFn: () => void, additionalSetup?: () => void) => () => {
@@ -53,19 +49,13 @@ export function QuotationTableActions({
       actionFn();
     };
 
-  const handleView = createHandler(actions.view, () =>
-    setSelectedQuotation(quotation)
-  );
+  const handleView = createHandler(actions.view);
   const handlePreview = createHandler(actions.preview);
   const handleArchive = createHandler(actions.archive);
-  const handleSendToCustomer = createHandler(actions.sendToCustomer, () =>
-    setSelectedQuotation(quotation)
-  );
+  const handleSendToCustomer = createHandler(actions.sendToCustomer);
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
-  const handleDuplicate = createHandler(actions.duplicate, () =>
-    setSelectedQuotation(quotation)
-  );
+  const handleDuplicate = createHandler(actions.duplicate);
   const handleExtendExpiry = createHandler(actions.extendExpiry);
   // const handlePrint = createHandler(actions.print);
 

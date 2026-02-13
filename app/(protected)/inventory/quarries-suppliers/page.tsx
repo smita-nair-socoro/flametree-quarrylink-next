@@ -38,20 +38,15 @@ export default function QuarriesSuppliersPage() {
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
     (state) => state.setSelectedQuarrySupplier
   );
-  const [
-    selectedQuarrySupplierForActions,
-    setSelectedQuarrySupplierForActions,
-  ] = React.useState<Quarry | null>(null);
   const [createFormType, setCreateFormType] = React.useState<QuarryType>(
     QuarryType.QUARRY
   );
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
 
-  // Handle create dialog open change
+  // Reset form type and clear selected quarry when opening Add dialog so create form doesn't show previously viewed quarry.
   const handleCreateDialogOpenChange = React.useCallback(
     (open: boolean) => {
       if (open) {
-        // When opening create dialog, reset form type and clear selected quarry supplier
         setCreateFormType(QuarryType.QUARRY);
         setSelectedQuarrySupplier(null);
       }
@@ -83,9 +78,8 @@ export default function QuarriesSuppliersPage() {
       value: `$${centsToDollars(
         reportingData?.suppliersMonthlyProfitValueChangePercent || 0
       )}`,
-      description: `${
-        reportingData?.suppliersMonthlyProfitValueChangePercent || 0
-      }% vs last month`,
+      description: `${reportingData?.suppliersMonthlyProfitValueChangePercent || 0
+        }% vs last month`,
       icon: DollarSign,
       iconBgColor: 'bg-[#ECFCCA]',
       iconColor: 'text-[#016630]',
@@ -107,9 +101,8 @@ export default function QuarriesSuppliersPage() {
       value: `$${centsToDollars(
         reportingData?.quarriesMonthlyProfitValueChangePercent || 0
       )}`,
-      description: `${
-        reportingData?.quarriesMonthlyProfitValueChangePercent || 0
-      }% vs last month`,
+      description: `${reportingData?.quarriesMonthlyProfitValueChangePercent || 0
+        }% vs last month`,
       icon: Mountain,
       iconBgColor: 'bg-[#F1F5F9]',
       iconColor: 'text-[#71717B]',
@@ -128,10 +121,7 @@ export default function QuarriesSuppliersPage() {
     },
   ];
 
-  const { actions, confirmDialogs, viewDialog } = useQuarrySupplierActions(
-    selectedQuarrySupplierForActions?.id,
-    selectedQuarrySupplierForActions
-  );
+  const { actions, confirmDialogs, viewDialog } = useQuarrySupplierActions();
 
   // Transform the API data to match our component expectations
   const items: Quarry[] = React.useMemo(() => {
@@ -152,7 +142,6 @@ export default function QuarriesSuppliersPage() {
           status: (isActive === false
             ? 'ARCHIVED'
             : quarry.status || 'ACTIVE') as QuarryStatus,
-          // Preserve address in original camelCase format (backend uses camelCase for Address)
           address: quarry.address,
           // Extract suburb from address object for table display
           suburb: quarry.address?.suburb || '',
@@ -166,17 +155,9 @@ export default function QuarriesSuppliersPage() {
     );
   }, [quarriesData]);
 
-  // Get Zustand store actions
-  const setSelectedQuarrySupplierInStore = useQuarrySupplierStore(
-    (state) => state.setSelectedQuarrySupplier
-  );
-
-  // Handle row click to open quarry/supplier details
+  // Handle row click: pass clicked quarry so store updates before dialog opens (avoids stale header)
   const handleRowClick = (quarrySupplier: Quarry) => {
-    setSelectedQuarrySupplier(quarrySupplier);
-    setSelectedQuarrySupplierForActions(quarrySupplier);
-    setSelectedQuarrySupplierInStore(quarrySupplier); // Set in Zustand store
-    actions.view();
+    actions.view(quarrySupplier);
   };
 
   const renderQuarrySupplierCard = React.useCallback((quarrySupplier: Quarry) => {
@@ -238,9 +219,8 @@ export default function QuarriesSuppliersPage() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
-            dialogTitle={`Add New ${
-              createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-            }`}
+            dialogTitle={`Add New ${createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+              }`}
             dialogDescription="Fill in the details to add a new quarry or supplier to your system."
             buttonTitle="Add Quarry / Supplier"
             open={createDialogOpen}

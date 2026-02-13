@@ -76,8 +76,14 @@ export default function QuotationsPage() {
     }
   }, [items, setQuotations]);
 
-  const [selectedQuotationForActions, setSelectedQuotationForActions] =
-    React.useState<Quotation | null>(null);
+  const [selectedQuotationId, setSelectedQuotationId] = React.useState<
+    number | null
+  >(null);
+
+  const selectedQuotationForActions = React.useMemo(() => {
+    if (!selectedQuotationId) return null;
+    return items.find((q) => q.id === selectedQuotationId) || null;
+  }, [items, selectedQuotationId]);
 
   // URL-driven filtering for linked quotations
   const linkedQuotationIdsParam = searchParams.get('linkedQuotationIds');
@@ -148,14 +154,13 @@ export default function QuotationsPage() {
   const [rowSelectionKey, setRowSelectionKey] = React.useState(0);
 
   const { actions, confirmDialogs, viewDialog } = useQuotationActions(
-    selectedQuotationForActions?.id,
     selectedQuotationForActions,
   );
 
   const handleRowClick = (quotation: Quotation) => {
     setSelectedQuotation(quotation);
-    setSelectedQuotationForActions(quotation);
-    actions.view();
+    setSelectedQuotationId(quotation.id);
+    actions.view(quotation);
   };
 
   const handleRowSelectionChange = (selected: Quotation[]) => {

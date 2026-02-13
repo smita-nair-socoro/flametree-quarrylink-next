@@ -242,9 +242,14 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId = selectedCustomer.businessName;
-    finalPrimaryBadges = [selectedCustomer.customerStatus];
-    finalSecondaryBadges = [selectedCustomer.customerType];
+    finalCustomId =
+      selectedCustomer.businessName || selectedCustomer.contactName;
+    finalPrimaryBadges = selectedCustomer.customerStatus
+      ? [selectedCustomer.customerStatus]
+      : [];
+    finalSecondaryBadges = selectedCustomer.customerType
+      ? [selectedCustomer.customerType]
+      : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -262,9 +267,13 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
-    finalCustomId = selectedQuarrySupplier.name;
-    finalPrimaryBadges = [selectedQuarrySupplier.status];
-    finalSecondaryBadges = [selectedQuarrySupplier.quarrySupplierType];
+    finalCustomId = selectedQuarrySupplier.name ?? '';
+    finalPrimaryBadges = selectedQuarrySupplier.status
+      ? [selectedQuarrySupplier.status]
+      : [];
+    finalSecondaryBadges = selectedQuarrySupplier.quarrySupplierType
+      ? [selectedQuarrySupplier.quarrySupplierType]
+      : [];
   }
 
   if (headerInfo?.useSelectedClient && selectedClient) {
