@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseFormReturn, FieldValues, Path } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 import type { Address, AddressType } from '@/lib/types/address';
 import { Country, State } from 'country-state-city';
 
@@ -41,7 +41,7 @@ export function toAddressType(address?: Address | null): AddressType {
  */
 export function isSameAddress(
   prev: AddressType | null | undefined,
-  next: AddressType | null | undefined
+  next: AddressType | null | undefined,
 ): boolean {
   if (prev == null || next == null) return prev === next;
   return (
@@ -56,7 +56,7 @@ export function isSameAddress(
 // Convert legacy AddressType back to backend Address payload
 export function toAddressPayload(
   address?: AddressType | null,
-  originalAddress?: Address | null
+  originalAddress?: Address | null,
 ): Address | undefined {
   if (!address) return undefined;
 
@@ -109,7 +109,7 @@ export function toAddressPayload(
  * // Returns: { line1: "123 Main St", line2: "JIANGXI 330000", line3: "CHINA" }
  */
 export function formatAustralianAddress(
-  addressString: string | null | undefined
+  addressString: string | null | undefined,
 ): { line1: string; line2: string; line3: string } | null {
   if (!addressString || typeof addressString !== 'string') {
     return null;
@@ -126,7 +126,7 @@ export function formatAustralianAddress(
     // Match country name or ISO code at the end (case insensitive)
     const countryPattern = new RegExp(
       `,?\\s*(${country.name}|${country.isoCode})\\s*$`,
-      'i'
+      'i',
     );
     if (countryPattern.test(addressString)) {
       detectedCountry = { name: country.name, isoCode: country.isoCode };
@@ -185,7 +185,7 @@ export function formatAustralianAddress(
       // Match full state name or ISO code (abbreviation)
       const statePattern = new RegExp(
         `\\b(${state.name}|${state.isoCode})\\b`,
-        'i'
+        'i',
       );
       if (statePattern.test(cityStatePostcodePart)) {
         matchedState = { name: state.name, isoCode: state.isoCode };
@@ -198,11 +198,11 @@ export function formatAustralianAddress(
       // Replace the state (name or code) with the ISO code (abbreviation)
       const statePattern = new RegExp(
         `\\b(${matchedState.name}|${matchedState.isoCode})\\b`,
-        'i'
+        'i',
       );
       const normalized = cityStatePostcodePart.replace(
         statePattern,
-        matchedState.isoCode
+        matchedState.isoCode,
       );
       line2 = normalized.toUpperCase().replace(/\s+/g, ' ').trim();
     } else {
@@ -230,7 +230,7 @@ export function useAddressSync(
   fieldName: string,
   address: AddressType,
   setAddress: React.Dispatch<React.SetStateAction<AddressType>>,
-  setSearchInput: React.Dispatch<React.SetStateAction<string>>
+  setSearchInput: React.Dispatch<React.SetStateAction<string>>,
 ) {
   // Sync address state to form field
   // Uses logic from customer-form to avoid unnecessary dirty states
@@ -250,7 +250,9 @@ export function useAddressSync(
   // Handler for AddressAutoComplete
   const handleAddressChange = React.useCallback(
     (newAddress: AddressType) => {
-      setAddress((prev) => (isSameAddress(prev, newAddress) ? prev : newAddress));
+      setAddress((prev) =>
+        isSameAddress(prev, newAddress) ? prev : newAddress,
+      );
 
       if (newAddress.formattedAddress) {
         setSearchInput('');
@@ -258,7 +260,7 @@ export function useAddressSync(
         form.trigger(fieldName);
       }
     },
-    [form, fieldName, setAddress, setSearchInput]
+    [form, fieldName, setAddress, setSearchInput],
   );
 
   return handleAddressChange;
