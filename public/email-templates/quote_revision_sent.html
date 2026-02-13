@@ -187,6 +187,21 @@
       .footer-link:hover {
         text-decoration: underline;
       }
+      @media only screen and (max-width: 600px) {
+        .footer-row {
+          display: block !important;
+        }
+        .footer-column-left,
+        .footer-column-center,
+        .footer-column-right {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          padding: 10px 0 !important;
+          text-align: center !important;
+        }
+      }
     </style>
   </head>
   <body>
