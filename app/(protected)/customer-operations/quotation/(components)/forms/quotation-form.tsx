@@ -775,12 +775,12 @@ export default function QuotationForm({
                     <div className="flex flex-col gap-3">
                       {(() => {
                         const separatorBorder =
-                          'border-t border-dashed border-purple-300';
+                          'border-t border-dashed border-[#8E51FF]';
                         return (
                           <>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               {/* Cost Summary */}
-                              <div className="md:col-span-1 md:col-start-2 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
+                              <div className="md:col-span-1 md:col-start-2 rounded-lg border border-[#DDD] bg-gray-50 px-4 py-3 shadow-sm">
                                 <h3 className="text-lg font-bold mb-3">
                                   Cost Summary
                                 </h3>
@@ -820,7 +820,7 @@ export default function QuotationForm({
                                 </div>
                               </div>
                               {/* Sale Summary */}
-                              <div className="md:col-span-1 md:col-start-3 bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 shadow-sm">
+                              <div className="md:col-span-1 md:col-start-3 bg-purple-50 rounded-lg border border-[#DDD] px-4 py-3 shadow-sm">
                                 <h3 className="text-lg font-bold mb-3">
                                   Sale Summary
                                 </h3>
@@ -862,7 +862,7 @@ export default function QuotationForm({
                             </div>
                             {/* Gross Profit */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div className="flex justify-end items-center gap-2 py-3 px-4 bg-gray-200 rounded-lg md:col-span-2 md:col-start-2">
+                              <div className="flex justify-end items-center gap-2 py-3 px-4 bg-gray-50 border border-[#DDDDDD] rounded-lg md:col-span-2 md:col-start-2">
                                 <span className="text-lg font-semibold">
                                   Gross Profit:
                                 </span>
