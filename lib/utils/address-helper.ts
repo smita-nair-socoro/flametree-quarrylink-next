@@ -1,5 +1,5 @@
 import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, FieldValues, Path, PathValue } from 'react-hook-form';
 import type { Address, AddressType } from '@/lib/types/address';
 import { Country, State } from 'country-state-city';
 
@@ -225,9 +225,9 @@ export function formatAustralianAddress(
 }
 
 // Hook to sync address state with a form field and handle address changes
-export function useAddressSync(
-  form: UseFormReturn<any>,
-  fieldName: string,
+export function useAddressSync<TFieldValues extends FieldValues = FieldValues>(
+  form: UseFormReturn<TFieldValues>,
+  fieldName: Path<TFieldValues>,
   address: AddressType,
   setAddress: React.Dispatch<React.SetStateAction<AddressType>>,
   setSearchInput: React.Dispatch<React.SetStateAction<string>>,
@@ -240,11 +240,15 @@ export function useAddressSync(
     const current = form.getValues(fieldName);
     if (current === address.formattedAddress) return;
 
-    form.setValue(fieldName, address.formattedAddress, {
-      shouldDirty: false, // Don't mark dirty if just syncing (e.g. initial load)
-      shouldTouch: false,
-      shouldValidate: true,
-    });
+    form.setValue(
+      fieldName,
+      address.formattedAddress as PathValue<TFieldValues, Path<TFieldValues>>,
+      {
+        shouldDirty: false, // Don't mark dirty if just syncing (e.g. initial load)
+        shouldTouch: false,
+        shouldValidate: true,
+      },
+    );
   }, [address.formattedAddress, form, fieldName]);
 
   // Handler for AddressAutoComplete
