@@ -34,6 +34,7 @@ import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { useSelectedClient } from '@/app/stores/client-store';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { ActionDialog } from './action-dialog';
+import { useSelectedJob } from '@/app/stores/job-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -59,6 +60,8 @@ interface HeaderInfo {
   useSelectedQuarrySupplier?: boolean;
   /** Use selected client data automatically */
   useSelectedClient?: boolean;
+  /** Use selected job data automatically */
+  useSelectedJob?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -100,6 +103,17 @@ interface AddProductDrawerDialogProps {
 
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
+
+  /**
+   * When set, used for customer header (title/badges) instead of store's selectedCustomer.
+   * Use when the dialog is driven by get-customer-by-id (caller fetches and passes the customer).
+   */
+  headerCustomer?: {
+    businessName?: string;
+    contactName?: string;
+    customerStatus?: string;
+    customerType?: string;
+  } | null;
 
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
@@ -167,6 +181,7 @@ export function FormDialog({
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
+  headerCustomer: headerCustomerProp,
   headerSeparator,
   contentClass,
   headerClassName,
@@ -229,6 +244,7 @@ export function FormDialog({
   const selectedQuotationLineItem = useSelectedLineItem();
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
   const selectedClient = useSelectedClient();
+  const selectedJob = useSelectedJob();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -241,15 +257,17 @@ export function FormDialog({
     finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
-  if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId =
-      selectedCustomer.businessName || selectedCustomer.contactName;
-    finalPrimaryBadges = selectedCustomer.customerStatus
-      ? [selectedCustomer.customerStatus]
-      : [];
-    finalSecondaryBadges = selectedCustomer.customerType
-      ? [selectedCustomer.customerType]
-      : [];
+  const customerForHeader = headerCustomerProp ?? selectedCustomer;
+  if (headerInfo?.useSelectedCustomer && customerForHeader) {
+    const c = customerForHeader as {
+      businessName?: string;
+      contactName?: string;
+      customerStatus?: string;
+      customerType?: string;
+    };
+    finalCustomId = c.businessName?.trim() || c.contactName || '';
+    finalPrimaryBadges = c.customerStatus ? [c.customerStatus] : [];
+    finalSecondaryBadges = c.customerType ? [c.customerType] : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -267,19 +285,20 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedQuarrySupplier && selectedQuarrySupplier) {
-    finalCustomId = selectedQuarrySupplier.name ?? '';
-    finalPrimaryBadges = selectedQuarrySupplier.status
-      ? [selectedQuarrySupplier.status]
-      : [];
-    finalSecondaryBadges = selectedQuarrySupplier.quarrySupplierType
-      ? [selectedQuarrySupplier.quarrySupplierType]
-      : [];
+    finalCustomId = selectedQuarrySupplier.name;
+    finalPrimaryBadges = [selectedQuarrySupplier.status];
+    finalSecondaryBadges = [selectedQuarrySupplier.quarrySupplierType];
   }
 
   if (headerInfo?.useSelectedClient && selectedClient) {
     finalCustomId = selectedClient.name;
     finalPrimaryBadges = [selectedClient.clientStatus];
     finalSecondaryBadges = [selectedClient.subscription];
+  }
+
+  if (headerInfo?.useSelectedJob && selectedJob) {
+    finalCustomId = selectedJob.jobNumber;
+    finalPrimaryBadges = [selectedJob.status];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';

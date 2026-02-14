@@ -1,12 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  LayoutDashboard,
-  Package,
-  Truck,
-  Users,
-} from 'lucide-react';
+import { LayoutDashboard, Package, Truck, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 import { claritySafe } from '@/lib/clarity';
@@ -155,7 +150,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Get subscription plan from the first active subscription
   const subscriptionPlan =
     tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
-      ?.subscriptions?.[1]?.subscriptionPlan;
+      ?.subscriptions?.[0]?.subscriptionPlan;
 
   // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
   React.useEffect(() => {

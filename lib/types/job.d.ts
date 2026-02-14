@@ -4,68 +4,74 @@ import { MEASURE_UNIT, PRODUCT_STATUS } from './product-enums';
 import { Docket } from './docket';
 
 export enum JOB_STATUS {
-  ACTIVE = 'ACTIVE',
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  IN_PROGRESS = 'IN_PROGRESS',
   PAUSED = 'PAUSED',
+  SETTLED = 'SETTLED',
+  ACTIVE = 'ACTIVE',
+  CANCELLED = 'CANCELLED',
 }
 
 export interface Job {
   id: number;
-  job_number: string;
-  job_type: string;
-  customer: Customer;
-  project_name: string;
-  job_status: JOB_STATUS;
-  address: AddressType;
-  po_number: string;
-  contact_person_name: string;
-  contact_person_phone: string;
-  docket_email: string;
-  uninvoiced_dockets: string;
-  version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  jobNumber: string;
+  poNumber?: string;
+  status: JOB_STATUS;
+  customerId: number;
+  accountManagerSub: string;
+  accountManagerName: string;
+  uninvoicedDockets: number;
+  customerName: string;
+  projectName: string;
+  quoteId?: number;
+  deliveryStartDate: string;
+  deliveryWindowStart: string;
+  deliveryWindowEnd: string;
+  receiptEmail: string[];
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+  jobItems?: jobItems[];
 }
 
 export interface jobItems {
-  id: number;
-  job_id: number;
-  product_id: number;
-  total_quantity_required: number;
-  allocated_quantity: number;
-  remaining_quantity: number;
-  override_cost_price_per_tn: number;
-  override_sell_price_per_tn: number;
-  override_cost_price_per_m3: number;
-  override_sell_price_per_m3: number;
-  override_cost_price_per_20kg: number;
-  override_sell_price_per_20kg: 0;
-  override_cost_price_per_bulka: number;
-  override_sell_price_per_bulka: number;
-  override_tn_truck_cost_rate: number;
-  override_m3_truck_cost_rate: number;
-  override_hourly_truck_cost_rate: number;
-  override_load_truck_cost_rate: number;
-  override_tn_truck_sell_rate: number;
-  override_m3_truck_sell_rate: number;
-  override_hourly_truck_sell_rate: number;
-  override_load_truck_sell_rate: number;
-  selected_cost_unit: MEASURE_UNIT;
-  selected_sell_unit: MEASURE_UNIT;
-  selected_truck_rate_type: MEASURE_UNIT;
-  job_item_status: PRODUCT_STATUS;
-  notes: string;
+  id?: number;
+  jobId: number;
+  productId: number;
+  quarrySupplierId: number;
+  customerDeliveryAddressId?: number;
+  customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
+  quarryProductId?: number;
+  productName: string;
+  quarryName: string;
+  supplierProductName: string;
+  productCostUom: string;
+  productCostQty: number;
+  productCostPrice: number;
+  totalProductCostPrice: number;
+  productSellUom: string;
+  productSellQty: number;
+  productSellPrice: number;
+  totalProductSellPrice: number;
+  truckType: string;
+  truckCostUom: string;
+  truckCostQty: number;
+  truckCostPrice: number;
+  totalTruckCostPrice: number;
+  truckSellUom: string;
+  truckSellQty: number;
+  truckSellPrice: number;
+  totalTruckSellPrice: number;
+  grossProfit: number;
+  totalQuantityRequired: number;
+  allocatedQuantity: number;
+  remainingQuantity: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
   version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
+  isDeleted: boolean;
 }
 
 export interface JobDetails extends Job {
