@@ -73,12 +73,10 @@ export default function QuarrySupplierForm({
   const createQuarryMutation = useCreateQuarry();
   const updateQuarryMutation = useUpdateQuarry();
 
-
-  const { data: selectedQuarrySupplier, isLoading: isQuarrySupplierLoading } =
-    useQuery({
-      ...QuarryDetailQueryOptions(quarryId),
-      enabled: isEditing && quarryId > 0,
-    });
+  const { data: selectedQuarrySupplier } = useQuery({
+    ...QuarryDetailQueryOptions(quarryId),
+    enabled: isEditing && quarryId > 0,
+  });
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -98,7 +96,7 @@ export default function QuarrySupplierForm({
   } = useQuarrySupplierFormState(
     selectedQuarrySupplier ?? null,
     isEditing,
-    quarrySupplierForm
+    quarrySupplierForm,
   );
 
   // Report dirty-state to parent dialog
@@ -122,7 +120,7 @@ export default function QuarrySupplierForm({
     'address',
     address,
     setAddress,
-    setSearchInput
+    setSearchInput,
   );
 
   async function onSubmit(values: z.infer<typeof QuarrySupplierFormSchema>) {
@@ -131,7 +129,7 @@ export default function QuarrySupplierForm({
 
       const addressData = toAddressPayload(
         address,
-        isEditing ? selectedQuarrySupplier?.address ?? null : null
+        isEditing ? (selectedQuarrySupplier?.address ?? null) : null,
       )!;
 
       const websiteValue =
@@ -167,7 +165,7 @@ export default function QuarrySupplierForm({
           data: quarrySupplierData,
         });
         notifySuccess(
-          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`
+          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
         );
       } else {
         const newQuarrySupplier =
@@ -176,7 +174,7 @@ export default function QuarrySupplierForm({
           addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
         }
         notifySuccess(
-          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`
+          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
       }
       onSaved?.();
@@ -184,7 +182,7 @@ export default function QuarrySupplierForm({
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}:`,
-        error
+        error,
       );
 
       const err = extractErrorResponse(error);
@@ -223,7 +221,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -237,7 +235,7 @@ export default function QuarrySupplierForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -257,7 +255,7 @@ export default function QuarrySupplierForm({
             'p-1 gap-1 w-full',
             isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
           onSubmit={quarrySupplierForm.handleSubmit(onSubmit)}
         >
@@ -626,8 +624,9 @@ export default function QuarrySupplierForm({
               >
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                  }`}
+                  : `Add ${
+                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                    }`}
               </Button>
             </div>
           )}
@@ -637,8 +636,9 @@ export default function QuarrySupplierForm({
               <Button type="submit" className="cursor-pointer">
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                  }`}
+                  : `Add ${
+                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                    }`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

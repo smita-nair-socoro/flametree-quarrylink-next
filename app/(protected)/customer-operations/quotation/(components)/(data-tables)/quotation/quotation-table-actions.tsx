@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
-import { useQuotationStore } from '@/app/stores/quotation-store';
 import { useAuth } from '@/hooks/use-auth';
 
 interface QuotationTableActionsProps {
