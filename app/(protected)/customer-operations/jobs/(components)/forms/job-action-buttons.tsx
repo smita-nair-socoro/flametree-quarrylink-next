@@ -4,11 +4,8 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-// import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
 import { MoreHorizontal, Eye, Play } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobActions } from '@/hooks/use-job-actions';
@@ -58,35 +55,7 @@ export function JobActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {job.status === 'PAUSED' && (
-              <>
-                <DropdownMenuItem onClick={actions.resume}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Resume
-                </DropdownMenuItem>
-                {/* <DropdownMenuItem onClick={actions.viewQuotations}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Quotations
-                </DropdownMenuItem> */}
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-red-600" />
-                  Archive
-                </DropdownMenuItem> */}
-              </>
-            )}
-            {/* {isArchived && (
-              <DropdownMenuItem
-                onClick={actions.unarchive}
-                className="text-blue-600 focus:text-blue-600"
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                Unarchive
-              </DropdownMenuItem>
-            )} */}
+            {/* TODO: Add job actions here */}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -100,17 +69,6 @@ export function JobActionButtons({
       {viewDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Primary button - conditional based on role */}
-
-        {/* <Button
-          variant="ghost"
-          size="sm"
-          onClick={actions.viewQuotations}
-          className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          View Quotations
-        </Button> */}
         {!isEssentials && (
           <Button
             variant="ghost"
@@ -122,64 +80,7 @@ export function JobActionButtons({
             View Dockets
           </Button>
         )}
-        {/* {!isArchived && (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {!isEssentials && (
-                  <>
-                    <DropdownMenuItem onClick={actions.viewJobs}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Jobs
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={actions.viewQuotations}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Quotations
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-red-600" />
-                  Archive
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        )}
-        {isArchived && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={actions.unarchive}
-                className="text-blue-600 focus:text-blue-600"
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                Unarchive
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )} */}
+        {/* TODO: Add job actions here */}
       </div>
     </div>
   );
