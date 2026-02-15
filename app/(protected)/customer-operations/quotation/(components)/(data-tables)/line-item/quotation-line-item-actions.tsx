@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuotationLineItemActions } from '@/hooks/use-quotations-line-item-actions';
 import { QuotationLineItem } from '@/lib/types/quotation';
-import { useQuotationLineItemStore } from '@/app/stores/line-item-quotation';
 
 interface QutationLineItemTableActionsProps {
   quotationLineItem: QuotationLineItem;
@@ -21,9 +20,8 @@ export function QuotationLineItemTableActions({
   quotationLineItem,
 }: QutationLineItemTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useQuotationLineItemActions(
-    quotationLineItem
-  );
+  const { actions, confirmDialogs, viewDialog } =
+    useQuotationLineItemActions(quotationLineItem);
 
   const createHandler =
     (actionFn: () => void, additionalSetup?: () => void) => () => {

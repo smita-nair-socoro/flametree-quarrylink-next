@@ -84,7 +84,7 @@ export function useLineItemFormState({
       quoteType: selectedQuotation?.quoteType ?? QUOTE_TYPE.DELIVERY,
       address: isEditing
         ? selectedLineItem?.customerDeliveryAddress?.address
-            ?.formattedAddress ?? ''
+          ?.formattedAddress ?? ''
         : '',
       productId: isEditing ? selectedLineItem?.productId ?? 0 : 0,
       quarrySupplierId: isEditing ? selectedLineItem?.quarrySupplierId ?? 0 : 0,
@@ -981,18 +981,18 @@ export function useLineItemFormState({
       | undefined =
       addressPayload && customerId
         ? {
-            ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
-              ? { id: selectedLineItem.customerDeliveryAddress.id }
-              : {}),
-            customerId,
-            addressId:
-              isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
-                ? selectedLineItem.customerDeliveryAddress.addressId
-                : mappedAddress?.id,
-            address: addressPayload,
-            inUse: true,
-            lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
-          }
+          ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
+            ? { id: selectedLineItem.customerDeliveryAddress.id }
+            : {}),
+          customerId,
+          addressId:
+            isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
+              ? selectedLineItem.customerDeliveryAddress.addressId
+              : mappedAddress?.id,
+          address: addressPayload,
+          inUse: true,
+          lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
+        }
         : undefined;
 
     const quoteItemData: Partial<QuotationLineItem> = {
@@ -1067,9 +1067,8 @@ export function useLineItemFormState({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${
-            isEditing ? 'update' : 'add'
-          } line item. Please try again.`
+        `Failed to ${isEditing ? 'update' : 'add'
+        } line item. Please try again.`
       );
     }
   }
