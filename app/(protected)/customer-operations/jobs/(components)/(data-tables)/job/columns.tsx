@@ -9,6 +9,7 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip';
 import { JobTableActions } from './job-table-actions';
+import { DateCell } from '@/components/date-cell';
 
 export const jobColumns: ColumnDef<Job>[] = [
   {
@@ -27,9 +28,7 @@ export const jobColumns: ColumnDef<Job>[] = [
     id: 'customerName',
     accessorFn: (row) => row.customerName,
     header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Customer Name" />
-      );
+      return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
       const customerName = row.original.customerName;
@@ -107,6 +106,17 @@ export const jobColumns: ColumnDef<Job>[] = [
     meta: 'Account Manager',
   },
 
+  {
+    id: 'createdAt',
+    accessorFn: (row) => row.createdAt,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Created At" />;
+    },
+    cell: ({ getValue }) => {
+      return <DateCell dateString={getValue<string>()} side="top" />;
+    },
+    meta: 'Created At',
+  },
   {
     id: 'actions',
     header: () => {

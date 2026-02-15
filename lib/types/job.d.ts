@@ -1,6 +1,3 @@
-import { AddressType } from './address';
-import { Customer } from './customer';
-import { MEASURE_UNIT, PRODUCT_STATUS } from './product-enums';
 import { Docket } from './docket';
 
 export enum JOB_STATUS {
@@ -9,6 +6,7 @@ export enum JOB_STATUS {
   SETTLED = 'SETTLED',
   ACTIVE = 'ACTIVE',
   CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
 }
 
 export interface Job {
