@@ -18,28 +18,22 @@ import z from 'zod';
 import React from 'react';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { JobFormSchema } from './schemas/job-form-schema';
-import { Loader2, Info, HelpCircle } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
+import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { DatePicker } from '@/components/date-picker';
 import {
-  CustomerDetailQueryOptions,
   CustomersListQueryOptions,
 } from '@/lib/api/customer';
-import { addNewRecordId, cn } from '@/lib/utils';
-import { useSelectedJob } from '@/app/stores/job-store';
+import { cn } from '@/lib/utils';
+// import { useSelectedJob } from '@/app/stores/job-store';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from '@/components/ui/tooltip';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { Job } from '@/lib/types/job';
+import { MultipleInput } from '@/components/ui/multiple-input';
 
 interface FormProps {
   id?: number;
@@ -113,6 +107,9 @@ export default function QuotationForm({
             'accountManagerSub',
             selectedCustomer.accountManagerSub || '',
           );
+
+          // If we are creating a new job (not editing), set the receipt email to the customer email
+          jobForm.setValue('receiptEmail', selectedCustomer.email || '');
         }
       }
     });
@@ -125,7 +122,7 @@ export default function QuotationForm({
     if (isEditing && selectedJob) {
       jobForm.reset({
         poNumber: selectedJob.poNumber,
-        customerId: (selectedJob as any).customerId ?? 0,
+        customerId: selectedJob.customerId ?? 0,
         accountManagerSub: selectedJob.accountManagerSub,
         projectName: selectedJob.projectName,
         deliveryStartDate: selectedJob.deliveryStartDate
@@ -147,7 +144,7 @@ export default function QuotationForm({
       // Trigger customer selection logic to fill phone/email if needed
       if ((selectedJob as Job).customerId) {
         const customer = customers.find(
-          (c) => c.id === (selectedJob as any).customerId,
+          (c) => c.id === selectedJob.customerId,
         );
         if (customer) {
           jobForm.setValue(
@@ -183,7 +180,8 @@ export default function QuotationForm({
   }, []);
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
-    console.log(values);
+    console.log(`Job Form Values:`, values);
+
   }
 
   return (
@@ -280,6 +278,7 @@ export default function QuotationForm({
                       className="w-full"
                       placeholder="Enter Email"
                       {...field}
+                      value={field.value || ''}
                     />
                   </FormControl>
                   <FormMessage />
@@ -391,19 +390,28 @@ export default function QuotationForm({
           <FormField
             control={jobForm.control}
             name="receiptEmail"
-            render={({ field }) => (
-              <FormItem className={'col-span-2 col-start-1'}>
-                <FormLabel>Receipt Email*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Project Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              // Get the customer email to use as a fixed value
+              const customerEmail = jobForm.watch('email');
+              const fixedValues = customerEmail ? [customerEmail] : [];
+
+              return (
+                <FormItem className={'col-span-2 col-start-1'}>
+                  <FormLabel>Receipt Email*</FormLabel>
+                  <FormControl>
+                    <MultipleInput
+                      className="w-full"
+                      placeholder="Enter Receipt Emails"
+                      fixedValues={fixedValues}
+                      validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                      label="Press Enter or comma to add email addresses for delivery receipts"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
         {/* Audit Information */}
@@ -458,7 +466,7 @@ export default function QuotationForm({
               {isEditing ? 'Close' : 'Cancel'}
             </Button>
             <Button
-              form="add-new-customer-form"
+              form="add-new-job-form"
               className="cursor-pointer"
               type="submit"
               disabled={isSubmitting}
@@ -480,8 +488,7 @@ export default function QuotationForm({
         {!isDesktop && (
           <div className="flex flex-col col-span-2 gap-3 mb-6">
             <Button
-              // TODO: QLINK-257 Edit Customer Functionality
-              // form="add-new-customer-form"
+              form="add-new-job-form"
               type="submit"
               className="cursor-pointer"
               disabled={isSubmitting}
