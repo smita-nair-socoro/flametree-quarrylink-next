@@ -51,12 +51,7 @@ interface DialogConfig {
   description?: React.ReactNode;
   content?: React.ReactNode;
   confirmText?: string;
-  confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+  confirmVariant?: 'default'| 'destructive'| 'outline'| 'secondary'| 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -103,7 +98,8 @@ const getDialogConfigs = (
   const customerEmail =
     quotationData?.email ||
     quotationData?.customerWithAddressResponseDto?.email;
-  const additionalEmailRecipients = quotationData?.additionalEmailRecipients ?? [];
+  const additionalEmailRecipients =
+    quotationData?.additionalEmailRecipients ?? [];
   const totalSellPrice = quotationData?.totalSellPrice
     ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
