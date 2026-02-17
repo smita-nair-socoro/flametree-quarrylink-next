@@ -21,9 +21,7 @@ import { JobFormSchema } from './schemas/job-form-schema';
 import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { DatePicker } from '@/components/date-picker';
-import {
-  CustomersListQueryOptions,
-} from '@/lib/api/customer';
+import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
 // import { useSelectedJob } from '@/app/stores/job-store';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -34,6 +32,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { Job } from '@/lib/types/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
+import { Spinner } from '@/components/ui/spinner';
 
 interface FormProps {
   id?: number;
@@ -49,11 +48,12 @@ export default function QuotationForm({
   onCancel,
   className,
   onDirtyChange,
-  onSuccess,
-  onSaved,
+  // onSuccess,
+  // onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
+
   // const selectedJob = useSelectedJob();
 
   const selectedJob = React.useMemo(() => {
@@ -143,9 +143,7 @@ export default function QuotationForm({
 
       // Trigger customer selection logic to fill phone/email if needed
       if ((selectedJob as Job).customerId) {
-        const customer = customers.find(
-          (c) => c.id === selectedJob.customerId,
-        );
+        const customer = customers.find((c) => c.id === selectedJob.customerId);
         if (customer) {
           jobForm.setValue(
             'phone',
@@ -166,13 +164,14 @@ export default function QuotationForm({
     }));
   }, [users]);
 
-  const getUserNameBySub = React.useCallback(
-    (subOrName?: string | null) => {
-      if (!subOrName) return '';
-      return users.find((u) => u.sub === subOrName)?.name || subOrName;
-    },
-    [users],
-  );
+  // Will be used later once we have API endpoint
+  // const getUserNameBySub = React.useCallback(
+  //   (subOrName?: string | null) => {
+  //     if (!subOrName) return '';
+  //     return users.find((u) => u.sub === subOrName)?.name || subOrName;
+  //   },
+  //   [users],
+  // );
 
   const today = React.useMemo(() => {
     const d = GetTodaysDate();
@@ -180,166 +179,58 @@ export default function QuotationForm({
   }, []);
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
+    setIsSubmitting(true);
     console.log(`Job Form Values:`, values);
 
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    setIsSubmitting(false);
   }
 
   return (
-    <Form {...jobForm}>
-      <form
-        id="add-new-job-form"
-        className={cn('p-1 w-full flex flex-col', className)}
-        onSubmit={jobForm.handleSubmit(onSubmit)}
-      >
+    <div className="w-full relative">
+      {isSubmitting && (
         <div
           className={cn(
-            'p-1 gap-1 w-full',
-            isDesktop && isEditing
-              ? 'grid grid-cols-2 gap-x-8'
-              : 'grid grid-cols-1',
-            className,
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
           )}
         >
-          <FormField
-            control={jobForm.control}
-            name="poNumber"
-            render={({ field }) => (
-              <FormItem className={'col-span-2 col-start-1'}>
-                <FormLabel>PO Number (Optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter PO Number"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormSelect
-            control={jobForm.control}
-            name="customerId"
-            label="Customer*"
-            searchLabel="Customer"
-            options={customerOptions}
-            placeholder="Select Customer"
-            formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-            }
-          />
-
-          <FormSelect
-            control={jobForm.control}
-            name="accountManagerSub"
-            label="Account Manager*"
-            searchLabel="Account Managers"
-            options={userOptions}
-            placeholder="Select Customer First"
-            formItemClassName={
-              isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-            }
-          />
-
-          <FormField
-            control={jobForm.control}
-            name="projectName"
-            render={({ field }) => (
-              <FormItem className={'col-span-2 col-start-1'}>
-                <FormLabel>Project Name*</FormLabel>
-                <FormControl>
-                  <Input
-                    className="w-full"
-                    placeholder="Enter Project Name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {isEditing && (
-            <FormField
-              control={jobForm.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <FormLabel>Customer Email*</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter Email"
-                      {...field}
-                      value={field.value || ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {isEditing && (
-            <FormField
-              control={jobForm.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-                  }
-                >
-                  <div className="flex items-center gap-2">
-                    <FormLabel>Customer Phone*</FormLabel>
-                  </div>
-                  <FormControl>
-                    <PhoneInput
-                      className="w-full"
-                      placeholder="Enter Phone"
-                      defaultCountry="AU"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {/* Delivery Time Window Section */}
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isEditing ? 'Updating Job...' : 'Adding Job...'}
+            </p>
+          </div>
+        </div>
+      )}
+      <Form {...jobForm}>
+        <form
+          id="add-new-job-form"
+          className={cn('p-1 w-full flex flex-col', className)}
+          onSubmit={jobForm.handleSubmit(onSubmit)}
+        >
           <div
             className={cn(
-              'col-span-2',
-              isEditing && isDesktop
-                ? 'grid grid-cols-4 gap-4'
-                : 'grid grid-cols-1 gap-2',
+              'p-1 gap-1 w-full',
+              isDesktop && isEditing
+                ? 'grid grid-cols-2 gap-x-8'
+                : 'grid grid-cols-1',
+              className,
             )}
           >
-            <h3 className="font-bold col-span-full mb-2">
-              Delivery Time Window
-            </h3>
             <FormField
               control={jobForm.control}
-              name="deliveryStartDate"
+              name="poNumber"
               render={({ field }) => (
-                <FormItem
-                  className={isEditing && isDesktop ? 'col-span-2' : ''}
-                >
-                  <FormLabel>Delivery Date*</FormLabel>
+                <FormItem className={'col-span-2 col-start-1'}>
+                  <FormLabel>PO Number (Optional)</FormLabel>
                   <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChangeAction={field.onChange}
-                      placeholder="Pick a date"
-                      disabled={{ before: today }}
+                    <Input
+                      className="w-full"
+                      placeholder="Enter PO Number"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -347,19 +238,41 @@ export default function QuotationForm({
               )}
             />
 
+            <FormSelect
+              control={jobForm.control}
+              name="customerId"
+              label="Customer*"
+              searchLabel="Customer"
+              options={customerOptions}
+              placeholder="Select Customer"
+              formItemClassName={
+                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+              }
+            />
+
+            <FormSelect
+              control={jobForm.control}
+              name="accountManagerSub"
+              label="Account Manager*"
+              searchLabel="Account Managers"
+              options={userOptions}
+              placeholder="Select Customer First"
+              formItemClassName={
+                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+              }
+            />
+
             <FormField
               control={jobForm.control}
-              name="deliveryWindowStart"
+              name="projectName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Start Time Window</FormLabel>
+                <FormItem className={'col-span-2 col-start-1'}>
+                  <FormLabel>Project Name*</FormLabel>
                   <FormControl>
                     <Input
+                      className="w-full"
+                      placeholder="Enter Project Name"
                       {...field}
-                      type="time"
-                      id="time-picker-start"
-                      className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -367,149 +280,262 @@ export default function QuotationForm({
               )}
             />
 
+            {isEditing && (
+              <FormField
+                control={jobForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Customer Email*</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Email"
+                        {...field}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {isEditing && (
+              <FormField
+                control={jobForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+                    }
+                  >
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Customer Phone*</FormLabel>
+                    </div>
+                    <FormControl>
+                      <PhoneInput
+                        className="w-full"
+                        placeholder="Enter Phone"
+                        defaultCountry="AU"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Delivery Time Window Section */}
+            <div
+              className={cn(
+                'col-span-2',
+                isEditing && isDesktop
+                  ? 'grid grid-cols-4 gap-4'
+                  : 'grid grid-cols-1 gap-2',
+              )}
+            >
+              <h3 className="font-bold col-span-full mb-2">
+                Delivery Time Window
+              </h3>
+              <FormField
+                control={jobForm.control}
+                name="deliveryStartDate"
+                render={({ field }) => (
+                  <FormItem
+                    className={isEditing && isDesktop ? 'col-span-2' : ''}
+                  >
+                    <FormLabel>Delivery Date*</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChangeAction={field.onChange}
+                        placeholder="Pick a date"
+                        disabled={{ before: today }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={jobForm.control}
+                name="deliveryWindowStart"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Start Time Window</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="time"
+                        id="time-picker-start"
+                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={jobForm.control}
+                name="deliveryWindowEnd"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>End Time Window</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="time"
+                        id="time-picker-end"
+                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={jobForm.control}
-              name="deliveryWindowEnd"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>End Time Window</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="time"
-                      id="time-picker-end"
-                      className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                      value={field.value}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="receiptEmail"
+              render={({ field }) => {
+                // Get the customer email to use as a fixed value
+                const customerEmail = jobForm.watch('email');
+                const fixedValues = customerEmail ? [customerEmail] : [];
+
+                return (
+                  <FormItem className={'col-span-2 col-start-1'}>
+                    <FormLabel>Receipt Email*</FormLabel>
+                    <FormControl>
+                      <MultipleInput
+                        className="w-full"
+                        placeholder={
+                          jobForm.watch('customerId') === 0
+                            ? 'Select Customer First'
+                            : 'Enter Receipt Emails'
+                        }
+                        fixedValues={fixedValues}
+                        validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                        label="Press Enter or comma to add email addresses for delivery receipts"
+                        disabled={jobForm.watch('customerId') === 0}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
-          <FormField
-            control={jobForm.control}
-            name="receiptEmail"
-            render={({ field }) => {
-              // Get the customer email to use as a fixed value
-              const customerEmail = jobForm.watch('email');
-              const fixedValues = customerEmail ? [customerEmail] : [];
+          {/* Audit Information */}
+          {isEditing && (
+            <div className="col-span-full space-y-6 mt-10 mb-4">
+              <h2 className="text-2xl font-bold">Audit Information</h2>
 
-              return (
-                <FormItem className={'col-span-2 col-start-1'}>
-                  <FormLabel>Receipt Email*</FormLabel>
-                  <FormControl>
-                    <MultipleInput
-                      className="w-full"
-                      placeholder="Enter Receipt Emails"
-                      fixedValues={fixedValues}
-                      validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
-                      label="Press Enter or comma to add email addresses for delivery receipts"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              );
-            }}
-          />
-        </div>
-        {/* Audit Information */}
-        {isEditing && (
-          <div className="col-span-full space-y-6 mt-10 mb-4">
-            <h2 className="text-2xl font-bold">Audit Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedJob?.createdBy || 'N/A'}
+                  </p>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Created By:
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedJob?.createdBy || 'N/A'}
-                </p>
-              </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedJob?.lastModifiedBy || 'N/A'}
+                  </p>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Last Modified By:
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedJob?.lastModifiedBy || 'N/A'}
-                </p>
-              </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatLocalDateShort(selectedJob?.createdAt)}
+                  </p>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Created Date:
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatLocalDateShort(selectedJob?.createdAt)}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Modified Date:
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatLocalDateShort(selectedJob?.updatedAt)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatLocalDateShort(selectedJob?.updatedAt)}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Form Actions */}
-        {isDesktop && (
-          <div className="flex justify-end space-x-2 col-span-2 mb-6">
-            <Button variant="outline" type="button" onClick={onCancel}>
-              {isEditing ? 'Close' : 'Cancel'}
-            </Button>
-            <Button
-              form="add-new-job-form"
-              className="cursor-pointer"
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Customer...'
-                : isEditing
-                  ? 'Save Changes'
-                  : 'Add Customer'}
-            </Button>
-          </div>
-        )}
+          {/* Form Actions */}
+          {isDesktop && (
+            <div className="flex justify-end space-x-2 col-span-2 mb-6">
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+              <Button
+                form="add-new-job-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Customer...'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Customer'}
+              </Button>
+            </div>
+          )}
 
-        {!isDesktop && (
-          <div className="flex flex-col col-span-2 gap-3 mb-6">
-            <Button
-              form="add-new-job-form"
-              type="submit"
-              className="cursor-pointer"
-              disabled={isSubmitting}
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Customer...'
-                : isEditing
-                  ? 'Save Changes'
-                  : 'Add Customer'}
-            </Button>
-            <Button variant="outline" type="button" onClick={onCancel}>
-              {isEditing ? 'Close' : 'Cancel'}
-            </Button>
-          </div>
-        )}
-      </form>
-    </Form>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <Button
+                form="add-new-job-form"
+                type="submit"
+                className="cursor-pointer"
+                disabled={isSubmitting}
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Customer...'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Customer'}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
+        </form>
+      </Form>
+    </div>
   );
 }

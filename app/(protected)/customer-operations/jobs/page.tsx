@@ -20,7 +20,7 @@ export default function CustomersPage() {
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
-    { column: 'customerName', title: 'Customer Name', icon: Plus },
+    { column: 'customerName', title: 'Customer', icon: Plus },
     { column: 'accountManagerName', title: 'Account Manager', icon: Plus },
   ];
 
