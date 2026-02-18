@@ -58,6 +58,11 @@ interface FormProps {
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
+import {
+  useProductFormState,
+  EMPTY_PRODUCT_FORM_VALUES,
+} from '@/hooks/product/use-product-form-state';
+
 export default function ProductForm({
   id,
   onCancel,
@@ -70,7 +75,6 @@ export default function ProductForm({
   const [isEditing] = React.useState(Boolean(id));
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [totalSupplier, setTotalSupplier] = React.useState(0);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
 
   // Create flow steps (only used when creating a new product)
@@ -78,7 +82,7 @@ export default function ProductForm({
 
   // Track newly created product ID
   const [createdProductId, setCreatedProductId] = React.useState<number | null>(
-    null
+    null,
   );
   const [productJustCreated, setProductJustCreated] = React.useState(false);
 
@@ -123,7 +127,6 @@ export default function ProductForm({
   // Convert product data to snake_case (includes both product details and supplier info)
   const selectedProduct: ProductDetails | null = React.useMemo(() => {
     if (!productData) return null;
-    console.log('Product Data (with suppliers):', productData);
     return productData;
   }, [productData]);
 
@@ -136,115 +139,22 @@ export default function ProductForm({
     }));
   }, [materialsData]);
 
-  // Compare quarry-supplier-product audit data and product audit data
-  // And choose the latest audit data (for last modified by and updated at)
-  const latestAuditData = React.useMemo(() => {
-    if (!selectedProduct) return null;
-
-    const toEpochMs = (iso?: string | null) => {
-      if (!iso) return 0;
-      const ms = Date.parse(iso);
-      return Number.isNaN(ms) ? 0 : ms;
-    };
-
-    const candidates = [
-      {
-        lastModifiedBy: selectedProduct.lastModifiedBy,
-        updatedAt: selectedProduct.updatedAt,
-      },
-      ...(selectedProduct.quarrySupplierProducts ?? []).map(
-        (quarrySupplierProduct) => {
-          // Some API responses include audit fields on this object but the
-          // TS type may not (yet) reflect them everywhere.
-          const audit = quarrySupplierProduct as unknown as {
-            lastModifiedBy?: string | null;
-            updatedAt?: string | null;
-          };
-
-          return {
-            lastModifiedBy: audit.lastModifiedBy ?? undefined,
-            updatedAt: audit.updatedAt ?? undefined,
-          };
-        }
-      ),
-    ];
-
-    return candidates.reduce((latest, current) => {
-      return toEpochMs(current.updatedAt) > toEpochMs(latest.updatedAt)
-        ? current
-        : latest;
-    });
-  }, [selectedProduct]);
-
-  // TODO: Zod Validation
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
     resolver: zodResolver(NewProductFormSchema),
-    defaultValues:
-      isEditing && selectedProduct
-        ? {
-            product_name: selectedProduct.productName || '',
-            product_code: selectedProduct.productCode || '',
-            material_id: selectedProduct.materialId,
-            product_description: selectedProduct.productDescription || '',
-            density_tonnage_per_m3: selectedProduct.densityTonnagePerM3 || 0,
-            created_at: selectedProduct.createdAt
-              ? new Date(selectedProduct.createdAt)
-              : undefined,
-            updated_at: latestAuditData?.updatedAt
-              ? new Date(latestAuditData.updatedAt)
-              : undefined,
-            created_by: selectedProduct.createdBy || '',
-            last_modified_by: latestAuditData?.lastModifiedBy || '',
-          }
-        : {
-            product_name: '',
-            product_code: '',
-            material_id: undefined,
-            product_description: '',
-            density_tonnage_per_m3: 0,
-            created_at: undefined,
-            updated_at: undefined,
-            created_by: '',
-            last_modified_by: '',
-          },
+    defaultValues: EMPTY_PRODUCT_FORM_VALUES,
   });
+
+  const { latestAuditData, totalSupplier } = useProductFormState(
+    selectedProduct,
+    isEditing,
+    productJustCreated,
+    productForm,
+  );
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(productForm.formState.isDirty);
   }, [productForm.formState.isDirty, onDirtyChange]);
-
-  // Update form values when product data is loaded (for editing mode)
-  React.useEffect(() => {
-    if ((isEditing || productJustCreated) && selectedProduct) {
-      productForm.reset({
-        product_name: selectedProduct.productName || '',
-        product_code: selectedProduct.productCode || '',
-        material_id: selectedProduct.materialId,
-        product_description: selectedProduct.productDescription || '',
-        density_tonnage_per_m3: selectedProduct.densityTonnagePerM3 || 0,
-        created_at: selectedProduct.createdAt
-          ? new Date(selectedProduct.createdAt)
-          : undefined,
-        updated_at: latestAuditData?.updatedAt
-          ? new Date(latestAuditData.updatedAt)
-          : undefined,
-        created_by: selectedProduct.createdBy || '',
-        last_modified_by: latestAuditData?.lastModifiedBy || '',
-      });
-    }
-  }, [
-    isEditing,
-    productJustCreated,
-    selectedProduct,
-    latestAuditData,
-    productForm,
-  ]);
-
-  // Update total supplier count when product data is loaded
-  React.useEffect(() => {
-    setTotalSupplier(selectedProduct?.quarrySupplierProducts?.length || 0);
-  }, [selectedProduct?.quarrySupplierProducts]);
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -296,7 +206,7 @@ export default function ProductForm({
           setCreatedProductId(createdProduct.id as number);
           setProductJustCreated(true);
           notifySuccess(
-            'Product created successfully. You can now add suppliers.'
+            'Product created successfully. You can now add suppliers.',
           );
           setCreateStep(2);
           console.log('Product ID stored:', createdProduct.id);
@@ -308,7 +218,7 @@ export default function ProductForm({
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} product:`,
-        error
+        error,
       );
       // Extract normalized error response and message
       const err = extractErrorResponse(error);
@@ -333,7 +243,7 @@ export default function ProductForm({
 
       // Fallback error using extracted message
       notifyError(
-        messageFromErr || 'Failed to save product. Please try again.'
+        messageFromErr || 'Failed to save product. Please try again.',
       );
     } finally {
       setIsSubmitting(false);
@@ -389,7 +299,7 @@ export default function ProductForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -411,7 +321,7 @@ export default function ProductForm({
                   'h-7 w-7 rounded-full flex items-center justify-center border text-sm font-semibold',
                   createStep === 1
                     ? 'border-[#7C3AED] text-[#7C3AED]'
-                    : 'bg-[#7C3AED] border-[#7C3AED] text-white'
+                    : 'bg-[#7C3AED] border-[#7C3AED] text-white',
                 )}
               >
                 {createStep === 1 ? '1' : <Check className="h-4 w-4" />}
@@ -426,7 +336,7 @@ export default function ProductForm({
                   'h-7 w-7 rounded-full flex items-center justify-center border text-sm font-semibold',
                   createStep === 2
                     ? 'border-[#7C3AED] text-[#7C3AED]'
-                    : 'border-muted-foreground/30 text-muted-foreground'
+                    : 'border-muted-foreground/30 text-muted-foreground',
                 )}
               >
                 2
@@ -450,7 +360,7 @@ export default function ProductForm({
           className={cn(
             'gap-5 w-full flex flex-col',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
           onSubmit={productForm.handleSubmit(onSubmit)}
         >
@@ -461,7 +371,7 @@ export default function ProductForm({
                   'gap-1 w-full mt-4',
                   isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
                   className,
-                  isSubmitting && 'pointer-events-none'
+                  isSubmitting && 'pointer-events-none',
                 )}
               >
                 <FormField
@@ -560,7 +470,9 @@ export default function ProductForm({
               <div
                 className={cn(
                   'flex items-center gap-2',
-                  isEditing ? 'justify-end -mt-5 mb-3 ' : 'justify-between mb-5'
+                  isEditing
+                    ? 'justify-end -mt-5 mb-3 '
+                    : 'justify-between mb-5',
                 )}
               >
                 <Button variant="outline" type="button" onClick={onCancel}>
@@ -615,7 +527,7 @@ export default function ProductForm({
                 className={cn(
                   isDesktop
                     ? 'flex justify-between items-center'
-                    : 'flex flex-col gap-4'
+                    : 'flex flex-col gap-4',
                 )}
               >
                 <div className="flex flex-col gap-0">
@@ -638,7 +550,7 @@ export default function ProductForm({
                 <div
                   className={cn(
                     'flex items-center gap-2',
-                    !isDesktop && 'mb-2'
+                    !isDesktop && 'mb-2',
                   )}
                 >
                   {isEditing && (
@@ -674,7 +586,7 @@ export default function ProductForm({
               <ActionDialog
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
-                customWidth="!max-w-[30vw] sm:!max-w-[90vw] md:!max-w-[90vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
+                customWidth="!max-w-[95vw] sm:!max-w-[90vw] md:!max-w-[85vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
                 cancelText="Close"
                 title={`Compare All - ${totalSupplier} Suppliers`}
                 content={
@@ -733,7 +645,7 @@ export default function ProductForm({
                   columns={supplierColumns(selectedProduct?.id)}
                   data={
                     isEditing || productJustCreated
-                      ? selectedProduct?.quarrySupplierProducts ?? []
+                      ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
                   }
                   simpleTable={true}
@@ -766,7 +678,7 @@ export default function ProductForm({
             <div
               className={cn(
                 isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6 mb-10'
+                'space-y-6 mb-10',
               )}
             >
               <h2 className="text-lg font-semibold">Audit Information</h2>

@@ -58,11 +58,6 @@ export default function TeamAdminTab() {
     }
   }, [error]);
 
-  // Filter only enabled users (FOR NOW)
-  const enabledUsers = React.useMemo(() => {
-    return (users || []).filter((u) => u.enabled === true);
-  }, [users]);
-
   // Helper function to convert groups array to Role string for display
   const getHighestRole = (groups: string[] | undefined): Role => {
     if (!groups || !Array.isArray(groups)) return Role.USER;
@@ -76,7 +71,7 @@ export default function TeamAdminTab() {
 
   // Convert pending users from API to PendingInvitation format
   const pendingInvitations: PendingInvitation[] = React.useMemo(() => {
-    const pending = enabledUsers
+    const pending = (users || [])
       .filter((user) => user.status === UserStatus.PENDING)
       .map((user) => ({
         id: user.id || 0, // Fallback to 0 if no id (should use sub for unique identifier)
@@ -86,13 +81,13 @@ export default function TeamAdminTab() {
         invited_by: 'System', // API doesn't provide this, using placeholder
         expires_at: user.createdAt
           ? new Date(
-              new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
-            ).toISOString() // 7 days from creation
+            new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
+          ).toISOString() // 7 days from creation
           : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }));
 
     return pending;
-  }, [enabledUsers]);
+  }, [users]);
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
@@ -117,9 +112,6 @@ export default function TeamAdminTab() {
     actions.viewEdit();
   };
 
-  // Calculate team member count based on actual data
-  const teamMemberCount = enabledUsers.length;
-
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
     () => createTeamMemberColumns(rolesOptions, 1),
@@ -128,7 +120,6 @@ export default function TeamAdminTab() {
 
   const facetDefs: FacetDefinition[] = [
     { column: 'role', title: 'Role', icon: Plus },
-    { column: 'status', title: 'Status', icon: Plus },
   ];
 
   return (
@@ -153,14 +144,10 @@ export default function TeamAdminTab() {
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
                 buttonTitle="Invite User"
-                headerClassName="pb-2 h-[32px] pt-10"
+                headerClassName="pb-2 h-[32px] pb-6"
                 preserveEmptyBadgeSpace={false}
-                key={teamMemberCount}
               >
-                <InviteUserForm
-                  teamMemberCount={teamMemberCount}
-                  roleOptions={rolesOptions}
-                />
+                <InviteUserForm roleOptions={rolesOptions} />
               </FormDialog>
             </div>
           </div>
@@ -178,11 +165,7 @@ export default function TeamAdminTab() {
                 )}
                 <DataTableClient
                   tableId="team_member_data_table"
-                  data={enabledUsers.filter(
-                    (member) =>
-                      member.status !== UserStatus.DELETED &&
-                      member.status !== UserStatus.INACTIVE,
-                  )}
+                  data={users || []}
                   columns={columns}
                   facetDefination={facetDefs}
                   searchPlaceHolder="Search team members..."

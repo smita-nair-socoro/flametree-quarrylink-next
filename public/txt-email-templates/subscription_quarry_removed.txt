@@ -1,0 +1,16 @@
+Hi {tenantPrimaryContactName},
+
+Your QuarryLink subscription has been updated.
+
+{userName} has removed a quarry from your account, which has decreased your monthly subscription by $250.
+
+Quarry removed: {quarryName}
+Your new monthly subscription total is: ${newTotal}
+
+This change will be reflected in your next billing cycle on {nextBillingDate}. You can view your full subscription details anytime by visiting your account settings.
+
+View Subscription Details: {subscriptionUrl}
+
+If you have any questions about this change or your billing, please don't hesitate to reach out to our support team.
+
+You're receiving this as the main contact for your QuarryLink account.

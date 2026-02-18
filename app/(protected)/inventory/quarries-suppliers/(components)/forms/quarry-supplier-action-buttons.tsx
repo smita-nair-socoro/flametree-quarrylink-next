@@ -41,7 +41,7 @@ export function QuarrySupplierActionButtons({
   actionsOverride,
   suppressDialogs = false,
 }: QuarrySupplierActionButtonsProps) {
-  const internal = useQuarrySupplierActions(quarrySupplier?.id, quarrySupplier);
+  const internal = useQuarrySupplierActions(quarrySupplier);
   const actions = actionsOverride ?? internal.actions;
   const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
 

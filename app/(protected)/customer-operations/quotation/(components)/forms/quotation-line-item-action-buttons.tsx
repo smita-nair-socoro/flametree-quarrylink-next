@@ -27,7 +27,6 @@ export function QuotationLineItemActionButtons({
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const { actions, confirmDialogs, viewDialog } = useQuotationLineItemActions(
-    quotationLineItem?.id,
     quotationLineItem
   );
 

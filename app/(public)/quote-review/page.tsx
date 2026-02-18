@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import QuoteReviewDocument from './(components)/quote-review-document';
+import QuoteExpired from './(components)/quote-expired';
 import {
   fetchPublicQuoteByToken,
   fetchQuotePreview,
@@ -20,8 +21,9 @@ function QuoteReviewContent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
   const [quoteData, setQuoteData] = useState<PublicQuoteLinkResponse | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -35,7 +37,6 @@ function QuoteReviewContent() {
           // Override inclDeliveryCost with the URL parameter value
           const inclDeliveryCost = inclDeliveryCostParam === 'true';
           res.quoteDto.inclDeliveryCost = inclDeliveryCost;
-          console.log('[QuoteReview] preview mode - inclDeliveryCost:', inclDeliveryCost);
           setQuoteData(res);
         })
         .catch((err) => {
@@ -57,12 +58,20 @@ function QuoteReviewContent() {
 
     fetchPublicQuoteByToken(token)
       .then((res) => {
-        console.log('[QuoteReview] public link mode - inclDeliveryCost:', res.quoteDto.inclDeliveryCost);
         setQuoteData(res);
       })
       .catch((err) => {
         console.error('Failed to fetch public quote link:', err);
-        setError('Link is invalid or has expired.');
+        // Check if the error indicates an expired quote
+        const errorMessage = err?.message || '';
+        if (
+          errorMessage.includes('Current status is EXPIRED') ||
+          errorMessage.includes('Quote expired on')
+        ) {
+          setIsExpired(true);
+        } else {
+          setError('Link is invalid.');
+        }
       })
       .finally(() => setIsLoading(false));
   }, [token, isPreviewMode, quoteId, inclDeliveryCostParam]);
@@ -75,6 +84,11 @@ function QuoteReviewContent() {
         </p>
       </div>
     );
+  }
+
+  // Show expired page when quote is expired (detected from API error)
+  if (isExpired) {
+    return <QuoteExpired />;
   }
 
   return (

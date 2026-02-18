@@ -17,6 +17,7 @@ import { extractErrorData } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 
 interface BlockingQuote {
   id?: number;
@@ -31,11 +32,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -76,8 +77,8 @@ const getDialogConfigs = (
   const blockingHref =
     blockingQuoteIdList.length > 0
       ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuoteIdList.join(',')
-        )}`
+        blockingQuoteIdList.join(',')
+      )}`
       : undefined;
 
   if (selectedAction?.key === 'delete') {
@@ -88,11 +89,11 @@ const getDialogConfigs = (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <div className="flex w-[48px] h-[48px] justify-center items-center bg-[#FFEDD4] rounded-full">
-                <TriangleAlert className="h-[21px] w-[21px] text-[#F54900]" />
+                <TriangleAlert className="h-5 w-5 text-[#F54900]" />
               </div>
               <span className="font-semibold text-[17.4px]">{name}</span>
             </div>
-            <span className="text-[14px] text-[#000000] mt-3">
+            <span className="text-md mt-3">
               Are you sure you want to delete this{' '}
               {type === 'SUPPLIER' ? 'Supplier' : 'Quarry'}?
             </span>
@@ -100,28 +101,11 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-5">
-            {/* <div className="flex flex-col gap-3">
-              <span className="font-semibold text-[14px] text-[#000000]">
-                Current Status:
-              </span>
-              <div className="flex flex-col gap-2">
-                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
-                  15 line items - all fully delivered ✓
-                </div>
-                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
-                  0 tonnes remaining to deliver ✓
-                </div>
-                <div className="bg-[#F0FDF4] rounded-md p-3 text-[14px] text-[#101828] border border-[#C9F9C9]">
-                  All associated dockets completed ✓
-                </div>
-              </div>
-            </div> */}
-
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#000000]">
                 Warnings:
               </span>
-              <ul className="text-[12.1px] text-[#4A5565] space-y-1 list-disc list-outside pl-5">
+              <ul className="text-sm text-[#4A5565] space-y-1 list-disc list-outside pl-5">
                 <li>Products cannot be used in new quotes</li>
                 <li>Pricing configuration will be preserved</li>
                 <li>Existing quotes/jobs remain unchanged</li>
@@ -303,12 +287,12 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useQuarrySupplierActions(
-  quarrySupplierId: number | undefined,
-  quarrySupplierData?: Quarry | null
-) {
+export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const selectedQuarrySupplier = useQuarrySupplierStore(
+    (s) => s.selectedQuarrySupplier
+  );
   const [viewOpen, setViewOpen] = React.useState(false);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
@@ -324,8 +308,10 @@ export function useQuarrySupplierActions(
   const { mutateAsync: deleteQuarryAfterEligibilityCheck } =
     useDeleteQuarryAfterEligibilityCheck();
 
+  /** View dialog actions use the store only; we always set it in view() before opening (row click or View details). */
+  const quarrySupplierId = selectedQuarrySupplier?.id;
   const dialogConfigs = getDialogConfigs(
-    quarrySupplierData,
+    selectedQuarrySupplier ?? null,
     selectedAction || undefined,
     blockingQuotes
   );
@@ -338,8 +324,13 @@ export function useQuarrySupplierActions(
   };
 
   const actions = {
-    view: () => {
-      setEditFormType(quarrySupplierData?.quarrySupplierType || 'QUARRY');
+    /** Pass quarry when opening from row click so the store updates before the dialog opens (avoids stale header). Omit when opening from a row's dropdown; the hook's quarrySupplierData is used. */
+    view: (quarry?: Quarry | null) => {
+      const toSelect = quarry ?? quarrySupplierData;
+      if (toSelect != null) {
+        useQuarrySupplierStore.getState().setSelectedQuarrySupplier(toSelect);
+        setEditFormType(toSelect.quarrySupplierType || 'QUARRY');
+      }
       setViewOpen(true);
     },
 
@@ -354,8 +345,8 @@ export function useQuarrySupplierActions(
         const linkedArr = Array.isArray(linked)
           ? linked
           : linked
-          ? [linked]
-          : [];
+            ? [linked]
+            : [];
 
         const productIdsSet = new Set<number>();
         for (const lp of linkedArr) {
@@ -373,11 +364,11 @@ export function useQuarrySupplierActions(
           return;
         }
 
-        const quarrySupplierName = quarrySupplierData?.name?.trim();
+        const quarrySupplierName = selectedQuarrySupplier?.name?.trim();
         const nameParam = quarrySupplierName
           ? `&linkedQuarrySupplierName=${encodeURIComponent(
-              quarrySupplierName
-            )}`
+            quarrySupplierName
+          )}`
           : '';
 
         router.push(
@@ -392,21 +383,15 @@ export function useQuarrySupplierActions(
     },
 
     delete: () => {
-      // Always show delete dialog for ACTIVE items
-      // Backend will check for blocking quotes and return 409 if any exist
-      if (canDelete(quarrySupplierData)) {
+      if (canDelete(selectedQuarrySupplier)) {
         createDialogAction('delete')();
       }
-      // If not ACTIVE (shouldn't happen as delete button is hidden), do nothing
     },
 
     unarchive: () => {
-      // Always show unarchive dialog for ARCHIVED items
-      // Backend will check for conflicts and return error if needed
-      if (canUnarchive(quarrySupplierData)) {
+      if (canUnarchive(selectedQuarrySupplier)) {
         createDialogAction('unarchive')();
       }
-      // If not ARCHIVED (shouldn't happen as unarchive button is hidden), do nothing
     },
   };
 
@@ -448,9 +433,8 @@ export function useQuarrySupplierActions(
                   id: quarrySupplierId,
                 });
 
-                // Successfully deleted - close both dialogs
                 notifySuccess(
-                  `${quarrySupplierData?.name} deleted successfully.`
+                  `${selectedQuarrySupplier?.name} deleted successfully.`
                 );
                 setActiveDialog(null);
                 setSelectedAction(null);
@@ -464,14 +448,14 @@ export function useQuarrySupplierActions(
                 const errorData = extractErrorData(e);
                 const rawBlocked =
                   errorData &&
-                  typeof errorData === 'object' &&
-                  'blockingQuoteDtos' in errorData &&
-                  Array.isArray(
-                    (errorData as { blockingQuoteDtos?: unknown })
-                      .blockingQuoteDtos
-                  )
+                    typeof errorData === 'object' &&
+                    'blockingQuoteDtos' in errorData &&
+                    Array.isArray(
+                      (errorData as { blockingQuoteDtos?: unknown })
+                        .blockingQuoteDtos
+                    )
                     ? ((errorData as { blockingQuoteDtos: unknown[] })
-                        .blockingQuoteDtos as unknown[])
+                      .blockingQuoteDtos as unknown[])
                     : [];
                 const blocked: BlockingQuote[] = rawBlocked.map((b: any) => ({
                   id: typeof b?.id === 'number' ? b.id : undefined,
@@ -479,8 +463,8 @@ export function useQuarrySupplierActions(
                     typeof b?.quoteNumber === 'string'
                       ? b.quoteNumber
                       : b?.id
-                      ? String(b.id)
-                      : undefined,
+                        ? String(b.id)
+                        : undefined,
                   lineItemsCount:
                     typeof b?.lineItemsCount === 'number'
                       ? b.lineItemsCount
@@ -501,7 +485,7 @@ export function useQuarrySupplierActions(
               return;
 
             case 'unarchive':
-              if (canUnarchive(quarrySupplierData) && quarrySupplierId) {
+              if (canUnarchive(selectedQuarrySupplier) && quarrySupplierId) {
                 unarchiveMutation.mutate(quarrySupplierId, {
                   onSuccess: () => {
                     setActiveDialog(null);
@@ -524,19 +508,14 @@ export function useQuarrySupplierActions(
 
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={quarrySupplierId}
-      dialogTitle={`View / Edit ${
-        editFormType === 'QUARRY' ? 'Quarry' : 'Supplier'
-      }`}
+      id={selectedQuarrySupplier?.id}
+      dialogTitle={`View / Edit ${editFormType === 'QUARRY' ? 'Quarry' : 'Supplier'
+        }`}
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
-        // Ensure dropdown menu state is reset when dialog closes
         if (!open) {
-          // Small delay to ensure proper cleanup
-          setTimeout(() => {
-            setViewOpen(false);
-          }, 100);
+          setTimeout(() => setViewOpen(false), 100);
         }
       }}
       hideTrigger
@@ -545,16 +524,13 @@ export function useQuarrySupplierActions(
       }}
       headerButtons={
         <QuarrySupplierActionButtons
-          quarrySupplier={quarrySupplierData}
+          quarrySupplier={selectedQuarrySupplier ?? undefined}
           actionsOverride={actions}
           suppressDialogs
         />
       }
     >
-      <QuarrySupplierForm
-        id={quarrySupplierId}
-        onTypeChange={(type) => setEditFormType(type)}
-      />
+      <QuarrySupplierForm onTypeChange={(type) => setEditFormType(type)} />
     </FormDialog>
   ) : null;
 

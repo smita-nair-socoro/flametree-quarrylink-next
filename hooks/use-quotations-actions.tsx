@@ -16,6 +16,7 @@ import {
   // Quote,
   Send,
   Eye,
+  X,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
@@ -29,9 +30,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useQuery } from '@tanstack/react-query';
 import {
-  QuotationWithLineItemsQueryOptions,
+  // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
   useExtendExpiryDate,
   useUpdateQuotation,
@@ -44,6 +44,7 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
+import { Input } from '@/components/ui/input';
 
 interface DialogConfig {
   title?: string;
@@ -67,6 +68,13 @@ interface SelectedAction {
   key: string;
 }
 
+// Rainbow chip colours for recipient email tags (used by index)
+const RECIPIENT_CHIP_COLORS = [
+  { bgColour: '#DBEAFE', textColour: '#193CB8' },
+  { bgColour: '#FEF9C2', textColour: '#894B00' },
+  { bgColour: '#CEFAFE', textColour: '#005F78' },
+  { bgColour: '#FCE7F3', textColour: '#A3004C' },
+];
 
 const getDialogConfigs = (
   quotationData?: Quotation | null,
@@ -83,7 +91,11 @@ const getDialogConfigs = (
   setDeclineNotes?: (notes: string) => void,
   showDeclineValidationError?: boolean,
   setShowDeclineValidationError?: (show: boolean) => void,
-  isDeclineFormValid?: boolean
+  isDeclineFormValid?: boolean,
+  additionalRecipientEmails?: string[],
+  setAdditionalRecipientEmails?: (emails: string[]) => void,
+  recipientEmailInputValue?: string,
+  setRecipientEmailInputValue?: (value: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -142,11 +154,25 @@ const getDialogConfigs = (
                         : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
                     </p>
                   </div>
+                  {/* Desktop: Switch */}
                   <Switch
                     checked={includeDeliveryPrices}
                     onCheckedChange={setIncludeDeliveryPrices}
-                    className="data-[state=checked]:bg-[#F54900]"
+                    className="hidden md:flex data-[state=checked]:bg-[#F54900]"
                   />
+                  {/* Mobile: Single Radio as toggle */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIncludeDeliveryPrices?.(!includeDeliveryPrices)
+                    }
+                    className="flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 border-input transition-colors data-[checked=true]:border-[#F54900]"
+                    data-checked={includeDeliveryPrices}
+                  >
+                    {includeDeliveryPrices && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F54900]" />
+                    )}
+                  </button>
                 </div>
 
                 {/* Preview Quote Button */}
@@ -171,8 +197,8 @@ const getDialogConfigs = (
                     Quote Delivery
                   </span>
                   <span className="text-[14px] font-normal text-[#F54900]">
-                    The quote will be sent via email to {customerEmail} and the
-                    status will change to Pending.
+                    The quote will be sent via email to the recipient(s) below
+                    and the status will change to Pending.
                   </span>
                 </div>
               </div>
@@ -191,16 +217,90 @@ const getDialogConfigs = (
               </ul>
             </div>
 
-            {/* Customer Email */}
+            {/* Recipient Emails */}
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#101828]">
-                Customer Email:
+                Recipient Emails*
               </span>
-              <div className="rounded-md px-3 py-2 bg-[#F3F4F6]">
-                <span className="text-[14px] font-normal text-[#6A7282]">
-                  {customerEmail}
-                </span>
+              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                {customerEmail && (
+                  <span
+                    className={
+                      'inline-flex items-center rounded-xl px-2.5 text-[14px] font-normal border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
+                    }
+                  >
+                    {customerEmail}
+                  </span>
+                )}
+                {additionalRecipientEmails?.map((email, idx) => (
+                  <span
+                    key={`${email}-${idx}`}
+                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] font-normal border-0 text-[#1F2937] font-semibold"
+                    style={{
+                      backgroundColor:
+                        RECIPIENT_CHIP_COLORS[
+                          (idx % (RECIPIENT_CHIP_COLORS.length - 1)) + 1
+                        ].bgColour,
+                      color:
+                        RECIPIENT_CHIP_COLORS[
+                          (idx % (RECIPIENT_CHIP_COLORS.length - 1)) + 1
+                        ].textColour,
+                    }}
+                  >
+                    {email}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        const next = additionalRecipientEmails.filter(
+                          (_, i) => i !== idx,
+                        );
+                        setAdditionalRecipientEmails?.(next);
+                      }}
+                      className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 hover:bg-transparent focus:outline-none focus-visible:ring-0"
+                      aria-label={`Remove ${email}`}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </span>
+                ))}
+                <Input
+                  type="email"
+                  placeholder="Add email..."
+                  value={recipientEmailInputValue ?? ''}
+                  onChange={(e) =>
+                    setRecipientEmailInputValue?.(e.target.value)
+                  }
+                  onBlur={() => setRecipientEmailInputValue?.('')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault();
+                      const raw = (recipientEmailInputValue ?? '')
+                        .replace(e.key === ',' ? /,\s*$/ : /^\s+|\s+$/g, '')
+                        .trim();
+                      const toAdd = raw.split(/[\s,]+/).filter(Boolean);
+                      const valid = toAdd.filter(
+                        (s) =>
+                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) &&
+                          !additionalRecipientEmails?.includes(s) &&
+                          s !== customerEmail,
+                      );
+                      if (valid.length) {
+                        setAdditionalRecipientEmails?.([
+                          ...(additionalRecipientEmails ?? []),
+                          ...valid,
+                        ]);
+                        setRecipientEmailInputValue?.('');
+                      }
+                    }
+                  }}
+                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground"
+                />
               </div>
+              <span className="text-[12px] text-[#6B7280]">
+                Press Enter or comma to add email addresses for delivery
+                receipts.
+              </span>
             </div>
           </div>
         ),
@@ -251,11 +351,25 @@ const getDialogConfigs = (
                         : 'Only the total price will be shown. Delivery costs are included but not itemised separately.'}
                     </p>
                   </div>
+                  {/* Desktop: Switch */}
                   <Switch
                     checked={includeDeliveryPrices}
                     onCheckedChange={setIncludeDeliveryPrices}
-                    className="data-[state=checked]:bg-[#F54900]"
+                    className="hidden md:flex data-[state=checked]:bg-[#F54900]"
                   />
+                  {/* Mobile: Single Radio as toggle */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIncludeDeliveryPrices?.(!includeDeliveryPrices)
+                    }
+                    className="flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 border-input transition-colors data-[checked=true]:border-[#F54900]"
+                    data-checked={includeDeliveryPrices}
+                  >
+                    {includeDeliveryPrices && (
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#F54900]" />
+                    )}
+                  </button>
                 </div>
               </div>
             )}
@@ -795,21 +909,25 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useQuotationActions(
-  quotationId: number | undefined,
-  quotationData?: Quotation | null
-) {
+export function useQuotationActions(quotationData?: Quotation | null) {
   const fallbackQuotation = useQuotationStore((state) =>
-    quotationId ? state.getQuotationById(quotationId) : null
+    state.selectedQuotation?.id
+      ? state.getQuotationById(state.selectedQuotation.id)
+      : null,
+  );
+  const selectedQuotation = useQuotationStore(
+    (state) => state.selectedQuotation,
   );
   const setSelectedQuotation = useQuotationStore(
-    (state) => state.setSelectedQuotation
+    (state) => state.setSelectedQuotation,
   );
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [duplicateOpen, setDuplicateOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+
+  const quotationId = selectedQuotation?.id;
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
     const weekFromToday = new Date();
     weekFromToday.setDate(weekFromToday.getDate() + 7);
@@ -821,6 +939,10 @@ export function useQuotationActions(
   const [declineNotes, setDeclineNotes] = React.useState<string>('');
   const [showDeclineValidationError, setShowDeclineValidationError] =
     React.useState(false);
+  const [additionalRecipientEmails, setAdditionalRecipientEmails] =
+    React.useState<string[]>([]);
+  const [recipientEmailInputValue, setRecipientEmailInputValue] =
+    React.useState('');
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
@@ -829,7 +951,7 @@ export function useQuotationActions(
     return true;
   }, [declineReason, declineNotes]);
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
-    quotationData?.inclDeliveryCost ?? false
+    quotationData?.inclDeliveryCost ?? false,
   );
 
   const extendExpiryMutation = useExtendExpiryDate();
@@ -857,34 +979,20 @@ export function useQuotationActions(
     }
   }, [selectedAction?.key]);
 
-  // Fetch detailed quotation data with line items from backend
-  const { data: quotationDetailData } = useQuery(
-    QuotationWithLineItemsQueryOptions(quotationId || 0)
-  );
-
-  // Convert and transform detailed quotation data
-  const detailedQuotation = React.useMemo(() => {
-    if (quotationDetailData) {
-      // Use charlie.peng@socoro.com.au as fallback email since backend API is not stable
-      const transformed = {
-        ...quotationDetailData,
-      } as Quotation;
-
-      return transformed;
-    }
-    return null;
-  }, [quotationDetailData]);
-
-  // Update store with detailed quotation that includes line items
+  // Reset recipient emails when send-to-customer dialog opens
   React.useEffect(() => {
-    if (detailedQuotation) {
-      setSelectedQuotation(detailedQuotation);
+    if (selectedAction?.key === 'sendToCustomer') {
+      setAdditionalRecipientEmails([]);
+      setRecipientEmailInputValue('');
     }
-  }, [detailedQuotation, setSelectedQuotation]);
+  }, [selectedAction?.key]);
 
-  // Prefer detailed quotation (with line items), then provided prop, then store fallback
-  const resolvedQuotation =
-    detailedQuotation ?? quotationData ?? fallbackQuotation ?? null;
+  // Fetch detailed quotation data with line items from backend - REMOVED
+
+  // Update store with detailed quotation that includes line items - REMOVED
+
+  // Prefer provided prop, then store fallback
+  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
 
   // Use detailed data if available, otherwise fall back to list/store data
   const quotationToUse = resolvedQuotation;
@@ -895,6 +1003,13 @@ export function useQuotationActions(
       setIncludeDeliveryPrices(resolvedQuotation.inclDeliveryCost);
     }
   }, [resolvedQuotation?.inclDeliveryCost]);
+
+  // Sync resolvedQuotation to store when view is open, to ensure FormDialog (which reads from store) has fresh data
+  React.useEffect(() => {
+    if (viewOpen && resolvedQuotation) {
+      setSelectedQuotation(resolvedQuotation);
+    }
+  }, [viewOpen, resolvedQuotation, setSelectedQuotation]);
 
   const handlePreviewFromDialog = () => {
     if (!quotationId) {
@@ -926,7 +1041,11 @@ export function useQuotationActions(
     setDeclineNotes,
     showDeclineValidationError,
     setShowDeclineValidationError,
-    isDeclineFormValid
+    isDeclineFormValid,
+    additionalRecipientEmails,
+    setAdditionalRecipientEmails,
+    recipientEmailInputValue,
+    setRecipientEmailInputValue,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -943,8 +1062,8 @@ export function useQuotationActions(
       if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
         notifyError(
           `Quote expired on ${expiry.toLocaleDateString(
-            'en-AU'
-          )}. Please extend the expiry date.`
+            'en-AU',
+          )}. Please extend the expiry date.`,
         );
         return;
       }
@@ -956,12 +1075,11 @@ export function useQuotationActions(
 
   // Build a safe payload for update actions (keeps status)
   const buildUpdatePayload = (
-    overrides: Partial<QuotationDTO>
+    overrides: Partial<QuotationDTO>,
   ): Partial<QuotationDTO> | null => {
     if (!resolvedQuotation) return null;
 
     const { quoteStatus, ...quotationData } = resolvedQuotation;
-    // const { quoteStatus, quoteItems, ...quotationData } = resolvedQuotation;
     return {
       ...quotationData,
       quoteStatus: overrides.quoteStatus ?? quoteStatus,
@@ -980,24 +1098,21 @@ export function useQuotationActions(
       await sendToCustomerMutation.mutateAsync({
         id: quotationId,
         inclDeliveryCost: includeDeliveryPrices,
+        additionalEmailRecipients: additionalRecipientEmails,
       });
 
       notifySuccess('Quotation sent to customer');
       setActiveDialog(null);
       setSelectedAction(null);
     } catch (error) {
-      console.log('error', error);
       const err = extractErrorResponse(error);
-      console.log('err', err);
-      // const extractedMessage = extractErrorMessage(error);
       const expiryDateErrorPhrase = 'Quote expired on';
       const isExpiryDateError = err?.message?.includes(expiryDateErrorPhrase);
-      console.log('isExpiryDateError', isExpiryDateError);
       if (isExpiryDateError) {
         notifyError(
           extractErrorMessage(
-            'Quote Expired Date is the past. Please extend the expiry date.'
-          )
+            'Quote Expired Date is the past. Please extend the expiry date.',
+          ),
         );
         return;
       }
@@ -1047,10 +1162,22 @@ export function useQuotationActions(
     }
 
     try {
-      // Compose decline reason: "{declineReasonOption}-{declineNote}" or "{declineReasonOption}"
+      // Map reason keys to human-readable labels for the backend
+      const reasonLabels: Record<string, string> = {
+        price_too_high: 'Price too high',
+        timeline_conflict: 'Timeline conflict',
+        scope_changed: 'Scope changed',
+        customer_unresponsive: 'Customer unresponsive',
+        competitor_selected: 'Competitor selected',
+        project_cancelled: 'Project cancelled',
+        other: 'Other',
+      };
+      const reasonLabel = reasonLabels[declineReason] || declineReason;
+
+      // Compose decline reason: "{reasonLabel}-{declineNote}" or "{reasonLabel}"
       const composedDeclineReason = declineNotes.trim()
-        ? `${declineReason}-${declineNotes.trim()}`
-        : declineReason;
+        ? `${reasonLabel}-${declineNotes.trim()}`
+        : reasonLabel;
 
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
@@ -1183,11 +1310,21 @@ export function useQuotationActions(
 
     extendExpiry: createDialogAction('extendExpiry'),
 
-    view: () => {
+    view: (quotation?: Quotation | null) => {
+      const toSelect = quotation ?? quotationData;
+      if (toSelect) {
+        setSelectedQuotation(toSelect);
+      }
       setViewOpen(true);
     },
 
     preview: () => {
+      console.log('Preview clicked', {
+        isCollectionType,
+        quotationId,
+        quoteType: quotationToUse?.quoteType,
+        expiryDate: quotationToUse?.expiryDate,
+      });
       // For COLLECTION type, skip the modal and go directly to preview
       if (isCollectionType) {
         handlePreviewQuote();

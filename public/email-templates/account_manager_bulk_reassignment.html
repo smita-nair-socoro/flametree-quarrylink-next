@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,8 +9,8 @@
         margin: 0;
         padding: 0;
         background-color: #f3f4f6;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
-          sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       }
       .container {
         max-width: 600px;
@@ -182,6 +182,21 @@
       .footer-link:hover {
         text-decoration: underline;
       }
+      @media only screen and (max-width: 600px) {
+        .footer-row {
+          display: block !important;
+        }
+        .footer-column-left,
+        .footer-column-center,
+        .footer-column-right {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          padding: 10px 0 !important;
+          text-align: center !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -204,14 +219,7 @@
         </div>
 
         <div class="customer-info {BorderColorClass}">
-          <div class="customer-list">{customerListHtml}</div>
-        </div>
-
-        <div class="content">
-          <p>
-            Each customer link will take you to their profile where you can
-            review their account history, active quotes, and account details.
-          </p>
+          <div class="customer-list">{customerList}</div>
         </div>
 
         <div class="card-footer">

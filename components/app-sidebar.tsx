@@ -128,7 +128,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       console.log(
         '📋 [AppSidebar] Subscription Plan:',
         tenantCompleteDetails.subscriptionAndInvoices?.subscriptions
-          ?.subscriptions?.[0]?.subscriptionPlan,
+          ?.subscriptions?.[1]?.subscriptionPlan,
       );
     }
   }, [tenantCompleteDetails]);
@@ -155,7 +155,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Get subscription plan from the first active subscription
   const subscriptionPlan =
     tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
-      ?.subscriptions?.[0]?.subscriptionPlan;
+      ?.subscriptions?.[1]?.subscriptionPlan;
 
   // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
   React.useEffect(() => {

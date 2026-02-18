@@ -2,6 +2,11 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from '../ui/card';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../ui/popover';
 
 export interface MobileCardField {
   icon: React.ReactNode;
@@ -54,9 +59,22 @@ export function MobileCard({
                 {field.icon}
                 <span>{field.label}</span>
               </div>
-              <span className="text-gray-900 font-medium min-w-0 text-right truncate max-w-[55%]">
-                {field.value}
-              </span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-gray-900 font-medium min-w-0 text-right truncate max-w-[55%] cursor-pointer hover:underline"
+                  >
+                    {field.value}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="top"
+                  className="w-auto max-w-[280px] p-2 text-sm break-words"
+                >
+                  {field.value}
+                </PopoverContent>
+              </Popover>
             </div>
           ))}
         </div>

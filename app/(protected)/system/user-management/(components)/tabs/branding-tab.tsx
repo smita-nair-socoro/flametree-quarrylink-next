@@ -22,18 +22,28 @@ import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { useUploadTenantLogo } from '@/lib/api/tenant';
+import { useUploadTenantLogo, TenantLogoQueryOptions } from '@/lib/api/tenant';
+import { useQuery } from '@tanstack/react-query';
 
 export default function BrandingTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isNarrow = useMediaQuery('(max-width: 550px)');
   const uploadLogoMutation = useUploadTenantLogo();
+  const { data: logoData, isLoading: isLoadingLogo } = useQuery(TenantLogoQueryOptions());
   const isSubmitting = uploadLogoMutation.isPending;
   const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = React.useState<string | null>(
     null
   );
+  const [hasNewFile, setHasNewFile] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Set logo preview from fetched data when available
+  React.useEffect(() => {
+    if (logoData?.logoPublicS3Url && !hasNewFile) {
+      setLogoPreview(logoData.logoPublicS3Url);
+    }
+  }, [logoData, hasNewFile]);
 
   const brandingForm = useForm<z.infer<typeof BrandingSchema>>({
     resolver: zodResolver(BrandingSchema),
@@ -52,7 +62,13 @@ export default function BrandingTab() {
           validation.error.issues?.[0]?.message || 'Invalid file selected';
         notifyError(message);
         setSelectedFileName(null);
-        setLogoPreview(null);
+        setHasNewFile(false);
+        // Restore existing logo if available, otherwise clear
+        if (logoData?.logoPublicS3Url) {
+          setLogoPreview(logoData.logoPublicS3Url);
+        } else {
+          setLogoPreview(null);
+        }
         brandingForm.setValue('company_logo', undefined);
         brandingForm.setError('company_logo', { type: 'manual', message });
         if (fileInputRef.current) {
@@ -64,6 +80,7 @@ export default function BrandingTab() {
       brandingForm.setValue('company_logo', file, { shouldValidate: true });
       brandingForm.clearErrors('company_logo');
       setSelectedFileName(file.name);
+      setHasNewFile(true);
 
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -78,12 +95,18 @@ export default function BrandingTab() {
   };
 
   const handleClearLogo = () => {
-    setLogoPreview(null);
     setSelectedFileName(null);
+    setHasNewFile(false);
     brandingForm.setValue('company_logo', undefined);
     brandingForm.clearErrors('company_logo');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    // Reset to existing logo if available, otherwise clear
+    if (logoData?.logoPublicS3Url) {
+      setLogoPreview(logoData.logoPublicS3Url);
+    } else {
+      setLogoPreview(null);
     }
   };
 
@@ -97,6 +120,12 @@ export default function BrandingTab() {
     uploadLogoMutation.mutate(file, {
       onSuccess: () => {
         notifySuccess('Logo uploaded successfully');
+        setSelectedFileName(null);
+        setHasNewFile(false);
+        brandingForm.setValue('company_logo', undefined);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       },
       onError: (error) => {
         console.error('Error uploading logo:', error);
@@ -164,7 +193,14 @@ export default function BrandingTab() {
                               )}
                               onClick={handleUploadClick}
                             >
-                              {!logoPreview ? (
+                              {isLoadingLogo ? (
+                                <>
+                                  <Spinner size="small" />
+                                  <span className="text-xs text-[#9F9FA9] mt-2">
+                                    Loading logo...
+                                  </span>
+                                </>
+                              ) : !logoPreview ? (
                                 <>
                                   <Upload className="w-8 h-8 text-[#9F9FA9] mb-2" />
                                   <span className="text-xs text-[#9F9FA9]">
@@ -249,7 +285,7 @@ export default function BrandingTab() {
                   <Button
                     type="submit"
                     className="w-fit mt-6 cursor-pointer self-end"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !hasNewFile}
                     onClick={(e) => {
                       e.stopPropagation();
                     }}

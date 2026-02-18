@@ -20,19 +20,17 @@ import React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { QuarrySupplierFormSchema } from './schemas/quarry-supplier-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import { Address, AddressType } from '@/lib/types/address';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from '@/components/ui/separator';
-import { QuarrySubscriptionActions } from '@/app/(protected)/inventory/quarries-suppliers/(components)/quarry-subscription-actions';
-import { useCreateQuarry, useUpdateQuarry } from '@/lib/api/quarries';
-import { notifySuccess, notifyError } from '@/lib/toast';
+import { useQuery } from '@tanstack/react-query';
 import {
-  useSelectedQuarrySupplier,
-  useQuarrySupplierStore,
-} from '@/app/stores/quarry-supplier-store';
+  useCreateQuarry,
+  useUpdateQuarry,
+  QuarryDetailQueryOptions,
+} from '@/lib/api/quarries';
+import { notifySuccess, notifyError } from '@/lib/toast';
 import { Quarry } from '@/lib/types/quarry';
 import { QuarryType } from '@/lib/types/quarry-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
@@ -41,7 +39,13 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
+import { toAddressPayload } from '@/lib/utils/address-helper';
 import { formatLocalDateShort } from '@/lib/utils/date';
+import { useAddressSync } from '@/lib/utils/address-helper';
+import {
+  useQuarrySupplierFormState,
+  EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
+} from '@/hooks/quarry-supplier/use-quarry-supplier-form-state';
 
 interface FormProps {
   id?: number;
@@ -63,224 +67,42 @@ export default function QuarrySupplierForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id));
+  const isEditing = Boolean(id);
+  const quarryId = id ?? 0;
 
-  // Initialize mutation hooks for creating and updating quarry/supplier
   const createQuarryMutation = useCreateQuarry();
   const updateQuarryMutation = useUpdateQuarry();
 
-  // Get selected quarry/supplier from Zustand store
-  const selectedQuarrySupplier = useSelectedQuarrySupplier();
-  const setSelectedQuarrySupplier = useQuarrySupplierStore(
-    (state) => state.setSelectedQuarrySupplier
-  );
-
-  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
-    React.useState(false);
-  const [pendingSubmission, setPendingSubmission] = React.useState<z.infer<
-    typeof QuarrySupplierFormSchema
-  > | null>(null);
-  const [mockBillingCycle] = React.useState<'monthly' | 'yearly'>('monthly');
-  const subscriptionMock = React.useMemo(
-    () => ({
-      billingCycle: mockBillingCycle,
-      monthlyFee: 99,
-      yearlyFee: 999,
-      planLimit: 1,
-      currentOwnedQuarries: 1,
-    }),
-    [mockBillingCycle]
-  );
-
-  // Initialize states with selected quarry/supplier data
-  // Only use selectedQuarrySupplier data when editing
-  const [selectedType, setSelectedType] = React.useState<QuarryType>(
-    isEditing && selectedQuarrySupplier?.quarrySupplierType
-      ? selectedQuarrySupplier.quarrySupplierType
-      : QuarryType.QUARRY
-  );
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  // Capture the original type when editing so we can detect supplier -> quarry conversions.
-  // This matters for subscription logic: converting a supplier to a quarry increases owned quarry count.
-  const originalTypeRef = React.useRef<QuarryType | null>(null);
-  React.useEffect(() => {
-    if (!isEditing) {
-      originalTypeRef.current = null;
-      return;
-    }
-
-    if (
-      originalTypeRef.current === null &&
-      selectedQuarrySupplier?.quarrySupplierType
-    ) {
-      originalTypeRef.current = selectedQuarrySupplier.quarrySupplierType;
-    }
-  }, [isEditing, selectedQuarrySupplier?.quarrySupplierType]);
-
-  // Address state for AddressAutoComplete (uses AddressType)
-  // Initialize with backend data when editing
-  const [address, setAddress] = React.useState<AddressType>(() => {
-    if (isEditing && selectedQuarrySupplier?.address) {
-      const backendAddress = selectedQuarrySupplier.address;
-      return {
-        address1: backendAddress.streetDetailsPrimary || '',
-        address2: backendAddress.streetDetailsOptional || '',
-        formattedAddress: backendAddress.formattedAddress || '',
-        city: backendAddress.city || '',
-        region: backendAddress.state || '',
-        postalCode: backendAddress.postcode || '',
-        country: backendAddress.country || '',
-        lat: backendAddress.latitude || 0,
-        lng: backendAddress.longitude || 0,
-        googlePlaceId: backendAddress.googlePlaceId || '',
-      };
-    }
-    return {
-      address1: '',
-      address2: '',
-      formattedAddress: '',
-      city: '',
-      region: '',
-      postalCode: '',
-      country: '',
-      lat: 0,
-      lng: 0,
-      googlePlaceId: '',
-    };
+  const { data: selectedQuarrySupplier } = useQuery({
+    ...QuarryDetailQueryOptions(quarryId),
+    enabled: isEditing && quarryId > 0,
   });
-  const [searchInput, setSearchInput] = React.useState('');
+
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const quarrySupplierForm = useForm<z.infer<typeof QuarrySupplierFormSchema>>({
     resolver: zodResolver(QuarrySupplierFormSchema),
     mode: 'onChange',
-    defaultValues: {
-      quarry_supplier_type:
-        isEditing && selectedQuarrySupplier?.quarrySupplierType
-          ? selectedQuarrySupplier.quarrySupplierType
-          : 'QUARRY',
-      name:
-        isEditing && selectedQuarrySupplier?.name
-          ? selectedQuarrySupplier.name
-          : '',
-      website:
-        isEditing && selectedQuarrySupplier?.website === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.website
-          ? selectedQuarrySupplier.website
-          : '',
-      email:
-        isEditing && selectedQuarrySupplier?.email
-          ? selectedQuarrySupplier.email
-          : '',
-      phone:
-        isEditing && selectedQuarrySupplier?.phone
-          ? selectedQuarrySupplier.phone
-          : '',
-      address:
-        isEditing && selectedQuarrySupplier?.address?.formattedAddress
-          ? selectedQuarrySupplier.address.formattedAddress
-          : '',
-      contact_person_name:
-        isEditing && selectedQuarrySupplier?.contactPersonName === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.contactPersonName
-          ? selectedQuarrySupplier.contactPersonName
-          : '',
-      contact_person_phone:
-        isEditing && selectedQuarrySupplier?.contactPersonPhone === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.contactPersonPhone
-          ? selectedQuarrySupplier.contactPersonPhone
-          : '',
-      contact_person_email:
-        isEditing && selectedQuarrySupplier?.contactPersonEmail === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.contactPersonEmail
-          ? selectedQuarrySupplier.contactPersonEmail
-          : '',
-      opening_closing_info:
-        isEditing && selectedQuarrySupplier?.openingClosingInfo === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.openingClosingInfo
-          ? selectedQuarrySupplier.openingClosingInfo
-          : '',
-      weighbridge_info:
-        isEditing && selectedQuarrySupplier?.weighbridgeInfo === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.weighbridgeInfo
-          ? selectedQuarrySupplier.weighbridgeInfo
-          : '',
-      notes:
-        isEditing && selectedQuarrySupplier?.notes === 'N/A'
-          ? ''
-          : isEditing && selectedQuarrySupplier?.notes
-          ? selectedQuarrySupplier.notes
-          : '',
-      created_at:
-        isEditing && selectedQuarrySupplier?.createdAt
-          ? new Date(selectedQuarrySupplier.createdAt)
-          : undefined,
-      updated_at:
-        isEditing && selectedQuarrySupplier?.updatedAt
-          ? new Date(selectedQuarrySupplier.updatedAt)
-          : undefined,
-      created_by:
-        isEditing && selectedQuarrySupplier?.createdBy
-          ? selectedQuarrySupplier.createdBy
-          : 'current_user',
-      last_modified_by:
-        isEditing && selectedQuarrySupplier?.lastModifiedBy
-          ? selectedQuarrySupplier.lastModifiedBy
-          : 'current_user',
-    },
+    defaultValues: EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
   });
+
+  const {
+    selectedType,
+    setSelectedType,
+    address,
+    setAddress,
+    searchInput,
+    setSearchInput,
+  } = useQuarrySupplierFormState(
+    selectedQuarrySupplier ?? null,
+    isEditing,
+    quarrySupplierForm,
+  );
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(quarrySupplierForm.formState.isDirty);
   }, [quarrySupplierForm.formState.isDirty, onDirtyChange]);
-
-  // Clear selected quarry/supplier and reset form when creating new (not editing)
-  React.useEffect(() => {
-    if (!isEditing) {
-      setSelectedQuarrySupplier(null);
-      // Reset form to empty values
-      quarrySupplierForm.reset({
-        quarry_supplier_type: QuarryType.QUARRY,
-        name: '',
-        website: '',
-        email: '',
-        phone: '',
-        address: '',
-        contact_person_name: '',
-        contact_person_phone: '',
-        contact_person_email: '',
-        opening_closing_info: '',
-        weighbridge_info: '',
-        notes: '',
-        created_by: 'current_user',
-        last_modified_by: 'current_user',
-      });
-      // Reset address state
-      setAddress({
-        address1: '',
-        address2: '',
-        formattedAddress: '',
-        city: '',
-        region: '',
-        postalCode: '',
-        country: '',
-        lat: 0,
-        lng: 0,
-        googlePlaceId: '',
-      });
-      // Reset search input
-      setSearchInput('');
-      // Reset selected type
-      setSelectedType(QuarryType.QUARRY);
-    }
-  }, [isEditing, setSelectedQuarrySupplier, quarrySupplierForm]);
 
   const handleTypeChange = (value: string) => {
     const quarryType = value as QuarryType;
@@ -293,259 +115,118 @@ export default function QuarrySupplierForm({
   };
 
   // Effect to handle address changes
-  React.useEffect(() => {
-    if (address.formattedAddress) {
-      quarrySupplierForm.setValue('address', address.formattedAddress);
-      // Trigger validation when address is set
-      quarrySupplierForm.trigger('address');
-    }
-  }, [address.formattedAddress, quarrySupplierForm]);
-
-  const handleAddressChange = React.useCallback(
-    (newAddress: AddressType) => {
-      setAddress((prev) => {
-        const same =
-          prev.formattedAddress === newAddress.formattedAddress &&
-          prev.googlePlaceId === newAddress.googlePlaceId &&
-          prev.lat === newAddress.lat &&
-          prev.lng === newAddress.lng;
-
-        return same ? prev : newAddress;
-      });
-
-      if (newAddress.formattedAddress) {
-        setSearchInput('');
-        quarrySupplierForm.trigger('address');
-      }
-    },
-    [quarrySupplierForm]
+  const handleAddressChange = useAddressSync(
+    quarrySupplierForm,
+    'address',
+    address,
+    setAddress,
+    setSearchInput,
   );
 
-  const submitQuarrySupplier = React.useCallback(
-    async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
+  async function onSubmit(values: z.infer<typeof QuarrySupplierFormSchema>) {
+    try {
       setIsSubmitting(true);
 
-      try {
-        // Check if address has changed
-        const originalAddress = selectedQuarrySupplier?.address;
-        const addressChanged =
-          isEditing &&
-          originalAddress &&
-          (address.address1 !== (originalAddress.streetDetailsPrimary || '') ||
-            address.address2 !==
-              (originalAddress.streetDetailsOptional || '') ||
-            address.city !== (originalAddress.city || '') ||
-            address.region !== (originalAddress.state || '') ||
-            address.postalCode !== (originalAddress.postcode || '') ||
-            address.country !== (originalAddress.country || '') ||
-            address.formattedAddress !==
-              (originalAddress.formattedAddress || ''));
+      const addressData = toAddressPayload(
+        address,
+        isEditing ? (selectedQuarrySupplier?.address ?? null) : null,
+      )!;
 
-        // Build address data from current address state
-        // Note: Backend does not accept address.id for updates when address is modified
-        const addressData: Address = {
-          // Only include id if address hasn't changed
-          ...(!addressChanged &&
-          isEditing &&
-          selectedQuarrySupplier?.address?.id
-            ? { id: selectedQuarrySupplier.address.id }
-            : {}),
-          ...(isEditing &&
-          selectedQuarrySupplier?.address?.version !== undefined
-            ? { version: selectedQuarrySupplier.address.version }
-            : {}),
-          googlePlaceId: address.googlePlaceId || '',
-          formattedAddress: address.formattedAddress || '',
-          streetDetailsPrimary: address.address1 || '',
-          streetDetailsOptional: address.address2 || '',
-          city: address.city || '',
-          suburb: address.city || '',
-          state: address.region || '',
-          postcode: address.postalCode || '',
-          country: address.country || '',
-          latitude: address.lat || 0,
-          longitude: address.lng || 0,
-          version: selectedQuarrySupplier?.address?.version || 0,
-        } as Address;
+      const websiteValue =
+        values.website && values.website.trim() !== ''
+          ? values.website.trim().startsWith('http')
+            ? values.website.trim()
+            : `https://${values.website.trim()}`
+          : undefined;
 
-        const quarrySupplierData = {
-          name: values.name,
-          quarrySupplierType: values.quarry_supplier_type,
-          email: values.email,
-          phone: formatPhoneNumber(values.phone),
-          isActive: true,
-          openingClosingInfo: values.opening_closing_info || '',
-          notes: values.notes || '',
-          weighbridgeInfo: values.weighbridge_info || '',
-          contactPersonName: values.contact_person_name || '',
-          contactPersonPhone: formatPhoneNumber(values.contact_person_phone),
-          contactPersonEmail: values.contact_person_email || '',
-          ...(values.website && values.website.trim() !== ''
-            ? {
-                website: values.website.trim().startsWith('http')
-                  ? values.website.trim()
-                  : `https://${values.website.trim()}`,
-              }
-            : {}),
-          address: addressData,
-          // Only include version when editing (for optimistic locking)
-          ...(isEditing && selectedQuarrySupplier?.version !== undefined
-            ? { version: selectedQuarrySupplier.version }
-            : {}),
-          version: selectedQuarrySupplier?.version || 0,
-        } as unknown as Quarry;
+      const quarrySupplierData = {
+        name: values.name ?? '',
+        quarrySupplierType: values.quarry_supplier_type as QuarryType,
+        email: values.email ?? '',
+        phone: formatPhoneNumber(values.phone),
+        isActive: true,
+        openingClosingInfo: values.opening_closing_info || '',
+        notes: values.notes || '',
+        weighbridgeInfo: values.weighbridge_info || '',
+        contactPersonName: values.contact_person_name || '',
+        contactPersonPhone: formatPhoneNumber(values.contact_person_phone),
+        contactPersonEmail: values.contact_person_email || '',
+        ...(websiteValue ? { website: websiteValue } : {}),
+        address: addressData,
+        version:
+          isEditing && selectedQuarrySupplier?.version !== undefined
+            ? selectedQuarrySupplier.version
+            : 0,
+      } as unknown as Quarry;
 
-        if (isEditing && id) {
-          // Update existing quarry/supplier
-
-          await updateQuarryMutation.mutateAsync({
-            id,
-            data: quarrySupplierData,
-          });
-
-          notifySuccess(
-            `${
-              values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
-            } updated successfully!`
-          );
-        } else {
-          // Create new quarry/supplier
-          const newQuarrySupplier = await createQuarryMutation.mutateAsync(
-            quarrySupplierData
-          );
-
-          // Add the new record ID to sessionStorage for highlighting
-          if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
-            addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
-          }
-
-          notifySuccess(
-            `${
-              values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
-            } created successfully!`
-          );
-        }
-
-        // Clear dirty state in parent dialog, then close
-        onSaved?.();
-        onSuccess?.();
-      } catch (error) {
-        console.error(
-          `Error ${isEditing ? 'updating' : 'creating'} ${
-            values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
-          }:`,
-          error
+      if (isEditing && id) {
+        await updateQuarryMutation.mutateAsync({
+          id,
+          data: quarrySupplierData,
+        });
+        notifySuccess(
+          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
         );
-        // Extract normalized error response and message
-        const err = extractErrorResponse(error);
-        const extractedMessage = extractErrorMessage(error);
-        const codeStr = err?.code ? String(err.code) : undefined;
-        const messageFromErr = err?.message || extractedMessage;
-
-        // Duplicate quarry/supplier name (HTTP 409)
-        const duplicateNamePhrase = `Key (name)=(${values.name}) already exists`;
-        const duplicateEmailPhrase = `Key (email)`;
-
-        if (
-          codeStr === '409' &&
-          typeof messageFromErr === 'string' &&
-          messageFromErr.includes(duplicateNamePhrase)
-        ) {
-          const msg = `${
-            values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'
-          } with name "${values.name}" already exists.`;
-          notifyError(msg);
-          quarrySupplierForm.setError('name', { type: 'manual', message: msg });
-          return;
-        } else if (
-          codeStr == '409' &&
-          typeof messageFromErr === 'string' &&
-          messageFromErr.includes(duplicateEmailPhrase)
-        ) {
-          const msg = 'Email already exists.';
-          notifyError(msg);
-          quarrySupplierForm.setError('email', {
-            type: 'manual',
-            message: msg,
-          });
-          return;
+      } else {
+        const newQuarrySupplier =
+          await createQuarryMutation.mutateAsync(quarrySupplierData);
+        if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
+          addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
         }
-
-        // Fallback error using extracted message
-        notifyError(
-          messageFromErr ||
-            `Failed to ${isEditing ? 'update' : 'create'} ${
-              values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'
-            }. Please try again.`
+        notifySuccess(
+          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
-      } finally {
-        setIsSubmitting(false);
       }
-    },
-    [
-      createQuarryMutation,
-      updateQuarryMutation,
-      quarrySupplierForm,
-      onSaved,
-      onSuccess,
-      isEditing,
-      id,
-      selectedQuarrySupplier?.version,
-      selectedQuarrySupplier?.address,
-      address,
-    ]
-  );
-
-  const willExceedQuarryLimit = React.useCallback(
-    (targetType: QuarryType) => {
-      if (targetType !== QuarryType.QUARRY) return false;
-
-      const isCreatingNewQuarry = !isEditing;
-      const isConvertingSupplierToQuarry =
-        isEditing &&
-        originalTypeRef.current === QuarryType.SUPPLIER &&
-        targetType === QuarryType.QUARRY;
-
-      if (!isCreatingNewQuarry && !isConvertingSupplierToQuarry) return false;
-
-      return (
-        subscriptionMock.currentOwnedQuarries + 1 > subscriptionMock.planLimit
+      onSaved?.();
+      onSuccess?.();
+    } catch (error) {
+      console.error(
+        `Error ${isEditing ? 'updating' : 'creating'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}:`,
+        error,
       );
-    },
-    [isEditing, subscriptionMock]
-  );
 
-  const handleFormSubmit = React.useCallback(
-    async (values: z.infer<typeof QuarrySupplierFormSchema>) => {
-      if (willExceedQuarryLimit(values.quarry_supplier_type as QuarryType)) {
-        setPendingSubmission(values);
-        setIsSubscriptionDialogOpen(true);
+      const err = extractErrorResponse(error);
+      const extractedMessage = extractErrorMessage(error);
+      const codeStr = err?.code ? String(err.code) : undefined;
+      const messageFromErr = err?.message || extractedMessage;
+
+      const duplicateNamePhrase = `Key (name)=(${values.name}) already exists`;
+      const isDuplicateName =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateNamePhrase);
+
+      if (isDuplicateName) {
+        const msg = `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} with name "${values.name}" already exists.`;
+        notifyError(msg);
+        quarrySupplierForm.setError('name', { type: 'manual', message: msg });
         return;
       }
 
-      await submitQuarrySupplier(values);
-    },
-    [willExceedQuarryLimit, submitQuarrySupplier]
-  );
+      const duplicateEmailPhrase = `Key (email)`;
+      const isDuplicateEmail =
+        codeStr === '409' &&
+        typeof messageFromErr === 'string' &&
+        messageFromErr.includes(duplicateEmailPhrase);
 
-  const handleSubscriptionConfirm = React.useCallback(() => {
-    if (!pendingSubmission) return;
+      if (isDuplicateEmail) {
+        const msg = 'Email already exists.';
+        notifyError(msg);
+        quarrySupplierForm.setError('email', {
+          type: 'manual',
+          message: msg,
+        });
+        return;
+      }
 
-    submitQuarrySupplier(pendingSubmission).finally(() => {
-      setPendingSubmission(null);
-    });
-  }, [pendingSubmission, submitQuarrySupplier]);
-
-  const handleSubscriptionDialogToggle = React.useCallback((open: boolean) => {
-    setIsSubscriptionDialogOpen(open);
-    if (!open) {
-      setPendingSubmission(null);
+      notifyError(
+        messageFromErr ||
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-  }, []);
-
-  const watchedQuarryName = quarrySupplierForm.watch('name');
-  const locationDescriptor =
-    selectedType === QuarryType.QUARRY ? 'Owned Location' : 'Supplier';
+  }
 
   return (
     <div className="w-full relative">
@@ -554,7 +235,7 @@ export default function QuarrySupplierForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -567,15 +248,6 @@ export default function QuarrySupplierForm({
         </div>
       )}
 
-      <QuarrySubscriptionActions
-        open={isSubscriptionDialogOpen}
-        onOpenChange={handleSubscriptionDialogToggle}
-        onConfirm={handleSubscriptionConfirm}
-        quarryName={watchedQuarryName || 'Mountain View Quarry'}
-        locationType={locationDescriptor}
-        subscriptionDetails={subscriptionMock}
-      />
-
       <Form {...quarrySupplierForm}>
         <form
           id="add-quarry-supplier-form"
@@ -583,9 +255,9 @@ export default function QuarrySupplierForm({
             'p-1 gap-1 w-full',
             isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
-          onSubmit={quarrySupplierForm.handleSubmit(handleFormSubmit)}
+          onSubmit={quarrySupplierForm.handleSubmit(onSubmit)}
         >
           {/* Type Selection */}
           <FormField

@@ -18,13 +18,10 @@ interface ProducTableActionProps {
 
 export function ProductTableActions({ product }: ProducTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useProductActions(
-    product.id,
-    product
-  );
+  const { actions, confirmDialogs, viewDialog } = useProductActions(product);
 
   const setSelectedProduct = useProductStore(
-    (state) => state.setSelectedProduct
+    (state) => state.setSelectedProduct,
   );
 
   const handleView = () => {

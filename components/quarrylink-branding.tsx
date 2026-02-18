@@ -41,7 +41,7 @@ export function QuarryLinkBranding({
               />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <Tooltip delayDuration={300}>
+              <Tooltip delayDuration={300} mobileClickable={false}>
                 <TooltipTrigger asChild>
                   <span className="truncate font-semibold text-white">
                     QuarryLink
@@ -54,7 +54,7 @@ export function QuarryLinkBranding({
               {isLoading ? (
                 <Skeleton className="h-3 w-20 bg-white/30" />
               ) : (
-                <Tooltip delayDuration={300}>
+                <Tooltip delayDuration={300} mobileClickable={false}>
                   <TooltipTrigger asChild>
                     <span className="truncate text-xs text-[#71717B]">
                       {subscriptionType || 'Lite Plus'}
