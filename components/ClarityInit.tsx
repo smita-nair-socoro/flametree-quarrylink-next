@@ -5,23 +5,22 @@ import { usePathname } from 'next/navigation';
 import Clarity from '@microsoft/clarity';
 import { getTenantId } from '@/lib/utils';
 import { claritySafe } from '@/lib/clarity';
-import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import { useConfig } from '@/lib/providers/ConfigProvider';
 
 // Type for npm package init only
 interface MicrosoftClarityInit {
   init: (projectId: string) => void;
 }
 
-const clarityProjectId = getRuntimeConfig().CLARITY_PROJECT_ID;
-console.log('clarityProjectId', clarityProjectId);
-
 export default function ClarityInit() {
   const pathname = usePathname();
+  const { CLARITY_PROJECT_ID: clarityProjectId } = useConfig();
 
   useEffect(() => {
     if (typeof window === 'undefined' || !clarityProjectId) return;
+    console.log('clarityProjectId', clarityProjectId);
     (Clarity as MicrosoftClarityInit).init(clarityProjectId);
-  }, []);
+  }, [clarityProjectId]);
 
   // On every route change: tag page and tenant (only after window.clarity is ready)
   useEffect(() => {
