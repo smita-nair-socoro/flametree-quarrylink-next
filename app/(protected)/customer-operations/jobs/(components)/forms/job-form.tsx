@@ -49,7 +49,7 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-export default function QuotationForm({
+export default function JobForm({
   id,
   onCancel,
   className,
@@ -530,23 +530,6 @@ export default function QuotationForm({
                 enableDropdownOnMobile={true}
               />
             </div>
-            // <div className="flex flex-col gap-4 mb-10">
-            //   <div
-            //     className={cn(
-            //       isDesktop
-            //         ? 'flex justify-between items-center'
-            //         : 'flex flex-col gap-4',
-            //     )}
-            //   >
-            //     <span className="text-lg font-semibold">
-            //       Line Items
-            //     </span>
-            //     <Button>
-            //       <PlusIcon className="w-4 h-4" />
-            //       Add New Product
-            //     </Button>
-            //   </div>
-            // </div>
           )}
 
           {/* Audit Information */}
