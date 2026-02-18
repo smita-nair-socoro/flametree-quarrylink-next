@@ -190,12 +190,12 @@ export default function JobForm({
       content: <LineItemsTab jobLineItems={selectedJob?.jobLineItems ?? []} />,
     },
     {
-      name: 'Invoices',
-      content: <InvoicesTab />,
-    },
-    {
       name: 'Dockets',
       content: <DocketsTab />,
+    },
+    {
+      name: 'Invoices',
+      content: <InvoicesTab />,
     },
     {
       name: 'Cash Sales',
