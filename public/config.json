@@ -9,5 +9,6 @@
 
   "GOOGLE_MAPS_API_KEY": "AIzaSyA8f37TitR0sIDvFNJC7sezDFumiZqZZOE",
   "API_URL": "https://api.dev.quarrylink.com.au",
-  "SENTRY_DSN": null
+  "SENTRY_DSN": null,
+  "CLARITY_PROJECT_ID": "v88amv038n"
 }

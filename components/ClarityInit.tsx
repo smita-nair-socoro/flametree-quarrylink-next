@@ -5,13 +5,15 @@ import { usePathname } from 'next/navigation';
 import Clarity from '@microsoft/clarity';
 import { getTenantId } from '@/lib/utils';
 import { claritySafe } from '@/lib/clarity';
+import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 
 // Type for npm package init only
 interface MicrosoftClarityInit {
   init: (projectId: string) => void;
 }
 
-const clarityProjectId = 'v88amv038n';
+const clarityProjectId = getRuntimeConfig().CLARITY_PROJECT_ID;
+console.log('clarityProjectId', clarityProjectId);
 
 export default function ClarityInit() {
   const pathname = usePathname();
