@@ -24,7 +24,7 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 			const deliveryAddress =
 				row.original.customerDeliveryAddress?.address?.formattedAddress || '';
 			return (
-				<div className="min-w-0 w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]">
+				<div className="min-w-0 w-[70px] sm:w-[90px] md:w-[110px] lg:w-[130px] xl:w-[150px]">
 					<Tooltip delayDuration={300}>
 						<TooltipTrigger asChild>
 							<p className="font-semibold text-gray-900 text-sm truncate">
@@ -164,6 +164,35 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 		},
 		meta: 'Product Sell QTY',
 	},
+	{
+		id: 'remainingQuantity',
+		accessorFn: (row) => row.remainingQuantity,
+		header: () => {
+			return <div>Remaining QTY</div>;
+		},
+		cell: ({ row }) => {
+			const remainingQuantity = row.original.remainingQuantity;
+			const productSellUom =
+				row.original.productSellUom === 'KG_20'
+					? 'x 20kg'
+					: row.original.productSellUom;
+			const displayText = `${remainingQuantity} ${productSellUom}`;
+			return (
+				<Tooltip delayDuration={300}>
+					<TooltipTrigger asChild>
+						<div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
+							{displayText}
+						</div>
+					</TooltipTrigger>
+					<TooltipContent variant="white">
+						<p>{displayText}</p>
+					</TooltipContent>
+				</Tooltip>
+			);
+		},
+		meta: 'Product Sell QTY',
+	},
+
 	{
 		id: 'grossProfit',
 		accessorFn: (row) => row.grossProfit,
