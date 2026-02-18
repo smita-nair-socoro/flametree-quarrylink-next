@@ -33,7 +33,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ inputs.tag }}x
+      TAG: ${{ inputs.tag }}
       SUFFIX: ${{ inputs.suffix }}
       INVALIDATE_ALL: ${{ inputs.invalidate_all }}
 
