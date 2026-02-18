@@ -18,7 +18,6 @@ export default function ClarityInit() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !clarityProjectId) return;
-    console.log('clarityProjectId', clarityProjectId);
     (Clarity as MicrosoftClarityInit).init(clarityProjectId);
   }, [clarityProjectId]);
 
