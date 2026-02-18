@@ -9,12 +9,20 @@ export enum JOB_STATUS {
   COMPLETED = 'COMPLETED',
 }
 
+export enum JOB_LINE_ITEM_TYPE {
+  COLLECTION = 'COLLECTION',
+  DELIVERY = 'DELIVERY',
+}
+
 export interface Job {
   id: number;
   jobNumber: string;
   poNumber?: string;
   status: JOB_STATUS;
   customerId: number;
+  email: string;
+  phone: string;
+  customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
   accountManagerSub: string;
   accountManagerName: string;
   uninvoicedDockets: number;
@@ -37,7 +45,7 @@ export interface JobLineItem {
   quoteId?: number;
   jobId: number;
   productId: number;
-  type: 'DELIVERY' | 'COLLECTION';
+  type: JOB_LINE_ITEM_TYPE;
   quarrySupplierId: number;
   customerDeliveryAddressId?: number;
   customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;

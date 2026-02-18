@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { JobLineItem } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
-// import { JobLineItemsTableActions } from './job-line-itmes-table-actions';
+// import { JobLineItemTableActions } from './job-line-item-table-actions';
 import {
 	Tooltip,
 	TooltipContent,
@@ -214,7 +214,7 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 	// 	cell: ({ row }) => {
 	// 		return (
 	// 			<div>
-	// 				<JobLineItemsTableActions jobLineItem={row.original} />
+	// 				<JobLineItemTableActions jobLineItem={row.original} />
 	// 			</div>
 	// 		);
 	// 	},
