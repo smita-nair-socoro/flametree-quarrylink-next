@@ -29,13 +29,15 @@ export interface Job {
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
-  jobItems?: jobItems[];
+  jobLineItems?: JobLineItem[];
 }
 
-export interface jobItems {
+export interface JobLineItem {
   id?: number;
+  quoteId?: number;
   jobId: number;
   productId: number;
+  type: 'DELIVERY' | 'COLLECTION';
   quarrySupplierId: number;
   customerDeliveryAddressId?: number;
   customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
@@ -73,6 +75,6 @@ export interface jobItems {
 }
 
 export interface JobDetails extends Job {
-  job_items: jobItems[];
+  job_items: JobLineItem[];
   dockets: Docket[];
 }
