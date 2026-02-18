@@ -13,6 +13,7 @@ interface MicrosoftClarityInit {
 }
 
 const clarityProjectId = getRuntimeConfig().CLARITY_PROJECT_ID;
+console.log('clarityProjectId', clarityProjectId);
 
 export default function ClarityInit() {
   const pathname = usePathname();
