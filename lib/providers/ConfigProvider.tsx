@@ -27,9 +27,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         }
         const json: RuntimeConfig = await res.json();
         setCfg(json);
-        console.log('[ConfigProvider] fetched config.json', json);
         setRuntimeConfig(json);
-        console.log('[ConfigProvider] setRuntimeConfig done');
       } catch (err) {
         console.error('Failed to load configuration:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
