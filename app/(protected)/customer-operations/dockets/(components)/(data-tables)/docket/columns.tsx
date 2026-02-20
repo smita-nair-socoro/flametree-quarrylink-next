@@ -122,7 +122,8 @@ export const docketColumns: ColumnDef<Docket>[] = [
 		header: () => {
 			return <div></div>;
 		},
-		cell: ({ row }) => {
+		cell: () => {
+			// cell: ({ row }) => {
 			// const job = row.original;
 			// return <DocketTableActions docket={docket} />;
 			return <>Actions</>;
