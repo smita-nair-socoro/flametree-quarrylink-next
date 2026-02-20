@@ -30,11 +30,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -193,7 +193,7 @@ export function useTeamMemberActions(
       <div className="flex flex-col gap-4">
         {/* Dependency reassignment warning - Only show when hasDependencies */}
         {hasDependencies && (
-          <div className="bg-orange-50 border border-orange-400 rounded-md p-3 flex text-orange-800 flex gap-3">
+          <div className="bg-orange-50 border border-orange-400 rounded-md p-3 text-orange-800 flex gap-3">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             <p className="text-sm font-medium">
               This user has data that needs reassignment:
@@ -385,17 +385,17 @@ export function useTeamMemberActions(
     const customerReassignments =
       hasDependencies && customerCount > 0
         ? (userDependencies?.dependencies?.customers || []).map((c) => ({
-            customerId: c.id,
-            newAccountManagerSub: String(accountManagerReassignTo),
-          }))
+          customerId: c.id,
+          newAccountManagerSub: String(accountManagerReassignTo),
+        }))
         : [];
 
     const quoteReassignments =
       hasDependencies && quotesCount > 0
         ? (userDependencies?.dependencies?.quotations || []).map((q) => ({
-            quoteId: q.id,
-            newOwnerSub: String(accountManagerReassignTo),
-          }))
+          quoteId: q.id,
+          newOwnerSub: String(accountManagerReassignTo),
+        }))
         : [];
 
     const payload: UserDelete = {
