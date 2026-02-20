@@ -17,11 +17,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -123,7 +123,7 @@ const getDialogConfigs = (
   return {};
 };
 
-import { useQuotationLineItemStore } from '@/app/stores/line-item-quotation';
+import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 
 export function useQuotationLineItemActions(
   lineItemData?: QuotationLineItem | null

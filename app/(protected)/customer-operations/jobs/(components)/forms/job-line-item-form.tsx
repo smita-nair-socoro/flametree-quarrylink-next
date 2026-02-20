@@ -53,7 +53,7 @@ export default function JobLineItemForm({
 	onSuccess,
 	onSaved,
 	className,
-	canEdit,
+	canEdit = true,
 	onDirtyChange,
 }: FormProps) {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
