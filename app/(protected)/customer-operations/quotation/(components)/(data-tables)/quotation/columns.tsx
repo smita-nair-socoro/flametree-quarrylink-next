@@ -34,19 +34,6 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
     meta: 'Customer Name',
   },
   {
-    id: 'quote_type',
-    accessorFn: (row) => row.quoteType,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Quote Type" />;
-    },
-    cell: ({ row }) => {
-      const quote_type = row.original.quoteType;
-      if (!quote_type) return <span className="text-muted-foreground">-</span>;
-      return <TableBadges names={[quote_type]} visibleCount={1} />;
-    },
-    meta: 'Quote Type',
-  },
-  {
     id: 'created_at',
     accessorFn: (row) => row.createdAt,
     header: ({ column }) => {
@@ -73,7 +60,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   {
     id: 'total_sell_price',
     accessorFn: (row) => row.totalSellPrice,
-    header: ({}) => {
+    header: ({ }) => {
       return (
         <div className="flex items-center gap-1">
           Total Sell Price{' '}

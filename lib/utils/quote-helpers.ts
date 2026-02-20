@@ -127,7 +127,6 @@ export const transformFormDataToQuoteDto = (
     ...(additionalData.quoteNumber
       ? { quoteNumber: additionalData.quoteNumber }
       : {}),
-    quoteType: formData.quoteType as QUOTE_TYPE,
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,
     email: (formData.email as string) || '',

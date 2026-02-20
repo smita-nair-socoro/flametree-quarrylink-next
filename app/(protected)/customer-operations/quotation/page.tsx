@@ -234,7 +234,6 @@ export default function QuotationsPage() {
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
-    { column: 'quote_type', title: 'Quote Type', icon: Tags },
     { column: 'customer_name', title: 'Customer Name', icon: Activity },
     { column: 'account_manager', title: 'Account Manager', icon: Factory },
   ];
@@ -312,8 +311,8 @@ export default function QuotationsPage() {
                   selectedQuotations={selectedQuotations}
                   onClearSelection={handleClearSelection}
                 />
-            }
-            
+              }
+
             />
           </>
         )}
