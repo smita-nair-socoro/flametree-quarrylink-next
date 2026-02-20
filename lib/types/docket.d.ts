@@ -35,6 +35,7 @@ export interface SelectedJobLineItem {
   productSell: number;
   loadSize: number;
   truckType?: string;
+  truckSellUom?: string;
   truckSell?: number;
   truckSellQty?: number;
   totalProductSell: number;
