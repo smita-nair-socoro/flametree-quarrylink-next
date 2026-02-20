@@ -32,8 +32,10 @@ export interface SelectedJobLineItem {
   quarrySupplierId: number;
   quarrySupplierName: string;
   productUoM: string;
+  productSell: number;
   loadSize: number;
   truckType?: string;
+  truckSell?: number;
   truckSellQty?: number;
   totalProductSell: number;
   totalTruckSell?: number;
