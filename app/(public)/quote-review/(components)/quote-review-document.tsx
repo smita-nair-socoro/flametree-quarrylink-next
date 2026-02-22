@@ -177,8 +177,8 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-normal text-[#364153]">
-            Full Name <span className="text-[#E7000B]">*</span>
+          <label className="text-base font-medium text-[#101828]">
+            Full Name*
           </label>
           <Input
             value={approveFullName}
@@ -320,8 +320,8 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-normal text-[#364153]">
-            Full Name <span className="text-[#E7000B]">*</span>
+          <label className="text-base font-medium text-[#101828]">
+            Full Name*
           </label>
           <Input
             value={declineFullName}
