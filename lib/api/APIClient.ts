@@ -815,11 +815,19 @@ export const APIClient = {
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',
-      declineReason?: string
+      declineReason?: string,
+      decisionMakerName?: string
     ) => {
-      const body: { status: string; declineReason?: string } = { status };
+      const body: {
+        status: string;
+        declineReason?: string;
+        decisionMakerName?: string;
+      } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
+      }
+      if (decisionMakerName !== undefined) {
+        body.decisionMakerName = decisionMakerName;
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,

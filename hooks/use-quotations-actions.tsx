@@ -6,6 +6,7 @@ import QuotationForm from '@/app/(protected)/customer-operations/quotation/(comp
 import { QuotationActionButtons } from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-action-buttons';
 import { ActionDialog } from '@/components/action-dialog';
 import { useQuotationStore } from '@/app/stores/quotation-store';
+import { useTenantName } from '@/app/stores/tenant-store';
 import {
   Archive,
   ArrowRight,
@@ -910,6 +911,7 @@ const getDialogConfigs = (
 };
 
 export function useQuotationActions(quotationData?: Quotation | null) {
+  const tenantName = useTenantName();
   const fallbackQuotation = useQuotationStore((state) =>
     state.selectedQuotation?.id
       ? state.getQuotationById(state.selectedQuotation.id)
@@ -1127,18 +1129,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.APPROVED,
-      });
-
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
+      const decisionMakerName = `tenant-${tenantName}`;
+      await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
+        status: 'APPROVED',
+        decisionMakerName,
       });
       notifySuccess('Quotation Approved');
       setActiveDialog(null);
@@ -1179,10 +1174,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         ? `${reasonLabel}-${declineNotes.trim()}`
         : reasonLabel;
 
+      const decisionMakerName = `tenant-${tenantName}`;
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
         status: 'DECLINED',
         declineReason: composedDeclineReason,
+        decisionMakerName,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);

@@ -364,15 +364,18 @@ export const useUpdateQuoteDecision = () => {
       id,
       status,
       declineReason,
+      decisionMakerName,
     }: {
       id: number;
       status: 'APPROVED' | 'DECLINED';
       declineReason?: string;
+      decisionMakerName?: string;
     }) => {
       const response = await APIClient.quotations.updateQuoteDecision(
         id,
         status,
-        declineReason
+        declineReason,
+        decisionMakerName
       );
       return response;
     },
