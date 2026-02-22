@@ -371,11 +371,12 @@ export default function QuoteReviewDocument({
   };
 
   const handleApprove = async () => {
+    const composedDecisionMakerName = `customer-${approveFullName.trim()}`;
     updateQuoteStatus(
       {
         status: 'APPROVED',
         token,
-        decisionMakerName: approveFullName.trim(),
+        decisionMakerName: composedDecisionMakerName,
       },
       {
         onSuccess: () => {
@@ -416,12 +417,13 @@ export default function QuoteReviewDocument({
       ? `${reasonLabel}-${declineNotes.trim()}`
       : reasonLabel;
 
+    const composedDecisionMakerName = `customer-${declineFullName.trim()}`;
     updateQuoteStatus(
       {
         status: 'DECLINED',
         token,
         declineReason: composedDeclineReason,
-        decisionMakerName: declineFullName.trim(),
+        decisionMakerName: composedDecisionMakerName,
       },
       {
         onSuccess: () => {
