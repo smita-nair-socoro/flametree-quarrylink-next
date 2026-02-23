@@ -57,7 +57,7 @@ export default function QuoteReviewDocument({
   // Use API data if available, otherwise fall back to mock data
   const quotationData = useMemo(
     () => (quoteData ? transformQuoteData(quoteData) : mockQuotationData),
-    [quoteData]
+    [quoteData],
   );
 
   // Get status directly from the transformed quotation data
@@ -320,13 +320,13 @@ export default function QuoteReviewDocument({
         quoteId,
         `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`,
         undefined,
-        quotationData.navbar.tenantDetails
+        quotationData.navbar.tenantDetails,
       );
     } catch (error) {
       notifyError(
         error instanceof Error
           ? error.message
-          : 'Failed to download PDF. Please try again.'
+          : 'Failed to download PDF. Please try again.',
       );
     }
   };
@@ -345,7 +345,7 @@ export default function QuoteReviewDocument({
           console.error('Failed to approve quote:', error);
           notifyError(extractErrorMessage(error));
         },
-      }
+      },
     );
   };
 
@@ -390,7 +390,7 @@ export default function QuoteReviewDocument({
           console.error('Failed to decline quote:', error);
           notifyError(extractErrorMessage(error));
         },
-      }
+      },
     );
   };
 
@@ -456,7 +456,6 @@ export default function QuoteReviewDocument({
           <ProductsServices
             products={quotationData.products}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
-            quoteType={quotationData.project.type}
           />
           <Separator className="mb-8" />
           {/* Summary & Payment */}
