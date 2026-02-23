@@ -18,7 +18,6 @@ export function transformQuoteData(
   const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto } = apiResponse;
   const {
     quoteNumber,
-    quoteType,
     customerName,
     customerWithAddressResponseDto,
     projectName,
@@ -36,18 +35,28 @@ export function transformQuoteData(
 
   // Transform products from quoteItems
   const products =
-    quoteItems?.map((item) => ({
-      name: item.productName || 'Unknown Product',
-      deliveryAddress:
-        item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
-      truckType: item.truckType || 'N/A',
-      capacity: `${item.totalQuantityRequired || 0} ${
-        item.productSellUom === 'KG_20' ? 'x 20kg' :  item.productSellUom || 'units'
-      } per delivery`,
-      quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
-      totalPrice: item.totalProductSellPrice || 0, // Product price only
-      deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
-    })) || [];
+    quoteItems?.map((item, index) => {
+      const rawType =
+        (item as { type?: string }).type ||
+        (item as { quoteType?: string }).quoteType ||
+        (index % 2 === 0 ? 'DELIVERY' : 'COLLECTION');
+      const type = String(rawType).toUpperCase();
+      return {
+        name: item.productName || 'Unknown Product',
+        type,
+        deliveryAddress:
+          item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
+        truckType: item.truckType || 'N/A',
+        capacity: `${item.totalQuantityRequired || 0} ${
+          item.productSellUom === 'KG_20'
+            ? 'x 20kg'
+            : item.productSellUom || 'units'
+        } per delivery`,
+        quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
+        totalPrice: item.totalProductSellPrice || 0, // Product price only
+        deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
+      };
+    }) || [];
 
   // Calculate totals (prices are in cents from backend)
   // Calculate product subtotal (sum of all totalProductSellPrice)
@@ -114,7 +123,6 @@ export function transformQuoteData(
       },
     },
     project: {
-      type: (quoteType as QuoteType) || QuoteType.DELIVERY,
       projectName: projectName || 'N/A',
       deliveryDate: formatDateWithOrdinal(deliveryStartDate),
       deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd),

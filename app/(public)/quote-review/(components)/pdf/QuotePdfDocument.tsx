@@ -31,7 +31,6 @@ export interface QuotationData {
     };
   };
   project: {
-    type: QUOTE_TYPE;
     projectName: string;
     deliveryDate: string;
     deliveryWindow: string;
@@ -98,7 +97,6 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           <ProductsTablePdf
             products={data.products}
             includeDeliveryPrices={data.inclDeliveryCost}
-            quoteType={data.project.type}
           />
 
           {/* Summary & Payment */}
