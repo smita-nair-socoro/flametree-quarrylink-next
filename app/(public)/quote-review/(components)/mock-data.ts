@@ -1,7 +1,4 @@
-import {
-  QUOTE_STATUS as QuoteStatus,
-  QUOTE_TYPE as QuoteType,
-} from '@/lib/types/quotation-enums';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 export const mockQuotationData = {
   // Include delivery cost flag
