@@ -7,7 +7,7 @@ import { CustomerInfoPdf } from './CustomerInfoPdf';
 import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
-import { QUOTE_STATUS, QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 
 // Type matching the mockQuotationData structure
@@ -37,6 +37,7 @@ export interface QuotationData {
   };
   products: Array<{
     name: string;
+    type?: string;
     deliveryAddress: string;
     truckType: string;
     capacity: string;

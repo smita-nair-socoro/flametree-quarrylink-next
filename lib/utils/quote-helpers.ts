@@ -1,4 +1,4 @@
-import { QUOTE_STATUS, QUOTE_TYPE } from '../types/quotation-enums';
+import { QUOTE_STATUS } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toUTCDateTimeWithoutZ } from './date';
 import { centsToDollars } from './currency';

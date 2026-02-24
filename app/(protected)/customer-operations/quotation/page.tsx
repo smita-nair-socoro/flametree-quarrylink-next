@@ -190,9 +190,6 @@ export default function QuotationsPage() {
             {quotation.quoteStatus && (
               <TableBadges names={[quotation.quoteStatus]} visibleCount={1} />
             )}
-            {quotation.quoteType && (
-              <TableBadges names={[quotation.quoteType]} visibleCount={1} />
-            )}
           </>
         }
         actions={<QuotationTableActions quotation={quotation} />}
@@ -312,7 +309,6 @@ export default function QuotationsPage() {
                   onClearSelection={handleClearSelection}
                 />
               }
-
             />
           </>
         )}

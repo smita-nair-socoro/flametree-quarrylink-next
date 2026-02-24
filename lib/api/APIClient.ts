@@ -700,7 +700,6 @@ export const APIClient = {
       page?: number;
       pageSize?: number;
       status?: string;
-      quoteType?: string;
       customerId?: number;
       accountManagerId?: number;
       search?: string;
@@ -719,7 +718,6 @@ export const APIClient = {
           page: params?.page?.toString(),
           pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
           status: params?.status,
-          quoteType: params?.quoteType,
           customerId: params?.customerId?.toString(),
           accountManagerId: params?.accountManagerId?.toString(),
           search: params?.search,

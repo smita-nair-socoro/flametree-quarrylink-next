@@ -4,7 +4,7 @@ import {
 } from '@/lib/types/quotation';
 import {
   QUOTE_STATUS as QuoteStatus,
-  QUOTE_TYPE as QuoteType,
+  QUOTE_ITEM_TYPE as QuoteItemType,
 } from '@/lib/types/quotation-enums';
 import { formatAustralianAddress } from '@/lib/utils/address-helper';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
@@ -37,9 +37,7 @@ export function transformQuoteData(
   const products =
     quoteItems?.map((item, index) => {
       const rawType =
-        (item as { type?: string }).type ||
-        (item as { quoteType?: string }).quoteType ||
-        (index % 2 === 0 ? 'DELIVERY' : 'COLLECTION');
+        item.quoteItemType || (item as { type?: string }).type || 'None';
       const type = String(rawType).toUpperCase();
       return {
         name: item.productName || 'Unknown Product',
@@ -123,6 +121,14 @@ export function transformQuoteData(
       },
     },
     project: {
+      type:
+        products.length > 0 &&
+        products.every((item) => item.type === QuoteItemType.COLLECTION)
+          ? QuoteItemType.COLLECTION
+          : products.length > 0 &&
+              products.every((item) => item.type === QuoteItemType.DELIVERY)
+            ? QuoteItemType.DELIVERY
+            : undefined,
       projectName: projectName || 'N/A',
       deliveryDate: formatDateWithOrdinal(deliveryStartDate),
       deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd),
