@@ -2,15 +2,15 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Docket } from '@/lib/types/docket';
-import { centsToDollars } from '@/lib/utils/currency';
 // import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
+import { DateCell } from '@/components/date-cell';
+import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 
 export const docketsColumns: ColumnDef<Docket>[] = [
   {
@@ -32,6 +32,19 @@ export const docketsColumns: ColumnDef<Docket>[] = [
     meta: 'Docket Number',
   },
   {
+    id: 'deliveryDate',
+    accessorFn: (row) => row.deliveryDate,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Delivery Date" />
+      );
+    },
+    cell: ({ getValue }) => {
+      return <DateCell dateString={getValue<string>()} side="top" />;
+    },
+    meta: 'Delivery Date',
+  },
+  {
     id: 'status',
     accessorFn: (row) => row.status,
     header: () => {
@@ -43,14 +56,26 @@ export const docketsColumns: ColumnDef<Docket>[] = [
     meta: 'Status',
   },
   {
-    id: 'loadSize',
-    accessorFn: (row) => row.selectedJobLineItem.loadSize,
-    header: () => {
-      return <div>Product Sell QTY</div>;
+    id: 'product',
+    accessorFn: (row) => row.productName,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productSellQty = row.original.selectedJobLineItem.loadSize;
-      const productSellUom = row.original.selectedJobLineItem.productUoM;
+      const productName = row.original.productName;
+      return <div className="py-2">{productName}</div>;
+    },
+    meta: 'Product',
+  },
+  {
+    id: 'loadSize',
+    accessorFn: (row) => row.loadSize,
+    header: () => {
+      return <div>QTY</div>;
+    },
+    cell: ({ row }) => {
+      const productSellQty = row.original.loadSize;
+      const productSellUom = row.original.productUoM;
       const displayText = `${productSellQty} ${productSellUom}`;
       return (
         <Tooltip delayDuration={300}>
@@ -67,7 +92,6 @@ export const docketsColumns: ColumnDef<Docket>[] = [
     },
     meta: 'Product Sell QTY',
   },
-
   {
     id: 'actions',
     header: () => {

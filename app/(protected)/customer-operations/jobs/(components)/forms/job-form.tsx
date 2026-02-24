@@ -12,8 +12,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import rawJson from '@/lib/tests/jobsDetailResponseData.json';
-import rawJsonDocketsJob101 from '@/lib/tests/docketsJob101ResponseData.json';
-import rawJsonDocketsJob102 from '@/lib/tests/docketsJob102ResponseData.json';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -32,8 +30,7 @@ import { UsersListQueryOptions } from '@/lib/api/user';
 import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { Job } from '@/lib/types/job';
-import { Docket } from '@/lib/types/docket';
+import { Job, JobDetails } from '@/lib/types/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
@@ -64,21 +61,7 @@ export default function JobForm({
   const [isEditing] = React.useState(Boolean(id));
 
   const selectedJob = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === id) as Job;
-  }, [id]);
-
-  const selectedJobWithDockets = React.useMemo(() => {
-    if (!selectedJob) return null;
-    if (selectedJob.id === 1) {
-      return rawJsonDocketsJob101.items.find(
-        (jobWithDockets) => jobWithDockets.id === selectedJob.id,
-      ) as unknown as Docket;
-    } else if (selectedJob.id === 2) {
-      return rawJsonDocketsJob102.items.find(
-        (jobWithDockets) => jobWithDockets.id === selectedJob.id,
-      ) as unknown as Docket;
-    }
-    return null;
+    return rawJson.items.find((job) => job.id === id) as JobDetails;
   }, [id]);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
@@ -209,10 +192,10 @@ export default function JobForm({
           <LineItemsTab jobLineItems={selectedJob?.jobLineItems ?? []} />
         ),
       },
-      // {
-      //   name: 'Dockets',
-      //   content: <DocketsTab dockets={selectedJobWithDockets?.selectedJobLineItem ?? []} />,
-      // },
+      {
+        name: 'Dockets',
+        content: <DocketsTab dockets={selectedJob?.dockets ?? []} />,
+      },
       {
         name: 'Invoices',
         content: <InvoicesTab />,
@@ -222,7 +205,7 @@ export default function JobForm({
         content: <CashSalesTab />,
       },
     ],
-    [selectedJob?.jobLineItems],
+    [selectedJob?.jobLineItems, selectedJob?.dockets],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {

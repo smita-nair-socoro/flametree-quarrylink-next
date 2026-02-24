@@ -9,11 +9,11 @@ import { docketsColumns } from './(data-tables)/columns';
 import { Docket } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
 
-interface LineItemsTabProps {
+interface DocketsTabProps {
   dockets: Docket[];
 }
 
-export default function DocketsTab({ dockets }: LineItemsTabProps) {
+export default function DocketsTab({ dockets }: DocketsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   return (
@@ -25,7 +25,7 @@ export default function DocketsTab({ dockets }: LineItemsTabProps) {
             : 'flex flex-col gap-4',
         )}
       >
-        <span className="text-lg font-semibold">Line Items</span>
+        <span className="text-lg font-semibold">Dockets</span>
         {/* will be changed to a formDialog later in another task */}
         <Button>Add New Docket</Button>
       </div>
@@ -35,7 +35,7 @@ export default function DocketsTab({ dockets }: LineItemsTabProps) {
           columns={docketsColumns}
           data={dockets}
           simpleTable={true}
-          defaultSorting={[{ id: 'productName', desc: false }]}
+          defaultSorting={[{ id: 'docketNumber', desc: false }]}
         />
       </div>
     </div>

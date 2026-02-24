@@ -7,28 +7,9 @@ export interface Docket {
   job: Job;
   docketNumber: string;
   status: DOCKET_STATUS;
-  selectedJobLineItem: SelectedJobLineItem;
-  deliveryDate: string;
-  poNumber?: string;
-  pickUpAddress?: Address;
-  deliveryAddress?: Address;
-  startTimeWindow: string;
-  endTimeWindow: string;
-  contactName: string;
-  contactPhone: string;
-  docketEmail: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
-  version: number;
-  isDeleted: boolean;
-}
-
-export interface SelectedJobLineItem {
-  id: number;
   jobLineItemId: number;
   productName: string;
+  productId: number;
   quarrySupplierId: number;
   quarrySupplierName: string;
   productUoM: string;
@@ -40,6 +21,23 @@ export interface SelectedJobLineItem {
   truckSellQty?: number;
   totalProductSell: number;
   totalTruckSell?: number;
+  sutotal: number;
   gst: number;
   totalInvoice: number;
+  deliveryDate: string;
+  poNumber?: string;
+  pickUpAddress?: Address;
+  deliveryAddress?: Address;
+  startTimeWindow: string;
+  endTimeWindow: string;
+  contactName: string;
+  contactPhone: string;
+  docketEmail: string;
+  notes?: string;
+  createdBy: string;
+  lastModifiedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  version: number;
+  isDeleted: boolean;
 }

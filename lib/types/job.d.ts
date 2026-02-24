@@ -37,7 +37,6 @@ export interface Job {
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
-  jobLineItems?: JobLineItem[];
 }
 
 export interface JobLineItem {
@@ -83,6 +82,6 @@ export interface JobLineItem {
 }
 
 export interface JobDetails extends Job {
-  job_items: JobLineItem[];
-  dockets: Docket[];
+  jobLineItems?: JobLineItem[];
+  dockets?: Docket[];
 }
