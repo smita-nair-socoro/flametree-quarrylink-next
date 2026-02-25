@@ -25,7 +25,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
-import { useTenantStore } from '@/app/stores/tenant-store';
 
 export const navItems = [
   {
@@ -108,7 +107,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     isLoading,
     isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
-  const setTenantName = useTenantStore((state) => state.setTenantName);
 
   // Fetch current user details so name/email reflect updates immediately after saving in settings
   const { data: currentUser } = useQuery(
@@ -119,10 +117,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
-      const name = tenantCompleteDetails.tenantDetails?.tenantName || '';
-      if (name) {
-        setTenantName(name);
-      }
       console.log(
         '🏢 [AppSidebar] Tenant Complete Details:',
         tenantCompleteDetails,

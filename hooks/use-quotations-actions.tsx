@@ -461,7 +461,7 @@ const getDialogConfigs = (
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-base font-medium text-[#101828]">
+              <label className="text-[14px] font-medium text-[#101828]">
                 Full Name*
               </label>
               <Input
@@ -617,7 +617,7 @@ const getDialogConfigs = (
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-base font-medium text-[#101828]">
+              <label className="text-[14px] font-medium text-[#101828]">
                 Full Name*
               </label>
               <Input
