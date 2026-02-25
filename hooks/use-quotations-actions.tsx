@@ -43,7 +43,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
+import {
+  QUOTE_ITEM_TYPE as QuoteItemType,
+  QUOTE_STATUS as QuoteStatus,
+} from '@/lib/types/quotation-enums';
 import { Input } from '@/components/ui/input';
 
 interface DialogConfig {
@@ -51,7 +54,12 @@ interface DialogConfig {
   description?: React.ReactNode;
   content?: React.ReactNode;
   confirmText?: string;
-  confirmVariant?: 'default'| 'destructive'| 'outline'| 'secondary'| 'ghost';
+  confirmVariant?:
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -79,7 +87,6 @@ const getDialogConfigs = (
   includeDeliveryPrices?: boolean,
   setIncludeDeliveryPrices?: (value: boolean) => void,
   onPreviewClick?: () => void,
-  isCollectionType?: boolean,
   declineReason?: string,
   setDeclineReason?: (reason: string) => void,
   declineNotes?: string,
@@ -91,6 +98,11 @@ const getDialogConfigs = (
   setAdditionalRecipientEmails?: (emails: string[]) => void,
   recipientEmailInputValue?: string,
   setRecipientEmailInputValue?: (value: string) => void,
+  approveFullName?: string,
+  setApproveFullName?: (value: string) => void,
+  showApproveValidationError?: boolean,
+  declineFullName?: string,
+  setDeclineFullName?: (value: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -137,8 +149,7 @@ const getDialogConfigs = (
               Are you sure you want to send this quote to the customer?
             </span>
 
-            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
-            {!isCollectionType && (
+            {
               <div className="border border-[#E5E7EB] rounded-lg p-4 bg-white">
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
@@ -183,7 +194,7 @@ const getDialogConfigs = (
                   Preview Quote
                 </Button>
               </div>
-            )}
+            }
 
             {/* Quote Delivery Section */}
             <div className="border border-[#FFD6A7] rounded-lg p-4 bg-[#FFF7ED]">
@@ -223,7 +234,7 @@ const getDialogConfigs = (
                 {customerEmail && (
                   <span
                     className={
-                      'inline-flex items-center rounded-xl px-2.5 text-[14px] font-normal border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
+                      'inline-flex items-center rounded-xl px-2.5 text-[14px] border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
                     }
                   >
                     {customerEmail}
@@ -232,7 +243,7 @@ const getDialogConfigs = (
                 {additionalRecipientEmails?.map((email, idx) => (
                   <span
                     key={`${email}-${idx}`}
-                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] font-normal border-0 text-[#1F2937] font-semibold"
+                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] border-0 text-[#1F2937] font-semibold"
                     style={{
                       backgroundColor:
                         RECIPIENT_CHIP_COLORS[
@@ -334,8 +345,8 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-4">
-            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
-            {!isCollectionType && (
+            {' '}
+            {
               <div className="border border-[#E5E5E5] rounded-lg p-4 bg-[#FFFFFF]">
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
@@ -369,7 +380,7 @@ const getDialogConfigs = (
                   </button>
                 </div>
               </div>
-            )}
+            }
           </div>
         ),
         confirmText: 'Preview Quote',
@@ -451,11 +462,32 @@ const getDialogConfigs = (
                 </div>
               </div>
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-medium text-[#101828]">
+                Full Name*
+              </label>
+              <Input
+                value={approveFullName}
+                onChange={(e) => {
+                  if (setApproveFullName) {
+                    setApproveFullName(e.target.value);
+                  }
+                }}
+                placeholder="Please type in your full name to approve"
+              />
+              {showApproveValidationError && !approveFullName?.trim() && (
+                <p className="text-xs text-[#E7000B]">
+                  Please enter your full name
+                </p>
+              )}
+            </div>
           </div>
         ),
         confirmText: 'Approve Quote',
         confirmVariant: 'default',
         confirmCustomColor: '#008236',
+        confirmDisabled: !approveFullName?.trim(),
       },
     };
   } else if (selectedAction?.key === 'decline') {
@@ -585,6 +617,29 @@ const getDialogConfigs = (
                   Quote can be edited and resent to customer later if needed
                 </li>
               </ul>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-medium text-[#101828]">
+                Full Name*
+              </label>
+              <Input
+                value={declineFullName}
+                onChange={(e) => {
+                  if (setDeclineFullName) {
+                    setDeclineFullName(e.target.value);
+                  }
+                  if (setShowDeclineValidationError) {
+                    setShowDeclineValidationError(false);
+                  }
+                }}
+                placeholder="Please type in your full name to decline"
+              />
+              {showDeclineValidationError && !declineFullName?.trim() && (
+                <p className="text-xs text-[#E7000B]">
+                  Please enter your full name
+                </p>
+              )}
             </div>
           </div>
         ),
@@ -946,13 +1001,22 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState<string[]>([]);
   const [recipientEmailInputValue, setRecipientEmailInputValue] =
     React.useState('');
+  const [approveFullName, setApproveFullName] = React.useState('');
+  const [declineFullName, setDeclineFullName] = React.useState('');
+  const [showApproveValidationError, setShowApproveValidationError] =
+    React.useState(false);
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
     if (!declineReason) return false;
     if (declineReason === 'other' && !declineNotes.trim()) return false;
+    if (!declineFullName.trim()) return false;
     return true;
-  }, [declineReason, declineNotes]);
+  }, [declineReason, declineNotes, declineFullName]);
+  const isApproveFormValid = React.useMemo(
+    () => !!approveFullName.trim(),
+    [approveFullName],
+  );
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
     quotationData?.inclDeliveryCost ?? false,
   );
@@ -978,7 +1042,14 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       // Reset form to initial state when opening
       setDeclineReason('');
       setDeclineNotes('');
+      setDeclineFullName('');
       setShowDeclineValidationError(false);
+    }
+  }, [selectedAction?.key]);
+  React.useEffect(() => {
+    if (selectedAction?.key === 'approve') {
+      setApproveFullName('');
+      setShowApproveValidationError(false);
     }
   }, [selectedAction?.key]);
 
@@ -1023,7 +1094,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   // Determine if the quotation is COLLECTION type (no delivery prices)
-  const isCollectionType = quotationToUse?.quoteType === 'COLLECTION';
+  const quoteItemTypes = quotationToUse?.quoteItems
+    ?.map((item) => item.quoteItemType)
+    .filter(Boolean);
 
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
@@ -1033,7 +1106,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     includeDeliveryPrices,
     setIncludeDeliveryPrices,
     handlePreviewFromDialog,
-    isCollectionType,
     declineReason,
     setDeclineReason,
     declineNotes,
@@ -1045,6 +1117,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     setAdditionalRecipientEmails,
     recipientEmailInputValue,
     setRecipientEmailInputValue,
+    approveFullName,
+    setApproveFullName,
+    showApproveValidationError,
+    declineFullName,
+    setDeclineFullName,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1124,20 +1201,17 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       notifyError(extractErrorMessage('Unable to approve quotation'));
       return;
     }
+    if (!isApproveFormValid) {
+      setShowApproveValidationError(true);
+      return;
+    }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.APPROVED,
-      });
-
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
+      const decisionMakerName = `tenant-${approveFullName.trim()}`;
+      await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
+        status: 'APPROVED',
+        decisionMakerName,
       });
       notifySuccess('Quotation Approved');
       setActiveDialog(null);
@@ -1178,10 +1252,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         ? `${reasonLabel}-${declineNotes.trim()}`
         : reasonLabel;
 
+      const decisionMakerName = `tenant-${declineFullName.trim()}`;
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
         status: 'DECLINED',
         declineReason: composedDeclineReason,
+        decisionMakerName,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);
@@ -1293,7 +1369,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const actions = {
-    duplicate: () => {
+    duplicate: (quotation?: Quotation | null) => {
+      useQuotationStore.getState().setIsDuplicate(true);
+      const toSelect = quotation ?? quotationData;
+      if (toSelect) {
+        setSelectedQuotation(toSelect);
+      }
       setDuplicateOpen(true);
     },
 
@@ -1310,6 +1391,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     extendExpiry: createDialogAction('extendExpiry'),
 
     view: (quotation?: Quotation | null) => {
+      useQuotationStore.getState().setIsDuplicate(false);
       const toSelect = quotation ?? quotationData;
       if (toSelect) {
         setSelectedQuotation(toSelect);
@@ -1318,17 +1400,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     },
 
     preview: () => {
-      console.log('Preview clicked', {
-        isCollectionType,
-        quotationId,
-        quoteType: quotationToUse?.quoteType,
-        expiryDate: quotationToUse?.expiryDate,
-      });
-      // For COLLECTION type, skip the modal and go directly to preview
-      if (isCollectionType) {
-        handlePreviewQuote();
-        return;
-      }
       // For DELIVERY type, show the modal with delivery toggle
       setSelectedAction({ key: 'previewQuote' });
       setActiveDialog('previewQuote');

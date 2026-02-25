@@ -1,4 +1,4 @@
-export enum QUOTE_TYPE {
+export enum QUOTE_ITEM_TYPE {
   COLLECTION = 'COLLECTION',
   DELIVERY = 'DELIVERY',
 }
