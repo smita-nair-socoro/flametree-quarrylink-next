@@ -113,6 +113,13 @@ export function createAddressSchema(address: AddressFields) {
     };
   }
 
+  schema = {
+    ...schema,
+    country: z.string().min(1, {
+      message: 'Country is required',
+    }),
+  };
+
   return z.object(schema);
 }
 
@@ -503,6 +510,7 @@ export default function AddressDialog(
         city: draftAddress.city,
         region: draftAddress.region,
         postalCode: draftAddress.postalCode,
+        country: draftAddress.country,
       });
     } catch (error) {
       const zodError = error as ZodError;
@@ -514,6 +522,7 @@ export default function AddressDialog(
         city: errors.city?.[0] ?? '',
         region: errors.region?.[0] ?? '',
         postalCode: errors.postalCode?.[0] ?? '',
+        country: errors.country?.[0] ?? '',
       });
 
       return;
@@ -677,6 +686,13 @@ export default function AddressDialog(
                     disabled={isLoading}
                     placeholder="Select country"
                   />
+                  {errorMap.country && (
+                    <FormMessages
+                      type="error"
+                      className="pt-1 text-sm"
+                      messages={[errorMap.country]}
+                    />
+                  )}
                 </div>
               </div>
 
