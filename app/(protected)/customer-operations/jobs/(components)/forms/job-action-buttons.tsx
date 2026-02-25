@@ -6,7 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Eye, Play } from 'lucide-react';
+import { MoreHorizontal, Eye } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { Job } from '@/lib/types/job';
