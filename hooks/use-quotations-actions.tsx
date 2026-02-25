@@ -110,6 +110,8 @@ const getDialogConfigs = (
   const customerEmail =
     quotationData?.email ||
     quotationData?.customerWithAddressResponseDto?.email;
+  const additionalEmailRecipients =
+    quotationData?.additionalEmailRecipients ?? [];
   const totalSellPrice = quotationData?.totalSellPrice
     ? centsToDollars(quotationData?.totalSellPrice)
     : '0';
@@ -228,7 +230,7 @@ const getDialogConfigs = (
               <span className="font-semibold text-[14px] text-[#101828]">
                 Recipient Emails*
               </span>
-              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px]">
                 {customerEmail && (
                   <span
                     className={
@@ -300,7 +302,7 @@ const getDialogConfigs = (
                       }
                     }
                   }}
-                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground"
+                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
               <span className="text-[12px] text-[#6B7280]">
@@ -965,6 +967,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       ? state.getQuotationById(state.selectedQuotation.id)
       : null,
   );
+
+  // Prefer provided prop, then store fallback
+  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
+
+  // Use detailed data if available, otherwise fall back to list/store data
+  const quotationToUse = resolvedQuotation;
   const selectedQuotation = useQuotationStore(
     (state) => state.selectedQuotation,
   );
@@ -1048,7 +1056,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   // Reset recipient emails when send-to-customer dialog opens
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
-      setAdditionalRecipientEmails([]);
+      setAdditionalRecipientEmails(
+        quotationToUse?.additionalEmailRecipients ?? [],
+      );
       setRecipientEmailInputValue('');
     }
   }, [selectedAction?.key]);
@@ -1056,12 +1066,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   // Fetch detailed quotation data with line items from backend - REMOVED
 
   // Update store with detailed quotation that includes line items - REMOVED
-
-  // Prefer provided prop, then store fallback
-  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
-
-  // Use detailed data if available, otherwise fall back to list/store data
-  const quotationToUse = resolvedQuotation;
 
   // Sync includeDeliveryPrices with backend value when quotation data changes
   React.useEffect(() => {
