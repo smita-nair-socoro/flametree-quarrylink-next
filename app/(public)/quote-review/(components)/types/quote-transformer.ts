@@ -35,7 +35,7 @@ export function transformQuoteData(
 
   // Transform products from quoteItems
   const products =
-    quoteItems?.map((item, index) => {
+    quoteItems?.map((item) => {
       const rawType =
         item.quoteItemType || (item as { type?: string }).type || 'None';
       const type = String(rawType).toUpperCase();

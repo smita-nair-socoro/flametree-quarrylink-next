@@ -768,9 +768,12 @@ export const APIClient = {
           },
         }
       ),
-    duplicate: (id: number) =>
+    duplicate: (id: number, data?: Partial<QuotationDTO>) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/duplicate`,
+        {
+          body: data,
+        }
       ),
     bulkArchive: (ids: number[]) =>
       appClient.Post<void>(

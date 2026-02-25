@@ -17,11 +17,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -140,7 +140,7 @@ export function useQuotationLineItemActions(
     (state) => state.setSelectedLineItem
   );
 
-  const lineItemId = selectedLineItem?.id;
+  const lineItemId = lineItemData?.id ?? selectedLineItem?.id;
 
   // Get selected quotation to check status
   const selectedQuotation = useSelectedQuotation();

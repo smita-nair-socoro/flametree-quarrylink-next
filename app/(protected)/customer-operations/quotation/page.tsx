@@ -8,7 +8,6 @@ import {
 import {
   Activity,
   Factory,
-  Tags,
   FileText,
   Clock,
   Wallet,
