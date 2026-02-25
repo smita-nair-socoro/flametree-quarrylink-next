@@ -655,7 +655,8 @@ export const APIClient = {
     updatePublicQuoteStatus: async (
       status: 'APPROVED' | 'DECLINED',
       token: string,
-      declineReason?: string
+      declineReason?: string,
+      decisionMakerName?: string
     ) => {
       const apiBase = baseUrl();
       if (!apiBase) {
@@ -668,9 +669,16 @@ export const APIClient = {
         token
       )}`;
 
-      const body: { status: string; declineReason?: string } = { status };
+      const body: {
+        status: string;
+        declineReason?: string;
+        decisionMakerName?: string;
+      } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
+      }
+      if (decisionMakerName !== undefined) {
+        body.decisionMakerName = decisionMakerName;
       }
 
       const response = await fetch(url, {
@@ -805,11 +813,19 @@ export const APIClient = {
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',
-      declineReason?: string
+      declineReason?: string,
+      decisionMakerName?: string
     ) => {
-      const body: { status: string; declineReason?: string } = { status };
+      const body: {
+        status: string;
+        declineReason?: string;
+        decisionMakerName?: string;
+      } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
+      }
+      if (decisionMakerName !== undefined) {
+        body.decisionMakerName = decisionMakerName;
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,

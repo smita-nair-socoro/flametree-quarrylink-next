@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { QuoteNavbar } from './quote-navbar';
 import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -43,9 +44,13 @@ export default function QuoteReviewDocument({
 }: QuoteReviewDocumentProps) {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
+  const [approveFullName, setApproveFullName] = useState('');
+  const [declineFullName, setDeclineFullName] = useState('');
   const [declineReason, setDeclineReason] = useState<string>('');
   const [declineNotes, setDeclineNotes] = useState<string>('');
   const [showValidationError, setShowValidationError] = useState(false);
+
+  const decisionMakerName = quoteData?.quoteDto?.decisionMakerName || '';
 
   // Check if we're in preview mode (no token means authenticated preview)
   const isPreviewMode = !token;
@@ -70,6 +75,12 @@ export default function QuoteReviewDocument({
   // State for navbar status (will be updated when user approves/declines)
   const [navbarStatus, setNavbarStatus] =
     useState<QuoteStatus>(currentQuoteStatus);
+
+  useEffect(() => {
+    if (!decisionMakerName) return;
+    setApproveFullName(decisionMakerName);
+    setDeclineFullName(decisionMakerName);
+  }, [decisionMakerName]);
 
   // Validation: Check if decline form is valid
   const isDeclineFormValid = useMemo(() => {
@@ -164,9 +175,20 @@ export default function QuoteReviewDocument({
             </span>
           </div>
         </div>
+
+        <div className="space-y-2">
+          <label className="text-base font-medium text-[#101828]">
+            Full Name*
+          </label>
+          <Input
+            value={approveFullName}
+            onChange={(e) => setApproveFullName(e.target.value)}
+            placeholder="Please type in your full name to approve"
+          />
+        </div>
       </div>
     );
-  }, [quotationData]);
+  }, [quotationData, approveFullName]);
 
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
@@ -296,9 +318,26 @@ export default function QuoteReviewDocument({
             ))}
           </ul>
         </div>
+
+        <div className="space-y-2">
+          <label className="text-base font-medium text-[#101828]">
+            Full Name*
+          </label>
+          <Input
+            value={declineFullName}
+            onChange={(e) => setDeclineFullName(e.target.value)}
+            placeholder="Please type in your full name to decline"
+          />
+        </div>
       </div>
     );
-  }, [quotationData, declineReason, showValidationError, declineNotes]);
+  }, [
+    quotationData,
+    declineReason,
+    showValidationError,
+    declineNotes,
+    declineFullName,
+  ]);
 
   // Check if quote is expired - show expired page (only for public access, not preview mode)
   if (!isPreviewMode && currentQuoteStatus === QuoteStatus.EXPIRED) {
@@ -332,8 +371,13 @@ export default function QuoteReviewDocument({
   };
 
   const handleApprove = async () => {
+    const composedDecisionMakerName = `customer-${approveFullName.trim()}`;
     updateQuoteStatus(
-      { status: 'APPROVED', token },
+      {
+        status: 'APPROVED',
+        token,
+        decisionMakerName: composedDecisionMakerName,
+      },
       {
         onSuccess: () => {
           setQuoteStatus(QuoteStatus.APPROVED);
@@ -373,8 +417,14 @@ export default function QuoteReviewDocument({
       ? `${reasonLabel}-${declineNotes.trim()}`
       : reasonLabel;
 
+    const composedDecisionMakerName = `customer-${declineFullName.trim()}`;
     updateQuoteStatus(
-      { status: 'DECLINED', token, declineReason: composedDeclineReason },
+      {
+        status: 'DECLINED',
+        token,
+        declineReason: composedDeclineReason,
+        decisionMakerName: composedDecisionMakerName,
+      },
       {
         onSuccess: () => {
           setQuoteStatus(QuoteStatus.DECLINED);
@@ -399,7 +449,12 @@ export default function QuoteReviewDocument({
       {/* Approve Dialog */}
       <ActionDialog
         open={approveDialogOpen}
-        onOpenChangeAction={setApproveDialogOpen}
+        onOpenChangeAction={(open) => {
+          setApproveDialogOpen(open);
+          if (!open) {
+            setApproveFullName('');
+          }
+        }}
         title="Approve Quote"
         description={approveDialogDescription}
         confirmText={isUpdatingStatus ? 'Approving...' : 'Approve Quote'}
@@ -416,6 +471,7 @@ export default function QuoteReviewDocument({
           setDeclineDialogOpen(open);
           if (!open) {
             // Reset form when dialog closes
+            setDeclineFullName('');
             setDeclineReason('');
             setDeclineNotes('');
             setShowValidationError(false);

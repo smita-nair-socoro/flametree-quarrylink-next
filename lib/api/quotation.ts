@@ -334,15 +334,18 @@ export const useUpdatePublicQuoteStatus = () => {
       status,
       token,
       declineReason,
+      decisionMakerName,
     }: {
       status: 'APPROVED' | 'DECLINED';
       token: string;
       declineReason?: string;
+      decisionMakerName?: string;
     }) => {
       const response = await APIClient.quotations.updatePublicQuoteStatus(
         status,
         token,
-        declineReason
+        declineReason,
+        decisionMakerName
       );
       return response;
     },
@@ -361,15 +364,18 @@ export const useUpdateQuoteDecision = () => {
       id,
       status,
       declineReason,
+      decisionMakerName,
     }: {
       id: number;
       status: 'APPROVED' | 'DECLINED';
       declineReason?: string;
+      decisionMakerName?: string;
     }) => {
       const response = await APIClient.quotations.updateQuoteDecision(
         id,
         status,
-        declineReason
+        declineReason,
+        decisionMakerName
       );
       return response;
     },
