@@ -1366,6 +1366,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   const actions = {
     duplicate: (quotation?: Quotation | null) => {
+      useQuotationStore.getState().setIsDuplicate(true);
       const toSelect = quotation ?? quotationData;
       if (toSelect) {
         setSelectedQuotation(toSelect);
@@ -1386,6 +1387,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     extendExpiry: createDialogAction('extendExpiry'),
 
     view: (quotation?: Quotation | null) => {
+      useQuotationStore.getState().setIsDuplicate(false);
       const toSelect = quotation ?? quotationData;
       if (toSelect) {
         setSelectedQuotation(toSelect);
