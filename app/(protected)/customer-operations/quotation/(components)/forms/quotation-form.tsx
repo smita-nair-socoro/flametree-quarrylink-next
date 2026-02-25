@@ -32,7 +32,11 @@ import { FormDialog } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useCreateQuotation, useUpdateQuotation } from '@/lib/api/quotation';
+import {
+  useCreateQuotation,
+  useUpdateQuotation,
+  useDuplicateQuotation,
+} from '@/lib/api/quotation';
 import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -88,6 +92,7 @@ export default function QuotationForm({
 
   const createQuotation = useCreateQuotation();
   const updateQuotation = useUpdateQuotation();
+  const duplicateQuotation = useDuplicateQuotation();
 
   // All form state management: data fetching, labels, pricing, customer auto-fill
   const {
@@ -187,7 +192,42 @@ export default function QuotationForm({
     const accountManagerName =
       users.find((user) => user.sub === values.accountManagerSub)?.name || '';
 
-    if (!isEditing) {
+    if (isDuplicate) {
+      try {
+        const transformed = transformFormDataToQuoteDto(values, {
+          customerName,
+          accountManagerName,
+          accountManagerSub:
+            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+          lineItemsCount: 0,
+        });
+
+        // For duplicate, we pass the original ID and the new form data
+        const newQuotation = await duplicateQuotation.mutateAsync({
+          id: id!,
+          data: transformed,
+        });
+
+        // Add the new record ID to sessionStorage for highlighting
+        if (newQuotation && typeof newQuotation.id === 'number') {
+          addNewRecordId('quotation_main_data_table', newQuotation.id);
+        }
+
+        notifySuccess('Quote duplicated successfully');
+        onSaved?.();
+        onSuccess?.();
+      } catch (error) {
+        console.error('Error duplicating quotation:', error);
+
+        const err = extractErrorResponse(error);
+        const extractedMessage = extractErrorMessage(error);
+        const messageFromErr = err?.message || extractedMessage;
+
+        notifyError(
+          messageFromErr || 'Failed to duplicate quote. Please try again.'
+        );
+      }
+    } else if (!isEditing) {
       try {
         const transformed = transformFormDataToQuoteDto(values, {
           customerName,
@@ -297,21 +337,29 @@ export default function QuotationForm({
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {(createQuotation.isPending || updateQuotation.isPending) && (
-        <div
-          className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
-          )}
-        >
-          <div className="flex flex-col items-center space-y-4 p-8">
-            <Spinner size="medium" />
-            <p className="text-lg text-muted-foreground font-bold">
-              {isDuplicate ? 'Creating Duplicate Quote...' : 'Adding Quote...'}
-            </p>
+      {(createQuotation.isPending ||
+        updateQuotation.isPending ||
+        duplicateQuotation.isPending) &&
+        (
+          <div
+            className={cn(
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              isDesktop ? '' : 'pt-10'
+            )}
+          >
+            <div className="flex flex-col items-center space-y-4 p-8">
+              <Spinner size="medium" />
+              <p className="text-lg text-muted-foreground font-bold">
+                {isDuplicate
+                  ? 'Creating Duplicate Quote...'
+                  : createQuotation.isPending
+                    ? 'Adding Quote...'
+                    : 'Updating Quote...'}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <Form {...quotationForm}>
         <form
@@ -319,7 +367,9 @@ export default function QuotationForm({
           className={cn(
             'p-1 w-full flex flex-col',
             className,
-            (createQuotation.isPending || updateQuotation.isPending) &&
+            (createQuotation.isPending ||
+              updateQuotation.isPending ||
+              duplicateQuotation.isPending) &&
             'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
@@ -708,7 +758,7 @@ export default function QuotationForm({
                     Line Items
                   </span>
                 </div>
-                {canEdit && (
+                {canEdit && !isDuplicate && (
                   <div
                     className={cn(
                       'flex items-center gap-2',
@@ -936,10 +986,10 @@ export default function QuotationForm({
                   className="cursor-pointer"
                   type="submit"
                   disabled={
-                    isEditing &&
-                    (createQuotation.isPending ||
-                      updateQuotation.isPending ||
-                      !canEdit)
+                    (isEditing && !isDuplicate && !canEdit) ||
+                    createQuotation.isPending ||
+                    updateQuotation.isPending ||
+                    duplicateQuotation.isPending
                   }
                 >
                   {isDuplicate
@@ -958,10 +1008,10 @@ export default function QuotationForm({
                   type="submit"
                   className="cursor-pointer"
                   disabled={
-                    isEditing &&
-                    (createQuotation.isPending ||
-                      updateQuotation.isPending ||
-                      !canEdit)
+                    (isEditing && !isDuplicate && !canEdit) ||
+                    createQuotation.isPending ||
+                    updateQuotation.isPending ||
+                    duplicateQuotation.isPending
                   }
                 >
                   {isDuplicate
