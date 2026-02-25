@@ -1,28 +1,23 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
-import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 
 export interface ProjectDetailsPdfProps {
-  type: QUOTE_TYPE;
   projectName: string;
   deliveryDate: string;
   deliveryWindow: string;
 }
 
 export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
-  type,
   projectName,
   deliveryDate,
   deliveryWindow,
 }) => {
-  const isDelivery = type === 'DELIVERY';
-
   return (
     <View style={styles.sectionWithBg}>
       <Text style={styles.sectionHeading}>Project Details</Text>
       {/* Type Badge */}
-      <View
+      {/* <View
         style={[
           styles.badge,
           isDelivery ? styles.badgeDelivery : styles.badgeCollection,
@@ -36,7 +31,7 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
         >
           {type}
         </Text>
-      </View>
+      </View> */}
 
       {/* Four Column Grid */}
       <View style={styles.fourColumn}>

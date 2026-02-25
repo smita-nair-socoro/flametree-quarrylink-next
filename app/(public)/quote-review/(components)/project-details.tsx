@@ -1,18 +1,14 @@
 'use client';
 
-import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
-import { QUOTE_TYPE } from '@/lib/types/quotation-enums'; 
 
 export interface ProjectDetailsProps {
-  type: QUOTE_TYPE;
   projectName: string;
   deliveryDate: string;
   deliveryWindow: string;
 }
 
 export function ProjectDetails({
-  type,
   projectName,
   deliveryDate,
   deliveryWindow,
@@ -23,9 +19,6 @@ export function ProjectDetails({
         Project Details
       </h2>
       <Separator className="mb-4" />
-      <div className="mb-4">
-        <TableBadges names={[type]} />
-      </div>
 
       <div className="gap-8 grid grid-cols-1 md:grid-cols-3">
         {/* Project Name */}
@@ -33,9 +26,7 @@ export function ProjectDetails({
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
             Project Name
           </h3>
-          <p className="text-sm text-gray-600">
-            {projectName}
-          </p>
+          <p className="text-sm text-gray-600">{projectName}</p>
         </div>
 
         {/* Delivery Date */}
@@ -43,9 +34,7 @@ export function ProjectDetails({
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
             Delivery Date
           </h3>
-          <p className="text-sm text-gray-600">
-            {deliveryDate}
-          </p>
+          <p className="text-sm text-gray-600">{deliveryDate}</p>
         </div>
 
         {/* Delivery Window */}
@@ -53,9 +42,7 @@ export function ProjectDetails({
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
             Delivery Window
           </h3>
-          <p className="text-sm text-gray-600">
-            {deliveryWindow}
-          </p>
+          <p className="text-sm text-gray-600">{deliveryWindow}</p>
         </div>
       </div>
     </div>

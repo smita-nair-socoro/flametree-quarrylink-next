@@ -512,7 +512,6 @@ export default function QuoteReviewDocument({
           <ProductsServices
             products={quotationData.products}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
-            quoteType={quotationData.project.type}
           />
           <Separator className="mb-8" />
           {/* Summary & Payment */}

@@ -4,7 +4,7 @@ import {
 } from '@/lib/types/quotation';
 import {
   QUOTE_STATUS as QuoteStatus,
-  QUOTE_TYPE as QuoteType,
+  QUOTE_ITEM_TYPE as QuoteItemType,
 } from '@/lib/types/quotation-enums';
 import { formatAustralianAddress } from '@/lib/utils/address-helper';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
@@ -18,7 +18,6 @@ export function transformQuoteData(
   const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto } = apiResponse;
   const {
     quoteNumber,
-    quoteType,
     customerName,
     customerWithAddressResponseDto,
     projectName,
@@ -36,18 +35,26 @@ export function transformQuoteData(
 
   // Transform products from quoteItems
   const products =
-    quoteItems?.map((item) => ({
-      name: item.productName || 'Unknown Product',
-      deliveryAddress:
-        item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
-      truckType: item.truckType || 'N/A',
-      capacity: `${item.totalQuantityRequired || 0} ${
-        item.productSellUom === 'KG_20' ? 'x 20kg' :  item.productSellUom || 'units'
-      } per delivery`,
-      quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
-      totalPrice: item.totalProductSellPrice || 0, // Product price only
-      deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
-    })) || [];
+    quoteItems?.map((item, index) => {
+      const rawType =
+        item.quoteItemType || (item as { type?: string }).type || 'None';
+      const type = String(rawType).toUpperCase();
+      return {
+        name: item.productName || 'Unknown Product',
+        type,
+        deliveryAddress:
+          item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
+        truckType: item.truckType || 'N/A',
+        capacity: `${item.totalQuantityRequired || 0} ${
+          item.productSellUom === 'KG_20'
+            ? 'x 20kg'
+            : item.productSellUom || 'units'
+        } per delivery`,
+        quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
+        totalPrice: item.totalProductSellPrice || 0, // Product price only
+        deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
+      };
+    }) || [];
 
   // Calculate totals (prices are in cents from backend)
   // Calculate product subtotal (sum of all totalProductSellPrice)
@@ -114,7 +121,14 @@ export function transformQuoteData(
       },
     },
     project: {
-      type: (quoteType as QuoteType) || QuoteType.DELIVERY,
+      type:
+        products.length > 0 &&
+        products.every((item) => item.type === QuoteItemType.COLLECTION)
+          ? QuoteItemType.COLLECTION
+          : products.length > 0 &&
+              products.every((item) => item.type === QuoteItemType.DELIVERY)
+            ? QuoteItemType.DELIVERY
+            : undefined,
       projectName: projectName || 'N/A',
       deliveryDate: formatDateWithOrdinal(deliveryStartDate),
       deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd),

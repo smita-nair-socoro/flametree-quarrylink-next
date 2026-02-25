@@ -43,7 +43,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
+import {
+  QUOTE_ITEM_TYPE as QuoteItemType,
+  QUOTE_STATUS as QuoteStatus,
+} from '@/lib/types/quotation-enums';
 import { Input } from '@/components/ui/input';
 
 interface DialogConfig {
@@ -84,7 +87,6 @@ const getDialogConfigs = (
   includeDeliveryPrices?: boolean,
   setIncludeDeliveryPrices?: (value: boolean) => void,
   onPreviewClick?: () => void,
-  isCollectionType?: boolean,
   declineReason?: string,
   setDeclineReason?: (reason: string) => void,
   declineNotes?: string,
@@ -145,8 +147,7 @@ const getDialogConfigs = (
               Are you sure you want to send this quote to the customer?
             </span>
 
-            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
-            {!isCollectionType && (
+            {
               <div className="border border-[#E5E7EB] rounded-lg p-4 bg-white">
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
@@ -191,7 +192,7 @@ const getDialogConfigs = (
                   Preview Quote
                 </Button>
               </div>
-            )}
+            }
 
             {/* Quote Delivery Section */}
             <div className="border border-[#FFD6A7] rounded-lg p-4 bg-[#FFF7ED]">
@@ -342,8 +343,8 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-4">
-            {/* Include Delivery Prices Toggle Section - Hidden for COLLECTION type */}
-            {!isCollectionType && (
+            {' '}
+            {
               <div className="border border-[#E5E5E5] rounded-lg p-4 bg-[#FFFFFF]">
                 <div className="flex justify-between items-start gap-3">
                   <div className="flex-1">
@@ -377,7 +378,7 @@ const getDialogConfigs = (
                   </button>
                 </div>
               </div>
-            )}
+            }
           </div>
         ),
         confirmText: 'Preview Quote',
@@ -1089,7 +1090,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   // Determine if the quotation is COLLECTION type (no delivery prices)
-  const isCollectionType = quotationToUse?.quoteType === 'COLLECTION';
+  const quoteItemTypes = quotationToUse?.quoteItems
+    ?.map((item) => item.quoteItemType)
+    .filter(Boolean);
 
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
@@ -1099,7 +1102,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     includeDeliveryPrices,
     setIncludeDeliveryPrices,
     handlePreviewFromDialog,
-    isCollectionType,
     declineReason,
     setDeclineReason,
     declineNotes,
@@ -1388,17 +1390,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     },
 
     preview: () => {
-      console.log('Preview clicked', {
-        isCollectionType,
-        quotationId,
-        quoteType: quotationToUse?.quoteType,
-        expiryDate: quotationToUse?.expiryDate,
-      });
-      // For COLLECTION type, skip the modal and go directly to preview
-      if (isCollectionType) {
-        handlePreviewQuote();
-        return;
-      }
       // For DELIVERY type, show the modal with delivery toggle
       setSelectedAction({ key: 'previewQuote' });
       setActiveDialog('previewQuote');
