@@ -1,5 +1,5 @@
 import {
-  QUOTE_TYPE as QuoteType,
+  QUOTE_ITEM_TYPE as QuoteItemType,
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
@@ -10,7 +10,6 @@ import { TenantLogoResponse } from './client';
 export interface QuotationDTO {
   id: number;
   quoteNumber: string;
-  quoteType: QuoteType;
   customerId: number;
   customerName: string;
   email: string;
@@ -52,6 +51,7 @@ export interface QuotationLineItem {
   quoteId: number;
   productId: number;
   quarrySupplierId: number;
+  quoteItemType: QuoteItemType;
   customerDeliveryAddressId?: number;
   customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
   quarryProductId?: number;
@@ -125,13 +125,14 @@ export interface QuotationDisplayData {
     };
   };
   project: {
-    type: QuoteType;
+    type?: QuoteItemType;
     projectName: string;
     deliveryDate: string;
     deliveryWindow: string;
   };
   products: Array<{
     name: string;
+    type?: QuoteItemType | string;
     deliveryAddress: string;
     truckType: string;
     capacity: string;

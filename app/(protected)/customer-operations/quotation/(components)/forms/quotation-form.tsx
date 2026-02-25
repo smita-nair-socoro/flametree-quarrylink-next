@@ -51,7 +51,6 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
 import { addNewRecordId } from '@/lib/utils';
 
 interface FormProps {
@@ -99,9 +98,6 @@ export default function QuotationForm({
     timeWindowLabel,
     pricingBreakdown,
   } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
-
-  const isCollectionQuote =
-    currentQuotation?.quoteType === QUOTE_TYPE.COLLECTION;
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -324,7 +320,7 @@ export default function QuotationForm({
             'p-1 w-full flex flex-col',
             className,
             (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none'
+            'pointer-events-none'
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -388,7 +384,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none'
+              'pointer-events-none'
             )}
           >
             {/* Duplicate Info Banner */}
@@ -408,63 +404,6 @@ export default function QuotationForm({
                 </div>
               </div>
             )}
-
-            {/* Quote Type - Only show when creating new quote */}
-            <FormField
-              control={quotationForm.control}
-              name="quoteType"
-              render={({ field }) => (
-                <FormItem className="col-span-1 col-start-1 gap-3">
-                  <div className="flex items-center gap-2">
-                    <FormLabel>Quote Type*</FormLabel>
-                    {isEditing && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="right"
-                          className="max-w-[250px]"
-                          backgroundClassName="bg-gray-900 text-white"
-                          arrowClassName="bg-gray-900 fill-gray-900"
-                        >
-                          <p className="text-xs">
-                            Quote type cannot be changed after creation as it
-                            would remove truck configuration data. Please create
-                            a new quote if you need a different type.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="grid grid-flow-col auto-cols-max gap-4"
-                      disabled={isEditing}
-                    >
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="DELIVERY" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Delivery</FormLabel>
-                      </FormItem>
-
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="COLLECTION" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Collection
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormSelect
               control={quotationForm.control}
@@ -499,7 +438,7 @@ export default function QuotationForm({
                 <FormItem
                   className={
                     isEditing && isDesktop
-                      ? 'col-span-1 col-start-1'
+                      ? 'col-span-2'
                       : 'col-span-2'
                   }
                 >
@@ -525,8 +464,8 @@ export default function QuotationForm({
                   <FormItem
                     className={
                       isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-1'
                     }
                   >
                     <div className="flex items-center gap-2">
@@ -569,7 +508,7 @@ export default function QuotationForm({
                   <FormItem
                     className={
                       isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
+                        ? 'col-span-1 col-start-2'
                         : 'col-span-2'
                     }
                   >
@@ -760,9 +699,7 @@ export default function QuotationForm({
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
                       return (
                         <DataTableClient
-                          columns={getQuotationLineItemColumns(
-                            currentQuotation?.quoteType
-                          )}
+                          columns={getQuotationLineItemColumns()}
                           data={quoteItemsData}
                           simpleTable={true}
                           defaultSorting={[{ id: 'productName', desc: false }]}
@@ -791,14 +728,12 @@ export default function QuotationForm({
                                       ${pricingBreakdown.totalProductCostPrice}
                                     </span>
                                   </div>
-                                  {!isCollectionQuote && (
-                                    <div>
-                                      <span>Truck Cost</span>
-                                      <span>
-                                        ${pricingBreakdown.totalTruckCostPrice}
-                                      </span>
-                                    </div>
-                                  )}
+                                  <div>
+                                    <span>Truck Cost</span>
+                                    <span>
+                                      ${pricingBreakdown.totalTruckCostPrice}
+                                    </span>
+                                  </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span>Subtotal (ex-GST)</span>
                                     <span>
@@ -831,14 +766,12 @@ export default function QuotationForm({
                                       ${pricingBreakdown.totalProductSellPrice}
                                     </span>
                                   </div>
-                                  {!isCollectionQuote && (
-                                    <div>
-                                      <span>Truck Sell</span>
-                                      <span>
-                                        ${pricingBreakdown.totalTruckSellPrice}
-                                      </span>
-                                    </div>
-                                  )}
+                                  <div>
+                                    <span>Truck Sell</span>
+                                    <span>
+                                      ${pricingBreakdown.totalTruckSellPrice}
+                                    </span>
+                                  </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span>Subtotal (ex-GST)</span>
                                     <span>
@@ -974,8 +907,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                    ? 'Save Changes'
-                    : 'Add Quote'}
+                      ? 'Save Changes'
+                      : 'Add Quote'}
                 </Button>
               </div>
             )}
@@ -996,8 +929,8 @@ export default function QuotationForm({
                   {isDuplicate
                     ? 'Create Duplicate'
                     : isEditing
-                    ? 'Save Changes'
-                    : 'Add Quote'}
+                      ? 'Save Changes'
+                      : 'Add Quote'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
