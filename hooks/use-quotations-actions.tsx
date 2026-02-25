@@ -98,6 +98,11 @@ const getDialogConfigs = (
   setAdditionalRecipientEmails?: (emails: string[]) => void,
   recipientEmailInputValue?: string,
   setRecipientEmailInputValue?: (value: string) => void,
+  approveFullName?: string,
+  setApproveFullName?: (value: string) => void,
+  showApproveValidationError?: boolean,
+  declineFullName?: string,
+  setDeclineFullName?: (value: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -455,11 +460,32 @@ const getDialogConfigs = (
                 </div>
               </div>
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-medium text-[#101828]">
+                Full Name*
+              </label>
+              <Input
+                value={approveFullName}
+                onChange={(e) => {
+                  if (setApproveFullName) {
+                    setApproveFullName(e.target.value);
+                  }
+                }}
+                placeholder="Please type in your full name to approve"
+              />
+              {showApproveValidationError && !approveFullName?.trim() && (
+                <p className="text-xs text-[#E7000B]">
+                  Please enter your full name
+                </p>
+              )}
+            </div>
           </div>
         ),
         confirmText: 'Approve Quote',
         confirmVariant: 'default',
         confirmCustomColor: '#008236',
+        confirmDisabled: !approveFullName?.trim(),
       },
     };
   } else if (selectedAction?.key === 'decline') {
@@ -589,6 +615,29 @@ const getDialogConfigs = (
                   Quote can be edited and resent to customer later if needed
                 </li>
               </ul>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[14px] font-medium text-[#101828]">
+                Full Name*
+              </label>
+              <Input
+                value={declineFullName}
+                onChange={(e) => {
+                  if (setDeclineFullName) {
+                    setDeclineFullName(e.target.value);
+                  }
+                  if (setShowDeclineValidationError) {
+                    setShowDeclineValidationError(false);
+                  }
+                }}
+                placeholder="Please type in your full name to decline"
+              />
+              {showDeclineValidationError && !declineFullName?.trim() && (
+                <p className="text-xs text-[#E7000B]">
+                  Please enter your full name
+                </p>
+              )}
             </div>
           </div>
         ),
@@ -944,13 +993,22 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState<string[]>([]);
   const [recipientEmailInputValue, setRecipientEmailInputValue] =
     React.useState('');
+  const [approveFullName, setApproveFullName] = React.useState('');
+  const [declineFullName, setDeclineFullName] = React.useState('');
+  const [showApproveValidationError, setShowApproveValidationError] =
+    React.useState(false);
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
     if (!declineReason) return false;
     if (declineReason === 'other' && !declineNotes.trim()) return false;
+    if (!declineFullName.trim()) return false;
     return true;
-  }, [declineReason, declineNotes]);
+  }, [declineReason, declineNotes, declineFullName]);
+  const isApproveFormValid = React.useMemo(
+    () => !!approveFullName.trim(),
+    [approveFullName],
+  );
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
     quotationData?.inclDeliveryCost ?? false,
   );
@@ -976,7 +1034,14 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       // Reset form to initial state when opening
       setDeclineReason('');
       setDeclineNotes('');
+      setDeclineFullName('');
       setShowDeclineValidationError(false);
+    }
+  }, [selectedAction?.key]);
+  React.useEffect(() => {
+    if (selectedAction?.key === 'approve') {
+      setApproveFullName('');
+      setShowApproveValidationError(false);
     }
   }, [selectedAction?.key]);
 
@@ -1048,6 +1113,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     setAdditionalRecipientEmails,
     recipientEmailInputValue,
     setRecipientEmailInputValue,
+    approveFullName,
+    setApproveFullName,
+    showApproveValidationError,
+    declineFullName,
+    setDeclineFullName,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1127,20 +1197,17 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       notifyError(extractErrorMessage('Unable to approve quotation'));
       return;
     }
+    if (!isApproveFormValid) {
+      setShowApproveValidationError(true);
+      return;
+    }
 
     try {
-      const quotationDTO = buildUpdatePayload({
-        quoteStatus: QuoteStatus.APPROVED,
-      });
-
-      if (!quotationDTO) {
-        notifyError(extractErrorMessage('Missing quotation data for update'));
-        return;
-      }
-
-      await updateQuotationMutation.mutateAsync({
-        ...quotationDTO,
+      const decisionMakerName = `tenant-${approveFullName.trim()}`;
+      await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
+        status: 'APPROVED',
+        decisionMakerName,
       });
       notifySuccess('Quotation Approved');
       setActiveDialog(null);
@@ -1181,10 +1248,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         ? `${reasonLabel}-${declineNotes.trim()}`
         : reasonLabel;
 
+      const decisionMakerName = `tenant-${declineFullName.trim()}`;
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
         status: 'DECLINED',
         declineReason: composedDeclineReason,
+        decisionMakerName,
       });
       notifySuccess('Quotation Declined');
       setActiveDialog(null);
