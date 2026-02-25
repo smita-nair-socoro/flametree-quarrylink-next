@@ -1,6 +1,5 @@
 import type { AddressType } from '@/lib/types/address';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 
 // Default values for missing address fields
 const DEFAULT_ADDRESS_VALUES = {
@@ -30,7 +29,7 @@ export const fillMissingAddressFields = (address: AddressType): AddressType => {
  */
 export const isValidAutocomplete = (
   address: AddressType,
-  searchInput: string
+  searchInput: string,
 ): boolean => {
   if (searchInput.trim() === '') {
     return true;
@@ -63,8 +62,8 @@ export const isValidAutocomplete = (
       .optional(),
 
     country: z.string().min(1, 'Country is required'),
-    latitude: z.number().nonnegative(),
-    longitude: z.number().nonnegative(),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
     googlePlaceId: z.union([z.string(), z.number()]).optional(),
   });
   const result = AddressSchema.safeParse(address);
