@@ -55,11 +55,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -232,7 +232,7 @@ const getDialogConfigs = (
                 {customerEmail && (
                   <span
                     className={
-                      'inline-flex items-center rounded-xl px-2.5 text-[14px] font-normal border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
+                      'inline-flex items-center rounded-xl px-2.5 text-[14px] border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
                     }
                   >
                     {customerEmail}
@@ -241,7 +241,7 @@ const getDialogConfigs = (
                 {additionalRecipientEmails?.map((email, idx) => (
                   <span
                     key={`${email}-${idx}`}
-                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] font-normal border-0 text-[#1F2937] font-semibold"
+                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] border-0 text-[#1F2937] font-semibold"
                     style={{
                       backgroundColor:
                         RECIPIENT_CHIP_COLORS[
@@ -1365,7 +1365,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const actions = {
-    duplicate: () => {
+    duplicate: (quotation?: Quotation | null) => {
+      const toSelect = quotation ?? quotationData;
+      if (toSelect) {
+        setSelectedQuotation(toSelect);
+      }
       setDuplicateOpen(true);
     },
 
