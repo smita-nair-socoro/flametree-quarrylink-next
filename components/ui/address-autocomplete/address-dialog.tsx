@@ -158,6 +158,7 @@ export default function AddressDialog(
 
   // Validation errors
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
+  const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
 
   // Map sync state
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
@@ -178,6 +179,7 @@ export default function AddressDialog(
       setDraftAddress({ ...address });
       setAdrAddressDraft(adrAddress);
       setErrorMap({});
+      setHasAttemptedSave(false);
       setGeocodeError(null);
 
       // Get country code from country name
@@ -494,6 +496,7 @@ export default function AddressDialog(
   const handleSave = (e: FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setHasAttemptedSave(true);
 
     const addressSchema = createAddressSchema({
       address1: address.address1,
@@ -554,6 +557,24 @@ export default function AddressDialog(
   };
 
   const isMapDisabled = isLoading || isReverseGeocoding;
+  const validationResult = createAddressSchema({
+    address1: address.address1,
+    address2: address.address2,
+    city: address.city,
+    region: address.region,
+    postalCode: address.postalCode,
+  }).safeParse({
+    address1: draftAddress.address1,
+    address2: draftAddress.address2,
+    city: draftAddress.city,
+    region: draftAddress.region,
+    postalCode: draftAddress.postalCode,
+    country: draftAddress.country,
+  });
+  const isFormValid = validationResult.success;
+  const validationSummaryMessage = validationResult.success
+    ? ''
+    : 'Some required fields are invalid or missing.';
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -770,6 +791,11 @@ export default function AddressDialog(
             </div>
 
             <DialogFooter className="mt-6">
+              {hasAttemptedSave && !isFormValid && (
+                <div className="mr-auto text-sm text-destructive">
+                  {validationSummaryMessage}
+                </div>
+              )}
               <Button
                 type="reset"
                 onClick={() => setOpen(false)}
