@@ -17,7 +17,6 @@ import {
   Calendar,
   ThumbsDown,
   BadgeCheck,
-  GitPullRequestCreateArrow,
   Timer,
   Archive,
   Pencil,
@@ -122,7 +121,7 @@ export function QuotationActionButtons({
                 {!isEssentials && (
                   <DropdownMenuItem onClick={actions.convertToJob}>
                     <Briefcase className="h-4 w-4 mr-2" />
-                    Create Job
+                    Convert to Job
                   </DropdownMenuItem>
                 )}
               </>
@@ -287,8 +286,8 @@ export function QuotationActionButtons({
                 onClick={actions.convertToJob}
                 className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
               >
-                <GitPullRequestCreateArrow className="h-4 w-4 mr-2" />
-                Create Job
+                <Briefcase className="h-4 w-4 mr-2" />
+                Convert to Job
               </Button>
             )}
           </>
