@@ -32,7 +32,7 @@ export const QuotationDetailQueryOptions = (quotationId: number) =>
   });
 
 export const fetchPublicQuoteByToken = async (
-  token: string
+  token: string,
 ): Promise<PublicQuoteLinkResponse> => {
   const response = await APIClient.quotations.getByPublicLinkToken(token);
   console.log('[Quotation][public link] response:', response);
@@ -44,7 +44,7 @@ export const fetchPublicQuoteByToken = async (
  * Used when admin previews a quote before sending to customer.
  */
 export const fetchQuotePreview = async (
-  quoteId: number
+  quoteId: number,
 ): Promise<PublicQuoteLinkResponse> => {
   const response = await APIClient.quotations.preview(quoteId);
   console.log('[Quotation][preview] response:', response);
@@ -184,7 +184,7 @@ export const useSendToCustomer = () => {
       APIClient.quotations.sendToCustomer(
         id,
         inclDeliveryCost,
-        additionalEmailRecipients
+        additionalEmailRecipients,
       ),
 
     onSuccess: (data) => {
@@ -235,9 +235,8 @@ export const useCreateQuoteItem = () => {
         quarrySupplierId: data.quarrySupplierId || 1,
         quarryProductId: data.quarryProductId || 1,
       };
-      const response = await APIClient.quotations.createQuoteItem(
-        dataWithDefaults
-      );
+      const response =
+        await APIClient.quotations.createQuoteItem(dataWithDefaults);
       return convertKeysToCamelCase(response) as QuotationLineItem;
     },
 
@@ -254,6 +253,23 @@ export const useCreateQuoteItem = () => {
   });
 };
 
+export const useDuplicateQuotation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<QuotationDTO> }) => {
+      const dataWithDefaults = {
+        inclDeliveryCost: false,
+        ...data,
+      };
+      return APIClient.quotations.duplicate(id, dataWithDefaults);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
 /**
  * Query options for fetching a quote item by id.
  */
@@ -334,15 +350,18 @@ export const useUpdatePublicQuoteStatus = () => {
       status,
       token,
       declineReason,
+      decisionMakerName,
     }: {
       status: 'APPROVED' | 'DECLINED';
       token: string;
       declineReason?: string;
+      decisionMakerName?: string;
     }) => {
       const response = await APIClient.quotations.updatePublicQuoteStatus(
         status,
         token,
-        declineReason
+        declineReason,
+        decisionMakerName,
       );
       return response;
     },
@@ -361,15 +380,18 @@ export const useUpdateQuoteDecision = () => {
       id,
       status,
       declineReason,
+      decisionMakerName,
     }: {
       id: number;
       status: 'APPROVED' | 'DECLINED';
       declineReason?: string;
+      decisionMakerName?: string;
     }) => {
       const response = await APIClient.quotations.updateQuoteDecision(
         id,
         status,
-        declineReason
+        declineReason,
+        decisionMakerName,
       );
       return response;
     },
