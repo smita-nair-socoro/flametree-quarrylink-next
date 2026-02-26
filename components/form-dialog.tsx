@@ -258,7 +258,6 @@ export function FormDialog({
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quoteNumber;
     finalPrimaryBadges = [selectedQuotation.quoteStatus];
-    finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
   const customerForHeader = headerCustomerProp ?? selectedCustomer;

@@ -1,4 +1,4 @@
-import { QUOTE_STATUS, QUOTE_TYPE } from '../types/quotation-enums';
+import { QUOTE_STATUS } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { toUTCDateTimeWithoutZ } from './date';
 import { centsToDollars } from './currency';
@@ -127,7 +127,6 @@ export const transformFormDataToQuoteDto = (
     ...(additionalData.quoteNumber
       ? { quoteNumber: additionalData.quoteNumber }
       : {}),
-    quoteType: formData.quoteType as QUOTE_TYPE,
     customerId: formData.customerId as number,
     customerName: additionalData.customerName,
     email: (formData.email as string) || '',

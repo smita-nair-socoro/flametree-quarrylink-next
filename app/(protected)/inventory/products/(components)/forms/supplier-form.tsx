@@ -151,13 +151,13 @@ export default function SupplierForm({
       content: (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Supplier Information</CardTitle>
+            <CardTitle>Quarry / Supplier Information</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-between gap-4">
             <FormSelect
               control={supplierForm.control}
               name="quarry_supplier_id"
-              label="Supplier Name*"
+              label="Quarry / Supplier Name*"
               searchLabel="Suppliers"
               options={supplierOptions}
               placeholder="Select a Supplier"
@@ -472,9 +472,8 @@ export default function SupplierForm({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${
-            isEditing ? 'update' : 'create'
-          } supplier. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'
+        } supplier. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -643,7 +642,7 @@ export default function SupplierForm({
                   e.stopPropagation();
                 }}
               >
-                {isSubmitting ? 'Adding Product...' : 'Add Supplier'}
+                {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
               </Button>
             )}
 

@@ -16,6 +16,7 @@ import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
 import { fillMissingAddressFields } from './autocomplete-validators';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
+import { geocodePostalAddress, type GeocodedSuggestion } from '@/lib/utils/geocoding';
 import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -145,6 +146,8 @@ export const formatAddressFromComponents = (address: AddressType): string => {
   return parts.join(', ');
 };
 
+const PO_BOX_PATTERN = /^P\.?O\.?\s*Box\b/i;
+
 export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const {
     address,
@@ -268,6 +271,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           lat,
           lng,
           googlePlaceId: selectedPlaceId, // Store the Google Place ID
+          locationSource: 'AUTOCOMPLETE_PLACE',
         };
 
         // Only update if the address actually changed
@@ -305,6 +309,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
+        locationSource: 'MANUAL',
       });
       setAddress(updatedAddress);
       // Notify react-hook-form of the change when user manually enters
@@ -320,7 +325,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     setSelectedPlaceId('');
     setAdrAddress('');
     setSearchInput('');
-    const resetAddress = {
+    const resetAddress: AddressType = {
       address1: '',
       address2: '',
       formattedAddress: '',
@@ -331,6 +336,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       lat: 0,
       lng: 0,
       googlePlaceId: '',
+      locationSource: undefined,
     };
     setAddress(resetAddress);
     // Notify react-hook-form of the change
@@ -380,12 +386,14 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             open={isOpen}
             setOpen={setIsOpen}
             onChange={onChange}
+            isCollection={isCollection}
           >
             <Button
-              disabled={detailsLoading}
+              disabled={detailsLoading || readOnly}
               size="icon"
               variant="outline"
               className="shrink-0"
+              title="Edit address and location"
             >
               <Pencil className="size-4" />
             </Button>
@@ -396,6 +404,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
             size="icon"
             variant="outline"
             className="shrink-0"
+            disabled={readOnly}
+            title="Clear address"
           >
             <Delete className="size-4" />
           </Button>
@@ -477,6 +487,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
 
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<AutocompleteSuggestion[]>([]);
+  const [geocodedSuggestions, setGeocodedSuggestions] = useState<GeocodedSuggestion[]>([]);
   const [autocompleteLoading, setAutocompleteLoading] = useState(false);
 
   const open = useCallback(() => setIsOpen(true), []);
@@ -493,8 +504,10 @@ function AddressAutoCompleteInput(props: CommonProps) {
   // Fetch autocomplete suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (!debouncedSearchInput.trim()) {
+      const trimmedInput = debouncedSearchInput.trim();
+      if (!trimmedInput) {
         setSuggestions([]);
+        setGeocodedSuggestions([]);
         return;
       }
 
@@ -505,6 +518,17 @@ function AddressAutoCompleteInput(props: CommonProps) {
         if (!apiKey) {
           console.error('Missing API Key');
           setSuggestions([]);
+          setGeocodedSuggestions([]);
+          return;
+        }
+
+        const isPOBox = PO_BOX_PATTERN.test(trimmedInput);
+
+        // If input looks like a PO Box, skip Places API and go straight to Geocoding
+        if (isPOBox) {
+          setSuggestions([]);
+          const geocoded = await geocodePostalAddress(trimmedInput);
+          setGeocodedSuggestions(geocoded);
           return;
         }
 
@@ -539,14 +563,25 @@ function AddressAutoCompleteInput(props: CommonProps) {
           const errorText = await response.text();
           console.error('Error response:', errorText);
           setSuggestions([]);
+          setGeocodedSuggestions([]);
           return;
         }
 
         const data = await response.json();
-        setSuggestions(data.suggestions || []);
+        const placeSuggestions: AutocompleteSuggestion[] = data.suggestions || [];
+        setSuggestions(placeSuggestions);
+
+        // Fallback: if Places returned no results and input is long enough, try Geocoding API
+        if (placeSuggestions.length === 0 && trimmedInput.length >= 3) {
+          const geocoded = await geocodePostalAddress(trimmedInput);
+          setGeocodedSuggestions(geocoded);
+        } else {
+          setGeocodedSuggestions([]);
+        }
       } catch (error) {
         console.error('Error fetching autocomplete suggestions:', error);
         setSuggestions([]);
+        setGeocodedSuggestions([]);
       } finally {
         setAutocompleteLoading(false);
       }
@@ -557,7 +592,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
 
   const hasSearched = debouncedSearchInput.trim().length > 0;
   const hasNoResults =
-    hasSearched && !autocompleteLoading && suggestions.length === 0;
+    hasSearched && !autocompleteLoading && suggestions.length === 0 && geocodedSuggestions.length === 0;
   const showInitialSuggestions = useSuggestions && !hasSearched && isOpen;
   const showAutocompleteSuggestions = hasSearched && isOpen;
   const pinnedAddressFormatted = useSuggestions
@@ -709,6 +744,38 @@ function AddressAutoCompleteInput(props: CommonProps) {
                             onMouseDown={(e) => e.preventDefault()}
                           >
                             {prediction.placePrediction.text.text}
+                          </CommandPrimitive.Item>
+                        ))}
+
+                        {geocodedSuggestions.map((geocoded, index) => (
+                          <CommandPrimitive.Item
+                            value={geocoded.formattedAddress}
+                            onSelect={() => {
+                              setSearchInput('');
+                              const geocodedAddress: AddressType = {
+                                address1: geocoded.address1,
+                                address2: '',
+                                city: geocoded.city,
+                                region: geocoded.region,
+                                postalCode: geocoded.postalCode,
+                                country: geocoded.country,
+                                formattedAddress: geocoded.formattedAddress,
+                                lat: geocoded.lat,
+                                lng: geocoded.lng,
+                                googlePlaceId: geocoded.placeId,
+                                locationSource: 'AUTOCOMPLETE_PLACE',
+                              };
+                              onSelectSuggestion?.(
+                                geocoded.formattedAddress,
+                                fillMissingAddressFields(geocodedAddress),
+                              );
+                              setIsOpenDialog(true);
+                            }}
+                            className="flex select-text flex-col cursor-pointer gap-0.5 h-max p-2 px-3 rounded-md aria-selected:bg-accent aria-selected:text-accent-foreground hover:bg-accent hover:text-accent-foreground items-start"
+                            key={`geocoded-${geocoded.placeId || index}`}
+                            onMouseDown={(e) => e.preventDefault()}
+                          >
+                            {geocoded.formattedAddress}
                           </CommandPrimitive.Item>
                         ))}
 
