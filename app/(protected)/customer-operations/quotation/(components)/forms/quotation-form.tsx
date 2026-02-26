@@ -351,24 +351,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-        <div
-          className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10',
-          )}
-        >
-          <div className="flex flex-col items-center space-y-4 p-8">
-            <Spinner size="medium" />
-            <p className="text-lg text-muted-foreground font-bold">
-              {isDuplicate
-                ? 'Creating Duplicate Quote...'
-                : createQuotation.isPending
-                  ? 'Adding Quote...'
-                  : 'Updating Quote...'}
-            </p>
+          <div
+            className={cn(
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              isDesktop ? '' : 'pt-10',
+            )}
+          >
+            <div className="flex flex-col items-center space-y-4 p-8">
+              <Spinner size="medium" />
+              <p className="text-lg text-muted-foreground font-bold">
+                {isDuplicate
+                  ? 'Creating Duplicate Quote...'
+                  : createQuotation.isPending
+                    ? 'Adding Quote...'
+                    : 'Updating Quote...'}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <Form {...quotationForm}>
         <form
@@ -379,7 +379,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-              'pointer-events-none',
+            'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -413,7 +413,7 @@ export default function QuotationForm({
                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <div className="flex flex-col">
                       This quote was declined by{' '}
-                      {!decisionMaker.startsWith('customer')
+                      {decisionMaker.startsWith('customer')
                         ? `${decisionMakerName}`
                         : `${decisionMakerName} on behalf of ${getCustomerNameById(currentQuotation?.customerId || 0)}`}{' '}
                       - Reason: {reasonLabel} ({decisionDate})
@@ -439,7 +439,7 @@ export default function QuotationForm({
                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <div className="flex flex-col">
                       This quote was approved by{' '}
-                      {!decisionMaker.startsWith('customer')
+                      {decisionMaker.startsWith('customer')
                         ? `${decisionMakerName}`
                         : `${decisionMakerName} on behalf of ${getCustomerNameById(currentQuotation?.customerId || 0)}`}{' '}
                     </div>
@@ -456,7 +456,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none',
+              'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
