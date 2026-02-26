@@ -537,7 +537,9 @@ export default function ProductForm({
                   {isEditing ? (
                     <span className="text-sm text-gray-500">
                       {totalSupplier}{' '}
-                      {totalSupplier === 1 ? 'quarry / supplier' : 'quarry / suppliers'}{' '}
+                      {totalSupplier === 1
+                        ? 'quarry / supplier'
+                        : 'quarries / suppliers'}{' '}
                       configured with pricing and truck rates
                     </span>
                   ) : (
