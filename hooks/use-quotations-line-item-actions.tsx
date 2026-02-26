@@ -10,7 +10,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useDeleteQuoteItem } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { useQuotationLineItemStore } from '@/app/stores/line-item-quotation';
+import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface DialogConfig {
