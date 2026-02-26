@@ -6,7 +6,6 @@ New expiry date: {newExpiryDate}
 
 Quote Number: {quoteNumber}
 Project: {projectName}
-Quote Type: {quoteType}
 Total Value: ${totalValue} ex GST
 Previous Expiry: {previousExpiryDate}
 New Expiry: {newExpiryDate}

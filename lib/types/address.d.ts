@@ -29,6 +29,16 @@ export interface CustomerDeliveryAddress {
   lastModifiedBy: string;
 }
 
+/**
+ * How the address location was determined.
+ * - AUTOCOMPLETE_PLACE: Selected from Google Places autocomplete suggestions
+ * - MAP_PIN: User placed/dragged pin on map
+ * - MANUAL: Manually entered by user (no coordinates or geocoded)
+ *
+ * Note: This field is frontend-only and not sent to backend.
+ */
+export type LocationSource = 'AUTOCOMPLETE_PLACE' | 'MAP_PIN' | 'MANUAL';
+
 // Legacy address type (keep for compatibility)
 export interface AddressType {
   address1: string;
@@ -41,4 +51,6 @@ export interface AddressType {
   lat: number;
   lng: number;
   googlePlaceId?: string | number; // Optional Google Place ID from Places API
+  /** Frontend-only field to track how location was determined. Not sent to backend. */
+  locationSource?: LocationSource;
 }

@@ -5,7 +5,6 @@ A quote has been declined by the customer.
 Quote Number: {quoteNumber}
 Customer: {customerName}
 Project: {projectName}
-Quote Type: {quoteType}
 Total Value: ${totalValue} ex GST
 Declined By: {customerContactFirstName}
 Decline Date: {declineDate}

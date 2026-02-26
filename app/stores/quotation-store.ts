@@ -6,10 +6,12 @@ interface QuotationStore {
   quotations: Quotation[];
   selectedQuotation: Quotation | null;
   isLoading: boolean;
+  isDuplicate: boolean;
 
   // Actions
   setQuotations: (quotations: Quotation[]) => void;
   setSelectedQuotation: (quotation: Quotation | null) => void;
+  setIsDuplicate: (isDuplicate: boolean) => void;
   setLoading: (loading: boolean) => void;
   bulkArchiveQuotations: (quotationIds: number[]) => void;
 
@@ -26,6 +28,7 @@ interface QuotationStore {
     totalValue: number;
   };
   getCustomerNameById: (customerId: number) => string | null;
+  getIsDuplicate: () => boolean;
 }
 
 export const useQuotationStore = create<QuotationStore>()(
@@ -34,7 +37,7 @@ export const useQuotationStore = create<QuotationStore>()(
       quotations: [],
       selectedQuotation: null,
       isLoading: false,
-
+      isDuplicate: false,
       // Actions
       setQuotations: (quotations) => set({ quotations }),
 
@@ -42,6 +45,8 @@ export const useQuotationStore = create<QuotationStore>()(
         set({ selectedQuotation: quotation }),
 
       setLoading: (loading) => set({ isLoading: loading }),
+
+      setIsDuplicate: (isDuplicate: boolean) => set({ isDuplicate }),
 
       bulkArchiveQuotations: (quotationIds) => {
         const state = get();
@@ -89,25 +94,31 @@ export const useQuotationStore = create<QuotationStore>()(
         return {
           total: quotations.length,
           pending: quotations.filter((q) => q.quoteStatus === 'PENDING').length,
-          approved: quotations.filter((q) => q.quoteStatus === 'APPROVED').length,
+          approved: quotations.filter((q) => q.quoteStatus === 'APPROVED')
+            .length,
           draft: quotations.filter((q) => q.quoteStatus === 'DRAFT').length,
           totalValue: quotations.reduce(
             (sum, q) => sum + (q.totalSellPrice || 0),
-            0
+            0,
           ),
         };
+      },
+
+      getIsDuplicate: () => {
+        const state = get();
+        return state.isDuplicate;
       },
 
       getCustomerNameById: (customerId) => {
         const state = get();
         const quotation = state.quotations.find(
-          (q) => q.customerId === customerId
+          (q) => q.customerId === customerId,
         );
         return quotation?.customerName || null;
       },
     }),
-    { name: 'quotation-store' }
-  )
+    { name: 'quotation-store' },
+  ),
 );
 
 export const useSelectedQuotation = () =>

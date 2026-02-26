@@ -8,7 +8,6 @@ import {
 import {
   Activity,
   Factory,
-  Tags,
   FileText,
   Clock,
   Wallet,
@@ -190,9 +189,6 @@ export default function QuotationsPage() {
             {quotation.quoteStatus && (
               <TableBadges names={[quotation.quoteStatus]} visibleCount={1} />
             )}
-            {quotation.quoteType && (
-              <TableBadges names={[quotation.quoteType]} visibleCount={1} />
-            )}
           </>
         }
         actions={<QuotationTableActions quotation={quotation} />}
@@ -234,7 +230,6 @@ export default function QuotationsPage() {
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Factory },
-    { column: 'quote_type', title: 'Quote Type', icon: Tags },
     { column: 'customer_name', title: 'Customer Name', icon: Activity },
     { column: 'account_manager', title: 'Account Manager', icon: Factory },
   ];
@@ -312,8 +307,7 @@ export default function QuotationsPage() {
                   selectedQuotations={selectedQuotations}
                   onClearSelection={handleClearSelection}
                 />
-            }
-            
+              }
             />
           </>
         )}

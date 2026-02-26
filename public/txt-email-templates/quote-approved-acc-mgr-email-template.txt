@@ -5,7 +5,6 @@ Good news! A quote has been approved and is ready for next steps.
 Quote Number: {quoteNumber}
 Customer: {customerName}
 Project: {projectName}
-Quote Type: {quoteType}
 Total Value: ${totalValue} ex GST
 Approved By: {customerContactFirstName}
 Approval Date: {approvalDate}
