@@ -1,16 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Your Quote is Ready - Quote #{quoteNumber} - {projectName}</title>
+    <title>Activate Your QuarryLink Account</title>
     <style>
       body {
         margin: 0;
         padding: 0;
         background-color: #f3f4f6;
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
       }
       .container {
         max-width: 600px;
@@ -21,20 +21,15 @@
         background-color: #7c3aed;
         padding: 20px;
         border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
       .navbar-other {
-        background-color: #e4e4e4;
+        background-color: #f5f5f5;
       }
       .navbar-title-other {
         color: #000000 !important;
-      }
-      .navbar-logo {
-        width: 40px;
-        height: 40px;
-        object-fit: contain;
-        margin-right: 12px;
-        vertical-align: middle;
-        display: inline-block;
       }
       .navbar-logo-initial {
         width: 40px;
@@ -49,7 +44,6 @@
         color: #000000;
         background-color: #ffffff;
         margin-right: 12px;
-        vertical-align: middle;
       }
       .hidden-logo {
         display: none;
@@ -59,8 +53,6 @@
         font-weight: 600;
         color: #ffffff;
         margin: 0;
-        display: inline-block;
-        vertical-align: middle;
       }
       .card {
         background-color: #ffffff;
@@ -80,21 +72,6 @@
         color: #374151;
         margin-bottom: 20px;
       }
-      .block-details {
-        background-color: #f9fafb;
-        border-left: 4px solid #7c3aed;
-        padding: 20px;
-        margin: 20px 0;
-      }
-      .block-details p {
-        margin: 8px 0;
-        font-size: 15px;
-        color: #374151;
-      }
-      .block-details strong {
-        color: #111827;
-        font-weight: 600;
-      }
       .button-container {
         margin: 30px 0;
         text-align: center;
@@ -112,24 +89,43 @@
         background-color: #000000;
         color: #ffffff !important;
       }
-      .border-other {
-        border-left: 4px solid #000000 !important;
+
+      /* Credentials box */
+      .creds-box {
+        background-color: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        margin: 20px 0 10px 0;
       }
-      .contact-info {
-        background-color: #f9fafb;
-        border-left: 4px solid #7c3aed;
-        padding: 15px;
-        margin: 20px 0;
-      }
-      .contact-info p {
-        margin: 5px 0;
-        font-size: 14px;
-        color: #374151;
-      }
-      .contact-info strong {
+      .creds-label {
+        font-size: 13px;
+        font-weight: 700;
         color: #111827;
-        font-weight: 600;
+        margin: 0 0 4px 0;
       }
+      .creds-value {
+        font-size: 14px;
+        color: #111827;
+        margin: 0 0 14px 0;
+        word-break: break-word;
+      }
+      .password-chip {
+        display: inline-block;
+        padding: 8px 12px;
+        background-color: #e0f2fe;
+        border-radius: 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 15px;
+        color: #111827;
+      }
+      .helper-text {
+        font-size: 13px;
+        color: #475569;
+        margin-top: 10px;
+      }
+
       .card-footer {
         margin-top: 20px;
         padding-top: 20px;
@@ -137,9 +133,6 @@
         font-size: 12px;
         color: #6b7280;
         line-height: 1.5;
-      }
-      .card-footer p {
-        margin: 0 0 0;
       }
       .border-top {
         border-top: 1px solid #ffffff33;
@@ -149,7 +142,6 @@
       .info-footer {
         background-color: #3f4e5f;
         padding: 20px 30px 16px 30px;
-        margin-top: 0;
         border-radius: 0 0 8px 8px;
       }
       .footer-row {
@@ -160,102 +152,100 @@
         color: #ffffffe5;
         font-size: 11px;
       }
-      .footer-copyright {
-        text-align: center;
-        color: #ffffff99;
-        font-size: 10px;
-        margin: 10px;
-      }
       .footer-column-left,
       .footer-column-center,
       .footer-column-right {
         flex: 1;
-        line-height: 1.6;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
         padding: 0 15px;
         white-space: normal;
+      }
+      .footer-column-center {
         text-align: center;
+        max-width: 180px;
+      }
+      .footer-column-right {
+        text-align: right;
       }
       .footer-link {
-        color: #ffffffe5 !important;
+        color: #ffffffe5;
         text-decoration: none;
-      }
-      .footer-link:hover {
-        text-decoration: underline;
-      }
-      @media only screen and (max-width: 600px) {
-        .footer-row {
-          display: block !important;
-        }
-        .footer-column-left,
-        .footer-column-center,
-        .footer-column-right {
-          display: block !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-          padding: 10px 0 !important;
-          text-align: center !important;
-        }
       }
     </style>
   </head>
+
   <body>
     <div class="container">
       <div class="navbar {navbarColorClass}">
-        <img src="{logoUrl}" alt="Logo" class="navbar-logo {logoImageClass}" />
+        <img
+          src="{logoUrl}"
+          alt="Logo"
+          class="navbar-logo {logoImageClass}"
+          style="
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            margin-right: 12px;
+            display: LOGO_DISPLAY;
+          "
+        />
         <div class="navbar-logo-initial {logoInitialClass}">{logoInitials}</div>
         <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
       <div class="card">
-        <div class="header">Hi {customerContactFirstName},</div>
+        <div class="header">Hi {FullName},</div>
 
         <div class="content">
-          <p>Your quote is ready to review and approve.</p>
-        </div>
+          <p>Welcome to QuarryLink!</p>
 
-        <div class="block-details {BorderColorClass}">
-          <p><strong>Quote Number:</strong> {quoteNumber}</p>
-          <p><strong>Project:</strong> {projectName}</p>
-          <p><strong>Total Value:</strong> ${totalValue} ex GST</p>
-          <p><strong>Expiry Date:</strong> {expiryDate}</p>
-        </div>
-
-        <div class="content">
           <p>
-            Click below to review your quote, download a PDF copy, and approve
-            or decline:
+            An account has been created for you by
+            <strong>{InvitedByName}</strong> at
+            <strong>{TenantName}</strong>.
+          </p>
+
+          <p>
+            Use the details below to sign in for the first time. You’ll be prompted
+            to set a new password immediately.
+          </p>
+        </div>
+
+        <!-- Credentials -->
+        <div class="creds-box">
+          <p class="creds-label">Username</p>
+          <p class="creds-value">{Username}</p>
+
+          <p class="creds-label">Temporary password</p>
+          <p class="creds-value">
+            <span class="password-chip">{TemporaryPassword}</span>
+          </p>
+
+          <p class="helper-text">
+            ⏱ {ValidityText}
           </p>
         </div>
 
         <div class="button-container">
-          <a href="{quoteUrl}" class="btn-primary {buttonColorClass}"
-            >Review & Approve Quote</a
+          <a
+            href="{LoginUrl}"
+            class="btn-primary {ButtonColorClass}"
           >
+            Activate Account &amp; Set Password
+          </a>
         </div>
 
         <div class="content">
           <p>
-            Please review and respond before the expiry date to secure these
-            rates and terms.
+            If you have any questions or need help getting started, please reach
+            out to your account administrator or contact our support team.
           </p>
 
-          <p>
-            If you have any questions or need changes to this quote, please
-            contact your Account Manager:
-          </p>
-        </div>
-
-        <div class="contact-info {BorderColorClass}">
-          <p><strong>{accountManagerName}</strong></p>
-          <p>{accountManagerEmail}</p>
+          <p>We're excited to have you on board!</p>
         </div>
 
         <div class="card-footer">
           <p>
-            You're receiving this because a quote has been sent to you from
-            {BusinessName} via QuarryLink.
+            You're receiving this email because an account was created for you
+            on QuarryLink.
           </p>
         </div>
       </div>
@@ -282,9 +272,9 @@
             </div>
             <div>{TenantPhone}</div>
             <div>
-              <a href="mailto:{TenantEmail}" class="footer-link">
-                {TenantEmail}
-              </a>
+              <a href="mailto:{TenantEmail}" class="footer-link"
+                >{TenantEmail}</a
+              >
             </div>
           </div>
         </div>

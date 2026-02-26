@@ -17,7 +17,6 @@ import {
   Calendar,
   ThumbsDown,
   BadgeCheck,
-  Eye,
   GitPullRequestCreateArrow,
   Timer,
   Archive,
@@ -129,12 +128,12 @@ export function QuotationActionButtons({
               </>
             )}
 
-            {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
-              <DropdownMenuItem onClick={actions.duplicate}>
+            {/* {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
+              <DropdownMenuItem onClick={actions.viewJob}>
                 <Eye className="h-4 w-4 mr-2" />
                 View Job
               </DropdownMenuItem>
-            )}
+            )} */}
 
             {quotation.quoteStatus === 'EXPIRED' && (
               <>
@@ -295,17 +294,17 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
+        {/* {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={actions.duplicate}
+            onClick={actions.viewJob}
             className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
           >
             <Eye className="h-4 w-4 mr-2" />
             View Job
           </Button>
-        )}
+        )} */}
 
         {quotation.quoteStatus === 'EXPIRED' && (
           <>
@@ -323,37 +322,37 @@ export function QuotationActionButtons({
 
         {quotation.quoteStatus !== 'ARCHIVED' &&
           quotation.quoteStatus !== 'PENDING' && (
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {/* <DropdownMenuItem onClick={actions.print}>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {/* <DropdownMenuItem onClick={actions.print}>
               <Printer className="h-4 w-4 mr-2" />
               Download PDF
             </DropdownMenuItem> */}
 
-              {/* {quotation.status !== 'ARCHIVED' && ( */}
-              <div>
-                {/* <DropdownMenuSeparator /> */}
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-destructive" />
-                  Archive
-                </DropdownMenuItem>
-              </div>
-              {/* )} */}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                {/* {quotation.status !== 'ARCHIVED' && ( */}
+                <div>
+                  {/* <DropdownMenuSeparator /> */}
+                  <DropdownMenuItem
+                    onClick={actions.archive}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Archive className="h-4 w-4 mr-2 text-destructive" />
+                    Archive
+                  </DropdownMenuItem>
+                </div>
+                {/* )} */}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
       </div>
     </div>
   );

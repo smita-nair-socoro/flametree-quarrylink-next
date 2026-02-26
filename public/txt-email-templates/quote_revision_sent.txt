@@ -4,7 +4,6 @@ Your updated quote is ready to review and approve.
 
 Quote Number: {quoteNumber}
 Project: {projectName}
-Quote Type: {quoteType}
 Total Value: ${totalValue} ex GST
 Expiry Date: {expiryDate}
 
