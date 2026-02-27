@@ -419,7 +419,7 @@ export default function QuotationForm({
                       - Reason: {reasonLabel} ({decisionDate})
                       <span>
                         {' '}
-                        {reasonNote && `Note: ${reasonNote}`}. Select
+                        {reasonNote && `Note: ${reasonNote}.`} Select
                         &quot;Convert to Draft&quot; to edit.{' '}
                       </span>
                     </div>
