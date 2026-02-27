@@ -161,7 +161,7 @@ export default function QuoteReviewDocument({
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
             <span>Quote Total (Incl. GST):</span>
             <span className="text-base font-medium text-[#101828]">
-              {centsToDollars(summary.total)}
+              ${centsToDollars(summary.total)}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
