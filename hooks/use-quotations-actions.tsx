@@ -17,6 +17,7 @@ import {
   Send,
   Eye,
   X,
+  Briefcase,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
@@ -795,6 +796,7 @@ const getDialogConfigs = (
         confirmText: 'Convert to Job',
         confirmVariant: 'default',
         confirmCustomColor: '#1E3A8A',
+        confirmIcon: <Briefcase className="h-4 w-4" />,
       },
     };
   } else if (selectedAction?.key === 'extendExpiry') {
