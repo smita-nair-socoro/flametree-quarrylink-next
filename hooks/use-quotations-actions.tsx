@@ -112,9 +112,9 @@ const getDialogConfigs = (
     quotationData?.customerWithAddressResponseDto?.email;
   const additionalEmailRecipients =
     quotationData?.additionalEmailRecipients ?? [];
-  const totalSellPrice = quotationData?.totalSellPrice
-    ? centsToDollars(quotationData?.totalSellPrice)
-    : '0';
+  const totalSellPriceExGST = quotationData?.totalSellPrice || 0;
+  const gst = totalSellPriceExGST * 0.1;
+  const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
   const lineItemsCount = quotationData?.lineItemsCount;
   const expiryDate = quotationData?.expiryDate;
 
