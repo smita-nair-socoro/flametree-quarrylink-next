@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { centsToDollars } from '@/lib/utils/currency';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
@@ -101,11 +102,6 @@ export default function QuoteReviewDocument({
       'Pricing and terms are locked',
     ];
 
-    const currencyFormatter = new Intl.NumberFormat('en-AU', {
-      style: 'currency',
-      currency: 'AUD',
-    });
-
     return (
       <div className="space-y-6 text-[#0F172A]">
         <div className="p-1">
@@ -165,7 +161,7 @@ export default function QuoteReviewDocument({
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
             <span>Quote Total (Incl. GST):</span>
             <span className="text-base font-medium text-[#101828]">
-              {currencyFormatter.format(summary.total)}
+              {centsToDollars(summary.total)}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
