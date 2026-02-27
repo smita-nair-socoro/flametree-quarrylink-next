@@ -25,6 +25,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
+import { useClientStore } from '@/app/stores/client-store';
 
 export const navItems = [
   {
@@ -168,6 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
       if (displayName) {
         c('set', 'userName', displayName);
+        useClientStore.getState().setUser(displayName);
       }
       if (email) {
         c('set', 'userEmail', email);
