@@ -23,7 +23,7 @@ export const supplierColumns = (
     id: 'name',
     accessorFn: (row) => row.quarrySupplier?.name || 'N/A',
     header: ({}) => {
-      return <div>Quarry /Supplier</div>;
+      return <div>Quarry / Supplier</div>;
     },
     cell: (info) => {
       const name = (info.getValue() as string) || 'N/A';
