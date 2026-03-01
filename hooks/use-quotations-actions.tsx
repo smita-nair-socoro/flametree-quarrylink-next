@@ -49,6 +49,7 @@ import {
   QUOTE_STATUS as QuoteStatus,
 } from '@/lib/types/quotation-enums';
 import { Input } from '@/components/ui/input';
+import { useClientStore } from '@/app/stores/client-store';
 
 interface DialogConfig {
   title?: string;
@@ -99,11 +100,6 @@ const getDialogConfigs = (
   setAdditionalRecipientEmails?: (emails: string[]) => void,
   recipientEmailInputValue?: string,
   setRecipientEmailInputValue?: (value: string) => void,
-  approveFullName?: string,
-  setApproveFullName?: (value: string) => void,
-  showApproveValidationError?: boolean,
-  declineFullName?: string,
-  setDeclineFullName?: (value: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -113,9 +109,9 @@ const getDialogConfigs = (
     quotationData?.customerWithAddressResponseDto?.email;
   const additionalEmailRecipients =
     quotationData?.additionalEmailRecipients ?? [];
-  const totalSellPrice = quotationData?.totalSellPrice
-    ? centsToDollars(quotationData?.totalSellPrice)
-    : '0';
+  const totalSellPriceExGST = quotationData?.totalSellPrice || 0;
+  const gst = totalSellPriceExGST * 0.1;
+  const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
   const lineItemsCount = quotationData?.lineItemsCount;
   const expiryDate = quotationData?.expiryDate;
 
@@ -463,32 +459,11 @@ const getDialogConfigs = (
                 </div>
               </div>
             </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#101828]">
-                Full Name*
-              </label>
-              <Input
-                value={approveFullName}
-                onChange={(e) => {
-                  if (setApproveFullName) {
-                    setApproveFullName(e.target.value);
-                  }
-                }}
-                placeholder="Please type in your full name to approve"
-              />
-              {showApproveValidationError && !approveFullName?.trim() && (
-                <p className="text-xs text-[#E7000B]">
-                  Please enter your full name
-                </p>
-              )}
-            </div>
           </div>
         ),
         confirmText: 'Approve Quote',
         confirmVariant: 'default',
         confirmCustomColor: '#008236',
-        confirmDisabled: !approveFullName?.trim(),
       },
     };
   } else if (selectedAction?.key === 'decline') {
@@ -620,28 +595,6 @@ const getDialogConfigs = (
               </ul>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#101828]">
-                Full Name*
-              </label>
-              <Input
-                value={declineFullName}
-                onChange={(e) => {
-                  if (setDeclineFullName) {
-                    setDeclineFullName(e.target.value);
-                  }
-                  if (setShowDeclineValidationError) {
-                    setShowDeclineValidationError(false);
-                  }
-                }}
-                placeholder="Please type in your full name to decline"
-              />
-              {showDeclineValidationError && !declineFullName?.trim() && (
-                <p className="text-xs text-[#E7000B]">
-                  Please enter your full name
-                </p>
-              )}
-            </div>
           </div>
         ),
         confirmText: 'Decline Quote',
@@ -1003,22 +956,14 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState<string[]>([]);
   const [recipientEmailInputValue, setRecipientEmailInputValue] =
     React.useState('');
-  const [approveFullName, setApproveFullName] = React.useState('');
-  const [declineFullName, setDeclineFullName] = React.useState('');
-  const [showApproveValidationError, setShowApproveValidationError] =
-    React.useState(false);
+  const user = useClientStore((state) => state.user);
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
     if (!declineReason) return false;
     if (declineReason === 'other' && !declineNotes.trim()) return false;
-    if (!declineFullName.trim()) return false;
     return true;
-  }, [declineReason, declineNotes, declineFullName]);
-  const isApproveFormValid = React.useMemo(
-    () => !!approveFullName.trim(),
-    [approveFullName],
-  );
+  }, [declineReason, declineNotes]);
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
     quotationData?.inclDeliveryCost ?? false,
   );
@@ -1044,14 +989,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       // Reset form to initial state when opening
       setDeclineReason('');
       setDeclineNotes('');
-      setDeclineFullName('');
       setShowDeclineValidationError(false);
-    }
-  }, [selectedAction?.key]);
-  React.useEffect(() => {
-    if (selectedAction?.key === 'approve') {
-      setApproveFullName('');
-      setShowApproveValidationError(false);
     }
   }, [selectedAction?.key]);
 
@@ -1095,11 +1033,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     window.open(previewUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // Determine if the quotation is COLLECTION type (no delivery prices)
-  const quoteItemTypes = quotationToUse?.quoteItems
-    ?.map((item) => item.quoteItemType)
-    .filter(Boolean);
-
   const dialogConfigs = getDialogConfigs(
     quotationToUse,
     selectedAction || undefined,
@@ -1119,11 +1052,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     setAdditionalRecipientEmails,
     recipientEmailInputValue,
     setRecipientEmailInputValue,
-    approveFullName,
-    setApproveFullName,
-    showApproveValidationError,
-    declineFullName,
-    setDeclineFullName,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1203,13 +1131,8 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       notifyError(extractErrorMessage('Unable to approve quotation'));
       return;
     }
-    if (!isApproveFormValid) {
-      setShowApproveValidationError(true);
-      return;
-    }
-
     try {
-      const decisionMakerName = `tenant-${approveFullName.trim()}`;
+      const decisionMakerName = `tenant-${user}`;
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
         status: 'APPROVED',
@@ -1254,7 +1177,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         ? `${reasonLabel}-${declineNotes.trim()}`
         : reasonLabel;
 
-      const decisionMakerName = `tenant-${declineFullName.trim()}`;
+      const decisionMakerName = `tenant-${user}`;
       await updateQuoteDecisionMutation.mutateAsync({
         id: quotationId,
         status: 'DECLINED',
