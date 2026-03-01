@@ -60,7 +60,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   // Block access to non-Essential pages (PRO/PLUS)
   useEffect(() => {
     if (auth.isLoading || !auth.isAuthenticated) return;
-    const path = window.location.pathname;
+    const path = window.location.pathname.toUpperCase();
     const plan = getPlanByPath(path);
     if (plan === 'PRO' || plan === 'PLUS') {
       router.replace(fallbackUrl);

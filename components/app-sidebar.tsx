@@ -1,12 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  LayoutDashboard,
-  Package,
-  Truck,
-  Users,
-} from 'lucide-react';
+import { LayoutDashboard, Package, Truck, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 import { claritySafe } from '@/lib/clarity';

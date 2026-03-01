@@ -80,7 +80,13 @@ export function NavMain({
   const isMobileDevice = useIsMobile();
   const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
   const [forceUpdate, setForceUpdate] = useState(0);
-  const isDisabled = (plan?: string) => plan === 'PRO' || plan === 'PLUS';
+  const isDisabled = (plan?: string) => {
+    const p = plan?.toUpperCase();
+    const s = subscriptionPlan?.toUpperCase();
+    if (p === 'PRO') return s !== 'PRO';
+    if (p === 'PLUS') return s !== 'PRO' && s !== 'PLUS';
+    return false;
+  };
   const getPlanLabel = (plan?: string) => (plan ? plan.toUpperCase() : '');
 
   // When subscription plan is available, set open states to plan-based defaults (no persistence)
