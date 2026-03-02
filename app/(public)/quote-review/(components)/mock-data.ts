@@ -1,7 +1,4 @@
-import {
-  QUOTE_STATUS as QuoteStatus,
-  QUOTE_TYPE as QuoteType,
-} from '@/lib/types/quotation-enums';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 export const mockQuotationData = {
   // Include delivery cost flag
@@ -31,7 +28,6 @@ export const mockQuotationData = {
 
   // Project details
   project: {
-    type: QuoteType.DELIVERY,
     projectName: 'Westfield Shopping Centre Extension',
     deliveryDate: '23rd August, 2026',
     deliveryWindow: '10:30 AM - 12:30 PM',
@@ -41,6 +37,7 @@ export const mockQuotationData = {
   products: [
     {
       name: 'Slate Stone E3',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
@@ -50,6 +47,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Slate Stone E5',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '85 T per delivery',
@@ -59,6 +57,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Marble Slab B2',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
@@ -68,6 +67,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Sandstone Panel D4',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'B-Double',
       capacity: '95 T per delivery',
@@ -77,6 +77,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Granite Block A1',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '60 T per delivery',
@@ -86,6 +87,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Slate Stone E3',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '18.7 tonnes per delivery',
@@ -95,6 +97,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Slate Stone E5',
+      type: 'COLLECTION',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '85 T per delivery',
@@ -104,6 +107,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Marble Slab B2',
+      type: 'COLLECTION',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Semi + Trailer',
       capacity: '75 T per delivery',
@@ -113,6 +117,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Sandstone Panel D4',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'B-Double',
       capacity: '95 T per delivery',
@@ -122,6 +127,7 @@ export const mockQuotationData = {
     },
     {
       name: 'Granite Block A1',
+      type: 'DELIVERY',
       deliveryAddress: '123 George St Unit 5, Sydney NSW 2000, Australia',
       truckType: 'Tandem',
       capacity: '60 T per delivery',

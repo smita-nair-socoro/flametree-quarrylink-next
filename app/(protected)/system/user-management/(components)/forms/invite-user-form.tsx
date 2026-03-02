@@ -110,7 +110,7 @@ export default function InviteUserForm({
         name: data.full_name,
         phone: data.phone || undefined,
         role: roleToBackend(data.role), // Backend expects: "USER", "ADMIN", "SUPER_ADMIN"
-        confirmed: false, // New users are unconfirmed/pending until they accept invitation
+        confirmed: !agreedToSubscriptionIncrease ? false : true, // New users are unconfirmed/pending until they accept invitation
       };
 
       console.log('Creating user with data:', userData);

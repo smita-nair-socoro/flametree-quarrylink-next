@@ -43,19 +43,13 @@ export function useQuotationFormState(
   const currentQuotation = isEditing ? getDetailedQuotation : null;
 
   // ===== DYNAMIC LABELS =====
-  const quoteType = quotationForm.watch('quoteType');
-
   const dateLabel = React.useMemo(() => {
-    if (!quoteType) return 'Delivery Date';
-    return quoteType === 'DELIVERY' ? 'Delivery Date' : 'Collection Date';
-  }, [quoteType]);
+    return 'Estimated Start Date';
+  }, []);
 
   const timeWindowLabel = React.useMemo(() => {
-    if (!quoteType) return 'Delivery Time Window';
-    return quoteType === 'DELIVERY'
-      ? 'Delivery Time Window'
-      : 'Collection Time Window';
-  }, [quoteType]);
+    return 'Estimated Time Window';
+  }, []);
 
   // ===== PRICING CALCULATIONS =====
   const pricingBreakdown = React.useMemo(() => {
