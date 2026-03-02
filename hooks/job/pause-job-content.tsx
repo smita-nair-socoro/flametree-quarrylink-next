@@ -38,9 +38,11 @@ export function PauseJobContent({
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-        <div className="flex-shrink-0 bg-amber-100 rounded-lg p-2">
-          <Pause className="h-6 w-6 text-amber-600" />
+      <div className="flex justify-start items-center gap-2">
+        <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
+          <span className="flex items-center justify-center">
+            <Pause className="h-6 w-6 text-[#CA3500]" />
+          </span>
         </div>
         <div>
           <p className="font-semibold text-gray-900">{job?.projectName}</p>

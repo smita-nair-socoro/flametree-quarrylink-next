@@ -77,7 +77,7 @@ export function useJobActions(jobData?: JobDetails | null) {
           />
         ),
         confirmText: 'Pause Job',
-        confirmCustomColor: '#D97706',
+        confirmCustomColor: '#CA8A04',
       },
     }),
     [jobData, activeDockets, pauseDocketAction],
