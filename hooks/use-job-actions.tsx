@@ -23,11 +23,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -47,8 +47,6 @@ const getDialogConfigs = (
   setCancelReason?: (reason: string) => void,
   cancelNotes?: string,
   setCancelNotes?: (notes: string) => void,
-  showCancelValidationError?: boolean,
-  setShowCancelValidationError?: (show: boolean) => void,
   isCancelFormValid?: boolean,
 ): Record<string, DialogConfig> => {
   const jobNumber = jobData?.jobNumber;
@@ -117,9 +115,6 @@ const getDialogConfigs = (
                   if (setCancelReason) {
                     setCancelReason(value);
                   }
-                  if (setShowCancelValidationError) {
-                    setShowCancelValidationError(false);
-                  }
                 }}
               >
                 <SelectTrigger className="w-full h-10">
@@ -153,9 +148,6 @@ const getDialogConfigs = (
                   <SelectItem value="other">Other reason</SelectItem>
                 </SelectContent>
               </Select>
-              {showCancelValidationError && !cancelReason && (
-                <p className="text-xs text-[#E7000B]">Please select a reason</p>
-              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -173,22 +165,11 @@ const getDialogConfigs = (
                   if (setCancelNotes) {
                     setCancelNotes(e.target.value);
                   }
-                  if (setShowCancelValidationError) {
-                    setShowCancelValidationError(false);
-                  }
                 }}
                 placeholder="Add any additional details about cancelling this job..."
                 className="min-h-[140px] resize-none placeholder:text-xs"
                 rows={4}
               />
-              {showCancelValidationError &&
-                cancelReason === 'other' &&
-                !String(cancelNotes).trim() && (
-                  <p className="text-xs text-[#E7000B]">
-                    Please provide additional notes when selecting &quot;Other
-                    reason&quot;
-                  </p>
-                )}
             </div>
           </div>
         ),
@@ -212,8 +193,6 @@ export function useJobActions(jobData?: Job | null) {
     React.useState<SelectedAction | null>(null);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
-  const [showCancelValidationError, setShowCancelValidationError] =
-    React.useState(false);
 
   const isCancelFormValid = React.useMemo(() => {
     if (!cancelReason) return false;
@@ -225,7 +204,6 @@ export function useJobActions(jobData?: Job | null) {
     if (selectedAction?.key === 'cancel') {
       setCancelReason('');
       setCancelNotes('');
-      setShowCancelValidationError(false);
     }
   }, [selectedAction?.key]);
 
@@ -238,8 +216,6 @@ export function useJobActions(jobData?: Job | null) {
         setCancelReason,
         cancelNotes,
         setCancelNotes,
-        showCancelValidationError,
-        setShowCancelValidationError,
         isCancelFormValid,
       ),
     [
@@ -247,7 +223,6 @@ export function useJobActions(jobData?: Job | null) {
       selectedAction,
       cancelReason,
       cancelNotes,
-      showCancelValidationError,
       isCancelFormValid,
     ],
   );
@@ -261,7 +236,6 @@ export function useJobActions(jobData?: Job | null) {
 
   const handleCancel = () => {
     if (!isCancelFormValid) {
-      setShowCancelValidationError(true);
       return;
     }
     console.log('Cancel job:', jobId, jobData, {
