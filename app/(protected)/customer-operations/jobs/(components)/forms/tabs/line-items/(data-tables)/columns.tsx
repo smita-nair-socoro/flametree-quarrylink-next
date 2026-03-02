@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { JobLineItem } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
-// import { JobLineItemsTableActions } from './job-line-itmes-table-actions';
+import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
 	Tooltip,
 	TooltipContent,
@@ -206,17 +206,17 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 		meta: 'Gross Profit',
 		size: 40,
 	},
-	// {
-	// 	id: 'actions',
-	// 	header: () => {
-	// 		return <div></div>;
-	// 	},
-	// 	cell: ({ row }) => {
-	// 		return (
-	// 			<div>
-	// 				<JobLineItemsTableActions jobLineItem={row.original} />
-	// 			</div>
-	// 		);
-	// 	},
-	// },
+	{
+		id: 'actions',
+		header: () => {
+			return <div></div>;
+		},
+		cell: ({ row }) => {
+			return (
+				<div>
+					<JobLineItemTableActions jobLineItem={row.original} />
+				</div>
+			);
+		},
+	},
 ];

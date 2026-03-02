@@ -3,13 +3,14 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { Button } from '@/components/ui/button';
-import { PlusIcon } from 'lucide-react';
+
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { jobLineItemsColumns } from './(data-tables)/columns';
 import { JobLineItem } from '@/lib/types/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { TrendingDown, TrendingUp } from 'lucide-react';
+import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
+import { FormDialog } from '@/components/form-dialog';
 
 interface LineItemsTabProps {
 	jobLineItems: JobLineItem[];
@@ -40,10 +41,15 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
 					Line Items
 				</span>
 				{/* will be changed to a formDialog later in another task */}
-				<Button>
-					<PlusIcon className="w-4 h-4" />
-					Add New Product
-				</Button>
+				<FormDialog
+					dialogTitle="Add Product"
+					buttonTitle="Add New Product"
+					dialogWidth="700px"
+					contentClass="-mt-5"
+					preventAutoFocus
+				>
+					<JobLineItemForm canEdit={true} />
+				</FormDialog>
 			</div>
 
 			<div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

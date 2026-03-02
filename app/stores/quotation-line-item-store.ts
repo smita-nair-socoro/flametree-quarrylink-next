@@ -35,8 +35,8 @@ export const useQuotationLineItemStore = create<QuotationLineItemStore>()(
         return state.lineItems.find((li) => li.id === id);
       },
     }),
-    { name: 'line-item-quotation-store' }
-  )
+    { name: 'quotation-line-item-store' },
+  ),
 );
 
 export const useSelectedLineItem = () =>
