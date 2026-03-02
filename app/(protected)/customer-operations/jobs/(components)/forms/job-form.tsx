@@ -33,6 +33,12 @@ import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { Job } from '@/lib/types/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
+import { Separator } from 'react-aria-components';
+import { Tab } from '@/components/ui/tabs';
+import LineItemsTab from './tabs/line-items/line-itmes-tab';
+import InvoicesTab from './tabs/invoices/invoices-tab';
+import DocketsTab from './tabs/dockets/dockets-tab';
+import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 
 interface FormProps {
   id?: number;
@@ -43,7 +49,7 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-export default function QuotationForm({
+export default function JobForm({
   id,
   onCancel,
   className,
@@ -55,7 +61,7 @@ export default function QuotationForm({
   const [isEditing] = React.useState(Boolean(id));
 
   const selectedJob = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === id);
+    return rawJson.items.find((job) => job.id === id) as Job;
   }, [id]);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
@@ -73,7 +79,8 @@ export default function QuotationForm({
   }, [jobForm.formState.isDirty]);
 
   // Fetch customers from API
-  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
+  const { data: customersData } = useQuery(CustomersListQueryOptions());
+  const customers = React.useMemo(() => customersData || [], [customersData]);
 
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
     if (!customers) return [];
@@ -153,7 +160,8 @@ export default function QuotationForm({
     }
   }, [isEditing, selectedJob, jobForm, customers]);
 
-  const { data: users = [] } = useQuery(UsersListQueryOptions());
+  const { data: usersData } = useQuery(UsersListQueryOptions());
+  const users = React.useMemo(() => usersData || [], [usersData]);
   const userOptions: FormSelectOption[] = React.useMemo(() => {
     if (!users) return [];
     return users.map((user) => ({
@@ -175,6 +183,25 @@ export default function QuotationForm({
     const d = GetTodaysDate();
     return d;
   }, []);
+
+  const tabs = React.useMemo(() => [
+    {
+      name: 'Products',
+      content: <LineItemsTab jobLineItems={selectedJob?.jobLineItems ?? []} />,
+    },
+    {
+      name: 'Dockets',
+      content: <DocketsTab />,
+    },
+    {
+      name: 'Invoices',
+      content: <InvoicesTab />,
+    },
+    {
+      name: 'Cash Sales',
+      content: <CashSalesTab />,
+    },
+  ], [selectedJob?.jobLineItems]);
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
     setIsSubmitting(true);
@@ -437,50 +464,6 @@ export default function QuotationForm({
               }}
             />
           </div>
-          {/* Audit Information */}
-          {isEditing && (
-            <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob?.createdBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob?.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob?.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob?.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Form Actions */}
           {isDesktop && (
@@ -530,6 +513,65 @@ export default function QuotationForm({
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
               </Button>
+            </div>
+          )}
+
+          {isEditing && (
+            <Separator className="my-4" />
+          )}
+
+          {isEditing && (
+            <div className="w-full flex min-w-0">
+              <Tab
+                tabs={tabs}
+                className="w-full min-w-0"
+                tabsClassName="h-10 w-full overflow-x-auto flex-nowrap rounded-md"
+                tabsTriggerClassName="h-8 flex-1 justify-center"
+                enableDropdownOnMobile={true}
+              />
+            </div>
+          )}
+
+          {/* Audit Information */}
+          {isEditing && (
+            <div className="col-span-full space-y-6 mt-10 mb-4">
+              <h2 className="text-2xl font-bold">Audit Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedJob?.createdBy || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedJob?.lastModifiedBy || 'N/A'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatLocalDateShort(selectedJob?.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatLocalDateShort(selectedJob?.updatedAt)}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </form>
