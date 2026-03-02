@@ -69,7 +69,11 @@ export function JobTableActions({ job }: JobTableActionsProps) {
     <div>
       {confirmDialogs}
       {viewDialog}
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
+      <DropdownMenu
+        open={dropdownOpen}
+        onOpenChange={setDropdownOpen}
+        modal={false}
+      >
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
@@ -87,11 +91,6 @@ export function JobTableActions({ job }: JobTableActionsProps) {
               <DropdownMenuItem onClick={handleResume}>
                 <CirclePlay className="h-4 w-4 mr-2" />
                 Resume
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handlePause}>
-                <Pause className="h-4 w-4 mr-2" />
-                Pause
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleCancel}>
