@@ -19,7 +19,9 @@ function getDocketStatusStyle(status: DOCKET_STATUS): {
     case DOCKET_STATUS.IN_TRANSIT:
       return { label: 'IN TRANSIT', className: 'bg-blue-100 text-blue-700' };
     case DOCKET_STATUS.ASSIGNED:
-      return { label: 'ASSIGNED', className: 'bg-slate-100 text-slate-600' };
+      return { label: 'ASSIGNED', className: 'bg-blue-100 text-blue-700' };
+    case DOCKET_STATUS.ARRIVED:
+      return { label: 'ARRIVED', className: 'bg-green-100 text-green-700' };
     default:
       return { label: status, className: 'bg-gray-100 text-gray-600' };
   }
@@ -39,7 +41,7 @@ export function PauseJobContent({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex justify-start items-center gap-2">
-        <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-md">
+        <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
           <span className="flex items-center justify-center">
             <Pause className="h-[20px] w-[20px] text-[#CA3500]" />
           </span>
@@ -51,7 +53,9 @@ export function PauseJobContent({
             {job?.customerName && (
               <>
                 <span className="text-sm text-gray-500 font-extrabold">·</span>
-                <span className="text-sm text-gray-500">{job.customerName}</span>
+                <span className="text-sm text-gray-500">
+                  {job.customerName}
+                </span>
               </>
             )}
           </div>

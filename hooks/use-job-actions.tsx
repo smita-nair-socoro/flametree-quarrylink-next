@@ -7,6 +7,7 @@ import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/for
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { Docket } from '@/lib/types/docket';
 import { ResumeJobContent } from '@/hooks/job/resume-job-content';
 import { SettleJobContent } from '@/hooks/job/settle-job-content';
 import { PauseJobContent } from '@/hooks/job/pause-job-content';
@@ -40,15 +41,27 @@ export function useJobActions(jobData?: JobDetails | null) {
     'stop' | 'allow'
   >('stop');
 
-  const activeDockets = React.useMemo(
-    () =>
-      (jobData?.dockets ?? []).filter(
-        (d) =>
-          d.status === DOCKET_STATUS.ASSIGNED ||
-          d.status === DOCKET_STATUS.IN_TRANSIT,
-      ),
-    [jobData],
-  );
+  // TODO: replace with real active dockets from API
+  const activeDockets: Docket[] = [
+    {
+      id: 1,
+      docketNumber: 'DOC-1',
+      status: DOCKET_STATUS.ASSIGNED,
+      contactName: 'John Doe',
+    },
+    {
+      id: 2,
+      docketNumber: 'DOC-2',
+      status: DOCKET_STATUS.IN_TRANSIT,
+      contactName: 'Jane Smith',
+    },
+    {
+      id: 3,
+      docketNumber: 'DOC-3',
+      status: DOCKET_STATUS.ARRIVED,
+      contactName: 'Bob Johnson',
+    },
+  ] as Docket[];
 
   const dialogConfigs = React.useMemo(
     (): Record<string, DialogConfig> => ({
