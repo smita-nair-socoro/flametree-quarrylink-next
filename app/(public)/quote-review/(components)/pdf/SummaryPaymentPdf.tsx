@@ -42,7 +42,7 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
               {totalProducts} items
             </Text>
             <Text style={styles.summaryText}>
-              <Text style={styles.summaryLabel}>Estimated Delivery:</Text>{' '}
+              <Text style={styles.summaryLabel}>Estimated Date:</Text>{' '}
               {estimatedDelivery}
             </Text>
           </View>

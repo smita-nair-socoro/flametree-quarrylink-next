@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/tooltip';
 import { JobTableActions } from './job-table-actions';
 import { DateCell } from '@/components/date-cell';
+import { HelpCircle } from 'lucide-react';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const jobColumns: ColumnDef<Job>[] = [
   {
@@ -67,30 +69,26 @@ export const jobColumns: ColumnDef<Job>[] = [
   {
     id: 'uninvoicedDockets',
     accessorFn: (row) => row.uninvoicedDockets,
-    header: ({ column }) => {
+    header: () => {
       return (
-        <TableClientSortableHeader column={column} title="Uninvoiced Dockets" />
+        <div className="flex items-center gap-1">
+          Uninvoiced Dockets{' '}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       );
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.original.uninvoicedDockets.toString());
-      const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(dollars);
-      return (
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div className="py-2 font-medium w-36 max-w-36 truncate">
-              {formatted}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{formatted}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
+      const unInvoicedDockets = row.original.uninvoicedDockets
+        ? centsToDollars(row.original.uninvoicedDockets)
+        : '0';
+      return <div>${unInvoicedDockets}</div>;
     },
     meta: 'Uninvoiced Dockets',
   },

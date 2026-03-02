@@ -2,10 +2,11 @@ import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
 import { centsToDollars } from '@/lib/utils/currency';
-import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 
 export interface Product {
   name: string;
+  type?: string;
   deliveryAddress: string;
   truckType: string;
   capacity: string;
@@ -17,16 +18,20 @@ export interface Product {
 export interface ProductsTablePdfProps {
   products: Product[];
   includeDeliveryPrices?: boolean;
-  quoteType?: QUOTE_TYPE;
 }
 
 export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
   products,
   includeDeliveryPrices = false,
-  quoteType,
 }) => {
   // Dynamic column widths based on whether delivery prices are shown
-  const isCollection = quoteType === 'COLLECTION';
+  const isCollection =
+    products.length > 0 &&
+    products.every(
+      (product) =>
+        String(product.type || '').toUpperCase() ===
+        QUOTE_ITEM_TYPE.COLLECTION
+    );
   const colWidths = isCollection
     ? includeDeliveryPrices
       ? { product: '40%', qty: '20%', delivery: '20%', price: '20%' }

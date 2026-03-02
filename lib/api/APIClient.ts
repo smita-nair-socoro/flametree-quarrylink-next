@@ -655,7 +655,8 @@ export const APIClient = {
     updatePublicQuoteStatus: async (
       status: 'APPROVED' | 'DECLINED',
       token: string,
-      declineReason?: string
+      declineReason?: string,
+      decisionMakerName?: string
     ) => {
       const apiBase = baseUrl();
       if (!apiBase) {
@@ -668,9 +669,16 @@ export const APIClient = {
         token
       )}`;
 
-      const body: { status: string; declineReason?: string } = { status };
+      const body: {
+        status: string;
+        declineReason?: string;
+        decisionMakerName?: string;
+      } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
+      }
+      if (decisionMakerName !== undefined) {
+        body.decisionMakerName = decisionMakerName;
       }
 
       const response = await fetch(url, {
@@ -700,7 +708,6 @@ export const APIClient = {
       page?: number;
       pageSize?: number;
       status?: string;
-      quoteType?: string;
       customerId?: number;
       accountManagerId?: number;
       search?: string;
@@ -719,7 +726,6 @@ export const APIClient = {
           page: params?.page?.toString(),
           pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
           status: params?.status,
-          quoteType: params?.quoteType,
           customerId: params?.customerId?.toString(),
           accountManagerId: params?.accountManagerId?.toString(),
           search: params?.search,
@@ -762,9 +768,12 @@ export const APIClient = {
           },
         }
       ),
-    duplicate: (id: number) =>
+    duplicate: (id: number, data?: Partial<QuotationDTO>) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/duplicate`,
+        {
+          body: data,
+        }
       ),
     bulkArchive: (ids: number[]) =>
       appClient.Post<void>(
@@ -807,11 +816,19 @@ export const APIClient = {
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',
-      declineReason?: string
+      declineReason?: string,
+      decisionMakerName?: string
     ) => {
-      const body: { status: string; declineReason?: string } = { status };
+      const body: {
+        status: string;
+        declineReason?: string;
+        decisionMakerName?: string;
+      } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
+      }
+      if (decisionMakerName !== undefined) {
+        body.decisionMakerName = decisionMakerName;
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,

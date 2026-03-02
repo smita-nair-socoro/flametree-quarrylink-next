@@ -43,7 +43,7 @@ export function SummaryPayment({
             </p>
 
             <p className="text-[#0A0A0A] text-sm">
-              <span className="font-bold">Estimated Delivery:</span>{' '}
+              <span className="font-bold">Estimated Date:</span>{' '}
               {estimatedDelivery}
             </p>
           </div>
