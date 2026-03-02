@@ -24,7 +24,7 @@ export interface Job {
   deliveryStartDate: string;
   deliveryWindowStart: string;
   deliveryWindowEnd: string;
-  receiptEmail: string[];
+  receiptEmail: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
