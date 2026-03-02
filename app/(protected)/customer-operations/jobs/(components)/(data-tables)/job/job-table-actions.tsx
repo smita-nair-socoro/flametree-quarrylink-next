@@ -36,26 +36,32 @@ export function JobTableActions({ job }: JobTableActionsProps) {
   };
 
   const handleResume = () => {
+    setDropdownOpen(false);
     actions.resume();
   };
 
   const handleCancel = () => {
+    setDropdownOpen(false);
     actions.cancel();
   };
 
   const handleAddDocket = () => {
+    setDropdownOpen(false);
     actions.addDocket();
   };
 
   const handlePause = () => {
+    setDropdownOpen(false);
     actions.pause();
   };
 
   const handleViewDockets = () => {
+    setDropdownOpen(false);
     actions.viewDockets();
   };
 
   const handleSettle = () => {
+    setDropdownOpen(false);
     actions.settle();
   };
 
