@@ -5,7 +5,6 @@ const timeWithoutZoneRegex =
   /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
 
 export const NewQuotationFormSchema = z.object({
-  quoteType: z.string().nonempty({ message: 'Required' }),
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),

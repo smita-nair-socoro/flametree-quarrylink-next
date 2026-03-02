@@ -20,6 +20,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
+import { useClientStore } from '@/app/stores/client-store';
 
 export const navItems = [
   {
@@ -153,6 +154,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ?.subscriptions?.[0]?.subscriptionPlan;
 
   // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
+  React.useEffect(() => {
+    useClientStore
+      .getState()
+      .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
+    useClientStore.getState().setUser(displayName);
+  }, [subscriptionPlan, displayName]);
+
   React.useEffect(() => {
     claritySafe((c) => {
       if (tenantCompleteDetails?.tenantDetails?.tenantName) {

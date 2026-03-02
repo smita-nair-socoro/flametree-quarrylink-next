@@ -6,14 +6,19 @@ interface ClientStore {
   clients: Client[];
   selectedClient: Client | null;
   isLoading: boolean;
+  user: string;
+  subscriptionPlan: string | null;
 
   // Actions
   setClients: (clients: Client[]) => void;
   setSelectedClient: (client: Client | null) => void;
   setLoading: (loading: boolean) => void;
+  setUser: (userName: string) => void;
+  setSubscriptionPlan: (plan: string | null) => void;
 
   getClientById: (id: number) => Client | undefined;
   getClientsByStatus: (status: string) => Client[];
+  getUser: () => string;
 }
 
 export const useClientStore = create<ClientStore>()(
@@ -22,9 +27,15 @@ export const useClientStore = create<ClientStore>()(
       clients: [],
       selectedClient: null,
       isLoading: false,
+      user: '',
+      subscriptionPlan: null,
 
       // Actions
       setClients: (clients) => set({ clients }),
+
+      setUser: (userName) => set({ user: userName }),
+
+      setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
 
       setSelectedClient: (client) => set({ selectedClient: client }),
 
@@ -36,16 +47,24 @@ export const useClientStore = create<ClientStore>()(
         return state.clients.find((c) => c.id === id);
       },
 
+      getUser: () => {
+        const state = get();
+        return state.user;
+      },
+
       getClientsByStatus: (status) => {
         const state = get();
         return state.clients.filter((c) => c.clientStatus === status);
       },
     }),
-    { name: 'client-store' }
-  )
+    { name: 'client-store' },
+  ),
 );
 
 export const useSelectedClient = () =>
   useClientStore((state) => state.selectedClient);
 
 export const useClients = () => useClientStore((state) => state.clients);
+
+export const useSubscriptionPlan = () =>
+  useClientStore((state) => state.subscriptionPlan);

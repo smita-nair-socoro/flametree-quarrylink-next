@@ -7,7 +7,7 @@ import { CustomerInfoPdf } from './CustomerInfoPdf';
 import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
-import { QUOTE_STATUS, QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 
 // Type matching the mockQuotationData structure
@@ -31,13 +31,13 @@ export interface QuotationData {
     };
   };
   project: {
-    type: QUOTE_TYPE;
     projectName: string;
     deliveryDate: string;
     deliveryWindow: string;
   };
   products: Array<{
     name: string;
+    type?: string;
     deliveryAddress: string;
     truckType: string;
     capacity: string;
@@ -98,7 +98,6 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           <ProductsTablePdf
             products={data.products}
             includeDeliveryPrices={data.inclDeliveryCost}
-            quoteType={data.project.type}
           />
 
           {/* Summary & Payment */}
