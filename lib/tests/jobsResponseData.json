@@ -99,6 +99,26 @@
       "createdAt": "2025-09-15T08:30:00.000Z",
       "updatedAt": "2025-09-15T08:30:00.000Z",
       "lastModifiedBy": "Socoro Admin"
+    },
+    {
+      "id": 6,
+      "jobNumber": "Job106",
+      "poNumber": "PO1234567890",
+      "status": "COMPLETED",
+      "accountManagerSub": "394ea4d8-80d1-70a9-1ab9-f016a09821c6",
+      "accountManagerName": "Jay Choi",
+      "customerId": 2,
+      "customerName": "Jane Smith",
+      "projectName": "Project 6",
+      "uninvoicedDockets": 832000,
+      "deliveryStartDate": "2025-09-15T08:30:00.000Z",
+      "deliveryWindowStart": "2025-09-15T08:30:00.000Z",
+      "deliveryWindowEnd": "2025-09-15T08:30:00.000Z",
+      "receiptEmail": "jane.smith@email.com",
+      "createdBy": "Socoro Admin",
+      "createdAt": "2025-09-15T08:30:00.000Z",
+      "updatedAt": "2025-09-15T08:30:00.000Z",
+      "lastModifiedBy": "Socoro Admin"
     }
   ]
 }

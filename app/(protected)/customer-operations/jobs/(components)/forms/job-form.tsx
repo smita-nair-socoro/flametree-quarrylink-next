@@ -54,8 +54,6 @@ export default function QuotationForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
 
-  // const selectedJob = useSelectedJob();
-
   const selectedJob = React.useMemo(() => {
     return rawJson.items.find((job) => job.id === id);
   }, [id]);
