@@ -150,8 +150,6 @@ export function useJobActions(jobData?: JobDetails | null) {
   };
 
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
-    if (activeDialog !== key) return null;
-
     return (
       <ActionDialog
         key={key}
