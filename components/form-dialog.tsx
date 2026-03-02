@@ -254,7 +254,6 @@ export function FormDialog({
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quoteNumber;
     finalPrimaryBadges = [selectedQuotation.quoteStatus];
-    finalSecondaryBadges = [selectedQuotation.quoteType];
   }
 
   const customerForHeader = headerCustomerProp ?? selectedCustomer;
@@ -384,12 +383,12 @@ export function FormDialog({
 
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-        id: effectiveId,
-        onCancel: close,
-        onSuccess: handleChildSuccess,
-        onDirtyChange: handleChildDirtyChange,
-        onSaved: handleChildSaved,
-      })
+      id: effectiveId,
+      onCancel: close,
+      onSuccess: handleChildSuccess,
+      onDirtyChange: handleChildDirtyChange,
+      onSaved: handleChildSaved,
+    })
     : children;
 
   const formatBadgeText = (text?: string | number | null): string => {

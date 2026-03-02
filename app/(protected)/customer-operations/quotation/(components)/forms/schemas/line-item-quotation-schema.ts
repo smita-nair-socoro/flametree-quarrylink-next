@@ -1,12 +1,12 @@
 import z from 'zod';
 
-import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 
 const TruckString = z.string();
 
 export const NewQuotationLineItemFormSchema = z
   .object({
-    quoteType: z.nativeEnum(QUOTE_TYPE, { message: 'Required' }),
+    quoteItemType: z.nativeEnum(QUOTE_ITEM_TYPE, { message: 'Required' }),
     address: z.string().nonempty({ message: 'Required' }),
     productId: z.coerce.number().min(1, { message: 'Required' }),
     quarrySupplierId: z.coerce.number().min(1, { message: 'Required' }),
@@ -33,7 +33,7 @@ export const NewQuotationLineItemFormSchema = z
     grossProfit: z.coerce.number().optional(),
   })
   .superRefine((values, ctx) => {
-    if (values.quoteType === QUOTE_TYPE.COLLECTION) return;
+    if (values.quoteItemType === QUOTE_ITEM_TYPE.COLLECTION) return;
 
     if (!values.truckType) {
       ctx.addIssue({

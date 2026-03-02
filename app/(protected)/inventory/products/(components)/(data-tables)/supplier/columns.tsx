@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 
 // Allow passing the parent productId so actions can call detail APIs correctly
 export const supplierColumns = (
-  productId?: number
+  productId?: number,
 ): ColumnDef<
   QuarrySupplierProduct & { quarry_supplier?: { id: number } }
 >[] => [
@@ -23,16 +23,14 @@ export const supplierColumns = (
     id: 'name',
     accessorFn: (row) => row.quarrySupplier?.name || 'N/A',
     header: ({}) => {
-      return <div>Supplier Name</div>;
+      return <div>Quarry / Supplier</div>;
     },
     cell: (info) => {
       const name = (info.getValue() as string) || 'N/A';
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div
-              className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-            >
+            <div className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]">
               {name}
             </div>
           </TooltipTrigger>
@@ -55,9 +53,7 @@ export const supplierColumns = (
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div
-              className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-            >
+            <div className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]">
               {value}
             </div>
           </TooltipTrigger>
@@ -141,9 +137,9 @@ export const supplierColumns = (
             margin < 0
               ? 'text-red-600'
               : margin > 0
-              ? 'text-green-600'
-              : 'text-gray-600',
-            'flex justify-start items-center gap-1'
+                ? 'text-green-600'
+                : 'text-gray-600',
+            'flex justify-start items-center gap-1',
           )}
         >
           {margin < 0 && <TrendingDown className="w-4 h-4" />}

@@ -13,7 +13,6 @@ export function quotationToFormValues(
   if (!quotation && !isEditing) {
     // New quotation defaults
     return {
-      quoteType: 'DELIVERY' as const,
       customerId: 0,
       accountManagerSub: '',
       projectName: '',
@@ -41,7 +40,6 @@ export function quotationToFormValues(
   };
 
   return {
-    quoteType: quotation?.quoteType || 'DELIVERY',
     customerId: quotation?.customerId || 0,
     accountManagerSub: quotation?.accountManagerSub || '',
     projectName: quotation?.projectName || '',

@@ -4,10 +4,11 @@ import { Separator } from '@/components/ui/separator';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { ColumnDef } from '@tanstack/react-table';
-import { QUOTE_TYPE } from '@/lib/types/quotation-enums';
+import { TableBadges } from '@/components/table-badges';
 
 export interface Product {
   name: string;
+  type?: string;
   deliveryAddress: string;
   truckType: string;
   capacity: string;
@@ -19,14 +20,11 @@ export interface Product {
 export interface ProductsServicesProps {
   products: Product[];
   includeDeliveryPrices?: boolean;
-  quoteType?: QUOTE_TYPE;
 }
 
 const createColumns = (
   includeDeliveryPrices: boolean,
-  quoteType?: QUOTE_TYPE
 ): ColumnDef<Product>[] => {
-  const isCollection = quoteType === 'COLLECTION';
   const columns: ColumnDef<Product>[] = [
     {
       accessorKey: 'name',
@@ -49,22 +47,6 @@ const createColumns = (
       ),
       size: 250,
     },
-    ...(isCollection
-      ? []
-      : [
-          {
-            accessorKey: 'truckType',
-            header: 'Truck Configuration',
-            cell: ({ row }) => (
-              <div>
-                <p className="text-gray-900 text-sm">
-                  {row.original.truckType}
-                </p>
-              </div>
-            ),
-            size: 160,
-          } as ColumnDef<Product>,
-        ]),
     {
       accessorKey: 'quantity',
       header: 'Quantity',
@@ -88,6 +70,18 @@ const createColumns = (
       size: 100,
     });
   }
+
+  // Add Type column between Delivery and Product Price
+  columns.push({
+    accessorKey: 'type',
+    header: 'Type',
+    cell: ({ row }) => (
+      <div className="inline-flex">
+        <TableBadges names={[String(row.original.type || '').toUpperCase()]} />
+      </div>
+    ),
+    size: 140,
+  });
 
   // Add Price column
   // When includeDeliveryPrices is true: show only product price (delivery is separate column)
@@ -114,11 +108,10 @@ const createColumns = (
 export function ProductsServices({
   products,
   includeDeliveryPrices = false,
-  quoteType,
 }: ProductsServicesProps) {
   const columns = React.useMemo(
-    () => createColumns(includeDeliveryPrices, quoteType),
-    [includeDeliveryPrices, quoteType]
+    () => createColumns(includeDeliveryPrices),
+    [includeDeliveryPrices],
   );
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">

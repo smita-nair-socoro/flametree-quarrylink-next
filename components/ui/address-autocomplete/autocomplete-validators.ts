@@ -1,12 +1,11 @@
 import type { AddressType } from '@/lib/types/address';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 
 // Default values for missing address fields
 const DEFAULT_ADDRESS_VALUES = {
   city: 'Sydney',
   region: 'NSW',
-  postalCode: '1234',
+  postalCode: '',
   country: 'Australia',
 } as const;
 
@@ -21,7 +20,7 @@ export const fillMissingAddressFields = (address: AddressType): AddressType => {
     region: address.region?.trim() || DEFAULT_ADDRESS_VALUES.region,
     postalCode: address.postalCode?.trim() || DEFAULT_ADDRESS_VALUES.postalCode,
     country: address.country?.trim() || DEFAULT_ADDRESS_VALUES.country,
-    googlePlaceId: address.googlePlaceId || `fallback_${uuidv4()}`,
+    googlePlaceId: address.googlePlaceId,
   };
 };
 
@@ -30,31 +29,42 @@ export const fillMissingAddressFields = (address: AddressType): AddressType => {
  */
 export const isValidAutocomplete = (
   address: AddressType,
-  searchInput: string
+  searchInput: string,
 ): boolean => {
   if (searchInput.trim() === '') {
     return true;
   }
   const AddressSchema = z.object({
     streetDetailsPrimary: z
-      .string()
-      .min(1, 'Address line 1 is required')
-      .max(100, 'Address line 1 must be less than 100 characters')
-      .regex(/^[a-zA-Z0-9\s,.&]+$/, 'Invalid address'),
+      .union([
+        z
+          .string()
+          .min(1, 'Address line 1 is required')
+          .max(100, 'Address line 1 must be less than 100 characters')
+          .regex(/^[a-zA-Z0-9\s,.&/()\-]+$/, 'Invalid address'),
+        z.literal(''),
+      ])
+      .optional(),
     streetDetailsOptional: z.string().optional(),
     formattedAddress: z.string().min(1, 'Formatted address is required'),
     city: z.string().min(1, 'City is required'),
     state: z.string().optional(), // State/region may not be required for all countries
     postcode: z
-      .string()
-      .min(1, 'Postal code is required')
-      // Global postal code format: allows alphanumeric, spaces, and hyphens (1-12 chars)
-      // Covers formats like: AU "2000", US "90210" or "90210-1234", UK "SW1A 1AA", CA "K1A 0B1"
-      .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
+      .union([
+        z
+          .string()
+          .min(1, 'Postal code is required')
+          // Global postal code format: allows alphanumeric, spaces, and hyphens (1-12 chars)
+          // Covers formats like: AU "2000", US "90210" or "90210-1234", UK "SW1A 1AA", CA "K1A 0B1"
+          .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
+        z.literal(''),
+      ])
+      .optional(),
 
     country: z.string().min(1, 'Country is required'),
-    latitude: z.number().nonnegative(),
-    longitude: z.number().nonnegative(),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    googlePlaceId: z.union([z.string(), z.number()]).optional(),
   });
   const result = AddressSchema.safeParse(address);
   return result.success;
