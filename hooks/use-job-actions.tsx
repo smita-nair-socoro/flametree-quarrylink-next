@@ -45,19 +45,19 @@ export function useJobActions(jobData?: JobDetails | null) {
   const activeDockets: Docket[] = [
     {
       id: 1,
-      docketNumber: 'DOC-1',
+      docketNumber: 'DOC-2026-011',
       status: DOCKET_STATUS.ASSIGNED,
       contactName: 'John Doe',
     },
     {
       id: 2,
-      docketNumber: 'DOC-2',
+      docketNumber: 'DOC-2026-021',
       status: DOCKET_STATUS.IN_TRANSIT,
       contactName: 'Jane Smith',
     },
     {
       id: 3,
-      docketNumber: 'DOC-3',
+      docketNumber: 'DOC-2026-031',
       status: DOCKET_STATUS.ARRIVED,
       contactName: 'Bob Johnson',
     },

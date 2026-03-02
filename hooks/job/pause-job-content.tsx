@@ -3,8 +3,8 @@ import {
   TriangleAlert,
   Pause,
   Truck,
-  CircleX,
-  CircleCheck,
+  CirclePlay,
+  CircleStop,
 } from 'lucide-react';
 import { JobDetails } from '@/lib/types/job';
 import { Docket } from '@/lib/types/docket';
@@ -17,11 +17,11 @@ function getDocketStatusStyle(status: DOCKET_STATUS): {
 } {
   switch (status) {
     case DOCKET_STATUS.IN_TRANSIT:
-      return { label: 'IN TRANSIT', className: 'bg-blue-100 text-blue-700' };
+      return { label: 'IN TRANSIT', className: 'bg-blue-100 text-[#1E40AF]' };
     case DOCKET_STATUS.ASSIGNED:
-      return { label: 'ASSIGNED', className: 'bg-blue-100 text-blue-700' };
+      return { label: 'ASSIGNED', className: 'bg-blue-100 text-[#1E40AF]' };
     case DOCKET_STATUS.ARRIVED:
-      return { label: 'ARRIVED', className: 'bg-blue-100 text-blue-700' };
+      return { label: 'ARRIVED', className: 'bg-blue-100 text-[#1E40AF]' };
     default:
       return { label: status, className: 'bg-gray-100 text-gray-600' };
   }
@@ -68,14 +68,14 @@ export function PauseJobContent({
 
       {activeDockets.length > 0 && (
         <>
-          <div className="border border-amber-200 rounded-md p-4 bg-amber-50">
+          <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
             <div className="flex justify-start gap-2 self-stretch">
-              <TriangleAlert className="h-[20px] w-[20px] text-amber-500 flex-shrink-0 mt-0.5" />
+              <TriangleAlert className="h-[20px] w-[20px] text-[#CA8A04] flex-shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
-                <span className="text-[16px] text-amber-700 font-medium">
+                <span className="text-[16px] text-[#854D0E] font-medium">
                   Active Dockets Found
                 </span>
-                <span className="text-[14px] font-normal text-amber-600">
+                <span className="text-[14px] font-normal text-[#A16207]">
                   This job has {activeDockets.length} assigned docket
                   {activeDockets.length !== 1 ? 's' : ''} with drivers. Choose
                   how to handle them:
@@ -84,36 +84,34 @@ export function PauseJobContent({
             </div>
           </div>
 
-          <div className="rounded-md bg-[#F3F4F6] py-2 px-4">
-            <div className="divide-y divide-[#E5E7EB]">
-              {activeDockets.map((docket) => {
-                const statusStyle = getDocketStatusStyle(docket.status);
-                return (
-                  <div
-                    key={docket.id}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div className="flex items-center gap-2 text-[14px] text-gray-700">
-                      <Truck className="h-[20px] w-[20px] text-gray-400" />
-                      <span className="font-medium">{docket.docketNumber}</span>
-                      {docket.contactName && (
-                        <span className="text-gray-500">
-                          - {docket.contactName}
-                        </span>
-                      )}
-                    </div>
-                    <span
-                      className={cn(
-                        'text-xs font-medium px-2 py-0.5 rounded',
-                        statusStyle.className,
-                      )}
-                    >
-                      {statusStyle.label}
-                    </span>
+          <div className="rounded-md bg-[#F3F4F6] py-2 px-4 border border-[#E5E5E5]">
+            {activeDockets.map((docket) => {
+              const statusStyle = getDocketStatusStyle(docket.status);
+              return (
+                <div
+                  key={docket.id}
+                  className="flex items-center justify-between py-2"
+                >
+                  <div className="flex items-center gap-2 text-[14px] text-gray-700">
+                    <Truck className="h-[20px] w-[20px] text-[#6A7282]" />
+                    <span className="font-medium">{docket.docketNumber}</span>
+                    {docket.contactName && (
+                      <span className="text-[#6A7282]">
+                        - {docket.contactName}
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                  <span
+                    className={cn(
+                      'text-xs font-medium px-2 py-0.5 rounded-full',
+                      statusStyle.className,
+                    )}
+                  >
+                    {statusStyle.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -133,19 +131,19 @@ export function PauseJobContent({
               <div className="flex items-start gap-3">
                 <div
                   className={cn(
-                    'mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
+                    'h-5 w-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
                     docketAction === 'stop'
                       ? 'border-red-500'
                       : 'border-gray-300',
                   )}
                 >
                   {docketAction === 'stop' && (
-                    <div className="h-2 w-2 rounded-full bg-red-500" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <CircleX className="h-[20px] w-[20px] text-red-500" />
+                    <CircleStop className="h-[20px] w-[20px] text-[#E7000B]" />
                     <span className="text-[14px] font-medium text-gray-900">
                       Stop All Dockets
                     </span>
@@ -170,19 +168,19 @@ export function PauseJobContent({
               <div className="flex items-start gap-3">
                 <div
                   className={cn(
-                    'mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
+                    'h-5 w-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
                     docketAction === 'allow'
                       ? 'border-green-500'
                       : 'border-gray-300',
                   )}
                 >
                   {docketAction === 'allow' && (
-                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <CircleCheck className="h-[20px] w-[20px] text-green-500" />
+                    <CirclePlay className="h-[20px] w-[20px] text-[#008236]" />
                     <span className="text-[14px] font-medium text-gray-900">
                       Allow Drivers to Complete
                     </span>
@@ -198,11 +196,9 @@ export function PauseJobContent({
         </>
       )}
 
-      <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-medium text-gray-900">
-          When job is paused:
-        </span>
-        <ul className="text-[14px] font-normal text-gray-600 space-y-1 list-disc list-outside pl-5">
+      <div className="flex flex-col gap-2 bg-[#F9FAFB] px-2 py-3 rounded-md">
+        <span className="text-[14px] font-medium">When job is paused:</span>
+        <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
           {[
             'Job status changes to "Paused"',
             'All Assigned dockets will be Unassigned',
