@@ -4,7 +4,6 @@ Your quote has expired and is no longer valid.
 
 Quote Number: {quoteNumber}
 Project: {projectName}
-Quote Type: {quoteType}
 Previous Total Value: ${totalValue} ex GST
 Expired On: {expiryDate}
 

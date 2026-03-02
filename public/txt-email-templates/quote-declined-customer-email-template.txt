@@ -4,7 +4,6 @@ Thank you for reviewing your quote. We've recorded your decision to decline this
 
 Quote Number: {quoteNumber}
 Project: {projectName}
-Quote Type: {quoteType}
 Total Value: ${totalValue} ex GST
 
 If you'd like to discuss alternative options, revisions to this quote, or have any questions, please contact your Account Manager:

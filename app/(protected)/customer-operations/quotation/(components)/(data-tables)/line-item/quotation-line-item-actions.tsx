@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuotationLineItemActions } from '@/hooks/use-quotations-line-item-actions';
 import { QuotationLineItem } from '@/lib/types/quotation';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface QutationLineItemTableActionsProps {
   quotationLineItem: QuotationLineItem;
@@ -20,6 +21,7 @@ export function QuotationLineItemTableActions({
   quotationLineItem,
 }: QutationLineItemTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
   const { actions, confirmDialogs, viewDialog } =
     useQuotationLineItemActions(quotationLineItem);
 
@@ -53,14 +55,18 @@ export function QuotationLineItemTableActions({
             <Eye className="h-4 w-4 mr-2" />
             View Products
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleDelete}
-            className="text-destructive focus:text-destructive"
-          >
-            <Delete className="h-4 w-4 mr-2 text-red-600" />
-            Remove
-          </DropdownMenuItem>
+          {!isDuplicate && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                <Delete className="h-4 w-4 mr-2 text-red-600" />
+                Remove
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
