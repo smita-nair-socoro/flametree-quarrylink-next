@@ -84,7 +84,7 @@ export function PauseJobContent({
             </div>
           </div>
 
-          <div className="rounded-md bg-[#F3F4F6] py-2 px-4 border border-[#E5E5E5]">
+          <div className="rounded-md bg-[#F9FAFB] py-2 px-4 border border-[#E5E5E5]">
             {activeDockets.map((docket) => {
               const statusStyle = getDocketStatusStyle(docket.status);
               return (
@@ -92,7 +92,7 @@ export function PauseJobContent({
                   key={docket.id}
                   className="flex items-center justify-between py-2"
                 >
-                  <div className="flex items-center gap-2 text-[14px] text-gray-700">
+                  <div className="flex items-center gap-2 text-[14px]">
                     <Truck className="h-[20px] w-[20px] text-[#6A7282]" />
                     <span className="font-medium">{docket.docketNumber}</span>
                     {docket.contactName && (
@@ -103,7 +103,7 @@ export function PauseJobContent({
                   </div>
                   <span
                     className={cn(
-                      'text-xs font-medium px-2 py-0.5 rounded-full',
+                      'text-xs font-normal px-2 py-0.5 rounded-full',
                       statusStyle.className,
                     )}
                   >
@@ -201,8 +201,12 @@ export function PauseJobContent({
         <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
           {[
             'Job status changes to "Paused"',
-            'All Assigned dockets will be Unassigned',
-            'All In Transit dockets will be Stopped',
+            ...(docketAction === 'stop'
+              ? [
+                  'All Assigned dockets will be Unassigned',
+                  'All In Transit dockets will be Stopped',
+                ]
+              : []),
             'New docket creation is blocked',
             'Can be resumed at any time',
           ].map((item) => (
