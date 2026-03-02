@@ -19,14 +19,14 @@ interface ActionDialogProps {
   content?: React.ReactNode;
   cancelText?: string;
   cancelButtonClass?: string;
-  cancelActionNeeded?:boolean;
+  cancelActionNeeded?: boolean;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -57,17 +57,17 @@ export function ActionDialog({
   confirmActionNeeded = true,
   confirmDisabled = false,
   textbelowbutton,
-  hideSeparator=false,
+  hideSeparator = false,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
     () =>
       confirmCustomColor
         ? {
-            backgroundColor: confirmCustomColor,
-            borderColor: confirmCustomColor,
-            color: 'white',
-          }
+          backgroundColor: confirmCustomColor,
+          borderColor: confirmCustomColor,
+          color: 'white',
+        }
         : undefined,
     [confirmCustomColor]
   );
@@ -81,7 +81,7 @@ export function ActionDialog({
         )}
         style={{ scrollbarGutter: 'auto' }}
       >
-        <DialogHeader className={cn(title? '' : 'hidden')}>
+        <DialogHeader className={cn(title ? '' : 'hidden')}>
           <DialogTitle>
             <div className="flex items-center gap-2">
               {titleIcon && titleIcon}
@@ -101,8 +101,8 @@ export function ActionDialog({
             cancelActionNeeded
               ? 'md:grid-cols-2'
               : 'md:grid-cols-1'
-            )}>
-          {cancelActionNeeded &&(
+          )}>
+          {cancelActionNeeded && (
             <Button
               variant="outline"
               onClick={() => onOpenChangeAction(false)}
@@ -110,12 +110,12 @@ export function ActionDialog({
                 confirmActionNeeded
                   ? ''
                   : cancelButtonClass
-                  ? cancelButtonClass
-                  : 'md:col-span-2'
-            )}
-          >
-            {cancelText}
-          </Button>
+                    ? cancelButtonClass
+                    : 'md:col-span-2'
+              )}
+            >
+              {cancelText}
+            </Button>
           )}
 
           {confirmActionNeeded && (
@@ -136,9 +136,9 @@ export function ActionDialog({
               )}
               {confirmText}
             </Button>
-           )}
+          )}
         </div>
-        {textbelowbutton && ( textbelowbutton)}
+        {textbelowbutton && (textbelowbutton)}
       </DialogContent>
     </Dialog>
   );
