@@ -19,11 +19,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -36,12 +36,12 @@ interface SelectedAction {
 
 const getDialogConfigs = (
   lineItemData?: QuotationLineItem | null,
-  selectedAction?: SelectedAction
+  selectedAction?: SelectedAction,
 ): Record<string, DialogConfig> => {
   const lineItemName = lineItemData?.productName;
   const productCode = lineItemData?.supplierProductName;
   const totalSellPrice = centsToDollars(
-    lineItemData?.totalProductSellPrice || 0
+    lineItemData?.totalProductSellPrice || 0,
   );
   const productQty = lineItemData?.productSellQty;
   const productUom = lineItemData?.productSellUom;
@@ -125,9 +125,8 @@ const getDialogConfigs = (
   return {};
 };
 
-
 export function useQuotationLineItemActions(
-  lineItemData?: QuotationLineItem | null
+  lineItemData?: QuotationLineItem | null,
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -135,10 +134,10 @@ export function useQuotationLineItemActions(
     React.useState<SelectedAction | null>(null);
 
   const selectedLineItem = useQuotationLineItemStore(
-    (state) => state.selectedLineItem
+    (state) => state.selectedLineItem,
   );
   const setSelectedLineItem = useQuotationLineItemStore(
-    (state) => state.setSelectedLineItem
+    (state) => state.setSelectedLineItem,
   );
 
   const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
@@ -156,7 +155,7 @@ export function useQuotationLineItemActions(
 
   const dialogConfigs = getDialogConfigs(
     lineItemData,
-    selectedAction || undefined
+    selectedAction || undefined,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -256,7 +255,10 @@ export function useQuotationLineItemActions(
         useSelectedLineItem: true,
       }}
     >
-      <QuotationLineItemForm id={lineItemId} canEdit={canEdit && !isDuplicate} />
+      <QuotationLineItemForm
+        id={lineItemId}
+        canEdit={canEdit && !isDuplicate}
+      />
     </FormDialog>
   ) : null;
 

@@ -33,6 +33,8 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  confirmDisabled?: boolean;
+  cancelText?: string;
 }
 
 interface SelectedAction {
@@ -40,9 +42,26 @@ interface SelectedAction {
 }
 
 const getDialogConfigs = (
-  _jobData?: Job | null,
+  jobData?: Job | null,
   selectedAction?: SelectedAction,
 ): Record<string, DialogConfig> => {
+  const dummyOutstandingAmounts: Record<number, number> = {
+    1: 12500,
+    2: 22500,
+    3: 72500,
+    4: 62500,
+    5: 42500,
+    6: 30500,
+  };
+
+  const jobNumber = jobData?.jobNumber;
+  const projectName = jobData?.projectName;
+  const customerName = jobData?.customerName;
+  const docketsNotFinalised = jobData?.uninvoicedDockets ?? 0;
+  const outstandingAmount = jobData?.id
+    ? (dummyOutstandingAmounts[jobData.id] ?? 0)
+    : 0;
+
   if (selectedAction?.key === 'resume') {
     return {
       resume: {
@@ -51,6 +70,91 @@ const getDialogConfigs = (
         confirmText: 'Resume',
         confirmVariant: 'default',
         confirmActionNeeded: true,
+      },
+    };
+  } else if (selectedAction?.key === 'settle') {
+    return {
+      settle: {
+        title: 'Settlement Blocked',
+        description: (
+          <div className="flex justify-start items-center gap-2">
+            <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md">
+              <span className="flex items-center justify-center">
+                <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
+              </span>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{projectName}</span>
+              <div className="flex justify-start gap-2">
+                <span className="text-sm text-[#6A7282]">{jobNumber}</span>
+                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+                <span className="text-sm text-[#6A7282]">{customerName}</span>
+              </div>
+            </div>
+          </div>
+        ),
+        content: (
+          <div className="flex flex-col gap-5">
+            <div className="border border-[#FECACA] rounded-md p-4 bg-[#FFF1F2]">
+              <div className="flex justify-start gap-2 self-stretch">
+                <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-[16px] text-[#B91C1C] font-medium">
+                    Settlement Blocked
+                  </span>
+                  <span className="text-[14px] font-normal text-[#B91C1C]">
+                    Outstanding balance of $
+                    {outstandingAmount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    or dockets not in Invoiced / Cash Sale / Void status.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md bg-[#F3F4F6] py-2 px-4">
+              <span className="text-[14px] font-medium text-[#111827]">
+                Blocking Conditions
+              </span>
+              <div className="mt-2 divide-y divide-[#E5E7EB]">
+                <div className="flex justify-between py-2 text-[14px] text-[#6B7280]">
+                  <span>Dockets not finalised</span>
+                  <span className="font-semibold text-[#E35700]">
+                    {docketsNotFinalised}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 text-[14px] font-medium text-[#111827]">
+                  <span>Outstanding Amount</span>
+                  <span className="font-semibold text-[#E11D48]">
+                    $
+                    {outstandingAmount.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <span className="text-[14px] font-medium text-[#111827]">
+                Resolve outstanding invoices or payments:
+              </span>
+              <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
+                <li>
+                  All dockets must be in Paid, Cash Sale, or Voided status
+                </li>
+                <li>Outstanding balance must be $0</li>
+              </ul>
+            </div>
+          </div>
+        ),
+        confirmText: 'Settle Job',
+        confirmVariant: 'default',
+        confirmCustomColor: '#8E51FF',
+        cancelText: 'Cancel',
       },
     };
   }
@@ -97,18 +201,23 @@ function PauseJobContent({
         </div>
       </div>
 
-      <p className="text-sm text-gray-700">Are you sure you want to pause this job?</p>
+      <p className="text-sm text-gray-700">
+        Are you sure you want to pause this job?
+      </p>
 
       {activeDockets.length > 0 && (
         <>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-1">
               <TriangleAlert className="h-4 w-4 text-amber-500" />
-              <span className="font-semibold text-amber-700">Active Dockets Found</span>
+              <span className="font-semibold text-amber-700">
+                Active Dockets Found
+              </span>
             </div>
             <p className="text-sm text-amber-600">
               This job has {activeDockets.length} assigned docket
-              {activeDockets.length !== 1 ? 's' : ''} with drivers. Choose how to handle them:
+              {activeDockets.length !== 1 ? 's' : ''} with drivers. Choose how
+              to handle them:
             </p>
           </div>
 
@@ -116,12 +225,17 @@ function PauseJobContent({
             {activeDockets.map((docket) => {
               const statusStyle = getDocketStatusStyle(docket.status);
               return (
-                <div key={docket.id} className="flex items-center justify-between px-3 py-2">
+                <div
+                  key={docket.id}
+                  className="flex items-center justify-between px-3 py-2"
+                >
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <Truck className="h-4 w-4 text-gray-400" />
                     <span className="font-medium">{docket.docketNumber}</span>
                     {docket.contactName && (
-                      <span className="text-gray-500">- {docket.contactName}</span>
+                      <span className="text-gray-500">
+                        - {docket.contactName}
+                      </span>
                     )}
                   </div>
                   <span
@@ -155,7 +269,9 @@ function PauseJobContent({
                 <div
                   className={cn(
                     'mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
-                    docketAction === 'stop' ? 'border-red-500' : 'border-gray-300',
+                    docketAction === 'stop'
+                      ? 'border-red-500'
+                      : 'border-gray-300',
                   )}
                 >
                   {docketAction === 'stop' && (
@@ -165,11 +281,13 @@ function PauseJobContent({
                 <div>
                   <div className="flex items-center gap-2">
                     <CircleX className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-semibold text-gray-900">Stop All Dockets</span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      Stop All Dockets
+                    </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Immediately stop all assigned dockets. Drivers will be notified that they have
-                    been unassigned.
+                    Immediately stop all assigned dockets. Drivers will be
+                    notified that they have been unassigned.
                   </p>
                 </div>
               </div>
@@ -188,7 +306,9 @@ function PauseJobContent({
                 <div
                   className={cn(
                     'mt-0.5 h-4 w-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
-                    docketAction === 'allow' ? 'border-green-500' : 'border-gray-300',
+                    docketAction === 'allow'
+                      ? 'border-green-500'
+                      : 'border-gray-300',
                   )}
                 >
                   {docketAction === 'allow' && (
@@ -203,7 +323,8 @@ function PauseJobContent({
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Let assigned drivers finish their current assigned deliveries.
+                    Let assigned drivers finish their current assigned
+                    deliveries.
                   </p>
                 </div>
               </div>
@@ -213,7 +334,9 @@ function PauseJobContent({
       )}
 
       <div>
-        <p className="text-sm font-semibold text-gray-900 mb-2">When job is paused:</p>
+        <p className="text-sm font-semibold text-gray-900 mb-2">
+          When job is paused:
+        </p>
         <ul className="space-y-1.5">
           {[
             'Job status changes to "Paused"',
@@ -222,7 +345,10 @@ function PauseJobContent({
             'New docket creation is blocked',
             'Can be resumed at any time',
           ].map((item) => (
-            <li key={item} className="flex items-center gap-2 text-sm text-gray-600">
+            <li
+              key={item}
+              className="flex items-center gap-2 text-sm text-gray-600"
+            >
               <span className="h-1.5 w-1.5 rounded-full bg-gray-400 flex-shrink-0" />
               {item}
             </li>
@@ -239,7 +365,9 @@ export function useJobActions(jobData?: JobDetails | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [pauseOpen, setPauseOpen] = React.useState(false);
-  const [pauseDocketAction, setPauseDocketAction] = React.useState<'stop' | 'allow'>('stop');
+  const [pauseDocketAction, setPauseDocketAction] = React.useState<
+    'stop' | 'allow'
+  >('stop');
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
@@ -247,6 +375,24 @@ export function useJobActions(jobData?: JobDetails | null) {
     () => getDialogConfigs(jobData ?? null, selectedAction || undefined),
     [jobData, selectedAction],
   );
+
+  const createDialogAction = (actionKey: string) => {
+    return () => {
+      setSelectedAction({ key: actionKey });
+      setActiveDialog(actionKey);
+    };
+  };
+
+  const actionHandlers: Record<string, () => void> = {
+    resume: () => {
+      console.log('Resume job:', jobId, jobData);
+      // TODO: implement resume logic
+    },
+    settle: () => {
+      console.log('Settle job:', jobId, jobData);
+      // TODO: implement settle logic
+    },
+  };
 
   const activeDockets = React.useMemo(
     () =>
@@ -268,10 +414,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       setViewOpen(true);
     },
 
-    resume: () => {
-      console.log('Resume job:', jobId, jobData);
-      // TODO: implement resume logic
-    },
+    resume: createDialogAction('resume'),
 
     pause: () => {
       setPauseDocketAction('stop');
@@ -293,10 +436,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       // TODO: implement view dockets logic
     },
 
-    settle: () => {
-      console.log('Settle job:', jobId, jobData);
-      // TODO: implement settle logic
-    },
+    settle: createDialogAction('settle'),
   };
 
   // Render active dialog
@@ -323,12 +463,12 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
+        confirmDisabled={config.confirmDisabled}
+        cancelText={config.cancelText}
         onConfirmAction={() => {
-          switch (key) {
-            case 'resume':
-              console.log('Resume job:', jobId, jobData);
-              // TODO: implement resume logic
-              break;
+          const handler = actionHandlers[key];
+          if (handler) {
+            handler();
           }
         }}
       />
