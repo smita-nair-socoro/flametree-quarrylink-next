@@ -201,7 +201,7 @@ export function StatsCards({
                   </div>
                   <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
-                      <div className="text-3xl font-bold pt-1 truncate">
+                      <div className="text-2xl font-bold pt-1 truncate">
                         {card.value}
                       </div>
                     </TooltipTrigger>

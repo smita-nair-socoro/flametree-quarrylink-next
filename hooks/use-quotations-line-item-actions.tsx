@@ -10,6 +10,8 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useDeleteQuoteItem } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface DialogConfig {
   title?: string;
@@ -123,7 +125,6 @@ const getDialogConfigs = (
   return {};
 };
 
-import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 
 export function useQuotationLineItemActions(
   lineItemData?: QuotationLineItem | null
@@ -140,7 +141,9 @@ export function useQuotationLineItemActions(
     (state) => state.setSelectedLineItem
   );
 
-  const lineItemId = selectedLineItem?.id;
+  const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
+
+  const lineItemId = lineItemData?.id ?? selectedLineItem?.id;
 
   // Get selected quotation to check status
   const selectedQuotation = useSelectedQuotation();
@@ -253,7 +256,7 @@ export function useQuotationLineItemActions(
         useSelectedLineItem: true,
       }}
     >
-      <QuotationLineItemForm id={lineItemId} canEdit={canEdit} />
+      <QuotationLineItemForm id={lineItemId} canEdit={canEdit && !isDuplicate} />
     </FormDialog>
   ) : null;
 

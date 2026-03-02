@@ -4,7 +4,6 @@
       "id": 1,
       "quoteNumber": "Q101",
       "status": "DRAFT",
-      "quoteType": "DELIVERY",
       "customerId": 1,
       "customerName": "Jay",
       "customerEmail": "Jay@socoro.com.au",
@@ -59,7 +58,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         }
       ]
     },
@@ -67,7 +67,6 @@
       "id": 2,
       "quoteNumber": "Q102",
       "status": "PENDING",
-      "quoteType": "COLLECTION",
       "customerId": 2,
       "customerName": "Armin",
       "customerEmail": "Armin@socoro.com.au",
@@ -121,7 +120,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "COLLECTION"
         },
         {
           "id": 2,
@@ -154,7 +154,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "COLLECTION"
         }
       ]
     },
@@ -162,7 +163,6 @@
       "id": 3,
       "quoteNumber": "Q103",
       "status": "APPROVED",
-      "quoteType": "DELIVERY",
       "customerId": 2,
       "customerName": "Armin",
       "customerEmail": "Armin@socoro.com.au",
@@ -215,7 +215,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         },
         {
           "id": 2,
@@ -248,7 +249,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         }
       ]
     },
@@ -256,7 +258,6 @@
       "id": 4,
       "quoteNumber": "Q104",
       "status": "DECLINED",
-      "quoteType": "DELIVERY",
       "customerId": 2,
       "customerName": "Armin",
       "customerEmail": "Armin@socoro.com.au",
@@ -310,7 +311,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         },
         {
           "id": 2,
@@ -343,7 +345,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         },
         {
           "id": 2,
@@ -376,7 +379,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         }
       ]
     },
@@ -384,7 +388,6 @@
       "id": 5,
       "quoteNumber": "Q105",
       "status": "APPROVED",
-      "quoteType": "COLLECTION",
       "customerId": 1,
       "customerName": "Jay",
       "customerEmail": "Jay@socoro.com.au",
@@ -438,7 +441,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "COLLECTION"
         }
       ]
     },
@@ -446,7 +450,6 @@
       "id": 6,
       "quoteNumber": "Q106",
       "status": "CONVERTED_TO_JOB",
-      "quoteType": "DELIVERY",
       "customerId": 2,
       "customerName": "Armin",
       "customerEmail": "Armin@socoro.com.au",
@@ -500,7 +503,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         },
         {
           "id": 2,
@@ -533,7 +537,8 @@
           "createdBy": "system",
           "createdAt": "2025-09-20T10:00:00Z",
           "updatedAt": "2025-09-20T10:00:00Z",
-          "lastModifiedBy": "system"
+          "lastModifiedBy": "system",
+          "quoteItemType": "DELIVERY"
         }
       ]
     },
@@ -541,7 +546,6 @@
       "id": 7,
       "quoteNumber": "Q107",
       "status": "EXPIRED",
-      "quoteType": "COLLECTION",
       "customerId": 1,
       "customerName": "Jay",
       "customerEmail": "Jay@socoro.com.au",
@@ -569,7 +573,6 @@
       "id": 8,
       "quoteNumber": "Q108",
       "status": "ARCHIVED",
-      "quoteType": "COLLECTION",
       "customerId": 1,
       "customerName": "Jay",
       "customerEmail": "Jay@socoro.com.au",
