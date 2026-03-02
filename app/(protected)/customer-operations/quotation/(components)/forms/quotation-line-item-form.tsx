@@ -264,10 +264,10 @@ export default function QuoteLineItemForm({
               <FormSelect
                 control={quotationLineItemForm.control}
                 name="quarrySupplierId"
-                label="Quarry/Supplier*"
-                searchLabel="Quarry/Supplier"
+                label="Quarry / Supplier*"
+                searchLabel="Quarry / Supplier"
                 options={quarryOptions}
-                placeholder="Select Quarry/Supplier"
+                placeholder="Select Quarry / Supplier"
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }

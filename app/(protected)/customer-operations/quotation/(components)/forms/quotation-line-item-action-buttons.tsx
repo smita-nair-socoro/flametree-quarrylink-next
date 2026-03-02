@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { useQuotationLineItemActions } from '@/hooks/use-quotations-line-item-actions';
-import { Delete, Plus } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -27,9 +27,8 @@ export function QuotationLineItemActionButtons({
 }: QuotationLineItemActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
-  const { actions, confirmDialogs, viewDialog } = useQuotationLineItemActions(
-    quotationLineItem
-  );
+  const { actions, confirmDialogs, viewDialog } =
+    useQuotationLineItemActions(quotationLineItem);
 
   // Early returns for null quotation or new quotation
   if (!quotationLineItem) {

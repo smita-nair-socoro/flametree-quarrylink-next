@@ -41,15 +41,15 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
           <Text style={styles.valueSmall}>{projectName}</Text>
         </View>
 
-        {/* Delivery Date */}
+        {/*  Estimated Start Date* */}
         <View style={styles.quarterColumn}>
-          <Text style={styles.label}>Delivery Date</Text>
+          <Text style={styles.label}> Estimated Start Date*</Text>
           <Text style={styles.valueSmall}>{deliveryDate}</Text>
         </View>
 
-        {/* Delivery Window */}
+        {/* Timeframe */}
         <View style={styles.quarterColumn}>
-          <Text style={styles.label}>Delivery Window</Text>
+          <Text style={styles.label}>Timeframe</Text>
           <Text style={styles.valueSmall}>{deliveryWindow}</Text>
         </View>
       </View>
