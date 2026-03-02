@@ -21,7 +21,7 @@ function getDocketStatusStyle(status: DOCKET_STATUS): {
     case DOCKET_STATUS.ASSIGNED:
       return { label: 'ASSIGNED', className: 'bg-blue-100 text-blue-700' };
     case DOCKET_STATUS.ARRIVED:
-      return { label: 'ARRIVED', className: 'bg-green-100 text-green-700' };
+      return { label: 'ARRIVED', className: 'bg-blue-100 text-blue-700' };
     default:
       return { label: status, className: 'bg-gray-100 text-gray-600' };
   }
