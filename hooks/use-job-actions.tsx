@@ -7,6 +7,7 @@ import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/for
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { CircleX, TriangleAlert } from 'lucide-react';
 import { useJobStore } from '@/app/stores/job-store';
+import { useSubscriptionPlan } from '@/app/stores/client-store';
 import {
   Select,
   SelectContent,

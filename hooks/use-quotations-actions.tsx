@@ -17,6 +17,7 @@ import {
   Send,
   Eye,
   X,
+  Briefcase,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { DatePicker } from '@/components/date-picker';
@@ -56,11 +57,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -593,7 +594,6 @@ const getDialogConfigs = (
                 </li>
               </ul>
             </div>
-
           </div>
         ),
         confirmText: 'Decline Quote',
@@ -657,7 +657,7 @@ const getDialogConfigs = (
         title: 'Convert Quote to Job',
         description: (
           <div className="flex justify-start items-center gap-2">
-            <div className="flex w-[40px] h-[40px] justify-center bg-blue-900 rounded-full">
+            <div className="flex w-[40px] h-[40px] justify-center bg-[#1E3A8A] rounded-full">
               <span className="flex items-center justify-center">
                 <ArrowRight className="h-[20px] w-[20px] text-[#ffffff]" />
               </span>
@@ -669,7 +669,7 @@ const getDialogConfigs = (
                   {quotationNumber}
                 </span>
                 <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-                <span className="text-sm text-[#6A7282]">{projectName}</span>
+                <span className="text-sm text-[#6A7282]">{customerName}</span>
               </div>
             </div>
           </div>
@@ -679,7 +679,7 @@ const getDialogConfigs = (
             <span className="text-[14px] text-[#364153] font-normal">
               Are you sure you want to approve this quote?
             </span>
-            <div className="rounded-md p-[16.625px] bg-blue-900">
+            <div className="rounded-md p-[16.625px] bg-[#1E3A8A]">
               <div className="flex justify-start gap-2 self-stretch">
                 <ArrowRight className="h-[20px] w-[20px] text-[#ffffff] flex-shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
@@ -705,7 +705,7 @@ const getDialogConfigs = (
               </ul>
             </div>
 
-            <div className="rounded-md p-1 bg-[#E5E5E5]">
+            <div className="rounded-md p-1 bg-[#E5E7EB]">
               <div className="flex flex-col gap-1 px-4 py-2">
                 <div className="flex justify-between">
                   <span className="text-[14px] font-normal text-[#6A7282]">
@@ -745,9 +745,10 @@ const getDialogConfigs = (
             </div>
           </div>
         ),
-        confirmText: 'Approve Quote',
+        confirmText: 'Convert to Job',
         confirmVariant: 'default',
         confirmCustomColor: '#1E3A8A',
+        confirmIcon: <Briefcase className="h-4 w-4" />,
       },
     };
   } else if (selectedAction?.key === 'extendExpiry') {
@@ -1196,8 +1197,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleConvertToJob = async () => {
-    console.log('Convert to job:', quotationId, resolvedQuotation);
-    // TODO: implement convert to job logic
+    const { subscriptionPlan } = useClientStore.getState();
+    setActiveDialog(null);
+    setSelectedAction(null);
   };
 
   const handleConvertToDraft = async () => {
