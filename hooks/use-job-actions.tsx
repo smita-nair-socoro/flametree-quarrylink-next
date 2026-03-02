@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { useJobStore } from '@/app/stores/job-store';
+import { useSubscriptionPlan } from '@/app/stores/client-store';
 
 interface DialogConfig {
   title?: string;
@@ -58,6 +59,8 @@ const getDialogConfigs = (
 export function useJobActions(jobData?: Job | null) {
   const jobId = jobData?.id;
   const selectedJob = useJobStore((s) => s.selectedJob);
+  const subscriptionPlan = useSubscriptionPlan();
+  const canConvertToJob = subscriptionPlan !== 'ESSENTIALS';
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
@@ -167,5 +170,6 @@ export function useJobActions(jobData?: Job | null) {
     actions,
     confirmDialogs,
     viewDialog,
+    canConvertToJob,
   };
 }

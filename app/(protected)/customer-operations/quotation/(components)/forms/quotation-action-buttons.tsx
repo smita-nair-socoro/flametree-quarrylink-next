@@ -25,6 +25,7 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
+import { useSubscriptionPlan } from '@/app/stores/client-store';
 
 interface QuotationActionButtonsProps {
   quotation: Quotation | null | undefined;
@@ -36,6 +37,9 @@ export function QuotationActionButtons({
   layout = 'expanded',
 }: QuotationActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  const subscriptionPlan = useSubscriptionPlan();
+  const canConvertToJob = subscriptionPlan !== 'ESSENTIALS';
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
     useQuotationActions(quotation);
@@ -111,10 +115,12 @@ export function QuotationActionButtons({
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.convertToJob}>
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Convert to Job
-                </DropdownMenuItem>
+                {canConvertToJob && (
+                  <DropdownMenuItem onClick={actions.convertToJob}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Convert to Job
+                  </DropdownMenuItem>
+                )}
               </>
             )}
 
@@ -270,15 +276,17 @@ export function QuotationActionButtons({
               <ThumbsDown className="h-4 w-4 mr-2" />
               Decline
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.convertToJob}
-              className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
-            >
-              <Briefcase className="h-4 w-4 mr-2" />
-              Convert to Job
-            </Button>
+            {canConvertToJob && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={actions.convertToJob}
+                className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
+              >
+                <Briefcase className="h-4 w-4 mr-2" />
+                Convert to Job
+              </Button>
+            )}
           </>
         )}
 

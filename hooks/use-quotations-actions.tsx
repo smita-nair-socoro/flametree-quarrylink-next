@@ -57,11 +57,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -594,7 +594,6 @@ const getDialogConfigs = (
                 </li>
               </ul>
             </div>
-
           </div>
         ),
         confirmText: 'Decline Quote',
@@ -1198,8 +1197,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleConvertToJob = async () => {
-    console.log('Convert to job:', quotationId, resolvedQuotation);
-    // TODO: implement convert to job logic
+    const { subscriptionPlan } = useClientStore.getState();
+    setActiveDialog(null);
+    setSelectedAction(null);
   };
 
   const handleConvertToDraft = async () => {

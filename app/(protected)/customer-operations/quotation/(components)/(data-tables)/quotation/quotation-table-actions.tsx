@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
+import { useSubscriptionPlan } from '@/app/stores/client-store';
 
 interface QuotationTableActionsProps {
   quotation: Quotation;
@@ -31,6 +32,9 @@ export function QuotationTableActions({
   quotation,
 }: QuotationTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+  const subscriptionPlan = useSubscriptionPlan();
+  const canConvertToJob = subscriptionPlan !== 'ESSENTIALS';
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
     useQuotationActions(quotation);
@@ -120,14 +124,15 @@ export function QuotationTableActions({
                 Decline
               </DropdownMenuItem>
 
-              {/* Convert to Job should be hidden for Essentials users. */}
-              {/* {!isEssentials && ( */}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleConvertToJob}>
-                <Briefcase className="h-4 w-4 mr-2" />
-                Convert to Job
-              </DropdownMenuItem>
-              {/* )} */}
+              {canConvertToJob && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleConvertToJob}>
+                    <Briefcase className="h-4 w-4 mr-2" />
+                    Convert to Job
+                  </DropdownMenuItem>
+                </>
+              )}
             </>
           )}
 

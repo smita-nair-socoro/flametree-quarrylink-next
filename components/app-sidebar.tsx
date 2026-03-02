@@ -155,6 +155,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
   React.useEffect(() => {
+    useClientStore
+      .getState()
+      .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
+    useClientStore.getState().setUser(displayName);
+  }, [subscriptionPlan, displayName]);
+
+  React.useEffect(() => {
     claritySafe((c) => {
       if (tenantCompleteDetails?.tenantDetails?.tenantName) {
         c('set', 'tenantName', tenantCompleteDetails.tenantDetails.tenantName);
@@ -164,7 +171,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       }
       if (displayName) {
         c('set', 'userName', displayName);
-        useClientStore.getState().setUser(displayName);
       }
       if (email) {
         c('set', 'userEmail', email);
