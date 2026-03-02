@@ -11,6 +11,7 @@ import { Docket } from '@/lib/types/docket';
 import { ResumeJobContent } from '@/hooks/job/resume-job-content';
 import { SettleJobContent } from '@/hooks/job/settle-job-content';
 import { PauseJobContent } from '@/hooks/job/pause-job-content';
+import { CancelJobContent } from '@/hooks/job/cancel-job-content';
 
 interface DialogConfig {
   title?: string;
@@ -40,6 +41,8 @@ export function useJobActions(jobData?: JobDetails | null) {
   const [pauseDocketAction, setPauseDocketAction] = React.useState<
     'stop' | 'allow'
   >('stop');
+  const [cancelReason, setCancelReason] = React.useState('');
+  const [cancelNotes, setCancelNotes] = React.useState('');
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -63,6 +66,12 @@ export function useJobActions(jobData?: JobDetails | null) {
     },
   ] as Docket[];
 
+  const isCancelFormValid = React.useMemo(() => {
+    if (!cancelReason) return false;
+    if (cancelReason === 'other' && !cancelNotes.trim()) return false;
+    return true;
+  }, [cancelReason, cancelNotes]);
+
   const dialogConfigs = React.useMemo(
     (): Record<string, DialogConfig> => ({
       resume: {
@@ -71,6 +80,23 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmText: 'Resume',
         confirmVariant: 'default',
         confirmActionNeeded: true,
+      },
+      cancel: {
+        title: 'Cancel Job',
+        content: (
+          <CancelJobContent
+            job={jobData}
+            cancelReason={cancelReason}
+            onCancelReasonChange={setCancelReason}
+            cancelNotes={cancelNotes}
+            onCancelNotesChange={setCancelNotes}
+          />
+        ),
+        confirmText: 'Cancel Job',
+        confirmVariant: 'destructive',
+        confirmCustomColor: '#E7000B',
+        confirmDisabled: !isCancelFormValid,
+        cancelText: 'Keep Job',
       },
       settle: {
         title: 'Settlement Blocked',
@@ -93,7 +119,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmCustomColor: '#CA8A04',
       },
     }),
-    [jobData, activeDockets, pauseDocketAction],
+    [jobData, activeDockets, pauseDocketAction, cancelReason, cancelNotes, isCancelFormValid],
   );
 
   const createDialogAction = (actionKey: string) => () =>
@@ -103,6 +129,11 @@ export function useJobActions(jobData?: JobDetails | null) {
     resume: () => {
       console.log('Resume job:', jobId, jobData);
       // TODO: implement resume logic
+    },
+    cancel: () => {
+      if (!isCancelFormValid) return;
+      console.log('Cancel job:', jobId, jobData, { cancelReason, cancelNotes });
+      // TODO: implement cancel logic
     },
     settle: () => {
       console.log('Settle job:', jobId, jobData);
@@ -132,8 +163,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     },
 
     cancel: () => {
-      console.log('Cancel job:', jobId, jobData);
-      // TODO: implement cancel logic
+      setCancelReason('');
+      setCancelNotes('');
+      setActiveDialog('cancel');
     },
 
     addDocket: () => {
