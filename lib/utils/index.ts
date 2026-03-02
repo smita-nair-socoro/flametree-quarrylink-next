@@ -209,4 +209,6 @@ export const BADGE_COLORS: Record<string, string> = {
   PAUSED: 'bg-orange-100 text-orange-800 border-orange-800',
   SETTLED: 'bg-gray-100 text-gray-800 border-gray-900',
   COMPLETED: 'bg-violet-100 text-violet-800 border-violet-800',
+  UNASSIGNED: 'bg-gray-100 text-gray-800 border-gray-800',
+  ASSIGNED: 'bg-blue-100 text-blue-800 border-blue-800',
 };

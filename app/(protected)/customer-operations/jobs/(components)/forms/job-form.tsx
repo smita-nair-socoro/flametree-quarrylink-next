@@ -30,7 +30,7 @@ import { UsersListQueryOptions } from '@/lib/api/user';
 import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { Job } from '@/lib/types/job';
+import { Job, JobDetails } from '@/lib/types/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
@@ -61,7 +61,7 @@ export default function JobForm({
   const [isEditing] = React.useState(Boolean(id));
 
   const selectedJob = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === id) as Job;
+    return rawJson.items.find((job) => job.id === id) as JobDetails;
   }, [id]);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
@@ -184,24 +184,29 @@ export default function JobForm({
     return d;
   }, []);
 
-  const tabs = React.useMemo(() => [
-    {
-      name: 'Products',
-      content: <LineItemsTab jobLineItems={selectedJob?.jobLineItems ?? []} />,
-    },
-    {
-      name: 'Dockets',
-      content: <DocketsTab />,
-    },
-    {
-      name: 'Invoices',
-      content: <InvoicesTab />,
-    },
-    {
-      name: 'Cash Sales',
-      content: <CashSalesTab />,
-    },
-  ], [selectedJob?.jobLineItems]);
+  const tabs = React.useMemo(
+    () => [
+      {
+        name: 'Products',
+        content: (
+          <LineItemsTab jobLineItems={selectedJob?.jobLineItems ?? []} />
+        ),
+      },
+      {
+        name: 'Dockets',
+        content: <DocketsTab dockets={selectedJob?.dockets ?? []} />,
+      },
+      {
+        name: 'Invoices',
+        content: <InvoicesTab />,
+      },
+      {
+        name: 'Cash Sales',
+        content: <CashSalesTab />,
+      },
+    ],
+    [selectedJob?.jobLineItems, selectedJob?.dockets],
+  );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
     setIsSubmitting(true);
@@ -516,9 +521,7 @@ export default function JobForm({
             </div>
           )}
 
-          {isEditing && (
-            <Separator className="my-4" />
-          )}
+          {isEditing && <Separator className="my-4" />}
 
           {isEditing && (
             <div className="w-full flex min-w-0">

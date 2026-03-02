@@ -1,8 +1,8 @@
-import React from "react";
+import React from 'react';
 
-import { Job } from "@/lib/types/job";
-import rawJson from "@/lib/tests/jobsDetailResponseData.json";
-import { calculateJobPricing } from "@/lib/utils/job-helpers";
+import { Job, JobDetails } from '@/lib/types/job';
+import rawJson from '@/lib/tests/jobsDetailResponseData.json';
+import { calculateJobPricing } from '@/lib/utils/job-helpers';
 
 export const EMPTY_JOB_FORM_VALUES = {
   customerId: 0,
@@ -24,7 +24,7 @@ export function useJobFormState(selectedJob: Job | null, isEditing?: boolean) {
 
   const getDetailedJob = React.useMemo(() => {
     if (isEditing && jobDetailData) {
-      return jobDetailData as Job;
+      return jobDetailData as JobDetails;
     }
     return null;
   }, [isEditing, jobDetailData]);
