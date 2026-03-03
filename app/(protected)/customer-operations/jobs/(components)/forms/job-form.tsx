@@ -194,7 +194,7 @@ export default function JobForm({
       },
       {
         name: 'Dockets',
-        content: <DocketsTab dockets={selectedJob?.dockets ?? []} />,
+        content: <DocketsTab selectedJob={selectedJob ?? null} />,
       },
       {
         name: 'Invoices',

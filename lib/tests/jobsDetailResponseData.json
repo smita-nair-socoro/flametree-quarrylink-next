@@ -412,7 +412,7 @@
         {
           "id": 3,
           "productId": 4,
-          "type": "COLLECTION",
+          "type": "DELIVERY",
           "quarrySupplierId": 4,
           "customerDeliveryAddressId": 2,
           "customerDeliveryAddress": {
@@ -457,7 +457,7 @@
           "truckCostQty": 1,
           "truckCostPrice": 100.0,
           "totalTruckCostPrice": 100.0,
-          "truckSellUom": "TN",
+          "truckSellUom": "LOAD",
           "truckSellQty": 1,
           "truckSellPrice": 150.0,
           "totalTruckSellPrice": 150.0,

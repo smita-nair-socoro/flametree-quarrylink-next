@@ -9,7 +9,7 @@ export const DocketFormSchema = z.object({
   jobLineItemId: z.coerce.number().min(1, { message: 'Required' }),
   truckType: z.string().optional(),
   loadSize: z.coerce.number().positive({ message: 'Must be greater than 0' }),
-  pickUpAddressId: z.coerce.number().min(1, { message: 'Required' }),
+  pickUpAddressId: z.coerce.number().optional(),
   deliveryAddressId: z.coerce.number().optional(),
   purchaseOrder: z.string().optional(),
   productEstimatedVolume: z.coerce
@@ -36,4 +36,5 @@ export const DocketFormSchema = z.object({
       message: 'Invalid phone number',
     }),
   docketEmail: z.string().email().nonempty({ message: 'Required' }),
+  notes: z.string().optional(),
 });
