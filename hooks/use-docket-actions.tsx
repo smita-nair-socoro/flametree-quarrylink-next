@@ -78,6 +78,7 @@ const ACTION_DEFINITIONS: Record<DocketActionKey, ActionDefinition> = {
   stop: {
     label: 'Stop',
     icon: Square,
+    destructive: true,
   },
   resumeTransit: {
     label: 'Resume Transit',
@@ -157,6 +158,15 @@ const ACTION_MATRIX: Record<DOCKET_TYPE, Record<string, DocketActionKey[]>> = {
 
 const FALLBACK_ACTIONS: DocketActionKey[] = ['viewDetails'];
 
+const COLLECTION_STATUS_KEYS = [
+  'PENDING',
+  'PREPARING',
+  'READY',
+  'COLLECTED',
+  'CASH_SALE',
+] as const;
+const COLLECTION_STATUSES = new Set<string>(COLLECTION_STATUS_KEYS);
+
 const normalizeStatus = (status?: string) => status?.toUpperCase() ?? '';
 
 export interface DocketMenuAction extends ActionDefinition {
@@ -193,10 +203,14 @@ export function useDocketActions(docket?: Docket | null) {
   const actionKeys = React.useMemo<DocketActionKey[]>(() => {
     if (!docket) return FALLBACK_ACTIONS;
 
-    const type = docket.docketType ?? DOCKET_TYPE.DELIVERY;
-    const statusKey = docket.status;
-    const typeMap = ACTION_MATRIX[type] ?? {};
-    const normalizedStatus = normalizeStatus(statusKey);
+    const statusKey = normalizeStatus(docket.status);
+    const inferredType =
+      docket.docketType ??
+      (COLLECTION_STATUSES.has(statusKey)
+        ? DOCKET_TYPE.COLLECTION
+        : DOCKET_TYPE.DELIVERY);
+    const typeMap = ACTION_MATRIX[inferredType] ?? {};
+    const normalizedStatus = statusKey;
     const keys =
       typeMap[statusKey] ?? typeMap[normalizedStatus] ?? typeMap.DEFAULT;
 

@@ -47,10 +47,12 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
       <DropdownMenuContent align="end" className="w-56">
         {menuItems.map((item, index) => (
           <React.Fragment key={item.key}>
-            {index === 1 && <DropdownMenuSeparator />}
+            {index > 0 && <DropdownMenuSeparator />}
             <DropdownMenuItem
               onClick={() => handleAction(item)}
-              className={item.destructive ? 'text-red-600 focus:text-red-600' : ''}
+              className={
+                item.destructive ? 'text-red-600 focus:text-red-600' : ''
+              }
             >
               <item.icon
                 className={`mr-2 h-4 w-4 ${
