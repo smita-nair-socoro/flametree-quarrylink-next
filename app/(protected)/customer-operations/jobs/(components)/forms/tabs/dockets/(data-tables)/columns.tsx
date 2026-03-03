@@ -11,6 +11,7 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
+import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
 
 export const docketsColumns: ColumnDef<Docket>[] = [
   {
@@ -97,19 +98,9 @@ export const docketsColumns: ColumnDef<Docket>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return (
-        <div>
-          <>Actions</>
-        </div>
-      );
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
     },
-    // cell: ({ row }) => {
-    // 	return (
-    // 		<div>
-    // 			<JobLineItemTableActions jobLineItem={row.original} />
-    // 		</div>
-    // 	);
-    // },
   },
 ];
