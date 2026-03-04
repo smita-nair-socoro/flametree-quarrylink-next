@@ -205,7 +205,7 @@ export default function JobForm({
         content: <CashSalesTab />,
       },
     ],
-    [selectedJob?.jobLineItems, selectedJob?.dockets],
+    [selectedJob],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {

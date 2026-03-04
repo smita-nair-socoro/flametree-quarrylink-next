@@ -7,16 +7,27 @@ import z from 'zod';
 import rawJson from '@/lib/tests/jobsDetailResponseData.json';
 import { JobLineItem } from '@/lib/types/job';
 import { AddressType } from '@/lib/types/address';
-import { GetTodaysDate } from '@/lib/utils/date';
+import { format } from 'date-fns';
+import { GetTodaysDate, parseAsUTC } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
+
+// Helper to format Date to HH:MM time string
+const formatTimeString = (dateString?: string | null) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 export const EMPTY_DOCKET_FORM_VALUES = {
   jobId: 0,
   jobLineItemId: 0,
   loadSize: 0,
-  pickUpAddressId: 0,
-  deliveryAddressId: 0,
+  pickUpAddressId: '',
+  deliveryAddressId: '',
   purchaseOrder: '',
   productEstimatedVolume: 0,
   deliveryCollectionDate: undefined,
@@ -39,6 +50,19 @@ export const EMPTY_ADDRESS: AddressType = {
   lat: 0,
   lng: 0,
   googlePlaceId: '',
+};
+
+const MOCK_PICK_UP_ADDRESS: AddressType = {
+  address1: '123 George St',
+  address2: 'Unit 5',
+  formattedAddress: '123 George St Unit 5, Sydney, NSW 2000 Australia',
+  city: 'Sydney',
+  region: 'NSW',
+  postalCode: '2000',
+  country: 'Australia',
+  lat: -33.86785,
+  lng: 151.20732,
+  googlePlaceId: '123456789012',
 };
 
 const TRUCK_TYPE_OPTIONS = [
@@ -138,6 +162,8 @@ export function useDocketFormState({
     const job = rawJson.items.find((job) => job.id === selectedJobId);
     return {
       deliveryStartDate: job?.deliveryStartDate ?? '',
+      startTimeWindow: job?.deliveryWindowStart ?? '',
+      endTimeWindow: job?.deliveryWindowEnd ?? '',
       poNumber: job?.poNumber ?? '',
       contactName: job?.customerName ?? '',
       contactPhone: '+61 444 333 222',
@@ -149,12 +175,37 @@ export function useDocketFormState({
     };
   }, [selectedJobId]);
 
+  // Update form with selected job details
+  React.useEffect(() => {
+    if (selectedJob.deliveryStartDate) {
+      docketForm.setValue('deliveryCollectionDate', new Date(selectedJob.deliveryStartDate));
+    }
+    if (selectedJob.contactName) {
+      docketForm.setValue('customerContactName', selectedJob.contactName);
+    }
+    if (selectedJob.contactPhone) {
+      docketForm.setValue('customerContactPhone', selectedJob.contactPhone);
+    }
+    if (selectedJob.docketEmail) {
+      docketForm.setValue('docketEmail', selectedJob.docketEmail);
+    }
+    if (selectedJob.startTimeWindow) {
+      console.log(selectedJob.startTimeWindow);
+      docketForm.setValue('deliveryCollectionStartTime', formatTimeString(selectedJob.startTimeWindow));
+    }
+    if (selectedJob.endTimeWindow) {
+      console.log(selectedJob.endTimeWindow);
+      docketForm.setValue('deliveryCollectionEndTime', formatTimeString(selectedJob.endTimeWindow));
+    }
+  }, [selectedJob, docketForm]);
+
   const selectedJobLineItemDetails = React.useCallback(() => {
     const selectedJobLineItemId = docketForm.watch('jobLineItemId');
     const selectedJobLineItem = jobLineItems.find(
       (lineItem) => lineItem.id === selectedJobLineItemId
     );
     return {
+      customerDeliveryAddress: selectedJobLineItem?.customerDeliveryAddress ?? '',
       productName: selectedJobLineItem?.productName ?? '',
       quarryName: selectedJobLineItem?.quarryName ?? '',
       productUom:
@@ -195,6 +246,38 @@ export function useDocketFormState({
         selectedJobLineItem?.truckSellUom === 'KM',
     };
   }, [jobLineItems, docketForm]);
+
+  // Update delivery address when job line item changes
+  React.useEffect(() => {
+    const details = selectedJobLineItemDetails();
+    if (details.customerDeliveryAddress) {
+      const address = details.customerDeliveryAddress.address;
+      if (address) {
+        setDeliveryAddress({
+          address1: address.streetDetailsPrimary || '',
+          address2: address.streetDetailsOptional || '',
+          formattedAddress: address.formattedAddress || '',
+          city: address.city || '',
+          region: address.state || '',
+          postalCode: address.postcode || '',
+          country: address.country || '',
+          lat: address.latitude || 0,
+          lng: address.longitude || 0,
+          googlePlaceId: address.googlePlaceId || '',
+        });
+
+        setPickUpAddress(MOCK_PICK_UP_ADDRESS);
+
+        setDeliverySearchInput(address.formattedAddress || '');
+        if (details.type !== 'COLLECTION') {
+          docketForm.setValue('deliveryAddressId', details.customerDeliveryAddress.id || '');
+        }
+
+        setPickUpSearchInput(address.formattedAddress || '');
+        docketForm.setValue('pickUpAddressId', details.customerDeliveryAddress.id || '');
+      }
+    }
+  }, [docketForm.watch('jobLineItemId')]);
 
   const loadSize = docketForm.watch('loadSize');
   const jobLineItemId = docketForm.watch('jobLineItemId');

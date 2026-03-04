@@ -40,9 +40,9 @@ interface FormProps {
 export default function DocketForm({
   id,
   onCancel,
-  onSuccess,
+  // onSuccess,
   onDirtyChange,
-  onSaved,
+  // onSaved,
   className,
   isQuickDocket = true,
   jobId,
@@ -373,29 +373,31 @@ export default function DocketForm({
                     )}
                   />
 
-                  <FormField
-                    name="deliveryAddressId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          <MapPin className="w-4 h-4 text-green-500" />
-                          Delivery Address
-                        </FormLabel>
-                        <FormControl>
-                          <AddressAutoComplete
-                            address={deliveryAddress}
-                            setAddress={setDeliveryAddress}
-                            searchInput={deliverySearchInput}
-                            setSearchInput={setDeliverySearchInput}
-                            dialogTitle="Delivery Address"
-                            placeholder="Enter site address..."
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+                    <FormField
+                      name="deliveryAddressId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <MapPin className="w-4 h-4 text-green-500" />
+                            Delivery Address
+                          </FormLabel>
+                          <FormControl>
+                            <AddressAutoComplete
+                              address={deliveryAddress}
+                              setAddress={setDeliveryAddress}
+                              searchInput={deliverySearchInput}
+                              setSearchInput={setDeliverySearchInput}
+                              dialogTitle="Delivery Address"
+                              placeholder="Enter site address..."
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                 </div>
                 {<Map markers={mapMarkers} className="h-[400px] w-full" />}
               </div>
@@ -417,7 +419,7 @@ export default function DocketForm({
                 <div className="grid grid-cols-2 gap-2">
                   <FormField
                     control={docketForm.control}
-                    name="delieryCollectionStartTime"
+                    name="deliveryCollectionStartTime"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Start Time Window</FormLabel>
@@ -426,8 +428,8 @@ export default function DocketForm({
                             {...field}
                             type="time"
                             id="time-picker-start"
+                            value={field.value ?? ''}
                             className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                            value={field.value}
                           />
                         </FormControl>
                         <FormMessage />
@@ -446,8 +448,8 @@ export default function DocketForm({
                             {...field}
                             type="time"
                             id="time-picker-end"
+                            value={field.value ?? ''}
                             className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                            value={field.value}
                           />
                         </FormControl>
                         <FormMessage />
@@ -465,7 +467,6 @@ export default function DocketForm({
                           <Input
                             className="w-full"
                             {...field}
-                            value={selectedJob.contactName}
                           />
                         </FormControl>
                         <FormMessage />
@@ -483,7 +484,6 @@ export default function DocketForm({
                           <Input
                             className="w-full"
                             {...field}
-                            value={selectedJob.contactPhone}
                           />
                         </FormControl>
                         <FormMessage />
@@ -495,7 +495,7 @@ export default function DocketForm({
                   control={docketForm.control}
                   name="docketEmail"
                   render={({ field }) => {
-                    const fixedValues = ['quarrylink.com.au'];
+                    const fixedValues = ['jaywoo.choi@socoro.com.au'];
                     return (
                       <FormItem className={'col-span-2 col-start-1'}>
                         <FormLabel>Docket Email</FormLabel>

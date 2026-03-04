@@ -9,14 +9,14 @@ export const DocketFormSchema = z.object({
   jobLineItemId: z.coerce.number().min(1, { message: 'Required' }),
   truckType: z.string().optional(),
   loadSize: z.coerce.number().positive({ message: 'Must be greater than 0' }),
-  pickUpAddressId: z.coerce.number().optional(),
-  deliveryAddressId: z.coerce.number().optional(),
+  pickUpAddressId: z.coerce.string().nonempty({ message: 'Required' }),
+  deliveryAddressId: z.coerce.string().optional(),
   purchaseOrder: z.string().optional(),
   productEstimatedVolume: z.coerce
     .number()
     .positive({ message: 'Must be greater than 0' }),
   deliveryCollectionDate: z.date({ message: 'Required' }),
-  delieryCollectionStartTime: z
+  deliveryCollectionStartTime: z
     .string()
     .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
@@ -35,6 +35,6 @@ export const DocketFormSchema = z.object({
     .refine((v) => !v || isValidPhoneNumber(v), {
       message: 'Invalid phone number',
     }),
-  docketEmail: z.string().email().nonempty({ message: 'Required' }),
+  docketEmail: z.string().optional(),
   notes: z.string().optional(),
 });
