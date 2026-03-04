@@ -19,6 +19,7 @@ import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
+import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
 import { StartTransitContent } from '@/hooks/docket/start-transit-content';
 import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
 
@@ -195,6 +196,8 @@ export interface DocketMenuAction extends ActionDefinition {
 
 export function useDocketActions(docket?: Docket | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [stopReason, setStopReason] = React.useState('');
+  const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
 
@@ -208,6 +211,12 @@ export function useDocketActions(docket?: Docket | null) {
     if (voidReason === 'other') return Boolean(voidNotes.trim());
     return true;
   }, [voidNotes, voidReason]);
+
+  const isStopFormValid = React.useMemo(() => {
+    if (!stopReason) return false;
+    if (stopReason === 'other') return Boolean(stopNotes.trim());
+    return true;
+  }, [stopNotes, stopReason]);
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -223,6 +232,23 @@ export function useDocketActions(docket?: Docket | null) {
         content: <StartTransitContent docket={docket} />,
         confirmText: 'Start Transit',
         confirmCustomColor: '#3B82F6',
+        cancelText: 'Cancel',
+      },
+      stop: {
+        title: 'Stop Transit',
+        content: (
+          <StopTransitContent
+            docket={docket}
+            stopReason={stopReason}
+            onStopReasonChange={setStopReason}
+            stopNotes={stopNotes}
+            onStopNotesChange={setStopNotes}
+          />
+        ),
+        confirmText: 'Stop Transit',
+        confirmCustomColor: '#F97316',
+        confirmVariant: 'destructive',
+        confirmDisabled: !isStopFormValid,
         cancelText: 'Cancel',
       },
       void: {
@@ -243,7 +269,15 @@ export function useDocketActions(docket?: Docket | null) {
         cancelText: 'Cancel',
       },
     }),
-    [docket, isVoidFormValid, voidNotes, voidReason],
+    [
+      docket,
+      isStopFormValid,
+      isVoidFormValid,
+      stopNotes,
+      stopReason,
+      voidNotes,
+      voidReason,
+    ],
   );
 
   const actionHandlers = React.useMemo<Record<DocketActionKey, () => void>>(
@@ -266,7 +300,12 @@ export function useDocketActions(docket?: Docket | null) {
         console.log('Mark docket as arrived:', docket);
         createDialogAction('markArrived')();
       },
-      stop: () => console.log('Stop transit for docket:', docket),
+      stop: () => {
+        console.log('Open stop transit dialog:', docket);
+        setStopReason('');
+        setStopNotes('');
+        setActiveDialog('stop');
+      },
       resumeTransit: () => console.log('Resume transit:', docket),
       markDelivered: () => console.log('Mark delivered:', docket),
       invoice: () => console.log('Invoice docket:', docket),
@@ -336,6 +375,14 @@ export function useDocketActions(docket?: Docket | null) {
 
         if (key === 'markArrived') {
           console.log('Mark arrived confirmed:', docket);
+          return;
+        }
+
+        if (key === 'stop') {
+          console.log('Stop transit confirmed:', docket, {
+            stopReason,
+            stopNotes,
+          });
           return;
         }
 
