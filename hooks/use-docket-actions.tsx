@@ -19,7 +19,7 @@ import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
-import { StartDeliveryContent } from '@/hooks/docket/start-delivery-content';
+import { StartTransitContent } from '@/hooks/docket/start-transit-content';
 import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
 
 export type DocketActionKey =
@@ -219,9 +219,9 @@ export function useDocketActions(docket?: Docket | null) {
         cancelText: 'Cancel',
       },
       startTransit: {
-        title: 'Start Delivery',
-        content: <StartDeliveryContent docket={docket} />,
-        confirmText: 'Start Delivery',
+        title: 'Start Transit',
+        content: <StartTransitContent docket={docket} />,
+        confirmText: 'Start Transit',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
       },
@@ -251,7 +251,7 @@ export function useDocketActions(docket?: Docket | null) {
       viewDetails: () => console.log('View docket details:', docket),
       assign: () => console.log('Assign docket:', docket),
       startTransit: () => {
-        console.log('Open start delivery dialog:', docket);
+        console.log('Open start transit dialog:', docket);
         setActiveDialog('startTransit');
       },
       unassign: () => console.log('Unassign docket:', docket),
@@ -330,7 +330,7 @@ export function useDocketActions(docket?: Docket | null) {
       cancelText={config.cancelText}
       onConfirmAction={() => {
         if (key === 'startTransit') {
-          console.log('Start delivery confirmed:', docket);
+          console.log('Start transit confirmed:', docket);
           return;
         }
 

@@ -3,7 +3,7 @@
 import { Play, Truck } from 'lucide-react';
 import { Docket } from '@/lib/types/docket';
 
-export function StartDeliveryContent({ docket }: { docket?: Docket | null }) {
+export function StartTransitContent({ docket }: { docket?: Docket | null }) {
   const destination = docket?.deliveryAddress?.address?.formattedAddress ?? '—';
   const driverName = docket?.contactName ?? '—';
   const truckLabel = docket?.truckType ?? '—';
@@ -50,7 +50,7 @@ export function StartDeliveryContent({ docket }: { docket?: Docket | null }) {
       </div>
 
       <p className="text-base text-[#374151]">
-        Are you sure you want to start this delivery?
+        Are you sure you want to start this transit?
       </p>
 
       <div className="rounded-md border border-[#BFDBFE] bg-[#DBEAFE] px-4 py-4">
@@ -58,7 +58,7 @@ export function StartDeliveryContent({ docket }: { docket?: Docket | null }) {
           <Truck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1E40AF]" />
           <div className="flex flex-col gap-1">
             <span className="font-medium text-[16px] text-[#1E40AF]">
-              Delivery Started
+              Transit Started
             </span>
             <span className="text-[14px] text-[#1E40AF]">
               The driver will be marked as In Transit and tracking will begin.
@@ -74,8 +74,8 @@ export function StartDeliveryContent({ docket }: { docket?: Docket | null }) {
         <ul className="list-disc space-y-1 pl-5 text-[14px] text-[#6B7280]">
           {[
             'Docket status changes to "In Transit"',
-            'Delivery tracking begins',
-            'Customer can track delivery progress',
+            'Transit tracking begins',
+            'Customer can track transit progress',
           ].map((item) => (
             <li key={item}>{item}</li>
           ))}
