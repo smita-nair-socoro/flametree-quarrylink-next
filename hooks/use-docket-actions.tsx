@@ -19,6 +19,7 @@ import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
+import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
 import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
 import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
 import { StartTransitContent } from '@/hooks/docket/start-transit-content';
@@ -64,6 +65,7 @@ interface DialogConfig {
     | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
+  preventOutsideClose?: boolean;
 }
 
 const ACTION_DEFINITIONS: Record<DocketActionKey, ActionDefinition> = {
@@ -197,6 +199,13 @@ export interface DocketMenuAction extends ActionDefinition {
 
 export function useDocketActions(docket?: Docket | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
+    React.useState(false);
+  const [unloadedPhoto, setUnloadedPhoto] = React.useState<File | null>(null);
+  const [receiptPhoto, setReceiptPhoto] = React.useState<File | null>(null);
+  const [receiverOnSite, setReceiverOnSite] = React.useState(false);
+  const [receiverName, setReceiverName] = React.useState('');
+  const [receiverSignature, setReceiverSignature] = React.useState('');
   const [stopReason, setStopReason] = React.useState('');
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
@@ -219,6 +228,18 @@ export function useDocketActions(docket?: Docket | null) {
     return true;
   }, [stopNotes, stopReason]);
 
+  const isMarkDeliveredFormValid = React.useMemo(() => {
+    if (!deliveredProductsConfirmed) return false;
+    if (!receiverOnSite) return true;
+
+    return Boolean(receiverName.trim() && receiverSignature.trim());
+  }, [
+    deliveredProductsConfirmed,
+    receiverName,
+    receiverOnSite,
+    receiverSignature,
+  ]);
+
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
       markArrived: {
@@ -227,6 +248,32 @@ export function useDocketActions(docket?: Docket | null) {
         confirmText: 'Confirm Arrival',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
+      },
+      markDelivered: {
+        title: 'Mark as Delivered',
+        content: (
+          <MarkDeliveredContent
+            docket={docket}
+            deliveredProductsConfirmed={deliveredProductsConfirmed}
+            onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
+            unloadedPhoto={unloadedPhoto}
+            onUnloadedPhotoChange={setUnloadedPhoto}
+            receiptPhoto={receiptPhoto}
+            onReceiptPhotoChange={setReceiptPhoto}
+            receiverOnSite={receiverOnSite}
+            onReceiverOnSiteChange={setReceiverOnSite}
+            receiverName={receiverName}
+            onReceiverNameChange={setReceiverName}
+            receiverSignature={receiverSignature}
+            onReceiverSignatureChange={setReceiverSignature}
+            onClearSignature={() => setReceiverSignature('')}
+          />
+        ),
+        confirmText: 'Mark as Delivered',
+        confirmCustomColor: '#8B5CF6',
+        confirmDisabled: !isMarkDeliveredFormValid,
+        cancelText: 'Cancel',
+        preventOutsideClose: true,
       },
       startTransit: {
         title: 'Start Transit',
@@ -279,10 +326,17 @@ export function useDocketActions(docket?: Docket | null) {
     }),
     [
       docket,
+      deliveredProductsConfirmed,
+      isMarkDeliveredFormValid,
       isStopFormValid,
       isVoidFormValid,
+      receiptPhoto,
+      receiverName,
+      receiverOnSite,
+      receiverSignature,
       stopNotes,
       stopReason,
+      unloadedPhoto,
       voidNotes,
       voidReason,
     ],
@@ -312,13 +366,22 @@ export function useDocketActions(docket?: Docket | null) {
         console.log('Mark docket as arrived:', docket);
         createDialogAction('markArrived')();
       },
+      markDelivered: () => {
+        console.log('Open mark delivered dialog:', docket);
+        setDeliveredProductsConfirmed(false);
+        setUnloadedPhoto(null);
+        setReceiptPhoto(null);
+        setReceiverOnSite(false);
+        setReceiverName('');
+        setReceiverSignature('');
+        setActiveDialog('markDelivered');
+      },
       stop: () => {
         console.log('Open stop transit dialog:', docket);
         setStopReason('');
         setStopNotes('');
         setActiveDialog('stop');
       },
-      markDelivered: () => console.log('Mark delivered:', docket),
       invoice: () => console.log('Invoice docket:', docket),
       viewInvoice: () => console.log('View invoice:', docket),
       startPreparing: () => console.log('Start preparing docket:', docket),
@@ -378,6 +441,7 @@ export function useDocketActions(docket?: Docket | null) {
       confirmVariant={config.confirmVariant}
       confirmDisabled={config.confirmDisabled}
       cancelText={config.cancelText}
+      preventOutsideClose={config.preventOutsideClose}
       onConfirmAction={() => {
         if (key === 'startTransit') {
           console.log('Start transit confirmed:', docket);
@@ -391,6 +455,18 @@ export function useDocketActions(docket?: Docket | null) {
 
         if (key === 'markArrived') {
           console.log('Mark arrived confirmed:', docket);
+          return;
+        }
+
+        if (key === 'markDelivered') {
+          console.log('Mark delivered confirmed:', docket, {
+            deliveredProductsConfirmed,
+            hasUnloadedPhoto: Boolean(unloadedPhoto),
+            hasReceiptPhoto: Boolean(receiptPhoto),
+            receiverOnSite,
+            receiverName,
+            receiverSignature,
+          });
           return;
         }
 
