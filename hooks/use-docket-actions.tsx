@@ -19,6 +19,7 @@ import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
+import { StartDeliveryContent } from '@/hooks/docket/start-delivery-content';
 import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
 
 export type DocketActionKey =
@@ -213,6 +214,13 @@ export function useDocketActions(docket?: Docket | null) {
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
       },
+      startTransit: {
+        title: 'Start Delivery',
+        content: <StartDeliveryContent docket={docket} />,
+        confirmText: 'Start Delivery',
+        confirmCustomColor: '#3B82F6',
+        cancelText: 'Cancel',
+      },
       void: {
         title: 'Void Docket',
         content: (
@@ -238,7 +246,10 @@ export function useDocketActions(docket?: Docket | null) {
     () => ({
       viewDetails: () => console.log('View docket details:', docket),
       assign: () => console.log('Assign docket:', docket),
-      startTransit: () => console.log('Start transit:', docket),
+      startTransit: () => {
+        console.log('Open start delivery dialog:', docket);
+        setActiveDialog('startTransit');
+      },
       unassign: () => console.log('Unassign docket:', docket),
       cancel: () => console.log('Cancel docket:', docket),
       void: () => {
@@ -314,6 +325,11 @@ export function useDocketActions(docket?: Docket | null) {
       confirmDisabled={config.confirmDisabled}
       cancelText={config.cancelText}
       onConfirmAction={() => {
+        if (key === 'startTransit') {
+          console.log('Start delivery confirmed:', docket);
+          return;
+        }
+
         if (key === 'markArrived') {
           console.log('Mark arrived confirmed:', docket);
           return;
