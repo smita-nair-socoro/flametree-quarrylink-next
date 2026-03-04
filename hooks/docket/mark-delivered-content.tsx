@@ -317,10 +317,10 @@ export function MarkDeliveredContent({
               </div>
             </>
           ) : (
-            <div className="rounded-md border border-[#FCD34D] bg-[#FFFBEB] px-4 py-4">
+            <div className="rounded-md border border-[#FEF08A] bg-[#FFFBEB] px-4 py-4">
               <div className="flex items-start gap-3">
-                <CircleAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#D97706]" />
-                <span className="text-sm text-[#B45309]">
+                <CircleAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#CA8A04]" />
+                <span className="text-sm text-[#A16207]">
                   No receiver on site. Delivery will be marked as "Unattended
                   Delivery" for record keeping.
                 </span>
