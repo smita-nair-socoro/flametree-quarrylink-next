@@ -203,7 +203,11 @@ export function useDocketActions(docket?: Docket | null) {
     [],
   );
 
-  const isVoidFormValid = React.useMemo(() => Boolean(voidReason), [voidReason]);
+  const isVoidFormValid = React.useMemo(() => {
+    if (!voidReason) return false;
+    if (voidReason === 'other') return Boolean(voidNotes.trim());
+    return true;
+  }, [voidNotes, voidReason]);
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -233,7 +237,7 @@ export function useDocketActions(docket?: Docket | null) {
           />
         ),
         confirmText: 'Void Docket',
-        confirmCustomColor: '#F08080',
+        confirmCustomColor: '#E7000B',
         confirmVariant: 'destructive',
         confirmDisabled: !isVoidFormValid,
         cancelText: 'Cancel',
