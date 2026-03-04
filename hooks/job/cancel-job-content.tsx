@@ -1,14 +1,47 @@
 'use client';
 import { CircleX, TriangleAlert } from 'lucide-react';
+import { SelectOptions } from '@/components/ui/select-options';
 import { JobDetails } from '@/lib/types/job';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+
+const CANCEL_REASONS = [
+  {
+    value: 'customer_requested',
+    label: 'Customer requested cancellation',
+  },
+  {
+    value: 'project_cancelled_postponed',
+    label: 'Project cancelled or postponed',
+  },
+  {
+    value: 'budget_payment_issues',
+    label: 'Budget or payment issues',
+  },
+  {
+    value: 'scope_changed',
+    label: 'Scope of work changed',
+  },
+  {
+    value: 'supplier_unavailable',
+    label: 'Supplier or materials unavailable',
+  },
+  {
+    value: 'scheduling_conflict',
+    label: 'Scheduling conflict',
+  },
+  {
+    value: 'weather_or_site_conditions',
+    label: 'Weather or site conditions',
+  },
+  {
+    value: 'duplicate_job_entry',
+    label: 'Duplicate job entry',
+  },
+  {
+    value: 'other',
+    label: 'Other reason',
+  },
+] as const;
 
 export function CancelJobContent({
   job,
@@ -67,36 +100,14 @@ export function CancelJobContent({
         <label className="text-[14px] font-medium text-[#E7000B]">
           Cancellation Reason (required):
         </label>
-        <Select value={cancelReason} onValueChange={onCancelReasonChange}>
-          <SelectTrigger className="w-full h-10">
-            <SelectValue placeholder="Select a reason..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-56 overflow-y-auto">
-            <SelectItem value="customer_requested">
-              Customer requested cancellation
-            </SelectItem>
-            <SelectItem value="project_cancelled_postponed">
-              Project cancelled or postponed
-            </SelectItem>
-            <SelectItem value="budget_payment_issues">
-              Budget or payment issues
-            </SelectItem>
-            <SelectItem value="scope_changed">Scope of work changed</SelectItem>
-            <SelectItem value="supplier_unavailable">
-              Supplier or materials unavailable
-            </SelectItem>
-            <SelectItem value="scheduling_conflict">
-              Scheduling conflict
-            </SelectItem>
-            <SelectItem value="weather_or_site_conditions">
-              Weather or site conditions
-            </SelectItem>
-            <SelectItem value="duplicate_job_entry">
-              Duplicate job entry
-            </SelectItem>
-            <SelectItem value="other">Other reason</SelectItem>
-          </SelectContent>
-        </Select>
+        <SelectOptions
+          searchLabel="cancellation reason"
+          options={CANCEL_REASONS}
+          value={cancelReason}
+          onChange={(value) => onCancelReasonChange(String(value))}
+          placeholder="Select a reason..."
+          className="h-10 bg-white text-foreground"
+        />
       </div>
 
       <div className="flex flex-col gap-2">

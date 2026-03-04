@@ -1,13 +1,7 @@
 'use client';
 
 import { AlertTriangle, CircleStop } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { Docket } from '@/lib/types/docket';
 
@@ -79,18 +73,14 @@ export function StopTransitContent({
         <label className="text-sm font-medium text-[#DC2626]">
           Stop Reason (required):
         </label>
-        <Select value={stopReason} onValueChange={onStopReasonChange}>
-          <SelectTrigger className="h-11 w-full">
-            <SelectValue placeholder="Select a reason..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {STOP_REASONS.map((reason) => (
-              <SelectItem key={reason.value} value={reason.value}>
-                {reason.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SelectOptions
+          searchLabel="stop reason"
+          options={STOP_REASONS}
+          value={stopReason}
+          onChange={(value) => onStopReasonChange(String(value))}
+          placeholder="Select a reason..."
+          className="h-11 bg-white text-foreground"
+        />
       </div>
 
       <div className="flex flex-col gap-2">

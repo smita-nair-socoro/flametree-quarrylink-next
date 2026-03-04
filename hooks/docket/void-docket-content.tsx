@@ -1,13 +1,7 @@
 'use client';
 
 import { Ban } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { Docket } from '@/lib/types/docket';
 
@@ -70,18 +64,14 @@ export function VoidDocketContent({
         <label className="text-sm font-medium text-[#364153]">
           Reason for voiding <span className="text-[#DC2626]">*</span>
         </label>
-        <Select value={voidReason} onValueChange={onVoidReasonChange}>
-          <SelectTrigger className="h-11 w-full">
-            <SelectValue placeholder="Select a reason..." />
-          </SelectTrigger>
-          <SelectContent>
-            {VOID_REASONS.map((reason) => (
-              <SelectItem key={reason.value} value={reason.value}>
-                {reason.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SelectOptions
+          searchLabel="void reason"
+          options={VOID_REASONS}
+          value={voidReason}
+          onChange={(value) => onVoidReasonChange(String(value))}
+          placeholder="Select a reason..."
+          className="h-11 bg-white text-foreground"
+        />
       </div>
 
       <div className="flex flex-col gap-2">
