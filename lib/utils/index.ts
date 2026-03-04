@@ -211,4 +211,11 @@ export const BADGE_COLORS: Record<string, string> = {
   COMPLETED: 'bg-violet-100 text-violet-800 border-violet-800',
   UNASSIGNED: 'bg-gray-100 text-gray-800 border-gray-800',
   ASSIGNED: 'bg-blue-100 text-blue-800 border-blue-800',
+  INTERNAL: 'bg-green-100 text-green-800 border-green-800',
+  SUBCONTRACTOR: 'bg-blue-100 text-blue-800 border-blue-800',
+  DEACTIVATED: 'bg-red-100 text-red-800 border-red-800',
+  ON_DUTY: 'bg-blue-100 text-blue-800 border-blue-800',
+  'ON DUTY': 'bg-blue-100 text-blue-800 border-blue-800',
+  PENDING_INVITATION: 'bg-yellow-100 text-yellow-800 border-yellow-800',
+  'PENDING INVITATION': 'bg-yellow-100 text-yellow-800 border-yellow-800',
 };
