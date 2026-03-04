@@ -22,7 +22,7 @@ interface DocketTableActionsProps {
 
 export function DocketTableActions({ docket }: DocketTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { menuItems } = useDocketActions(docket);
+  const { menuItems, confirmDialogs, viewDialog } = useDocketActions(docket);
 
   if (!menuItems.length) {
     return null;
@@ -34,38 +34,42 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
   };
 
   return (
-    <DropdownMenu
-      open={dropdownOpen}
-      onOpenChange={setDropdownOpen}
-      modal={false}
-    >
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        {menuItems.map((item, index) => (
-          <React.Fragment key={item.key}>
-            {index > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuItem
-              onClick={() => handleAction(item)}
-              className={
-                item.destructive ? 'text-red-600 focus:text-red-600' : ''
-              }
-            >
-              <item.icon
-                className={`mr-2 h-4 w-4 ${
-                  item.destructive ? 'text-red-600' : ''
-                }`}
-              />
-              <span className={item.destructive ? 'text-red-600' : ''}>
-                {item.label}
-              </span>
-            </DropdownMenuItem>
-          </React.Fragment>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div>
+      {confirmDialogs}
+      {viewDialog}
+      <DropdownMenu
+        open={dropdownOpen}
+        onOpenChange={setDropdownOpen}
+        modal={false}
+      >
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          {menuItems.map((item, index) => (
+            <React.Fragment key={item.key}>
+              {index > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuItem
+                onClick={() => handleAction(item)}
+                className={
+                  item.destructive ? 'text-red-600 focus:text-red-600' : ''
+                }
+              >
+                <item.icon
+                  className={`mr-2 h-4 w-4 ${
+                    item.destructive ? 'text-red-600' : ''
+                  }`}
+                />
+                <span className={item.destructive ? 'text-red-600' : ''}>
+                  {item.label}
+                </span>
+              </DropdownMenuItem>
+            </React.Fragment>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

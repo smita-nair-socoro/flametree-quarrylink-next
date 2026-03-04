@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
+import { ActionDialog } from '@/components/action-dialog';
+import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -175,6 +177,13 @@ export interface DocketMenuAction extends ActionDefinition {
 }
 
 export function useDocketActions(docket?: Docket | null) {
+  const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+
+  const createDialogAction = React.useCallback(
+    (dialogKey: string) => () => setActiveDialog(dialogKey),
+    [],
+  );
+
   const actionHandlers = React.useMemo<Record<DocketActionKey, () => void>>(
     () => ({
       viewDetails: () => console.log('View docket details:', docket),
@@ -183,7 +192,10 @@ export function useDocketActions(docket?: Docket | null) {
       unassign: () => console.log('Unassign docket:', docket),
       cancel: () => console.log('Cancel docket:', docket),
       void: () => console.log('Void docket:', docket),
-      markArrived: () => console.log('Mark arrived:', docket),
+      markArrived: () => {
+        console.log('Mark docket as arrived:', docket);
+        createDialogAction('markArrived')();
+      },
       stop: () => console.log('Stop transit for docket:', docket),
       resumeTransit: () => console.log('Resume transit:', docket),
       markDelivered: () => console.log('Mark delivered:', docket),
@@ -197,7 +209,7 @@ export function useDocketActions(docket?: Docket | null) {
       cashSale: () => console.log('Cash sale for docket:', docket),
       cashReceipts: () => console.log('Cash receipts for docket:', docket),
     }),
-    [docket],
+    [createDialogAction, docket],
   );
 
   const actionKeys = React.useMemo<DocketActionKey[]>(() => {
@@ -232,10 +244,28 @@ export function useDocketActions(docket?: Docket | null) {
       .filter((item): item is DocketMenuAction => Boolean(item));
   }, [actionHandlers, actionKeys]);
 
+  const confirmDialogs = (
+    <ActionDialog
+      open={activeDialog === 'markArrived'}
+      onOpenChangeAction={(open) => {
+        if (!open) setActiveDialog(null);
+      }}
+      title="Mark as Arrived"
+      content={<MarkArrivedContent docket={docket} />}
+      confirmText="Confirm Arrival"
+      confirmCustomColor="#3B82F6"
+      cancelText="Cancel"
+      onConfirmAction={() => {
+        console.log('Mark arrived confirmed:', docket);
+        // TODO: implement mark arrived logic
+      }}
+    />
+  );
+
   return {
     actions: actionHandlers,
     menuItems,
-    confirmDialogs: [],
+    confirmDialogs,
     viewDialog: null,
   };
 }
