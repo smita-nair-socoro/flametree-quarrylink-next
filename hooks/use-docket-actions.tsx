@@ -20,6 +20,7 @@ import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
 import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
+import { MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
 import { MarkReadyContent } from '@/hooks/docket/mark-ready-content';
 import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
 import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
@@ -297,6 +298,13 @@ export function useDocketActions(docket?: Docket | null) {
         confirmCustomColor: '#10B981',
         cancelText: 'Cancel',
       },
+      markCollected: {
+        title: 'Mark as Collected',
+        content: <MarkCollectedContent docket={docket} />,
+        confirmText: 'Mark as Collected',
+        confirmCustomColor: '#008236',
+        cancelText: 'Cancel',
+      },
       stop: {
         title: 'Stop Transit',
         content: (
@@ -398,7 +406,10 @@ export function useDocketActions(docket?: Docket | null) {
         setActiveDialog('markReady');
       },
       backToPending: () => console.log('Back to pending:', docket),
-      markCollected: () => console.log('Mark collected:', docket),
+      markCollected: () => {
+        console.log('Open mark collected dialog:', docket);
+        setActiveDialog('markCollected');
+      },
       backToPreparing: () => console.log('Back to preparing:', docket),
       cashSale: () => console.log('Cash sale for docket:', docket),
       cashReceipts: () => console.log('Cash receipts for docket:', docket),
@@ -491,6 +502,11 @@ export function useDocketActions(docket?: Docket | null) {
 
         if (key === 'markReady') {
           console.log('Mark ready confirmed:', docket);
+          return;
+        }
+
+        if (key === 'markCollected') {
+          console.log('Mark collected confirmed:', docket);
           return;
         }
 
