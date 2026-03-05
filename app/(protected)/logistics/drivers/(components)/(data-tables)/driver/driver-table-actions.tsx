@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Driver } from '@/lib/types/driver';
+import { useDriverActions } from '@/hooks/use-driver-actions';
 
 interface DriverTableActionsProps {
   driver: Driver;
@@ -26,6 +27,7 @@ interface DriverTableActionsProps {
 export function DriverTableActions({ driver }: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   // const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
+  const { actions, confirmDialogs } = useDriverActions(driver);
 
   const handleView = () => {
     setDropdownOpen(false);
@@ -39,23 +41,23 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
 
   const handleDeactivate = () => {
     setDropdownOpen(false);
-    // actions.deactivate();
+    actions.deactivate();
   };
 
   const handleDeleteDriver = () => {
     setDropdownOpen(false);
-    // actions.deleteDriver();
+    actions.delete();
   };
 
   const handleReactivateDriver = () => {
     setDropdownOpen(false);
-    // actions.reactivateDriver();
+    actions.reactivate();
   };
 
   return (
     <div>
-      {/* {confirmDialogs}
-      {viewDialog} */}
+      {confirmDialogs}
+      {/* {viewDialog} */}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">

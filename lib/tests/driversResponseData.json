@@ -8,7 +8,8 @@
       "status": "ACTIVE",
       "type": "SUBCONTRACTOR",
       "haulier": 1,
-      "haulierName": "ABC TRANSPORT"
+      "haulierName": "ABC TRANSPORT",
+      "assigned_trucks": []
     },
     {
       "id": 2,
@@ -18,7 +19,8 @@
       "status": "ON_DUTY",
       "type": "INTERNAL",
       "haulier": 2,
-      "haulierName": "ONE QUARRY"
+      "haulierName": "ONE QUARRY",
+      "assigned_trucks": []
     },
     {
       "id": 3,
@@ -28,7 +30,8 @@
       "status": "PENDING_INVITATION",
       "type": "INTERNAL",
       "haulier": 2,
-      "haulierName": "ONE QUARRY"
+      "haulierName": "ONE QUARRY",
+      "assigned_trucks": []
     },
     {
       "id": 4,
@@ -38,7 +41,30 @@
       "status": "DEACTIVATED",
       "type": "SUBCONTRACTOR",
       "haulier": 3,
-      "haulierName": "SMITH TRNASPORT"
+      "haulierName": "SMITH TRNASPORT",
+      "assigned_trucks": []
+    },
+    {
+      "id": 5,
+      "name": "Driver - Cannot Deactivate",
+      "email": "jay.choi@example.com",
+      "phone": "+61 412 345 681",
+      "status": "ACTIVE",
+      "type": "SUBCONTRACTOR",
+      "haulier": 3,
+      "haulierName": "SMITH TRNASPORT",
+      "assignedTrucks": [1, 2, 3]
+    },
+    {
+      "id": 6,
+      "name": "Driver - Cannot Delete",
+      "email": "jay.choi@example.com",
+      "phone": "+61 412 345 681",
+      "status": "ACTIVE",
+      "type": "SUBCONTRACTOR",
+      "haulier": 3,
+      "haulierName": "SMITH TRNASPORT",
+      "assignedTrucks": [1, 2, 3]
     }
   ]
 }

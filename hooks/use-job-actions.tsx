@@ -7,7 +7,6 @@ import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/for
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { CircleX, TriangleAlert } from 'lucide-react';
 import { useJobStore } from '@/app/stores/job-store';
-import { useSubscriptionPlan } from '@/app/stores/client-store';
 import {
   Select,
   SelectContent,
@@ -24,11 +23,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -306,13 +305,7 @@ export function useJobActions(jobData?: Job | null) {
         setCancelNotes,
         isCancelFormValid,
       ),
-    [
-      jobData,
-      selectedAction,
-      cancelReason,
-      cancelNotes,
-      isCancelFormValid,
-    ],
+    [jobData, selectedAction, cancelReason, cancelNotes, isCancelFormValid],
   );
 
   const createDialogAction = (actionKey: string) => {
