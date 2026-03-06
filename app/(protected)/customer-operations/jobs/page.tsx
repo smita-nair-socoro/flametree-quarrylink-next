@@ -12,11 +12,14 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { jobColumns } from './(components)/(data-tables)/job/columns';
+import { useJobActions } from '@/hooks/use-job-actions';
 
 export default function CustomersPage() {
   const { items } = rawJson as unknown as {
     items: Job[];
   };
+
+  const { actions, viewDialog, confirmDialogs } = useJobActions();
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -24,8 +27,14 @@ export default function CustomersPage() {
     { column: 'accountManagerName', title: 'Account Manager', icon: Plus },
   ];
 
+  const handleRowClick = (row: Job) => {
+    actions.view(row);
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Jobs</h1>
@@ -49,6 +58,7 @@ export default function CustomersPage() {
           facetDefination={facetDefs}
           searchPlaceHolder="Search jobs..."
           defaultSorting={[{ id: 'jobNumber', desc: false }]}
+          onRowClick={handleRowClick}
         />
       </div>
     </div>

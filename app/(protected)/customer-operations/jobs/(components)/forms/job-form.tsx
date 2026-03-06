@@ -194,7 +194,7 @@ export default function JobForm({
       },
       {
         name: 'Dockets',
-        content: <DocketsTab dockets={selectedJob?.dockets ?? []} />,
+        content: <DocketsTab selectedJob={selectedJob ?? null} />,
       },
       {
         name: 'Invoices',
@@ -205,7 +205,7 @@ export default function JobForm({
         content: <CashSalesTab />,
       },
     ],
-    [selectedJob?.jobLineItems, selectedJob?.dockets],
+    [selectedJob],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
