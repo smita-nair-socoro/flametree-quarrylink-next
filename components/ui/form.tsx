@@ -20,18 +20,18 @@ const Form = FormProvider;
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
   name: TName;
 };
 
 const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue
+  {} as FormFieldContextValue,
 );
 
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
@@ -70,7 +70,7 @@ type FormItemContextValue = {
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
+  {} as FormItemContextValue,
 );
 
 function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
@@ -89,18 +89,23 @@ function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
 
 function FormLabel({
   className,
+  prefix,
   ...props
 }: React.ComponentProps<typeof LabelPrimitive.Root>) {
   const { error, formItemId } = useFormField();
 
   return (
-    <Label
-      data-slot="form-label"
-      data-error={!!error}
-      className={className}
-      htmlFor={formItemId}
-      {...props}
-    />
+    <div className="flex items-center gap-2">
+      {prefix && prefix}
+
+      <Label
+        data-slot="form-label"
+        data-error={!!error}
+        className={className}
+        htmlFor={formItemId}
+        {...props}
+      />
+    </div>
   );
 }
 
