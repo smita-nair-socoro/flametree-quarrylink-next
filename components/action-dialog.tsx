@@ -35,6 +35,7 @@ interface ActionDialogProps {
   confirmDisabled?: boolean;
   textbelowbutton?: React.ReactNode;
   hideSeparator?: boolean;
+  preventOutsideClose?: boolean;
 }
 
 export function ActionDialog({
@@ -58,6 +59,7 @@ export function ActionDialog({
   confirmDisabled = false,
   textbelowbutton,
   hideSeparator = false,
+  preventOutsideClose = false,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -80,6 +82,16 @@ export function ActionDialog({
           'max-w-full gap-6 max-h-[90vh] overflow-y-auto p-[24.62px]'
         )}
         style={{ scrollbarGutter: 'auto' }}
+        onInteractOutside={(event) => {
+          if (preventOutsideClose) {
+            event.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(event) => {
+          if (preventOutsideClose) {
+            event.preventDefault();
+          }
+        }}
       >
         <DialogHeader className={cn(title ? '' : 'hidden')}>
           <DialogTitle>
