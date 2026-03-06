@@ -25,6 +25,7 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 interface FormProps {
   id?: number;
@@ -327,7 +328,6 @@ export default function DocketForm({
                             onChangeAction={field.onChange}
                             placeholder="Pick a date"
                             disabled={{ before: today }}
-                            readOnly
                           />
                         </FormControl>
                         <FormMessage />
@@ -481,8 +481,9 @@ export default function DocketForm({
                       <FormItem>
                         <FormLabel>Contact Phone</FormLabel>
                         <FormControl>
-                          <Input
+                          <PhoneInput
                             className="w-full"
+                            defaultCountry="AU"
                             {...field}
                           />
                         </FormControl>

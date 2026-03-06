@@ -166,7 +166,7 @@ export function useDocketFormState({
       endTimeWindow: job?.deliveryWindowEnd ?? '',
       poNumber: job?.poNumber ?? '',
       contactName: job?.customerName ?? '',
-      contactPhone: '+61 444 333 222',
+      contactPhone: '+61444333222',
       docketEmail: job?.receiptEmail ?? '',
       createdBy: job?.createdBy ?? '',
       lastModifiedBy: job?.lastModifiedBy ?? '',
