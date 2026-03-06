@@ -18,6 +18,10 @@ import {
 import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
+import { FormDialog } from '@/components/form-dialog';
+import { TableBadges } from '@/components/table-badges';
+import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
+import { DocketActionButtons } from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-action-buttons';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
 import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
 import { MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
@@ -201,6 +205,7 @@ export interface DocketMenuAction extends ActionDefinition {
 
 export function useDocketActions(docket?: Docket | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [viewOpen, setViewOpen] = React.useState(false);
   const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
     React.useState(false);
   const [unloadedPhoto, setUnloadedPhoto] = React.useState<File | null>(null);
@@ -360,7 +365,10 @@ export function useDocketActions(docket?: Docket | null) {
 
   const actionHandlers = React.useMemo<Record<DocketActionKey, () => void>>(
     () => ({
-      viewDetails: () => console.log('View docket details:', docket),
+      viewDetails: () => {
+        console.log('View docket details:', docket);
+        setViewOpen(true);
+      },
       assign: () => console.log('Assign docket:', docket),
       startTransit: () => {
         console.log('Open start transit dialog:', docket);
@@ -520,10 +528,55 @@ export function useDocketActions(docket?: Docket | null) {
     />
   ));
 
+  const canEdit = docket?.status === 'UNASSIGNED';
+  const viewDialog =
+    viewOpen && docket?.id ? (
+      <FormDialog
+        id={docket.id}
+        customTitle={
+          <div className="flex flex-col gap-1.5 mt-0">
+            <span className="mt-0">{docket.docketNumber}</span>
+            {docket.status && (
+              <TableBadges names={[docket.status]} visibleCount={1} />
+            )}
+            {docket.job?.jobNumber && (
+              <span className="text-base font-normal text-[#6A7282]">
+                {docket.job.jobNumber}
+              </span>
+            )}
+          </div>
+        }
+        open={viewOpen}
+        onOpenChangeAction={(open) => {
+          setViewOpen(open);
+          if (!open) {
+            setTimeout(() => {
+              setViewOpen(false);
+            }, 100);
+          }
+        }}
+        hideTrigger
+        headerSeparator
+        headerButtonsAlign="start"
+        preserveEmptyBadgeSpace={false}
+        headerButtons={
+          <div className="mr-10 mt-4">
+            <DocketActionButtons
+              docket={docket}
+              hideViewDetails
+              suppressViewDialog
+            />
+          </div>
+        }
+      >
+        <DocketForm canEdit={canEdit} />
+      </FormDialog>
+    ) : null;
+
   return {
     actions: actionHandlers,
     menuItems,
     confirmDialogs,
-    viewDialog: null,
+    viewDialog,
   };
 }

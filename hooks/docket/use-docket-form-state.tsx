@@ -5,9 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import rawJson from '@/lib/tests/jobsDetailResponseData.json';
+import rawDocketsJson from '@/lib/tests/docketsResponseData.json';
 import { JobLineItem } from '@/lib/types/job';
 import { AddressType } from '@/lib/types/address';
-import { format } from 'date-fns';
+import { Docket } from '@/lib/types/docket';
 import { GetTodaysDate, parseAsUTC } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
@@ -107,6 +108,13 @@ export function useDocketFormState({
   const [pickUpSearchInput, setPickUpSearchInput] = React.useState('');
   const [deliverySearchInput, setDeliverySearchInput] = React.useState('');
 
+  const selectedDocket = React.useMemo(() => {
+    if (!id) return null;
+    // TODO: replace mock lookup with get-docket-by-id API once backend integration is ready.
+    const source = rawDocketsJson as unknown as { items: Docket[] };
+    return source.items.find((item) => item.id === id) ?? null;
+  }, [id]);
+
   // Sync jobId when form opens with locked job (isQuickDocket=false + jobId)
   React.useEffect(() => {
     if (isJobLocked && jobId) {
@@ -175,13 +183,18 @@ export function useDocketFormState({
     };
   }, [selectedJobId]);
 
-  // Update form with selected job details
+  // Update form with selected job details (create mode auto-fill)
   React.useEffect(() => {
+    if (isEditing) return;
+
     if (selectedJob.deliveryStartDate) {
       docketForm.setValue('deliveryCollectionDate', new Date(selectedJob.deliveryStartDate));
     }
     if (selectedJob.contactName) {
       docketForm.setValue('customerContactName', selectedJob.contactName);
+    }
+    if (selectedJob.poNumber) {
+      docketForm.setValue('purchaseOrder', selectedJob.poNumber);
     }
     if (selectedJob.contactPhone) {
       docketForm.setValue('customerContactPhone', selectedJob.contactPhone);
@@ -197,7 +210,7 @@ export function useDocketFormState({
       console.log(selectedJob.endTimeWindow);
       docketForm.setValue('deliveryCollectionEndTime', formatTimeString(selectedJob.endTimeWindow));
     }
-  }, [selectedJob, docketForm]);
+  }, [selectedJob, docketForm, isEditing]);
 
   const selectedJobLineItemDetails = React.useCallback(() => {
     const selectedJobLineItemId = docketForm.watch('jobLineItemId');
@@ -278,6 +291,69 @@ export function useDocketFormState({
       }
     }
   }, [docketForm.watch('jobLineItemId')]);
+
+  // Populate edit form from docket mock data
+  React.useEffect(() => {
+    if (!isEditing || !selectedDocket) return;
+
+    docketForm.reset({
+      jobId: selectedDocket.job?.id ?? 0,
+      jobLineItemId: selectedDocket.jobLineItemId ?? 0,
+      truckType: selectedDocket.truckType ?? '',
+      loadSize: selectedDocket.loadSize ?? 0,
+      pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
+      deliveryAddressId: selectedDocket.deliveryAddress?.id
+        ? String(selectedDocket.deliveryAddress.id)
+        : '',
+      purchaseOrder: selectedDocket.poNumber ?? '',
+      productEstimatedVolume: selectedDocket.loadSize ?? 0,
+      deliveryCollectionDate: selectedDocket.deliveryDate
+        ? parseAsUTC(selectedDocket.deliveryDate)
+        : undefined,
+      deliveryCollectionStartTime: formatTimeString(selectedDocket.startTimeWindow),
+      deliveryCollectionEndTime: formatTimeString(selectedDocket.endTimeWindow),
+      customerContactName: selectedDocket.contactName ?? '',
+      customerContactPhone: selectedDocket.contactPhone ?? '',
+      docketEmail: selectedDocket.docketEmail ?? '',
+      notes: selectedDocket.notes ?? '',
+    });
+
+    const pickUp = selectedDocket.pickUpAddress?.address;
+    if (pickUp) {
+      const mappedPickUp: AddressType = {
+        address1: pickUp.streetDetailsPrimary || '',
+        address2: pickUp.streetDetailsOptional || '',
+        formattedAddress: pickUp.formattedAddress || '',
+        city: pickUp.city || '',
+        region: pickUp.state || '',
+        postalCode: pickUp.postcode || '',
+        country: pickUp.country || '',
+        lat: pickUp.latitude || 0,
+        lng: pickUp.longitude || 0,
+        googlePlaceId: pickUp.googlePlaceId || '',
+      };
+      setPickUpAddress(mappedPickUp);
+      setPickUpSearchInput(mappedPickUp.formattedAddress);
+    }
+
+    const delivery = selectedDocket.deliveryAddress?.address;
+    if (delivery) {
+      const mappedDelivery: AddressType = {
+        address1: delivery.streetDetailsPrimary || '',
+        address2: delivery.streetDetailsOptional || '',
+        formattedAddress: delivery.formattedAddress || '',
+        city: delivery.city || '',
+        region: delivery.state || '',
+        postalCode: delivery.postcode || '',
+        country: delivery.country || '',
+        lat: delivery.latitude || 0,
+        lng: delivery.longitude || 0,
+        googlePlaceId: delivery.googlePlaceId || '',
+      };
+      setDeliveryAddress(mappedDelivery);
+      setDeliverySearchInput(mappedDelivery.formattedAddress);
+    }
+  }, [isEditing, selectedDocket, docketForm]);
 
   const loadSize = docketForm.watch('loadSize');
   const jobLineItemId = docketForm.watch('jobLineItemId');
