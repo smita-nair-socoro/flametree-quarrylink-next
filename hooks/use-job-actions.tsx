@@ -76,9 +76,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     (): Record<string, DialogConfig> => ({
       resume: {
         title: 'Resume Job',
-        description: <ResumeJobContent />,
-        confirmText: 'Resume',
-        confirmVariant: 'default',
+        content: <ResumeJobContent job={jobData} />,
+        confirmText: 'Resume Job',
+        confirmCustomColor: '#008236',
         confirmActionNeeded: true,
       },
       cancel: {
@@ -119,7 +119,14 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmCustomColor: '#CA8A04',
       },
     }),
-    [jobData, activeDockets, pauseDocketAction, cancelReason, cancelNotes, isCancelFormValid],
+    [
+      jobData,
+      activeDockets,
+      pauseDocketAction,
+      cancelReason,
+      cancelNotes,
+      isCancelFormValid,
+    ],
   );
 
   const createDialogAction = (actionKey: string) => () =>
