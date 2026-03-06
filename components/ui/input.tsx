@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;
   allowDecimal?: boolean;
+  suffix?: React.ReactNode;
 }
 
 function Input({
@@ -12,6 +13,7 @@ function Input({
   type,
   isNumber,
   allowDecimal,
+  suffix,
   onChange,
   onFocus,
   onMouseUp,
@@ -94,7 +96,7 @@ function Input({
     [isNumber, onMouseUp]
   );
 
-  return (
+  const inputElement = (
     <input
       type={type}
       data-slot="input"
@@ -102,6 +104,7 @@ function Input({
         'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground border-input flex h-11 md:h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
         'aria-invalid:ring-destructive/20  aria-invalid:border-destructive',
+        suffix && 'pr-12',
         className
       )}
       onChange={handleChange}
@@ -117,6 +120,19 @@ function Input({
       {...props}
     />
   );
+
+  if (suffix) {
+    return (
+      <div className="relative">
+        {inputElement}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none">
+          {suffix}
+        </div>
+      </div>
+    );
+  }
+
+  return inputElement;
 }
 
 export { Input };

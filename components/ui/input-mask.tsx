@@ -4,8 +4,10 @@ import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-interface InputMaskProps
-  extends Omit<React.ComponentProps<typeof Input>, 'type' | 'prefix'> {
+interface InputMaskProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  'type' | 'prefix'
+> {
   type: 'currency' | 'number' | 'abn';
   onValueChange?: (value: number | '') => void;
   onRawChange?: (rawValue: string) => void;
@@ -18,7 +20,7 @@ interface InputMaskProps
 
 const formatNumber = (
   value: string,
-  thousandSeparator: boolean = true
+  thousandSeparator: boolean = true,
 ): string => {
   if (!value) {
     return '';
@@ -45,7 +47,7 @@ const formatABN = (value: string): string => {
   }
   return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(
     5,
-    8
+    8,
   )} ${digits.slice(8)}`;
 };
 
@@ -78,7 +80,7 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
       className,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [displayValue, setDisplayValue] = React.useState('');
 
@@ -171,7 +173,7 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
             className={cn(
               prefix ? 'pl-8' : '',
               suffix ? 'pr-10' : '',
-              className
+              className,
             )}
           />
           {suffix && (
@@ -184,7 +186,7 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
     }
 
     return <Input {...inputProps} />;
-  }
+  },
 );
 
 InputMask.displayName = 'InputMask';
@@ -195,12 +197,22 @@ type ABNInputProps = Omit<InputMaskProps, 'type'>;
 const ABNInput = React.forwardRef<HTMLInputElement, ABNInputProps>(
   ({ placeholder = 'XX XXX XXX XXX', ...props }, ref) => (
     <InputMask {...props} ref={ref} type="abn" placeholder={placeholder} />
-  )
+  ),
 );
 
 ABNInput.displayName = 'ABNInput';
 
-type UnitType = 'TN' | 'm3' | 'Bags' | 'HOURLY' | 'LOAD' | 'KM' | '';
+type UnitType =
+  | 'TN'
+  | 'm3'
+  | 'Bags'
+  | 'HOURLY'
+  | 'Hourly'
+  | 'LOAD'
+  | 'load'
+  | 'KM'
+  | 'km'
+  | '';
 
 type CurrencyInputProps = Omit<InputMaskProps, 'type' | 'prefix' | 'suffix'> & {
   unit?: UnitType;
@@ -216,7 +228,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       unit,
       ...props
     },
-    ref
+    ref,
   ) => (
     <InputMask
       {...props}
@@ -231,19 +243,19 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
         unit === 'm3'
           ? '/m³'
           : unit === 'TN'
-          ? '/t'
-          : unit === 'Bags'
-          ? '/Bag'
-          : unit === 'HOURLY'
-          ? '/Hour'
-          : unit === 'LOAD'
-          ? '/Load'
-          : unit === 'KM'
-          ? '/km'
-          : undefined
+            ? '/t'
+            : unit === 'Bags'
+              ? '/Bag'
+              : unit === 'HOURLY'
+                ? '/Hour'
+                : unit === 'LOAD'
+                  ? '/Load'
+                  : unit === 'KM'
+                    ? '/km'
+                    : undefined
       }
     />
-  )
+  ),
 );
 
 CurrencyInput.displayName = 'CurrencyInput';
@@ -259,7 +271,7 @@ const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
       placeholder = '0',
       ...props
     },
-    ref
+    ref,
   ) => (
     <InputMask
       {...props}
@@ -270,7 +282,7 @@ const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
       allowNegative={allowNegative}
       placeholder={placeholder}
     />
-  )
+  ),
 );
 
 NumberInput.displayName = 'NumberInput';
