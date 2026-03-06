@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
-// import { FormDialog } from '@/components/form-dialog';
+import { FormDialog } from '@/components/form-dialog';
 // import JobForm from './(components)/forms/job-form';
 import rawJson from '@/lib/tests/docketsResponseData.json';
 import { Docket } from '@/lib/types/docket';
 import { Plus } from 'lucide-react';
+import DocketForm from './(components)/forms/docket-form';
 
 import {
   DataTableClient,
@@ -31,13 +32,13 @@ export default function DocketsPage() {
           <h1 className="text-2xl">Dockets</h1>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {/* <FormDialog
-            dialogTitle="Add New Job"
-            dialogDescription="Fill in the required fields to add a new job."
-            buttonTitle="Add Job"
+          <FormDialog
+            dialogTitle="Add New Docket"
+            dialogDescription="Fill in the required fields to add a new docket."
+            buttonTitle="Add Docket"
           >
-            <JobForm />
-          </FormDialog> */}
+            <DocketForm />
+          </FormDialog>
         </div>
       </div>
 
@@ -47,7 +48,7 @@ export default function DocketsPage() {
           data={items ?? []}
           columns={docketColumns}
           facetDefination={facetDefs}
-          searchPlaceHolder="Search jobs..."
+          searchPlaceHolder="Search dockets..."
           defaultSorting={[{ id: 'docketNumber', desc: false }]}
         />
       </div>

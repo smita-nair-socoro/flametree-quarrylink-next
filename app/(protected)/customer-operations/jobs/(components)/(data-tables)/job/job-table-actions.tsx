@@ -84,6 +84,16 @@ export function JobTableActions({ job }: JobTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
+
+          {(job.status == 'CANCELLED' || job.status == 'SETTLED') && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleViewDockets}>
+                <Package className="h-4 w-4 mr-2" />
+                View Dockets
+              </DropdownMenuItem>
+            </>
+          )}
           {job.status === 'PAUSED' && (
             <>
               <DropdownMenuSeparator />
