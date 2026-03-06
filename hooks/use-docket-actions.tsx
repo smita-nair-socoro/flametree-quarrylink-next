@@ -19,6 +19,7 @@ import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
+import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
 import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
 import { StartTransitContent } from '@/hooks/docket/start-transit-content';
 import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
@@ -234,6 +235,13 @@ export function useDocketActions(docket?: Docket | null) {
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
       },
+      resumeTransit: {
+        title: 'Resume Transit',
+        content: <ResumeTransitContent docket={docket} />,
+        confirmText: 'Resume Transit',
+        confirmCustomColor: '#008236',
+        cancelText: 'Cancel',
+      },
       stop: {
         title: 'Stop Transit',
         content: (
@@ -288,6 +296,10 @@ export function useDocketActions(docket?: Docket | null) {
         console.log('Open start transit dialog:', docket);
         setActiveDialog('startTransit');
       },
+      resumeTransit: () => {
+        console.log('Open resume transit dialog:', docket);
+        setActiveDialog('resumeTransit');
+      },
       unassign: () => console.log('Unassign docket:', docket),
       cancel: () => console.log('Cancel docket:', docket),
       void: () => {
@@ -306,7 +318,6 @@ export function useDocketActions(docket?: Docket | null) {
         setStopNotes('');
         setActiveDialog('stop');
       },
-      resumeTransit: () => console.log('Resume transit:', docket),
       markDelivered: () => console.log('Mark delivered:', docket),
       invoice: () => console.log('Invoice docket:', docket),
       viewInvoice: () => console.log('View invoice:', docket),
@@ -370,6 +381,11 @@ export function useDocketActions(docket?: Docket | null) {
       onConfirmAction={() => {
         if (key === 'startTransit') {
           console.log('Start transit confirmed:', docket);
+          return;
+        }
+
+        if (key === 'resumeTransit') {
+          console.log('Resume transit confirmed:', docket);
           return;
         }
 
