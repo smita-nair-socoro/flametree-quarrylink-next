@@ -20,6 +20,7 @@ import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
 import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
+import { MarkReadyContent } from '@/hooks/docket/mark-ready-content';
 import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
 import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
 import { StartTransitContent } from '@/hooks/docket/start-transit-content';
@@ -289,6 +290,13 @@ export function useDocketActions(docket?: Docket | null) {
         confirmCustomColor: '#008236',
         cancelText: 'Cancel',
       },
+      markReady: {
+        title: 'Mark as Ready',
+        content: <MarkReadyContent docket={docket} />,
+        confirmText: 'Mark as Ready',
+        confirmCustomColor: '#10B981',
+        cancelText: 'Cancel',
+      },
       stop: {
         title: 'Stop Transit',
         content: (
@@ -385,7 +393,10 @@ export function useDocketActions(docket?: Docket | null) {
       invoice: () => console.log('Invoice docket:', docket),
       viewInvoice: () => console.log('View invoice:', docket),
       startPreparing: () => console.log('Start preparing docket:', docket),
-      markReady: () => console.log('Mark ready:', docket),
+      markReady: () => {
+        console.log('Open mark ready dialog:', docket);
+        setActiveDialog('markReady');
+      },
       backToPending: () => console.log('Back to pending:', docket),
       markCollected: () => console.log('Mark collected:', docket),
       backToPreparing: () => console.log('Back to preparing:', docket),
@@ -475,6 +486,11 @@ export function useDocketActions(docket?: Docket | null) {
             stopReason,
             stopNotes,
           });
+          return;
+        }
+
+        if (key === 'markReady') {
+          console.log('Mark ready confirmed:', docket);
           return;
         }
 
