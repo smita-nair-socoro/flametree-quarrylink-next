@@ -36,7 +36,7 @@ export function DocketActionButtons({
     items.map((item) => (
       <DropdownMenuItem
         key={item.key}
-        onClick={item.onSelect}
+        onSelect={item.onSelect}
         className={item.destructive ? 'text-red-600 focus:text-red-600' : ''}
       >
         <item.icon
