@@ -19,6 +19,7 @@ import { Docket } from '@/lib/types/docket';
 import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
+import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -45,6 +46,21 @@ interface ActionDefinition {
   label: string;
   icon: LucideIcon;
   destructive?: boolean;
+}
+
+interface DialogConfig {
+  title: string;
+  content: React.ReactNode;
+  confirmText: string;
+  confirmCustomColor?: string;
+  confirmVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
+  confirmDisabled?: boolean;
+  cancelText?: string;
 }
 
 const ACTION_DEFINITIONS: Record<DocketActionKey, ActionDefinition> = {
@@ -178,10 +194,48 @@ export interface DocketMenuAction extends ActionDefinition {
 
 export function useDocketActions(docket?: Docket | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [voidReason, setVoidReason] = React.useState('');
+  const [voidNotes, setVoidNotes] = React.useState('');
 
   const createDialogAction = React.useCallback(
     (dialogKey: string) => () => setActiveDialog(dialogKey),
     [],
+  );
+
+  const isVoidFormValid = React.useMemo(() => {
+    if (!voidReason) return false;
+    if (voidReason === 'other') return Boolean(voidNotes.trim());
+    return true;
+  }, [voidNotes, voidReason]);
+
+  const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
+    () => ({
+      markArrived: {
+        title: 'Mark as Arrived',
+        content: <MarkArrivedContent docket={docket} />,
+        confirmText: 'Confirm Arrival',
+        confirmCustomColor: '#3B82F6',
+        cancelText: 'Cancel',
+      },
+      void: {
+        title: 'Void Docket',
+        content: (
+          <VoidDocketContent
+            docket={docket}
+            voidReason={voidReason}
+            onVoidReasonChange={setVoidReason}
+            voidNotes={voidNotes}
+            onVoidNotesChange={setVoidNotes}
+          />
+        ),
+        confirmText: 'Void Docket',
+        confirmCustomColor: '#E7000B',
+        confirmVariant: 'destructive',
+        confirmDisabled: !isVoidFormValid,
+        cancelText: 'Cancel',
+      },
+    }),
+    [docket, isVoidFormValid, voidNotes, voidReason],
   );
 
   const actionHandlers = React.useMemo<Record<DocketActionKey, () => void>>(
@@ -191,7 +245,12 @@ export function useDocketActions(docket?: Docket | null) {
       startTransit: () => console.log('Start transit:', docket),
       unassign: () => console.log('Unassign docket:', docket),
       cancel: () => console.log('Cancel docket:', docket),
-      void: () => console.log('Void docket:', docket),
+      void: () => {
+        console.log('Open void docket dialog:', docket);
+        setVoidReason('');
+        setVoidNotes('');
+        setActiveDialog('void');
+      },
       markArrived: () => {
         console.log('Mark docket as arrived:', docket);
         createDialogAction('markArrived')();
@@ -244,23 +303,35 @@ export function useDocketActions(docket?: Docket | null) {
       .filter((item): item is DocketMenuAction => Boolean(item));
   }, [actionHandlers, actionKeys]);
 
-  const confirmDialogs = (
+  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => (
     <ActionDialog
-      open={activeDialog === 'markArrived'}
+      key={key}
+      open={activeDialog === key}
       onOpenChangeAction={(open) => {
         if (!open) setActiveDialog(null);
       }}
-      title="Mark as Arrived"
-      content={<MarkArrivedContent docket={docket} />}
-      confirmText="Confirm Arrival"
-      confirmCustomColor="#3B82F6"
-      cancelText="Cancel"
+      title={config.title}
+      content={config.content}
+      confirmText={config.confirmText}
+      confirmCustomColor={config.confirmCustomColor}
+      confirmVariant={config.confirmVariant}
+      confirmDisabled={config.confirmDisabled}
+      cancelText={config.cancelText}
       onConfirmAction={() => {
-        console.log('Mark arrived confirmed:', docket);
-        // TODO: implement mark arrived logic
+        if (key === 'markArrived') {
+          console.log('Mark arrived confirmed:', docket);
+          return;
+        }
+
+        if (key === 'void') {
+          console.log('Void docket confirmed:', docket, {
+            voidReason,
+            voidNotes,
+          });
+        }
       }}
     />
-  );
+  ));
 
   return {
     actions: actionHandlers,
