@@ -1,10 +1,11 @@
-import { DOCKET_STATUS } from './docket-enums';
+import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
 import { Address } from './address';
 
 export interface Docket {
   id: number;
   job: Job;
+  docketType?: DOCKET_TYPE;
   docketNumber: string;
   status: DOCKET_STATUS;
   jobLineItemId: number;
