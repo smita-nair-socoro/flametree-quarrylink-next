@@ -5,7 +5,7 @@ import z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 
 import rawJson from '@/lib/tests/jobsLineItemsResponseData.json';
-import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-schema';
+import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-form-schema';
 import {
 	ProductsListQueryOptions,
 	ProductDetailWithQuarrySupplierProductQueryOptions,
