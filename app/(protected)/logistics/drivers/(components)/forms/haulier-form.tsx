@@ -1,10 +1,24 @@
 'use client';
 
 import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
+import {
+  HaulierFormSchema,
+  HaulierFormValues,
+} from './schemas/haulier-form-schema';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
 
 interface HaulierFormProps {
@@ -20,71 +34,99 @@ export default function HaulierForm({
   onSave,
   onCancel,
 }: HaulierFormProps) {
+  const form = useForm<HaulierFormValues>({
+    resolver: zodResolver(HaulierFormSchema),
+    mode: 'onChange',
+    defaultValues: {
+      name: editingItem?.label ?? '',
+      email: editingItem?.fields?.email ?? '',
+      phone: editingItem?.fields?.phone ?? '',
+    },
+  });
 
-  const [name, setName] = React.useState(editingItem?.label ?? '');
-  const [email, setEmail] = React.useState(editingItem?.fields?.email ?? '');
-  const [phone, setPhone] = React.useState(editingItem?.fields?.phone ?? '');
-
+  // Reset form when switching between add/edit
   React.useEffect(() => {
-    setName(editingItem?.label ?? '');
-    setEmail(editingItem?.fields?.email ?? '');
-    setPhone(editingItem?.fields?.phone ?? '');
-  }, [editingItem]);
+    form.reset({
+      name: editingItem?.label ?? '',
+      email: editingItem?.fields?.email ?? '',
+      phone: editingItem?.fields?.phone ?? '',
+    });
+  }, [editingItem, form]);
 
-  function handleSave() {
-    if (!name.trim()) return;
+  function onSubmit(values: HaulierFormValues) {
     onSave({
       id: editingItem?.id ?? String(Date.now()),
-      label: name.trim(),
-      fields: { email: email.trim(), phone },
+      label: values.name,
+      fields: { email: values.email, phone: values.phone },
     });
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <Separator />
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4"
+      >
+        <Separator />
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium">Haulier Name*</label>
-        <Input
-          placeholder="Enter Haulier Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Haulier Name*</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter Haulier Name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium">Haulier Email*</label>
-        <Input
-          placeholder="Enter email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Haulier Email*</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter email" type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium">Haulier Phone*</label>
-        <PhoneInput
-          defaultCountry="AU"
-          placeholder="Enter phone number"
-          value={phone}
-          onChange={setPhone}
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Haulier Phone*</FormLabel>
+              <FormControl>
+                <PhoneInput
+                  defaultCountry="AU"
+                  placeholder="Enter phone number"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="flex justify-center gap-3 pt-2 pb-4">
-        <Button variant="outline" onClick={onCancel} className="flex-1">
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSave}
-          disabled={!name.trim()}
-          className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
-        >
-          {isEditing ? 'Update Haulier' : 'Add Haulier'}
-        </Button>
-      </div>
-    </div>
+        <div className="flex justify-center gap-3 pt-2 pb-4">
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+          >
+            {isEditing ? 'Update Haulier' : 'Add Haulier'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
