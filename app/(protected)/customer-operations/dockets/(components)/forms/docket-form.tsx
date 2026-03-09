@@ -36,6 +36,7 @@ interface FormProps {
   className?: string;
   isQuickDocket?: boolean;
   jobId?: number;
+  canEdit?: boolean;
 }
 
 export default function DocketForm({
@@ -47,9 +48,11 @@ export default function DocketForm({
   className,
   isQuickDocket = true,
   jobId,
+  canEdit = true,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const isReadOnly = Boolean(id) && !canEdit;
 
   const {
     docketForm,
@@ -80,6 +83,8 @@ export default function DocketForm({
   });
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
+    if (isReadOnly) return;
+
     setIsSubmitting(true);
     console.log(`Docket Form Values:`, values);
 
@@ -120,7 +125,7 @@ export default function DocketForm({
               searchLabel="Job References"
               options={allJobs}
               placeholder="Select Job"
-              disabled={isJobLocked}
+              disabled={isJobLocked || isReadOnly}
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
@@ -153,7 +158,11 @@ export default function DocketForm({
                           ? 'No Products Found'
                           : 'Select Product'
                     }
-                    disabled={!selectedJobId || jobLineItemOptions.length === 0}
+                    disabled={
+                      isReadOnly ||
+                      !selectedJobId ||
+                      jobLineItemOptions.length === 0
+                    }
                   />
 
                   <FormField
@@ -196,6 +205,7 @@ export default function DocketForm({
                       options={truckTypeOptions}
                       placeholder="Select Truck Type"
                       disabled={
+                        isReadOnly ||
                         !selectedJobId || jobLineItemOptions.length === 0
                       }
                     />
@@ -232,7 +242,9 @@ export default function DocketForm({
                             className="w-full"
                             {...field}
                             isNumber
-                            disabled={!docketForm.watch('jobLineItemId')}
+                            disabled={
+                              isReadOnly || !docketForm.watch('jobLineItemId')
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -251,6 +263,7 @@ export default function DocketForm({
                               className="w-full"
                               {...field}
                               isNumber
+                              disabled={isReadOnly}
                               suffix={
                                 selectedJobLineItemDetails().truckUom
                                   ? selectedJobLineItemDetails().truckUom
@@ -320,14 +333,11 @@ export default function DocketForm({
                         <FormLabel>Delivery Date*</FormLabel>
                         <FormControl>
                           <DatePicker
-                            value={
-                              selectedJob.deliveryStartDate
-                                ? new Date(selectedJob.deliveryStartDate)
-                                : undefined
-                            }
+                            value={field.value}
                             onChangeAction={field.onChange}
                             placeholder="Pick a date"
                             disabled={{ before: today }}
+                            readOnly={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -336,13 +346,14 @@ export default function DocketForm({
                   />
                   <FormField
                     name="purchaseOrder"
-                    render={() => (
+                    render={({ field }) => (
                       <FormItem>
                         <FormLabel>PO Number (Optional)</FormLabel>
                         <FormControl>
                           <Input
                             className="w-full"
-                            value={selectedJob.poNumber}
+                            {...field}
+                            disabled={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -367,6 +378,7 @@ export default function DocketForm({
                             placeholder="Enter site address..."
                             onChange={field.onChange}
                             onBlur={field.onBlur}
+                            readOnly={isReadOnly}
                           />
                         </FormControl>
                       </FormItem>
@@ -392,6 +404,7 @@ export default function DocketForm({
                               placeholder="Enter site address..."
                               onChange={field.onChange}
                               onBlur={field.onBlur}
+                              readOnly={isReadOnly}
                             />
                           </FormControl>
                         </FormItem>
@@ -430,6 +443,7 @@ export default function DocketForm({
                             id="time-picker-start"
                             value={field.value ?? ''}
                             className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
+                            disabled={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -450,6 +464,7 @@ export default function DocketForm({
                             id="time-picker-end"
                             value={field.value ?? ''}
                             className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
+                            disabled={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -467,6 +482,7 @@ export default function DocketForm({
                           <Input
                             className="w-full"
                             {...field}
+                            disabled={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -485,6 +501,7 @@ export default function DocketForm({
                             className="w-full"
                             defaultCountry="AU"
                             {...field}
+                            disabled={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -509,6 +526,7 @@ export default function DocketForm({
                             }
                             label="Press Enter or comma to add email addresses for docket notifications"
                             {...field}
+                            disabled={isReadOnly}
                           />
                         </FormControl>
                         <FormMessage />
@@ -528,6 +546,7 @@ export default function DocketForm({
                           className="w-full min-h-[80px]"
                           placeholder="Enter important FYI notes"
                           {...field}
+                          disabled={isReadOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -620,6 +639,7 @@ export default function DocketForm({
                 className="cursor-pointer"
                 type="button"
                 onClick={() => docketForm.handleSubmit(onSubmit)()}
+                disabled={isReadOnly || isSubmitting}
               >
                 {isEditing ? 'Save Changes' : 'Create Docket'}
               </Button>
@@ -632,6 +652,7 @@ export default function DocketForm({
                 type="button"
                 className="cursor-pointer"
                 onClick={() => docketForm.handleSubmit(onSubmit)()}
+                disabled={isReadOnly || isSubmitting}
               >
                 {isEditing ? 'Save Changes' : 'Create Docket'}
               </Button>

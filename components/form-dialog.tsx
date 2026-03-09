@@ -36,6 +36,7 @@ import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { ActionDialog } from './action-dialog';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { useSelectedJobLineItem } from '@/app/stores/job-line-item-store';
+import { useSelectedDocket } from '@/app/stores/docket-store';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -65,6 +66,8 @@ interface HeaderInfo {
   useSelectedJob?: boolean;
   /** Use selected job line item data automatically */
   useSelectedJobLineItem?: boolean;
+  /** Use selected docket data automatically */
+  useSelectedDocket?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -249,6 +252,7 @@ export function FormDialog({
   const selectedClient = useSelectedClient();
   const selectedJob = useSelectedJob();
   const selectedJobLineItem = useSelectedJobLineItem();
+  const selectedDocket = useSelectedDocket();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -308,6 +312,11 @@ export function FormDialog({
     finalCustomId = selectedJobLineItem.productName;
     finalPrimaryBadges = [selectedJobLineItem.quarryName];
     finalSecondaryBadges = [selectedJobLineItem.supplierProductName];
+  }
+
+  if (headerInfo?.useSelectedDocket && selectedDocket) {
+    finalCustomId = selectedDocket.docketNumber;
+    finalPrimaryBadges = [selectedDocket.status];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
