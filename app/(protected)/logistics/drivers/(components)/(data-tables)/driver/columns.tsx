@@ -3,7 +3,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { Driver } from '@/lib/types/driver';
-import { DRIER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { DriverTableActions } from './driver-table-actions';
 
 export const driverColumns: ColumnDef<Driver>[] = [
@@ -26,7 +26,7 @@ export const driverColumns: ColumnDef<Driver>[] = [
       return <TableClientSortableHeader column={column} title="Type" />;
     },
     cell: ({ getValue }) => {
-      const type = getValue<string>() as DRIER_TYPE;
+      const type = getValue<string>() as DRIVER_TYPE;
       return (
         <div className="py-2">
           <TableBadges names={[type]} visibleCount={1} />
