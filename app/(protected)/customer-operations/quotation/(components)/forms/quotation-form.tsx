@@ -767,6 +767,7 @@ export default function QuotationForm({
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
                       const quoteItemsData = currentQuotation?.quoteItems ?? [];
+                      console.log('[QuotationLineItems] data:', quoteItemsData);
                       return (
                         <DataTableClient
                           columns={getQuotationLineItemColumns()}
