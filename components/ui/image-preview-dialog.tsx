@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import Image from 'next/image';
 
 interface ImagePreviewDialogProps {
   open: boolean;
@@ -30,10 +31,12 @@ export function ImagePreviewDialog({
         </DialogHeader>
         <div className="overflow-hidden rounded-md border border-[#E5E7EB] bg-[#F9FAFB]">
           {src ? (
-            <img
+            <Image
               src={src}
               alt={alt}
               className="max-h-[75vh] w-full object-contain"
+              width={600}
+              height={300}
             />
           ) : null}
         </div>

@@ -1,7 +1,6 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
-import { Address, CustomerDeliveryAddress } from './address';
-import { Customer } from './customer';
+import { CustomerDeliveryAddress } from './address';
 
 export interface Docket {
   id: number;

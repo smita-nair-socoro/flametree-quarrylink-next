@@ -12,6 +12,7 @@ export enum DOCKET_STATUS {
   READY = 'READY',
   COLLECTED = 'COLLECTED',
   CASH_SALE = 'CASH_SALE',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum DOCKET_TYPE {

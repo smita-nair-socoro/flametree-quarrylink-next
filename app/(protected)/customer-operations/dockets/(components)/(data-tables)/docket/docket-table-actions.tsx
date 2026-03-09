@@ -1,7 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Eye,
+  CircleX,
+  Undo2,
+  CircleCheckBig,
+  Check,
+  ReceiptText,
+  Square,
+  CirclePlay,
+  Receipt,
+  Trash2,
+  LucideIcon,
+  UserRoundPlus,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,28 +24,118 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  useDocketActions,
-  type DocketMenuAction,
-} from '@/hooks/use-docket-actions';
+import { useDocketActions } from '@/hooks/use-docket-actions';
 import { Docket } from '@/lib/types/docket';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 interface DocketTableActionsProps {
   docket: Docket;
 }
 
+type ActionType =
+  | 'view'
+  | 'cancel'
+  | 'markArrived'
+  | 'markDelivered'
+  | 'markReady'
+  | 'markCollected'
+  | 'stop'
+  | 'void'
+  | 'remove'
+  | 'duplicate'
+  | 'startTransit'
+  | 'resumeTransit'
+  | 'unassign'
+  | 'startPreparing'
+  | 'cashSale'
+  | 'invoice'
+  | 'cashReceipts'
+  | 'viewInvoice'
+  | 'assign'
+  | 'backToPending'
+  | 'backToPreparing';
+
+interface ActionItem {
+  label: string;
+  icon: LucideIcon;
+  action: ActionType;
+  className?: string;
+  separator?: boolean;
+}
+
+const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
+  [DOCKET_STATUS.PENDING]: [
+    { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.PREPARING]: [
+    { label: 'Mark Ready', icon: Check, action: 'markReady', separator: true },
+    { label: 'Back to Pending', icon: Undo2, action: 'backToPending', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.READY]: [
+    { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected', separator: true },
+    { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.COLLECTED]: [
+    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
+    { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
+  ],
+  [DOCKET_STATUS.CASH_SALE]: [
+    { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts', separator: true },
+  ],
+  [DOCKET_STATUS.INVOICED]: [
+    { label: 'View Invoice', icon: Receipt, action: 'viewInvoice', separator: true },
+  ],
+  [DOCKET_STATUS.UNASSIGNED]: [
+    { label: 'Assign', icon: UserRoundPlus, action: 'assign', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.ASSIGNED]: [
+    { label: 'Start Transit', icon: CirclePlay, action: 'startTransit', separator: true },
+    { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.IN_TRANSIT]: [
+    { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived', separator: true },
+    { label: 'Stop', icon: Square, action: 'stop', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.STOPPED]: [
+    { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit', separator: true },
+    { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.ARRIVED]: [
+    { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+  [DOCKET_STATUS.DELIVERED]: [
+    { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+  ],
+};
+
 export function DocketTableActions({ docket }: DocketTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { menuItems, confirmDialogs, viewDialog } = useDocketActions(docket);
+  const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
-  if (!menuItems.length) {
-    return null;
-  }
-
-  const handleAction = (action: DocketMenuAction) => {
+  const handleAction = (actionType: ActionType) => {
     setDropdownOpen(false);
-    action.onSelect();
+    if (actions[actionType]) {
+      actions[actionType]();
+    }
   };
+
+  const currentActions = ACTION_CONFIG[docket.status] || [];
 
   return (
     <div>
@@ -48,23 +152,20 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          {menuItems.map((item, index) => (
-            <React.Fragment key={item.key}>
-              {index > 0 && <DropdownMenuSeparator />}
+          <DropdownMenuItem onClick={() => handleAction('view')}>
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
+          </DropdownMenuItem>
+
+          {currentActions.map((item, index) => (
+            <React.Fragment key={`${item.label}-${index}`}>
+              {item.separator && <DropdownMenuSeparator />}
               <DropdownMenuItem
-                onClick={() => handleAction(item)}
-                className={
-                  item.destructive ? 'text-red-600 focus:text-red-600' : ''
-                }
+                onClick={() => handleAction(item.action)}
+                className={item.className}
               >
-                <item.icon
-                  className={`mr-2 h-4 w-4 ${
-                    item.destructive ? 'text-red-600' : ''
-                  }`}
-                />
-                <span className={item.destructive ? 'text-red-600' : ''}>
-                  {item.label}
-                </span>
+                <item.icon className={`h-4 w-4 mr-2 ${item.className || ''}`} />
+                {item.label}
               </DropdownMenuItem>
             </React.Fragment>
           ))}

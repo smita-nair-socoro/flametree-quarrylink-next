@@ -6,7 +6,6 @@ import { Job, JobDetails } from '@/lib/types/job';
 import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
-import { Textarea } from '@/components/ui/textarea';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Docket } from '@/lib/types/docket';
 import { ResumeJobContent } from '@/hooks/job/resume-job-content';
