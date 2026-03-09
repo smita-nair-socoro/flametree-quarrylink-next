@@ -20,6 +20,19 @@ export interface ProductsTablePdfProps {
   includeDeliveryPrices?: boolean;
 }
 
+const getTypeBadgeStyle = (type: string) => {
+  switch (type.toUpperCase()) {
+    case 'DELIVERY':
+      // bg-blue-100 text-blue-800 border-blue-800
+      return { backgroundColor: '#DBEAFE', borderColor: '#1E40AF', color: '#1E40AF' };
+    case 'COLLECTION':
+      // bg-orange-100 text-orange-900 border-orange-900
+      return { backgroundColor: '#FFEDD5', borderColor: '#7C2D12', color: '#7C2D12' };
+    default:
+      return { backgroundColor: '#F3F4F6', borderColor: '#6B7280', color: '#6B7280' };
+  }
+};
+
 export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
   products,
   includeDeliveryPrices = false,
@@ -153,7 +166,24 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
                 justifyContent: 'center',
               }}
             >
-              <Text style={styles.quantity}>{product.type || '—'}</Text>
+              {product.type ? (() => {
+                const badgeStyle = getTypeBadgeStyle(product.type);
+                return (
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: badgeStyle.backgroundColor,
+                        borderColor: badgeStyle.borderColor,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.statusBadgeText, { color: badgeStyle.color }]}>
+                      {product.type.replace(/_/g, ' ')}
+                    </Text>
+                  </View>
+                );
+              })() : <Text style={styles.quantity}>—</Text>}
             </View>
 
             {/* Price Column */}
