@@ -34,17 +34,17 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
     );
   const colWidths = isCollection
     ? includeDeliveryPrices
-      ? { product: '40%', qty: '20%', delivery: '20%', price: '20%' }
-      : { product: '45%', qty: '25%', price: '30%' }
+      ? { product: '35%', qty: '20%', delivery: '20%', type: '10%', price: '15%' }
+      : { product: '40%', qty: '25%', type: '15%', price: '20%' }
     : includeDeliveryPrices
     ? {
         product: '28%',
-        truck: '25%',
         qty: '12%',
         delivery: '15%',
-        price: '20%',
+        type: '15%',
+        price: '30%',
       }
-    : { product: '35%', truck: '30%', qty: '15%', price: '20%' };
+    : { product: '35%', qty: '15%', type: '20%', price: '30%' };
 
   return (
     <View style={styles.section}>
@@ -60,16 +60,6 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
         >
           Product
         </Text>
-        {!isCollection && (
-          <Text
-            style={[
-              styles.tableHeaderText,
-              { width: colWidths.truck, paddingRight: 8 },
-            ]}
-          >
-            Truck Configuration
-          </Text>
-        )}
         <Text
           style={[
             styles.tableHeaderText,
@@ -88,6 +78,14 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
             Delivery
           </Text>
         )}
+        <Text
+          style={[
+            styles.tableHeaderText,
+            { width: colWidths.type, paddingRight: 8 },
+          ]}
+        >
+          Type
+        </Text>
         <Text
           style={[
             styles.tableHeaderText,
@@ -112,13 +110,6 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
               <Text style={styles.productName}>{product.name}</Text>
               <Text style={styles.productCode}>{product.deliveryAddress}</Text>
             </View>
-
-            {/* Truck Configuration Column */}
-            {!isCollection && (
-              <View style={{ width: colWidths.truck, paddingRight: 8 }}>
-                <Text style={styles.truckType}>{product.truckType}</Text>
-              </View>
-            )}
 
             {/* Quantity Column */}
             <View
@@ -148,6 +139,17 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
                 </View>
               </View>
             )}
+
+            {/* Type Column */}
+            <View
+              style={{
+                width: colWidths.type,
+                paddingRight: 8,
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={styles.quantity}>{product.type || '—'}</Text>
+            </View>
 
             {/* Price Column */}
             <View
