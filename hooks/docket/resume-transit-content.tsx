@@ -3,33 +3,37 @@
 import { Play, Truck } from 'lucide-react';
 import { Docket } from '@/lib/types/docket';
 
+export function ResumeTransitDescription({ docket }: { docket?: Docket | null }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
+        <Play className="h-6 w-6 text-[#008236]" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-[#101828]">
+          {docket?.docketNumber ?? '—'}
+        </span>
+        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+          <span>{docket?.productName ?? '—'}</span>
+          {docket?.loadSize != null && (
+            <>
+              <span className="font-bold">•</span>
+              <span>
+                {docket.loadSize} {docket.productUoM}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ResumeTransitContent({ docket }: { docket?: Docket | null }) {
   const stopReasonSummary = docket?.notes?.trim() || 'Vehicle breakdown';
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
-          <Play className="h-6 w-6 text-[#008236]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium text-[#101828]">
-            {docket?.docketNumber ?? '—'}
-          </span>
-          <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-            <span>{docket?.productName ?? '—'}</span>
-            {docket?.loadSize != null && (
-              <>
-                <span className="font-bold">•</span>
-                <span>
-                  {docket.loadSize} {docket.productUoM}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-md bg-[#F3F4F6] px-4 py-3">
         <div className="space-y-2 text-sm text-[#6A7282]">
           <div>

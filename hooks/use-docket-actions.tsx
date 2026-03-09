@@ -8,14 +8,15 @@ import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { DocketActionButtons } from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-action-buttons';
-import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
-import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
-import { MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
-import { MarkReadyContent } from '@/hooks/docket/mark-ready-content';
-import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
-import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
-import { StartTransitContent } from '@/hooks/docket/start-transit-content';
-import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
+import { MarkArrivedDescription, MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
+import { MarkDeliveredDescription, MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
+import { MarkCollectedDescription, MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
+import { MarkReadyDescription, MarkReadyContent } from '@/hooks/docket/mark-ready-content';
+import { ResumeTransitDescription, ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
+import { StopTransitDescription, StopTransitContent } from '@/hooks/docket/stop-transit-content';
+import { StartTransitDescription, StartTransitContent } from '@/hooks/docket/start-transit-content';
+import { VoidDocketDescription, VoidDocketContent } from '@/hooks/docket/void-docket-content';
+import { StartPreparingDescription, StartPreparingContent } from '@/hooks/docket/start-preparing-content';
 import { useDocketStore } from '@/app/stores/docket-store';
 
 export type DocketActionKey =
@@ -47,6 +48,7 @@ interface ActionDefinition {
 
 interface DialogConfig {
   title: string;
+  description?: React.ReactNode;
   content: React.ReactNode;
   confirmText: string;
   confirmCustomColor?: string;
@@ -111,6 +113,7 @@ export function useDocketActions(docketData?: Docket | null) {
     () => ({
       markArrived: {
         title: 'Mark as Arrived',
+        description: <MarkArrivedDescription docket={docketData} />,
         content: <MarkArrivedContent docket={docketData} />,
         confirmText: 'Confirm Arrival',
         confirmCustomColor: '#3B82F6',
@@ -118,9 +121,9 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       markDelivered: {
         title: 'Mark as Delivered',
+        description: <MarkDeliveredDescription docket={docketData} />,
         content: (
           <MarkDeliveredContent
-            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
@@ -144,6 +147,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       startTransit: {
         title: 'Start Transit',
+        description: <StartTransitDescription docket={docketData} />,
         content: <StartTransitContent docket={docketData} />,
         confirmText: 'Start Transit',
         confirmCustomColor: '#3B82F6',
@@ -151,6 +155,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       resumeTransit: {
         title: 'Resume Transit',
+        description: <ResumeTransitDescription docket={docketData} />,
         content: <ResumeTransitContent docket={docketData} />,
         confirmText: 'Resume Transit',
         confirmCustomColor: '#008236',
@@ -158,6 +163,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       markReady: {
         title: 'Mark as Ready',
+        description: <MarkReadyDescription docket={docketData} />,
         content: <MarkReadyContent docket={docketData} />,
         confirmText: 'Mark as Ready',
         confirmCustomColor: '#10B981',
@@ -165,6 +171,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       markCollected: {
         title: 'Mark as Collected',
+        description: <MarkCollectedDescription docket={docketData} />,
         content: <MarkCollectedContent docket={docketData} />,
         confirmText: 'Mark as Collected',
         confirmCustomColor: '#008236',
@@ -172,9 +179,9 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       stop: {
         title: 'Stop Transit',
+        description: <StopTransitDescription docket={docketData} />,
         content: (
           <StopTransitContent
-            docket={docketData}
             stopReason={stopReason}
             onStopReasonChange={setStopReason}
             stopNotes={stopNotes}
@@ -187,11 +194,19 @@ export function useDocketActions(docketData?: Docket | null) {
         confirmDisabled: !isStopFormValid,
         cancelText: 'Cancel',
       },
+      startPreparing: {
+        title: 'Start Preparing',
+        description: <StartPreparingDescription docket={docketData} />,
+        content: <StartPreparingContent docket={docketData} />,
+        confirmText: 'Start Preparing',
+        confirmCustomColor: '#F97316',
+        cancelText: 'Cancel',
+      },
       void: {
         title: 'Void Docket',
+        description: <VoidDocketDescription docket={docketData} />,
         content: (
           <VoidDocketContent
-            docket={docketData}
             voidReason={voidReason}
             onVoidReasonChange={setVoidReason}
             voidNotes={voidNotes}
@@ -255,9 +270,7 @@ export function useDocketActions(docketData?: Docket | null) {
     unassign: () => {
       console.log('Unassign docket confirmed:', docketData);
     },
-    startPreparing: () => {
-      console.log('Start preparing confirmed:', docketData);
-    },
+    startPreparing: createDialogAction('startPreparing'),
     cashSale: () => {
       console.log('Cash sale confirmed:', docketData);
     },
@@ -295,6 +308,7 @@ export function useDocketActions(docketData?: Docket | null) {
           if (!open) setActiveDialog(null);
         }}
         title={config.title}
+        description={config.description}
         content={config.content}
         confirmText={config.confirmText}
         confirmCustomColor={config.confirmCustomColor}
