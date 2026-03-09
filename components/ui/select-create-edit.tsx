@@ -32,8 +32,6 @@ import {
 } from '@/components/ui/form';
 import { ChevronsUpDown, Plus } from 'lucide-react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface SelectCreateEditItem {
   id: string;
   label: string;
@@ -56,8 +54,6 @@ interface SelectCreateEditProps<TFieldValues extends FieldValues> {
     onCancel: () => void,
   ) => React.ReactNode;
 }
-
-// ─── SelectCreateEdit ─────────────────────────────────────────────────────────
 
 export function SelectCreateEdit<TFieldValues extends FieldValues>({
   control,
@@ -165,7 +161,7 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
                                   e.stopPropagation();
                                   openEdit(item, e);
                                 }}
-                                className="text-violet-600 hover:text-violet-700 hover:bg-transparent h-auto px-1 py-0"
+                                className="cursor-pointer"
                               >
                                 Edit
                               </Button>

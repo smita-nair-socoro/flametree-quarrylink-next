@@ -29,7 +29,7 @@ import { Loader2 } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -92,7 +92,6 @@ export default function DriverForm({
       driverName: '',
       email: '',
       phone: '',
-      status: DRIVER_STATUS.ACTIVE,
       type: DRIVER_TYPE.INTERNAL,
       haulier: '',
       driverLicenseNumber: '',
@@ -335,7 +334,7 @@ export default function DriverForm({
               form="add-new-driver-form"
               type="submit"
               disabled={isSubmitting}
-              className="bg-violet-600 hover:bg-violet-700 text-white cursor-pointer"
+              className="cursor-pointer"
             >
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
