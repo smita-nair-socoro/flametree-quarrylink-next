@@ -85,8 +85,8 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 		meta: 'quarryName',
 	},
 	{
-		id: 'totalProductCostPrice',
-		accessorFn: (row) => row.totalProductCostPrice,
+		id: 'totalCostPrice',
+		accessorFn: (row) => row.totalProductCostPrice + row.totalTruckCostPrice,
 		header: () => {
 			return (
 				<div className="flex items-center gap-1">
@@ -103,16 +103,16 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const totalProductCostPrice = row.original.totalProductCostPrice
-				? centsToDollars(row.original.totalProductCostPrice)
-				: '0';
-			return <div>${totalProductCostPrice}</div>;
+			const total =
+				(row.original.totalProductCostPrice ?? 0) +
+				(row.original.totalTruckCostPrice ?? 0);
+			return <div>${centsToDollars(total)}</div>;
 		},
-		meta: 'Total Product Cost Price',
+		meta: 'Total Cost Price',
 	},
 	{
-		id: 'totalProductSellPrice',
-		accessorFn: (row) => row.totalProductSellPrice,
+		id: 'totalSellPrice',
+		accessorFn: (row) => row.totalProductSellPrice + row.totalTruckSellPrice,
 		header: () => {
 			return (
 				<div className="flex items-center gap-1">
@@ -129,12 +129,12 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			const totalProductSellPrice = row.original.totalProductSellPrice
-				? centsToDollars(row.original.totalProductSellPrice)
-				: '0';
-			return <div>${totalProductSellPrice}</div>;
+			const total =
+				(row.original.totalProductSellPrice ?? 0) +
+				(row.original.totalTruckSellPrice ?? 0);
+			return <div>${centsToDollars(total)}</div>;
 		},
-		meta: 'Total Product Sell Price',
+		meta: 'Total Sell Price',
 	},
 	{
 		id: 'productSellQty',
