@@ -20,11 +20,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -101,7 +101,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       settle: {
         title: 'Settlement Blocked',
         content: <SettleJobContent job={jobData} />,
-        confirmText: 'Settle Job',
+        confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
         cancelText: 'Cancel',
       },
