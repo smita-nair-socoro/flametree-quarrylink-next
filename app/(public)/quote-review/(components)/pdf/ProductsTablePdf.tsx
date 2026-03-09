@@ -29,22 +29,27 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
     products.length > 0 &&
     products.every(
       (product) =>
-        String(product.type || '').toUpperCase() ===
-        QUOTE_ITEM_TYPE.COLLECTION
+        String(product.type || '').toUpperCase() === QUOTE_ITEM_TYPE.COLLECTION,
     );
   const colWidths = isCollection
     ? includeDeliveryPrices
-      ? { product: '35%', qty: '20%', delivery: '20%', type: '10%', price: '15%' }
+      ? {
+          product: '35%',
+          qty: '20%',
+          delivery: '20%',
+          type: '10%',
+          price: '15%',
+        }
       : { product: '40%', qty: '25%', type: '15%', price: '20%' }
     : includeDeliveryPrices
-    ? {
-        product: '28%',
-        qty: '12%',
-        delivery: '15%',
-        type: '15%',
-        price: '30%',
-      }
-    : { product: '35%', qty: '15%', type: '20%', price: '30%' };
+      ? {
+          product: '40%',
+          qty: '12%',
+          delivery: '15%',
+          type: '15%',
+          price: '18%',
+        }
+      : { product: '45%', qty: '15%', type: '20%', price: '20%' };
 
   return (
     <View style={styles.section}>
