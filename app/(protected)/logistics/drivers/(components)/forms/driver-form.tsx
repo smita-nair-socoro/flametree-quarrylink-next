@@ -25,11 +25,16 @@ import {
   NewDriverFormSchema,
   NewDriverFormValues,
 } from './schemas/driver-form-schema';
-import { Loader2 } from 'lucide-react';
+import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface FormProps {
   id?: number;
@@ -218,7 +223,22 @@ export default function DriverForm({
               name="driverName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Driver Name*</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Driver Name*
+                    {!isEditing && !isInternal && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Enter the driver&apos;s name. If unknown, use a
+                            generic name (e.g., &apos;Driver 1&apos;).
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter generic name" {...field} />
                   </FormControl>
