@@ -453,3 +453,25 @@ export const formatEpochMonthYear = (epochSeconds?: number): string => {
     year: 'numeric',
   }).format(d);
 };
+
+/**
+ * Format a date as a time-only string in the user's local timezone.
+ * Output format: "12:09 pm"
+ *
+ * @param date - Date object (defaults to now)
+ * @returns Formatted time string (e.g., "12:09 pm")
+ */
+export function formatTimeOnly(date: Date = new Date()): string {
+  return format(date, 'h:mm aa');
+}
+
+/**
+ * Format a date as a full weekday + date string in the user's local timezone.
+ * Output format: "Wednesday 21 January 2026"
+ *
+ * @param date - Date object (defaults to now)
+ * @returns Formatted date string (e.g., "Wednesday 21 January 2026")
+ */
+export function formatWeekdayDate(date: Date = new Date()): string {
+  return format(date, 'EEEE d MMMM yyyy');
+}
