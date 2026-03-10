@@ -1,17 +1,23 @@
 import { Docket } from './docket';
+import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
 
-export enum JOB_STATUS {
-  IN_PROGRESS = 'IN_PROGRESS',
-  PAUSED = 'PAUSED',
-  SETTLED = 'SETTLED',
-  ACTIVE = 'ACTIVE',
-  CANCELLED = 'CANCELLED',
-  COMPLETED = 'COMPLETED',
-}
-
-export enum JOB_LINE_ITEM_TYPE {
-  COLLECTION = 'COLLECTION',
-  DELIVERY = 'DELIVERY',
+export interface JobDTO {
+  id: number;
+  jobNumber: string;
+  customerId: number;
+  projectName: string;
+  jobStatus: JOB_STATUS;
+  poNumber?: string;
+  contactPersonName?: string;
+  contactPersonPhone?: string;
+  docketEmail?: string;
+  uninvoicedDockets?: number;
+  quoteId?: number;
+  additionalEmails?: string[];
+  estimatedStartDate?: string;
+  startTimeWindow?: string;
+  endTimeWindow?: string;
+  version?: number;
 }
 
 export interface Job {

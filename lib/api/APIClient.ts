@@ -40,6 +40,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
+import { JobDTO } from '../types/job';
 
 type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
@@ -869,6 +870,13 @@ export const APIClient = {
       appClient.Post<PasswordResetResponse>(
         `/socoro/quarrylink/api/users/${id}/reset-password`
       ),
+  },
+
+  jobs: {
+    create: (data: Omit<JobDTO, 'id'>) =>
+      appClient.Post<JobDTO>('/socoro/quarrylink/api/job', {
+        body: data,
+      }),
   },
 
   tenants: {
