@@ -223,11 +223,16 @@ export default function JobForm({
       );
 
       // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
-      const additionalEmails = values.receiptEmail
+      // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
+      const receiptEmails = values.receiptEmail
         ? Array.isArray(values.receiptEmail)
           ? values.receiptEmail
           : [values.receiptEmail]
         : [];
+
+      const additionalEmails = receiptEmails.filter(
+        (email) => email !== selectedCustomer?.email
+      );
 
       await createJob.mutateAsync({
         customerId: values.customerId,
