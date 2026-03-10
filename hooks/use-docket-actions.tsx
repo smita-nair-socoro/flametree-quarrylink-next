@@ -2,22 +2,12 @@
 
 import * as React from 'react';
 import { type LucideIcon } from 'lucide-react';
-import {
-  Eye,
-  UserPlus,
-  CircleX,
-  Undo2,
-  CircleCheckBig,
-  Check,
-  ReceiptText,
-  Square,
-  CirclePlay,
-  Receipt,
-  Trash2,
-} from 'lucide-react';
+
 import { Docket } from '@/lib/types/docket';
-import { DOCKET_TYPE } from '@/lib/types/docket-enums';
 import { ActionDialog } from '@/components/action-dialog';
+import { FormDialog } from '@/components/form-dialog';
+import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
+import { DocketActionButtons } from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-action-buttons';
 import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
 import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
 import { MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
@@ -26,6 +16,7 @@ import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
 import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
 import { StartTransitContent } from '@/hooks/docket/start-transit-content';
 import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
+import { useDocketStore } from '@/app/stores/docket-store';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -60,147 +51,24 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
 }
 
-const ACTION_DEFINITIONS: Record<DocketActionKey, ActionDefinition> = {
-  viewDetails: {
-    label: 'View Details',
-    icon: Eye,
-  },
-  assign: {
-    label: 'Assign',
-    icon: UserPlus,
-  },
-  startTransit: {
-    label: 'Start Transit',
-    icon: CirclePlay,
-  },
-  unassign: {
-    label: 'Unassign',
-    icon: Undo2,
-  },
-  cancel: {
-    label: 'Cancel',
-    icon: CircleX,
-  },
-  void: {
-    label: 'Void',
-    icon: Trash2,
-    destructive: true,
-  },
-  markArrived: {
-    label: 'Mark Arrived',
-    icon: CircleCheckBig,
-  },
-  stop: {
-    label: 'Stop',
-    icon: Square,
-    destructive: true,
-  },
-  resumeTransit: {
-    label: 'Resume Transit',
-    icon: ReceiptText,
-  },
-  markDelivered: {
-    label: 'Mark Delivered',
-    icon: CircleCheckBig,
-  },
-  invoice: {
-    label: 'Invoice',
-    icon: Receipt,
-  },
-  viewInvoice: {
-    label: 'View Invoice',
-    icon: Receipt,
-  },
-  startPreparing: {
-    label: 'Start Preparing',
-    icon: CirclePlay,
-  },
-  markReady: {
-    label: 'Mark Ready',
-    icon: Check,
-  },
-  backToPending: {
-    label: 'Back to Pending',
-    icon: Undo2,
-  },
-  markCollected: {
-    label: 'Mark Collected',
-    icon: CircleCheckBig,
-  },
-  backToPreparing: {
-    label: 'Back to Preparing',
-    icon: Undo2,
-  },
-  cashSale: {
-    label: 'Cash Sale',
-    icon: ReceiptText,
-  },
-  cashReceipts: {
-    label: 'Cash Receipts',
-    icon: ReceiptText,
-  },
-};
-
-const DELIVERY_ACTIONS: Record<string, DocketActionKey[]> = {
-  UNASSIGNED: ['viewDetails', 'assign', 'cancel', 'void'],
-  ASSIGNED: ['viewDetails', 'startTransit', 'unassign', 'cancel', 'void'],
-  IN_TRANSIT: ['viewDetails', 'markArrived', 'stop'],
-  STOPPED: ['viewDetails', 'resumeTransit', 'unassign', 'cancel', 'void'],
-  ARRIVED: ['viewDetails', 'markDelivered', 'cancel', 'void'],
-  DELIVERED: ['viewDetails', 'invoice', 'cancel', 'void'],
-  INVOICED: ['viewDetails', 'viewInvoice'],
-  VOIDED: ['viewDetails'],
-  CANCELLED: ['viewDetails'],
-  DEFAULT: ['viewDetails'],
-};
-
-const COLLECTION_ACTIONS: Record<string, DocketActionKey[]> = {
-  PENDING: ['viewDetails', 'startPreparing', 'cancel', 'void'],
-  PREPARING: ['viewDetails', 'markReady', 'backToPending', 'cancel', 'void'],
-  READY: ['viewDetails', 'markCollected', 'backToPreparing', 'cancel', 'void'],
-  COLLECTED: ['viewDetails', 'cashSale', 'invoice'],
-  CASH_SALE: ['viewDetails', 'cashReceipts'],
-  INVOICED: ['viewDetails', 'viewInvoice'],
-  VOIDED: ['viewDetails'],
-  CANCELLED: ['viewDetails'],
-  DEFAULT: ['viewDetails'],
-};
-
-const ACTION_MATRIX: Record<DOCKET_TYPE, Record<string, DocketActionKey[]>> = {
-  [DOCKET_TYPE.DELIVERY]: DELIVERY_ACTIONS,
-  [DOCKET_TYPE.COLLECTION]: COLLECTION_ACTIONS,
-};
-
-const FALLBACK_ACTIONS: DocketActionKey[] = ['viewDetails'];
-
-const COLLECTION_STATUS_KEYS = [
-  'PENDING',
-  'PREPARING',
-  'READY',
-  'COLLECTED',
-  'CASH_SALE',
-] as const;
-const COLLECTION_STATUSES = new Set<string>(COLLECTION_STATUS_KEYS);
-
-const normalizeStatus = (status?: string) => status?.toUpperCase() ?? '';
-
-export interface DocketMenuAction extends ActionDefinition {
-  key: DocketActionKey;
-  onSelect: () => void;
+interface SelectedAction {
+  key: string;
 }
 
-export function useDocketActions(docket?: Docket | null) {
+
+export function useDocketActions(docketData?: Docket | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [viewOpen, setViewOpen] = React.useState(false);
   const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
     React.useState(false);
   const [unloadedPhoto, setUnloadedPhoto] = React.useState<File | null>(null);
@@ -212,11 +80,8 @@ export function useDocketActions(docket?: Docket | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
+  const [selectedAction, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
-  const createDialogAction = React.useCallback(
-    (dialogKey: string) => () => setActiveDialog(dialogKey),
-    [],
-  );
 
   const isVoidFormValid = React.useMemo(() => {
     if (!voidReason) return false;
@@ -246,7 +111,7 @@ export function useDocketActions(docket?: Docket | null) {
     () => ({
       markArrived: {
         title: 'Mark as Arrived',
-        content: <MarkArrivedContent docket={docket} />,
+        content: <MarkArrivedContent docket={docketData} />,
         confirmText: 'Confirm Arrival',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
@@ -255,7 +120,7 @@ export function useDocketActions(docket?: Docket | null) {
         title: 'Mark as Delivered',
         content: (
           <MarkDeliveredContent
-            docket={docket}
+            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
@@ -279,28 +144,28 @@ export function useDocketActions(docket?: Docket | null) {
       },
       startTransit: {
         title: 'Start Transit',
-        content: <StartTransitContent docket={docket} />,
+        content: <StartTransitContent docket={docketData} />,
         confirmText: 'Start Transit',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
       },
       resumeTransit: {
         title: 'Resume Transit',
-        content: <ResumeTransitContent docket={docket} />,
+        content: <ResumeTransitContent docket={docketData} />,
         confirmText: 'Resume Transit',
         confirmCustomColor: '#008236',
         cancelText: 'Cancel',
       },
       markReady: {
         title: 'Mark as Ready',
-        content: <MarkReadyContent docket={docket} />,
+        content: <MarkReadyContent docket={docketData} />,
         confirmText: 'Mark as Ready',
         confirmCustomColor: '#10B981',
         cancelText: 'Cancel',
       },
       markCollected: {
         title: 'Mark as Collected',
-        content: <MarkCollectedContent docket={docket} />,
+        content: <MarkCollectedContent docket={docketData} />,
         confirmText: 'Mark as Collected',
         confirmCustomColor: '#008236',
         cancelText: 'Cancel',
@@ -309,7 +174,7 @@ export function useDocketActions(docket?: Docket | null) {
         title: 'Stop Transit',
         content: (
           <StopTransitContent
-            docket={docket}
+            docket={docketData}
             stopReason={stopReason}
             onStopReasonChange={setStopReason}
             stopNotes={stopNotes}
@@ -326,7 +191,7 @@ export function useDocketActions(docket?: Docket | null) {
         title: 'Void Docket',
         content: (
           <VoidDocketContent
-            docket={docket}
+            docket={docketData}
             voidReason={voidReason}
             onVoidReasonChange={setVoidReason}
             voidNotes={voidNotes}
@@ -341,7 +206,7 @@ export function useDocketActions(docket?: Docket | null) {
       },
     }),
     [
-      docket,
+      docketData,
       deliveredProductsConfirmed,
       isMarkDeliveredFormValid,
       isStopFormValid,
@@ -358,172 +223,183 @@ export function useDocketActions(docket?: Docket | null) {
     ],
   );
 
-  const actionHandlers = React.useMemo<Record<DocketActionKey, () => void>>(
-    () => ({
-      viewDetails: () => console.log('View docket details:', docket),
-      assign: () => console.log('Assign docket:', docket),
-      startTransit: () => {
-        console.log('Open start transit dialog:', docket);
-        setActiveDialog('startTransit');
-      },
-      resumeTransit: () => {
-        console.log('Open resume transit dialog:', docket);
-        setActiveDialog('resumeTransit');
-      },
-      unassign: () => console.log('Unassign docket:', docket),
-      cancel: () => console.log('Cancel docket:', docket),
-      void: () => {
-        console.log('Open void docket dialog:', docket);
-        setVoidReason('');
-        setVoidNotes('');
-        setActiveDialog('void');
-      },
-      markArrived: () => {
-        console.log('Mark docket as arrived:', docket);
-        createDialogAction('markArrived')();
-      },
-      markDelivered: () => {
-        console.log('Open mark delivered dialog:', docket);
-        setDeliveredProductsConfirmed(false);
-        setUnloadedPhoto(null);
-        setReceiptPhoto(null);
-        setReceiverOnSite(false);
-        setReceiverName('');
-        setReceiverSignature('');
-        setActiveDialog('markDelivered');
-      },
-      stop: () => {
-        console.log('Open stop transit dialog:', docket);
-        setStopReason('');
-        setStopNotes('');
-        setActiveDialog('stop');
-      },
-      invoice: () => console.log('Invoice docket:', docket),
-      viewInvoice: () => console.log('View invoice:', docket),
-      startPreparing: () => console.log('Start preparing docket:', docket),
-      markReady: () => {
-        console.log('Open mark ready dialog:', docket);
-        setActiveDialog('markReady');
-      },
-      backToPending: () => console.log('Back to pending:', docket),
-      markCollected: () => {
-        console.log('Open mark collected dialog:', docket);
-        setActiveDialog('markCollected');
-      },
-      backToPreparing: () => console.log('Back to preparing:', docket),
-      cashSale: () => console.log('Cash sale for docket:', docket),
-      cashReceipts: () => console.log('Cash receipts for docket:', docket),
-    }),
-    [createDialogAction, docket],
-  );
+  const createDialogAction = (actionKey: string) => {
+    return () => {
+      setSelectedAction({ key: actionKey });
+      setActiveDialog(actionKey);
+    };
+  };
 
-  const actionKeys = React.useMemo<DocketActionKey[]>(() => {
-    if (!docket) return FALLBACK_ACTIONS;
 
-    const statusKey = normalizeStatus(docket.status);
-    const inferredType =
-      docket.docketType ??
-      (COLLECTION_STATUSES.has(statusKey)
-        ? DOCKET_TYPE.COLLECTION
-        : DOCKET_TYPE.DELIVERY);
-    const typeMap = ACTION_MATRIX[inferredType] ?? {};
-    const normalizedStatus = statusKey;
-    const keys =
-      typeMap[statusKey] ?? typeMap[normalizedStatus] ?? typeMap.DEFAULT;
+  const actions = {
+    view: (docket?: Docket | null) => {
+      const toSelect = docket ?? docketData;
+      if (toSelect != null) {
+        useDocketStore.getState().setSelectedDocket(toSelect);
+      }
+      setViewOpen(true);
+    },
+    startTransit: createDialogAction('startTransit'),
+    resumeTransit: createDialogAction('resumeTransit'),
+    markArrived: createDialogAction('markArrived'),
+    markDelivered: createDialogAction('markDelivered'),
+    stop: createDialogAction('stop'),
+    markReady: createDialogAction('markReady'),
+    markCollected: createDialogAction('markCollected'),
+    void: createDialogAction('void'),
+    remove: createDialogAction('remove'),
+    duplicate: createDialogAction('duplicate'),
+    cancel: () => {
+      console.log('Cancel docket confirmed:', docketData);
+    },
+    unassign: () => {
+      console.log('Unassign docket confirmed:', docketData);
+    },
+    startPreparing: () => {
+      console.log('Start preparing confirmed:', docketData);
+    },
+    cashSale: () => {
+      console.log('Cash sale confirmed:', docketData);
+    },
+    invoice: () => {
+      console.log('Invoice confirmed:', docketData);
+    },
+    cashReceipts: () => {
+      console.log('Cash receipts confirmed:', docketData);
+    },
+    viewInvoice: () => {
+      console.log('View invoice confirmed:', docketData);
+    },
+    assign: () => {
+      console.log('Assign docket confirmed:', docketData);
+    },
 
-    return keys && keys.length ? keys : FALLBACK_ACTIONS;
-  }, [docket]);
+    backToPending: () => {
+      console.log('Back to pending confirmed:', docketData);
+    },
+    backToPreparing: () => {
+      console.log('Back to preparing confirmed:', docketData);
+    },
+  };
 
-  const menuItems = React.useMemo<DocketMenuAction[]>(() => {
-    return actionKeys
-      .map((key) => {
-        const definition = ACTION_DEFINITIONS[key];
-        if (!definition) return null;
 
-        return {
-          key,
-          ...definition,
-          onSelect: actionHandlers[key],
-        };
-      })
-      .filter((item): item is DocketMenuAction => Boolean(item));
-  }, [actionHandlers, actionKeys]);
 
-  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => (
-    <ActionDialog
-      key={key}
-      open={activeDialog === key}
-      onOpenChangeAction={(open) => {
-        if (!open) setActiveDialog(null);
-      }}
-      title={config.title}
-      content={config.content}
-      confirmText={config.confirmText}
-      confirmCustomColor={config.confirmCustomColor}
-      confirmVariant={config.confirmVariant}
-      confirmDisabled={config.confirmDisabled}
-      cancelText={config.cancelText}
-      preventOutsideClose={config.preventOutsideClose}
-      onConfirmAction={() => {
-        if (key === 'startTransit') {
-          console.log('Start transit confirmed:', docket);
-          return;
-        }
+  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
+    if (activeDialog !== key) return null;
 
-        if (key === 'resumeTransit') {
-          console.log('Resume transit confirmed:', docket);
-          return;
-        }
+    return (
+      <ActionDialog
+        key={key}
+        open={activeDialog === key}
+        onOpenChangeAction={(open) => {
+          if (!open) setActiveDialog(null);
+        }}
+        title={config.title}
+        content={config.content}
+        confirmText={config.confirmText}
+        confirmCustomColor={config.confirmCustomColor}
+        confirmVariant={config.confirmVariant}
+        confirmDisabled={config.confirmDisabled}
+        cancelText={config.cancelText}
+        preventOutsideClose={config.preventOutsideClose}
+        onConfirmAction={() => {
+          switch (key) {
+            case 'startTransit':
+              console.log('Start transit confirmed:', docketData);
+              break;
+            case 'resumeTransit':
+              console.log('Resume transit confirmed:', docketData);
+              break;
+            case 'markArrived':
+              console.log('Mark arrived confirmed:', docketData);
+              break;
+            case 'markDelivered':
+              console.log('Mark delivered confirmed:', docketData, {
+                deliveredProductsConfirmed,
+                hasUnloadedPhoto: Boolean(unloadedPhoto),
+                hasReceiptPhoto: Boolean(receiptPhoto),
+                receiverOnSite,
+                receiverName,
+                receiverSignature,
+              });
+              break;
+            case 'stop':
+              console.log('Stop transit confirmed:', docketData, {
+                stopReason,
+                stopNotes,
+              });
+              break;
+            case 'markReady':
+              console.log('Mark ready confirmed:', docketData);
+              break;
+            case 'markCollected':
+              console.log('Mark collected confirmed:', docketData);
+              break;
+            case 'cancel':
+              console.log('Cancel docket confirmed:', docketData);
+              break;
+            case 'void':
+              console.log('Void docket confirmed:', docketData, {
+                voidReason,
+                voidNotes,
+              });
+              break;
+            case 'startPreparing':
+              console.log('Start preparing confirmed:', docketData);
+              break;
+            case 'cashSale':
+              console.log('Cash sale confirmed:', docketData);
+              break;
+            case 'invoice':
+              console.log('Invoice confirmed:', docketData);
+              break;
+            case 'cashReceipts':
+              console.log('Cash receipts confirmed:', docketData);
+              break;
+            case 'viewInvoice':
+              console.log('View invoice confirmed:', docketData);
+              break;
+            case 'assign':
+              console.log('Assign docket confirmed:', docketData);
+              break;
+            case 'unassign':
+              console.log('Unassign docket confirmed:', docketData);
+              break;
+            case 'backToPending':
+              console.log('Back to pending confirmed:', docketData);
+              break;
+            case 'backToPreparing':
+              console.log('Back to preparing confirmed:', docketData);
+              break;
+          }
+        }}
+      />
+    );
+  });
 
-        if (key === 'markArrived') {
-          console.log('Mark arrived confirmed:', docket);
-          return;
-        }
-
-        if (key === 'markDelivered') {
-          console.log('Mark delivered confirmed:', docket, {
-            deliveredProductsConfirmed,
-            hasUnloadedPhoto: Boolean(unloadedPhoto),
-            hasReceiptPhoto: Boolean(receiptPhoto),
-            receiverOnSite,
-            receiverName,
-            receiverSignature,
-          });
-          return;
-        }
-
-        if (key === 'stop') {
-          console.log('Stop transit confirmed:', docket, {
-            stopReason,
-            stopNotes,
-          });
-          return;
-        }
-
-        if (key === 'markReady') {
-          console.log('Mark ready confirmed:', docket);
-          return;
-        }
-
-        if (key === 'markCollected') {
-          console.log('Mark collected confirmed:', docket);
-          return;
-        }
-
-        if (key === 'void') {
-          console.log('Void docket confirmed:', docket, {
-            voidReason,
-            voidNotes,
-          });
-        }
-      }}
-    />
-  ));
+  const canEdit = docketData?.status === 'UNASSIGNED';
+  const viewDialog =
+    viewOpen && docketData?.id ? (
+      <FormDialog
+        id={docketData.id}
+        dialogTitle="View / Edit Docket"
+        open={viewOpen}
+        onOpenChangeAction={(open) => {
+          setViewOpen(open);
+        }}
+        hideTrigger
+        headerButtons={<DocketActionButtons docket={docketData} />}
+        headerInfo={{
+          useSelectedDocket: true,
+        }}
+      >
+        <DocketForm canEdit={canEdit} />
+      </FormDialog>
+    ) : null;
 
   return {
-    actions: actionHandlers,
-    menuItems,
+    actions,
     confirmDialogs,
-    viewDialog: null,
+    viewDialog,
   };
 }

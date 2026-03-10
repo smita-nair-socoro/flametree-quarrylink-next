@@ -1,7 +1,6 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
-import { Address } from './address';
-import { Customer } from './customer';
+import { CustomerDeliveryAddress } from './address';
 
 export interface Docket {
   id: number;
@@ -28,7 +27,7 @@ export interface Docket {
   totalInvoice: number;
   deliveryDate: string;
   poNumber?: string;
-  pickUpAddress?: Partial<CustomerPickUpAddress>;
+  pickUpAddress?: Partial<CustomerDeliveryAddress>;
   deliveryAddress?: Partial<CustomerDeliveryAddress>;
   startTimeWindow: string;
   endTimeWindow: string;
