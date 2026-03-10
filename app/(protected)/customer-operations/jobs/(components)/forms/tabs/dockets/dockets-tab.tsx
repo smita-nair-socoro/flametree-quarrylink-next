@@ -6,15 +6,18 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { docketsColumns } from './(data-tables)/columns';
-import { Docket } from '@/lib/types/docket';
-import { Button } from '@/components/ui/button';
+import { FormDialog } from '@/components/form-dialog';
+import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
+import { JobDetails } from '@/lib/types/job';
 
 interface DocketsTabProps {
-  dockets: Docket[];
+  selectedJob: JobDetails;
 }
 
-export default function DocketsTab({ dockets }: DocketsTabProps) {
+export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const dockets = selectedJob?.dockets ?? [];
+  const jobId = selectedJob?.id ?? 0;
 
   return (
     <div className="flex flex-col gap-4 mt-6">
@@ -26,8 +29,9 @@ export default function DocketsTab({ dockets }: DocketsTabProps) {
         )}
       >
         <span className="text-lg font-semibold">Dockets</span>
-        {/* will be changed to a formDialog later in another task */}
-        <Button>Add New Docket</Button>
+        <FormDialog dialogTitle="Add New Docket" buttonTitle="Add New Docket">
+          <DocketForm isQuickDocket={false} jobId={jobId} />
+        </FormDialog>
       </div>
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

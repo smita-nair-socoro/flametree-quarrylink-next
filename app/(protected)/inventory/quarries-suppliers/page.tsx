@@ -36,10 +36,10 @@ import { QuarrySupplierTableActions } from './(components)/(data-tables)/quarrie
 
 export default function QuarriesSuppliersPage() {
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
-    (state) => state.setSelectedQuarrySupplier
+    (state) => state.setSelectedQuarrySupplier,
   );
   const [createFormType, setCreateFormType] = React.useState<QuarryType>(
-    QuarryType.QUARRY
+    QuarryType.QUARRY,
   );
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
 
@@ -52,7 +52,7 @@ export default function QuarriesSuppliersPage() {
       }
       setCreateDialogOpen(open);
     },
-    [setSelectedQuarrySupplier]
+    [setSelectedQuarrySupplier],
   );
 
   // Use React Query to fetch quarries and suppliers data
@@ -76,10 +76,11 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Monthly Value - Suppliers',
       value: `$${centsToDollars(
-        reportingData?.suppliersMonthlyProfitValueChangePercent || 0
+        reportingData?.suppliersMonthlyProfitValueChangePercent || 0,
       )}`,
-      description: `${reportingData?.suppliersMonthlyProfitValueChangePercent || 0
-        }% vs last month`,
+      description: `${
+        reportingData?.suppliersMonthlyProfitValueChangePercent || 0
+      }% vs last month`,
       icon: DollarSign,
       iconBgColor: 'bg-[#ECFCCA]',
       iconColor: 'text-[#016630]',
@@ -87,9 +88,9 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Top Supplier',
-      value: reportingData?.topSupplierOfTheMonth || '',
+      value: reportingData?.topSupplierOfTheMonth || 'QuarryLink-Supplier',
       description: `$${centsToDollars(
-        reportingData?.topSupplierQuotedProfitValueThisMonth || 0
+        reportingData?.topSupplierQuotedProfitValueThisMonth || 0,
       )} this month`,
       icon: Building,
       iconBgColor: 'bg-[#E0E7FF]',
@@ -99,10 +100,11 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Monthly Value - Quarries',
       value: `$${centsToDollars(
-        reportingData?.quarriesMonthlyProfitValueChangePercent || 0
+        reportingData?.quarriesMonthlyProfitValueChangePercent || 0,
       )}`,
-      description: `${reportingData?.quarriesMonthlyProfitValueChangePercent || 0
-        }% vs last month`,
+      description: `${
+        reportingData?.quarriesMonthlyProfitValueChangePercent || 0
+      }% vs last month`,
       icon: Mountain,
       iconBgColor: 'bg-[#F1F5F9]',
       iconColor: 'text-[#71717B]',
@@ -110,9 +112,9 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Top Quarry',
-      value: reportingData?.topQuarryOfTheMonth || '',
+      value: reportingData?.topQuarryOfTheMonth || 'QuarryLink-Quarry',
       description: `$${centsToDollars(
-        reportingData?.topQuarryQuotedProfitValueThisMonth || 0
+        reportingData?.topQuarryQuotedProfitValueThisMonth || 0,
       )} this month`,
       icon: Factory,
       iconBgColor: 'bg-[#FEF9C2]',
@@ -160,47 +162,50 @@ export default function QuarriesSuppliersPage() {
     actions.view(quarrySupplier);
   };
 
-  const renderQuarrySupplierCard = React.useCallback((quarrySupplier: Quarry) => {
-    const suburb =
-      quarrySupplier.suburb || quarrySupplier.address?.suburb || '';
+  const renderQuarrySupplierCard = React.useCallback(
+    (quarrySupplier: Quarry) => {
+      const suburb =
+        quarrySupplier.suburb || quarrySupplier.address?.suburb || '';
 
-    return (
-      <MobileCard
-        title={quarrySupplier.name}
-        badges={
-          <>
-            <TableBadges
-              names={[quarrySupplier.quarrySupplierType]}
-              visibleCount={1}
-            />
-            {quarrySupplier.status && (
-              <TableBadges names={[quarrySupplier.status]} visibleCount={1} />
-            )}
-          </>
-        }
-        actions={
-          <QuarrySupplierTableActions quarrySupplier={quarrySupplier} />
-        }
-        fields={[
-          {
-            icon: <MapPin className="h-4 w-4" />,
-            label: 'Suburb',
-            value: suburb || '-',
-          },
-          {
-            icon: <Mail className="h-4 w-4" />,
-            label: 'Email',
-            value: quarrySupplier.email || '-',
-          },
-          {
-            icon: <Phone className="h-4 w-4" />,
-            label: 'Phone',
-            value: quarrySupplier.phone || '-',
-          },
-        ]}
-      />
-    );
-  }, []);
+      return (
+        <MobileCard
+          title={quarrySupplier.name}
+          badges={
+            <>
+              <TableBadges
+                names={[quarrySupplier.quarrySupplierType]}
+                visibleCount={1}
+              />
+              {quarrySupplier.status && (
+                <TableBadges names={[quarrySupplier.status]} visibleCount={1} />
+              )}
+            </>
+          }
+          actions={
+            <QuarrySupplierTableActions quarrySupplier={quarrySupplier} />
+          }
+          fields={[
+            {
+              icon: <MapPin className="h-4 w-4" />,
+              label: 'Suburb',
+              value: suburb || '-',
+            },
+            {
+              icon: <Mail className="h-4 w-4" />,
+              label: 'Email',
+              value: quarrySupplier.email || '-',
+            },
+            {
+              icon: <Phone className="h-4 w-4" />,
+              label: 'Phone',
+              value: quarrySupplier.phone || '-',
+            },
+          ]}
+        />
+      );
+    },
+    [],
+  );
 
   const facetDefs: FacetDefinition[] = [
     { column: 'quarry_supplier_type', title: 'Type', icon: Plus },
@@ -219,8 +224,9 @@ export default function QuarriesSuppliersPage() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <FormDialog
-            dialogTitle={`Add New ${createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-              }`}
+            dialogTitle={`Add New ${
+              createFormType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+            }`}
             dialogDescription="Fill in the details to add a new quarry or supplier to your system."
             buttonTitle="Add Quarry / Supplier"
             open={createDialogOpen}

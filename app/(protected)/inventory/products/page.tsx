@@ -52,7 +52,7 @@ export default function ProductsPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Highest Revenue Product',
-      value: reportingData?.mostQuotedProductName || '',
+      value: reportingData?.mostQuotedProductName || 'QuarryLink Product',
       description: `$${centsToDollars(
         reportingData?.mostQuotedProductValueThisMonth || 0,
       )} this month`,

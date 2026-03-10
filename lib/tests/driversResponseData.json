@@ -1,0 +1,70 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "phone": "+61 412 345 678",
+      "status": "ACTIVE",
+      "type": "SUBCONTRACTOR",
+      "haulier": 1,
+      "haulierName": "ABC TRANSPORT",
+      "assigned_trucks": []
+    },
+    {
+      "id": 2,
+      "name": "Jane Doe",
+      "email": "jane.doe@example.com",
+      "phone": "+61 412 345 679",
+      "status": "ON_DUTY",
+      "type": "INTERNAL",
+      "haulier": 2,
+      "haulierName": "ONE QUARRY",
+      "assigned_trucks": []
+    },
+    {
+      "id": 3,
+      "name": "Jim Beam",
+      "email": "jim.beam@example.com",
+      "phone": "+61 412 345 623",
+      "status": "PENDING_INVITATION",
+      "type": "INTERNAL",
+      "haulier": 2,
+      "haulierName": "ONE QUARRY",
+      "assigned_trucks": []
+    },
+    {
+      "id": 4,
+      "name": "Jay Choi",
+      "email": "jay.choi@example.com",
+      "phone": "+61 412 345 681",
+      "status": "DEACTIVATED",
+      "type": "SUBCONTRACTOR",
+      "haulier": 3,
+      "haulierName": "SMITH TRNASPORT",
+      "assigned_trucks": []
+    },
+    {
+      "id": 5,
+      "name": "Driver - Cannot Deactivate",
+      "email": "jay.choi@example.com",
+      "phone": "+61 412 345 681",
+      "status": "ACTIVE",
+      "type": "SUBCONTRACTOR",
+      "haulier": 3,
+      "haulierName": "SMITH TRNASPORT",
+      "assignedTrucks": [1, 2, 3]
+    },
+    {
+      "id": 6,
+      "name": "Driver - Cannot Delete",
+      "email": "jay.choi@example.com",
+      "phone": "+61 412 345 681",
+      "status": "ACTIVE",
+      "type": "SUBCONTRACTOR",
+      "haulier": 3,
+      "haulierName": "SMITH TRNASPORT",
+      "assignedTrucks": [1, 2, 3]
+    }
+  ]
+}
