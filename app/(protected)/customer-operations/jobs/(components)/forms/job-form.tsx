@@ -20,6 +20,8 @@ import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { JobFormSchema } from './schemas/job-form-schema';
 import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DatePicker } from '@/components/date-picker';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
@@ -30,7 +32,9 @@ import { UsersListQueryOptions } from '@/lib/api/user';
 import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { Job, JobDetails } from '@/lib/types/job';
+import type { Job, JobDetails } from '@/lib/types/job';
+import { JOB_STATUS } from '@/lib/types/job-enums';
+import { useCreateJob } from '@/lib/api/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
@@ -54,7 +58,7 @@ export default function JobForm({
   onCancel,
   className,
   onDirtyChange,
-  // onSuccess,
+  onSuccess,
   // onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -70,7 +74,7 @@ export default function JobForm({
     defaultValues: EMPTY_JOB_FORM_VALUES,
   });
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const createJob = useCreateJob();
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -209,18 +213,35 @@ export default function JobForm({
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
-    setIsSubmitting(true);
-    console.log(`Job Form Values:`, values);
+    if (isEditing) return; // edit not yet implemented
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const dateStr = format(values.deliveryStartDate, 'yyyy-MM-dd');
 
-    setIsSubmitting(false);
+      await createJob.mutateAsync({
+        customerId: values.customerId,
+        projectName: values.projectName,
+        poNumber: values.poNumber,
+        contactPersonPhone: values.phone,
+        docketEmail: values.receiptEmail,
+        jobStatus: JOB_STATUS.ACTIVE,
+        estimatedStartDate: `${dateStr}T00:00:00`,
+        startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
+        endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
+      });
+
+      notifySuccess('Job created successfully');
+      onSuccess?.();
+    } catch (error) {
+      notifyError(
+        extractErrorMessage(error) || 'Failed to create job. Please try again.',
+      );
+    }
   }
 
   return (
     <div className="w-full relative">
-      {isSubmitting && (
+      {createJob.isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -480,18 +501,18 @@ export default function JobForm({
                 form="add-new-job-form"
                 className="cursor-pointer"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={createJob.isPending}
               >
-                {isSubmitting && (
+                {createJob.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting
+                {createJob.isPending
                   ? isEditing
                     ? 'Saving Changes...'
                     : 'Adding Customer...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Add Customer'}
+                    : 'Add Job'}
               </Button>
             </div>
           )}
@@ -502,18 +523,18 @@ export default function JobForm({
                 form="add-new-job-form"
                 type="submit"
                 className="cursor-pointer"
-                disabled={isSubmitting}
+                disabled={createJob.isPending}
               >
-                {isSubmitting && (
+                {createJob.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting
+                {createJob.isPending
                   ? isEditing
                     ? 'Saving Changes...'
                     : 'Adding Customer...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Add Customer'}
+                    : 'Add Job'}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

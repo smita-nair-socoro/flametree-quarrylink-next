@@ -430,7 +430,7 @@ export function useJobActions(jobData?: Job | null) {
         useSelectedJob: true,
       }}
     >
-      <JobForm />
+      <JobForm id={selectedJob?.id} onCancel={() => setViewOpen(false)} onSuccess={() => setViewOpen(false)} />
     </FormDialog>
   ) : null;
 
