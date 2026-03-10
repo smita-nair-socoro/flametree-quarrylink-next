@@ -3,7 +3,7 @@ import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
 
 export interface JobDTO {
   id: number;
-  jobNumber: string;
+  jobNumber?: string;
   customerId: number;
   projectName: string;
   jobStatus: JOB_STATUS;
