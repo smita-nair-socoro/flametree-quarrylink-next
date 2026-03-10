@@ -117,8 +117,9 @@ export default function JobForm({
             selectedCustomer.accountManagerSub || '',
           );
 
-          // If we are creating a new job (not editing), set the receipt email to the customer email
-          jobForm.setValue('receiptEmail', selectedCustomer.email || '');
+          // Clear additional emails when customer changes — customer email is already
+          // shown as the fixed chip in MultipleInput and sent as docketEmail
+          jobForm.setValue('receiptEmail', '');
         }
       }
     });
@@ -217,13 +218,25 @@ export default function JobForm({
 
     try {
       const dateStr = format(values.deliveryStartDate, 'yyyy-MM-dd');
+      const selectedCustomer = customers.find(
+        (c) => c.id === values.customerId,
+      );
+
+      // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
+      const additionalEmails = values.receiptEmail
+        ? Array.isArray(values.receiptEmail)
+          ? values.receiptEmail
+          : [values.receiptEmail]
+        : [];
 
       await createJob.mutateAsync({
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
+        contactPersonName: selectedCustomer?.contactName,
         contactPersonPhone: values.phone,
-        docketEmail: values.receiptEmail,
+        docketEmail: selectedCustomer?.email,
+        additionalEmails,
         jobStatus: JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
         startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
