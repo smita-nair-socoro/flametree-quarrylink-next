@@ -20,11 +20,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -220,6 +220,11 @@ export function useJobActions(jobData?: JobDetails | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setViewOpen(false);
+          }, 100);
+        }
       }}
       headerButtons={<JobActionButtons job={selectedJob ?? undefined} />}
       hideTrigger
@@ -227,7 +232,8 @@ export function useJobActions(jobData?: JobDetails | null) {
         useSelectedJob: true,
       }}
     >
-      <JobForm id={selectedJob?.id} onCancel={() => setViewOpen(false)} onSuccess={() => setViewOpen(false)} />
+      {/* Currently not sure which status can be edit, now allowing all. */}
+      <JobForm canEdit={true} />
     </FormDialog>
   ) : null;
 
