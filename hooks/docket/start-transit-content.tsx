@@ -3,7 +3,11 @@
 import { Play, Truck } from 'lucide-react';
 import { Docket } from '@/lib/types/docket';
 
-export function StartTransitDescription({ docket }: { docket?: Docket | null }) {
+export function StartTransitDescription({
+  docket,
+}: {
+  docket?: Docket | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#DBEAFE]">
@@ -54,7 +58,7 @@ export function StartTransitContent({ docket }: { docket?: Docket | null }) {
       </div>
 
       <p className="text-base text-[#374151]">
-        Are you sure you want to start this transit?
+        Are you sure you want to start this delivery?
       </p>
 
       <div className="rounded-md border border-[#BFDBFE] bg-[#DBEAFE] px-4 py-4">
@@ -62,7 +66,7 @@ export function StartTransitContent({ docket }: { docket?: Docket | null }) {
           <Truck className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#1E40AF]" />
           <div className="flex flex-col gap-1">
             <span className="font-medium text-[16px] text-[#1E40AF]">
-              Transit Started
+              Delivery Started
             </span>
             <span className="text-[14px] text-[#1E40AF]">
               The driver will be marked as In Transit and tracking will begin.
