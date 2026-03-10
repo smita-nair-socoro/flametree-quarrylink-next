@@ -75,3 +75,9 @@ export const UserKeys = {
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
+
+export const DocketKeys = {
+  all: ['dockets'] as const,
+  list: () => [...DocketKeys.all, 'list'] as const,
+  detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
+};

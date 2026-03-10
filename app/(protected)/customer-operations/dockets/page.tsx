@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-// import JobForm from './(components)/forms/job-form';
-import rawJson from '@/lib/tests/docketsResponseData.json';
-import { Docket } from '@/lib/types/docket';
 import { Plus } from 'lucide-react';
 import DocketForm from './(components)/forms/docket-form';
+
+import { useQuery } from '@tanstack/react-query';
+import { DocketsListQueryOptions } from '@/lib/api/docket';
 
 import {
   DataTableClient,
@@ -15,9 +15,7 @@ import {
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
 
 export default function DocketsPage() {
-  const { items } = rawJson as unknown as {
-    items: Docket[];
-  };
+  const { data: dockets } = useQuery(DocketsListQueryOptions());
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -45,7 +43,7 @@ export default function DocketsPage() {
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="docket_main_data_table"
-          data={items ?? []}
+          data={dockets ?? []}
           columns={docketColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search dockets..."
