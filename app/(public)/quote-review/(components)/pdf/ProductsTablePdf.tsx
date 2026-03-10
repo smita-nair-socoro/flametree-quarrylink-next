@@ -20,6 +20,19 @@ export interface ProductsTablePdfProps {
   includeDeliveryPrices?: boolean;
 }
 
+const getTypeBadgeStyle = (type: string) => {
+  switch (type.toUpperCase()) {
+    case 'DELIVERY':
+      // bg-blue-100 text-blue-800 border-blue-800
+      return { backgroundColor: '#DBEAFE', borderColor: '#1E40AF', color: '#1E40AF' };
+    case 'COLLECTION':
+      // bg-orange-100 text-orange-900 border-orange-900
+      return { backgroundColor: '#FFEDD5', borderColor: '#7C2D12', color: '#7C2D12' };
+    default:
+      return { backgroundColor: '#F3F4F6', borderColor: '#6B7280', color: '#6B7280' };
+  }
+};
+
 export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
   products,
   includeDeliveryPrices = false,
@@ -29,22 +42,27 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
     products.length > 0 &&
     products.every(
       (product) =>
-        String(product.type || '').toUpperCase() ===
-        QUOTE_ITEM_TYPE.COLLECTION
+        String(product.type || '').toUpperCase() === QUOTE_ITEM_TYPE.COLLECTION,
     );
   const colWidths = isCollection
     ? includeDeliveryPrices
-      ? { product: '40%', qty: '20%', delivery: '20%', price: '20%' }
-      : { product: '45%', qty: '25%', price: '30%' }
+      ? {
+          product: '35%',
+          qty: '20%',
+          delivery: '20%',
+          type: '10%',
+          price: '15%',
+        }
+      : { product: '40%', qty: '25%', type: '15%', price: '20%' }
     : includeDeliveryPrices
-    ? {
-        product: '28%',
-        truck: '25%',
-        qty: '12%',
-        delivery: '15%',
-        price: '20%',
-      }
-    : { product: '35%', truck: '30%', qty: '15%', price: '20%' };
+      ? {
+          product: '40%',
+          qty: '12%',
+          delivery: '15%',
+          type: '15%',
+          price: '18%',
+        }
+      : { product: '45%', qty: '15%', type: '20%', price: '20%' };
 
   return (
     <View style={styles.section}>
@@ -60,16 +78,6 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
         >
           Product
         </Text>
-        {!isCollection && (
-          <Text
-            style={[
-              styles.tableHeaderText,
-              { width: colWidths.truck, paddingRight: 8 },
-            ]}
-          >
-            Truck Configuration
-          </Text>
-        )}
         <Text
           style={[
             styles.tableHeaderText,
@@ -88,6 +96,14 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
             Delivery
           </Text>
         )}
+        <Text
+          style={[
+            styles.tableHeaderText,
+            { width: colWidths.type, paddingRight: 8 },
+          ]}
+        >
+          Type
+        </Text>
         <Text
           style={[
             styles.tableHeaderText,
@@ -112,13 +128,6 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
               <Text style={styles.productName}>{product.name}</Text>
               <Text style={styles.productCode}>{product.deliveryAddress}</Text>
             </View>
-
-            {/* Truck Configuration Column */}
-            {!isCollection && (
-              <View style={{ width: colWidths.truck, paddingRight: 8 }}>
-                <Text style={styles.truckType}>{product.truckType}</Text>
-              </View>
-            )}
 
             {/* Quantity Column */}
             <View
@@ -148,6 +157,34 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
                 </View>
               </View>
             )}
+
+            {/* Type Column */}
+            <View
+              style={{
+                width: colWidths.type,
+                paddingRight: 8,
+                justifyContent: 'center',
+              }}
+            >
+              {product.type ? (() => {
+                const badgeStyle = getTypeBadgeStyle(product.type);
+                return (
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: badgeStyle.backgroundColor,
+                        borderColor: badgeStyle.borderColor,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.statusBadgeText, { color: badgeStyle.color }]}>
+                      {product.type.replace(/_/g, ' ')}
+                    </Text>
+                  </View>
+                );
+              })() : <Text style={styles.quantity}>—</Text>}
+            </View>
 
             {/* Price Column */}
             <View
