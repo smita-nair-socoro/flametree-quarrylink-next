@@ -8,10 +8,25 @@ import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(co
 import { useJobStore } from '@/app/stores/job-store';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Docket } from '@/lib/types/docket';
-import { ResumeJobDescription, ResumeJobContent } from '@/hooks/job/resume-job-content';
-import { SettleJobDescription, SettleJobContent } from '@/hooks/job/settle-job-content';
-import { PauseJobDescription, PauseJobContent } from '@/hooks/job/pause-job-content';
-import { CancelJobDescription, CancelJobContent, CannotCancelJobDescription, CannotCancelJobContent, CannotCancelBlockerType } from '@/hooks/job/cancel-job-content';
+import {
+  ResumeJobDescription,
+  ResumeJobContent,
+} from '@/hooks/job/resume-job-content';
+import {
+  SettleJobDescription,
+  SettleJobContent,
+} from '@/hooks/job/settle-job-content';
+import {
+  PauseJobDescription,
+  PauseJobContent,
+} from '@/hooks/job/pause-job-content';
+import {
+  CancelJobDescription,
+  CancelJobContent,
+  CannotCancelJobDescription,
+  CannotCancelJobContent,
+  CannotCancelBlockerType,
+} from '@/hooks/job/cancel-job-content';
 
 interface DialogConfig {
   title?: string;
@@ -20,11 +35,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -34,10 +49,27 @@ interface DialogConfig {
 }
 
 // TODO: replace with real API-driven blocker data
-const CANNOT_CANCEL_BLOCKERS: Record<number, { type: CannotCancelBlockerType; activeDeliveryCount?: number; deliveredDocketCount?: number; collectedDocketCount?: number }> = {
+const CANNOT_CANCEL_BLOCKERS: Record<
+  number,
+  {
+    type: CannotCancelBlockerType;
+    activeDeliveryCount?: number;
+    deliveredDocketCount?: number;
+    collectedDocketCount?: number;
+  }
+> = {
   2: { type: 'active_drivers', activeDeliveryCount: 3 },
-  3: { type: 'unfinalised_dockets', deliveredDocketCount: 4, collectedDocketCount: 1 },
-  4: { type: 'multiple_blockers', activeDeliveryCount: 3, deliveredDocketCount: 4, collectedDocketCount: 1 },
+  3: {
+    type: 'unfinalised_dockets',
+    deliveredDocketCount: 4,
+    collectedDocketCount: 1,
+  },
+  4: {
+    type: 'multiple_blockers',
+    activeDeliveryCount: 3,
+    deliveredDocketCount: 4,
+    collectedDocketCount: 1,
+  },
 };
 
 export function useJobActions(jobData?: JobDetails | null) {
@@ -51,7 +83,8 @@ export function useJobActions(jobData?: JobDetails | null) {
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
 
-  const cancelBlocker = jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
+  const cancelBlocker =
+    jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -126,7 +159,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         title: 'Settlement Blocked',
         description: <SettleJobDescription job={jobData} />,
         content: <SettleJobContent job={jobData} />,
-        confirmText: 'Settle Job',
+        confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
         cancelText: 'Cancel',
       },
