@@ -43,7 +43,7 @@ import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
-
+import { formatLocalDate } from '@/lib/utils/date';
 interface FormProps {
   id?: number;
   onSuccess?: () => void;
@@ -217,7 +217,7 @@ export default function JobForm({
     if (isEditing) return; // edit not yet implemented
 
     try {
-      const dateStr = format(values.deliveryStartDate, 'yyyy-MM-dd');
+      const dateStr = formatLocalDate(values.deliveryStartDate, 'yyyy-MM-dd');
       const selectedCustomer = customers.find(
         (c) => c.id === values.customerId,
       );
@@ -231,7 +231,7 @@ export default function JobForm({
         : [];
 
       const additionalEmails = receiptEmails.filter(
-        (email) => email !== selectedCustomer?.email
+        (email) => email !== selectedCustomer?.email,
       );
 
       await createJob.mutateAsync({
