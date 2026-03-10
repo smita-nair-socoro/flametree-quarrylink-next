@@ -314,6 +314,7 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              disabled={isEditing && !canEdit}
             />
 
             <FormSelect

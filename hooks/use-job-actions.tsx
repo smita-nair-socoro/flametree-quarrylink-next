@@ -7,6 +7,7 @@ import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/for
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import { Docket } from '@/lib/types/docket';
 import { ResumeJobContent } from '@/hooks/job/resume-job-content';
 import { SettleJobContent } from '@/hooks/job/settle-job-content';
@@ -213,6 +214,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     );
   });
 
+  // Customer field is only editable when the job is Active
+  const canEdit = jobData?.status === JOB_STATUS.ACTIVE;
+
   const viewDialog = viewOpen ? (
     <FormDialog
       id={selectedJob?.id}
@@ -232,8 +236,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         useSelectedJob: true,
       }}
     >
-      {/* Currently not sure which status can be edit, now allowing all. */}
-      <JobForm canEdit={true} />
+      <JobForm canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
