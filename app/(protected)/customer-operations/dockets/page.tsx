@@ -7,6 +7,8 @@ import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery } from '@tanstack/react-query';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
+import { DocketDTO } from '@/lib/types/docket';
+
 
 import {
   DataTableClient,
@@ -16,6 +18,13 @@ import { docketColumns } from './(components)/(data-tables)/docket/columns';
 
 export default function DocketsPage() {
   const { data: dockets } = useQuery(DocketsListQueryOptions());
+
+  const items: DocketDTO[] = React.useMemo(() => {
+    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : dockets?.content ?? [];
+    return list.map((docket) => ({
+      ...docket,
+    })) as DocketDTO[];
+  }, [dockets]);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -43,7 +52,7 @@ export default function DocketsPage() {
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="docket_main_data_table"
-          data={dockets ?? []}
+          data={items ?? []}
           columns={docketColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search dockets..."
