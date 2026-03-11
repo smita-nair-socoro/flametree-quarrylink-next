@@ -5,14 +5,6 @@ import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { Docket } from '@/lib/types/docket';
 
-interface VoidDocketContentProps {
-  docket?: Docket | null;
-  voidReason: string;
-  onVoidReasonChange: (value: string) => void;
-  voidNotes: string;
-  onVoidNotesChange: (value: string) => void;
-}
-
 const VOID_REASONS = [
   { value: 'entered-in-error', label: 'Entered in error' },
   { value: 'duplicate-docket', label: 'Duplicate docket' },
@@ -27,39 +19,47 @@ const VOID_REASONS = [
   { value: 'other', label: 'Other' },
 ];
 
+export function VoidDocketDescription({ docket }: { docket?: Docket | null }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FEE2E2]">
+        <Ban className="h-6 w-6 text-[#E7000B]" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-[#101828]">
+          {docket?.docketNumber ?? '—'}
+        </span>
+        <div className="flex items-center gap-2 text-sm text-[#6A7282]">
+          <span>{docket?.productName ?? '—'}</span>
+          {docket?.loadSize != null && (
+            <>
+              <span className="font-bold">•</span>
+              <span>
+                {docket.loadSize} {docket.productUoM}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VoidDocketContent({
-  docket,
   voidReason,
   onVoidReasonChange,
   voidNotes,
   onVoidNotesChange,
-}: VoidDocketContentProps) {
+}: {
+  voidReason: string;
+  onVoidReasonChange: (value: string) => void;
+  voidNotes: string;
+  onVoidNotesChange: (value: string) => void;
+}) {
   const notesRequired = voidReason === 'other';
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FEE2E2]">
-          <Ban className="h-6 w-6 text-[#E7000B]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium text-[#101828]">
-            {docket?.docketNumber ?? '—'}
-          </span>
-          <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-            <span>{docket?.productName ?? '—'}</span>
-            {docket?.loadSize != null && (
-              <>
-                <span className="font-bold">•</span>
-                <span>
-                  {docket.loadSize} {docket.productUoM}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-[#364153]">
           Reason for voiding <span className="text-[#DC2626]">*</span>

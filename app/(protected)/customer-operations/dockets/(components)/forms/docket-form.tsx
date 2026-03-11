@@ -18,7 +18,14 @@ import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { FormSelect } from '@/components/ui/form-select';
-import { Calendar, Clock, MapPin, Package, Truck } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  FileText,
+  MapPin,
+  Package,
+  Truck,
+} from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
@@ -118,24 +125,31 @@ export default function DocketForm({
           onSubmit={docketForm.handleSubmit(onSubmit)}
         >
           <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
-            <FormSelect
-              control={docketForm.control}
-              name="jobId"
-              label="Job Reference*"
-              searchLabel="Job References"
-              options={allJobs}
-              placeholder="Select Job"
-              disabled={isJobLocked || isReadOnly}
-              formItemClassName={
-                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-              }
-            />
-
+            <div className="border rounded-md p-4 flex flex-col gap-8">
+              <div className="items-center flex gap-2">
+                <FileText className="w-5 h-5" />
+                <span className="text-[17px] font-medium">Job Reference</span>
+              </div>
+              <FormSelect
+                control={docketForm.control}
+                name="jobId"
+                label="Job Reference*"
+                searchLabel="Job References"
+                options={allJobs}
+                placeholder="Select Job"
+                disabled={isJobLocked || isReadOnly}
+                formItemClassName={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-1'
+                    : 'col-span-2'
+                }
+              />
+            </div>
             <div className="border rounded-md p-4 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <div className="items-center flex gap-2">
-                  <Package className="w-4 h-4" />
-                  <span className="text-sm font-medium">
+                  <Package className="w-5 h-5" />
+                  <span className="text-[17px] font-medium">
                     Product & Vehicle Details
                   </span>
                 </div>
@@ -206,7 +220,8 @@ export default function DocketForm({
                       placeholder="Select Truck Type"
                       disabled={
                         isReadOnly ||
-                        !selectedJobId || jobLineItemOptions.length === 0
+                        !selectedJobId ||
+                        jobLineItemOptions.length === 0
                       }
                     />
                   )}
@@ -278,7 +293,7 @@ export default function DocketForm({
                   )}
                 </div>
 
-                <div className="border rounded-md p-4 flex flex-col gap-4">
+                <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                   <div className="flex justify-between">
                     <span className="text-md font-medium">
                       Product Quantity Available
@@ -291,7 +306,10 @@ export default function DocketForm({
                         Current docket:
                       </span>
                       <span className="text-sm font-medium">
-                        {docketForm.watch('loadSize')}
+                        {docketForm.watch('loadSize')}{' '}
+                        {selectedJobLineItemDetails().productUom === '20kg'
+                          ? 'x 20kg'
+                          : selectedJobLineItemDetails().productUom}{' '}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -314,8 +332,8 @@ export default function DocketForm({
             <div className="border rounded-md p-4 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <div className="items-center flex gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-sm font-medium">
+                  <Calendar className="w-5 h-5" />
+                  <span className="text-[17px] font-medium">
                     Delivery Information
                   </span>
                 </div>
@@ -412,15 +430,15 @@ export default function DocketForm({
                     />
                   )}
                 </div>
-                {<Map markers={mapMarkers} className="h-[400px] w-full" />}
+                {<Map markers={mapMarkers} className="h-[400px] w-full mt-5" />}
               </div>
             </div>
 
             <div className="border rounded-md p-4 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <div className="items-center flex gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-sm font-medium">
+                  <Clock className="w-5 h-5" />
+                  <span className="text-[17px] font-medium">
                     Time & Contact Details
                   </span>
                 </div>

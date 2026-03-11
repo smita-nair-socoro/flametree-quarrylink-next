@@ -41,6 +41,7 @@ import {
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
+import { JobDTO } from '../types/job';
 
 type RequestBody =
   | BodyInit
@@ -325,8 +326,11 @@ export async function HttpClient<T = unknown>(
     // It is most likely an error.
     switch (response.status) {
       case 403: {
+        // DEBUG: temporarily disabled logout to inspect 403 response — re-enable after debugging
         await handleLogout();
-        return Promise.reject(new Error('Cookie/Token expired or invalid.'));
+        // console.error('[DEBUG][403] Endpoint:', endpoint);
+        // console.error('[DEBUG][403] Response headers:', Object.fromEntries(response.headers.entries()));
+        // return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 503: {
         // Show an error toast to notify the user what occurred
@@ -910,6 +914,13 @@ export const APIClient = {
       appClient.Post<PasswordResetResponse>(
         `/socoro/quarrylink/api/users/${id}/reset-password`,
       ),
+  },
+
+  jobs: {
+    create: (data: Omit<JobDTO, 'id'>) =>
+      appClient.Post<JobDTO>('/socoro/quarrylink/api/job', {
+        body: data,
+      }),
   },
 
   tenants: {

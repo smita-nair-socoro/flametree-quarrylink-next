@@ -69,6 +69,12 @@ export const QuarrySupplierProductKeys = {
     ] as const,
 };
 
+export const JobKeys = {
+  all: ['jobs'] as const,
+  list: () => [...JobKeys.all, 'list'] as const,
+  detail: (id: number) => [...JobKeys.all, 'detail', id] as const,
+};
+
 export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
