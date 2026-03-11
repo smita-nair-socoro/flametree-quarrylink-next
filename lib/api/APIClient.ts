@@ -851,9 +851,6 @@ export const APIClient = {
     getAll: async (params?: {
       page?: number;
       pageSize?: number;
-      status?: string;
-      customerId?: number;
-      accountManagerId?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
@@ -869,9 +866,6 @@ export const APIClient = {
         queryString: {
           page: params?.page?.toString(),
           pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
-          status: params?.status,
-          customerId: params?.customerId?.toString(),
-          accountManagerId: params?.accountManagerId?.toString(),
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
