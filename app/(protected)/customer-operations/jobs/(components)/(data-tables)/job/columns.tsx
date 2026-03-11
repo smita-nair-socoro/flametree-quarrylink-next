@@ -2,7 +2,7 @@
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { Job } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import {
   Tooltip,
@@ -14,7 +14,7 @@ import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 
-export const jobColumns: ColumnDef<Job>[] = [
+export const jobColumns: ColumnDef<JobDTO>[] = [
   {
     id: 'jobNumber',
     accessorFn: (row) => row.jobNumber,
@@ -29,12 +29,12 @@ export const jobColumns: ColumnDef<Job>[] = [
   },
   {
     id: 'customerName',
-    accessorFn: (row) => row.customerName,
+    accessorFn: (row) => row.customerId,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.customerName;
+      const customerName = row.original.customerId;
       return <div className="py-2">{customerName}</div>;
     },
     meta: 'Customer Name',
@@ -53,7 +53,7 @@ export const jobColumns: ColumnDef<Job>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.jobStatus,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
@@ -95,7 +95,7 @@ export const jobColumns: ColumnDef<Job>[] = [
   },
   {
     id: 'accountManagerName',
-    accessorFn: (row) => row.accountManagerName,
+    accessorFn: (row) => row.customerId,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Account Manager" />
@@ -105,25 +105,25 @@ export const jobColumns: ColumnDef<Job>[] = [
     meta: 'Account Manager',
   },
 
-  {
-    id: 'createdAt',
-    accessorFn: (row) => row.createdAt,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Created At" />;
-    },
-    cell: ({ getValue }) => {
-      return <DateCell dateString={getValue<string>()} side="top" />;
-    },
-    meta: 'Created At',
-  },
-  {
-    id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const job = row.original;
-      return <JobTableActions job={job} />;
-    },
-  },
+  // {
+  //   id: 'createdAt',
+  //   accessorFn: (row) => row.createdAt,
+  //   header: ({ column }) => {
+  //     return <TableClientSortableHeader column={column} title="Created At" />;
+  //   },
+  //   cell: ({ getValue }) => {
+  //     return <DateCell dateString={getValue<string>()} side="top" />;
+  //   },
+  //   meta: 'Created At',
+  // },
+  // {
+  //   id: 'actions',
+  //   header: () => {
+  //     return <div></div>;
+  //   },
+  //   cell: ({ row }) => {
+  //     const job = row.original;
+  //     return <JobTableActions job={job} />;
+  //   },
+  // },
 ];

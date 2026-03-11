@@ -87,7 +87,7 @@ export interface JobLineItem {
   isDeleted: boolean;
 }
 
-export interface JobDetails extends Job {
+export interface JobDetails extends JobDTO {
   jobLineItems?: JobLineItem[];
   dockets?: Docket[];
 }
