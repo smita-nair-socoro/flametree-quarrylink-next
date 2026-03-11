@@ -7,6 +7,7 @@ import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/for
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import { Docket } from '@/lib/types/docket';
 import {
   ResumeJobDescription,
@@ -276,6 +277,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     );
   });
 
+  // Customer field is only editable when the job is Active
+  const canEdit = jobData?.status === JOB_STATUS.ACTIVE;
+
   const viewDialog = viewOpen ? (
     <FormDialog
       id={selectedJob?.id}
@@ -283,6 +287,11 @@ export function useJobActions(jobData?: JobDetails | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setViewOpen(false);
+          }, 100);
+        }
       }}
       headerButtons={<JobActionButtons job={selectedJob ?? undefined} />}
       hideTrigger
@@ -290,7 +299,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         useSelectedJob: true,
       }}
     >
-      <JobForm />
+      <JobForm canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
