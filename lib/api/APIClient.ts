@@ -873,6 +873,10 @@ export const APIClient = {
       });
       return response;
     },
+    create: (data: DocketDTO) =>
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/dockets', {
+        body: data,
+      }),
   },
 
   users: {
