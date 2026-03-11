@@ -19,6 +19,8 @@ import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { UsersListQueryOptions } from '@/lib/api/user';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { MobileTeamMemberList } from '@/components/mobile/mobile-team-member-list';
 
 const handleResend = (invitation: PendingInvitation) => {
   // TODO: Implement resend invitation functionality
@@ -38,6 +40,8 @@ const rolesOptions: readonly FormSelectOption[] = [
 ];
 
 export default function TeamAdminTab() {
+  const isMobile = useMediaQuery('(max-width: 910px)');
+
   // Fetch users from API
   const {
     data: users = [],
@@ -132,18 +136,18 @@ export default function TeamAdminTab() {
           </div>
         </div>
 
-        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div className={`border border-[#E4E4E7] rounded-lg bg-white overflow-hidden ${isMobile ? '' : 'p-6'}`}>
+          <div className={`flex flex-row justify-between items-center gap-2 ${isMobile ? 'px-4 pt-4 pb-3' : 'mb-4'}`}>
             <div>
-              <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
+              <h1 className="text-2xl font-medium text-[#09090B]">
                 Team Members
               </h1>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div>
               <FormDialog
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
-                buttonTitle="Invite User"
+                buttonTitle={isMobile ? 'Invite' : 'Invite User'}
                 headerClassName="pb-2 h-[32px] pb-6"
                 preserveEmptyBadgeSpace={false}
               >
@@ -152,12 +156,18 @@ export default function TeamAdminTab() {
             </div>
           </div>
 
-          <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-            {isLoading ? (
-              <TableSkeleton rows={8} columns={5} />
-            ) : (
+          {isLoading ? (
+            <TableSkeleton rows={8} columns={5} />
+          ) : isMobile ? (
+            <MobileTeamMemberList
+              users={users || []}
+              rolesOptions={rolesOptions}
+              currentUserId={1}
+              onRowClick={handleRowClick}
+            />
+          ) : (
+            <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
               <div className="relative">
-                {/* Subtle loading indicator during background refresh */}
                 {isFetching && !isLoading && (
                   <div className="absolute top-2 right-2 z-10">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -175,8 +185,8 @@ export default function TeamAdminTab() {
                   defaultSorting={[{ id: 'name', desc: false }]}
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {pendingInvitations.length > 0 && (
