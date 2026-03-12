@@ -46,7 +46,7 @@ export const driverColumns: ColumnDef<Driver>[] = [
       const haulier = getValue<string>() as string;
       return (
         <div className="py-2">
-          <TableBadges names={[haulier]} visibleCount={1} />
+          <TableBadges names={[haulier]} visibleCount={1} variant="haulier" />
         </div>
       );
     },
@@ -103,5 +103,4 @@ export const driverColumns: ColumnDef<Driver>[] = [
       return <DriverTableActions driver={driver} />;
     },
   },
-
 ];

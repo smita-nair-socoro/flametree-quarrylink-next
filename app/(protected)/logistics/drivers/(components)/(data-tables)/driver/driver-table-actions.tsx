@@ -69,34 +69,42 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleResendAppInvitation}>
-            <SendToBack className="h-4 w-4 mr-2" />
-            Resend App Invitation
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           {driver.status === 'DEACTIVATED' && (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivateDriver}>
                 <Power className="h-4 w-4 mr-2 text-green-600" />
                 <span className="text-green-600">Reactivate Driver</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
             </>
           )}
           {driver.status === 'ACTIVE' && (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeactivate}>
                 <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
                 <span className="text-orange-900">Deactivate</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
             </>
           )}
-          <DropdownMenuItem onClick={handleDeleteDriver}>
-            <Delete className="h-4 w-4 mr-2 text-red-600" />
-            <span className="text-red-600">Delete Driver</span>
-          </DropdownMenuItem>
+          {driver.status === 'PENDING_INVITATION' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleResendAppInvitation}>
+                <SendToBack className="h-4 w-4 mr-2" />
+                <span>Resend App Invitation</span>
+              </DropdownMenuItem>
+            </>
+          )}
+          {driver.status !== 'ON_DUTY' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDeleteDriver}>
+                <Delete className="h-4 w-4 mr-2 text-red-600" />
+                <span className="text-red-600">Delete Driver</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

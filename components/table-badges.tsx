@@ -10,7 +10,7 @@ import { cn, BADGE_COLORS } from '@/lib/utils';
 interface TableBadgesProps {
   names: string | string[];
   visibleCount?: number;
-  variant?: 'default' | 'suburb';
+  variant?: 'default' | 'suburb' | 'haulier';
 }
 const PALETTE: Record<string, string> = {
   red: 'bg-red-100 text-red-800',
@@ -24,7 +24,7 @@ const PALETTE: Record<string, string> = {
 };
 
 // Suburb palette: darker background (600), lighter border and text (100)
-const SUBURB_PALETTE: Record<string, string> = {
+const BADGE_PALETTE: Record<string, string> = {
   red: 'bg-red-600 text-red-100 border-red-100',
   orange: 'bg-orange-600 text-orange-100 border-orange-100',
   amber: 'bg-amber-600 text-amber-100 border-amber-100',
@@ -53,7 +53,8 @@ const SUBURB_PALETTE: Record<string, string> = {
 };
 
 const PALETTE_KEYS = Object.keys(PALETTE);
-const SUBURB_PALETTE_KEYS = Object.keys(SUBURB_PALETTE);
+const SUBURB_PALETTE_KEYS = Object.keys(BADGE_PALETTE);
+const HAULIER_PALETTE_KEYS = Object.keys(BADGE_PALETTE);
 
 function pickKey(name: string): string {
   let h = 0;
@@ -71,13 +72,25 @@ function pickSuburbKey(name: string): string {
   return SUBURB_PALETTE_KEYS[h];
 }
 
+function pickHaulierKey(name: string): string {
+  let h = 0;
+  for (const ch of name) {
+    h = (h * 31 + ch.charCodeAt(0)) % HAULIER_PALETTE_KEYS.length;
+  }
+  return HAULIER_PALETTE_KEYS[h];
+}
+
 function getBadgeClassName(
   name: string,
-  variant: 'default' | 'suburb' = 'default'
+  variant: 'default' | 'suburb' | 'haulier' = 'default',
 ): string {
   if (!name || typeof name !== 'string') {
     console.log('Invalid name:', name);
-    return variant === 'suburb' ? SUBURB_PALETTE.sky : PALETTE.sky;
+    return variant === 'suburb'
+      ? BADGE_PALETTE.sky
+      : variant === 'haulier'
+        ? BADGE_PALETTE.sky
+        : PALETTE.sky;
   }
   const key = name.trim().toUpperCase().replace(/_/g, ' ');
 
@@ -89,7 +102,12 @@ function getBadgeClassName(
   // For suburbs or dynamic values, use the appropriate palette
   if (variant === 'suburb') {
     const dynamicKey = pickSuburbKey(key);
-    return SUBURB_PALETTE[dynamicKey] || SUBURB_PALETTE.sky;
+    return BADGE_PALETTE[dynamicKey] || BADGE_PALETTE.sky;
+  }
+
+  if (variant === 'haulier') {
+    const dynamicKey = pickHaulierKey(key);
+    return BADGE_PALETTE[dynamicKey] || BADGE_PALETTE.sky;
   }
 
   const dynamicKey = pickKey(key);
@@ -112,7 +130,7 @@ export function TableBadges({
           key={n}
           className={cn(
             'px-2 py-0.5 text-xs font-medium border',
-            getBadgeClassName(n, variant)
+            getBadgeClassName(n, variant),
           )}
         >
           {n.replace(/_/g, ' ')}
@@ -140,7 +158,7 @@ export function TableBadges({
                   key={n}
                   className={cn(
                     'uppercase px-2 py-0.5 text-xs font-medium border',
-                    getBadgeClassName(n, variant)
+                    getBadgeClassName(n, variant),
                   )}
                 >
                   {n.replace(/_/g, ' ')}
@@ -169,7 +187,7 @@ export function SimplePdfBadge({
     <div
       className={cn(
         'inline-block h-10 px-4 text-xl font-semibold border-2 rounded-lg uppercase',
-        getBadgeClassName(name, variant)
+        getBadgeClassName(name, variant),
       )}
       style={{ lineHeight: '13.5px' }}
     >
