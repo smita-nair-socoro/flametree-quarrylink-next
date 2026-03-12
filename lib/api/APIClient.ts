@@ -848,6 +848,10 @@ export const APIClient = {
   },
 
   dockets: {
+    create: (data: Partial<DocketDTO>) =>
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/docket', {
+        body: data,
+      }),
     getAll: async (params?: {
       page?: number;
       pageSize?: number;

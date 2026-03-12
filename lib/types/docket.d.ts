@@ -50,8 +50,10 @@ export interface DocketDTO {
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
   pickUpAddressId: number;
+  pickUpAddress: Partial<CustomerDeliveryAddress>;
   deliveryAddressId: number;
-  deliveryCollectionDate: string;
+  deliveryAddress: Partial<CustomerDeliveryAddress>;
+  deliveryCollectionDate: Date;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   customerContactName: string;
@@ -65,7 +67,8 @@ export interface DocketDTO {
   truckType: string;
   loadSize: number;
   deliveredLoadSize: number;
-  deliveryDistance: number;
+  deliveryDistanceQuantity: number;
+  deliveryDistanceUom: string;
   grossTruckWeight: number;
   tareTruckWeight: number;
   actualMaterialWeight: number;

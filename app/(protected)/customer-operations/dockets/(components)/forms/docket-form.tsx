@@ -33,6 +33,7 @@ import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { useCreateDocket } from '@/lib/api/docket';
 
 interface FormProps {
   id?: number;
@@ -60,6 +61,7 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const isReadOnly = Boolean(id) && !canEdit;
+  const createDocket = useCreateDocket();
 
   const {
     docketForm,
@@ -92,13 +94,33 @@ export default function DocketForm({
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
 
-    setIsSubmitting(true);
-    console.log(`Docket Form Values:`, values);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setIsSubmitting(false);
+    try {
+      await createDocket.mutateAsync({
+        jobId: values.jobId,
+        jobItemId: values.jobLineItemId,
+        pickUpAddress: {},
+        deliveryAddress: {},
+        purchaseOrder: values.purchaseOrder,
+        productEstimatedVolume: values.productEstimatedVolume,
+        deliveryCollectionDate: values.deliveryCollectionDate,
+        deliveryCollectionStartTime: values.deliveryCollectionStartTime,
+        deliveryCollectionEndTime: values.deliveryCollectionEndTime,
+        customerContactName: values.customerContactName,
+        customerContactPhone: values.customerContactPhone,
+        docketEmailRecipients: ['jaywoo.choi@socoro.com.au'],
+        notes: values.notes,
+        truckType: values.truckType,
+        loadSize: values.loadSize,
+        grossTruckWeight: 0,
+        tareTruckWeight: 0,
+        deliveryDistanceQuantity: 0,
+        deliveryDistanceUom: 'TN',
+      });
+    } catch (error) {
+      console.error('Error creating docket:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
