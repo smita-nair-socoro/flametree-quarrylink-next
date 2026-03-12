@@ -56,28 +56,12 @@ const PALETTE_KEYS = Object.keys(PALETTE);
 const SUBURB_PALETTE_KEYS = Object.keys(BADGE_PALETTE);
 const HAULIER_PALETTE_KEYS = Object.keys(BADGE_PALETTE);
 
-function pickKey(name: string): string {
+function pickKey(name: string, keys: string[] = PALETTE_KEYS): string {
   let h = 0;
   for (const ch of name) {
-    h = (h * 31 + ch.charCodeAt(0)) % PALETTE_KEYS.length;
+    h = (h * 31 + ch.charCodeAt(0)) % keys.length;
   }
-  return PALETTE_KEYS[h];
-}
-
-function pickSuburbKey(name: string): string {
-  let h = 0;
-  for (const ch of name) {
-    h = (h * 31 + ch.charCodeAt(0)) % SUBURB_PALETTE_KEYS.length;
-  }
-  return SUBURB_PALETTE_KEYS[h];
-}
-
-function pickHaulierKey(name: string): string {
-  let h = 0;
-  for (const ch of name) {
-    h = (h * 31 + ch.charCodeAt(0)) % HAULIER_PALETTE_KEYS.length;
-  }
-  return HAULIER_PALETTE_KEYS[h];
+  return keys[h];
 }
 
 function getBadgeClassName(
@@ -101,12 +85,12 @@ function getBadgeClassName(
 
   // For suburbs or dynamic values, use the appropriate palette
   if (variant === 'suburb') {
-    const dynamicKey = pickSuburbKey(key);
+    const dynamicKey = pickKey(key, SUBURB_PALETTE_KEYS);
     return BADGE_PALETTE[dynamicKey] || BADGE_PALETTE.sky;
   }
 
   if (variant === 'haulier') {
-    const dynamicKey = pickHaulierKey(key);
+    const dynamicKey = pickKey(key, HAULIER_PALETTE_KEYS);
     return BADGE_PALETTE[dynamicKey] || BADGE_PALETTE.sky;
   }
 
