@@ -2,7 +2,8 @@
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { Job, JOB_STATUS } from '@/lib/types/job';
+import { Job } from '@/lib/types/job';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import {
   Tooltip,
   TooltipTrigger,

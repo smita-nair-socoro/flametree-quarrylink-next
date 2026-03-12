@@ -23,7 +23,7 @@ interface MultipleInputProps {
   type?: string;
   fixedValues?: string[];
   validate?: (value: string) => boolean;
-  label?: string
+  label?: string;
 }
 
 export function MultipleInput({
@@ -50,11 +50,7 @@ export function MultipleInput({
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       addValues(inputValue);
-    } else if (
-      e.key === 'Backspace' &&
-      !inputValue &&
-      valuesArray.length > 0
-    ) {
+    } else if (e.key === 'Backspace' && !inputValue && valuesArray.length > 0) {
       const next = [...valuesArray];
       next.pop();
       onChange?.(next.join(', '));
@@ -74,7 +70,10 @@ export function MultipleInput({
 
     if (!cleaned) return;
 
-    const toAdd = cleaned.split(',').map((s) => s.trim()).filter(Boolean);
+    const toAdd = cleaned
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     // Filter out duplicates if needed (check both value and fixedValues)
     const valid = toAdd.filter((s) => {
@@ -104,14 +103,14 @@ export function MultipleInput({
     <div className="flex flex-col gap-1.5">
       <div
         className={cn(
-          'flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+          'flex flex-wrap gap-1 rounded-md border border-input bg-background px-3 py-1 min-h-[42px] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
           className,
         )}
       >
         {fixedValues.map((item, idx) => (
           <span
             key={`fixed-${item}-${idx}`}
-            className="inline-flex items-center gap-1 rounded-xl px-2.5 py-0.5 text-[14px] border-0 text-[#1F2937] font-semibold bg-gray-200"
+            className="inline-flex items-center gap-1 rounded-xl px-3 py-1 my-1 text-[14px] border-0 text-[#1F2937] font-semibold bg-gray-200"
           >
             {item}
           </span>
@@ -121,7 +120,7 @@ export function MultipleInput({
           return (
             <span
               key={`${item}-${idx}`}
-              className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] border-0 text-[#1F2937] font-semibold"
+              className="inline-flex items-center gap-1 rounded-xl pl-4 my-1 pr-1 text-[14px] border-0 text-[#1F2937] font-semibold"
               style={{
                 backgroundColor: CHIP_COLORS[idx % CHIP_COLORS.length].bgColour,
                 color: CHIP_COLORS[idx % CHIP_COLORS.length].textColour,
@@ -132,11 +131,11 @@ export function MultipleInput({
                 type="button"
                 variant="ghost"
                 onClick={() => removeValue(idx)}
-                className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 hover:bg-transparent focus:outline-none focus-visible:ring-0"
+                className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 -my-1 hover:bg-transparent focus:outline-none focus-visible:ring-0"
                 aria-label={`Remove ${item}`}
                 disabled={disabled}
               >
-                <X className="h-3 w-3" />
+                <X className="h-2 w-2" />
               </Button>
             </span>
           );

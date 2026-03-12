@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import { TableBadges } from '@/components/table-badges';
 
 export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
   {
@@ -59,9 +60,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div
-              className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]"
-            >
+            <div className="truncate block w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px]">
               {value}
             </div>
           </TooltipTrigger>
@@ -74,8 +73,8 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     meta: 'quarryName',
   },
   {
-    id: 'totalProductCostPrice',
-    accessorFn: (row) => row.totalProductCostPrice,
+    id: 'totalCostPrice',
+    accessorFn: (row) => row.totalProductCostPrice + row.totalTruckCostPrice,
     header: () => {
       return (
         <div className="flex items-center gap-1">
@@ -92,16 +91,16 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       );
     },
     cell: ({ row }) => {
-      const totalProductCostPrice = row.original.totalProductCostPrice
-        ? centsToDollars(row.original.totalProductCostPrice)
-        : '0';
-      return <div>${totalProductCostPrice}</div>;
+      const total =
+        (row.original.totalProductCostPrice ?? 0) +
+        (row.original.totalTruckCostPrice ?? 0);
+      return <div>${centsToDollars(total)}</div>;
     },
-    meta: 'Total Product Cost Price',
+    meta: 'Total Cost Price',
   },
   {
-    id: 'totalProductSellPrice',
-    accessorFn: (row) => row.totalProductSellPrice,
+    id: 'totalSellPrice',
+    accessorFn: (row) => row.totalProductSellPrice + row.totalTruckSellPrice,
     header: () => {
       return (
         <div className="flex items-center gap-1">
@@ -118,12 +117,12 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       );
     },
     cell: ({ row }) => {
-      const totalProductSellPrice = row.original.totalProductSellPrice
-        ? centsToDollars(row.original.totalProductSellPrice)
-        : '0';
-      return <div>${totalProductSellPrice}</div>;
+      const total =
+        (row.original.totalProductSellPrice ?? 0) +
+        (row.original.totalTruckSellPrice ?? 0);
+      return <div>${centsToDollars(total)}</div>;
     },
-    meta: 'Total Product Sell Price',
+    meta: 'Total Sell Price',
   },
   {
     id: 'productSellQty',
@@ -154,29 +153,17 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
     meta: 'Product Sell QTY',
   },
   {
-    id: 'truckType',
-    accessorFn: (row) => row.truckType,
+    id: 'quoteLineItemType',
+    accessorFn: (row) => row.quoteItemType,
     header: () => {
-      return <div>Truck</div>;
+      return <div>Type</div>;
     },
     cell: ({ row }) => {
-      const value = row.original.truckType || 'N/A';
       return (
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div
-              className="truncate block w-[30px] sm:w-[30px] md:w-[70px] lg:w-[90px] xl:w-[120px]"
-            >
-              {value}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{value}</p>
-          </TooltipContent>
-        </Tooltip>
+        <TableBadges names={[row.original.quoteItemType]} visibleCount={1} />
       );
     },
-    meta: 'Truck Type',
+    meta: 'Quote Item Type',
   },
   {
     id: 'grossProfit',
@@ -207,7 +194,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
 ];
 
 export function getQuotationLineItemColumns(
-  quoteItemType?: QUOTE_ITEM_TYPE | string | null
+  quoteItemType?: QUOTE_ITEM_TYPE | string | null,
 ) {
   if (
     quoteItemType === QUOTE_ITEM_TYPE.COLLECTION ||

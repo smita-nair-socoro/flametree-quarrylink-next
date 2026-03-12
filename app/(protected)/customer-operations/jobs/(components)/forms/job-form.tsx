@@ -20,17 +20,21 @@ import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { JobFormSchema } from './schemas/job-form-schema';
 import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DatePicker } from '@/components/date-picker';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
-// import { useSelectedJob } from '@/app/stores/job-store';
+import { useSelectedJob } from '@/app/stores/job-store';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { Job, JobDetails } from '@/lib/types/job';
+import type { Job, JobDetails } from '@/lib/types/job';
+import { JOB_STATUS } from '@/lib/types/job-enums';
+import { useCreateJob } from '@/lib/api/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
@@ -39,30 +43,28 @@ import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
-
+import { formatLocalDate } from '@/lib/utils/date';
 interface FormProps {
-  id?: number;
-  onSuccess?: () => void;
+  canEdit?: boolean;
   onSaved?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
-  onCancel?: () => void;
 }
 
 export default function JobForm({
-  id,
-  onCancel,
+  canEdit,
   className,
   onDirtyChange,
-  // onSuccess,
   // onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id));
+  const storeJob = useSelectedJob();
 
   const selectedJob = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === id) as JobDetails;
-  }, [id]);
+    return rawJson.items.find((job) => job.id === storeJob?.id) as JobDetails;
+  }, [storeJob?.id]);
+
+  const isEditing = Boolean(selectedJob?.id);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
     resolver: zodResolver(JobFormSchema),
@@ -70,7 +72,7 @@ export default function JobForm({
     defaultValues: EMPTY_JOB_FORM_VALUES,
   });
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const createJob = useCreateJob();
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -113,8 +115,9 @@ export default function JobForm({
             selectedCustomer.accountManagerSub || '',
           );
 
-          // If we are creating a new job (not editing), set the receipt email to the customer email
-          jobForm.setValue('receiptEmail', selectedCustomer.email || '');
+          // Clear additional emails when customer changes — customer email is already
+          // shown as the fixed chip in MultipleInput and sent as docketEmail
+          jobForm.setValue('receiptEmail', '');
         }
       }
     });
@@ -194,7 +197,7 @@ export default function JobForm({
       },
       {
         name: 'Dockets',
-        content: <DocketsTab dockets={selectedJob?.dockets ?? []} />,
+        content: <DocketsTab selectedJob={selectedJob ?? null} />,
       },
       {
         name: 'Invoices',
@@ -205,22 +208,55 @@ export default function JobForm({
         content: <CashSalesTab />,
       },
     ],
-    [selectedJob?.jobLineItems, selectedJob?.dockets],
+    [selectedJob],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
-    setIsSubmitting(true);
-    console.log(`Job Form Values:`, values);
+    if (isEditing) return; // edit not yet implemented
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const dateStr = formatLocalDate(values.deliveryStartDate, 'yyyy-MM-dd');
+      const selectedCustomer = customers.find(
+        (c) => c.id === values.customerId,
+      );
 
-    setIsSubmitting(false);
+      // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
+      // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
+      const receiptEmails = values.receiptEmail
+        ? Array.isArray(values.receiptEmail)
+          ? values.receiptEmail
+          : [values.receiptEmail]
+        : [];
+
+      const additionalEmails = receiptEmails.filter(
+        (email) => email !== selectedCustomer?.email,
+      );
+
+      await createJob.mutateAsync({
+        customerId: values.customerId,
+        projectName: values.projectName,
+        poNumber: values.poNumber,
+        contactPersonName: selectedCustomer?.contactName,
+        contactPersonPhone: values.phone,
+        docketEmail: selectedCustomer?.email,
+        additionalEmails,
+        jobStatus: JOB_STATUS.ACTIVE,
+        estimatedStartDate: `${dateStr}T00:00:00`,
+        startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
+        endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
+      });
+
+      notifySuccess('Job created successfully');
+    } catch (error) {
+      notifyError(
+        extractErrorMessage(error) || 'Failed to create job. Please try again.',
+      );
+    }
   }
 
   return (
     <div className="w-full relative">
-      {isSubmitting && (
+      {createJob.isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -278,6 +314,7 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              disabled={isEditing && !canEdit}
             />
 
             <FormSelect
@@ -473,25 +510,22 @@ export default function JobForm({
           {/* Form Actions */}
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 mb-6">
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
-              </Button>
               <Button
                 form="add-new-job-form"
                 className="cursor-pointer"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={createJob.isPending || (isEditing && !canEdit)}
               >
-                {isSubmitting && (
+                {createJob.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting
+                {createJob.isPending
                   ? isEditing
                     ? 'Saving Changes...'
-                    : 'Adding Customer...'
+                    : 'Adding Job...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Add Customer'}
+                    : 'Add Job'}
               </Button>
             </div>
           )}
@@ -502,21 +536,18 @@ export default function JobForm({
                 form="add-new-job-form"
                 type="submit"
                 className="cursor-pointer"
-                disabled={isSubmitting}
+                disabled={createJob.isPending || (isEditing && !canEdit)}
               >
-                {isSubmitting && (
+                {createJob.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting
+                {createJob.isPending
                   ? isEditing
                     ? 'Saving Changes...'
-                    : 'Adding Customer...'
+                    : 'Adding Job...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Add Customer'}
-              </Button>
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
+                    : 'Add Job'}
               </Button>
             </div>
           )}

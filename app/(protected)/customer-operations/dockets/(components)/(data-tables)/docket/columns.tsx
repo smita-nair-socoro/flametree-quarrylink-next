@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-// import { DocketTableActions } from './docket-table-actions';
+import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<Docket>[] = [
   {
@@ -134,11 +134,9 @@ export const docketColumns: ColumnDef<Docket>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      // cell: ({ row }) => {
-      // const job = row.original;
-      // return <DocketTableActions docket={docket} />;
-      return <>Actions</>;
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
     },
   },
 ];

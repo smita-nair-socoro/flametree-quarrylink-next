@@ -1,7 +1,7 @@
 import { DRIVER_STATUS, DRIER_TYPE } from './driver-enums';
 
 interface Driver {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
@@ -9,6 +9,6 @@ interface Driver {
   type: DRIER_TYPE;
   haulier: number;
   haulierName: string;
-  driver_license_number: string;
-  assigned_trucks: number[];
+  driverLicenseNumber: string;
+  assignedTrucks: number[];
 }
