@@ -3,8 +3,8 @@
 import React from 'react';
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { Tab } from '@/components/ui/tabs';
-import { DataTableClient } from '@/components/ui/data-table-client';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { CompareDataTable } from './compare-data-table-client';
 import { MobileScrollableTabs } from '@/components/mobile/mobile-scrollable-tabs';
 import {
   computePricingMeta,
@@ -78,12 +78,17 @@ export function CompareSupplierTable({
         name: 'TN Pricing',
         content: (
           <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-            <DataTableClient
+            <CompareDataTable
               columns={tnColumns}
               data={data}
-              simpleTable
-              tableId="compare_tn_pricing"
               defaultSorting={[{ id: 'cost_price', desc: false }]}
+              getRowClassName={(row) =>
+                tnMeta.lowestCost !== null &&
+                row.perTnCostPrice === tnMeta.lowestCost &&
+                row.perTnCostPrice > 0
+                  ? 'bg-[#F0FDF4]'
+                  : undefined
+              }
             />
           </div>
         ),
@@ -92,12 +97,17 @@ export function CompareSupplierTable({
         name: 'm³ Pricing',
         content: (
           <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-            <DataTableClient
+            <CompareDataTable
               columns={m3Columns}
               data={data}
-              simpleTable
-              tableId="compare_m3_pricing"
               defaultSorting={[{ id: 'cost_price', desc: false }]}
+              getRowClassName={(row) =>
+                m3Meta.lowestCost !== null &&
+                row.perM3CostPrice === m3Meta.lowestCost &&
+                row.perM3CostPrice > 0
+                  ? 'bg-[#F0FDF4]'
+                  : undefined
+              }
             />
           </div>
         ),
@@ -106,12 +116,17 @@ export function CompareSupplierTable({
         name: '20kg Pricing',
         content: (
           <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-            <DataTableClient
+            <CompareDataTable
               columns={kgColumns}
               data={data}
-              simpleTable
-              tableId="compare_kg_pricing"
               defaultSorting={[{ id: 'cost_price', desc: false }]}
+              getRowClassName={(row) =>
+                kgMeta.lowestCost !== null &&
+                row.per20kgCostPrice === kgMeta.lowestCost &&
+                row.per20kgCostPrice > 0
+                  ? 'bg-[#F0FDF4]'
+                  : undefined
+              }
             />
           </div>
         ),
@@ -120,12 +135,17 @@ export function CompareSupplierTable({
         name: 'Bulka Pricing',
         content: (
           <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-            <DataTableClient
+            <CompareDataTable
               columns={bulkaColumns}
               data={data}
-              simpleTable
-              tableId="compare_bulka_pricing"
               defaultSorting={[{ id: 'cost_price', desc: false }]}
+              getRowClassName={(row) =>
+                bulkaMeta.lowestCost !== null &&
+                row.perBulkaCostPrice === bulkaMeta.lowestCost &&
+                row.perBulkaCostPrice > 0
+                  ? 'bg-[#F0FDF4]'
+                  : undefined
+              }
             />
           </div>
         ),
@@ -134,12 +154,17 @@ export function CompareSupplierTable({
         name: 'Truck Rates',
         content: (
           <div className="mt-4 border border-gray-200 rounded-lg overflow-hidden">
-            <DataTableClient
+            <CompareDataTable
               columns={truckColumns}
               data={data}
-              simpleTable
-              tableId="compare_truck_rates"
               defaultSorting={[{ id: 'truck_tn_rate', desc: false }]}
+              getRowClassName={(row) =>
+                lowestTn !== null &&
+                row.tnTruckRate === lowestTn &&
+                row.tnTruckRate > 0
+                  ? 'bg-[#F0FDF4]'
+                  : undefined
+              }
             />
           </div>
         ),

@@ -4,6 +4,7 @@ import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export type PricingComparisonType = 'tn' | 'm3' | 'kg' | 'bulka';
 
@@ -59,17 +60,24 @@ export function MobilePricingComparisonCard({
   return (
     <div
       className={cn(
-        'rounded-xl border p-4 bg-white',
+        'rounded-xl border overflow-hidden',
         isLowestCost
-          ? 'border-2 border-green-500 bg-green-50 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
+          ? 'border-2 border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
           : 'border-gray-200',
       )}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Header — green bg only when lowest cost */}
+      <div
+        className={cn(
+          'flex items-center justify-between px-4 py-3',
+          isLowestCost ? 'bg-green-50' : 'bg-white',
+        )}
+      >
         <div className="flex items-center gap-2 min-w-0">
           {isLowestCost && (
-            <Star className="h-5 w-5 fill-amber-400 text-amber-400 shrink-0" />
+            <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            </div>
           )}
           <span className="font-bold text-[#101828] text-base truncate">{name}</span>
         </div>
@@ -85,8 +93,10 @@ export function MobilePricingComparisonCard({
         </span>
       </div>
 
-      {/* 3-column pricing grid */}
-      <div className="grid grid-cols-3 divide-x divide-gray-200">
+      <Separator />
+
+      {/* 3-column pricing grid — always white */}
+      <div className="grid grid-cols-3 divide-x divide-gray-200 bg-white px-4 py-3">
         {/* Cost Price */}
         <div className="pr-3">
           <p className="text-xs text-gray-500 mb-1">Cost Price</p>
@@ -117,9 +127,11 @@ export function MobilePricingComparisonCard({
               'flex items-center gap-0.5 text-sm font-semibold',
               margin < 0
                 ? 'text-red-600'
-                : margin > 0
-                  ? 'text-green-600'
-                  : 'text-gray-600',
+                : isBestMargin
+                  ? 'text-[#F59E0B]'
+                  : margin > 0
+                    ? 'text-green-600'
+                    : 'text-gray-600',
             )}
           >
             {margin < 0 && <TrendingDown className="w-3.5 h-3.5 shrink-0" />}

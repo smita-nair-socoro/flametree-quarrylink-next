@@ -4,6 +4,7 @@ import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
 import { Star } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export interface MobileTruckRateComparisonCardProps {
   supplier: QuarriesWithProduct;
@@ -41,17 +42,24 @@ export function MobileTruckRateComparisonCard({
   return (
     <div
       className={cn(
-        'rounded-xl border p-4 bg-white',
+        'rounded-xl border overflow-hidden',
         isLowestTnRate
-          ? 'border-2 border-green-500 bg-green-50 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
+          ? 'border-2 border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
           : 'border-gray-200',
       )}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Header — green bg only when lowest TN rate */}
+      <div
+        className={cn(
+          'flex items-center justify-between px-4 py-3',
+          isLowestTnRate ? 'bg-green-50' : 'bg-white',
+        )}
+      >
         <div className="flex items-center gap-2 min-w-0">
           {isLowestTnRate && (
-            <Star className="h-5 w-5 fill-amber-400 text-amber-400 shrink-0" />
+            <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            </div>
           )}
           <span className="font-bold text-[#101828] text-base truncate">{name}</span>
         </div>
@@ -62,8 +70,10 @@ export function MobileTruckRateComparisonCard({
         )}
       </div>
 
-      {/* Rate grid */}
-      <div className="divide-y divide-gray-200">
+      <Separator />
+
+      {/* Rate grid — always white */}
+      <div className="divide-y divide-gray-200 bg-white px-4">
         {/* Row 1: TN Rate | m³ Rate */}
         <div className="grid grid-cols-2 divide-x divide-gray-200 py-2.5">
           <div className="flex items-center justify-between pr-4">

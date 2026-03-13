@@ -103,6 +103,7 @@ interface DataTableProps<TData, TValue> {
     row: TData,
     onViewDetails?: () => void,
   ) => React.ReactNode; // Render function for mobile cards
+  getRowClassName?: (row: TData) => string | undefined; // Optional row-level className override
 }
 
 export type FacetDefinition = {
