@@ -9,11 +9,10 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { JobTableActions } from './job-table-actions';
-import { DateCell } from '@/components/date-cell';
+// import { JobTableActions } from './job-table-actions';
+// import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
-import { centsToDollars } from '@/lib/utils/currency';
-import { centsToDollarsNum } from '@/lib/utils/currency';
+// import { centsToDollars } from '@/lib/utils/currency';
 
 export const jobColumns: ColumnDef<JobDTO>[] = [
   {
@@ -90,7 +89,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     },
     cell: ({ row }) => {
       const unInvoicedDockets = row.original.uninvoicedDockets
-        ? centsToDollarsNum(row.original.uninvoicedDockets)
+        ? row.original.uninvoicedDockets
         : '0';
       return <div>${unInvoicedDockets}</div>;
     },

@@ -22,8 +22,6 @@ export interface JobDTO {
   version?: number;
 }
 
-export interface JobItem extends JobDTO {}
-
 export interface Job {
   id: number;
   jobNumber: string;

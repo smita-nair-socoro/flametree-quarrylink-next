@@ -4,7 +4,6 @@ import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import JobForm from './(components)/forms/job-form';
 import { JobDTO } from '@/lib/types/job';
-import rawJson from '@/lib/tests/jobsResponseData.json';
 import { Plus } from 'lucide-react';
 
 import {
@@ -12,7 +11,7 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { jobColumns } from './(components)/(data-tables)/job/columns';
-import { useJobActions } from '@/hooks/use-job-actions';
+// import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
 import { JobsListQueryOptions } from '@/lib/api/job';
 
@@ -25,7 +24,9 @@ export default function CustomersPage() {
     })) as JobDTO[];
   }, [jobs]);
 
-  const { actions, viewDialog, confirmDialogs } = useJobActions();
+  // const { actions, viewDialog, confirmDialogs } = useJobActions();
+  // const { viewDialog, confirmDialogs } = useJobActions();
+
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -39,8 +40,8 @@ export default function CustomersPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {confirmDialogs}
-      {viewDialog}
+      {/* {confirmDialogs}
+      {viewDialog} */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Jobs</h1>
