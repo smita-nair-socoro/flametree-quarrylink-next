@@ -131,14 +131,15 @@ export function MobileTruckRateComparisonCard({
           </div>
         </div>
 
-        {/* Row 4: Distance Rate (full width) */}
-        <div className="py-2.5">
-          <div className="flex items-center justify-between">
+        {/* Row 4: Distance Rate | empty */}
+        <div className="grid grid-cols-2 divide-x divide-gray-200 py-2.5">
+          <div className="flex items-center justify-between pr-4">
             <span className="text-sm text-gray-500">Distance Rate</span>
             <span className={cn('text-sm', distanceRate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
               {distanceRate}
             </span>
           </div>
+          <div />
         </div>
       </div>
     </div>
