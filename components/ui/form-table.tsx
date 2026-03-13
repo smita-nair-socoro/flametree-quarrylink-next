@@ -104,6 +104,10 @@ export interface FormTableProps<T extends FieldValues = FieldValues> {
   className?: string;
   title?: string;
   description?: string;
+  /** On mobile: insert a full-width label row above each data row */
+  mobileStackedLabel?: boolean;
+  /** Column indices to hide on mobile (display: none below md) */
+  mobileHiddenCells?: number[];
 }
 
 export function FormTable<T extends FieldValues = FieldValues>({
@@ -115,6 +119,8 @@ export function FormTable<T extends FieldValues = FieldValues>({
   className,
   title,
   description,
+  mobileStackedLabel = false,
+  mobileHiddenCells = [],
 }: FormTableProps<T>) {
   const renderCell = (cell: CellConfig<T>, row: FormTableRow) => {
     const fieldName = `${cell.key}_${row.id}` as FieldPath<T>;
@@ -209,7 +215,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                       onClick={() => !isDisabled && field.onChange(!field.value)}
                       disabled={isDisabled}
                       className={cn(
-                        'flex md:hidden items-center justify-center w-5 h-5 rounded-full border-2 transition-colors',
+                        'flex md:hidden items-center justify-center w-7 h-7 rounded-full border-2 transition-colors shrink-0',
                         field.value
                           ? 'border-primary'
                           : 'border-input',
@@ -217,7 +223,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                       )}
                     >
                       {field.value && (
-                        <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+                        <span className="w-6 h-6 rounded-full bg-primary" />
                       )}
                     </button>
                   </div>
@@ -260,8 +266,14 @@ export function FormTable<T extends FieldValues = FieldValues>({
       <Table>
         <TableHeader>
           <TableRow>
-            {headers.map((header) => (
-              <TableHead key={header.key} className={header.className}>
+            {headers.map((header, index) => (
+              <TableHead
+                key={header.key}
+                className={cn(
+                  header.className,
+                  mobileHiddenCells.includes(index) && 'hidden md:table-cell',
+                )}
+              >
                 <div className="flex items-center gap-1">
                   {header.label}
                   {header.tooltip && (
@@ -281,20 +293,37 @@ export function FormTable<T extends FieldValues = FieldValues>({
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id}>
-              {cells.map((cell, index) => (
-                <TableCell
-                  key={`${row.id}-${cell.key}`}
-                  className={cell.className}
-                >
-                  {index === 0 && row.label ? (
-                    <div className="font-medium text-sm">{row.label}</div>
-                  ) : (
-                    renderCell(cell, row)
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
+            <React.Fragment key={row.id}>
+              {mobileStackedLabel && (
+                <TableRow className="md:hidden border-b-0 hover:bg-transparent">
+                  <TableCell
+                    colSpan={headers.length - mobileHiddenCells.length}
+                    className="pb-0 pt-3"
+                  >
+                    {cells[0] && cells[0].type === 'display'
+                      ? (cells[0] as DisplayCellConfig).render(row)
+                      : <div className="font-medium text-sm">{row.label}</div>}
+                  </TableCell>
+                </TableRow>
+              )}
+              <TableRow>
+                {cells.map((cell, index) => (
+                  <TableCell
+                    key={`${row.id}-${cell.key}`}
+                    className={cn(
+                      cell.className,
+                      mobileHiddenCells.includes(index) && 'hidden md:table-cell',
+                    )}
+                  >
+                    {index === 0 && row.label ? (
+                      <div className="font-medium text-sm">{row.label}</div>
+                    ) : (
+                      renderCell(cell, row)
+                    )}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </React.Fragment>
           ))}
         </TableBody>
       </Table>

@@ -120,7 +120,6 @@ export function PricingConfigurationTable({
         return (
           <div className="flex justify-start gap-2">
             {marginIcon}
-
             <span className={`font-normal ${textColor}`}>{displayValue}</span>
           </div>
         );
@@ -142,6 +141,9 @@ export function PricingConfigurationTable({
       cells={cells}
       control={control}
       watch={watch}
+      mobileStackedLabel
+      mobileHiddenCells={[0, 3]}
+      className="overflow-x-hidden"
     />
   );
 }

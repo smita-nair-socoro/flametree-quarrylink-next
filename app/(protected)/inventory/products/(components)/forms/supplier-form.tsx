@@ -153,7 +153,7 @@ export default function SupplierForm({
           <CardHeader>
             <CardTitle>Quarry / Supplier Information</CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-between gap-4">
+          <CardContent className="flex flex-col md:flex-row justify-between gap-4">
             <FormSelect
               control={supplierForm.control}
               name="quarry_supplier_id"
@@ -544,7 +544,7 @@ export default function SupplierForm({
           )}
           onSubmit={handleSubmit}
         >
-          <Tab tabs={tabs} defaultTab={tabs[0].name} className="w-full" />
+          <Tab tabs={tabs} defaultTab={tabs[0].name} className="w-full" enableDropdownOnMobile />
 
           <Separator className="my-4" />
 
