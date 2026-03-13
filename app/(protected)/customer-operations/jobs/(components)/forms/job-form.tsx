@@ -25,7 +25,6 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DatePicker } from '@/components/date-picker';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
-import { useSelectedJob } from '@/app/stores/job-store';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
@@ -44,27 +43,32 @@ import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { formatLocalDate } from '@/lib/utils/date';
+
 interface FormProps {
+  id?: number;
   canEdit?: boolean;
   onSaved?: () => void;
+  onCancel?: () => void;
+  onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
 }
 
 export default function JobForm({
+  id,
   canEdit,
   className,
   onDirtyChange,
-  // onSaved,
+  onSaved,
+  onCancel,
+  onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const storeJob = useSelectedJob();
+  const [isEditing] = React.useState(Boolean(id))
 
   const selectedJob = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === storeJob?.id) as JobDetails;
-  }, [storeJob?.id]);
-
-  const isEditing = Boolean(selectedJob?.id);
+    return rawJson.items.find((job) => job.id === id) as JobDetails;
+  }, [id]);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
     resolver: zodResolver(JobFormSchema),
@@ -248,6 +252,8 @@ export default function JobForm({
       });
 
       notifySuccess('Job created successfully');
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       notifyError(
         extractErrorMessage(error) || 'Failed to create job. Please try again.',
@@ -328,6 +334,7 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
+              disabled
             />
 
             <FormField
@@ -512,6 +519,14 @@ export default function JobForm({
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 mb-6">
               <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+              <Button
                 form="add-new-job-form"
                 className="cursor-pointer"
                 type="submit"
@@ -528,16 +543,15 @@ export default function JobForm({
                     ? 'Save Changes'
                     : 'Add Job'}
               </Button>
+
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col col-span-2 gap-3 mb-6">
               <Button
-                form="add-new-job-form"
                 type="submit"
                 className="cursor-pointer"
-                disabled={createJob.isPending || (isEditing && !canEdit)}
               >
                 {createJob.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -549,6 +563,16 @@ export default function JobForm({
                   : isEditing
                     ? 'Save Changes'
                     : 'Add Job'}
+              </Button>
+              <Button
+                form="add-new-job-form"
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                disabled={createJob.isPending || (isEditing && !canEdit)}
+                onClick={onCancel}
+              >
+                Cancel
               </Button>
             </div>
           )}
