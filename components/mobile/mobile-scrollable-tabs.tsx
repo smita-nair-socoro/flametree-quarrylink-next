@@ -21,24 +21,6 @@ export function MobileScrollableTabs({
   onValueChange,
 }: MobileScrollableTabsProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [hasOverflow, setHasOverflow] = React.useState(false);
-
-  const recalcOverflow = React.useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setHasOverflow(el.scrollWidth > el.clientWidth);
-  }, []);
-
-  // ResizeObserver handles initial measurement and container size changes.
-  // tabs included so overflow recalculates if the tab list changes.
-  React.useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    recalcOverflow();
-    const ro = new ResizeObserver(recalcOverflow);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [recalcOverflow, tabs]);
 
   // Scroll the active tab into view smoothly whenever the selection changes.
   React.useEffect(() => {
@@ -79,7 +61,7 @@ export function MobileScrollableTabs({
         ))}
       </div>
 
-      {hasOverflow && (
+      {tabs.length > 1 && (
         <div role="presentation" className="flex justify-center items-center gap-1.5">
           {tabs.map((_, i) => (
             <div

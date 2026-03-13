@@ -27,11 +27,7 @@ import { ChartColumn, Check } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
 import { ActionDialog } from '@/components/action-dialog';
-import { tnPricingColumn } from '../(data-tables)/supplier-comparison/tn-pricing-column';
-import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing-column';
-import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing-column';
-import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
-import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
+import { CompareSupplierTable } from '../(data-tables)/supplier-comparison/compare-supplier-table';
 import { useQuery } from '@tanstack/react-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -588,55 +584,14 @@ export default function ProductForm({
               <ActionDialog
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
-                customWidth="!max-w-[95vw] sm:!max-w-[90vw] md:!max-w-[85vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
+                customWidth="!max-w-[95vw] 2xl:!max-w-[1200px]"
                 cancelText="Close"
-                title={`Compare All - ${totalSupplier} Suppliers`}
+                title={`Compare All – ${totalSupplier} Suppliers`}
                 content={
-                  <div className="flex flex-col space-y-4">
-                    <span className="text-lg font-semibold text-[#101828]">
-                      Pricing Comparison
-                    </span>
-                    <span className="font-normal text-[#364153]">
-                      TN Pricing
-                    </span>
-                    <DataTableClient
-                      columns={tnPricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="font-normal text-[#364153]">
-                      m³ Pricing
-                    </span>
-                    <DataTableClient
-                      columns={m3PricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="font-normal text-[#364153]">
-                      20kg Pricing
-                    </span>
-                    <DataTableClient
-                      columns={kgPricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="font-normal text-[#364153]">
-                      Bulka Pricing
-                    </span>
-                    <DataTableClient
-                      columns={bulkaPricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="text-lg font-semibold text-[#101828]">
-                      Truck Rates Comparison
-                    </span>
-                    <DataTableClient
-                      columns={truckRateComparisonColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                  </div>
+                  <CompareSupplierTable
+                    data={selectedProduct?.quarrySupplierProducts || []}
+                    productName={selectedProduct?.productName}
+                  />
                 }
                 confirmActionNeeded={false}
               />
