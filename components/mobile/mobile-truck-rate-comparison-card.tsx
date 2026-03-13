@@ -52,7 +52,7 @@ export function MobileTruckRateComparisonCard({
       <div
         className={cn(
           'flex items-center justify-between px-4 py-3',
-          isLowestTnRate ? 'bg-green-50' : 'bg-white',
+          isLowestTnRate ? 'bg-green-50' : 'bg-[#FAFAFA]',
         )}
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -70,7 +70,7 @@ export function MobileTruckRateComparisonCard({
         )}
       </div>
 
-      <Separator />
+      <Separator className="bg-gray-200" />
 
       {/* Rate grid — always white */}
       <div className="divide-y divide-gray-200 bg-white px-4">

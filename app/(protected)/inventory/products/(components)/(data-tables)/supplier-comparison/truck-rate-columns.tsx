@@ -31,9 +31,11 @@ export function createTruckRateColumns(
         return (
           <div className="flex items-center gap-2">
             {isLowest ? (
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400 shrink-0" />
+              <div className="h-7 w-7 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              </div>
             ) : (
-              <div className="w-4 shrink-0" />
+              <div className="w-7 shrink-0" />
             )}
             <p className="font-medium text-[#101828]">{name}</p>
           </div>

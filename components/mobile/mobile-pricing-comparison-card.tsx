@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { TableBadges } from '@/components/table-badges';
 
 export type PricingComparisonType = 'tn' | 'm3' | 'kg' | 'bulka';
 
@@ -70,7 +71,7 @@ export function MobilePricingComparisonCard({
       <div
         className={cn(
           'flex items-center justify-between px-4 py-3',
-          isLowestCost ? 'bg-green-50' : 'bg-white',
+          isLowestCost ? 'bg-green-50' : 'bg-[#FAFAFA]',
         )}
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -81,19 +82,12 @@ export function MobilePricingComparisonCard({
           )}
           <span className="font-bold text-[#101828] text-base truncate">{name}</span>
         </div>
-        <span
-          className={cn(
-            'text-xs font-medium px-2 py-1 rounded-full border shrink-0 ml-2',
-            available
-              ? 'text-green-700 border-green-600'
-              : 'text-gray-500 border-gray-400',
-          )}
-        >
-          {available ? 'AVAILABLE' : 'UNAVAILABLE'}
-        </span>
+        <div className="shrink-0 ml-2">
+          <TableBadges names={[available ? 'AVAILABLE' : 'UNAVAILABLE']} />
+        </div>
       </div>
 
-      <Separator />
+      <Separator className="bg-gray-200" />
 
       {/* 3-column pricing grid — always white */}
       <div className="grid grid-cols-3 divide-x divide-gray-200 bg-white px-4 py-3">
