@@ -8,6 +8,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { MobilePricingComparisonCard } from '@/components/mobile/mobile-pricing-comparison-card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -115,7 +121,20 @@ export function createPricingColumns(
       id: 'cost_price',
       accessorFn: (row) => getPricingFields(row, type).cost,
       header: ({ column }) => (
-        <TableClientSortableHeader column={column} title="Cost Price" />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <span className="flex items-center gap-1">
+              Cost Price
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>Exclude GST</TooltipContent>
+              </Tooltip>
+            </span>
+          }
+        />
       ),
       cell: ({ row }) => {
         const { cost } = getPricingFields(row.original, type);
@@ -136,7 +155,20 @@ export function createPricingColumns(
       id: 'sell_price',
       accessorFn: (row) => getPricingFields(row, type).sell,
       header: ({ column }) => (
-        <TableClientSortableHeader column={column} title="Sell Price" />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <span className="flex items-center gap-1">
+              Sell Price
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>Exclude GST</TooltipContent>
+              </Tooltip>
+            </span>
+          }
+        />
       ),
       cell: ({ row }) => {
         const { sell } = getPricingFields(row.original, type);
@@ -207,19 +239,29 @@ export function MobilePricingList({
   pricingType,
   lowestCost,
   bestMargin,
+  availableOnly = false,
+  sortCost = 'asc',
 }: {
   data: QuarriesWithProduct[];
   pricingType: PricingType;
   lowestCost: number | null;
   bestMargin: number | null;
+  availableOnly?: boolean;
+  sortCost?: 'asc' | 'desc';
 }) {
-  const getCost = (r: QuarriesWithProduct) => getPricingFields(r, pricingType).cost;
-  const getSell = (r: QuarriesWithProduct) => getPricingFields(r, pricingType).sell;
+  const getCost = (r: QuarriesWithProduct) =>
+    getPricingFields(r, pricingType).cost;
+  const getSell = (r: QuarriesWithProduct) =>
+    getPricingFields(r, pricingType).sell;
+  const getAvailable = (r: QuarriesWithProduct) =>
+    getPricingFields(r, pricingType).available;
 
-  const sorted = [...data].sort((a, b) => {
-    const aCost = getCost(a);
-    const bCost = getCost(b);
-    return (aCost || Infinity) - (bCost || Infinity);
+  const filtered = availableOnly ? data.filter((r) => getAvailable(r)) : data;
+
+  const sorted = [...filtered].sort((a, b) => {
+    const aCost = getCost(a) || Infinity;
+    const bCost = getCost(b) || Infinity;
+    return sortCost === 'desc' ? bCost - aCost : aCost - bCost;
   });
 
   return (

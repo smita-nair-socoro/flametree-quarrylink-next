@@ -7,6 +7,14 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { CompareDataTable } from './compare-data-table-client';
 import { MobileScrollableTabs } from '@/components/mobile/mobile-scrollable-tabs';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Circle, ListFilter, ArrowUp, ArrowDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
   computePricingMeta,
   createPricingColumns,
   MobilePricingList,
@@ -35,7 +43,10 @@ export function CompareSupplierTable({
   productName,
 }: CompareSupplierTableProps) {
   const [activeTab, setActiveTab] = React.useState<string>('TN Pricing');
+  const [availableOnly, setAvailableOnly] = React.useState(false);
+  const [sortCost, setSortCost] = React.useState<'asc' | 'desc'>('asc');
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  const isPricingTab = activeTab !== 'Truck Rates';
 
   const tnMeta = React.useMemo(() => computePricingMeta(data, 'tn'), [data]);
   const m3Meta = React.useMemo(() => computePricingMeta(data, 'm3'), [data]);
@@ -185,6 +196,8 @@ export function CompareSupplierTable({
             pricingType="tn"
             lowestCost={tnMeta.lowestCost}
             bestMargin={tnMeta.bestMargin}
+            availableOnly={availableOnly}
+            sortCost={sortCost}
           />
         );
       case 'm³ Pricing':
@@ -194,6 +207,8 @@ export function CompareSupplierTable({
             pricingType="m3"
             lowestCost={m3Meta.lowestCost}
             bestMargin={m3Meta.bestMargin}
+            availableOnly={availableOnly}
+            sortCost={sortCost}
           />
         );
       case '20kg Pricing':
@@ -203,6 +218,8 @@ export function CompareSupplierTable({
             pricingType="kg"
             lowestCost={kgMeta.lowestCost}
             bestMargin={kgMeta.bestMargin}
+            availableOnly={availableOnly}
+            sortCost={sortCost}
           />
         );
       case 'Bulka Pricing':
@@ -212,6 +229,8 @@ export function CompareSupplierTable({
             pricingType="bulka"
             lowestCost={bulkaMeta.lowestCost}
             bestMargin={bulkaMeta.bestMargin}
+            availableOnly={availableOnly}
+            sortCost={sortCost}
           />
         );
       case 'Truck Rates':
@@ -219,7 +238,7 @@ export function CompareSupplierTable({
       default:
         return null;
     }
-  }, [activeTab, data, tnMeta, m3Meta, kgMeta, bulkaMeta, lowestTn]);
+  }, [activeTab, data, tnMeta, m3Meta, kgMeta, bulkaMeta, lowestTn, availableOnly, sortCost]);
 
   return (
     <div className="flex flex-col gap-1 overflow-x-hidden">
@@ -245,6 +264,61 @@ export function CompareSupplierTable({
             value={activeTab}
             onValueChange={setActiveTab}
           />
+
+          {/* Controls — pricing tabs only */}
+          {isPricingTab && (
+            <div className="flex items-center justify-between gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => setAvailableOnly((v) => !v)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors',
+                  availableOnly
+                    ? 'border-[#8E51FF] text-[#8E51FF] bg-purple-50'
+                    : 'border-gray-300 text-gray-600 bg-white',
+                )}
+              >
+                <Circle
+                  className={cn(
+                    'h-4 w-4',
+                    availableOnly ? 'fill-[#8E51FF] text-[#8E51FF]' : 'text-gray-400',
+                  )}
+                />
+                Available only
+              </button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-600 bg-white"
+                  >
+                    <ListFilter className="h-4 w-4 text-gray-400" />
+                    Sort: Cost
+                    {sortCost === 'asc' ? (
+                      <ArrowUp className="h-3.5 w-3.5 text-gray-500" />
+                    ) : (
+                      <ArrowDown className="h-3.5 w-3.5 text-gray-500" />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setSortCost('asc')}>
+                    Low to High
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortCost('desc')}>
+                    High to Low
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+
+          {/* Swipe hint */}
+          <p className="text-center text-xs text-gray-400 mt-3">
+            ← swipe to switch tabs →
+          </p>
+
           {mobileContent}
         </div>
       )}
