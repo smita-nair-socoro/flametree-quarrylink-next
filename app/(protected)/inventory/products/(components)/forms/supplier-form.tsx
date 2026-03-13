@@ -151,7 +151,13 @@ export default function SupplierForm({
       content: (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Quarry / Supplier Information</CardTitle>
+            <CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-px bg-gray-300 shrink-0" />
+                <span className="whitespace-nowrap text-base font-semibold">Quarry / Supplier Information</span>
+                <div className="flex-1 h-px bg-gray-300" />
+              </div>
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col md:flex-row justify-between gap-4">
             <FormSelect

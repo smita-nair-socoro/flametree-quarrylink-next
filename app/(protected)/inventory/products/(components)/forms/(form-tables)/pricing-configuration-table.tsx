@@ -32,20 +32,21 @@ export function PricingConfigurationTable({
     {
       key: 'cost_price',
       label: 'Cost Price*',
-      className: 'w-20',
+      className: 'md:w-20',
       tooltip: '(ex-GST)',
     },
     {
       key: 'sell_price',
       label: 'Sell Price*',
-      className: 'w-20',
+      className: 'md:w-20',
       tooltip: '(ex-GST)',
     },
     { key: 'Margin', label: 'Profit Margin %', className: 'w-25' },
     {
       key: 'available_for_sale',
       label: 'Available for Sale',
-      className: 'w-20',
+      mobileLabel: 'For Sale',
+      className: 'md:w-20',
       tooltip: 'TN is required as the base UoM',
     },
   ];
@@ -72,7 +73,7 @@ export function PricingConfigurationTable({
       placeholder: '0.00',
       decimalPlaces: 2,
       thousandSeparator: true,
-      className: 'w-25',
+      className: 'md:w-25',
     },
     {
       key: 'sell_price',
@@ -80,7 +81,7 @@ export function PricingConfigurationTable({
       placeholder: '0.00',
       decimalPlaces: 2,
       thousandSeparator: true,
-      className: 'w-25',
+      className: 'md:w-25',
     },
     {
       key: 'margin',
@@ -128,8 +129,7 @@ export function PricingConfigurationTable({
     {
       key: 'available_for_sale',
       type: 'switch',
-      showLabel: true,
-      className: 'w-36',
+      className: 'md:w-36',
       disabled: (row) => row.id === 'tn', // TN is always available for sale
     },
   ];
@@ -144,6 +144,31 @@ export function PricingConfigurationTable({
       mobileStackedLabel
       mobileHiddenCells={[0, 3]}
       className="overflow-x-hidden"
+      mobileStackedLabelRender={(row) => {
+        const costPrice =
+          (watch(
+            `cost_price_${row.id}` as keyof z.infer<typeof NewSupplierFormSchema>
+          ) as number) || 0;
+        const sellPrice =
+          (watch(
+            `sell_price_${row.id}` as keyof z.infer<typeof NewSupplierFormSchema>
+          ) as number) || 0;
+        const marginValue = calculateMargin(costPrice, sellPrice);
+        const textColor =
+          marginValue > 0
+            ? 'text-green-600'
+            : marginValue < 0
+              ? 'text-red-600'
+              : 'text-gray-500';
+        return (
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-sm">{row.label}</span>
+            <div className={`bg-gray-100 rounded px-2 py-0.5 text-xs font-medium ${textColor}`}>
+              {marginValue.toFixed(2)}%
+            </div>
+          </div>
+        );
+      }}
     />
   );
 }

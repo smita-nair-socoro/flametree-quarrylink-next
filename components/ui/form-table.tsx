@@ -26,6 +26,7 @@ import { HelpCircle } from 'lucide-react';
 export interface FormTableHeader {
   key: string;
   label: string;
+  mobileLabel?: string;
   className?: string;
   tooltip?: string;
 }
@@ -61,6 +62,8 @@ export interface SwitchCellConfig extends BaseCellConfig {
   type: 'switch';
   showLabel?: boolean;
   disabled?: (row: FormTableRow) => boolean;
+  /** Extra content rendered above the radio toggle on mobile */
+  mobileCellContent?: (row: FormTableRow) => React.ReactNode;
 }
 
 export interface DisplayCellConfig extends BaseCellConfig {
@@ -108,6 +111,8 @@ export interface FormTableProps<T extends FieldValues = FieldValues> {
   mobileStackedLabel?: boolean;
   /** Column indices to hide on mobile (display: none below md) */
   mobileHiddenCells?: number[];
+  /** Custom renderer for the mobile stacked label row content */
+  mobileStackedLabelRender?: (row: FormTableRow) => React.ReactNode;
 }
 
 export function FormTable<T extends FieldValues = FieldValues>({
@@ -121,6 +126,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
   description,
   mobileStackedLabel = false,
   mobileHiddenCells = [],
+  mobileStackedLabelRender,
 }: FormTableProps<T>) {
   const renderCell = (cell: CellConfig<T>, row: FormTableRow) => {
     const fieldName = `${cell.key}_${row.id}` as FieldPath<T>;
@@ -209,23 +215,24 @@ export function FormTable<T extends FieldValues = FieldValues>({
                       disabled={isDisabled}
                       className="hidden md:flex"
                     />
-                    {/* Mobile: Single Radio as toggle */}
-                    <button
-                      type="button"
-                      onClick={() => !isDisabled && field.onChange(!field.value)}
-                      disabled={isDisabled}
-                      className={cn(
-                        'flex md:hidden items-center justify-center w-7 h-7 rounded-full border-2 transition-colors shrink-0',
-                        field.value
-                          ? 'border-primary'
-                          : 'border-input',
-                        isDisabled && 'opacity-50 cursor-not-allowed'
-                      )}
-                    >
-                      {field.value && (
-                        <span className="w-6 h-6 rounded-full bg-primary" />
-                      )}
-                    </button>
+                    {/* Mobile: optional content above + radio toggle */}
+                    <div className="flex flex-col items-end w-full md:hidden">
+                      {cell.mobileCellContent?.(row)}
+                      <button
+                        type="button"
+                        onClick={() => !isDisabled && field.onChange(!field.value)}
+                        disabled={isDisabled}
+                        className={cn(
+                          'flex items-center justify-center w-7 h-7 rounded-full border-2 transition-colors shrink-0',
+                          field.value ? 'border-primary' : 'border-input',
+                          isDisabled && 'opacity-50 cursor-not-allowed'
+                        )}
+                      >
+                        {field.value && (
+                          <span className="w-6 h-6 rounded-full bg-primary" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </FormControl>
               </FormItem>
@@ -275,7 +282,12 @@ export function FormTable<T extends FieldValues = FieldValues>({
                 )}
               >
                 <div className="flex items-center gap-1">
-                  {header.label}
+                  {header.mobileLabel ? (
+                    <>
+                      <span className="hidden md:inline">{header.label}</span>
+                      <span className="md:hidden">{header.mobileLabel}</span>
+                    </>
+                  ) : header.label}
                   {header.tooltip && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -300,9 +312,11 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     colSpan={headers.length - mobileHiddenCells.length}
                     className="pb-0 pt-3"
                   >
-                    {cells[0] && cells[0].type === 'display'
-                      ? (cells[0] as DisplayCellConfig).render(row)
-                      : <div className="font-medium text-sm">{row.label}</div>}
+                    {mobileStackedLabelRender
+                      ? mobileStackedLabelRender(row)
+                      : cells[0] && cells[0].type === 'display'
+                        ? (cells[0] as DisplayCellConfig).render(row)
+                        : <div className="font-medium text-sm">{row.label}</div>}
                   </TableCell>
                 </TableRow>
               )}
