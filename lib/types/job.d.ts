@@ -1,10 +1,12 @@
 import { Docket } from './docket';
 import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
+import { CustomerDTO } from './customer';
 
 export interface JobDTO {
   id: number;
   jobNumber?: string;
   customerId: number;
+  customerDto: Partial<CustomerDTO>;
   projectName: string;
   jobStatus: JOB_STATUS;
   poNumber?: string;

@@ -13,6 +13,7 @@ import { JobTableActions } from './job-table-actions';
 import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
+import { centsToDollarsNum } from '@/lib/utils/currency';
 
 export const jobColumns: ColumnDef<JobDTO>[] = [
   {
@@ -29,12 +30,14 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
   },
   {
     id: 'customerName',
-    accessorFn: (row) => row.customerId,
+    accessorFn: (row) => row.customerDto?.businessName || row.customerDto?.contactName || 'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.customerId;
+      const customerName = row.original.customerDto?.businessName || row.original.customerDto?.contactName || 'N/A';
+      console.log('data', row.original);
+      console.log('customerDTO', row.original.customerDto);
       return <div className="py-2">{customerName}</div>;
     },
     meta: 'Customer Name',
@@ -87,7 +90,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     },
     cell: ({ row }) => {
       const unInvoicedDockets = row.original.uninvoicedDockets
-        ? centsToDollars(row.original.uninvoicedDockets)
+        ? centsToDollarsNum(row.original.uninvoicedDockets)
         : '0';
       return <div>${unInvoicedDockets}</div>;
     },
@@ -116,14 +119,15 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
   //   },
   //   meta: 'Created At',
   // },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const job = row.original;
-  //     return <JobTableActions job={job} />;
-  //   },
-  // },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: () => {
+      return <div>Actions</div>
+      // const job = row.original;
+      // return <JobTableActions job={job} />;
+    },
+  },
 ];
