@@ -305,7 +305,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedJob && selectedJob) {
     finalCustomId = selectedJob.jobNumber;
-    finalPrimaryBadges = [selectedJob.status];
+    finalPrimaryBadges = [selectedJob.jobStatus];
   }
 
   if (headerInfo?.useSelectedJobLineItem && selectedJobLineItem) {

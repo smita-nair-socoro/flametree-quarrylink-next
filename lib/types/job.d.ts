@@ -6,7 +6,7 @@ export interface JobDTO {
   id: number;
   jobNumber?: string;
   customerId: number;
-  customerDto: Partial<CustomerDTO>;
+  customerDto?: Partial<CustomerDTO>;
   projectName: string;
   jobStatus: JOB_STATUS;
   poNumber?: string;
@@ -89,7 +89,34 @@ export interface JobLineItem {
   isDeleted: boolean;
 }
 
+export interface jobItems {
+  id: number;
+  jobId: number;
+  jobItemType: JOB_LINE_ITEM_TYPE;
+  addressId: number;
+  address: Partial<CustomerDeliveryAddress>;
+  productId: number;
+  product: {
+    id: number;
+    productName: string;
+    productCode: string;
+    materialId: number;
+    densityTonnagePerM3: number;
+    productDescription: string;
+    isActive: boolean;
+    version: number;
+  };
+  quarrySupplierId: number;
+  totalQuantityRequired: number;
+  allocatedQuantity: number;
+  remainingQuantity: number;
+  selectedCostUnit: string;
+  selectedSellUnit: string;
+  selectedTruckRateType: string;
+  selectedTruckType: string;
+  version: number;
+}
+
 export interface JobDetails extends JobDTO {
-  jobLineItems?: JobLineItem[];
-  dockets?: Docket[];
+  jobItems?: jobItems[];
 }

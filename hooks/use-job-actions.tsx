@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
-import { Job, JobDetails } from '@/lib/types/job';
+import { JobDTO, JobDetails } from '@/lib/types/job';
 import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
@@ -36,11 +36,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -214,7 +214,7 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const actions = {
     /** Pass job when opening from row click so the store updates before the dialog opens */
-    view: (job?: Job | null) => {
+    view: (job?: JobDTO | null) => {
       const toSelect = job ?? jobData;
       if (toSelect != null) {
         useJobStore.getState().setSelectedJob(toSelect);
@@ -278,7 +278,7 @@ export function useJobActions(jobData?: JobDetails | null) {
   });
 
   // Customer field is only editable when the job is Active
-  const canEdit = jobData?.status === JOB_STATUS.ACTIVE;
+  const canEdit = jobData?.jobStatus === JOB_STATUS.ACTIVE;
 
   const viewDialog = viewOpen ? (
     <FormDialog
@@ -293,7 +293,7 @@ export function useJobActions(jobData?: JobDetails | null) {
           }, 100);
         }
       }}
-      headerButtons={<JobActionButtons job={selectedJob ?? undefined} />}
+      headerButtons={<JobActionButtons job={selectedJob ?? null} />}
       hideTrigger
       headerInfo={{
         useSelectedJob: true,

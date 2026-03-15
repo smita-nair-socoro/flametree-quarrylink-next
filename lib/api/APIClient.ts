@@ -40,7 +40,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
-import { JobDTO, JobLineItem } from '../types/job';
+import { JobDTO, JobLineItem, JobDetails } from '../types/job';
 
 type RequestBody =
   | BodyInit
@@ -911,7 +911,7 @@ export const APIClient = {
       return response;
     },
     getJobItems: async (jobId: number) => {
-      const response = await appClient.Get<JobLineItem[]>(
+      const response = await appClient.Get<JobDetails>(
         `/socoro/quarrylink/api/job/${jobId}/job-items`,
       );
       return response;

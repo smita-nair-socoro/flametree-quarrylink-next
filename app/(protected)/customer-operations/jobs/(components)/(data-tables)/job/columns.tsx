@@ -9,7 +9,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-// import { JobTableActions } from './job-table-actions';
+import { JobTableActions } from './job-table-actions';
 // import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
 // import { centsToDollars } from '@/lib/utils/currency';
@@ -35,8 +35,6 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     },
     cell: ({ row }) => {
       const customerName = row.original.customerDto?.businessName || row.original.customerDto?.contactName || 'N/A';
-      console.log('data', row.original);
-      console.log('customerDTO', row.original.customerDto);
       return <div className="py-2">{customerName}</div>;
     },
     meta: 'Customer Name',
@@ -97,13 +95,16 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
   },
   {
     id: 'accountManagerName',
-    accessorFn: (row) => row.customerId,
+    accessorFn: (row) => row.customerDto?.accountManagerName,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Account Manager" />
       );
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: ({ row }) => {
+      const accountManagerName = row.original.customerDto?.accountManagerName;
+      return <div className="py-2">{accountManagerName}</div>;
+    },
     meta: 'Account Manager',
   },
 
@@ -123,10 +124,10 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div>Actions</div>
-      // const job = row.original;
-      // return <JobTableActions job={job} />;
+    cell: ({ row }) => {
+      // return <div>Actions</div>
+      const job = row.original;
+      return <JobTableActions job={job} />;
     },
   },
 ];

@@ -1,8 +1,8 @@
 'use client';
 import { Play } from 'lucide-react';
-import { JobDetails } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 
-export function ResumeJobDescription({ job }: { job?: JobDetails | null }) {
+export function ResumeJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
       <div className="flex w-[42px] h-[42px] justify-center bg-[#F0FDF4] rounded-full">
@@ -14,10 +14,10 @@ export function ResumeJobDescription({ job }: { job?: JobDetails | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-          {job?.customerName && (
+          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">{job.customerName}</span>
+              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
             </>
           )}
         </div>

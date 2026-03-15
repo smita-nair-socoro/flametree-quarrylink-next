@@ -213,7 +213,7 @@ export function useLineItemFormState({
 	// Customer delivery addresses (for DELIVERY quote type)
 	const customerId =
 		selectedJob?.customerId ||
-		selectedJob?.customerWithAddressResponseDto?.id ||
+		selectedJob?.customerDto?.id ||
 		0;
 	const isDeliveryQuote = jobLineItemData?.type === JOB_LINE_ITEM_TYPE.DELIVERY;
 	const { data: deliveryAddresses } = useQuery({
@@ -240,7 +240,7 @@ export function useLineItemFormState({
 
 	// Get billing address for comparison (pinned address for delivery quotes)
 	const billingAddress =
-		selectedJob?.customerWithAddressResponseDto?.billingAddress;
+		selectedJob?.customerDto?.billingAddress;
 	const billingAddressFormatted = billingAddress?.formattedAddress || '';
 
 	// Transform delivery addresses to suggested address format

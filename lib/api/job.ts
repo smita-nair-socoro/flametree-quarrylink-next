@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
-import type { JobDTO } from '../types/job';
+import type { JobDTO, JobDetails } from '../types/job';
 
 /**
  * Mutation hook for creating a new job.
@@ -30,6 +30,14 @@ export const JobsListQueryOptions = () =>
   queryOptions({
     queryKey: JobKeys.list(),
     queryFn: () => APIClient.jobs.getAll(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const JobItemsQueryOptions = (jobId: number) =>
+  queryOptions({
+    queryKey: JobKeys.items(jobId),
+    queryFn: () => APIClient.jobs.getJobItems(jobId),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
