@@ -11,7 +11,7 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { jobColumns } from './(components)/(data-tables)/job/columns';
-// import { useJobActions } from '@/hooks/use-job-actions';
+import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
 import { JobsListQueryOptions } from '@/lib/api/job';
 
@@ -24,8 +24,7 @@ export default function CustomersPage() {
     })) as JobDTO[];
   }, [jobs]);
 
-  // const { actions, viewDialog, confirmDialogs } = useJobActions();
-  // const { viewDialog, confirmDialogs } = useJobActions();
+  const { actions, viewDialog, confirmDialogs } = useJobActions();
 
 
   const facetDefs: FacetDefinition[] = [
@@ -34,14 +33,14 @@ export default function CustomersPage() {
     { column: 'accountManagerName', title: 'Account Manager', icon: Plus },
   ];
 
-  // const handleRowClick = (row: JobDTO) => {
-  //   actions.view(row);
-  // };
+  const handleRowClick = (row: JobDTO) => {
+    actions.view(row);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {/* {confirmDialogs}
-      {viewDialog} */}
+      {confirmDialogs}
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Jobs</h1>
@@ -65,7 +64,7 @@ export default function CustomersPage() {
           facetDefination={facetDefs}
           searchPlaceHolder="Search jobs..."
           defaultSorting={[{ id: 'jobNumber', desc: false }]}
-        // onRowClick={handleRowClick}
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
