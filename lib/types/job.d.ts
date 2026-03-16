@@ -89,7 +89,7 @@ export interface JobLineItem {
   isDeleted: boolean;
 }
 
-export interface jobItems {
+export interface JobItem {
   id: number;
   jobId: number;
   jobItemType: JOB_LINE_ITEM_TYPE;
@@ -152,5 +152,5 @@ export interface jobItems {
 }
 
 export interface JobDetails extends JobDTO {
-  jobItems?: jobItems[];
+  jobItems?: JobItem[];
 }

@@ -6,19 +6,18 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { jobLineItemsColumns } from './(data-tables)/columns';
-import { jobItems } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { FormDialog } from '@/components/form-dialog';
 
 interface LineItemsTabProps {
-	jobLineItems: jobItems[];
+	jobLineItems: JobItem[];
 }
 
 export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
-	console.log(jobLineItems);
 
 	const pricingBreakdown = React.useMemo(() => {
 		return calculateJobPricing(jobLineItems);

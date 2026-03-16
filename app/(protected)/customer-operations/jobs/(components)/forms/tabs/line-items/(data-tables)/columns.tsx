@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { jobItems } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
@@ -12,7 +12,7 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 
-export const jobLineItemsColumns: ColumnDef<jobItems>[] = [
+export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 	{
 		id: 'productName',
 		accessorFn: (row) => row.product?.productName,

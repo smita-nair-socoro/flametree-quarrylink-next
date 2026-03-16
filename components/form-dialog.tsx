@@ -309,9 +309,9 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedJobLineItem && selectedJobLineItem) {
-    finalCustomId = selectedJobLineItem.productName;
-    finalPrimaryBadges = [selectedJobLineItem.quarryName];
-    finalSecondaryBadges = [selectedJobLineItem.supplierProductName];
+    finalCustomId = selectedJobLineItem.product.productName;
+    finalPrimaryBadges = [selectedJobLineItem.jobItemType];
+    finalSecondaryBadges = [selectedJobLineItem.product.productName];
   }
 
   if (headerInfo?.useSelectedDocket && selectedDocket) {

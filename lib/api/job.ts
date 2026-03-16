@@ -41,3 +41,11 @@ export const JobItemsQueryOptions = (jobId: number) =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const JobItemByIdQueryOptions = (jobItemId: number) =>
+  queryOptions({
+    queryKey: JobKeys.item(jobItemId),
+    queryFn: () => APIClient.jobs.getJobItemById(jobItemId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
