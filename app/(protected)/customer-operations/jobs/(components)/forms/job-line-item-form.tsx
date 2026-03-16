@@ -136,7 +136,7 @@ export default function JobLineItemForm({
 	// - Collection: Use selected quarry supplier's address
 	const pinnedAddress = isCollection
 		? selectedQuarrySupplierProduct?.quarrySupplier?.address
-		: selectedJob?.customerWithAddressResponseDto?.billingAddress;
+		: selectedJob?.customerDto?.billingAddress;
 	const pinnedAddressType = React.useMemo(
 		() => toAddressType(pinnedAddress),
 		[pinnedAddress]

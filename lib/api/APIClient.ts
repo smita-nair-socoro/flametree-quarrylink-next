@@ -40,7 +40,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
-import { JobDTO, JobLineItem, JobDetails } from '../types/job';
+import { JobDTO, JobDetails } from '../types/job';
 
 type RequestBody =
   | BodyInit

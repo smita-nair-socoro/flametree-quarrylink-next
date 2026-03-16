@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
-import type { JobDTO, JobDetails } from '../types/job';
+import type { JobDTO } from '../types/job';
 
 /**
  * Mutation hook for creating a new job.

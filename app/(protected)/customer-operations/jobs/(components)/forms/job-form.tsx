@@ -11,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import rawJson from '@/lib/tests/jobsDetailResponseData.json';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -28,10 +27,9 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState, EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
-import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
+import { GetTodaysDate } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import type { Job, JobDetails } from '@/lib/types/job';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { useCreateJob } from '@/lib/api/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -40,12 +38,10 @@ import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
-import DocketsTab from './tabs/dockets/dockets-tab';
+// import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { formatLocalDate } from '@/lib/utils/date';
-import { JobItemsQueryOptions } from '@/lib/api/job';
-import { JobLineItem } from '@/lib/types/job';
-import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
+
 
 interface FormProps {
   id?: number;
