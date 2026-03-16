@@ -2,6 +2,40 @@ import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
 import { CustomerDeliveryAddress } from './address';
 
+export interface DocketDTO {
+  id: number;
+  docketNumber: string;
+  jobId: number;
+  jobItemId: number;
+  docketStatus: DOCKET_STATUS;
+  stopReason?: string;
+  stoppedAt?: string;
+  resumedAt?: string;
+  pickUpAddressId?: number;
+  purchaseOrder?: string;
+  deliveryCollectionDate?: string;
+  deliveryCollectionStartTime?: string;
+  deliveryCollectionEndTime?: string;
+  customerContactName?: string;
+  customerContactPhone?: string;
+  docketEmailRecipients?: string[];
+  notes?: string;
+  driverId?: number;
+  truckId?: number;
+  truckType?: string;
+  loadSize?: number;
+  grossTruckWeight?: number;
+  tareTruckWeight?: number;
+  deliveryDistanceQuantity?: number;
+  deliveryDistanceUom?: string;
+  productEstimatedVolume?: number;
+  version: number;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
+}
+
 export interface Docket {
   id: number;
   job: Job;

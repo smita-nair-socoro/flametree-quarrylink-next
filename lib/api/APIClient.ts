@@ -41,6 +41,7 @@ import {
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 import { JobDTO } from '../types/job';
+import { DocketDTO } from '../types/docket';
 
 type RequestBody =
   | BodyInit
@@ -885,6 +886,17 @@ export const APIClient = {
       appClient.Post<JobDTO>('/socoro/quarrylink/api/job', {
         body: data,
       }),
+  },
+
+  dockets: {
+    updateStatus: (
+      docketId: number,
+      body: { docketStatus: string; reason?: string; notes?: string; latitude?: string; longitude?: string },
+    ) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/dockets/${docketId}/status`,
+        { body },
+      ),
   },
 
   tenants: {

@@ -18,6 +18,10 @@ import { StartTransitDescription, StartTransitContent } from '@/hooks/docket/sta
 import { VoidDocketDescription, VoidDocketContent } from '@/hooks/docket/void-docket-content';
 import { StartPreparingDescription, StartPreparingContent } from '@/hooks/docket/start-preparing-content';
 import { useDocketStore } from '@/app/stores/docket-store';
+import { useUpdateDocketStatus } from '@/lib/api/dockets';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -83,6 +87,89 @@ export function useDocketActions(docketData?: Docket | null) {
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
   const [selectedAction, setSelectedAction] = React.useState<SelectedAction | null>(null);
+
+  const updateDocketStatusMutation = useUpdateDocketStatus();
+
+  const handleStartTransit = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      notifySuccess('Docket status updated to In Transit');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleMarkArrived = async () => {
+    if (!docketData?.id) return;
+    try {
+      let latitude: string | undefined;
+      let longitude: string | undefined;
+
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              latitude = pos.coords.latitude.toFixed(7);
+              longitude = pos.coords.longitude.toFixed(7);
+              resolve();
+            },
+            () => resolve(), // proceed without coords if denied/unavailable
+          );
+        });
+      }
+
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.ARRIVED,
+        latitude,
+        longitude,
+      });
+      notifySuccess('Docket marked as Arrived');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleResumeTransit = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      notifySuccess('Docket transit resumed');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleStopTransit = async () => {
+    if (!docketData?.id) return;
+    try {
+      const composedReason = stopNotes.trim()
+        ? `${stopReason} - ${stopNotes.trim()}`
+        : stopReason;
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.STOPPED,
+        reason: composedReason,
+        notes: stopNotes.trim() || undefined,
+      });
+      notifySuccess('Docket transit stopped');
+      setActiveDialog(null);
+      setStopReason('');
+      setStopNotes('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
 
 
   const isVoidFormValid = React.useMemo(() => {
@@ -316,16 +403,16 @@ export function useDocketActions(docketData?: Docket | null) {
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
         preventOutsideClose={config.preventOutsideClose}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
             case 'startTransit':
-              console.log('Start transit confirmed:', docketData);
+              await handleStartTransit();
               break;
             case 'resumeTransit':
-              console.log('Resume transit confirmed:', docketData);
+              await handleResumeTransit();
               break;
             case 'markArrived':
-              console.log('Mark arrived confirmed:', docketData);
+              await handleMarkArrived();
               break;
             case 'markDelivered':
               console.log('Mark delivered confirmed:', docketData, {
@@ -338,10 +425,7 @@ export function useDocketActions(docketData?: Docket | null) {
               });
               break;
             case 'stop':
-              console.log('Stop transit confirmed:', docketData, {
-                stopReason,
-                stopNotes,
-              });
+              await handleStopTransit();
               break;
             case 'markReady':
               console.log('Mark ready confirmed:', docketData);
