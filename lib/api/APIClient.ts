@@ -889,13 +889,10 @@ export const APIClient = {
   },
 
   dockets: {
-    updateStatus: (
-      docketId: number,
-      body: { docketStatus: string; reason?: string; notes?: string; latitude?: string; longitude?: string },
-    ) =>
+    updateStatus: (docketId: number, formData: FormData) =>
       appClient.Put<DocketDTO>(
         `/socoro/quarrylink/api/dockets/${docketId}/status`,
-        { body },
+        { body: formData },
       ),
   },
 

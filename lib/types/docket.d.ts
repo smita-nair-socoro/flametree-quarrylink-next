@@ -29,6 +29,17 @@ export interface DocketDTO {
   deliveryDistanceQuantity?: number;
   deliveryDistanceUom?: string;
   productEstimatedVolume?: number;
+  deliveryStartedAt?: string;
+  arrivedAt?: string;
+  deliveredAt?: string;
+  arrivalLatitude?: number;
+  arrivalLongitude?: number;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
+  signatureImage?: string;
+  deliveryNotes?: string;
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
   version: number;
   createdBy?: string;
   createdAt?: string;
