@@ -1,5 +1,6 @@
 import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
-import { CustomerDTO } from './customer';
+import { CustomerDTO, CustomerWithAddressResponseDTO } from './customer';
+import { CustomerDeliveryAddress } from './address';
 
 export interface JobDTO {
   id: number;
@@ -92,8 +93,22 @@ export interface jobItems {
   id: number;
   jobId: number;
   jobItemType: JOB_LINE_ITEM_TYPE;
-  addressId: number;
-  address: Partial<CustomerDeliveryAddress>;
+  addressId?: number;
+  address?: {
+    id: number;
+    googlePlaceId: string;
+    formattedAddress: string;
+    streetDetailsPrimary: string;
+    streetDetailsOptional: string;
+    city: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    version: number;
+  };
   productId: number;
   product: {
     id: number;
@@ -109,6 +124,26 @@ export interface jobItems {
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
+
+  productCostUom: string;
+  productCostQty: number;
+  productCostPrice: number;
+  totalProductCostPrice: number;
+  productSellUom: string;
+  productSellQty: number;
+  productSellPrice: number;
+  totalProductSellPrice: number;
+
+  truckType: string;
+  truckCostUom: string;
+  truckCostQty: number;
+  truckCostPrice: number;
+  totalTruckCostPrice: number;
+  truckSellUom: string;
+  truckSellQty: number;
+  truckSellPrice: number;
+  totalTruckSellPrice: number;
+
   selectedCostUnit: string;
   selectedSellUnit: string;
   selectedTruckRateType: string;

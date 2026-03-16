@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { JobLineItem } from '@/lib/types/job';
+import { jobItems } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
@@ -12,17 +12,18 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 
-export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
+export const jobLineItemsColumns: ColumnDef<jobItems>[] = [
 	{
 		id: 'productName',
-		accessorFn: (row) => row.productName,
+		accessorFn: (row) => row.product?.productName,
 		header: () => {
 			return <div>Product</div>;
 		},
 		cell: ({ row }) => {
-			const productName = row.original.productName || 'N/A';
+			const productName = row.original.product?.productName || 'N/A';
 			const deliveryAddress =
-				row.original.customerDeliveryAddress?.address?.formattedAddress || '';
+				row.original.address?.formattedAddress || '';
+			console.log(deliveryAddress);
 			return (
 				<div className="min-w-0 w-[70px] sm:w-[90px] md:w-[110px] lg:w-[130px] xl:w-[150px]">
 					<Tooltip delayDuration={300}>
@@ -50,18 +51,18 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 	},
 	{
 		id: 'type',
-		accessorFn: (row) => row.type,
+		accessorFn: (row) => row.jobItemType,
 		header: () => {
 			return <div>Type</div>;
 		},
 		cell: ({ row }) => {
-			return <TableBadges names={[row.original.type]} visibleCount={1} />;
+			return <TableBadges names={[row.original.jobItemType]} visibleCount={1} />;
 		},
 		meta: 'Type',
 	},
 	{
 		id: 'quarryName',
-		accessorFn: (row) => row.quarryName,
+		accessorFn: (row) => row.quarrySupplierId,
 		header: () => {
 			return <div>Supplier</div>;
 		},
@@ -86,7 +87,7 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 	},
 	{
 		id: 'totalCostPrice',
-		accessorFn: (row) => row.totalProductCostPrice + row.totalTruckCostPrice,
+		accessorFn: (row) => row.totalProductCostPrice,
 		header: () => {
 			return (
 				<div className="flex items-center gap-1">
@@ -104,15 +105,14 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 		},
 		cell: ({ row }) => {
 			const total =
-				(row.original.totalProductCostPrice ?? 0) +
-				(row.original.totalTruckCostPrice ?? 0);
+				(row.original.totalProductCostPrice ?? 0);
 			return <div>${centsToDollars(total)}</div>;
 		},
 		meta: 'Total Cost Price',
 	},
 	{
 		id: 'totalSellPrice',
-		accessorFn: (row) => row.totalProductSellPrice + row.totalTruckSellPrice,
+		accessorFn: (row) => row.totalProductSellPrice,
 		header: () => {
 			return (
 				<div className="flex items-center gap-1">
@@ -129,9 +129,9 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 			);
 		},
 		cell: ({ row }) => {
+			console.log(row.original);
 			const total =
-				(row.original.totalProductSellPrice ?? 0) +
-				(row.original.totalTruckSellPrice ?? 0);
+				(row.original.totalProductSellPrice ?? 0);
 			return <div>${centsToDollars(total)}</div>;
 		},
 		meta: 'Total Sell Price',
@@ -195,12 +195,26 @@ export const jobLineItemsColumns: ColumnDef<JobLineItem>[] = [
 
 	{
 		id: 'grossProfit',
-		accessorFn: (row) => row.grossProfit,
+		accessorFn: (row) => {
+			// Calculate gross profit
+			const totalCost = (row.totalProductCostPrice || 0) + (row.jobItemType === 'COLLECTION' ? 0 : (row.totalTruckCostPrice || 0));
+			const totalSell = (row.totalProductSellPrice || 0) + (row.jobItemType === 'COLLECTION' ? 0 : (row.totalTruckSellPrice || 0));
+
+			// Calculate GST (assuming prices are ex-GST)
+			const gstRate = 0.1;
+			const totalCostIncGst = totalCost * (1 + gstRate);
+			const totalSellIncGst = totalSell * (1 + gstRate);
+
+			const grossProfitCents = totalSellIncGst - totalCostIncGst;
+			const grossProfitPercentage = totalSellIncGst > 0 ? (grossProfitCents / totalSellIncGst) * 100 : 0;
+
+			return grossProfitPercentage;
+		},
 		header: () => {
 			return <div>GP</div>;
 		},
 		cell: ({ row }) => {
-			const grossProfit = row.original.grossProfit;
+			const grossProfit = row.getValue('grossProfit') as number;
 			return <div>{grossProfit.toFixed(2)}%</div>;
 		},
 		meta: 'Gross Profit',

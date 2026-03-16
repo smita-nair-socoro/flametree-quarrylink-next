@@ -10,10 +10,10 @@ import {
 	DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useJobLineItemActions } from '@/hooks/use-jobs-line-item-actions';
-import { JobLineItem } from '@/lib/types/job';
+import { JobLineItem, jobItems } from '@/lib/types/job';
 
 interface JobLineItemTableActionsProps {
-	jobLineItem: JobLineItem;
+	jobLineItem: JobLineItem | jobItems;
 }
 
 export function JobLineItemTableActions({

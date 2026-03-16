@@ -1,5 +1,5 @@
 import { centsToDollars } from './currency';
-import { JobLineItem } from '../types/job';
+import { JobLineItem, jobItems } from '../types/job';
 
 /**
  * Job pricing breakdown interface
@@ -23,7 +23,7 @@ export interface JobPricingBreakdown {
 }
 
 export const calculateJobPricing = (
-  lineItems: JobLineItem[] | undefined | null,
+  lineItems: (JobLineItem | jobItems)[] | undefined | null,
 ): JobPricingBreakdown => {
   // Handle empty or null line items
   if (!lineItems || lineItems.length === 0) {
@@ -50,7 +50,8 @@ export const calculateJobPricing = (
   );
   const totalTruckCostCents = lineItems.reduce(
     (sum, item) => {
-      if (item.type === 'COLLECTION') return sum;
+      const type = 'type' in item ? item.type : item.jobItemType;
+      if (type === 'COLLECTION') return sum;
       return sum + (item.totalTruckCostPrice || 0);
     },
     0,
@@ -61,7 +62,8 @@ export const calculateJobPricing = (
   );
   const totalTruckSellCents = lineItems.reduce(
     (sum, item) => {
-      if (item.type === 'COLLECTION') return sum;
+      const type = 'type' in item ? item.type : item.jobItemType;
+      if (type === 'COLLECTION') return sum;
       return sum + (item.totalTruckSellPrice || 0);
     },
     0,
