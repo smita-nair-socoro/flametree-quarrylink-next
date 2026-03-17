@@ -71,12 +71,6 @@ export type DocketActionKey =
   | 'cashSale'
   | 'cashReceipts';
 
-interface ActionDefinition {
-  label: string;
-  icon: LucideIcon;
-  destructive?: boolean;
-}
-
 interface DialogConfig {
   title: string;
   description?: React.ReactNode;
