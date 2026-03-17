@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { Docket } from '@/lib/types/docket';
-import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { DOCKET_STATUS, DOCKET_TYPE } from '@/lib/types/docket-enums';
 
 interface DocketTableActionsProps {
   docket: Docket;

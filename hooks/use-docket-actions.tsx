@@ -8,15 +8,42 @@ import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { DocketActionButtons } from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-action-buttons';
-import { MarkArrivedDescription, MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
-import { MarkDeliveredDescription, MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
-import { MarkCollectedDescription, MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
-import { MarkReadyDescription, MarkReadyContent } from '@/hooks/docket/mark-ready-content';
-import { ResumeTransitDescription, ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
-import { StopTransitDescription, StopTransitContent } from '@/hooks/docket/stop-transit-content';
-import { StartTransitDescription, StartTransitContent } from '@/hooks/docket/start-transit-content';
-import { VoidDocketDescription, VoidDocketContent } from '@/hooks/docket/void-docket-content';
-import { StartPreparingDescription, StartPreparingContent } from '@/hooks/docket/start-preparing-content';
+import {
+  MarkArrivedDescription,
+  MarkArrivedContent,
+} from '@/hooks/docket/mark-arrived-content';
+import {
+  MarkDeliveredDescription,
+  MarkDeliveredContent,
+} from '@/hooks/docket/mark-delivered-content';
+import {
+  MarkCollectedDescription,
+  MarkCollectedContent,
+} from '@/hooks/docket/mark-collected-content';
+import {
+  MarkReadyDescription,
+  MarkReadyContent,
+} from '@/hooks/docket/mark-ready-content';
+import {
+  ResumeTransitDescription,
+  ResumeTransitContent,
+} from '@/hooks/docket/resume-transit-content';
+import {
+  StopTransitDescription,
+  StopTransitContent,
+} from '@/hooks/docket/stop-transit-content';
+import {
+  StartTransitDescription,
+  StartTransitContent,
+} from '@/hooks/docket/start-transit-content';
+import {
+  VoidDocketDescription,
+  VoidDocketContent,
+} from '@/hooks/docket/void-docket-content';
+import {
+  StartPreparingDescription,
+  StartPreparingContent,
+} from '@/hooks/docket/start-preparing-content';
 import { useDocketStore } from '@/app/stores/docket-store';
 import { useUpdateDocketStatus } from '@/lib/api/dockets';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -57,11 +84,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
@@ -70,7 +97,6 @@ interface DialogConfig {
 interface SelectedAction {
   key: string;
 }
-
 
 export function useDocketActions(docketData?: Docket | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
@@ -86,9 +112,51 @@ export function useDocketActions(docketData?: Docket | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
-  const [selectedAction, setSelectedAction] = React.useState<SelectedAction | null>(null);
+  const [selectedAction, setSelectedAction] =
+    React.useState<SelectedAction | null>(null);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
+
+  const dataURLtoFile = (dataUrl: string, filename: string): File => {
+    const [header, data] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
+    const binary = atob(data);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i);
+    }
+    return new File([array], filename, { type: mime });
+  };
+
+  const handleMarkDelivered = async () => {
+    if (!docketData?.id) return;
+    try {
+      const signatureFile = receiverSignature
+        ? dataURLtoFile(receiverSignature, 'signature.png')
+        : null;
+
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.DELIVERED,
+        deliveredProductsConfirmed,
+        receiverOnSite,
+        receiverName: receiverName.trim() || undefined,
+        signatureImage: signatureFile,
+        unloadedPhoto,
+        receiptPhoto,
+      });
+      notifySuccess('Docket marked as Delivered');
+      setActiveDialog(null);
+      setDeliveredProductsConfirmed(false);
+      setUnloadedPhoto(null);
+      setReceiptPhoto(null);
+      setReceiverOnSite(false);
+      setReceiverName('');
+      setReceiverSignature('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
 
   const handleStartTransit = async () => {
     if (!docketData?.id) return;
@@ -150,6 +218,48 @@ export function useDocketActions(docketData?: Docket | null) {
     }
   };
 
+  const handleMarkCollected = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.COLLECTED,
+      });
+      notifySuccess('Docket marked as Collected');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleMarkReady = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.READY,
+      });
+      notifySuccess('Docket marked as Ready for Collection');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleStartPreparing = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.PREPARING,
+      });
+      notifySuccess('Docket status updated to Preparing');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handleStopTransit = async () => {
     if (!docketData?.id) return;
     try {
@@ -170,7 +280,6 @@ export function useDocketActions(docketData?: Docket | null) {
       notifyError(extractErrorMessage(error));
     }
   };
-
 
   const isVoidFormValid = React.useMemo(() => {
     if (!voidReason) return false;
@@ -332,7 +441,6 @@ export function useDocketActions(docketData?: Docket | null) {
     };
   };
 
-
   const actions = {
     view: (docket?: Docket | null) => {
       const toSelect = docket ?? docketData;
@@ -382,8 +490,6 @@ export function useDocketActions(docketData?: Docket | null) {
     },
   };
 
-
-
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
     if (activeDialog !== key) return null;
 
@@ -415,23 +521,16 @@ export function useDocketActions(docketData?: Docket | null) {
               await handleMarkArrived();
               break;
             case 'markDelivered':
-              console.log('Mark delivered confirmed:', docketData, {
-                deliveredProductsConfirmed,
-                hasUnloadedPhoto: Boolean(unloadedPhoto),
-                hasReceiptPhoto: Boolean(receiptPhoto),
-                receiverOnSite,
-                receiverName,
-                receiverSignature,
-              });
+              await handleMarkDelivered();
               break;
             case 'stop':
               await handleStopTransit();
               break;
             case 'markReady':
-              console.log('Mark ready confirmed:', docketData);
+              await handleMarkReady();
               break;
             case 'markCollected':
-              console.log('Mark collected confirmed:', docketData);
+              await handleMarkCollected();
               break;
             case 'cancel':
               console.log('Cancel docket confirmed:', docketData);
@@ -443,7 +542,7 @@ export function useDocketActions(docketData?: Docket | null) {
               });
               break;
             case 'startPreparing':
-              console.log('Start preparing confirmed:', docketData);
+              await handleStartPreparing();
               break;
             case 'cashSale':
               console.log('Cash sale confirmed:', docketData);
