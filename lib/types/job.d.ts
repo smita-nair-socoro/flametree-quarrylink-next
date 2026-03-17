@@ -15,7 +15,7 @@ export interface JobDTO {
   docketEmail?: string;
   uninvoicedDockets?: number;
   quoteId?: number;
-  additionalEmails?: string[];
+  additionalEmailRecipients?: string[];
   estimatedStartDate?: string;
   startTimeWindow?: string;
   endTimeWindow?: string;

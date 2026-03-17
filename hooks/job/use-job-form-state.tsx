@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { JobItemsQueryOptions } from '@/lib/api/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
-import { JobLineItem, jobItems } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 
 export const EMPTY_JOB_FORM_VALUES = {
   customerId: 0,
@@ -23,7 +23,7 @@ export function useJobFormState(jobId: number, isEditing: boolean = false) {
     enabled: isEditing && jobId > 0,
   });
 
-  const mappedJobItems: jobItems[] = React.useMemo(() => {
+  const mappedJobItems: JobItem[] = React.useMemo(() => {
     if (!jobDetails?.jobItems) return [];
     return jobDetails.jobItems
   }, [jobDetails?.jobItems]);

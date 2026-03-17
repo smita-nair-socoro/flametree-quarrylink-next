@@ -95,13 +95,10 @@ export default function JobForm({
         deliveryWindowEnd: endWindow,
         contactPersonName: jobDetails.contactPersonName,
         phone: jobDetails.contactPersonPhone,
-        // receiptEmail: jobDetails.additionalEmails.join(',') || '',
-        // phone: jobDetails.contactPersonPhone || '',
+        receiptEmail: (jobDetails.additionalEmailRecipients || []).join(','),
         accountManagerSub:
           customers.find((c) => c.id === jobDetails.customerId)?.accountManagerSub
       });
-
-      console.log(jobDetails)
 
     }
   }, [isEditing, jobDetails, jobForm]);
@@ -210,16 +207,13 @@ export default function JobForm({
       // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
       // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
-        ? Array.isArray(values.receiptEmail)
-          ? values.receiptEmail
-          : [values.receiptEmail]
+        ? values.receiptEmail.split(',').map((e) => e.trim()).filter(Boolean)
         : [];
 
       const additionalEmails = receiptEmails.filter(
         (email) => email !== selectedCustomer?.email,
       );
 
-      console.log(additionalEmails);
 
       await createJob.mutateAsync({
         customerId: values.customerId,
@@ -228,7 +222,7 @@ export default function JobForm({
         contactPersonName: selectedCustomer?.contactName,
         contactPersonPhone: values.phone,
         docketEmail: selectedCustomer?.email,
-        additionalEmails,
+        additionalEmailRecipients: additionalEmails,
         jobStatus: JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
         startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,

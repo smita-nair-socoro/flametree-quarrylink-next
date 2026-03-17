@@ -23,7 +23,6 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 			const productName = row.original.product?.productName || 'N/A';
 			const deliveryAddress =
 				row.original.address?.formattedAddress || '';
-			console.log(deliveryAddress);
 			return (
 				<div className="min-w-0 w-[70px] sm:w-[90px] md:w-[110px] lg:w-[130px] xl:w-[150px]">
 					<Tooltip delayDuration={300}>
@@ -129,7 +128,6 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 			);
 		},
 		cell: ({ row }) => {
-			console.log(row.original);
 			const total =
 				(row.original.totalProductSellPrice ?? 0);
 			return <div>${centsToDollars(total)}</div>;
