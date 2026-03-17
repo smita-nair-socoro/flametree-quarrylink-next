@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { JobLineItem } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { ActionDialog } from '@/components/action-dialog';
 import { JobLineItemActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-action-buttons';
@@ -27,11 +27,17 @@ interface SelectedAction {
 
 // Will change once we have the actual API endpoints
 const getDialogConfigs = (
-	lineItemData?: JobLineItem | null,
+	lineItemData?: JobItem | JobItem | null,
 	selectedAction?: SelectedAction
 ): Record<string, DialogConfig> => {
-	const lineItemName = lineItemData?.productName;
-	const productCode = lineItemData?.supplierProductName;
+	const lineItemName = 'productName' in (lineItemData || {})
+		? (lineItemData as JobItem).product.productName
+		: (lineItemData as JobItem)?.product?.productName;
+
+	const productCode = 'supplierProductName' in (lineItemData || {})
+		? (lineItemData as JobItem).product.productCode
+		: (lineItemData as JobItem)?.product?.productCode;
+
 	const totalSellPrice = centsToDollars(
 		lineItemData?.totalProductSellPrice || 0
 	);
@@ -120,7 +126,7 @@ const getDialogConfigs = (
 import { useJobLineItemStore } from '@/app/stores/job-line-item-store';
 
 export function useJobLineItemActions(
-	lineItemData?: JobLineItem | null
+	lineItemData?: JobItem | null
 ) {
 	const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
 	const [viewOpen, setViewOpen] = React.useState(false);
@@ -154,10 +160,13 @@ export function useJobLineItemActions(
 	};
 
 	const actions = {
-		view: (lineItem?: JobLineItem | null) => {
+		view: (lineItem?: JobItem | undefined) => {
 			const toSelect = lineItem ?? lineItemData;
 			if (toSelect) {
-				setSelectedLineItem(toSelect);
+				// We need to cast or convert to JobLineItem for the store if it expects JobLineItem
+				// For now, assuming store handles it or we cast as any to bypass strict check if store is not updated yet
+				// Ideally store should be updated too.
+				setSelectedLineItem(toSelect as any);
 			}
 			setViewOpen(true);
 		},

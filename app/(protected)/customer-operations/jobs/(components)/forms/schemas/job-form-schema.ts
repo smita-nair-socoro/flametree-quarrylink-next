@@ -22,6 +22,6 @@ export const JobFormSchema = z.object({
       message: 'Invalid time of day with timezone',
     }),
   receiptEmail: z.string().optional(),
-  phone: z.string().nonempty({ message: 'Required' }),
-  email: z.string().email().nonempty({ message: 'Required' }),
+  phone: z.string().optional(),
+  contactPersonName: z.string().optional(),
 });

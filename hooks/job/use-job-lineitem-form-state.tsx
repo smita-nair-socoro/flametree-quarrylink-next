@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 
-import rawJson from '@/lib/tests/jobsLineItemsResponseData.json';
 import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-form-schema';
 import {
 	ProductsListQueryOptions,
@@ -14,18 +13,19 @@ import {
 	CustomerDeliveryAddressesQueryOptions,
 	useUpdateDeliveryAddressUsage,
 } from '@/lib/api/customer';
+import { JobItemByIdQueryOptions } from '@/lib/api/job';
 import { useSelectedJob } from '@/app/stores/job-store';
 // import { notifyError, notifySuccess } from '@/lib/toast';
-import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
+import { centsToDollarsNum } from '@/lib/utils/currency';
 // import {
 // 	extractErrorMessage,
 // 	extractErrorResponse,
 // } from '@/lib/utils/error-message-helper';
-import { JobLineItem } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
-import { AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
-import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
+import { AddressType, Address } from '@/lib/types/address';
+import { toAddressType } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewJobLineItemFormSchema>;
 
@@ -64,25 +64,24 @@ export function useLineItemFormState({
 	const isReadOnly = isEditing && !canEdit;
 
 	const jobLineItemId = Number(id || 0);
-	const jobLineItemData = React.useMemo(() => {
-		return rawJson.items.find((jobLineItem) => jobLineItem.id === jobLineItemId) as JobLineItem;
-	}, [jobLineItemId]);
+
+	const { data: jobLineItemData } = useQuery({
+		...JobItemByIdQueryOptions(jobLineItemId),
+		enabled: isEditing && jobLineItemId > 0,
+	});
 
 	const [isSubmitting, setIsSubmitting] = React.useState(false);
 	const selectedJob = useSelectedJob();
 
 	const getFormValuesFromLineItem = React.useCallback((): FormValues => {
 		return {
-			type: jobLineItemData?.type ?? JOB_LINE_ITEM_TYPE.DELIVERY,
+			type: jobLineItemData?.jobItemType ?? JOB_LINE_ITEM_TYPE.DELIVERY,
 			address: isEditing
-				? jobLineItemData?.customerDeliveryAddress?.address
-					?.formattedAddress ?? ''
+				? jobLineItemData?.address?.formattedAddress ?? ''
 				: '',
 			productId: isEditing ? jobLineItemData?.productId ?? 0 : 0,
 			quarrySupplierId: isEditing ? jobLineItemData?.quarrySupplierId ?? 0 : 0,
-			supplierProductName: isEditing
-				? jobLineItemData?.supplierProductName ?? ''
-				: '',
+			supplierProductName: '', // Not present in jobItems, will be populated by effect
 			productCostUom: isEditing ? jobLineItemData?.productCostUom ?? '' : '',
 			productCostQty: isEditing ? jobLineItemData?.productCostQty ?? 0 : 0,
 			productCostPrice: isEditing
@@ -116,7 +115,7 @@ export function useLineItemFormState({
 			totalTruckSellPrice: isEditing
 				? centsToDollarsNum(jobLineItemData?.totalTruckSellPrice || 0)
 				: 0,
-			grossProfit: isEditing ? jobLineItemData?.grossProfit ?? 0 : 0,
+			grossProfit: 0, // Not present in jobItems, calculated in form
 		};
 	}, [isEditing, jobLineItemData]);
 
@@ -127,7 +126,7 @@ export function useLineItemFormState({
 	});
 
 	const [addressInput, setAddressInput] = React.useState<AddressType>(() =>
-		toAddressType(jobLineItemData?.customerDeliveryAddress?.address ?? null)
+		toAddressType((jobLineItemData?.address as unknown as Address) ?? null)
 	);
 	const [addressSearchInput, setAddressSearchInput] = React.useState('');
 
@@ -149,13 +148,13 @@ export function useLineItemFormState({
 			setAddressSearchInput('');
 			return;
 		}
-		if (!jobLineItemData?.customerDeliveryAddress?.address) {
+		if (!jobLineItemData?.address) {
 			return;
 		}
 		setAddressInput(
-			toAddressType(jobLineItemData.customerDeliveryAddress.address)
+			toAddressType(jobLineItemData.address as unknown as Address)
 		);
-	}, [isEditing, jobLineItemData?.customerDeliveryAddress?.address]);
+	}, [isEditing, jobLineItemData?.address]);
 
 	const watchedAddress = form.watch('address');
 	React.useEffect(() => {
@@ -187,7 +186,7 @@ export function useLineItemFormState({
 
 	// If collection, zero out truck fields so they don't affect totals / submit payload
 	React.useEffect(() => {
-		if (jobLineItemData?.type !== JOB_LINE_ITEM_TYPE.COLLECTION) return;
+		if (jobLineItemData?.jobItemType !== JOB_LINE_ITEM_TYPE.COLLECTION) return;
 		const opts = { shouldValidate: true, shouldDirty: false } as const;
 		form.setValue('truckType', '', opts);
 		form.setValue('truckCostUom', '', opts);
@@ -198,7 +197,7 @@ export function useLineItemFormState({
 		form.setValue('truckSellPrice', 0, opts);
 		form.setValue('totalTruckCostPrice', 0, opts);
 		form.setValue('totalTruckSellPrice', 0, opts);
-	}, [jobLineItemData?.type, form]);
+	}, [jobLineItemData?.jobItemType, form]);
 
 	// Products
 	const { data: products } = useQuery(ProductsListQueryOptions());
@@ -213,9 +212,9 @@ export function useLineItemFormState({
 	// Customer delivery addresses (for DELIVERY quote type)
 	const customerId =
 		selectedJob?.customerId ||
-		selectedJob?.customerWithAddressResponseDto?.id ||
+		selectedJob?.customerDto?.id ||
 		0;
-	const isDeliveryQuote = jobLineItemData?.type === JOB_LINE_ITEM_TYPE.DELIVERY;
+	const isDeliveryQuote = jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY;
 	const { data: deliveryAddresses } = useQuery({
 		...CustomerDeliveryAddressesQueryOptions(customerId, 5),
 		enabled: !!customerId && isDeliveryQuote && !isEditing,
@@ -240,7 +239,7 @@ export function useLineItemFormState({
 
 	// Get billing address for comparison (pinned address for delivery quotes)
 	const billingAddress =
-		selectedJob?.customerWithAddressResponseDto?.billingAddress;
+		selectedJob?.customerDto?.billingAddress;
 	const billingAddressFormatted = billingAddress?.formattedAddress || '';
 
 	// Transform delivery addresses to suggested address format
@@ -343,7 +342,7 @@ export function useLineItemFormState({
 			form.setValue('truckSellPrice', 0, opts);
 
 			// Clear address when product changes for Collection quotes
-			if (jobLineItemData?.type === JOB_LINE_ITEM_TYPE.COLLECTION) {
+			if (jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION) {
 				form.setValue('address', '', opts);
 				setAddressInput({
 					address1: '',
@@ -365,7 +364,7 @@ export function useLineItemFormState({
 		isEditing,
 		jobLineItemData?.productId,
 		form,
-		jobLineItemData?.type,
+		jobLineItemData?.jobItemType,
 	]);
 
 	// Reset pricing and address when quarry changes
@@ -393,7 +392,7 @@ export function useLineItemFormState({
 			form.setValue('truckSellPrice', 0, opts);
 
 			// Clear address when quarry changes for Collection quotes
-			if (jobLineItemData?.type === JOB_LINE_ITEM_TYPE.COLLECTION) {
+			if (jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION) {
 				form.setValue('address', '', opts);
 				setAddressInput({
 					address1: '',
@@ -415,7 +414,7 @@ export function useLineItemFormState({
 		isEditing,
 		jobLineItemData?.quarrySupplierId ?? 0,
 		form,
-		jobLineItemData?.type,
+		jobLineItemData?.jobItemType,
 	]);
 
 	// Populate supplierProductName from product details response

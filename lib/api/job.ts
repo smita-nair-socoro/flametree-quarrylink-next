@@ -1,4 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
 import type { JobDTO } from '../types/job';
@@ -11,7 +16,8 @@ export const useCreateJob = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Omit<JobDTO, 'id' | 'jobNumber'>) => APIClient.jobs.create(data),
+    mutationFn: (data: Omit<JobDTO, 'id' | 'jobNumber'>) =>
+      APIClient.jobs.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
@@ -19,3 +25,27 @@ export const useCreateJob = () => {
     },
   });
 };
+
+export const JobsListQueryOptions = () =>
+  queryOptions({
+    queryKey: JobKeys.list(),
+    queryFn: () => APIClient.jobs.getAll(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const JobItemsQueryOptions = (jobId: number) =>
+  queryOptions({
+    queryKey: JobKeys.items(jobId),
+    queryFn: () => APIClient.jobs.getJobItems(jobId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const JobItemByIdQueryOptions = (jobItemId: number) =>
+  queryOptions({
+    queryKey: JobKeys.item(jobItemId),
+    queryFn: () => APIClient.jobs.getJobItemById(jobItemId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
