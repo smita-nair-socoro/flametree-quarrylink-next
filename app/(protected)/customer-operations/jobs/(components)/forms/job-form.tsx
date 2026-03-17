@@ -91,7 +91,8 @@ export default function JobForm({
       .map((customer) => ({
         label: customer.businessName || customer.contactName,
         value: customer.id!,
-      }));
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [customers]);
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
