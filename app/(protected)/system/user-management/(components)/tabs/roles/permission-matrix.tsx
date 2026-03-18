@@ -53,7 +53,7 @@ export function PermissionMatrix({
       <CardHeader className="py-1 md:py-1 pb-0">
         <div className="space-y-0.75">
           <div className="flex items-baseline gap-2">
-            <h3 className="text-[13px] font-normal md:text-[13px] md:font-normal text-[15px] font-semibold">
+            <h3 className="md:text-[13px] md:font-normal text-[15px] font-semibold">
               Permission Matrix
             </h3>
             <span
@@ -144,34 +144,41 @@ export function PermissionMatrix({
               (role) => module.permissions[getRoleKey(role.name)],
             );
             return (
-            <div key={module.name} className="py-3 px-6">
-              <p className={cn('text-[14px] font-medium mb-2', !hasAnyAccess && 'text-[#71717B]')}>{module.name}</p>
-              <div className="flex flex-wrap gap-2">
-                {roles.map((role) => {
-                  const roleKey = getRoleKey(role.name);
-                  const hasAccess = module.permissions[roleKey];
-                  return (
-                    <span
-                      key={role.name}
-                      className={cn(
-                        'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium border',
-                        hasAccess
-                          ? 'bg-[#DCFCE7] border-[#BBF7D0] text-[#15803D]'
-                          : 'bg-[#F3F4F6] border-[#E5E7EB] text-[#6B7280]',
-                      )}
-                    >
-                      {hasAccess ? (
-                        <Check className="h-3 w-3" />
-                      ) : (
-                        <X className="h-3 w-3" />
-                      )}
-                      {role.name}
-                    </span>
-                  );
-                })}
+              <div key={module.name} className="py-3 px-6">
+                <p
+                  className={cn(
+                    'text-[14px] font-medium mb-2',
+                    !hasAnyAccess && 'text-[#71717B]',
+                  )}
+                >
+                  {module.name}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {roles.map((role) => {
+                    const roleKey = getRoleKey(role.name);
+                    const hasAccess = module.permissions[roleKey];
+                    return (
+                      <span
+                        key={role.name}
+                        className={cn(
+                          'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium border',
+                          hasAccess
+                            ? 'bg-[#DCFCE7] border-[#BBF7D0] text-[#15803D]'
+                            : 'bg-[#F3F4F6] border-[#E5E7EB] text-[#6B7280]',
+                        )}
+                      >
+                        {hasAccess ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
+                        {role.name}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
+            );
           })}
         </div>
       </CardContent>
