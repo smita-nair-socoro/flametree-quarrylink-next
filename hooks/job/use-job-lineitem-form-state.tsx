@@ -13,19 +13,20 @@ import {
 	CustomerDeliveryAddressesQueryOptions,
 	useUpdateDeliveryAddressUsage,
 } from '@/lib/api/customer';
-import { JobItemByIdQueryOptions } from '@/lib/api/job';
+import { JobItemByIdQueryOptions, useCreateJobItem } from '@/lib/api/job';
 import { useSelectedJob } from '@/app/stores/job-store';
-// import { notifyError, notifySuccess } from '@/lib/toast';
-import { centsToDollarsNum } from '@/lib/utils/currency';
-// import {
-// 	extractErrorMessage,
-// 	extractErrorResponse,
-// } from '@/lib/utils/error-message-helper';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
+import {
+	extractErrorMessage,
+	extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
 import { JobItem } from '@/lib/types/job';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
-import { AddressType, Address } from '@/lib/types/address';
+import { AddressType, Address, CustomerDeliveryAddress } from '@/lib/types/address';
 import { toAddressType } from '@/lib/utils/address-helper';
+import { toAddressPayload } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewJobLineItemFormSchema>;
 
@@ -34,7 +35,6 @@ export type SelectOption = { label: string; value: number | string };
 type Props = {
 	id?: number;
 	canEdit?: boolean;
-	onCancel?: () => void;
 	onSuccess?: () => void;
 	onSaved?: () => void;
 };
@@ -58,7 +58,8 @@ type PricingBreakdown = {
 export function useLineItemFormState({
 	id,
 	canEdit,
-
+	onSuccess,
+	onSaved,
 }: Props) {
 	const isEditing = Boolean(id && id > 0);
 	const isReadOnly = isEditing && !canEdit;
@@ -77,7 +78,7 @@ export function useLineItemFormState({
 		return {
 			type: jobLineItemData?.jobItemType ?? JOB_LINE_ITEM_TYPE.DELIVERY,
 			address: isEditing
-				? jobLineItemData?.address?.formattedAddress ?? ''
+				? jobLineItemData?.customerDeliveryAddress?.address?.formattedAddress ?? ''
 				: '',
 			productId: isEditing ? jobLineItemData?.productId ?? 0 : 0,
 			quarrySupplierId: isEditing ? jobLineItemData?.quarrySupplierId ?? 0 : 0,
@@ -126,7 +127,7 @@ export function useLineItemFormState({
 	});
 
 	const [addressInput, setAddressInput] = React.useState<AddressType>(() =>
-		toAddressType((jobLineItemData?.address as unknown as Address) ?? null)
+		toAddressType((jobLineItemData?.customerDeliveryAddress?.address) ?? null)
 	);
 	const [addressSearchInput, setAddressSearchInput] = React.useState('');
 
@@ -148,13 +149,13 @@ export function useLineItemFormState({
 			setAddressSearchInput('');
 			return;
 		}
-		if (!jobLineItemData?.address) {
+		if (!jobLineItemData?.customerDeliveryAddress?.address) {
 			return;
 		}
 		setAddressInput(
-			toAddressType(jobLineItemData.address as unknown as Address)
+			toAddressType(jobLineItemData.customerDeliveryAddress?.address)
 		);
-	}, [isEditing, jobLineItemData?.address]);
+	}, [isEditing, jobLineItemData?.customerDeliveryAddress?.address]);
 
 	const watchedAddress = form.watch('address');
 	React.useEffect(() => {
@@ -174,15 +175,6 @@ export function useLineItemFormState({
 			keepTouched: false,
 		});
 	}, [form, getFormValuesFromLineItem, id, isEditing, jobLineItemData]);
-
-	// Keep quoteType in sync (drives conditional validation + UI)
-	// React.useEffect(() => {
-	// 	if (!jobLineItemType) return;
-	// 	form.setValue('quoteType', quoteType, {
-	// 		shouldValidate: true,
-	// 		shouldDirty: false,
-	// 	});
-	// }, [quoteType, form]);
 
 	// If collection, zero out truck fields so they don't affect totals / submit payload
 	React.useEffect(() => {
@@ -259,6 +251,7 @@ export function useLineItemFormState({
 				customerDeliveryAddress: addr,
 			}));
 	}, [deliveryAddresses, billingAddressFormatted]);
+
 
 	// Selected product id
 	const selectedProductId = Number(form.watch('productId') || 0);
@@ -451,19 +444,19 @@ export function useLineItemFormState({
 	// Static options
 	const truckTypeOptions: SelectOption[] = React.useMemo(
 		() => [
-			{ label: 'Truck', value: 'Truck' },
-			{ label: 'Semi-Trailer', value: 'Semi-Trailer' },
-			{ label: 'Truck + Trailer', value: 'Truck + Trailer' },
-			{ label: 'Rigid truck', value: 'Rigid truck' },
-			{ label: 'B-Double', value: 'B-Double' },
-			{ label: 'Road train', value: 'Road train' },
-			{ label: 'Dog Truck', value: 'Dog Truck' },
-			{ label: 'Flatbed', value: 'Flatbed' },
-			{ label: 'Tipper', value: 'Tipper' },
-			{ label: 'Semi-Tipper', value: 'Semi-Tipper' },
-			{ label: 'Side-Tipper', value: 'Side-Tipper' },
-			{ label: 'Truck and Dog', value: 'Truck and Dog' },
-			{ label: 'Agitator truck', value: 'Agitator truck' },
+			{ label: 'Truck', value: 'TRUCK' },
+			{ label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
+			{ label: 'Truck + Trailer', value: 'TRUCK_TRAILER' },
+			{ label: 'Rigid truck', value: 'RIGID_TRUCK' },
+			{ label: 'B-Double', value: 'B_DOUBLE' },
+			{ label: 'Road train', value: 'ROAD_TRAIN' },
+			{ label: 'Dog Truck', value: 'DOG_TRUCK' },
+			{ label: 'Flatbed', value: 'FLATBED' },
+			{ label: 'Tipper', value: 'TIPPER' },
+			{ label: 'Semi-Tipper', value: 'SEMI_TIPPER' },
+			{ label: 'Side-Tipper', value: 'SIDE_TIPPER' },
+			{ label: 'Truck and Dog', value: 'TRUCK_AND_DOG' },
+			{ label: 'Agitator truck', value: 'AGITATOR_TRUCK' },
 		],
 		[]
 	);
@@ -946,6 +939,8 @@ export function useLineItemFormState({
 		form,
 	]);
 
+	const createJobItem = useCreateJobItem();
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
@@ -954,11 +949,103 @@ export function useLineItemFormState({
 
 	async function onSubmit(values: FormValues) {
 		setIsSubmitting(true);
-		console.log('isSubmitting', isSubmitting);
-		console.log('Form Submitted', values);
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		setIsSubmitting(false);
-		console.log('isSubmitting', isSubmitting);
+
+		try {
+			if (!selectedJob?.id) {
+				throw new Error('No job selected');
+			}
+
+			const customerId =
+				selectedJob?.customerId ||
+				selectedJob?.customerDto?.id ||
+				0;
+			const originalAddress = jobLineItemData?.customerDeliveryAddress?.address;
+			const mappedAddress = toAddressPayload(addressInput, originalAddress as Address);
+			const addressPayload = mappedAddress
+				? (({ id, ...rest }) => rest)(mappedAddress)
+				: undefined;
+
+			const customerDeliveryAddress:
+				| Partial<CustomerDeliveryAddress>
+				| undefined =
+				addressPayload && customerId && values.type === JOB_LINE_ITEM_TYPE.DELIVERY
+					? {
+						...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
+							? { id: jobLineItemData.customerDeliveryAddress.id }
+							: {}),
+						customerId,
+						addressId:
+							isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
+								? jobLineItemData.customerDeliveryAddress.addressId
+								: mappedAddress?.id,
+						address: addressPayload as Address,
+						inUse: true,
+						lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
+					}
+					: undefined;
+
+			const payload: Partial<JobItem> = {
+				jobId: selectedJob.id,
+				jobItemType: values.type,
+				productId: values.productId,
+				quarrySupplierId: values.quarrySupplierId,
+
+				customerDeliveryAddressId:
+					isEditing && jobLineItemData?.customerDeliveryAddress?.id
+						? customerDeliveryAddress?.id
+						: undefined,
+				customerDeliveryAddress: customerDeliveryAddress as CustomerDeliveryAddress,
+
+				// Product pricing
+				productCostUom: values.productCostUom,
+				productCostQty: values.productCostQty || 0,
+				productCostPrice: dollarsToCents(values.productCostPrice),
+				totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
+				productSellUom: values.productSellUom,
+				productSellQty: values.productSellQty || 0,
+				productSellPrice: dollarsToCents(values.productSellPrice),
+				totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
+
+				// Truck pricing (only for DELIVERY)
+				...(values.type === JOB_LINE_ITEM_TYPE.DELIVERY && {
+					truckType: values.truckType,
+					truckCostUom: values.truckCostUom,
+					truckCostQty: values.truckCostQty,
+					truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
+					totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice ?? 0),
+					truckSellUom: values.truckSellUom,
+					truckSellQty: values.truckSellQty || 0,
+					truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
+					totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice ?? 0),
+				}),
+
+				totalQuantityRequired: values.productSellQty || 0,
+				allocatedQuantity: 0,
+				remainingQuantity: values.productSellQty || 0,
+				grossProfit: dollarsToCents(values.grossProfit || 0),
+				version: jobLineItemData?.version || 0,
+			};
+
+			if (isEditing && jobLineItemData?.id) {
+				payload.id = jobLineItemData.id;
+			}
+
+			if (isEditing) {
+				// await updateJobItem.mutateAsync({ id: jobLineItemId, ...payload });
+				// notifySuccess('Job line item updated successfully');
+			} else {
+				console.log('payload is ', payload)
+				await createJobItem.mutateAsync(payload);
+				notifySuccess('Job line item created successfully');
+			}
+			onSaved?.();
+			onSuccess?.();
+		} catch (error) {
+			console.error('Failed to save job line item:', error);
+			notifyError(extractErrorMessage(error) || 'Failed to save job line item');
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	return {
@@ -981,11 +1068,7 @@ export function useLineItemFormState({
 		pricingBreakdown,
 		handleSubmit,
 		onSubmit,
-		isPending: isSubmitting,
-		// isPending:
-		// 	isLineItemLoading ||
-		// 	createQuoteItem.isPending ||
-		// 	updateQuoteItem.isPending,
+		isPending: isSubmitting || createJobItem.isPending,
 		customerDeliveryAddressSuggestions,
 		handleDeleteDeliveryAddress,
 		productDetails: productDetailsQuery.data,

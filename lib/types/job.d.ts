@@ -94,21 +94,8 @@ export interface JobItem {
   jobId: number;
   jobItemType: JOB_LINE_ITEM_TYPE;
   addressId?: number;
-  address?: {
-    id: number;
-    googlePlaceId: string;
-    formattedAddress: string;
-    streetDetailsPrimary: string;
-    streetDetailsOptional: string;
-    city: string;
-    suburb: string;
-    state: string;
-    postcode: string;
-    country: string;
-    latitude: number;
-    longitude: number;
-    version: number;
-  };
+  customerDeliveryAddressId?: number;
+  customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
   productId: number;
   product: {
     id: number;
@@ -121,6 +108,7 @@ export interface JobItem {
     version: number;
   };
   quarrySupplierId: number;
+  quarrySupplierName: string;
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
@@ -144,6 +132,7 @@ export interface JobItem {
   truckSellPrice: number;
   totalTruckSellPrice: number;
 
+  grossProfit: number;
   selectedCostUnit: string;
   selectedSellUnit: string;
   selectedTruckRateType: string;

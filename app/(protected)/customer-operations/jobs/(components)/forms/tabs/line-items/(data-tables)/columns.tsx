@@ -22,7 +22,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 		cell: ({ row }) => {
 			const productName = row.original.product?.productName || 'N/A';
 			const deliveryAddress =
-				row.original.address?.formattedAddress || '';
+				row.original.customerDeliveryAddress?.address?.formattedAddress || '';
 			return (
 				<div className="min-w-0 w-[70px] sm:w-[90px] md:w-[110px] lg:w-[130px] xl:w-[150px]">
 					<Tooltip delayDuration={300}>
@@ -60,10 +60,10 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 		meta: 'Type',
 	},
 	{
-		id: 'quarryName',
-		accessorFn: (row) => row.quarrySupplierId,
+		id: 'quarrySupplierName',
+		accessorFn: (row) => row.quarrySupplierName,
 		header: () => {
-			return <div>Supplier</div>;
+			return <div>Quarry / Supplier</div>;
 		},
 		cell: (info) => {
 			const value = (info.getValue() as string) || 'N/A';
@@ -82,11 +82,11 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 				</Tooltip>
 			);
 		},
-		meta: 'quarryName',
+		meta: 'Quarry Supplier Name',
 	},
 	{
 		id: 'totalCostPrice',
-		accessorFn: (row) => row.totalProductCostPrice,
+		accessorFn: (row) => row.totalProductCostPrice + row.totalTruckCostPrice,
 		header: () => {
 			return (
 				<div className="flex items-center gap-1">
@@ -104,14 +104,14 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 		},
 		cell: ({ row }) => {
 			const total =
-				(row.original.totalProductCostPrice ?? 0);
+				(row.original.totalProductCostPrice ?? 0) + (row.original.totalTruckCostPrice ?? 0);
 			return <div>${centsToDollars(total)}</div>;
 		},
 		meta: 'Total Cost Price',
 	},
 	{
 		id: 'totalSellPrice',
-		accessorFn: (row) => row.totalProductSellPrice,
+		accessorFn: (row) => row.totalProductSellPrice + row.totalTruckSellPrice,
 		header: () => {
 			return (
 				<div className="flex items-center gap-1">
@@ -129,7 +129,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 		},
 		cell: ({ row }) => {
 			const total =
-				(row.original.totalProductSellPrice ?? 0);
+				(row.original.totalProductSellPrice ?? 0) + (row.original.totalTruckSellPrice ?? 0);
 			return <div>${centsToDollars(total)}</div>;
 		},
 		meta: 'Total Sell Price',
@@ -145,7 +145,10 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 			const productSellUom =
 				row.original.productSellUom === 'KG_20'
 					? 'x 20kg'
-					: row.original.productSellUom;
+					: row.original.productSellUom === 'M3'
+						? 'm³'
+						: row.original.productSellUom;
+
 			const displayText = `${productSellQty} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>
@@ -173,7 +176,9 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 			const productSellUom =
 				row.original.productSellUom === 'KG_20'
 					? 'x 20kg'
-					: row.original.productSellUom;
+					: row.original.productSellUom === 'M3'
+						? 'm³'
+						: row.original.productSellUom;
 			const displayText = `${remainingQuantity} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>
