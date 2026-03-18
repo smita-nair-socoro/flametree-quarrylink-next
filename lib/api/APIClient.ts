@@ -822,6 +822,8 @@ export const APIClient = {
 
     convertToDraft: (id: number) =>
       appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
+    convertToJob: (id: number) =>
+      appClient.Post<JobDTO>(`/socoro/quarrylink/api/quote/${id}/convert-to-job`),
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',

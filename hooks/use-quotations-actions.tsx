@@ -33,6 +33,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
+  useConvertToJob,
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
@@ -890,6 +891,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const convertToJobMutation = useConvertToJob();
   const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
@@ -1113,9 +1115,20 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleConvertToJob = async () => {
-    const { subscriptionPlan } = useClientStore.getState();
-    setActiveDialog(null);
-    setSelectedAction(null);
+    if (!quotationId) {
+      notifyError(extractErrorMessage('Unable to convert quotation to job'));
+      return;
+    }
+
+    try {
+      await convertToJobMutation.mutateAsync(quotationId);
+      notifySuccess('Quotation converted to job');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      console.error('Failed to convert quotation to job:', error);
+      notifyError(extractErrorMessage(error));
+    }
   };
 
   const handleConvertToDraft = async () => {
