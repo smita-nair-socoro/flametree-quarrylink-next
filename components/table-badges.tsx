@@ -10,7 +10,7 @@ import { cn, BADGE_COLORS } from '@/lib/utils';
 interface TableBadgesProps {
   names: string | string[];
   visibleCount?: number;
-  variant?: 'default' | 'suburb';
+  variant?: 'default' | 'suburb' | 'haulier';
 }
 const PALETTE: Record<string, string> = {
   red: 'bg-red-100 text-red-800',
@@ -24,46 +24,57 @@ const PALETTE: Record<string, string> = {
 };
 
 // Suburb palette: darker background (600), lighter border and text (100)
-const SUBURB_PALETTE: Record<string, string> = {
+const BADGE_PALETTE: Record<string, string> = {
   red: 'bg-red-600 text-red-100 border-red-100',
-  yellow: 'bg-yellow-600 text-yellow-100 border-yellow-100',
-  emerald: 'bg-emerald-600 text-emerald-100 border-emerald-100',
-  teal: 'bg-teal-600 text-teal-100 border-teal-100',
-  sky: 'bg-sky-600 text-sky-100 border-sky-100',
-  indigo: 'bg-indigo-600 text-indigo-100 border-indigo-100',
-  violet: 'bg-violet-600 text-violet-100 border-violet-100',
-  pink: 'bg-pink-600 text-pink-100 border-pink-100',
-  purple: 'bg-purple-600 text-purple-100 border-purple-100',
   orange: 'bg-orange-600 text-orange-100 border-orange-100',
   amber: 'bg-amber-600 text-amber-100 border-amber-100',
+  yellow: 'bg-yellow-600 text-yellow-100 border-yellow-100',
+  lime: 'bg-lime-600 text-lime-100 border-lime-100',
+  green: 'bg-green-600 text-green-100 border-green-100',
+  emerald: 'bg-emerald-600 text-emerald-100 border-emerald-100',
+  teal: 'bg-teal-600 text-teal-100 border-teal-100',
+  cyan: 'bg-cyan-600 text-cyan-100 border-cyan-100',
+  sky: 'bg-sky-600 text-sky-100 border-sky-100',
+  blue: 'bg-blue-600 text-blue-100 border-blue-100',
+  indigo: 'bg-indigo-600 text-indigo-100 border-indigo-100',
+  purple: 'bg-purple-600 text-purple-100 border-purple-100',
+  fuchsia: 'bg-fuchsia-600 text-fuchsia-100 border-fuchsia-100',
+  pink: 'bg-pink-600 text-pink-100 border-pink-100',
+  rose: 'bg-rose-600 text-rose-100 border-rose-100',
+  slate: 'bg-slate-600 text-slate-100 border-slate-100',
+  gray: 'bg-gray-600 text-gray-100 border-gray-100',
+  zinc: 'bg-zinc-600 text-zinc-100 border-zinc-100',
+  neutral: 'bg-neutral-600 text-neutral-100 border-neutral-100',
+  stone: 'bg-stone-600 text-stone-100 border-stone-100',
+  taupe: 'bg-taupe-600 text-taupe-100 border-taupe-100',
+  mauve: 'bg-mauve-600 text-mauve-100 border-mauve-100',
+  mist: 'bg-mist-600 text-mist-100 border-mist-100',
+  olive: 'bg-olive-600 text-olive-100 border-olive-100',
 };
 
 const PALETTE_KEYS = Object.keys(PALETTE);
-const SUBURB_PALETTE_KEYS = Object.keys(SUBURB_PALETTE);
+const SUBURB_PALETTE_KEYS = Object.keys(BADGE_PALETTE);
+const HAULIER_PALETTE_KEYS = Object.keys(BADGE_PALETTE);
 
-function pickKey(name: string): string {
+function pickKey(name: string, keys: string[] = PALETTE_KEYS): string {
   let h = 0;
   for (const ch of name) {
-    h = (h * 31 + ch.charCodeAt(0)) % PALETTE_KEYS.length;
+    h = (h * 31 + ch.charCodeAt(0)) % keys.length;
   }
-  return PALETTE_KEYS[h];
-}
-
-function pickSuburbKey(name: string): string {
-  let h = 0;
-  for (const ch of name) {
-    h = (h * 31 + ch.charCodeAt(0)) % SUBURB_PALETTE_KEYS.length;
-  }
-  return SUBURB_PALETTE_KEYS[h];
+  return keys[h];
 }
 
 function getBadgeClassName(
   name: string,
-  variant: 'default' | 'suburb' = 'default'
+  variant: 'default' | 'suburb' | 'haulier' = 'default',
 ): string {
   if (!name || typeof name !== 'string') {
     console.log('Invalid name:', name);
-    return variant === 'suburb' ? SUBURB_PALETTE.sky : PALETTE.sky;
+    return variant === 'suburb'
+      ? BADGE_PALETTE.sky
+      : variant === 'haulier'
+        ? BADGE_PALETTE.sky
+        : PALETTE.sky;
   }
   const key = name.trim().toUpperCase().replace(/_/g, ' ');
 
@@ -74,8 +85,13 @@ function getBadgeClassName(
 
   // For suburbs or dynamic values, use the appropriate palette
   if (variant === 'suburb') {
-    const dynamicKey = pickSuburbKey(key);
-    return SUBURB_PALETTE[dynamicKey] || SUBURB_PALETTE.sky;
+    const dynamicKey = pickKey(key, SUBURB_PALETTE_KEYS);
+    return BADGE_PALETTE[dynamicKey] || BADGE_PALETTE.sky;
+  }
+
+  if (variant === 'haulier') {
+    const dynamicKey = pickKey(key, HAULIER_PALETTE_KEYS);
+    return BADGE_PALETTE[dynamicKey] || BADGE_PALETTE.sky;
   }
 
   const dynamicKey = pickKey(key);
@@ -98,7 +114,7 @@ export function TableBadges({
           key={n}
           className={cn(
             'px-2 py-0.5 text-xs font-medium border',
-            getBadgeClassName(n, variant)
+            getBadgeClassName(n, variant),
           )}
         >
           {n.replace(/_/g, ' ')}
@@ -126,7 +142,7 @@ export function TableBadges({
                   key={n}
                   className={cn(
                     'uppercase px-2 py-0.5 text-xs font-medium border',
-                    getBadgeClassName(n, variant)
+                    getBadgeClassName(n, variant),
                   )}
                 >
                   {n.replace(/_/g, ' ')}
@@ -155,7 +171,7 @@ export function SimplePdfBadge({
     <div
       className={cn(
         'inline-block h-10 px-4 text-xl font-semibold border-2 rounded-lg uppercase',
-        getBadgeClassName(name, variant)
+        getBadgeClassName(name, variant),
       )}
       style={{ lineHeight: '13.5px' }}
     >

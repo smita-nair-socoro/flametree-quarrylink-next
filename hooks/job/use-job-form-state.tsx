@@ -1,8 +1,8 @@
 import React from 'react';
-
-import { Job, JobDetails } from '@/lib/types/job';
-import rawJson from '@/lib/tests/jobsDetailResponseData.json';
+import { useQuery } from '@tanstack/react-query';
+import { JobItemsQueryOptions } from '@/lib/api/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
+import { JobItem } from '@/lib/types/job';
 
 export const EMPTY_JOB_FORM_VALUES = {
   customerId: 0,
@@ -17,29 +17,27 @@ export const EMPTY_JOB_FORM_VALUES = {
   deliveryStartDate: undefined,
 };
 
-export function useJobFormState(selectedJob: Job | null, isEditing?: boolean) {
-  const jobDetailData = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === selectedJob?.id) as Job;
-  }, [selectedJob?.id]);
+export function useJobFormState(jobId: number, isEditing: boolean = false) {
+  const { data: jobDetails } = useQuery({
+    ...JobItemsQueryOptions(jobId),
+    enabled: isEditing && jobId > 0,
+  });
 
-  const getDetailedJob = React.useMemo(() => {
-    if (isEditing && jobDetailData) {
-      return jobDetailData as JobDetails;
-    }
-    return null;
-  }, [isEditing, jobDetailData]);
-
-  const currentJob = isEditing ? getDetailedJob : null;
+  const mappedJobItems: JobItem[] = React.useMemo(() => {
+    if (!jobDetails?.jobItems) return [];
+    return jobDetails.jobItems
+  }, [jobDetails?.jobItems]);
 
   const pricingBreakdown = React.useMemo(() => {
-    if (!isEditing || !currentJob) {
+    if (!isEditing || !mappedJobItems.length) {
       return calculateJobPricing(null);
     }
-    return calculateJobPricing(currentJob.jobLineItems);
-  }, [isEditing, currentJob]);
+    return calculateJobPricing(mappedJobItems);
+  }, [isEditing, mappedJobItems]);
 
   return {
-    currentJob,
+    jobDetails,
+    jobItems: mappedJobItems,
     pricingBreakdown,
   };
 }

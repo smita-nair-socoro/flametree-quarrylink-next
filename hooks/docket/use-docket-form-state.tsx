@@ -260,37 +260,38 @@ export function useDocketFormState({
     };
   }, [jobLineItems, docketForm]);
 
+  // Will uncomment
   // Update delivery address when job line item changes
-  React.useEffect(() => {
-    const details = selectedJobLineItemDetails();
-    if (details.customerDeliveryAddress) {
-      const address = details.customerDeliveryAddress.address;
-      if (address) {
-        setDeliveryAddress({
-          address1: address.streetDetailsPrimary || '',
-          address2: address.streetDetailsOptional || '',
-          formattedAddress: address.formattedAddress || '',
-          city: address.city || '',
-          region: address.state || '',
-          postalCode: address.postcode || '',
-          country: address.country || '',
-          lat: address.latitude || 0,
-          lng: address.longitude || 0,
-          googlePlaceId: address.googlePlaceId || '',
-        });
+  // React.useEffect(() => {
+  //   const details = selectedJobLineItemDetails();
+  //   if (details.customerDeliveryAddress) {
+  //     const address = details.customerDeliveryAddress.address;
+  //     if (address) {
+  //       setDeliveryAddress({
+  //         address1: address.streetDetailsPrimary || '',
+  //         address2: address.streetDetailsOptional || '',
+  //         formattedAddress: address.formattedAddress || '',
+  //         city: address.city || '',
+  //         region: address.state || '',
+  //         postalCode: address.postcode || '',
+  //         country: address.country || '',
+  //         lat: address.latitude || 0,
+  //         lng: address.longitude || 0,
+  //         googlePlaceId: address.googlePlaceId || '',
+  //       });
 
-        setPickUpAddress(MOCK_PICK_UP_ADDRESS);
+  //       setPickUpAddress(MOCK_PICK_UP_ADDRESS);
 
-        setDeliverySearchInput(address.formattedAddress || '');
-        if (details.type !== 'COLLECTION') {
-          docketForm.setValue('deliveryAddressId', details.customerDeliveryAddress.id || '');
-        }
+  //       setDeliverySearchInput(address.formattedAddress || '');
+  //       if (details.type !== 'COLLECTION') {
+  //         docketForm.setValue('deliveryAddressId', details.customerDeliveryAddress.id || '');
+  //       }
 
-        setPickUpSearchInput(address.formattedAddress || '');
-        docketForm.setValue('pickUpAddressId', details.customerDeliveryAddress.id || '');
-      }
-    }
-  }, [docketForm.watch('jobLineItemId')]);
+  //       setPickUpSearchInput(address.formattedAddress || '');
+  //       docketForm.setValue('pickUpAddressId', details.customerDeliveryAddress.id || '');
+  //     }
+  //   }
+  // }, [docketForm.watch('jobLineItemId')]);
 
   // Populate edit form from docket mock data
   React.useEffect(() => {

@@ -3,8 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import JobForm from './(components)/forms/job-form';
-import { Job } from '@/lib/types/job';
-import rawJson from '@/lib/tests/jobsResponseData.json';
+import { JobDTO } from '@/lib/types/job';
 import { Plus } from 'lucide-react';
 
 import {
@@ -13,13 +12,20 @@ import {
 } from '@/components/ui/data-table-client';
 import { jobColumns } from './(components)/(data-tables)/job/columns';
 import { useJobActions } from '@/hooks/use-job-actions';
+import { useQuery } from '@tanstack/react-query';
+import { JobsListQueryOptions } from '@/lib/api/job';
 
 export default function CustomersPage() {
-  const { items } = rawJson as unknown as {
-    items: Job[];
-  };
+  const { data: jobs } = useQuery(JobsListQueryOptions());
+  const items: JobDTO[] = React.useMemo(() => {
+    const list: JobDTO[] = Array.isArray(jobs) ? jobs : jobs?.content ?? [];
+    return list.map((job) => ({
+      ...job,
+    })) as JobDTO[];
+  }, [jobs]);
 
   const { actions, viewDialog, confirmDialogs } = useJobActions();
+
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -27,7 +33,7 @@ export default function CustomersPage() {
     { column: 'accountManagerName', title: 'Account Manager', icon: Plus },
   ];
 
-  const handleRowClick = (row: Job) => {
+  const handleRowClick = (row: JobDTO) => {
     actions.view(row);
   };
 
