@@ -530,10 +530,7 @@ export function useDocketActions(docketData?: Docket | null) {
               console.log('Cancel docket confirmed:', docketData);
               break;
             case 'void':
-              console.log('Void docket confirmed:', docketData, {
-                voidReason,
-                voidNotes,
-              });
+              await handleVoidDocket();
               break;
             case 'startPreparing':
               await handleStartPreparing();
