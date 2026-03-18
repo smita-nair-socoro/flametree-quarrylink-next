@@ -6,7 +6,7 @@ import {
   CirclePlay,
   CircleStop,
 } from 'lucide-react';
-import { JobDetails } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 import { Docket } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,7 @@ function getDocketStatusStyle(status: DOCKET_STATUS): {
   }
 }
 
-export function PauseJobDescription({ job }: { job?: JobDetails | null }) {
+export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
       <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
@@ -39,10 +39,10 @@ export function PauseJobDescription({ job }: { job?: JobDetails | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-gray-500">{job?.jobNumber}</span>
-          {job?.customerName && (
+          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
             <>
               <span className="text-sm text-gray-500 font-extrabold">·</span>
-              <span className="text-sm text-gray-500">{job.customerName}</span>
+              <span className="text-sm text-gray-500">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
             </>
           )}
         </div>
@@ -203,9 +203,9 @@ export function PauseJobContent({
             'Job status changes to "Paused"',
             ...(docketAction === 'stop'
               ? [
-                  'All Assigned dockets will be Unassigned',
-                  'All In Transit dockets will be Stopped',
-                ]
+                'All Assigned dockets will be Unassigned',
+                'All In Transit dockets will be Stopped',
+              ]
               : []),
             'New docket creation is blocked',
             'Can be resumed at any time',

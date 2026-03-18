@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { JobLineItem } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 
 interface JobLineItemStore {
-  lineItems: JobLineItem[];
-  selectedLineItem: JobLineItem | null;
+  lineItems: JobItem[];
+  selectedLineItem: JobItem | null;
   isLoading: boolean;
 
   // Actions
-  setLineItems: (lineItems: JobLineItem[]) => void;
-  setSelectedLineItem: (lineItem: JobLineItem | null) => void;
+  setLineItems: (lineItems: JobItem[]) => void;
+  setSelectedLineItem: (lineItem: JobItem | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getLineItemById: (id: number) => JobLineItem | undefined;
-  getLineItemsByStatus: (status: string) => JobLineItem[];
+  getLineItemById: (id: number) => JobItem | undefined;
+  getLineItemsByStatus: (status: string) => JobItem[];
 }
 
 export const useJobLineItemStore = create<JobLineItemStore>()(

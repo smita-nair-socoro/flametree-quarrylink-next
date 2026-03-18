@@ -1,10 +1,12 @@
-import { Docket } from './docket';
 import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
+import { CustomerDTO, CustomerWithAddressResponseDTO } from './customer';
+import { CustomerDeliveryAddress } from './address';
 
 export interface JobDTO {
   id: number;
   jobNumber?: string;
   customerId: number;
+  customerDto?: Partial<CustomerDTO>;
   projectName: string;
   jobStatus: JOB_STATUS;
   poNumber?: string;
@@ -13,7 +15,7 @@ export interface JobDTO {
   docketEmail?: string;
   uninvoicedDockets?: number;
   quoteId?: number;
-  additionalEmails?: string[];
+  additionalEmailRecipients?: string[];
   estimatedStartDate?: string;
   startTimeWindow?: string;
   endTimeWindow?: string;
@@ -87,7 +89,57 @@ export interface JobLineItem {
   isDeleted: boolean;
 }
 
-export interface JobDetails extends Job {
-  jobLineItems?: JobLineItem[];
-  dockets?: Docket[];
+export interface JobItem {
+  id: number;
+  jobId: number;
+  jobItemType: JOB_LINE_ITEM_TYPE;
+  addressId?: number;
+  customerDeliveryAddressId?: number;
+  customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
+  productId: number;
+  product: {
+    id: number;
+    productName: string;
+    productCode: string;
+    materialId: number;
+    densityTonnagePerM3: number;
+    productDescription: string;
+    isActive: boolean;
+    version: number;
+  };
+  quarrySupplierId: number;
+  quarrySupplierName: string;
+  totalQuantityRequired: number;
+  allocatedQuantity: number;
+  remainingQuantity: number;
+
+  productCostUom: string;
+  productCostQty: number;
+  productCostPrice: number;
+  totalProductCostPrice: number;
+  productSellUom: string;
+  productSellQty: number;
+  productSellPrice: number;
+  totalProductSellPrice: number;
+
+  truckType: string;
+  truckCostUom: string;
+  truckCostQty: number;
+  truckCostPrice: number;
+  totalTruckCostPrice: number;
+  truckSellUom: string;
+  truckSellQty: number;
+  truckSellPrice: number;
+  totalTruckSellPrice: number;
+
+  grossProfit: number;
+  selectedCostUnit: string;
+  selectedSellUnit: string;
+  selectedTruckRateType: string;
+  selectedTruckType: string;
+  version: number;
+}
+
+export interface JobDetails extends JobDTO {
+  jobItems?: JobItem[];
 }
