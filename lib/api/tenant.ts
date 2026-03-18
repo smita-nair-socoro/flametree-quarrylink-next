@@ -40,6 +40,16 @@ export const TenantLogoQueryOptions = () =>
   });
 
 /**
+ * Mutation hook for retrieving a Stripe billing portal link.
+ * Calls PUT /tenant/stripe-profile and returns the portal URL.
+ */
+export const useGetStripeProfileLink = () => {
+  return useMutation({
+    mutationFn: () => APIClient.tenants.getStripeProfileLink(),
+  });
+};
+
+/**
  * Mutation hook for uploading a tenant logo.
  * Automatically invalidates tenant-related caches on success.
  */
