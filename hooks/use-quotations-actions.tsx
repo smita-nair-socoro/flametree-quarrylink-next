@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
@@ -876,6 +877,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
   const user = useClientStore((state) => state.user);
+  const router = useRouter();
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
@@ -1121,10 +1123,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     }
 
     try {
-      await convertToJobMutation.mutateAsync(quotationId);
+      const job = await convertToJobMutation.mutateAsync(quotationId);
       notifySuccess('Quotation converted to job');
       setActiveDialog(null);
       setSelectedAction(null);
+      router.push(`/customer-operations/jobs?openJobId=${job.id}`);
     } catch (error) {
       console.error('Failed to convert quotation to job:', error);
       notifyError(extractErrorMessage(error));
