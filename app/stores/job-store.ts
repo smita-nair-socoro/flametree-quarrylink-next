@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Job } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 
 interface JobStore {
-  jobs: Job[];
-  selectedJob: Job | null;
+  jobs: JobDTO[];
+  selectedJob: JobDTO | null;
   isLoading: boolean;
 
   // Actions
-  setJobs: (Jobs: Job[]) => void;
-  setSelectedJob: (customer: Job | null) => void;
+  setJobs: (Jobs: JobDTO[]) => void;
+  setSelectedJob: (customer: JobDTO | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getJobById: (id: number) => Job | undefined;
+  getJobById: (id: number) => JobDTO | undefined;
 }
 
 export const useJobStore = create<JobStore>()(

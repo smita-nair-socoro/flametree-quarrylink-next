@@ -9,6 +9,7 @@ import { docketsColumns } from './(data-tables)/columns';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { JobDetails } from '@/lib/types/job';
+import { Docket } from '@/lib/types/docket';
 
 interface DocketsTabProps {
   selectedJob: JobDetails;
@@ -16,7 +17,8 @@ interface DocketsTabProps {
 
 export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const dockets = selectedJob?.dockets ?? [];
+  // const dockets = selectedJob?.dockets ?? [];
+  const dockets = [] as Docket[];
   const jobId = selectedJob?.id ?? 0;
 
   return (

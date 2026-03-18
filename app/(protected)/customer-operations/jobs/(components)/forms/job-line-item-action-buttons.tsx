@@ -2,7 +2,7 @@
 import * as React from 'react';
 
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { JobLineItem } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 import { useJobLineItemActions } from '@/hooks/use-jobs-line-item-actions';
 import { Delete, Plus } from 'lucide-react';
 
@@ -16,7 +16,7 @@ import {
 import { MoreHorizontal } from 'lucide-react';
 
 interface JobLineItemActionButtonsProps {
-	jobLineItem: JobLineItem | null | undefined;
+	jobLineItem: JobItem | null | undefined;
 	layout?: 'compact' | 'expanded';
 }
 export function JobLineItemActionButtons({
@@ -26,7 +26,7 @@ export function JobLineItemActionButtons({
 	const isDesktop = useMediaQuery('(min-width: 768px)');
 
 	const { actions, confirmDialogs, viewDialog } = useJobLineItemActions(
-		jobLineItem
+		jobLineItem as JobItem | null | undefined
 	);
 
 	// Early returns for null job or new job
