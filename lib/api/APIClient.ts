@@ -923,6 +923,10 @@ export const APIClient = {
       );
       return response;
     },
+    createJobItem: (data: Partial<JobItem>) =>
+      appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
+        body: data,
+      }),
   },
 
   dockets: {

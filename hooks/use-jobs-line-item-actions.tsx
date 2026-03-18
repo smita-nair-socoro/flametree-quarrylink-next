@@ -166,7 +166,7 @@ export function useJobLineItemActions(
 				// We need to cast or convert to JobLineItem for the store if it expects JobLineItem
 				// For now, assuming store handles it or we cast as any to bypass strict check if store is not updated yet
 				// Ideally store should be updated too.
-				setSelectedLineItem(toSelect as any);
+				setSelectedLineItem(toSelect);
 			}
 			setViewOpen(true);
 		},

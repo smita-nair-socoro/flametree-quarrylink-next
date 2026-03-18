@@ -80,7 +80,7 @@ export default function JobLineItemForm({
 		handleDeleteDeliveryAddress,
 		productDetails,
 		isSubmitting,
-	} = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
+	} = useLineItemFormState({ id, canEdit, onSuccess, onSaved });
 
 	// Report dirty-state to parent dialog
 	React.useEffect(() => {
@@ -129,12 +129,11 @@ export default function JobLineItemForm({
 		}
 	}, [lineItemType]);
 
-	// Determine pinned address based on quote type:
 	// - Delivery: Use customer's billing address
 	// - Collection: Use selected quarry supplier's address
 	const pinnedAddress = isCollection
 		? selectedQuarrySupplierProduct?.quarrySupplier?.address
-		: selectedJob?.customerDto?.billingAddress;
+		: selectedJob?.customerWithAddressResponseDto?.billingAddress;
 	const pinnedAddressType = React.useMemo(
 		() => toAddressType(pinnedAddress),
 		[pinnedAddress]
