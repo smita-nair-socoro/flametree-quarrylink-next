@@ -37,6 +37,7 @@ type Props = {
 	canEdit?: boolean;
 	onSuccess?: () => void;
 	onSaved?: () => void;
+
 };
 
 type PricingBreakdown = {
@@ -176,9 +177,11 @@ export function useLineItemFormState({
 		});
 	}, [form, getFormValuesFromLineItem, id, isEditing, jobLineItemData]);
 
+	const jobItemType = form.watch('type');
+
 	// If collection, zero out truck fields so they don't affect totals / submit payload
 	React.useEffect(() => {
-		if (jobLineItemData?.jobItemType !== JOB_LINE_ITEM_TYPE.COLLECTION) return;
+		if (jobItemType !== JOB_LINE_ITEM_TYPE.COLLECTION) return;
 		const opts = { shouldValidate: true, shouldDirty: false } as const;
 		form.setValue('truckType', '', opts);
 		form.setValue('truckCostUom', '', opts);
@@ -189,7 +192,7 @@ export function useLineItemFormState({
 		form.setValue('truckSellPrice', 0, opts);
 		form.setValue('totalTruckCostPrice', 0, opts);
 		form.setValue('totalTruckSellPrice', 0, opts);
-	}, [jobLineItemData?.jobItemType, form]);
+	}, [jobItemType, form]);
 
 	// Products
 	const { data: products } = useQuery(ProductsListQueryOptions());
@@ -384,7 +387,7 @@ export function useLineItemFormState({
 			form.setValue('truckSellQty', 0, opts);
 			form.setValue('truckSellPrice', 0, opts);
 
-			// Clear address when quarry changes for Collection quotes
+			// Clear address when quarry changes for Collection jobs
 			if (jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION) {
 				form.setValue('address', '', opts);
 				setAddressInput({
@@ -968,7 +971,7 @@ export function useLineItemFormState({
 			const customerDeliveryAddress:
 				| Partial<CustomerDeliveryAddress>
 				| undefined =
-				addressPayload && customerId && values.type === JOB_LINE_ITEM_TYPE.DELIVERY
+				addressPayload && customerId
 					? {
 						...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
 							? { id: jobLineItemData.customerDeliveryAddress.id }
@@ -978,7 +981,7 @@ export function useLineItemFormState({
 							isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
 								? jobLineItemData.customerDeliveryAddress.addressId
 								: mappedAddress?.id,
-						address: addressPayload as Address,
+						address: addressPayload,
 						inUse: true,
 						lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
 					}
@@ -994,7 +997,7 @@ export function useLineItemFormState({
 					isEditing && jobLineItemData?.customerDeliveryAddress?.id
 						? customerDeliveryAddress?.id
 						: undefined,
-				customerDeliveryAddress: customerDeliveryAddress as CustomerDeliveryAddress,
+				customerDeliveryAddress,
 
 				// Product pricing
 				productCostUom: values.productCostUom,
@@ -1006,24 +1009,22 @@ export function useLineItemFormState({
 				productSellPrice: dollarsToCents(values.productSellPrice),
 				totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
 
-				// Truck pricing (only for DELIVERY)
-				...(values.type === JOB_LINE_ITEM_TYPE.DELIVERY && {
-					truckType: values.truckType,
-					truckCostUom: values.truckCostUom,
-					truckCostQty: values.truckCostQty,
-					truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
-					totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice ?? 0),
-					truckSellUom: values.truckSellUom,
-					truckSellQty: values.truckSellQty || 0,
-					truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
-					totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice ?? 0),
-				}),
+				// Truck pricing
+				truckType: values.truckType || undefined,
+				truckCostUom: values.truckCostUom,
+				truckCostQty: values.truckCostQty,
+				truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
+				totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice ?? 0),
+				truckSellUom: values.truckSellUom,
+				truckSellQty: values.truckSellQty || 0,
+				truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
+				totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice ?? 0),
 
 				totalQuantityRequired: values.productSellQty || 0,
 				allocatedQuantity: 0,
 				remainingQuantity: values.productSellQty || 0,
 				grossProfit: dollarsToCents(values.grossProfit || 0),
-				version: jobLineItemData?.version || 0,
+				version: jobLineItemData?.version || 1,
 			};
 
 			if (isEditing && jobLineItemData?.id) {
