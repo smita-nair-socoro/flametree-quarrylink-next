@@ -34,6 +34,8 @@ import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { useCreateDocket } from '@/lib/api/docket';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { notifyError, notifySuccess } from '@/lib/toast';
 
 interface FormProps {
   id?: number;
@@ -116,8 +118,11 @@ export default function DocketForm({
         deliveryDistanceQuantity: 0,
         deliveryDistanceUom: 'TN',
       });
+      notifySuccess('Docket created successfully');
     } catch (error) {
       console.error('Error creating docket:', error);
+      notifyError(extractErrorMessage(error));
+
     } finally {
       setIsSubmitting(false);
     }
