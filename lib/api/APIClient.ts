@@ -951,5 +951,14 @@ export const APIClient = {
     },
     getLogo: () =>
       appClient.Get<TenantLogoResponse>(`/socoro/quarrylink/api/tenant/logo`),
+    getStripeProfileLink: () =>
+      appClient.Put<{ stripeProfileLink: string }>(
+        `/socoro/quarrylink/api/tenant/stripe-profile`,
+        {
+          queryString: {
+            returnUrl: 'https://app.dev.quarrylink.com.au/',
+          },
+        },
+      ),
   },
 };

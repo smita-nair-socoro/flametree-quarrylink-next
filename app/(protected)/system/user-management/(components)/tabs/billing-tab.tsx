@@ -6,7 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { ExternalLink, Download, Users, Mountain } from 'lucide-react';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import { TenantCompleteDetailsQueryOptions, useGetStripeProfileLink } from '@/lib/api/tenant';
+import { notifyError } from '@/lib/toast';
 import { centsToDollars } from '@/lib/utils/currency';
 import { TableBadges } from '@/components/table-badges';
 import {
@@ -18,6 +19,16 @@ export default function BillingTab() {
   const { data: tenantCompleteDetails } = useQuery(
     TenantCompleteDetailsQueryOptions(),
   );
+  const getStripeProfileLink = useGetStripeProfileLink();
+
+  const handleManageBilling = async () => {
+    try {
+      const { stripeProfileLink } = await getStripeProfileLink.mutateAsync();
+      window.open(stripeProfileLink, '_blank', 'noopener,noreferrer');
+    } catch {
+      notifyError('Failed to open billing portal. Please try again.');
+    }
+  };
 
   const currencySymbol = (currency?: string): string => {
     const c = (currency || '').toUpperCase();
@@ -96,9 +107,14 @@ export default function BillingTab() {
             <CardTitle className="text-[20px] sm:text-[24px] font-medium">
               Current Plan
             </CardTitle>
-            <Button variant="outline" className="cursor-pointer">
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={handleManageBilling}
+              disabled={getStripeProfileLink.isPending}
+            >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Manage Billing
+              {getStripeProfileLink.isPending ? 'Loading...' : 'Manage Billing'}
             </Button>
           </div>
         </CardHeader>
