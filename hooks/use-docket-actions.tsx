@@ -41,6 +41,11 @@ import {
   VoidDocketContent,
 } from '@/hooks/docket/void-docket-content';
 import {
+  CancelDocketDescription,
+  CancelDocketContent,
+  CANCEL_REASON_LABELS,
+} from '@/hooks/docket/cancel-docket-content';
+import {
   StartPreparingDescription,
   StartPreparingContent,
 } from '@/hooks/docket/start-preparing-content';
@@ -106,6 +111,8 @@ export function useDocketActions(docketData?: Docket | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
+  const [cancelReason, setCancelReason] = React.useState('');
+  const [cancelNotes, setCancelNotes] = React.useState('');
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
@@ -281,6 +288,33 @@ export function useDocketActions(docketData?: Docket | null) {
     return true;
   }, [voidNotes, voidReason]);
 
+  const isCancelFormValid = React.useMemo(() => {
+    if (!cancelReason) return false;
+    if (cancelReason === 'other') return Boolean(cancelNotes.trim());
+    return true;
+  }, [cancelNotes, cancelReason]);
+
+  const handleCancelDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const reasonLabel = CANCEL_REASON_LABELS[cancelReason] || cancelReason;
+      const composedReason = cancelNotes.trim()
+        ? `${reasonLabel}-${cancelNotes.trim()}`
+        : reasonLabel;
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.CANCELLED,
+        reason: composedReason,
+      });
+      notifySuccess('Docket cancelled');
+      setActiveDialog(null);
+      setCancelReason('');
+      setCancelNotes('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
     if (stopReason === 'other') return Boolean(stopNotes.trim());
@@ -409,6 +443,23 @@ export function useDocketActions(docketData?: Docket | null) {
         confirmDisabled: !isVoidFormValid,
         cancelText: 'Cancel',
       },
+      cancel: {
+        title: 'Cancel Docket',
+        description: <CancelDocketDescription docket={docketData} />,
+        content: (
+          <CancelDocketContent
+            cancelReason={cancelReason}
+            onCancelReasonChange={setCancelReason}
+            cancelNotes={cancelNotes}
+            onCancelNotesChange={setCancelNotes}
+          />
+        ),
+        confirmText: 'Cancel Docket',
+        confirmCustomColor: '#E7000B',
+        confirmVariant: 'destructive',
+        confirmDisabled: !isCancelFormValid,
+        cancelText: 'Keep Docket',
+      },
     }),
     [
       docketData,
@@ -416,6 +467,7 @@ export function useDocketActions(docketData?: Docket | null) {
       isMarkDeliveredFormValid,
       isStopFormValid,
       isVoidFormValid,
+      isCancelFormValid,
       receiptPhoto,
       receiverName,
       receiverOnSite,
@@ -425,6 +477,8 @@ export function useDocketActions(docketData?: Docket | null) {
       unloadedPhoto,
       voidNotes,
       voidReason,
+      cancelNotes,
+      cancelReason,
     ],
   );
 
@@ -453,9 +507,7 @@ export function useDocketActions(docketData?: Docket | null) {
     void: createDialogAction('void'),
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
-    cancel: () => {
-      console.log('Cancel docket confirmed:', docketData);
-    },
+    cancel: createDialogAction('cancel'),
     unassign: () => {
       console.log('Unassign docket confirmed:', docketData);
     },
@@ -527,7 +579,7 @@ export function useDocketActions(docketData?: Docket | null) {
               await handleMarkCollected();
               break;
             case 'cancel':
-              console.log('Cancel docket confirmed:', docketData);
+              await handleCancelDocket();
               break;
             case 'void':
               console.log('Void docket confirmed:', docketData, {
