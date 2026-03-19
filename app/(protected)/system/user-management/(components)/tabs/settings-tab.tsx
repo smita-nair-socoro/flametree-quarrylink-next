@@ -258,7 +258,7 @@ export default function SettingsTab() {
                 <div className="flex flex-col">
                   {/* Full Name */}
                   <div className="flex justify-start gap-2">
-                    <div className="w-22 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center flex-shrink-0">
                       <span className="text-xl text-[#2563EB] font-medium">
                         {getInitials(currentUser?.name || '')}
                       </span>
@@ -325,7 +325,7 @@ export default function SettingsTab() {
 
                 <Button
                   type="submit"
-                  className="w-fit mt-4 cursor-pointer"
+                  className="w-full sm:w-fit mt-4 cursor-pointer"
                   disabled={isSubmitting}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -412,7 +412,7 @@ export default function SettingsTab() {
 
                 <Button
                   type="submit"
-                  className="w-fit mt-4 cursor-pointer"
+                  className="w-full sm:w-fit mt-4 cursor-pointer"
                   disabled={isSubmitting}
                   onClick={(e) => {
                     e.stopPropagation();
