@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 
-import rawJson from '@/lib/tests/jobsLineItemsResponseData.json';
 import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-form-schema';
 import {
 	ProductsListQueryOptions,
@@ -14,18 +13,20 @@ import {
 	CustomerDeliveryAddressesQueryOptions,
 	useUpdateDeliveryAddressUsage,
 } from '@/lib/api/customer';
+import { JobItemByIdQueryOptions, useCreateJobItem } from '@/lib/api/job';
 import { useSelectedJob } from '@/app/stores/job-store';
-// import { notifyError, notifySuccess } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
-// import {
-// 	extractErrorMessage,
-// 	extractErrorResponse,
-// } from '@/lib/utils/error-message-helper';
-import { JobLineItem } from '@/lib/types/job';
+import {
+	extractErrorMessage,
+	extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
+import { JobItem } from '@/lib/types/job';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
-import { AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
-import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
+import { AddressType, Address, CustomerDeliveryAddress } from '@/lib/types/address';
+import { toAddressType } from '@/lib/utils/address-helper';
+import { toAddressPayload } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewJobLineItemFormSchema>;
 
@@ -34,9 +35,9 @@ export type SelectOption = { label: string; value: number | string };
 type Props = {
 	id?: number;
 	canEdit?: boolean;
-	onCancel?: () => void;
 	onSuccess?: () => void;
 	onSaved?: () => void;
+
 };
 
 type PricingBreakdown = {
@@ -58,31 +59,31 @@ type PricingBreakdown = {
 export function useLineItemFormState({
 	id,
 	canEdit,
-
+	onSuccess,
+	onSaved,
 }: Props) {
 	const isEditing = Boolean(id && id > 0);
 	const isReadOnly = isEditing && !canEdit;
 
 	const jobLineItemId = Number(id || 0);
-	const jobLineItemData = React.useMemo(() => {
-		return rawJson.items.find((jobLineItem) => jobLineItem.id === jobLineItemId) as JobLineItem;
-	}, [jobLineItemId]);
+
+	const { data: jobLineItemData } = useQuery({
+		...JobItemByIdQueryOptions(jobLineItemId),
+		enabled: isEditing && jobLineItemId > 0,
+	});
 
 	const [isSubmitting, setIsSubmitting] = React.useState(false);
 	const selectedJob = useSelectedJob();
 
 	const getFormValuesFromLineItem = React.useCallback((): FormValues => {
 		return {
-			type: jobLineItemData?.type ?? JOB_LINE_ITEM_TYPE.DELIVERY,
+			type: jobLineItemData?.jobItemType ?? JOB_LINE_ITEM_TYPE.DELIVERY,
 			address: isEditing
-				? jobLineItemData?.customerDeliveryAddress?.address
-					?.formattedAddress ?? ''
+				? jobLineItemData?.customerDeliveryAddress?.address?.formattedAddress ?? ''
 				: '',
 			productId: isEditing ? jobLineItemData?.productId ?? 0 : 0,
 			quarrySupplierId: isEditing ? jobLineItemData?.quarrySupplierId ?? 0 : 0,
-			supplierProductName: isEditing
-				? jobLineItemData?.supplierProductName ?? ''
-				: '',
+			supplierProductName: '', // Not present in jobItems, will be populated by effect
 			productCostUom: isEditing ? jobLineItemData?.productCostUom ?? '' : '',
 			productCostQty: isEditing ? jobLineItemData?.productCostQty ?? 0 : 0,
 			productCostPrice: isEditing
@@ -116,7 +117,7 @@ export function useLineItemFormState({
 			totalTruckSellPrice: isEditing
 				? centsToDollarsNum(jobLineItemData?.totalTruckSellPrice || 0)
 				: 0,
-			grossProfit: isEditing ? jobLineItemData?.grossProfit ?? 0 : 0,
+			grossProfit: 0, // Not present in jobItems, calculated in form
 		};
 	}, [isEditing, jobLineItemData]);
 
@@ -127,7 +128,7 @@ export function useLineItemFormState({
 	});
 
 	const [addressInput, setAddressInput] = React.useState<AddressType>(() =>
-		toAddressType(jobLineItemData?.customerDeliveryAddress?.address ?? null)
+		toAddressType((jobLineItemData?.customerDeliveryAddress?.address) ?? null)
 	);
 	const [addressSearchInput, setAddressSearchInput] = React.useState('');
 
@@ -153,7 +154,7 @@ export function useLineItemFormState({
 			return;
 		}
 		setAddressInput(
-			toAddressType(jobLineItemData.customerDeliveryAddress.address)
+			toAddressType(jobLineItemData.customerDeliveryAddress?.address)
 		);
 	}, [isEditing, jobLineItemData?.customerDeliveryAddress?.address]);
 
@@ -176,18 +177,11 @@ export function useLineItemFormState({
 		});
 	}, [form, getFormValuesFromLineItem, id, isEditing, jobLineItemData]);
 
-	// Keep quoteType in sync (drives conditional validation + UI)
-	// React.useEffect(() => {
-	// 	if (!jobLineItemType) return;
-	// 	form.setValue('quoteType', quoteType, {
-	// 		shouldValidate: true,
-	// 		shouldDirty: false,
-	// 	});
-	// }, [quoteType, form]);
+	const jobItemType = form.watch('type');
 
 	// If collection, zero out truck fields so they don't affect totals / submit payload
 	React.useEffect(() => {
-		if (jobLineItemData?.type !== JOB_LINE_ITEM_TYPE.COLLECTION) return;
+		if (jobItemType !== JOB_LINE_ITEM_TYPE.COLLECTION) return;
 		const opts = { shouldValidate: true, shouldDirty: false } as const;
 		form.setValue('truckType', '', opts);
 		form.setValue('truckCostUom', '', opts);
@@ -198,7 +192,7 @@ export function useLineItemFormState({
 		form.setValue('truckSellPrice', 0, opts);
 		form.setValue('totalTruckCostPrice', 0, opts);
 		form.setValue('totalTruckSellPrice', 0, opts);
-	}, [jobLineItemData?.type, form]);
+	}, [jobItemType, form]);
 
 	// Products
 	const { data: products } = useQuery(ProductsListQueryOptions());
@@ -213,9 +207,9 @@ export function useLineItemFormState({
 	// Customer delivery addresses (for DELIVERY quote type)
 	const customerId =
 		selectedJob?.customerId ||
-		selectedJob?.customerWithAddressResponseDto?.id ||
+		selectedJob?.customerDto?.id ||
 		0;
-	const isDeliveryQuote = jobLineItemData?.type === JOB_LINE_ITEM_TYPE.DELIVERY;
+	const isDeliveryQuote = jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY;
 	const { data: deliveryAddresses } = useQuery({
 		...CustomerDeliveryAddressesQueryOptions(customerId, 5),
 		enabled: !!customerId && isDeliveryQuote && !isEditing,
@@ -240,7 +234,7 @@ export function useLineItemFormState({
 
 	// Get billing address for comparison (pinned address for delivery quotes)
 	const billingAddress =
-		selectedJob?.customerWithAddressResponseDto?.billingAddress;
+		selectedJob?.customerDto?.billingAddress;
 	const billingAddressFormatted = billingAddress?.formattedAddress || '';
 
 	// Transform delivery addresses to suggested address format
@@ -260,6 +254,7 @@ export function useLineItemFormState({
 				customerDeliveryAddress: addr,
 			}));
 	}, [deliveryAddresses, billingAddressFormatted]);
+
 
 	// Selected product id
 	const selectedProductId = Number(form.watch('productId') || 0);
@@ -343,7 +338,7 @@ export function useLineItemFormState({
 			form.setValue('truckSellPrice', 0, opts);
 
 			// Clear address when product changes for Collection quotes
-			if (jobLineItemData?.type === JOB_LINE_ITEM_TYPE.COLLECTION) {
+			if (jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION) {
 				form.setValue('address', '', opts);
 				setAddressInput({
 					address1: '',
@@ -365,7 +360,7 @@ export function useLineItemFormState({
 		isEditing,
 		jobLineItemData?.productId,
 		form,
-		jobLineItemData?.type,
+		jobLineItemData?.jobItemType,
 	]);
 
 	// Reset pricing and address when quarry changes
@@ -392,8 +387,8 @@ export function useLineItemFormState({
 			form.setValue('truckSellQty', 0, opts);
 			form.setValue('truckSellPrice', 0, opts);
 
-			// Clear address when quarry changes for Collection quotes
-			if (jobLineItemData?.type === JOB_LINE_ITEM_TYPE.COLLECTION) {
+			// Clear address when quarry changes for Collection jobs
+			if (jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION) {
 				form.setValue('address', '', opts);
 				setAddressInput({
 					address1: '',
@@ -415,7 +410,7 @@ export function useLineItemFormState({
 		isEditing,
 		jobLineItemData?.quarrySupplierId ?? 0,
 		form,
-		jobLineItemData?.type,
+		jobLineItemData?.jobItemType,
 	]);
 
 	// Populate supplierProductName from product details response
@@ -452,19 +447,19 @@ export function useLineItemFormState({
 	// Static options
 	const truckTypeOptions: SelectOption[] = React.useMemo(
 		() => [
-			{ label: 'Truck', value: 'Truck' },
-			{ label: 'Semi-Trailer', value: 'Semi-Trailer' },
-			{ label: 'Truck + Trailer', value: 'Truck + Trailer' },
-			{ label: 'Rigid truck', value: 'Rigid truck' },
-			{ label: 'B-Double', value: 'B-Double' },
-			{ label: 'Road train', value: 'Road train' },
-			{ label: 'Dog Truck', value: 'Dog Truck' },
-			{ label: 'Flatbed', value: 'Flatbed' },
-			{ label: 'Tipper', value: 'Tipper' },
-			{ label: 'Semi-Tipper', value: 'Semi-Tipper' },
-			{ label: 'Side-Tipper', value: 'Side-Tipper' },
-			{ label: 'Truck and Dog', value: 'Truck and Dog' },
-			{ label: 'Agitator truck', value: 'Agitator truck' },
+			{ label: 'Truck', value: 'TRUCK' },
+			{ label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
+			{ label: 'Truck + Trailer', value: 'TRUCK_TRAILER' },
+			{ label: 'Rigid truck', value: 'RIGID_TRUCK' },
+			{ label: 'B-Double', value: 'B_DOUBLE' },
+			{ label: 'Road train', value: 'ROAD_TRAIN' },
+			{ label: 'Dog Truck', value: 'DOG_TRUCK' },
+			{ label: 'Flatbed', value: 'FLATBED' },
+			{ label: 'Tipper', value: 'TIPPER' },
+			{ label: 'Semi-Tipper', value: 'SEMI_TIPPER' },
+			{ label: 'Side-Tipper', value: 'SIDE_TIPPER' },
+			{ label: 'Truck and Dog', value: 'TRUCK_AND_DOG' },
+			{ label: 'Agitator truck', value: 'AGITATOR_TRUCK' },
 		],
 		[]
 	);
@@ -947,6 +942,8 @@ export function useLineItemFormState({
 		form,
 	]);
 
+	const createJobItem = useCreateJobItem();
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
@@ -955,11 +952,101 @@ export function useLineItemFormState({
 
 	async function onSubmit(values: FormValues) {
 		setIsSubmitting(true);
-		console.log('isSubmitting', isSubmitting);
-		console.log('Form Submitted', values);
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		setIsSubmitting(false);
-		console.log('isSubmitting', isSubmitting);
+
+		try {
+			if (!selectedJob?.id) {
+				throw new Error('No job selected');
+			}
+
+			const customerId =
+				selectedJob?.customerId ||
+				selectedJob?.customerDto?.id ||
+				0;
+			const originalAddress = jobLineItemData?.customerDeliveryAddress?.address;
+			const mappedAddress = toAddressPayload(addressInput, originalAddress as Address);
+			const addressPayload = mappedAddress
+				? (({ id, ...rest }) => rest)(mappedAddress)
+				: undefined;
+
+			const customerDeliveryAddress:
+				| Partial<CustomerDeliveryAddress>
+				| undefined =
+				addressPayload && customerId
+					? {
+						...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
+							? { id: jobLineItemData.customerDeliveryAddress.id }
+							: {}),
+						customerId,
+						addressId:
+							isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
+								? jobLineItemData.customerDeliveryAddress.addressId
+								: mappedAddress?.id,
+						address: addressPayload,
+						inUse: true,
+						lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
+					}
+					: undefined;
+
+			const payload: Partial<JobItem> = {
+				jobId: selectedJob.id,
+				jobItemType: values.type,
+				productId: values.productId,
+				quarrySupplierId: values.quarrySupplierId,
+
+				customerDeliveryAddressId:
+					isEditing && jobLineItemData?.customerDeliveryAddress?.id
+						? customerDeliveryAddress?.id
+						: undefined,
+				customerDeliveryAddress,
+
+				// Product pricing
+				productCostUom: values.productCostUom,
+				productCostQty: values.productCostQty || 0,
+				productCostPrice: dollarsToCents(values.productCostPrice),
+				totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
+				productSellUom: values.productSellUom,
+				productSellQty: values.productSellQty || 0,
+				productSellPrice: dollarsToCents(values.productSellPrice),
+				totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
+
+				// Truck pricing
+				truckType: values.truckType || undefined,
+				truckCostUom: values.truckCostUom,
+				truckCostQty: values.truckCostQty,
+				truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
+				totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice ?? 0),
+				truckSellUom: values.truckSellUom,
+				truckSellQty: values.truckSellQty || 0,
+				truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
+				totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice ?? 0),
+
+				totalQuantityRequired: values.productSellQty || 0,
+				allocatedQuantity: 0,
+				remainingQuantity: values.productSellQty || 0,
+				grossProfit: dollarsToCents(values.grossProfit || 0),
+				version: jobLineItemData?.version || 1,
+			};
+
+			if (isEditing && jobLineItemData?.id) {
+				payload.id = jobLineItemData.id;
+			}
+
+			if (isEditing) {
+				// await updateJobItem.mutateAsync({ id: jobLineItemId, ...payload });
+				// notifySuccess('Job line item updated successfully');
+			} else {
+				console.log('payload is ', payload)
+				await createJobItem.mutateAsync(payload);
+				notifySuccess('Job line item created successfully');
+			}
+			onSaved?.();
+			onSuccess?.();
+		} catch (error) {
+			console.error('Failed to save job line item:', error);
+			notifyError(extractErrorMessage(error) || 'Failed to save job line item');
+		} finally {
+			setIsSubmitting(false);
+		}
 	}
 
 	return {
@@ -982,11 +1069,7 @@ export function useLineItemFormState({
 		pricingBreakdown,
 		handleSubmit,
 		onSubmit,
-		isPending: isSubmitting,
-		// isPending:
-		// 	isLineItemLoading ||
-		// 	createQuoteItem.isPending ||
-		// 	updateQuoteItem.isPending,
+		isPending: isSubmitting || createJobItem.isPending,
 		customerDeliveryAddressSuggestions,
 		handleDeleteDeliveryAddress,
 		productDetails: productDetailsQuery.data,

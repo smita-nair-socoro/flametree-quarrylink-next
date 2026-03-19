@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 import { SubscriptionPlanCard } from './roles/subscription-card';
 import { PermissionMatrix } from './roles/permission-matrix';
 // import { RoleDetailsCard } from './roles/role-details-card';
@@ -10,6 +11,7 @@ import { UpgradeFeaturesCard } from './roles/upgrade-features-card';
 export default function RolesTab() {
   // Selected plan state (default to first plan)
   const [selectedPlanId, setSelectedPlanId] = React.useState('essentials');
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   const subscriptionPlans = [
     {
@@ -146,6 +148,7 @@ export default function RolesTab() {
     {
       id: 'pro',
       price: 'Custome Pricing / Contact Us',
+      mobilePrice: 'Contact Us',
       planName: 'QuarryLink Pro',
       description: 'See Everything, Control Everything',
       tone: 'pro' as const,
@@ -233,16 +236,79 @@ export default function RolesTab() {
       </div>
 
       {/* Current Subscription Plan Section */}
-      <div className="border rounded-lg p-6 space-y-4 bg-white">
+      <div className="border rounded-lg px-6 pt-6 pb-0 space-y-4 bg-white">
         <div>
-          <h3 className="font-medium text-[13px]">Current Subscription Plan</h3>
+          <h3 className="font-semibold text-[15px]">
+            Current Subscription Plan
+          </h3>
           <p className="text-[13px] font-normal text-muted-foreground">
             Select a plan to view its permission matrix and available features
           </p>
         </div>
 
-        {/* Subscription Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Subscription Cards — horizontal scroll on mobile, grid on md+ */}
+        <div className="md:hidden flex flex-col gap-3 pb-0">
+          <div
+            ref={scrollRef}
+            className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+          >
+            {subscriptionPlans.map((plan) => (
+              <div
+                key={plan.id}
+                data-plan-id={plan.id}
+                className="flex-shrink-0 w-[45vw]"
+              >
+                <SubscriptionPlanCard
+                  price={plan.price}
+                  mobilePrice={plan.mobilePrice}
+                  planName={plan.planName}
+                  description={plan.description}
+                  tone={plan.tone}
+                  isSelected={selectedPlanId === plan.id}
+                  onClick={() => {
+                    setSelectedPlanId(plan.id);
+                    const el = scrollRef.current;
+                    if (!el) return;
+                    const cardEl = el.querySelector<HTMLElement>(
+                      `[data-plan-id="${plan.id}"]`,
+                    );
+                    cardEl?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'nearest',
+                      inline: 'center',
+                    });
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          {/* Scroll dot indicators */}
+          {(() => {
+            const activeIndex = subscriptionPlans.findIndex(
+              (p) => p.id === selectedPlanId,
+            );
+            return (
+              <div
+                role="presentation"
+                className="flex justify-center items-center gap-1.5"
+              >
+                {subscriptionPlans.map((plan, i) => (
+                  <div
+                    key={plan.id}
+                    className={cn(
+                      'rounded-full transition-all duration-200',
+                      i === activeIndex
+                        ? 'bg-[#8E51FF] w-5 h-2'
+                        : 'bg-gray-300 w-2 h-2',
+                    )}
+                  />
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {subscriptionPlans.map((plan) => (
             <SubscriptionPlanCard
               key={plan.id}

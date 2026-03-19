@@ -1,7 +1,7 @@
 'use client';
 import { CircleX, TriangleAlert } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
-import { JobDetails } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 import { Textarea } from '@/components/ui/textarea';
 
 export type CannotCancelBlockerType =
@@ -12,7 +12,7 @@ export type CannotCancelBlockerType =
 export function CannotCancelJobDescription({
   job,
 }: {
-  job?: JobDetails | null;
+  job?: JobDTO | null;
 }) {
   return (
     <div className="flex justify-start items-center gap-2">
@@ -25,10 +25,10 @@ export function CannotCancelJobDescription({
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-          {job?.customerName && (
+          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">{job.customerName}</span>
+              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
             </>
           )}
         </div>
@@ -196,7 +196,7 @@ const CANCEL_REASONS = [
   },
 ] as const;
 
-export function CancelJobDescription({ job }: { job?: JobDetails | null }) {
+export function CancelJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
       <div className="flex w-[42px] h-[42px] justify-center bg-[#FFE2E2] rounded-full">
@@ -208,10 +208,10 @@ export function CancelJobDescription({ job }: { job?: JobDetails | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-          {job?.customerName && (
+          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">{job.customerName}</span>
+              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
             </>
           )}
         </div>
