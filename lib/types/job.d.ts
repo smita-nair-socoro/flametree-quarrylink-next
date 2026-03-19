@@ -7,6 +7,7 @@ export interface JobDTO {
   jobNumber?: string;
   customerId: number;
   customerDto?: Partial<CustomerDTO>;
+  customerWithAddressResponseDto?: CustomerWithAddressResponseDTO;
   projectName: string;
   jobStatus: JOB_STATUS;
   poNumber?: string;

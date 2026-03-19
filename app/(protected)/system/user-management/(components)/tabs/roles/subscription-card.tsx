@@ -25,6 +25,7 @@ export const toneVariants = {
 
 interface SubscriptionPlanCardProps {
   price: string;
+  mobilePrice?: string;
   planName: string;
   description: string;
   tone: keyof typeof toneVariants;
@@ -34,6 +35,7 @@ interface SubscriptionPlanCardProps {
 
 export function SubscriptionPlanCard({
   price,
+  mobilePrice,
   planName,
   description,
   tone,
@@ -46,11 +48,11 @@ export function SubscriptionPlanCard({
     <button onClick={onClick} className="w-full text-left bg-transparent">
       <Card
         className={cn(
-          'py-3 relative overflow-hidden transition-all hover:shadow-md cursor-pointer bg-white',
+          'py-3 relative overflow-hidden transition-all hover:shadow-md cursor-pointer bg-white h-[120px] md:h-auto',
           isSelected
             ? `bg-[#FAF5FF] border-2 border-[#AD46FF]`
             : 'border-border hover:border-purple-300',
-          tone !== 'essentials' && 'opacity-50'
+          tone !== 'essentials' && 'opacity-50',
         )}
       >
         <CardContent className="px-3">
@@ -61,11 +63,27 @@ export function SubscriptionPlanCard({
                 className={cn(
                   'flex items-baseline gap-1 rounded-sm px-1 py-0.5 border',
                   toneStyle.bg,
-                  toneStyle.border
+                  toneStyle.border,
+                  isSelected
+                    ? 'max-md:bg-[#F5F3FF] max-md:border-[#8E51FF]'
+                    : 'max-md:bg-transparent max-md:border-[#E4E4E7]',
                 )}
               >
-                <span className={cn('text-[11px] font-medium', toneStyle.text)}>
-                  {price}
+                <span
+                  className={cn(
+                    'text-[11px] font-medium',
+                    toneStyle.text,
+                    isSelected ? 'max-md:text-[#8E51FF]' : 'max-md:text-[#71717B]',
+                  )}
+                >
+                  {mobilePrice ? (
+                    <>
+                      <span className="md:hidden">{mobilePrice}</span>
+                      <span className="hidden md:inline">{price}</span>
+                    </>
+                  ) : (
+                    price
+                  )}
                 </span>
               </div>
               {isSelected && (

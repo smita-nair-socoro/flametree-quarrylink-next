@@ -19,6 +19,8 @@ import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { UsersListQueryOptions } from '@/lib/api/user';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
 
 const handleResend = (invitation: PendingInvitation) => {
   // TODO: Implement resend invitation functionality
@@ -37,7 +39,46 @@ const rolesOptions: readonly FormSelectOption[] = [
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
 
+const AVATAR_PALETTE = [
+  { bg: '#DBEAFE', text: '#2563EB' },
+  { bg: '#D1FAE5', text: '#059669' },
+  { bg: '#EDE9FE', text: '#7C3AED' },
+  { bg: '#FEE2E2', text: '#DC2626' },
+  { bg: '#FEF3C7', text: '#D97706' },
+  { bg: '#FCE7F3', text: '#BE185D' },
+  { bg: '#CCFBF1', text: '#0D9488' },
+];
+
+function getAvatarColor(name: string) {
+  const hash = (name || '')
+    .split('')
+    .reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+
+function getInitials(name: string) {
+  if (!name?.trim()) return '??';
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((value) => value[0]?.toUpperCase() || '')
+    .join('')
+    .slice(0, 2);
+}
+
+function getRoleLabel(groups: string[] | undefined) {
+  if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
+  const groupsStr = groups.join(',').toUpperCase();
+  if (groupsStr.includes('SUPER_ADMIN') || groupsStr.includes('SUPERADMIN')) {
+    return 'Super Admin';
+  }
+  if (groupsStr.includes('ADMIN')) return 'Admin';
+  return 'User';
+}
+
 export default function TeamAdminTab() {
+  const isMobile = useMediaQuery('(max-width: 910px)');
+
   // Fetch users from API
   const {
     data: users = [],
@@ -122,6 +163,62 @@ export default function TeamAdminTab() {
     { column: 'role', title: 'Role', icon: Plus },
   ];
 
+  const renderTeamMemberCard = React.useCallback(
+    (user: User, onViewDetails?: () => void) => {
+      const initials = getInitials(user.name || user.email || '');
+      const color = getAvatarColor(user.name || user.email || '');
+      const roleLabel = getRoleLabel(user.groups);
+
+      return (
+        <div
+          className="flex items-center gap-3 rounded-lg border border-[#E4E4E7] bg-white px-4 py-3 transition-colors hover:bg-gray-50"
+          onClick={onViewDetails}
+          role={onViewDetails ? 'button' : undefined}
+          tabIndex={onViewDetails ? 0 : undefined}
+          onKeyDown={
+            onViewDetails
+              ? (event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onViewDetails();
+                  }
+                }
+              : undefined
+          }
+        >
+          <div
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+            style={{ backgroundColor: color.bg, color: color.text }}
+          >
+            {initials}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium text-gray-900">
+              {user.name || '—'}
+            </div>
+            <div className="truncate text-sm text-gray-500">{user.email}</div>
+            <span className="mt-1 inline-block rounded-full border border-[#F5F3FF] bg-[#F5F3FF] px-2 py-0.5 text-xs font-medium text-[#7008E7]">
+              {roleLabel}
+            </span>
+          </div>
+
+          <div
+            className="flex-shrink-0"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <TeamMemberTableActions
+              teamMember={user}
+              roles={rolesOptions}
+              currentUserId={1}
+            />
+          </div>
+        </div>
+      );
+    },
+    [],
+  );
+
   return (
     <>
       {viewDialog}
@@ -132,18 +229,18 @@ export default function TeamAdminTab() {
           </div>
         </div>
 
-        <div className="border border-[#E4E4E7] rounded-lg bg-white p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div className={`border border-[#E4E4E7] rounded-lg bg-white overflow-hidden ${isMobile ? '' : 'p-6'}`}>
+          <div className={`flex flex-row justify-between items-center gap-2 ${isMobile ? 'px-4 pt-4 pb-3' : 'mb-4'}`}>
             <div>
-              <h1 className="text-2xl font-medium mb-4 text-[#09090B]">
+              <h1 className="text-2xl font-medium text-[#09090B]">
                 Team Members
               </h1>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div>
               <FormDialog
                 dialogTitle="Invite User"
                 dialogWidth="max-w-md"
-                buttonTitle="Invite User"
+                buttonTitle={isMobile ? 'Invite' : 'Invite User'}
                 headerClassName="pb-2 h-[32px] pb-6"
                 preserveEmptyBadgeSpace={false}
               >
@@ -152,12 +249,11 @@ export default function TeamAdminTab() {
             </div>
           </div>
 
-          <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-            {isLoading ? (
-              <TableSkeleton rows={8} columns={5} />
-            ) : (
+          {isLoading ? (
+            <TableSkeleton rows={8} columns={5} />
+          ) : (
+            <div className="min-h-0 flex-1 rounded-xl">
               <div className="relative">
-                {/* Subtle loading indicator during background refresh */}
                 {isFetching && !isLoading && (
                   <div className="absolute top-2 right-2 z-10">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -173,10 +269,12 @@ export default function TeamAdminTab() {
                   useColumnSizing={true}
                   isShowHideColumns={false}
                   defaultSorting={[{ id: 'name', desc: false }]}
+                  mobileCardRenderer={renderTeamMemberCard}
+                  mobileUseTablePagination={true}
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {pendingInvitations.length > 0 && (

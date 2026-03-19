@@ -5,7 +5,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 export interface SortableHeaderProps<TData> {
   column: Column<TData>;
-  title: string;
+  title: string | React.ReactNode;
 }
 
 export function TableClientSortableHeader<TData>({
