@@ -77,6 +77,12 @@ export const JobKeys = {
   item: (jobItemId: number) => [...JobKeys.all, 'item', jobItemId] as const,
 };
 
+export const DocketKeys = {
+  all: ['dockets'] as const,
+  list: () => [...DocketKeys.all, 'list'] as const,
+  detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
+};
+
 export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
