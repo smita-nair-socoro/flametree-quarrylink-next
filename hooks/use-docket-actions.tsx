@@ -39,6 +39,7 @@ import {
 import {
   VoidDocketDescription,
   VoidDocketContent,
+  VOID_REASON_LABELS,
 } from '@/hooks/docket/void-docket-content';
 import {
   CancelDocketDescription,
@@ -293,6 +294,27 @@ export function useDocketActions(docketData?: Docket | null) {
     if (cancelReason === 'other') return Boolean(cancelNotes.trim());
     return true;
   }, [cancelNotes, cancelReason]);
+
+  const handleVoidDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const reasonLabel = VOID_REASON_LABELS[voidReason] || voidReason;
+      const composedReason = voidNotes.trim()
+        ? `${reasonLabel}-${voidNotes.trim()}`
+        : reasonLabel;
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.VOIDED,
+        reason: composedReason,
+      });
+      notifySuccess('Docket voided');
+      setActiveDialog(null);
+      setVoidReason('');
+      setVoidNotes('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
 
   const handleCancelDocket = async () => {
     if (!docketData?.id) return;

@@ -5,19 +5,20 @@ import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { Docket } from '@/lib/types/docket';
 
-const VOID_REASONS = [
-  { value: 'entered-in-error', label: 'Entered in error' },
-  { value: 'duplicate-docket', label: 'Duplicate docket' },
-  { value: 'incorrect-job-selected', label: 'Incorrect job selected' },
-  { value: 'incorrect-product-recorded', label: 'Incorrect product recorded' },
-  {
-    value: 'incorrect-quantity-recorded',
-    label: 'Incorrect quantity recorded',
-  },
-  { value: 'test-training-entry', label: 'Test / training entry' },
-  { value: 'driver-reported-issue', label: 'Driver reported issue' },
-  { value: 'other', label: 'Other' },
-];
+export const VOID_REASON_LABELS: Record<string, string> = {
+  entered_in_error: 'Entered in error',
+  duplicate_docket: 'Duplicate docket',
+  incorrect_job_selected: 'Incorrect job selected',
+  incorrect_product_recorded: 'Incorrect product recorded',
+  incorrect_quantity_recorded: 'Incorrect quantity recorded',
+  test_training_entry: 'Test / training entry',
+  driver_reported_issue: 'Driver reported issue',
+  other: 'Other',
+};
+
+const VOID_REASONS = Object.entries(VOID_REASON_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);
 
 export function VoidDocketDescription({ docket }: { docket?: Docket | null }) {
   return (
