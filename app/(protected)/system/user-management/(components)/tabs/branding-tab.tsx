@@ -185,10 +185,10 @@ export default function BrandingTab() {
                             logoPreview ? 'items-center' : 'items-start'
                           )}
                         >
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2 w-full sm:w-auto">
                             <div
                               className={cn(
-                                'w-[200px] border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50',
+                                'w-full sm:w-[200px] border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50',
                                 logoPreview ? 'h-40' : 'h-[120px]'
                               )}
                               onClick={handleUploadClick}
@@ -214,6 +214,7 @@ export default function BrandingTab() {
                                     alt="Logo preview"
                                     fill
                                     className="object-contain"
+                                    onError={() => setLogoPreview(null)}
                                   />
                                 </div>
                               )}
@@ -228,13 +229,15 @@ export default function BrandingTab() {
                             />
                           </div>
 
-                          <div className="flex flex-col items-start gap-3">
+                          <div className="flex flex-col items-start gap-3 w-full sm:w-auto">
                             <div
                               className={cn(
-                                'inline-flex items-center gap-2 w-50 px-4 border border-input rounded-md bg-background hover:text-accent-foreground cursor-pointer',
+                                'inline-flex items-center justify-center gap-2 w-full sm:w-50 px-4 border border-input rounded-md bg-background hover:text-accent-foreground cursor-pointer',
                                 logoPreview
-                                  ? 'py-3 h-24 text-center'
-                                  : 'py-2 text-start'
+                                  ? isNarrow
+                                    ? 'py-2'
+                                    : 'py-3 h-24'
+                                  : 'py-2'
                               )}
                               onClick={handleUploadClick}
                             >
@@ -284,7 +287,10 @@ export default function BrandingTab() {
                   <Separator />
                   <Button
                     type="submit"
-                    className="w-fit mt-6 cursor-pointer self-end"
+                    className={cn(
+                      'mt-6 cursor-pointer',
+                      isNarrow ? 'w-full' : 'w-fit self-end'
+                    )}
                     disabled={isSubmitting || !hasNewFile}
                     onClick={(e) => {
                       e.stopPropagation();
