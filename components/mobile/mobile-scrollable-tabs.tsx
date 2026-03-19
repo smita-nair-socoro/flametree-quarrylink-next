@@ -45,7 +45,11 @@ export function MobileScrollableTabs({
     const el = scrollRef.current;
     if (!el) return;
     const activeBtn = el.querySelector<HTMLElement>('[aria-selected="true"]');
-    activeBtn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    activeBtn?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
   }, [value]);
 
   const activeIndex = tabs.findIndex((t) => t.value === value);
@@ -80,7 +84,10 @@ export function MobileScrollableTabs({
       </div>
 
       {hasOverflow && (
-        <div role="presentation" className="flex justify-center items-center gap-1.5">
+        <div
+          role="presentation"
+          className="flex justify-center items-center gap-1.5"
+        >
           {tabs.map((_, i) => (
             <div
               key={i}
