@@ -240,14 +240,14 @@ export function MobilePricingList({
   lowestCost,
   bestMargin,
   availableOnly = false,
-  sortMargin = 'asc',
+  sortCost = 'asc',
 }: {
   data: QuarriesWithProduct[];
   pricingType: PricingType;
   lowestCost: number | null;
   bestMargin: number | null;
   availableOnly?: boolean;
-  sortMargin?: 'asc' | 'desc';
+  sortCost?: 'asc' | 'desc';
 }) {
   const getCost = (r: QuarriesWithProduct) =>
     getPricingFields(r, pricingType).cost;
@@ -261,7 +261,7 @@ export function MobilePricingList({
   const sorted = [...filtered].sort((a, b) => {
     const aCost = getCost(a) || Infinity;
     const bCost = getCost(b) || Infinity;
-    return sortMargin === 'desc' ? bCost - aCost : aCost - bCost;
+    return sortCost === 'desc' ? bCost - aCost : aCost - bCost;
   });
 
   return (

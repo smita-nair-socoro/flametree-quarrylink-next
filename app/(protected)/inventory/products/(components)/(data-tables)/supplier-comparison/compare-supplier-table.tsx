@@ -47,7 +47,7 @@ export function CompareSupplierTable({
 }: CompareSupplierTableProps) {
   const [activeTab, setActiveTab] = React.useState<string>('TN Pricing');
   const [availableOnly, setAvailableOnly] = React.useState(false);
-  const [sortMargin, setSortCost] = React.useState<'asc' | 'desc'>('asc');
+  const [sortCost, setSortCost] = React.useState<'asc' | 'desc'>('asc');
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isPricingTab = activeTab !== 'Truck Rates';
 
@@ -200,7 +200,7 @@ export function CompareSupplierTable({
             lowestCost={tnMeta.lowestCost}
             bestMargin={tnMeta.bestMargin}
             availableOnly={availableOnly}
-            sortMargin={sortMargin}
+            sortCost={sortCost}
           />
         );
       case 'm³ Pricing':
@@ -211,7 +211,7 @@ export function CompareSupplierTable({
             lowestCost={m3Meta.lowestCost}
             bestMargin={m3Meta.bestMargin}
             availableOnly={availableOnly}
-            sortMargin={sortMargin}
+            sortCost={sortCost}
           />
         );
       case '20kg Pricing':
@@ -222,7 +222,7 @@ export function CompareSupplierTable({
             lowestCost={kgMeta.lowestCost}
             bestMargin={kgMeta.bestMargin}
             availableOnly={availableOnly}
-            sortMargin={sortMargin}
+            sortCost={sortCost}
           />
         );
       case 'Bulka Pricing':
@@ -233,7 +233,7 @@ export function CompareSupplierTable({
             lowestCost={bulkaMeta.lowestCost}
             bestMargin={bulkaMeta.bestMargin}
             availableOnly={availableOnly}
-            sortMargin={sortMargin}
+            sortCost={sortCost}
           />
         );
       case 'Truck Rates':
@@ -250,7 +250,7 @@ export function CompareSupplierTable({
     bulkaMeta,
     lowestTn,
     availableOnly,
-    sortMargin,
+    sortCost,
   ]);
 
   return (
@@ -310,7 +310,7 @@ export function CompareSupplierTable({
                   >
                     <ListFilter className="h-4 w-4 text-gray-400" />
                     Sort: Margin
-                    {sortMargin === 'asc' ? (
+                    {sortCost === 'asc' ? (
                       <ArrowUp className="h-3.5 w-3.5 text-gray-500" />
                     ) : (
                       <ArrowDown className="h-3.5 w-3.5 text-gray-500" />
