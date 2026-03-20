@@ -47,7 +47,7 @@ export default function DocketsPage() {
           tableId="docket_main_data_table"
           data={items ?? []}
           columns={docketColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search dockets..."
           defaultSorting={[{ id: 'docketNumber', desc: false }]}
         />
