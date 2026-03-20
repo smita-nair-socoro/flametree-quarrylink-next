@@ -309,7 +309,7 @@ export function CompareSupplierTable({
                     className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-600 bg-white"
                   >
                     <ListFilter className="h-4 w-4 text-gray-400" />
-                    Sort: Margin
+                    Sort: Cost
                     {sortCost === 'asc' ? (
                       <ArrowUp className="h-3.5 w-3.5 text-gray-500" />
                     ) : (
