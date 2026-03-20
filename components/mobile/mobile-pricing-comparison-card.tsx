@@ -6,6 +6,11 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { TableBadges } from '@/components/table-badges';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 export type PricingComparisonType = 'tn' | 'm3' | 'kg' | 'bulka';
 
@@ -80,7 +85,14 @@ export function MobilePricingComparisonCard({
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             </div>
           )}
-          <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">{name}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         <div className="shrink-0 ml-2">
           <TableBadges names={[available ? 'AVAILABLE' : 'UNAVAILABLE']} />

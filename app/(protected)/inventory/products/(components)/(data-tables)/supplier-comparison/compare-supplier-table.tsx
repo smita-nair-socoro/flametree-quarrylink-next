@@ -19,7 +19,10 @@ import {
   createPricingColumns,
   MobilePricingList,
 } from './pricing-columns';
-import { createTruckRateColumns, MobileTruckRateList } from './truck-rate-columns';
+import {
+  createTruckRateColumns,
+  MobileTruckRateList,
+} from './truck-rate-columns';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +47,7 @@ export function CompareSupplierTable({
 }: CompareSupplierTableProps) {
   const [activeTab, setActiveTab] = React.useState<string>('TN Pricing');
   const [availableOnly, setAvailableOnly] = React.useState(false);
-  const [sortCost, setSortCost] = React.useState<'asc' | 'desc'>('asc');
+  const [sortMargin, setSortCost] = React.useState<'asc' | 'desc'>('asc');
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isPricingTab = activeTab !== 'Truck Rates';
 
@@ -197,7 +200,7 @@ export function CompareSupplierTable({
             lowestCost={tnMeta.lowestCost}
             bestMargin={tnMeta.bestMargin}
             availableOnly={availableOnly}
-            sortCost={sortCost}
+            sortMargin={sortMargin}
           />
         );
       case 'm³ Pricing':
@@ -208,7 +211,7 @@ export function CompareSupplierTable({
             lowestCost={m3Meta.lowestCost}
             bestMargin={m3Meta.bestMargin}
             availableOnly={availableOnly}
-            sortCost={sortCost}
+            sortMargin={sortMargin}
           />
         );
       case '20kg Pricing':
@@ -219,7 +222,7 @@ export function CompareSupplierTable({
             lowestCost={kgMeta.lowestCost}
             bestMargin={kgMeta.bestMargin}
             availableOnly={availableOnly}
-            sortCost={sortCost}
+            sortMargin={sortMargin}
           />
         );
       case 'Bulka Pricing':
@@ -230,7 +233,7 @@ export function CompareSupplierTable({
             lowestCost={bulkaMeta.lowestCost}
             bestMargin={bulkaMeta.bestMargin}
             availableOnly={availableOnly}
-            sortCost={sortCost}
+            sortMargin={sortMargin}
           />
         );
       case 'Truck Rates':
@@ -238,7 +241,17 @@ export function CompareSupplierTable({
       default:
         return null;
     }
-  }, [activeTab, data, tnMeta, m3Meta, kgMeta, bulkaMeta, lowestTn, availableOnly, sortCost]);
+  }, [
+    activeTab,
+    data,
+    tnMeta,
+    m3Meta,
+    kgMeta,
+    bulkaMeta,
+    lowestTn,
+    availableOnly,
+    sortMargin,
+  ]);
 
   return (
     <div className="flex flex-col gap-1 overflow-x-hidden">
@@ -281,7 +294,9 @@ export function CompareSupplierTable({
                 <Circle
                   className={cn(
                     'h-4 w-4',
-                    availableOnly ? 'fill-[#8E51FF] text-[#8E51FF]' : 'text-gray-400',
+                    availableOnly
+                      ? 'fill-[#8E51FF] text-[#8E51FF]'
+                      : 'text-gray-400',
                   )}
                 />
                 Available only
@@ -294,8 +309,8 @@ export function CompareSupplierTable({
                     className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-600 bg-white"
                   >
                     <ListFilter className="h-4 w-4 text-gray-400" />
-                    Sort: Cost
-                    {sortCost === 'asc' ? (
+                    Sort: Margin
+                    {sortMargin === 'asc' ? (
                       <ArrowUp className="h-3.5 w-3.5 text-gray-500" />
                     ) : (
                       <ArrowDown className="h-3.5 w-3.5 text-gray-500" />
@@ -313,11 +328,6 @@ export function CompareSupplierTable({
               </DropdownMenu>
             </div>
           )}
-
-          {/* Swipe hint */}
-          <p className="text-center text-xs text-gray-400 mt-3">
-            ← swipe to switch tabs →
-          </p>
 
           {mobileContent}
         </div>

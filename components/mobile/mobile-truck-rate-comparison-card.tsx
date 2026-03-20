@@ -5,6 +5,11 @@ import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
 import { Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 export interface MobileTruckRateComparisonCardProps {
   supplier: QuarriesWithProduct;
@@ -61,7 +66,14 @@ export function MobileTruckRateComparisonCard({
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             </div>
           )}
-          <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">{name}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         {isLowestTnRate && (
           <span className="text-sm font-medium text-green-600 shrink-0 ml-2">
