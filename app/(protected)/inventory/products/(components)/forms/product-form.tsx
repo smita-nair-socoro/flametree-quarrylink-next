@@ -597,6 +597,7 @@ export default function ProductForm({
                 }
                 cancelButtonClass="mx-5 my-3"
                 confirmActionNeeded={false}
+                cancelActionNeeded={isDesktop ? false : true}
               />
 
               {/* Supplier Table */}
