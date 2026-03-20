@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export interface MobileScrollableTabItem {
   value: string;
@@ -58,28 +59,24 @@ export function MobileScrollableTabs({
     <div className="flex flex-col gap-3">
       <div
         ref={scrollRef}
-        role="tablist"
-        aria-orientation="horizontal"
         className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         {tabs.map((tab) => (
-          <button
+          <Button
             key={tab.value}
             type="button"
-            role="tab"
-            aria-selected={value === tab.value}
-            tabIndex={value === tab.value ? 0 : -1}
             onClick={() => onValueChange(tab.value)}
+            variant="ghost"
             className={cn(
-              'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors',
+              'flex-shrink-0 flex items-center gap-1.5 px-4 rounded-md text-sm font-medium whitespace-nowrap transition-colors',
               value === tab.value
-                ? 'bg-[#8E51FF] text-white'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+                ? 'bg-[#8E51FF] text-white hover:bg-[#8E51FF] hover:text-white'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-500',
             )}
           >
             {tab.icon}
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
 

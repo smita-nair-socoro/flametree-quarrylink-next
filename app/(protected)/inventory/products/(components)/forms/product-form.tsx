@@ -586,6 +586,8 @@ export default function ProductForm({
                 onOpenChangeAction={setIsCompareDialogOpen}
                 customWidth="!max-w-[95vw] 2xl:!max-w-[1200px]"
                 cancelText="Close"
+                padding="p-0 gap-0"
+                titlePadding="px-5"
                 title={`Compare All – ${totalSupplier} Suppliers`}
                 content={
                   <CompareSupplierTable
@@ -593,6 +595,7 @@ export default function ProductForm({
                     productName={selectedProduct?.productName}
                   />
                 }
+                cancelButtonClass="mx-5 my-3"
                 confirmActionNeeded={false}
               />
 

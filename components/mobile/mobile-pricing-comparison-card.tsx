@@ -21,7 +21,10 @@ export interface MobilePricingComparisonCardProps {
   isBestMargin: boolean;
 }
 
-function getPricingValues(supplier: QuarriesWithProduct, type: PricingComparisonType) {
+function getPricingValues(
+  supplier: QuarriesWithProduct,
+  type: PricingComparisonType,
+) {
   switch (type) {
     case 'tn':
       return {
@@ -56,7 +59,10 @@ export function MobilePricingComparisonCard({
   isLowestCost,
   isBestMargin,
 }: MobilePricingComparisonCardProps) {
-  const { costPrice, sellPrice, available } = getPricingValues(supplier, pricingType);
+  const { costPrice, sellPrice, available } = getPricingValues(
+    supplier,
+    pricingType,
+  );
 
   const costDisplay = costPrice ? centsToDollars(costPrice) : '0.00';
   const sellDisplay = sellPrice ? centsToDollars(sellPrice) : '0.00';
@@ -68,7 +74,7 @@ export function MobilePricingComparisonCard({
       className={cn(
         'rounded-xl border overflow-hidden',
         isLowestCost
-          ? 'border-2 border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
+          ? 'border-2 border-green-500 shadow-[0_0_3px_rgba(34,197,94,0.3)]'
           : 'border-gray-200',
       )}
     >
@@ -87,7 +93,9 @@ export function MobilePricingComparisonCard({
           )}
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+              <span className="font-bold text-[#101828] text-base truncate">
+                {name}
+              </span>
             </TooltipTrigger>
             <TooltipContent side="top">
               <p className="text-xs">{name}</p>
@@ -105,32 +113,36 @@ export function MobilePricingComparisonCard({
       <div className="grid grid-cols-3 divide-x divide-gray-200 bg-white px-4 py-3">
         {/* Cost Price */}
         <div className="pr-3">
-          <p className="text-xs text-gray-500 mb-1">Cost Price</p>
+          <p className="text-[10px] text-gray-500 ">Cost Price</p>
           <p
             className={cn(
-              'text-sm font-semibold',
+              'text-[16px] font-semibold',
               isLowestCost ? 'text-green-600' : 'text-[#101828]',
             )}
           >
             ${costDisplay}
           </p>
           {isLowestCost && (
-            <p className="text-xs text-green-600 font-medium mt-0.5">Lowest</p>
+            <p className="text-[10px] text-green-600 font-medium mt-0.5">
+              Lowest
+            </p>
           )}
         </div>
 
         {/* Sell Price */}
         <div className="px-3">
-          <p className="text-xs text-gray-500 mb-1">Sell Price</p>
-          <p className="text-sm font-semibold text-[#101828]">${sellDisplay}</p>
+          <p className="text-[10px] text-gray-500 ">Sell Price</p>
+          <p className="text-[16px] font-semibold text-[#101828]">
+            ${sellDisplay}
+          </p>
         </div>
 
         {/* Margin */}
         <div className="pl-3">
-          <p className="text-xs text-gray-500 mb-1">Margin</p>
+          <p className="text-[10px] text-gray-500 ">Margin</p>
           <div
             className={cn(
-              'flex items-center gap-0.5 text-sm font-semibold',
+              'flex items-center gap-0.5 text-[16px] font-semibold',
               margin < 0
                 ? 'text-red-600'
                 : isBestMargin
@@ -145,7 +157,9 @@ export function MobilePricingComparisonCard({
             <span>{(margin * 100).toFixed(2)}%</span>
           </div>
           {isBestMargin && (
-            <p className="text-xs text-amber-500 font-medium mt-0.5">Best margin</p>
+            <p className="text-xs text-amber-500 font-medium mt-0.5">
+              Best margin
+            </p>
           )}
         </div>
       </div>
