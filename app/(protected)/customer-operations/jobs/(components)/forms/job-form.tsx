@@ -40,6 +40,7 @@ import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 // import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
+import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
 
 
@@ -215,7 +216,7 @@ export default function JobForm({
       );
 
 
-      await createJob.mutateAsync({
+      const createdJob = await createJob.mutateAsync({
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
@@ -228,6 +229,10 @@ export default function JobForm({
         startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
         endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
       });
+
+      if (createdJob?.id) {
+        addNewRecordId('job_main_data_table', createdJob.id);
+      }
 
       notifySuccess('Job created successfully');
       onSaved?.();
