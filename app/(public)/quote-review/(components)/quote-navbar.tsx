@@ -83,7 +83,7 @@ export function QuoteNavbar({
           ) : (
             <InitialsLogo tenantName={displayName} />
           )}
-          <h1 className="text-[40px] sm:text-[50px] font-bold min-w-0 flex-1 break-words">
+          <h1 className="text-[20px] sm:text-[30px] font-bold min-w-0 flex-1 break-words">
             {displayName}
           </h1>
         </div>

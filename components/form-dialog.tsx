@@ -305,13 +305,13 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedJob && selectedJob) {
     finalCustomId = selectedJob.jobNumber;
-    finalPrimaryBadges = [selectedJob.status];
+    finalPrimaryBadges = [selectedJob.jobStatus];
   }
 
   if (headerInfo?.useSelectedJobLineItem && selectedJobLineItem) {
-    finalCustomId = selectedJobLineItem.productName;
-    finalPrimaryBadges = [selectedJobLineItem.quarryName];
-    finalSecondaryBadges = [selectedJobLineItem.supplierProductName];
+    finalCustomId = selectedJobLineItem.product.productName;
+    finalPrimaryBadges = [selectedJobLineItem.jobItemType];
+    finalSecondaryBadges = [selectedJobLineItem.product.productName];
   }
 
   if (headerInfo?.useSelectedDocket && selectedDocket) {
