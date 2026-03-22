@@ -28,7 +28,7 @@ import {
 	TrendingUp,
 	TrendingDown,
 } from 'lucide-react';
-import { useLineItemFormState } from '@/hooks/job/use-job-lineitem-form-state';
+import { useJobLineItemFormState } from '@/hooks/job/use-job-lineitem-form-state';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
@@ -80,7 +80,7 @@ export default function JobLineItemForm({
 		handleDeleteDeliveryAddress,
 		productDetails,
 		isSubmitting,
-	} = useLineItemFormState({ id, canEdit, onSuccess, onSaved });
+	} = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
 
 	// Report dirty-state to parent dialog
 	React.useEffect(() => {
@@ -1014,9 +1014,8 @@ export default function JobLineItemForm({
 								</Button>
 								<Button
 									className="cursor-pointer"
-									type="button"
-									disabled={isPending || !canEdit}
-									onClick={() => jobLineItemForm.handleSubmit(onSubmit)()}
+									type="submit"
+									disabled={isPending}
 								>
 									{isEditing ? 'Save Changes' : 'Add Product'}
 								</Button>
@@ -1026,10 +1025,9 @@ export default function JobLineItemForm({
 						{!isDesktop && (
 							<div className="flex flex-col col-span-2 gap-3 my-6">
 								<Button
-									type="button"
+									type="submit"
 									className="cursor-pointer"
-									disabled={isPending || !canEdit}
-									onClick={() => jobLineItemForm.handleSubmit(onSubmit)()}
+									disabled={isPending}
 								>
 									{isEditing ? 'Save Changes' : 'Add Product'}
 								</Button>

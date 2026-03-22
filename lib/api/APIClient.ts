@@ -960,6 +960,16 @@ export const APIClient = {
       appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
         body: data,
       }),
+    updateJob: (id: number, data: JobDTO) => {
+      return appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}`, {
+        body: data,
+      });
+    },
+    updateJobItem: (id: number, data: Partial<JobItem>) => {
+      return appClient.Put<JobItem>(`/socoro/quarrylink/api/job-items/${id}`, {
+        body: data,
+      });
+    },
   },
 
   tenants: {
