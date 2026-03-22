@@ -1,4 +1,4 @@
-import { DRIVER_STATUS, DRIER_TYPE } from './driver-enums';
+import { DRIVER_STATUS, DRIER_TYPE, DRIVER_TYPE } from './driver-enums';
 
 interface Driver {
   id: number;
