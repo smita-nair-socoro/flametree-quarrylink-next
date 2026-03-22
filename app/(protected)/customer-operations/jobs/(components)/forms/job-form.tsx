@@ -27,7 +27,6 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState, EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
-import { GetTodaysDate } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { JOB_STATUS } from '@/lib/types/job-enums';
@@ -42,6 +41,7 @@ import InvoicesTab from './tabs/invoices/invoices-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
+import { JobDTO } from '@/lib/types/job';
 
 
 interface FormProps {
@@ -56,7 +56,6 @@ interface FormProps {
 
 export default function JobForm({
   id,
-  canEdit,
   className,
   onDirtyChange,
   onSaved,
@@ -168,10 +167,6 @@ export default function JobForm({
     }));
   }, [users]);
 
-  const today = React.useMemo(() => {
-    const d = GetTodaysDate();
-    return d;
-  }, []);
 
   const tabs = React.useMemo(
     () => [
@@ -233,9 +228,9 @@ export default function JobForm({
         await updateJob.mutateAsync({
           id: jobId,
           data: {
-            ...jobDetails,
+            ...(jobDetails as JobDTO),
             ...payload,
-          } as any, // Cast as any because JobDTO might have other fields we don't want to overwrite
+          } as JobDTO
         });
         notifySuccess('Job updated successfully');
       } else {
