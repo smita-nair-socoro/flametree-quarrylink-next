@@ -40,6 +40,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
+import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
 
 type RequestBody =
@@ -845,6 +846,39 @@ export const APIClient = {
       );
     },
   },
+
+  dockets: {
+    create: (data: Partial<DocketDTO>) =>
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/docket', {
+        body: data,
+      }),
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const response = await appClient.Get<
+        | DocketDTO[]
+        | {
+            content: DocketDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/dockets`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          search: params?.search,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
+      return response;
+    },
+  },
+
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
     getById: (id: string) => {
@@ -926,6 +960,16 @@ export const APIClient = {
       appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
         body: data,
       }),
+    updateJob: (id: number, data: JobDTO) => {
+      return appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}`, {
+        body: data,
+      });
+    },
+    updateJobItem: (id: number, data: Partial<JobItem>) => {
+      return appClient.Put<JobItem>(`/socoro/quarrylink/api/job-items/${id}`, {
+        body: data,
+      });
+    },
   },
 
   tenants: {
