@@ -16,7 +16,7 @@ interface Driver {
 interface DriverDTO {
   id: number;
   driverName: string;
-  driverType: DRIVER_STATUS;
+  driverType: DRIVER_TYPE;
   emailAddress: string;
   phoneNumber: string;
   licenseNumber: string;
