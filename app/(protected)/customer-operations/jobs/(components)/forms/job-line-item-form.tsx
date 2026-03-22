@@ -74,7 +74,6 @@ export default function JobLineItemForm({
 		selectedProductId,
 		pricingBreakdown,
 		handleSubmit,
-		onSubmit,
 		isPending,
 		customerDeliveryAddressSuggestions,
 		handleDeleteDeliveryAddress,

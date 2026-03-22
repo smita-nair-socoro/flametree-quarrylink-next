@@ -4,11 +4,11 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DocketDTO } from '@/lib/types/docket';
 import { DateCell } from '@/components/date-cell';
 import { TableBadges } from '@/components/table-badges';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+// import {
+//   Tooltip,
+//   TooltipContent,
+//   TooltipTrigger,
+// } from '@/components/ui/tooltip';
 // import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
