@@ -2,7 +2,7 @@
 import * as React from 'react';
 // import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
-import { Driver } from '@/lib/types/driver';
+import { DriverDTO } from '@/lib/types/driver';
 // import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
 // import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import {
@@ -39,10 +39,10 @@ interface SelectedAction {
 }
 
 const getDialogConfigs = (
-  driverData?: Driver | null,
+  driverData?: DriverDTO | null,
   selectedAction?: SelectedAction,
 ): Record<string, DialogConfig> => {
-  const driverName = driverData?.name;
+  const driverName = driverData?.driverName;
 
   if (selectedAction?.key === 'resume') {
     return {
@@ -373,7 +373,7 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useDriverActions(driverData?: Driver | null) {
+export function useDriverActions(driverData?: DriverDTO | null) {
   const driverId = driverData?.id;
   const selectedDriver = useDriverStore((s) => s.selectedDriver);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
@@ -422,7 +422,7 @@ export function useDriverActions(driverData?: Driver | null) {
 
   const actions = {
     /** Pass customer when opening from row click so the store updates before the dialog opens */
-    view: (driver?: Driver | null) => {
+    view: (driver?: DriverDTO | null) => {
       const toSelect = driver ?? driverData;
       if (toSelect != null) {
         useDriverStore.getState().setSelectedDriver(toSelect);
@@ -431,28 +431,15 @@ export function useDriverActions(driverData?: Driver | null) {
     },
 
     deactivate: () => {
-      // This logic will be updated to check if the driver has any active dockets
-      if (
-        driverData?.assignedTrucks?.length &&
-        driverData.assignedTrucks.length > 0
-      ) {
-        createDialogAction('cannotDeactivate')();
-      } else {
-        createDialogAction('deactivate')();
-      }
+      // TODO: check if the driver has any active dockets from API
+      createDialogAction('deactivate')();
     },
     reactivate: () => {
       createDialogAction('reactivate')();
     },
     delete: () => {
-      if (
-        driverData?.assignedTrucks?.length &&
-        driverData.assignedTrucks.length > 0
-      ) {
-        createDialogAction('cannotDelete')();
-      } else {
-        createDialogAction('delete')();
-      }
+      // TODO: check if the driver has any active dockets from API
+      createDialogAction('delete')();
     },
   };
 

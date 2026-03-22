@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Driver } from '@/lib/types/driver';
-import rawJson from '@/lib/tests/driversResponseData.json';
 import { Plus } from 'lucide-react';
-
+import { useQuery } from '@tanstack/react-query';
+import { DriversListQueryOptions } from '@/lib/api/driver';
+import { DriverDTO } from '@/lib/types/driver';
 import {
   DataTableClient,
   FacetDefinition,
@@ -13,15 +13,16 @@ import { driverColumns } from './(components)/(data-tables)/driver/columns';
 import { FormDialog } from '@/components/form-dialog';
 import DriverForm from './(components)/forms/driver-form';
 
-export default function CustomersPage() {
-  const { items } = rawJson as unknown as {
-    items: Driver[];
-  };
+export default function DriversPage() {
+  const { data: drivers } = useQuery(DriversListQueryOptions());
+
+  const items: DriverDTO[] = React.useMemo(() => {
+    return Array.isArray(drivers) ? drivers : [];
+  }, [drivers]);
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: Plus },
-    { column: 'type', title: 'Driuver Type', icon: Plus },
-    { column: 'haulier', title: 'Haulier', icon: Plus },
+    { column: 'driverStatus', title: 'Status', icon: Plus },
+    { column: 'driverType', title: 'Driver Type', icon: Plus },
   ];
 
   return (
@@ -44,11 +45,11 @@ export default function CustomersPage() {
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           tableId="driver_main_data_table"
-          data={items ?? []}
+          data={items}
           columns={driverColumns}
           facetDefination={facetDefs}
           searchPlaceHolder="Search drivers..."
-          defaultSorting={[{ id: 'name', desc: false }]}
+          defaultSorting={[{ id: 'driverName', desc: false }]}
         />
       </div>
     </div>
