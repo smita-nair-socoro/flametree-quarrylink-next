@@ -157,44 +157,21 @@ export function CannotCancelJobContent({
   );
 }
 
-const CANCEL_REASONS = [
-  {
-    value: 'customer_requested',
-    label: 'Customer requested cancellation',
-  },
-  {
-    value: 'project_cancelled_postponed',
-    label: 'Project cancelled or postponed',
-  },
-  {
-    value: 'budget_payment_issues',
-    label: 'Budget or payment issues',
-  },
-  {
-    value: 'scope_changed',
-    label: 'Scope of work changed',
-  },
-  {
-    value: 'supplier_unavailable',
-    label: 'Supplier or materials unavailable',
-  },
-  {
-    value: 'scheduling_conflict',
-    label: 'Scheduling conflict',
-  },
-  {
-    value: 'weather_or_site_conditions',
-    label: 'Weather or site conditions',
-  },
-  {
-    value: 'duplicate_job_entry',
-    label: 'Duplicate job entry',
-  },
-  {
-    value: 'other',
-    label: 'Other reason',
-  },
-] as const;
+export const CANCEL_REASON_LABELS: Record<string, string> = {
+  customer_requested: 'Customer requested cancellation',
+  project_cancelled_postponed: 'Project cancelled or postponed',
+  budget_payment_issues: 'Budget or payment issues',
+  scope_changed: 'Scope of work changed',
+  supplier_unavailable: 'Supplier or materials unavailable',
+  scheduling_conflict: 'Scheduling conflict',
+  weather_or_site_conditions: 'Weather or site conditions',
+  duplicate_job_entry: 'Duplicate job entry',
+  other: 'Other reason',
+};
+
+const CANCEL_REASONS = Object.entries(CANCEL_REASON_LABELS).map(
+  ([, label]) => ({ value: label, label }),
+);
 
 export function CancelJobDescription({ job }: { job?: JobDTO | null }) {
   return (
@@ -269,7 +246,7 @@ export function CancelJobContent({
       <div className="flex flex-col gap-2">
         <label className="text-[14px] font-normal text-[#6A7282]">
           Additional notes{' '}
-          {cancelReason === 'other' ? (
+          {cancelReason === CANCEL_REASON_LABELS.other ? (
             <span className="text-[#E7000B]">*</span>
           ) : (
             '(Optional)'

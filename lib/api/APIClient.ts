@@ -926,6 +926,10 @@ export const APIClient = {
       appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
         body: data,
       }),
+    cancelJob: (id: number, cancelReason: string, additionalNotes: string) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/cancel`, {
+        body: { cancelReason, additionalNotes },
+      }),
   },
 
   tenants: {

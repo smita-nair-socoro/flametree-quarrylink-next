@@ -28,6 +28,7 @@ import {
   CannotCancelJobContent,
   CannotCancelBlockerType,
 } from '@/hooks/job/cancel-job-content';
+import { useCancelJob } from '@/lib/api/job';
 
 interface DialogConfig {
   title?: string;
@@ -86,6 +87,8 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const cancelBlocker =
     jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
+
+  const cancelJobMutation = useCancelJob();
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -198,9 +201,12 @@ export function useJobActions(jobData?: JobDetails | null) {
       // TODO: implement resume logic
     },
     cancel: () => {
-      if (!isCancelFormValid) return;
-      console.log('Cancel job:', jobId, jobData, { cancelReason, cancelNotes });
-      // TODO: implement cancel logic
+      if (!isCancelFormValid || jobId == null) return;
+      cancelJobMutation.mutate({
+        id: jobId,
+        cancelReason,
+        additionalNotes: cancelNotes.trim(),
+      });
     },
     settle: () => {
       console.log('Settle job:', jobId, jobData);
