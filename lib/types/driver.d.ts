@@ -13,6 +13,19 @@ interface Driver {
   assignedTrucks: number[];
 }
 
+interface DriverCreateDTO {
+  driverName: string;
+  driverType: DRIVER_TYPE;
+  emailAddress: string;
+  phoneNumber: string;
+  licenseNumber: string;
+  haulierId?: number;
+  haulierName?: string;
+  haulierEmailAddress?: string;
+  haulierPhoneNumber?: string;
+  truckIds?: number[];
+}
+
 interface DriverDTO {
   id: number;
   driverName: string;
