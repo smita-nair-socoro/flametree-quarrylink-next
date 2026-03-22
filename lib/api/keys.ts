@@ -83,3 +83,9 @@ export const UserKeys = {
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
+
+export const DriverKeys = {
+  all: ['drivers'] as const,
+  list: () => [...DriverKeys.all, 'list'] as const,
+  detail: (id: number) => [...DriverKeys.all, 'detail', id] as const,
+};

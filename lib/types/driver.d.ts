@@ -12,3 +12,20 @@ interface Driver {
   driverLicenseNumber: string;
   assignedTrucks: number[];
 }
+
+interface DriverDTO {
+  id: number;
+  driverName: string;
+  driverType: DRIVER_STATUS;
+  emailAddress: string;
+  phoneNumber: string;
+  licenseNumber: string;
+  driverStatus: DRIVER_STATUS;
+  appInvitationSent: boolean;
+  appInvitationSentAt: string | null;
+  appActivated: boolean;
+  appActivatedAt: string | null;
+  deviceToken: string | null;
+  lastChecklistCompleted: string | null;
+  version: number;
+}

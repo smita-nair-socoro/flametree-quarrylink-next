@@ -41,6 +41,7 @@ import {
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
+import { DriverDTO } from '../types/driver';
 
 type RequestBody =
   | BodyInit
@@ -926,6 +927,11 @@ export const APIClient = {
       appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
         body: data,
       }),
+  },
+
+  drivers: {
+    getAll: () =>
+      appClient.Get<DriverDTO[]>(`/socoro/quarrylink/api/driver`),
   },
 
   tenants: {
