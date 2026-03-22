@@ -27,6 +27,7 @@ import {
   CannotCancelJobDescription,
   CannotCancelJobContent,
   CannotCancelBlockerType,
+  CANCEL_REASON_LABELS,
 } from '@/hooks/job/cancel-job-content';
 import { useCancelJob } from '@/lib/api/job';
 
@@ -114,7 +115,7 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const isCancelFormValid = React.useMemo(() => {
     if (!cancelReason) return false;
-    if (cancelReason === 'other' && !cancelNotes.trim()) return false;
+    if (cancelReason === CANCEL_REASON_LABELS.other && !cancelNotes.trim()) return false;
     return true;
   }, [cancelReason, cancelNotes]);
 
