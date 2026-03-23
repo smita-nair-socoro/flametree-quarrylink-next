@@ -29,7 +29,7 @@ export function UpgradeFeaturesCard({
 
           {/* Right Button */}
           <Button
-            disabled={true}
+            disabled={false}
             onClick={onUpgrade}
             className="bg-purple-600 hover:bg-purple-700 text-white shrink-0 h-8 rounded-md px-4 py-2 text-xs font-medium flex items-center gap-2"
           >

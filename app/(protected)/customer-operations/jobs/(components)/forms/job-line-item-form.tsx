@@ -28,12 +28,11 @@ import {
 	TrendingUp,
 	TrendingDown,
 } from 'lucide-react';
-import { useLineItemFormState } from '@/hooks/job/use-job-lineitem-form-state';
+import { useJobLineItemFormState } from '@/hooks/job/use-job-lineitem-form-state';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
-import { formatLocalDateShort } from '@/lib/utils/date';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 
@@ -61,7 +60,6 @@ export default function JobLineItemForm({
 		isEditing,
 		isReadOnly,
 		form: jobLineItemForm,
-		jobLineItemData,
 		selectedJob,
 		selectedQuarrySupplierProduct,
 		addressInput,
@@ -76,13 +74,12 @@ export default function JobLineItemForm({
 		selectedProductId,
 		pricingBreakdown,
 		handleSubmit,
-		onSubmit,
 		isPending,
 		customerDeliveryAddressSuggestions,
 		handleDeleteDeliveryAddress,
 		productDetails,
 		isSubmitting,
-	} = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
+	} = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
 
 	// Report dirty-state to parent dialog
 	React.useEffect(() => {
@@ -131,7 +128,6 @@ export default function JobLineItemForm({
 		}
 	}, [lineItemType]);
 
-	// Determine pinned address based on quote type:
 	// - Delivery: Use customer's billing address
 	// - Collection: Use selected quarry supplier's address
 	const pinnedAddress = isCollection
@@ -1010,49 +1006,6 @@ export default function JobLineItemForm({
 							</div>
 						</div>
 
-						{/* Audit Information */}
-						{isEditing && (
-							<div className="col-span-full space-y-6 mt-10">
-								<div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-6 md:max-w-3xl">
-									<div className="flex items-center gap-2">
-										<p className="text-sm font-medium text-foreground">
-											Created By:
-										</p>
-										<p className="text-sm text-muted-foreground">
-											{jobLineItemData?.createdBy || 'N/A'}
-										</p>
-									</div>
-
-									<div className="flex items-center gap-2">
-										<p className="text-sm font-medium text-foreground">
-											Last Modified By:
-										</p>
-										<p className="text-sm text-muted-foreground">
-											{jobLineItemData?.lastModifiedBy || 'N/A'}
-										</p>
-									</div>
-
-									<div className="flex items-center gap-2">
-										<p className="text-sm font-medium text-foreground">
-											Created Date:
-										</p>
-										<p className="text-sm text-muted-foreground">
-											{formatLocalDateShort(jobLineItemData?.createdAt)}
-										</p>
-									</div>
-
-									<div className="flex items-center gap-2">
-										<p className="text-sm font-medium text-foreground">
-											Modified Date:
-										</p>
-										<p className="text-sm text-muted-foreground">
-											{formatLocalDateShort(jobLineItemData?.updatedAt)}
-										</p>
-									</div>
-								</div>
-							</div>
-						)}
-
 						{isDesktop && (
 							<div className="flex justify-end space-x-2 col-span-2 my-6">
 								<Button variant="outline" type="button" onClick={onCancel}>
@@ -1060,9 +1013,8 @@ export default function JobLineItemForm({
 								</Button>
 								<Button
 									className="cursor-pointer"
-									type="button"
-									disabled={isPending || !canEdit}
-									onClick={() => jobLineItemForm.handleSubmit(onSubmit)()}
+									type="submit"
+									disabled={isPending}
 								>
 									{isEditing ? 'Save Changes' : 'Add Product'}
 								</Button>
@@ -1072,10 +1024,9 @@ export default function JobLineItemForm({
 						{!isDesktop && (
 							<div className="flex flex-col col-span-2 gap-3 my-6">
 								<Button
-									type="button"
+									type="submit"
 									className="cursor-pointer"
-									disabled={isPending || !canEdit}
-									onClick={() => jobLineItemForm.handleSubmit(onSubmit)()}
+									disabled={isPending}
 								>
 									{isEditing ? 'Save Changes' : 'Add Product'}
 								</Button>

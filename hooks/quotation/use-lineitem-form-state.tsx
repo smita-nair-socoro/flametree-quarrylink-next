@@ -28,7 +28,7 @@ import {
 } from '@/lib/utils/error-message-helper';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
-import { AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
+import { Address, AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
@@ -84,7 +84,7 @@ export function useLineItemFormState({
         selectedLineItem?.quoteItemType ?? QUOTE_ITEM_TYPE.DELIVERY,
       address: isEditing
         ? (selectedLineItem?.customerDeliveryAddress?.address
-            ?.formattedAddress ?? '')
+          ?.formattedAddress ?? '')
         : '',
       productId: isEditing ? (selectedLineItem?.productId ?? 0) : 0,
       quarrySupplierId: isEditing
@@ -456,21 +456,19 @@ export function useLineItemFormState({
   // Static options
   const truckTypeOptions: SelectOption[] = React.useMemo(
     () => [
-      { label: 'Truck', value: 'Truck' },
-      { label: 'Semi-Trailer', value: 'Semi-Trailer' },
-      { label: 'Truck + Trailer', value: 'Truck + Trailer' },
-      { label: 'Rigid truck', value: 'Rigid truck' },
-      { label: 'B-Double', value: 'B-Double' },
-      { label: 'Road train', value: 'Road train' },
-      { label: 'Dog Truck', value: 'Dog Truck' },
-      { label: 'Flatbed', value: 'Flatbed' },
-      { label: 'Tipper', value: 'Tipper' },
-      { label: 'Semi-Tipper', value: 'Semi-Tipper' },
-      { label: 'Side-Tipper', value: 'Side-Tipper' },
-      { label: 'Truck and Dog', value: 'Truck and Dog' },
-      { label: 'Agitator truck', value: 'Agitator truck' },
+      { label: 'Truck', value: 'TRUCK' },
+      { label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
+      { label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
+      { label: 'Rigid truck', value: 'RIGID_TRUCK' },
+      { label: 'Flatbed', value: 'FLATBED' },
+      { label: 'Tipper', value: 'TIPPER' },
+      { label: 'Tandem', value: 'TANDEM' },
+      { label: 'QUAD', value: 'QUAD' },
+      { label: 'Tri-Axle', value: 'TRI_AXLE' },
+      { label: 'Tautliner', value: 'TAUTLINER' },
+      { label: 'Crane Truck', value: 'CRANE_TRUCK' },
     ],
-    [],
+    []
   );
 
   // UOM options derived from QSP
@@ -962,10 +960,7 @@ export function useLineItemFormState({
       console.error('No quotation selected');
       return;
     }
-    const customerId =
-      selectedQuotation?.customerId ||
-      selectedQuotation?.customerWithAddressResponseDto?.id ||
-      0;
+
     const originalAddress = selectedLineItem?.customerDeliveryAddress?.address;
     const mappedAddress = toAddressPayload(addressInput, originalAddress);
     const addressPayload = mappedAddress
@@ -976,18 +971,18 @@ export function useLineItemFormState({
       | undefined =
       addressPayload && customerId
         ? {
-            ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
-              ? { id: selectedLineItem.customerDeliveryAddress.id }
-              : {}),
-            customerId,
-            addressId:
-              isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
-                ? selectedLineItem.customerDeliveryAddress.addressId
-                : mappedAddress?.id,
-            address: addressPayload,
-            inUse: true,
-            lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
-          }
+          ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
+            ? { id: selectedLineItem.customerDeliveryAddress.id }
+            : {}),
+          customerId,
+          addressId:
+            isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
+              ? selectedLineItem.customerDeliveryAddress.addressId
+              : mappedAddress?.id,
+          address: addressPayload,
+          inUse: true,
+          lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
+        }
         : undefined;
 
     const quoteItemData: Partial<QuotationLineItem> = {
@@ -1015,7 +1010,7 @@ export function useLineItemFormState({
       productSellQty: values.productSellQty,
       productSellPrice: dollarsToCents(values.productSellPrice),
       totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
-      truckType: values.truckType,
+      truckType: values.truckType || undefined,
       truckCostUom: values.truckCostUom,
       truckCostQty: values.truckCostQty,
       truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
@@ -1063,9 +1058,8 @@ export function useLineItemFormState({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${
-            isEditing ? 'update' : 'add'
-          } line item. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'add'
+        } line item. Please try again.`,
       );
     }
   }

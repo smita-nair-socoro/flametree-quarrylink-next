@@ -41,7 +41,7 @@ import {
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
-import { JobDTO } from '../types/job';
+import { JobDTO, JobDetails, JobItem } from '../types/job';
 
 type RequestBody =
   | BodyInit
@@ -848,6 +848,10 @@ export const APIClient = {
   },
 
   dockets: {
+    create: (data: Partial<DocketDTO>) =>
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/dockets', {
+        body: data,
+      }),
     getAll: async (params?: {
       page?: number;
       pageSize?: number;
@@ -873,10 +877,6 @@ export const APIClient = {
       });
       return response;
     },
-    create: (data: DocketDTO) =>
-      appClient.Post<DocketDTO>('/socoro/quarrylink/api/dockets', {
-        body: data,
-      }),
   },
 
   users: {
@@ -919,6 +919,57 @@ export const APIClient = {
       appClient.Post<JobDTO>('/socoro/quarrylink/api/job', {
         body: data,
       }),
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const response = await appClient.Get<
+        | JobDTO[]
+        | {
+            content: JobDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/job`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          search: params?.search,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
+      return response;
+    },
+    getJobItems: async (jobId: number) => {
+      const response = await appClient.Get<JobDetails>(
+        `/socoro/quarrylink/api/job/${jobId}/job-items`,
+      );
+      return response;
+    },
+    getJobItemById: async (jobItemId: number) => {
+      const response = await appClient.Get<JobItem>(
+        `/socoro/quarrylink/api/job-items/${jobItemId}`,
+      );
+      return response;
+    },
+    createJobItem: (data: Partial<JobItem>) =>
+      appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
+        body: data,
+      }),
+    updateJob: (id: number, data: JobDTO) => {
+      return appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}`, {
+        body: data,
+      });
+    },
+    updateJobItem: (id: number, data: Partial<JobItem>) => {
+      return appClient.Put<JobItem>(`/socoro/quarrylink/api/job-items/${id}`, {
+        body: data,
+      });
+    },
   },
 
   tenants: {
@@ -944,5 +995,14 @@ export const APIClient = {
     },
     getLogo: () =>
       appClient.Get<TenantLogoResponse>(`/socoro/quarrylink/api/tenant/logo`),
+    getStripeProfileLink: () =>
+      appClient.Put<{ stripeProfileLink: string }>(
+        `/socoro/quarrylink/api/tenant/stripe-profile`,
+        {
+          queryString: {
+            returnUrl: 'https://app.dev.quarrylink.com.au/',
+          },
+        },
+      ),
   },
 };

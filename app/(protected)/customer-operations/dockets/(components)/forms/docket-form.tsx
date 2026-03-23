@@ -16,7 +16,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils';
+import { addNewRecordId, cn } from '@/lib/utils';
 import { FormSelect } from '@/components/ui/form-select';
 import {
   Calendar,
@@ -27,12 +27,15 @@ import {
   Truck,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { formatLocalDateShort } from '@/lib/utils/date';
+import { formatLocalDateShort, toUTCDateTimeWithoutZ } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { useCreateDocket } from '@/lib/api/docket';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { notifyError, notifySuccess } from '@/lib/toast';
 
 interface FormProps {
   id?: number;
@@ -49,9 +52,9 @@ interface FormProps {
 export default function DocketForm({
   id,
   onCancel,
-  // onSuccess,
+  onSuccess,
   onDirtyChange,
-  // onSaved,
+  onSaved,
   className,
   isQuickDocket = true,
   jobId,
@@ -60,6 +63,7 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const isReadOnly = Boolean(id) && !canEdit;
+  const createDocket = useCreateDocket();
 
   const {
     docketForm,
@@ -71,7 +75,6 @@ export default function DocketForm({
     selectedJob,
     selectedJobLineItemDetails,
     pricingBreakdown,
-    truckTypeOptions,
     mapMarkers,
     today,
     pickUpAddress,
@@ -82,6 +85,7 @@ export default function DocketForm({
     setPickUpSearchInput,
     deliverySearchInput,
     setDeliverySearchInput,
+    productDetails,
   } = useDocketFormState({
     id,
     isQuickDocket,
@@ -89,16 +93,157 @@ export default function DocketForm({
     onDirtyChange,
   });
 
+  const combineDateAndTime = (
+    date: Date | undefined,
+    timeString: string
+  ): string | null => {
+    if (!date || !timeString) return null;
+
+    const [hours, minutes] = timeString.split(':');
+    const combined = new Date(date);
+    combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+    return toUTCDateTimeWithoutZ(combined);
+  };
+
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
 
-    setIsSubmitting(true);
-    console.log(`Docket Form Values:`, values);
+    try {
+      const lineItemDetails = selectedJobLineItemDetails();
+      const isCollection = lineItemDetails.type === 'COLLECTION';
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!isCollection && (!values.loadSize || values.loadSize <= 0)) {
+        docketForm.setError('loadSize', {
+          type: 'manual',
+          message: 'Load Size is required for delivery',
+        });
+        return;
+      }
 
-    setIsSubmitting(false);
+      if (!isCollection && !deliveryAddress.googlePlaceId) {
+        docketForm.setError('deliveryAddressId', {
+          type: 'manual',
+          message: 'Delivery Address is required for delivery',
+        });
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      const density = productDetails?.densityTonnagePerM3 || 1;
+      let estimatedVolumeM3 = 0;
+      const loadSize = values.loadSize || 0;
+
+      if (lineItemDetails.productUom === 'M3' || 'm3' || lineItemDetails.productUom === 'BULKA' || 'Bulka') {
+        estimatedVolumeM3 = loadSize;
+      } else if (lineItemDetails.productUom === 'TN') {
+        estimatedVolumeM3 = loadSize / density;
+      } else if (lineItemDetails.productUom === 'KG_20' || '20kg') {
+        estimatedVolumeM3 = (loadSize / 50) / density;
+      }
+
+      // Round to 2 decimal places to avoid out of bounds errors on the backend
+      estimatedVolumeM3 = Math.round(estimatedVolumeM3 * 100) / 100;
+
+      let startDateTime = values.deliveryCollectionStartTime;
+      let endDateTime = values.deliveryCollectionEndTime;
+
+      if (values.deliveryCollectionDate) {
+        if (values.deliveryCollectionStartTime && !values.deliveryCollectionStartTime.includes('T')) {
+          startDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionStartTime) ?? startDateTime;
+        }
+        if (values.deliveryCollectionEndTime && !values.deliveryCollectionEndTime.includes('T')) {
+          endDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionEndTime) ?? endDateTime;
+        }
+      }
+
+      let deliveryDistanceQuantity = 0;
+      let deliveryDistanceUom = lineItemDetails.truckUom || 'TN';
+
+      // Ensure deliveryDistanceUom matches the backend enum
+      const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
+      if (!validUoms.includes(deliveryDistanceUom)) {
+        const uomMap: Record<string, string> = {
+          '20kg': 'KG_20',
+          'km': 'KM',
+          'Load': 'LOAD',
+          'TN': 'TN',
+          'Bulka': 'BULKA',
+          'Hourly': 'HOURLY',
+          'm3': 'M3'
+        };
+        deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
+      }
+
+      if (!isCollection) {
+        if (lineItemDetails.needTruckQty) {
+          deliveryDistanceQuantity = values.truckQty || 0;
+        } else {
+          deliveryDistanceQuantity = lineItemDetails.truckSellQty;
+        }
+      }
+
+      const newDocket = await createDocket.mutateAsync({
+        jobId: values.jobId,
+        jobItemId: values.jobLineItemId,
+        pickUpAddress: {
+          googlePlaceId: deliveryAddress.googlePlaceId,
+          formattedAddress: deliveryAddress.formattedAddress,
+          streetDetailsPrimary: deliveryAddress.address1,
+          streetDetailsOptional: deliveryAddress.address2,
+          city: deliveryAddress.city,
+          suburb: deliveryAddress.city,
+          state: deliveryAddress.region,
+          postcode: deliveryAddress.postalCode,
+          country: deliveryAddress.country,
+          latitude: deliveryAddress.lat,
+          longitude: deliveryAddress.lng,
+        },
+        deliveryAddress: isCollection ? undefined : (deliveryAddress.googlePlaceId ? {
+          googlePlaceId: deliveryAddress.googlePlaceId,
+          formattedAddress: deliveryAddress.formattedAddress,
+          streetDetailsPrimary: deliveryAddress.address1,
+          streetDetailsOptional: deliveryAddress.address2,
+          city: deliveryAddress.city,
+          suburb: deliveryAddress.city,
+          state: deliveryAddress.region,
+          postcode: deliveryAddress.postalCode,
+          country: deliveryAddress.country,
+          latitude: deliveryAddress.lat,
+          longitude: deliveryAddress.lng,
+        } : undefined),
+        purchaseOrder: values.purchaseOrder,
+        productEstimatedVolume: estimatedVolumeM3,
+        deliveryCollectionDate: values.deliveryCollectionDate,
+        deliveryCollectionStartTime: startDateTime,
+        deliveryCollectionEndTime: endDateTime,
+        customerContactName: values.customerContactName,
+        customerContactPhone: values.customerContactPhone,
+        docketEmailRecipients: values.docketEmail ? values.docketEmail.split(',').map(e => e.trim()) : ['jaywoo.choi@socoro.com.au'],
+        notes: values.notes,
+        truckType: isCollection ? undefined : lineItemDetails.truckType,
+        loadSize: values.loadSize,
+        grossTruckWeight: 100,
+        tareTruckWeight: 0,
+        deliveryDistanceQuantity: deliveryDistanceQuantity,
+        deliveryDistanceUom: deliveryDistanceUom,
+      });
+
+      if (newDocket && typeof newDocket.id === 'number') {
+        addNewRecordId('docket_main_data_table', newDocket.id);
+      }
+
+      notifySuccess('Docket created successfully');
+      onSaved?.();
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error creating docket:', error);
+      notifyError(extractErrorMessage(error));
+
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -211,18 +356,23 @@ export default function DocketForm({
                   )}
                 >
                   {selectedJobLineItemDetails().type === 'DELIVERY' && (
-                    <FormSelect
-                      control={docketForm.control}
+                    <FormField
                       name="truckType"
-                      label="Truck Type*"
-                      searchLabel="Truck Type"
-                      options={truckTypeOptions}
-                      placeholder="Select Truck Type"
-                      disabled={
-                        isReadOnly ||
-                        !selectedJobId ||
-                        jobLineItemOptions.length === 0
-                      }
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>Truck Type</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              readOnly
+                              value={
+                                selectedJobLineItemDetails().truckTypeLabel ?? ''
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   )}
 
@@ -399,6 +549,7 @@ export default function DocketForm({
                             readOnly={isReadOnly}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -425,6 +576,7 @@ export default function DocketForm({
                               readOnly={isReadOnly}
                             />
                           </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />

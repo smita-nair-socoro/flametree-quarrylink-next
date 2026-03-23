@@ -34,7 +34,7 @@ export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
 
-  const destination = docket?.deliveryAddress?.address?.formattedAddress ?? '—';
+  const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
   const customerName = docket?.job?.customerName ?? '—';
 
   return (
