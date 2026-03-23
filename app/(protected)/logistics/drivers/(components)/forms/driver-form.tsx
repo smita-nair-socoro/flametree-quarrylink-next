@@ -30,6 +30,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { useCreateDriver } from '@/lib/api/driver';
 import {
   Tooltip,
   TooltipContent,
@@ -89,6 +90,7 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const createDriver = useCreateDriver();
 
   const driverForm = useForm<NewDriverFormValues>({
     resolver: zodResolver(NewDriverFormSchema),
@@ -125,8 +127,14 @@ export default function DriverForm({
   async function onSubmit(values: NewDriverFormValues) {
     try {
       setIsSubmitting(true);
-      console.log('Driver Form Values:', values);
-      // TODO: wire up create/update driver API calls
+      await createDriver.mutateAsync({
+        driverName: values.driverName,
+        driverType: values.type,
+        emailAddress: values.email,
+        phoneNumber: values.phone,
+        licenseNumber: values.driverLicenseNumber,
+        haulierName: values.haulier,
+      });
       notifySuccess(
         isEditing
           ? 'Driver Updated Successfully!'
