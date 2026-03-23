@@ -125,7 +125,7 @@ export function useDocketFormState({
 
   // Sync jobId when form opens with locked job (isQuickDocket=false + jobId)
   React.useEffect(() => {
-    if (isJobLocked && jobId) {
+    if (isJobLocked && jobId && docketForm.getValues('jobId') !== jobId) {
       docketForm.setValue('jobId', jobId);
     }
   }, [isJobLocked, jobId, docketForm]);
@@ -224,14 +224,16 @@ export function useDocketFormState({
     }
 
     // Reset job line item and addresses when job changes
-    docketForm.setValue('jobLineItemId', 0);
-    docketForm.setValue('truckQty', 0);
-    setPickUpAddress(EMPTY_ADDRESS);
-    setDeliveryAddress(EMPTY_ADDRESS);
-    setPickUpSearchInput('');
-    setDeliverySearchInput('');
-    docketForm.setValue('pickUpAddressId', '');
-    docketForm.setValue('deliveryAddressId', '');
+    if (docketForm.getValues('jobLineItemId') !== 0) {
+      docketForm.setValue('jobLineItemId', 0);
+      docketForm.setValue('truckQty', 0);
+      setPickUpAddress(EMPTY_ADDRESS);
+      setDeliveryAddress(EMPTY_ADDRESS);
+      setPickUpSearchInput('');
+      setDeliverySearchInput('');
+      docketForm.setValue('pickUpAddressId', '');
+      docketForm.setValue('deliveryAddressId', '');
+    }
   }, [selectedJob, docketForm, isEditing]);
 
   const selectedJobLineItemDetails = React.useCallback(() => {

@@ -877,6 +877,17 @@ export const APIClient = {
       });
       return response;
     },
+    getByJobId: async (jobId: number) => {
+      const response = await appClient.Get<
+        | DocketDTO[]
+        | {
+            content: DocketDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      return response;
+    },
   },
 
   users: {

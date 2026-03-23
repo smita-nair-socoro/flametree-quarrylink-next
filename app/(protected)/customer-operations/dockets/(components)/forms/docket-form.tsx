@@ -113,22 +113,6 @@ export default function DocketForm({
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
 
-      if (!isCollection && (!values.loadSize || values.loadSize <= 0)) {
-        docketForm.setError('loadSize', {
-          type: 'manual',
-          message: 'Load Size is required for delivery',
-        });
-        return;
-      }
-
-      if (!isCollection && !deliveryAddress.googlePlaceId) {
-        docketForm.setError('deliveryAddressId', {
-          type: 'manual',
-          message: 'Delivery Address is required for delivery',
-        });
-        return;
-      }
-
       setIsSubmitting(true);
 
       const density = productDetails?.densityTonnagePerM3 || 1;
