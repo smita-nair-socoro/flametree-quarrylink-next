@@ -14,9 +14,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
-export function MarkDeliveredDescription({ docket }: { docket?: Docket | null }) {
+export function MarkDeliveredDescription({ docket }: { docket?: DocketDTO | null }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#E8F5EC]">
@@ -27,12 +27,12 @@ export function MarkDeliveredDescription({ docket }: { docket?: Docket | null })
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <span>{docket?.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.productUoM}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}

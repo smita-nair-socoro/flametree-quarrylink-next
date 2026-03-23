@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { type LucideIcon } from 'lucide-react';
 
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
@@ -92,7 +92,7 @@ interface SelectedAction {
   key: string;
 }
 
-export function useDocketActions(docketData?: Docket | null) {
+export function useDocketActions(docketData?: DocketDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
@@ -436,7 +436,7 @@ export function useDocketActions(docketData?: Docket | null) {
   };
 
   const actions = {
-    view: (docket?: Docket | null) => {
+    view: (docket?: DocketDTO | null) => {
       const toSelect = docket ?? docketData;
       if (toSelect != null) {
         useDocketStore.getState().setSelectedDocket(toSelect);
@@ -568,7 +568,7 @@ export function useDocketActions(docketData?: Docket | null) {
     );
   });
 
-  const canEdit = docketData?.status === 'UNASSIGNED';
+  const canEdit = docketData?.docketStatus === 'UNASSIGNED';
   const viewDialog =
     viewOpen && docketData?.id ? (
       <FormDialog

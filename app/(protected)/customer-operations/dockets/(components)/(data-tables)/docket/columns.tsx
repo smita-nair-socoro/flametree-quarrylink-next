@@ -9,7 +9,7 @@ import { TableBadges } from '@/components/table-badges';
 //   TooltipContent,
 //   TooltipTrigger,
 // } from '@/components/ui/tooltip';
-// import { DocketTableActions } from './docket-table-actions';
+import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -45,7 +45,10 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = (row.original.docketStatus as string) === 'READY_FOR_COLLECTION' ? 'READY' : row.original.docketStatus;
+      const status =
+        (row.original.docketStatus as string) === 'READY_FOR_COLLECTION'
+          ? 'READY'
+          : row.original.docketStatus;
       return <TableBadges names={[status]} visibleCount={1} />;
     },
     meta: 'Status',
@@ -97,7 +100,16 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       const loadSize = row.original.loadSize;
       const productUom = row.original.jobItem.productSellUom;
       console.log(row.original.jobItem);
-      const formattedLoadSize = productUom === 'TN' ? `${loadSize} TN` : productUom === 'M3' ? `${loadSize} m³` : productUom === 'KG_20' ? `${loadSize} x 20kg` : productUom === 'BULKA' ? `${loadSize} Bulka` : loadSize;
+      const formattedLoadSize =
+        productUom === 'TN'
+          ? `${loadSize} TN`
+          : productUom === 'M3'
+            ? `${loadSize} m³`
+            : productUom === 'KG_20'
+              ? `${loadSize} x 20kg`
+              : productUom === 'BULKA'
+                ? `${loadSize} Bulka`
+                : loadSize;
       console.log(formattedLoadSize);
       return <div className="py-2">{formattedLoadSize}</div>;
     },
@@ -139,18 +151,9 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div>Actions</div>;
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
     },
   },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const docket = row.original;
-  //     return <DocketTableActions docket={docket} />;
-  //   },
-  // },
 ];
