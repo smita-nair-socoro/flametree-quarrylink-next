@@ -33,7 +33,7 @@ import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useCreateDocket } from '@/lib/api/docket';
+import { useCreateDocket, useUpdateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 
@@ -64,6 +64,7 @@ export default function DocketForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
+  const updateDocket = useUpdateDocket();
 
   const {
     docketForm,
@@ -86,6 +87,7 @@ export default function DocketForm({
     deliverySearchInput,
     setDeliverySearchInput,
     productDetails,
+    selectedDocket,
   } = useDocketFormState({
     id,
     isQuickDocket,
@@ -112,22 +114,6 @@ export default function DocketForm({
     try {
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
-
-      if (!isCollection && (!values.loadSize || values.loadSize <= 0)) {
-        docketForm.setError('loadSize', {
-          type: 'manual',
-          message: 'Load Size is required for delivery',
-        });
-        return;
-      }
-
-      if (!isCollection && !deliveryAddress.googlePlaceId) {
-        docketForm.setError('deliveryAddressId', {
-          type: 'manual',
-          message: 'Delivery Address is required for delivery',
-        });
-        return;
-      }
 
       setIsSubmitting(true);
 
@@ -184,7 +170,7 @@ export default function DocketForm({
         }
       }
 
-      const newDocket = await createDocket.mutateAsync({
+      const payload = {
         jobId: values.jobId,
         jobItemId: values.jobLineItemId,
         pickUpAddress: {
@@ -228,13 +214,23 @@ export default function DocketForm({
         tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
         deliveryDistanceUom: deliveryDistanceUom,
-      });
+        ...(isEditing && selectedDocket ? { docketStatus: selectedDocket.docketStatus } : {}),
+      };
 
-      if (newDocket && typeof newDocket.id === 'number') {
-        addNewRecordId('docket_main_data_table', newDocket.id);
+      if (isEditing && id) {
+        await updateDocket.mutateAsync({
+          id,
+          data: payload,
+        });
+        notifySuccess('Docket updated successfully');
+      } else {
+        const newDocket = await createDocket.mutateAsync(payload);
+        if (newDocket && typeof newDocket.id === 'number') {
+          addNewRecordId('docket_main_data_table', newDocket.id);
+        }
+        notifySuccess('Docket created successfully');
       }
 
-      notifySuccess('Docket created successfully');
       onSaved?.();
       onSuccess?.();
     } catch (error) {

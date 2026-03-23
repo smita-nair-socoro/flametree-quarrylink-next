@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { type LucideIcon } from 'lucide-react';
 
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
@@ -68,7 +68,7 @@ interface SelectedAction {
 }
 
 
-export function useDocketActions(docketData?: Docket | null) {
+export function useDocketActions(docketData?: DocketDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
@@ -83,7 +83,7 @@ export function useDocketActions(docketData?: Docket | null) {
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
   const [selectedAction, setSelectedAction] = React.useState<SelectedAction | null>(null);
-
+  const selectedDocket = useDocketStore((s) => s.selectedDocket);
 
   const isVoidFormValid = React.useMemo(() => {
     if (!voidReason) return false;
@@ -247,8 +247,9 @@ export function useDocketActions(docketData?: Docket | null) {
 
 
   const actions = {
-    view: (docket?: Docket | null) => {
+    view: (docket?: DocketDTO | null) => {
       const toSelect = docket ?? docketData;
+      console.log('view is cliced', toSelect);
       if (toSelect != null) {
         useDocketStore.getState().setSelectedDocket(toSelect);
       }
@@ -391,15 +392,19 @@ export function useDocketActions(docketData?: Docket | null) {
     );
   });
 
-  const canEdit = docketData?.status === 'UNASSIGNED';
   const viewDialog =
-    viewOpen && docketData?.id ? (
+    viewOpen ? (
       <FormDialog
-        id={docketData.id}
+        id={selectedDocket?.id}
         dialogTitle="View / Edit Docket"
         open={viewOpen}
         onOpenChangeAction={(open) => {
           setViewOpen(open);
+          if (!open) {
+            setTimeout(() => {
+              setViewOpen(false);
+            }, 100);
+          }
         }}
         hideTrigger
         headerButtons={<DocketActionButtons docket={docketData} />}
@@ -407,7 +412,7 @@ export function useDocketActions(docketData?: Docket | null) {
           useSelectedDocket: true,
         }}
       >
-        <DocketForm canEdit={canEdit} />
+        <DocketForm canEdit={true} />
       </FormDialog>
     ) : null;
 

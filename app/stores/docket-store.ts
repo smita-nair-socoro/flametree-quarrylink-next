@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
 interface DocketStore {
-  dockets: Docket[];
-  selectedDocket: Docket | null;
+  dockets: DocketDTO[];
+  selectedDocket: DocketDTO | null;
   isLoading: boolean;
 
   // Actions
-  setDockets: (dockets: Docket[]) => void;
-  setSelectedDocket: (Docket: Docket | null) => void;
+  setDockets: (dockets: DocketDTO[]) => void;
+  setSelectedDocket: (Docket: DocketDTO | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getDocketById: (id: number) => Docket | undefined;
-  getDocketsByStatus: (status: string) => Docket[];
+  getDocketById: (id: number) => DocketDTO | undefined;
+  getDocketsByStatus: (status: string) => DocketDTO[];
 
   getDocketStats: () => {
     total: number;
@@ -43,7 +43,7 @@ export const useDocketStore = create<DocketStore>()(
 
       getDocketsByStatus: (status) => {
         const state = get();
-        return state.dockets.filter((d) => d.status === status);
+        return state.dockets.filter((d) => d.docketStatus === status);
       },
     }),
     { name: 'Docket-store' },
@@ -64,6 +64,6 @@ export const useDocketById = (id: number) => {
 
 export const useDocketsByStatus = (status: string) => {
   return useDocketStore((state) =>
-    state.dockets.filter((d) => d.status === status),
+    state.dockets.filter((d) => d.docketStatus === status),
   );
 };

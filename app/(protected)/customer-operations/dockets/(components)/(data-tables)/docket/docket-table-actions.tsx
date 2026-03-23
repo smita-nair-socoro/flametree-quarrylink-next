@@ -25,11 +25,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDocketActions } from '@/hooks/use-docket-actions';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 interface DocketTableActionsProps {
-  docket: Docket;
+  docket: DocketDTO;
 }
 
 type ActionType =
@@ -135,7 +135,7 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
     }
   };
 
-  const currentActions = ACTION_CONFIG[docket.status] || [];
+  const currentActions = ACTION_CONFIG[docket.docketStatus] || [];
 
   return (
     <div>
