@@ -18,12 +18,12 @@ export function StartTransitDescription({
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <span>{docket?.jobItem.product.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.jobItem.productSellUom}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}
@@ -36,7 +36,7 @@ export function StartTransitDescription({
 export function StartTransitContent({ docket }: { docket?: DocketDTO | null }) {
   const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
   const driverName = docket?.customerContactName ?? '—';
-  const truckLabel = docket?.jobItem.truckType ?? '—';
+  const truckLabel = docket?.truckType ?? '—';
 
   return (
     <div className="flex flex-col gap-6">
