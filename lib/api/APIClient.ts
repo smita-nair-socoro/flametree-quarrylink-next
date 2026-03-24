@@ -823,6 +823,10 @@ export const APIClient = {
 
     convertToDraft: (id: number) =>
       appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
+    convertToJob: (id: number) =>
+      appClient.Post<JobDTO>(
+        `/socoro/quarrylink/api/quote/${id}/convert-to-job`,
+      ),
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',
@@ -895,6 +899,11 @@ export const APIClient = {
       appClient.Put<DocketDTO>(`/socoro/quarrylink/api/dockets/${id}`, {
         body: data,
       }),
+    updateStatus: (docketId: number, formData: FormData) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/dockets/${docketId}/status`,
+        { body: formData },
+      ),
   },
 
   users: {

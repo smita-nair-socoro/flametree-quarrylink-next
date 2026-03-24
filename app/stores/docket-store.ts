@@ -32,7 +32,7 @@ export const useDocketStore = create<DocketStore>()(
       // Actions
       setDockets: (dockets) => set({ dockets }),
 
-      setSelectedDocket: (Docket) => set({ selectedDocket: Docket }),
+      setSelectedDocket: (docket) => set({ selectedDocket: docket }),
       setLoading: (loading) => set({ isLoading: loading }),
 
       // Selectors

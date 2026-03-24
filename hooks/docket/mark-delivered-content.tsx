@@ -16,7 +16,11 @@ import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
 
-export function MarkDeliveredDescription({ docket }: { docket?: DocketDTO | null }) {
+export function MarkDeliveredDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#E8F5EC]">
@@ -27,12 +31,12 @@ export function MarkDeliveredDescription({ docket }: { docket?: DocketDTO | null
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <span>{docket?.jobItem.product.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.jobItem.productSellUom}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}

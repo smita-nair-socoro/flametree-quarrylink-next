@@ -46,7 +46,7 @@ export default function CustomersPage() {
           tableId="driver_main_data_table"
           data={items ?? []}
           columns={driverColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'name', desc: false }]}
         />

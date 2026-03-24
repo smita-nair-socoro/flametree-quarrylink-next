@@ -149,7 +149,7 @@ export default function DocketsPage() {
               }
               data={items ?? []}
               columns={docketColumns}
-              facetDefination={facetDefs}
+              facetDefinition={facetDefs}
               searchPlaceHolder="Search dockets..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'docketNumber', desc: false }]}
