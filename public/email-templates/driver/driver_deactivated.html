@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Activate Your QuarryLink Account</title>
+    <title>Your QuarryLink Drivers account has been deactivated</title>
     <style>
       body {
         margin: 0;
@@ -26,10 +26,19 @@
         gap: 12px;
       }
       .navbar-other {
-        background-color: #f5f5f5;
+        background-color: #e4e4e4;
       }
       .navbar-title-other {
         color: #000000 !important;
+      }
+      .border-other {
+        border-left: 4px solid #000000 !important;
+      }
+      .navbar-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        margin-right: 12px;
       }
       .navbar-logo-initial {
         width: 40px;
@@ -53,6 +62,8 @@
         font-weight: 600;
         color: #ffffff;
         margin: 0;
+        display: inline-block;
+        vertical-align: middle;
       }
       .card {
         background-color: #ffffff;
@@ -72,61 +83,12 @@
         color: #374151;
         margin-bottom: 20px;
       }
-      .button-container {
-        margin: 30px 0;
-        text-align: center;
+      .contact-info {
+        background-color: #f9fafb;
+        border-left: 4px solid #7c3aed;
+        padding: 15px;
+        margin: 20px 0;
       }
-      .btn-primary {
-        display: inline-block;
-        padding: 12px 24px;
-        border-radius: 6px;
-        background-color: #7c3aed;
-        color: #ffffff !important;
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .btn-other {
-        background-color: #000000;
-        color: #ffffff !important;
-      }
-
-      /* Credentials box */
-      .creds-box {
-        background-color: #f8fafc;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        padding: 16px;
-        margin: 20px 0 10px 0;
-      }
-      .creds-label {
-        font-size: 13px;
-        font-weight: 700;
-        color: #111827;
-        margin: 0 0 4px 0;
-      }
-      .creds-value {
-        font-size: 14px;
-        color: #111827;
-        margin: 0 0 14px 0;
-        word-break: break-word;
-      }
-      .password-chip {
-        display: inline-block;
-        padding: 8px 12px;
-        background-color: #e0f2fe;
-        border-radius: 4px;
-        font-family:
-          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          "Liberation Mono", "Courier New", monospace;
-        font-size: 15px;
-        color: #111827;
-      }
-      .helper-text {
-        font-size: 13px;
-        color: #475569;
-        margin-top: 10px;
-      }
-
       .card-footer {
         margin-top: 20px;
         padding-top: 20px;
@@ -134,6 +96,9 @@
         font-size: 12px;
         color: #6b7280;
         line-height: 1.5;
+      }
+      .card-footer p {
+        margin: 0 0 0;
       }
       .border-top {
         border-top: 1px solid #ffffff33;
@@ -143,6 +108,7 @@
       .info-footer {
         background-color: #3f4e5f;
         padding: 20px 30px 16px 30px;
+        margin-top: 0;
         border-radius: 0 0 8px 8px;
       }
       .footer-row {
@@ -153,42 +119,51 @@
         color: #ffffffe5;
         font-size: 11px;
       }
+      .footer-copyright {
+        text-align: center;
+        color: #ffffff99;
+        font-size: 10px;
+        margin: 10px;
+      }
       .footer-column-left,
       .footer-column-center,
       .footer-column-right {
         flex: 1;
+        line-height: 1.6;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
         padding: 0 15px;
         white-space: normal;
-      }
-      .footer-column-center {
         text-align: center;
-        max-width: 180px;
-      }
-      .footer-column-right {
-        text-align: right;
       }
       .footer-link {
-        color: #ffffffe5;
+        color: #ffffffe5 !important;
         text-decoration: none;
+      }
+      .footer-link:hover {
+        text-decoration: underline;
+      }
+      @media only screen and (max-width: 600px) {
+        .footer-row {
+          display: block !important;
+        }
+        .footer-column-left,
+        .footer-column-center,
+        .footer-column-right {
+          display: block !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          padding: 10px 0 !important;
+          text-align: center !important;
+        }
       }
     </style>
   </head>
-
   <body>
     <div class="container">
       <div class="navbar {navbarColorClass}">
-        <img
-          src="{logoUrl}"
-          alt="Logo"
-          class="navbar-logo {logoImageClass}"
-          style="
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            margin-right: 12px;
-            display: LOGO_DISPLAY;
-          "
-        />
+        <img src="{logoUrl}" alt="Logo" class="navbar-logo {logoImageClass}" />
         <div class="navbar-logo-initial {logoInitialClass}">{logoInitials}</div>
         <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
@@ -196,57 +171,38 @@
         <div class="header">Hi {FullName},</div>
 
         <div class="content">
-          <p>Welcome to QuarryLink!</p>
-
           <p>
-            An account has been created for you by
-            <strong>{InvitedByName}</strong> at <strong>{TenantName}</strong>.
+            Your QuarryLink account has been deactivated by
+            <strong>{DeactivatedByName}</strong> at
+            <strong>{TenantName}</strong>.
           </p>
 
           <p>
-            Use the details below to sign in for the first time. You'll be
-            prompted to set a new password immediately.
+            You no longer have access to log in to the QuarryLink Drivers App.
+          </p>
+
+          <p>
+            If you believe this was done in error or have any questions about
+            your account status, please contact your account administrator:
           </p>
         </div>
 
-        <!-- Credentials -->
-        <div class="creds-box">
-          <p class="creds-label">Username</p>
-          <p class="creds-value">{Username}</p>
-
-          <p class="creds-label">Temporary password</p>
-          <p class="creds-value">
-            <span class="password-chip">{TemporaryPassword}</span>
+        <div class="contact-info {BorderColorClass}">
+          <p style="margin: 5px 0; font-weight: 600; color: #111827">
+            {SuperAdminName}
           </p>
-
-          <p class="helper-text">⏱ {ValidityText}</p>
-        </div>
-
-        <div class="button-container">
-          <a href="{LoginUrl}" class="btn-primary {ButtonColorClass}">
-            Activate Account &amp; Set Password
-          </a>
-        </div>
-
-        <div class="content">
-          <p>
-            If you have any questions or need help getting started, please reach
-            out to your account administrator or contact our support team.
-          </p>
-
-          <p>We're excited to have you on board!</p>
+          <p style="margin: 5px 0; color: #374151">{SuperAdminEmail}</p>
         </div>
 
         <div class="card-footer">
           <p>
-            You're receiving this email because an account was created for you
-            on QuarryLink.
+            You're receiving this because your QuarryLink account has been
+            deactivated.
           </p>
         </div>
       </div>
 
       <div class="info-footer">
-        <!-- Unified footer row -->
         <div class="footer-row">
           <div class="footer-column-left">
             <div style="font-weight: 600; margin-bottom: 6px">
