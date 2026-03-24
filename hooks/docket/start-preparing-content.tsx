@@ -3,7 +3,11 @@
 import { ClipboardList } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 
-export function StartPreparingDescription({ docket }: { docket?: DocketDTO | null }) {
+export function StartPreparingDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FFF7ED]">
@@ -29,7 +33,11 @@ export function StartPreparingDescription({ docket }: { docket?: DocketDTO | nul
   );
 }
 
-export function StartPreparingContent({ docket }: { docket?: DocketDTO | null }) {
+export function StartPreparingContent({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-md bg-[#F9FAFB] px-4 py-3">
@@ -40,7 +48,7 @@ export function StartPreparingContent({ docket }: { docket?: DocketDTO | null })
           </div>
           <div>
             <span className="font-medium text-[#364153]">Job:</span>{' '}
-            {docket?.job?.jobNumber ?? '—'}
+            {docket?.job.jobNumber ?? '—'}
           </div>
         </div>
       </div>

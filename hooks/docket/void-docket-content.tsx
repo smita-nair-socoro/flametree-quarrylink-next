@@ -19,7 +19,11 @@ const VOID_REASONS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function VoidDocketDescription({ docket }: { docket?: DocketDTO | null }) {
+export function VoidDocketDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FEE2E2]">

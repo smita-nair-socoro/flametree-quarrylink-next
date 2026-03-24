@@ -32,7 +32,7 @@ export function StopTransitDescription({ docket }: { docket?: DocketDTO | null }
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
           <span>{docket?.customerContactName ?? '—'}</span>
           <span className="font-bold">•</span>
-          <span>{docket?.truckType ?? '—'}</span>
+          <span>{docket?.jobItem.truckType ?? '—'}</span>
         </div>
       </div>
     </div>

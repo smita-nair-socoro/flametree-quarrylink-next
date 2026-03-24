@@ -33,7 +33,7 @@ import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useCreateDocket } from '@/lib/api/docket';
+import { useCreateDocket, useUpdateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
@@ -65,6 +65,7 @@ export default function DocketForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
+  const updateDocket = useUpdateDocket();
 
   const {
     docketForm,
@@ -87,6 +88,7 @@ export default function DocketForm({
     deliverySearchInput,
     setDeliverySearchInput,
     productDetails,
+    selectedDocket,
   } = useDocketFormState({
     id,
     isQuickDocket,
@@ -188,7 +190,7 @@ export default function DocketForm({
         }
       }
 
-      const newDocket = await createDocket.mutateAsync({
+      const payload = {
         jobId: values.jobId,
         jobItemId: values.jobLineItemId,
         pickUpAddress: {
@@ -238,13 +240,25 @@ export default function DocketForm({
         tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
         deliveryDistanceUom: deliveryDistanceUom,
-      });
+        ...(isEditing && selectedDocket
+          ? { docketStatus: selectedDocket.docketStatus }
+          : {}),
+      };
 
-      if (newDocket && typeof newDocket.id === 'number') {
-        addNewRecordId('docket_main_data_table', newDocket.id);
+      if (isEditing && id) {
+        await updateDocket.mutateAsync({
+          id,
+          data: payload,
+        });
+        notifySuccess('Docket updated successfully');
+      } else {
+        const newDocket = await createDocket.mutateAsync(payload);
+        if (newDocket && typeof newDocket.id === 'number') {
+          addNewRecordId('docket_main_data_table', newDocket.id);
+        }
+        notifySuccess('Docket created successfully');
       }
 
-      notifySuccess('Docket created successfully');
       onSaved?.();
       onSuccess?.();
     } catch (error) {
@@ -291,7 +305,7 @@ export default function DocketForm({
                 searchLabel="Job References"
                 options={allJobs}
                 placeholder="Select Job"
-                disabled={isJobLocked || isReadOnly}
+                disabled={isJobLocked || isReadOnly || isEditing}
                 formItemClassName={
                   isEditing && isDesktop
                     ? 'col-span-1 col-start-1'
@@ -329,7 +343,8 @@ export default function DocketForm({
                     disabled={
                       isReadOnly ||
                       !selectedJobId ||
-                      jobLineItemOptions.length === 0
+                      jobLineItemOptions.length === 0 ||
+                      isEditing
                     }
                   />
 
@@ -803,49 +818,6 @@ export default function DocketForm({
               </div>
             </div>
           </div>
-
-          {/* Audit Information */}
-          {isEditing && (
-            <div className="col-span-full space-y-6 mt-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob.createdBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 my-6">
