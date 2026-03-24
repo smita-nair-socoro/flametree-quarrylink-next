@@ -45,7 +45,10 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.docketStatus;
+      const status =
+        (row.original.docketStatus as string) === 'READY_FOR_COLLECTION'
+          ? 'READY'
+          : row.original.docketStatus;
       return <TableBadges names={[status]} visibleCount={1} />;
     },
     meta: 'Status',
@@ -95,7 +98,18 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const loadSize = row.original.loadSize;
-      return <div className="py-2">{loadSize}</div>;
+      const productUom = row.original.jobItem.productSellUom;
+      const formattedLoadSize =
+        productUom === 'TN'
+          ? `${loadSize} TN`
+          : productUom === 'M3'
+            ? `${loadSize} m³`
+            : productUom === 'KG_20'
+              ? `${loadSize} x 20kg`
+              : productUom === 'BULKA'
+                ? `${loadSize} Bulka`
+                : loadSize;
+      return <div className="py-2">{formattedLoadSize}</div>;
     },
     meta: 'Load Size',
   },
