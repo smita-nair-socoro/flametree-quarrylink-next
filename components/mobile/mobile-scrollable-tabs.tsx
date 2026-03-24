@@ -67,6 +67,7 @@ export function MobileScrollableTabs({
             type="button"
             onClick={() => onValueChange(tab.value)}
             variant="ghost"
+            size="xs"
             className={cn(
               'flex-shrink-0 flex items-center gap-1.5 px-4 rounded-md text-sm font-medium whitespace-nowrap transition-colors',
               value === tab.value
@@ -74,7 +75,6 @@ export function MobileScrollableTabs({
                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-500',
             )}
           >
-            {tab.icon}
             {tab.label}
           </Button>
         ))}
