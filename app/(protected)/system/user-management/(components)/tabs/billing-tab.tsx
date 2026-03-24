@@ -6,7 +6,10 @@ import { Separator } from '@/components/ui/separator';
 import { ExternalLink, Download, Users, Mountain } from 'lucide-react';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions, useGetStripeProfileLink } from '@/lib/api/tenant';
+import {
+  TenantCompleteDetailsQueryOptions,
+  useGetStripeProfileLink,
+} from '@/lib/api/tenant';
 import { notifyError } from '@/lib/toast';
 import { centsToDollars } from '@/lib/utils/currency';
 import { TableBadges } from '@/components/table-badges';
@@ -144,13 +147,12 @@ export default function BillingTab() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="!pb-0 sm:!py-6">
         <CardHeader className="text-[20px] sm:text-[24px] font-medium">
           Usage & Limits
         </CardHeader>
         <CardContent className="px-0 sm:px-6">
-          <div className="sm:border sm:rounded-lg sm:px-6">
-            <Separator />
+          <div className="sm:border sm:rounded-lg sm:px-6 first:border-t">
             <div className="flex items-center justify-between py-4 px-4 sm:px-0 sm:py-5">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-[#111827]" />
@@ -178,7 +180,7 @@ export default function BillingTab() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="!pb-0 sm:!py-6">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="text-[20px] sm:text-[24px] font-medium">
@@ -191,11 +193,10 @@ export default function BillingTab() {
         </CardHeader>
         <CardContent className="px-0 sm:px-6">
           <div className="flex flex-col">
-            <Separator />
             {recentInvoices.map((invoice, index) => (
               <div
                 key={invoice.invoiceId ?? index}
-                className="flex justify-between items-center px-4 py-4 sm:p-4 sm:border sm:rounded-lg sm:mb-3 border-b sm:border-b-0"
+                className="flex justify-between space-x-2 items-center px-4 py-4 sm:p-4 sm:border sm:rounded-lg sm:mb-3 border-b first:border-t"
               >
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium">{invoice.date}</span>

@@ -21,7 +21,7 @@ export default function CustomersPage() {
   const router = useRouter();
   const { data: jobs } = useQuery(JobsListQueryOptions());
   const items: JobDTO[] = React.useMemo(() => {
-    const list: JobDTO[] = Array.isArray(jobs) ? jobs : jobs?.content ?? [];
+    const list: JobDTO[] = Array.isArray(jobs) ? jobs : (jobs?.content ?? []);
     return list.map((job) => ({
       ...job,
     })) as JobDTO[];
@@ -40,7 +40,6 @@ export default function CustomersPage() {
       router.replace('/customer-operations/jobs');
     }
   }, [searchParams, items]);
-
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -76,7 +75,7 @@ export default function CustomersPage() {
           tableId="job_main_data_table"
           data={items ?? []}
           columns={jobColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search jobs..."
           defaultSorting={[{ id: 'jobNumber', desc: false }]}
           onRowClick={handleRowClick}

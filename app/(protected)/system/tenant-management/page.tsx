@@ -60,7 +60,7 @@ export default function ClientPortalPage() {
 
   const { actions, confirmDialogs, viewDialog } = useClientActions(
     selectedClientForActions?.id,
-    selectedClientForActions
+    selectedClientForActions,
   );
 
   const handleClientSuccess = (clientName: string, clientEmail: string) => {
@@ -127,7 +127,7 @@ export default function ClientPortalPage() {
           tableId="client_portal_data_table"
           data={items ?? []}
           columns={clientColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search Tenants..."
           onRowClick={handleRowClick}
           defaultSorting={[{ id: 'name', desc: false }]}
