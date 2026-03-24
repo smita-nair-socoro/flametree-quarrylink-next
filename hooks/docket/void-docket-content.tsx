@@ -3,7 +3,7 @@
 import { Ban } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
 export const VOID_REASON_LABELS: Record<string, string> = {
   entered_in_error: 'Entered in error',
@@ -20,7 +20,7 @@ const VOID_REASONS = Object.entries(VOID_REASON_LABELS).map(
   ([value, label]) => ({ value, label }),
 );
 
-export function VoidDocketDescription({ docket }: { docket?: Docket | null }) {
+export function VoidDocketDescription({ docket }: { docket?: DocketDTO | null }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FEE2E2]">
@@ -31,12 +31,12 @@ export function VoidDocketDescription({ docket }: { docket?: Docket | null }) {
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-          <span>{docket?.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.productUoM}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}

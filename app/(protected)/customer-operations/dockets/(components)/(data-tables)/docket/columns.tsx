@@ -9,7 +9,7 @@ import { TableBadges } from '@/components/table-badges';
 //   TooltipContent,
 //   TooltipTrigger,
 // } from '@/components/ui/tooltip';
-// import { DocketTableActions } from './docket-table-actions';
+import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -99,6 +99,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const loadSize = row.original.loadSize;
       const productUom = row.original.jobItem.productSellUom;
+      console.log(row.original.jobItem);
       const formattedLoadSize =
         productUom === 'TN'
           ? `${loadSize} TN`
@@ -109,6 +110,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
               : productUom === 'BULKA'
                 ? `${loadSize} Bulka`
                 : loadSize;
+      console.log(formattedLoadSize);
       return <div className="py-2">{formattedLoadSize}</div>;
     },
     meta: 'Load Size',
@@ -149,18 +151,9 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div>Actions</div>;
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
     },
   },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const docket = row.original;
-  //     return <DocketTableActions docket={docket} />;
-  //   },
-  // },
 ];

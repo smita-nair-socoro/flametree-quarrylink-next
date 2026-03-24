@@ -24,11 +24,11 @@ import {
   UserRoundPlus,
 } from 'lucide-react';
 import { useDocketActions } from '@/hooks/use-docket-actions';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 interface DocketActionButtonsProps {
-  docket: Docket | null | undefined;
+  docket: DocketDTO | null | undefined;
 }
 
 type ActionType =
@@ -130,7 +130,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
     return null;
   }
 
-  const currentActions = ACTION_CONFIG[docket.status] || [];
+  const currentActions = ACTION_CONFIG[docket.docketStatus] || [];
 
   if (currentActions.length === 0) {
     return (
