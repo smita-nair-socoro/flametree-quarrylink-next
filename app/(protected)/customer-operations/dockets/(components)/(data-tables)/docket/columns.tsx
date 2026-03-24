@@ -1,17 +1,17 @@
 'use client';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { DateCell } from '@/components/date-cell';
 import { TableBadges } from '@/components/table-badges';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { DocketTableActions } from './docket-table-actions';
+// import {
+//   Tooltip,
+//   TooltipContent,
+//   TooltipTrigger,
+// } from '@/components/ui/tooltip';
+// import { DocketTableActions } from './docket-table-actions';
 
-export const docketColumns: ColumnDef<Docket>[] = [
+export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -40,43 +40,43 @@ export const docketColumns: ColumnDef<Docket>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.docketStatus,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.docketStatus;
       return <TableBadges names={[status]} visibleCount={1} />;
     },
     meta: 'Status',
   },
   {
     id: 'customer',
-    accessorFn: (row) => row.job.customerName,
+    accessorFn: (row) => row.customerContactName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.job.customerName;
+      const customerName = row.original.customerContactName;
       return <div className="py-2">{customerName}</div>;
     },
     meta: 'Customer',
   },
   {
     id: 'product',
-    accessorFn: (row) => row.productName,
+    accessorFn: (row) => row.jobItem.product.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productName = row.original.productName;
+      const productName = row.original.jobItem.product.productName;
       return <div className="py-2">{productName}</div>;
     },
     meta: 'Product',
   },
   {
     id: 'deliveryDate',
-    accessorFn: (row) => row.deliveryDate,
+    accessorFn: (row) => row.deliveredAt,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Delivery Date" />
@@ -99,44 +99,54 @@ export const docketColumns: ColumnDef<Docket>[] = [
     },
     meta: 'Load Size',
   },
-  {
-    id: 'totalInvoice',
-    accessorFn: (row) => row.totalInvoice,
-    header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Total Invoice" />
-      );
-    },
-    cell: ({ row }) => {
-      const cents = parseFloat(row.original.totalInvoice.toString());
-      const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(dollars);
-      return (
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div className="py-2 font-medium w-36 max-w-36 truncate">
-              {formatted}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{formatted}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
-    },
-    meta: 'Total Invoice',
-  },
+  // {
+  //   id: 'totalInvoice',
+  //   accessorFn: (row) => row.totalInvoice,
+  //   header: ({ column }) => {
+  //     return (
+  //       <TableClientSortableHeader column={column} title="Total Invoice" />
+  //     );
+  //   },
+  //   cell: ({ row }) => {
+  //     const cents = parseFloat(row.original.totalInvoice.toString());
+  //     const dollars = cents / 100;
+  //     const formatted = new Intl.NumberFormat('en-US', {
+  //       style: 'currency',
+  //       currency: 'USD',
+  //     }).format(dollars);
+  //     return (
+  //       <Tooltip delayDuration={300}>
+  //         <TooltipTrigger asChild>
+  //           <div className="py-2 font-medium w-36 max-w-36 truncate">
+  //             {formatted}
+  //           </div>
+  //         </TooltipTrigger>
+  //         <TooltipContent variant="white">
+  //           <p>{formatted}</p>
+  //         </TooltipContent>
+  //       </Tooltip>
+  //     );
+  //   },
+  //   meta: 'Total Invoice',
+  // },
+
   {
     id: 'actions',
     header: () => {
       return <div></div>;
     },
-    cell: ({ row }) => {
-      const docket = row.original;
-      return <DocketTableActions docket={docket} />;
+    cell: () => {
+      return <div>Actions</div>;
     },
   },
+  // {
+  //   id: 'actions',
+  //   header: () => {
+  //     return <div></div>;
+  //   },
+  //   cell: ({ row }) => {
+  //     const docket = row.original;
+  //     return <DocketTableActions docket={docket} />;
+  //   },
+  // },
 ];
