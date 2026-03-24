@@ -79,14 +79,17 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'deliveryDate',
-    accessorFn: (row) => row.deliveredAt,
+    accessorFn: (row) => row.deliveryCollectionDate,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Delivery Date" />
       );
     },
-    cell: ({ getValue }) => {
-      return <DateCell dateString={getValue<string>()} side="top" />;
+    cell: ({ row }) => {
+      const deliveryDate =
+        row.original.deliveredAt ?? row.original.deliveryCollectionDate;
+
+      return <DateCell dateString={deliveryDate} side="top" />;
     },
     meta: 'Delivery Date',
   },

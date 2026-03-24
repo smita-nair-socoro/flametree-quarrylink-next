@@ -121,6 +121,19 @@ export default function DocketForm({
       const density = productDetails?.densityTonnagePerM3 || 1;
       let estimatedVolumeM3 = 0;
       const loadSize = values.loadSize || 0;
+      const additionalDocketEmails = values.docketEmail
+        ? values.docketEmail
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : [];
+      const docketEmailRecipients = Array.from(
+        new Set(
+          [selectedJob.customerEmail, ...additionalDocketEmails].filter(
+            Boolean,
+          ),
+        ),
+      );
 
       if (
         lineItemDetails.productUom === 'M3' ||
@@ -230,9 +243,7 @@ export default function DocketForm({
         deliveryCollectionEndTime: endDateTime,
         customerContactName: values.customerContactName,
         customerContactPhone: values.customerContactPhone,
-        docketEmailRecipients: values.docketEmail
-          ? values.docketEmail.split(',').map((e) => e.trim())
-          : ['jaywoo.choi@socoro.com.au'],
+        docketEmailRecipients,
         notes: values.notes,
         truckType: isCollection ? undefined : lineItemDetails.truckType,
         loadSize: values.loadSize,
@@ -731,20 +742,29 @@ export default function DocketForm({
                   control={docketForm.control}
                   name="docketEmail"
                   render={({ field }) => {
-                    const fixedValues = ['jaywoo.choi@socoro.com.au'];
+                    const fixedValues = selectedJob.customerEmail
+                      ? [selectedJob.customerEmail]
+                      : [];
                     return (
                       <FormItem className={'col-span-2 col-start-1'}>
                         <FormLabel>Docket Email</FormLabel>
                         <FormControl>
                           <MultipleInput
                             className="w-full"
+                            placeholder={
+                              docketForm.watch('jobId') === 0
+                                ? 'Select Job First'
+                                : 'Enter Docket Emails'
+                            }
                             fixedValues={fixedValues}
                             validate={(s) =>
                               /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
                             }
                             label="Press Enter or comma to add email addresses for docket notifications"
                             {...field}
-                            disabled={isReadOnly}
+                            disabled={
+                              isReadOnly || docketForm.watch('jobId') === 0
+                            }
                           />
                         </FormControl>
                         <FormMessage />

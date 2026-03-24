@@ -40,8 +40,10 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
         <TableClientSortableHeader column={column} title="Delivery Date" />
       );
     },
-    cell: ({ getValue }) => {
-      return <DateCell dateString={getValue<string>()} side="top" />;
+    cell: ({ row }) => {
+      const deliveryDate =
+        row.original.deliveredAt ?? row.original.deliveryCollectionDate;
+      return <DateCell dateString={deliveryDate} side="top" />;
     },
     meta: 'Delivery Date',
   },

@@ -102,6 +102,7 @@ export function useDocketFormState({
 }: UseDocketFormStateProps) {
   const isEditing = Boolean(id);
   const isJobLocked = !isQuickDocket && !!jobId;
+  const [isDirtyTrackingReady, setIsDirtyTrackingReady] = React.useState(false);
 
   const docketForm = useForm<FormValues>({
     resolver: zodResolver(DocketFormSchema),
@@ -140,11 +141,17 @@ export function useDocketFormState({
     }
   }, [isEditing]);
 
+  // Delay dirty tracking until initial form hydration/prefill is complete
+  React.useEffect(() => {
+    setIsDirtyTrackingReady(false);
+  }, [id, isQuickDocket, jobId]);
+
   // Report dirty state to parent
   React.useEffect(() => {
-    onDirtyChange?.(docketForm.formState.isDirty);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docketForm.formState.isDirty]);
+    onDirtyChange?.(
+      isDirtyTrackingReady ? docketForm.formState.isDirty : false,
+    );
+  }, [docketForm.formState.isDirty, isDirtyTrackingReady, onDirtyChange]);
 
   const selectedJobId = docketForm.watch('jobId');
 
@@ -183,7 +190,10 @@ export function useDocketFormState({
   );
 
   const selectedJob = React.useMemo(() => {
-    const job = jobsList.find((job) => job.id === selectedJobId);
+    const job =
+      selectedJobDetails ?? jobsList.find((job) => job.id === selectedJobId);
+    console.log(job, 'job');
+
     return {
       deliveryStartDate: job?.estimatedStartDate ?? '',
       startTimeWindow: job?.startTimeWindow ?? '',
@@ -191,14 +201,14 @@ export function useDocketFormState({
       poNumber: job?.poNumber ?? '',
       contactName: job?.contactPersonName ?? '',
       contactPhone: job?.contactPersonPhone ?? '',
-      docketEmail:
-        job?.docketEmail ?? job?.additionalEmailRecipients?.join(', ') ?? '',
+      customerEmail: job?.customerWithAddressResponse?.email ?? '',
+      additionalDocketEmails: job?.additionalEmailRecipients?.join(', ') ?? '',
       createdBy: '',
       lastModifiedBy: '',
       createdAt: '',
       updatedAt: '',
     };
-  }, [selectedJobId, jobsList]);
+  }, [selectedJobId, jobsList, selectedJobDetails]);
 
   // Update form with selected job details (create mode auto-fill)
   React.useEffect(() => {
@@ -219,9 +229,7 @@ export function useDocketFormState({
     if (selectedJob.contactPhone) {
       docketForm.setValue('customerContactPhone', selectedJob.contactPhone);
     }
-    if (selectedJob.docketEmail) {
-      docketForm.setValue('docketEmail', selectedJob.docketEmail);
-    }
+    docketForm.setValue('docketEmail', selectedJob.additionalDocketEmails);
     if (selectedJob.startTimeWindow) {
       docketForm.setValue(
         'deliveryCollectionStartTime',
@@ -248,6 +256,50 @@ export function useDocketFormState({
     }
   }, [selectedJob, docketForm, isEditing]);
 
+  // Establish a clean baseline for new dockets after initial prefill.
+  React.useEffect(() => {
+    if (isEditing || isDirtyTrackingReady) return;
+
+    if (!isJobLocked) {
+      setIsDirtyTrackingReady(true);
+      return;
+    }
+
+    if (!jobId || docketForm.getValues('jobId') !== jobId) return;
+    if (!jobsData) return;
+
+    docketForm.reset({
+      ...docketForm.getValues(),
+      jobId,
+      deliveryCollectionDate: selectedJob.deliveryStartDate
+        ? new Date(selectedJob.deliveryStartDate)
+        : docketForm.getValues('deliveryCollectionDate'),
+      purchaseOrder:
+        selectedJob.poNumber || docketForm.getValues('purchaseOrder'),
+      customerContactName:
+        selectedJob.contactName || docketForm.getValues('customerContactName'),
+      customerContactPhone:
+        selectedJob.contactPhone ||
+        docketForm.getValues('customerContactPhone'),
+      docketEmail: selectedJob.additionalDocketEmails,
+      deliveryCollectionStartTime: selectedJob.startTimeWindow
+        ? formatTimeString(selectedJob.startTimeWindow)
+        : docketForm.getValues('deliveryCollectionStartTime'),
+      deliveryCollectionEndTime: selectedJob.endTimeWindow
+        ? formatTimeString(selectedJob.endTimeWindow)
+        : docketForm.getValues('deliveryCollectionEndTime'),
+    });
+    setIsDirtyTrackingReady(true);
+  }, [
+    docketForm,
+    isDirtyTrackingReady,
+    isEditing,
+    isJobLocked,
+    jobId,
+    jobsData,
+    selectedJob,
+  ]);
+
   const selectedJobLineItemDetails = React.useCallback(() => {
     const selectedJobLineItemId = docketForm.watch('jobLineItemId');
     const selectedJobLineItem = jobLineItems.find(
@@ -255,7 +307,7 @@ export function useDocketFormState({
     );
     const restoredAllocatedQty =
       isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
-        ? selectedDocket.loadSize ?? 0
+        ? (selectedDocket.loadSize ?? 0)
         : 0;
     return {
       customerDeliveryAddress:
@@ -372,7 +424,10 @@ export function useDocketFormState({
       ),
       customerContactName: selectedDocket.customerContactName ?? '',
       customerContactPhone: selectedDocket.customerContactPhone ?? '',
-      docketEmail: selectedDocket.docketEmailRecipients?.join(', ') ?? '',
+      docketEmail:
+        selectedDocket.docketEmailRecipients
+          ?.filter((email) => email !== selectedJob.customerEmail)
+          .join(', ') ?? '',
       notes: selectedDocket.notes ?? '',
     });
 
@@ -411,7 +466,8 @@ export function useDocketFormState({
       setDeliveryAddress(mappedDelivery);
       setDeliverySearchInput(mappedDelivery.formattedAddress);
     }
-  }, [isEditing, selectedDocket, docketForm]);
+    setIsDirtyTrackingReady(true);
+  }, [isEditing, selectedDocket, docketForm, selectedJob.customerEmail]);
 
   const loadSize = docketForm.watch('loadSize');
   const jobLineItemId = docketForm.watch('jobLineItemId');
