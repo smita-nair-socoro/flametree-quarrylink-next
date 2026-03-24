@@ -103,34 +103,7 @@ export interface DocketDTO {
     jobId: number;
     jobItemType: JOB_LINE_ITEM_TYPE;
     customerDeliveryAddressId: number;
-    customerDeliveryAddress: {
-      id: number;
-      customerId: number;
-      addressId: number;
-      address: {
-        id: number;
-        googlePlaceId: string;
-        formattedAddress: string;
-        streetDetailsPrimary: string;
-        streetDetailsOptional: string;
-        city: string;
-        suburb: string;
-        state: string;
-        postcode: string;
-        country: string;
-        latitude: number;
-        longitude: number;
-        version: number;
-      };
-      inUse: boolean;
-      lastUsedAt: string;
-      version: number;
-      isDeleted: boolean;
-      createdBy: string;
-      createdAt: string;
-      updatedAt: string;
-      lastModifiedBy: string;
-    };
+    customerDeliveryAddress: CustomerDeliveryAddress;
     productId: number;
     product: {
       id: number;
