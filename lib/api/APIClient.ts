@@ -42,7 +42,6 @@ import {
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
-import { DocketDTO } from '../types/docket';
 
 type RequestBody =
   | BodyInit
@@ -889,6 +888,11 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
       return response;
     },
+    updateStatus: (docketId: number, formData: FormData) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/dockets/${docketId}/status`,
+        { body: formData },
+      ),
   },
 
   users: {
@@ -982,14 +986,6 @@ export const APIClient = {
         body: data,
       });
     },
-  },
-
-  dockets: {
-    updateStatus: (docketId: number, formData: FormData) =>
-      appClient.Put<DocketDTO>(
-        `/socoro/quarrylink/api/dockets/${docketId}/status`,
-        { body: formData },
-      ),
   },
 
   tenants: {
