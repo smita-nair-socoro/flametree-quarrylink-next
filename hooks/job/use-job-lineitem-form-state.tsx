@@ -13,7 +13,7 @@ import {
 	CustomerDeliveryAddressesQueryOptions,
 	useUpdateDeliveryAddressUsage,
 } from '@/lib/api/customer';
-import { JobItemByIdQueryOptions, useCreateJobItem } from '@/lib/api/job';
+import { JobItemByIdQueryOptions, useCreateJobItem, useUpdateJobItem } from '@/lib/api/job';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
@@ -56,7 +56,7 @@ type PricingBreakdown = {
 	totalInvoiceInclGst: number;
 };
 
-export function useLineItemFormState({
+export function useJobLineItemFormState({
 	id,
 	canEdit,
 	onSuccess,
@@ -198,21 +198,24 @@ export function useLineItemFormState({
 	const { data: products } = useQuery(ProductsListQueryOptions());
 	const productOptions: SelectOption[] = React.useMemo(() => {
 		if (!products) return [];
-		return products.map((product) => ({
-			label: product.productName,
-			value: product.id,
-		}));
+		return products
+			.map((product) => ({
+				label: product.productName,
+				value: product.id,
+			}))
+			.sort((a, b) => a.label.localeCompare(b.label));
 	}, [products]);
 
 	// Customer delivery addresses (for DELIVERY quote type)
 	const customerId =
 		selectedJob?.customerId ||
-		selectedJob?.customerDto?.id ||
+		selectedJob?.customerWithAddressResponseDto?.id ||
 		0;
-	const isDeliveryQuote = jobLineItemData?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY;
+	const isDelivery = jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY;
+
 	const { data: deliveryAddresses } = useQuery({
 		...CustomerDeliveryAddressesQueryOptions(customerId, 5),
-		enabled: !!customerId && isDeliveryQuote && !isEditing,
+		enabled: !!customerId && isDelivery && !isEditing,
 	});
 
 	// Mutation to update delivery address usage (for deleting from suggestions)
@@ -234,7 +237,7 @@ export function useLineItemFormState({
 
 	// Get billing address for comparison (pinned address for delivery quotes)
 	const billingAddress =
-		selectedJob?.customerDto?.billingAddress;
+		selectedJob?.customerWithAddressResponseDto?.billingAddress;
 	const billingAddressFormatted = billingAddress?.formattedAddress || '';
 
 	// Transform delivery addresses to suggested address format
@@ -254,7 +257,6 @@ export function useLineItemFormState({
 				customerDeliveryAddress: addr,
 			}));
 	}, [deliveryAddresses, billingAddressFormatted]);
-
 
 	// Selected product id
 	const selectedProductId = Number(form.watch('productId') || 0);
@@ -449,17 +451,15 @@ export function useLineItemFormState({
 		() => [
 			{ label: 'Truck', value: 'TRUCK' },
 			{ label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
-			{ label: 'Truck + Trailer', value: 'TRUCK_TRAILER' },
+			{ label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
 			{ label: 'Rigid truck', value: 'RIGID_TRUCK' },
-			{ label: 'B-Double', value: 'B_DOUBLE' },
-			{ label: 'Road train', value: 'ROAD_TRAIN' },
-			{ label: 'Dog Truck', value: 'DOG_TRUCK' },
 			{ label: 'Flatbed', value: 'FLATBED' },
 			{ label: 'Tipper', value: 'TIPPER' },
-			{ label: 'Semi-Tipper', value: 'SEMI_TIPPER' },
-			{ label: 'Side-Tipper', value: 'SIDE_TIPPER' },
-			{ label: 'Truck and Dog', value: 'TRUCK_AND_DOG' },
-			{ label: 'Agitator truck', value: 'AGITATOR_TRUCK' },
+			{ label: 'Tandem', value: 'TANDEM' },
+			{ label: 'QUAD', value: 'QUAD' },
+			{ label: 'Tri-Axle', value: 'TRI_AXLE' },
+			{ label: 'Tautliner', value: 'TAUTLINER' },
+			{ label: 'Crane Truck', value: 'CRANE_TRUCK' },
 		],
 		[]
 	);
@@ -943,6 +943,7 @@ export function useLineItemFormState({
 	]);
 
 	const createJobItem = useCreateJobItem();
+	const updateJobItem = useUpdateJobItem();
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -953,92 +954,94 @@ export function useLineItemFormState({
 	async function onSubmit(values: FormValues) {
 		setIsSubmitting(true);
 
-		try {
-			if (!selectedJob?.id) {
-				throw new Error('No job selected');
-			}
+		if (!selectedJob?.id) {
+			throw new Error('No job selected');
+		}
 
-			const customerId =
-				selectedJob?.customerId ||
-				selectedJob?.customerDto?.id ||
-				0;
-			const originalAddress = jobLineItemData?.customerDeliveryAddress?.address;
-			const mappedAddress = toAddressPayload(addressInput, originalAddress as Address);
-			const addressPayload = mappedAddress
-				? (({ id, ...rest }) => rest)(mappedAddress)
+
+		const originalAddress = jobLineItemData?.customerDeliveryAddress?.address;
+
+		const mappedAddress = toAddressPayload(addressInput, originalAddress as Address);
+		const addressPayload = mappedAddress
+			? (({ id, ...rest }) => rest)(mappedAddress)
+			: undefined;
+
+		const customerDeliveryAddress:
+			| Partial<CustomerDeliveryAddress>
+			| undefined =
+			addressPayload && customerId
+				? {
+					...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
+						? { id: jobLineItemData.customerDeliveryAddress.id }
+						: {}),
+					customerId,
+					addressId:
+						isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
+							? jobLineItemData.customerDeliveryAddress.addressId
+							: mappedAddress?.id,
+					address: addressPayload,
+					inUse: true,
+					lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
+				}
 				: undefined;
 
-			const customerDeliveryAddress:
-				| Partial<CustomerDeliveryAddress>
-				| undefined =
-				addressPayload && customerId
-					? {
-						...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
-							? { id: jobLineItemData.customerDeliveryAddress.id }
-							: {}),
-						customerId,
-						addressId:
-							isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
-								? jobLineItemData.customerDeliveryAddress.addressId
-								: mappedAddress?.id,
-						address: addressPayload,
-						inUse: true,
-						lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
-					}
-					: undefined;
+		const payload: Partial<JobItem> = {
+			jobId: selectedJob.id,
+			jobItemType: values.type,
+			productId: values.productId,
+			quarrySupplierId: values.quarrySupplierId,
 
-			const payload: Partial<JobItem> = {
-				jobId: selectedJob.id,
-				jobItemType: values.type,
-				productId: values.productId,
-				quarrySupplierId: values.quarrySupplierId,
+			customerDeliveryAddressId:
+				isEditing && jobLineItemData?.customerDeliveryAddress?.id
+					? customerDeliveryAddress?.id
+					: undefined,
+			customerDeliveryAddress,
 
-				customerDeliveryAddressId:
-					isEditing && jobLineItemData?.customerDeliveryAddress?.id
-						? customerDeliveryAddress?.id
-						: undefined,
-				customerDeliveryAddress,
+			// Product pricing
+			productCostUom: values.productCostUom,
+			productCostQty: values.productCostQty || 0,
+			productCostPrice: dollarsToCents(values.productCostPrice),
+			totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
+			productSellUom: values.productSellUom,
+			productSellQty: values.productSellQty || 0,
+			productSellPrice: dollarsToCents(values.productSellPrice),
+			totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
 
-				// Product pricing
-				productCostUom: values.productCostUom,
-				productCostQty: values.productCostQty || 0,
-				productCostPrice: dollarsToCents(values.productCostPrice),
-				totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
-				productSellUom: values.productSellUom,
-				productSellQty: values.productSellQty || 0,
-				productSellPrice: dollarsToCents(values.productSellPrice),
-				totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
+			// Truck pricing
+			truckType: values.truckType || undefined,
+			truckCostUom: values.truckCostUom,
+			truckCostQty: values.truckCostQty,
+			truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
+			totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice ?? 0),
+			truckSellUom: values.truckSellUom,
+			truckSellQty: values.truckSellQty || 0,
+			truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
+			totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice ?? 0),
 
-				// Truck pricing
-				truckType: values.truckType || undefined,
-				truckCostUom: values.truckCostUom,
-				truckCostQty: values.truckCostQty,
-				truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
-				totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice ?? 0),
-				truckSellUom: values.truckSellUom,
-				truckSellQty: values.truckSellQty || 0,
-				truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
-				totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice ?? 0),
+			totalQuantityRequired: values.productSellQty || 0,
+			allocatedQuantity: 0,
+			remainingQuantity: values.productSellQty || 0,
+			grossProfit: dollarsToCents(values.grossProfit || 0),
+			version: jobLineItemData?.version || 1,
+		};
 
-				totalQuantityRequired: values.productSellQty || 0,
-				allocatedQuantity: 0,
-				remainingQuantity: values.productSellQty || 0,
-				grossProfit: dollarsToCents(values.grossProfit || 0),
-				version: jobLineItemData?.version || 1,
-			};
+		if (isEditing && jobLineItemData?.id) {
+			payload.id = jobLineItemData.id;
+		}
+		try {
 
 			if (isEditing && jobLineItemData?.id) {
-				payload.id = jobLineItemData.id;
-			}
-
-			if (isEditing) {
-				// await updateJobItem.mutateAsync({ id: jobLineItemId, ...payload });
-				// notifySuccess('Job line item updated successfully');
+				await updateJobItem.mutateAsync({
+					id: jobLineItemData.id,
+					data: payload,
+				});
+				notifySuccess('Job line item updated successfully');
 			} else {
 				console.log('payload is ', payload)
 				await createJobItem.mutateAsync(payload);
 				notifySuccess('Job line item created successfully');
 			}
+			form.reset();
 			onSaved?.();
 			onSuccess?.();
 		} catch (error) {
@@ -1069,7 +1072,7 @@ export function useLineItemFormState({
 		pricingBreakdown,
 		handleSubmit,
 		onSubmit,
-		isPending: isSubmitting || createJobItem.isPending,
+		isPending: isSubmitting || createJobItem.isPending || updateJobItem.isPending,
 		customerDeliveryAddressSuggestions,
 		handleDeleteDeliveryAddress,
 		productDetails: productDetailsQuery.data,
