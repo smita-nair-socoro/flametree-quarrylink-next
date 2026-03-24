@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
@@ -33,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
+  useConvertToJob,
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
@@ -875,6 +877,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
   const user = useClientStore((state) => state.user);
+  const router = useRouter();
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
@@ -890,6 +893,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const convertToJobMutation = useConvertToJob();
   const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
@@ -1113,9 +1117,21 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleConvertToJob = async () => {
-    const { subscriptionPlan } = useClientStore.getState();
-    setActiveDialog(null);
-    setSelectedAction(null);
+    if (!quotationId) {
+      notifyError(extractErrorMessage('Unable to convert quotation to job'));
+      return;
+    }
+
+    try {
+      const job = await convertToJobMutation.mutateAsync(quotationId);
+      notifySuccess('Quotation converted to job');
+      setActiveDialog(null);
+      setSelectedAction(null);
+      router.push(`/customer-operations/jobs?openJobId=${job.id}`);
+    } catch (error) {
+      console.error('Failed to convert quotation to job:', error);
+      notifyError(extractErrorMessage(error));
+    }
   };
 
   const handleConvertToDraft = async () => {

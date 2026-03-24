@@ -28,7 +28,7 @@ import {
 } from '@/lib/utils/error-message-helper';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
-import { AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
+import { Address, AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
@@ -458,19 +458,17 @@ export function useLineItemFormState({
     () => [
       { label: 'Truck', value: 'TRUCK' },
       { label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
-      { label: 'Truck + Trailer', value: 'TRUCK_TRAILER' },
+      { label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
       { label: 'Rigid truck', value: 'RIGID_TRUCK' },
-      { label: 'B-Double', value: 'B_DOUBLE' },
-      { label: 'Road train', value: 'ROAD_TRAIN' },
-      { label: 'Dog Truck', value: 'DOG_TRUCK' },
       { label: 'Flatbed', value: 'FLATBED' },
       { label: 'Tipper', value: 'TIPPER' },
-      { label: 'Semi-Tipper', value: 'SEMI_TIPPER' },
-      { label: 'Side-Tipper', value: 'SIDE_TIPPER' },
-      { label: 'Truck and Dog', value: 'TRUCK_AND_DOG' },
-      { label: 'Agitator truck', value: 'AGITATOR_TRUCK' },
+      { label: 'Tandem', value: 'TANDEM' },
+      { label: 'QUAD', value: 'QUAD' },
+      { label: 'Tri-Axle', value: 'TRI_AXLE' },
+      { label: 'Tautliner', value: 'TAUTLINER' },
+      { label: 'Crane Truck', value: 'CRANE_TRUCK' },
     ],
-    [],
+    []
   );
 
   // UOM options derived from QSP
@@ -962,10 +960,7 @@ export function useLineItemFormState({
       console.error('No quotation selected');
       return;
     }
-    const customerId =
-      selectedQuotation?.customerId ||
-      selectedQuotation?.customerWithAddressResponseDto?.id ||
-      0;
+
     const originalAddress = selectedLineItem?.customerDeliveryAddress?.address;
     const mappedAddress = toAddressPayload(addressInput, originalAddress);
     const addressPayload = mappedAddress

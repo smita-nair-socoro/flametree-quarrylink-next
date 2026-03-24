@@ -66,7 +66,7 @@ export function MobilePricingComparisonCard({
 
   const costDisplay = costPrice ? centsToDollars(costPrice) : '0.00';
   const sellDisplay = sellPrice ? centsToDollars(sellPrice) : '0.00';
-  const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice;
+  const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice || 0;
   const name = supplier.quarrySupplier?.name || 'Unknown';
 
   return (

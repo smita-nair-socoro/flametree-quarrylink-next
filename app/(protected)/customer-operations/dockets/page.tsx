@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-// import JobForm from './(components)/forms/job-form';
-import rawJson from '@/lib/tests/docketsResponseData.json';
-import { Docket } from '@/lib/types/docket';
 import { Plus } from 'lucide-react';
 import DocketForm from './(components)/forms/docket-form';
+
+import { useQuery } from '@tanstack/react-query';
+import { DocketsListQueryOptions } from '@/lib/api/docket';
+import { DocketDTO } from '@/lib/types/docket';
+
 
 import {
   DataTableClient,
@@ -15,9 +17,14 @@ import {
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
 
 export default function DocketsPage() {
-  const { items } = rawJson as unknown as {
-    items: Docket[];
-  };
+  const { data: dockets } = useQuery(DocketsListQueryOptions());
+
+  const items: DocketDTO[] = React.useMemo(() => {
+    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : dockets?.content ?? [];
+    return list.map((docket) => ({
+      ...docket,
+    })) as DocketDTO[];
+  }, [dockets]);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
@@ -47,7 +54,7 @@ export default function DocketsPage() {
           tableId="docket_main_data_table"
           data={items ?? []}
           columns={docketColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search dockets..."
           defaultSorting={[{ id: 'docketNumber', desc: false }]}
         />

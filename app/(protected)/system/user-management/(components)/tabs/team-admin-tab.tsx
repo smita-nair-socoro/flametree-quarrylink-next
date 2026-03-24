@@ -122,8 +122,8 @@ export default function TeamAdminTab() {
         invited_by: 'System', // API doesn't provide this, using placeholder
         expires_at: user.createdAt
           ? new Date(
-            new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
-          ).toISOString() // 7 days from creation
+              new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
+            ).toISOString() // 7 days from creation
           : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }));
 
@@ -171,7 +171,7 @@ export default function TeamAdminTab() {
 
       return (
         <div
-          className="flex items-center gap-3 rounded-lg border border-[#E4E4E7] bg-white px-4 py-3 transition-colors hover:bg-gray-50"
+          className="flex items-center gap-3 border-t border-[#E4E4E7] bg-white px-4 py-3 transition-colors hover:bg-gray-50"
           onClick={onViewDetails}
           role={onViewDetails ? 'button' : undefined}
           tabIndex={onViewDetails ? 0 : undefined}
@@ -229,8 +229,12 @@ export default function TeamAdminTab() {
           </div>
         </div>
 
-        <div className={`border border-[#E4E4E7] rounded-lg bg-white overflow-hidden ${isMobile ? '' : 'p-6'}`}>
-          <div className={`flex flex-row justify-between items-center gap-2 ${isMobile ? 'px-4 pt-4 pb-3' : 'mb-4'}`}>
+        <div
+          className={`border border-[#E4E4E7] rounded-lg bg-white overflow-hidden ${isMobile ? '' : 'p-6'}`}
+        >
+          <div
+            className={`flex flex-row justify-between items-center gap-2 ${isMobile ? 'px-4 pt-4 pb-3' : 'mb-4'}`}
+          >
             <div>
               <h1 className="text-2xl font-medium text-[#09090B]">
                 Team Members
@@ -253,7 +257,7 @@ export default function TeamAdminTab() {
             <TableSkeleton rows={8} columns={5} />
           ) : (
             <div className="min-h-0 flex-1 rounded-xl">
-              <div className="relative">
+              <div className="relative [&>div>div:first-child>div:first-child]:px-4 [&>div>div:first-child>div:first-child]:md:px-0 [&>div>div.space-y-3]:!space-y-0">
                 {isFetching && !isLoading && (
                   <div className="absolute top-2 right-2 z-10">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -263,7 +267,7 @@ export default function TeamAdminTab() {
                   tableId="team_member_data_table"
                   data={users || []}
                   columns={columns}
-                  facetDefination={facetDefs}
+                  facetDefinition={facetDefs}
                   searchPlaceHolder="Search team members..."
                   onRowClick={handleRowClick}
                   useColumnSizing={true}

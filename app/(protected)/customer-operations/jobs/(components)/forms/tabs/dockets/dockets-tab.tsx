@@ -9,17 +9,30 @@ import { docketsColumns } from './(data-tables)/columns';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { JobDetails } from '@/lib/types/job';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
+import { useQuery } from '@tanstack/react-query';
+import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
 
 interface DocketsTabProps {
-  selectedJob: JobDetails;
+  selectedJob: JobDetails | null;
 }
 
 export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  // const dockets = selectedJob?.dockets ?? [];
-  const dockets = [] as Docket[];
   const jobId = selectedJob?.id ?? 0;
+
+  const { data: dockets } = useQuery({
+    ...DocketsByJobIdQueryOptions(jobId),
+    enabled: !!jobId,
+  });
+
+  const items: DocketDTO[] = React.useMemo(() => {
+    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : dockets?.content ?? [];
+    return list.map((docket) => ({
+      ...docket,
+    })) as DocketDTO[];
+  }, [dockets]);
+
 
   return (
     <div className="flex flex-col gap-4 mt-6">
@@ -39,7 +52,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
           columns={docketsColumns}
-          data={dockets}
+          data={items}
           simpleTable={true}
           defaultSorting={[{ id: 'docketNumber', desc: false }]}
         />
