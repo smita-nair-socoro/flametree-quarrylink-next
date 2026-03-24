@@ -1,12 +1,12 @@
 'use client';
 
 import { Play, Truck } from 'lucide-react';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
 export function StartTransitDescription({
   docket,
 }: {
-  docket?: Docket | null;
+  docket?: DocketDTO | null;
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -18,12 +18,12 @@ export function StartTransitDescription({
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <span>{docket?.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.productUoM}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}
@@ -33,9 +33,9 @@ export function StartTransitDescription({
   );
 }
 
-export function StartTransitContent({ docket }: { docket?: Docket | null }) {
+export function StartTransitContent({ docket }: { docket?: DocketDTO | null }) {
   const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
-  const driverName = docket?.contactName ?? '—';
+  const driverName = docket?.customerContactName ?? '—';
   const truckLabel = docket?.truckType ?? '—';
 
   return (

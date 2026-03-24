@@ -9,7 +9,7 @@ import { TableBadges } from '@/components/table-badges';
 //   TooltipContent,
 //   TooltipTrigger,
 // } from '@/components/ui/tooltip';
-// import { DocketTableActions } from './docket-table-actions';
+import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -149,18 +149,9 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div>Actions</div>;
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
     },
   },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const docket = row.original;
-  //     return <DocketTableActions docket={docket} />;
-  //   },
-  // },
 ];

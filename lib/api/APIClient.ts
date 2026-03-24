@@ -890,6 +890,11 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
       return response;
     },
+    updateStatus: (docketId: number, formData: FormData) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/dockets/${docketId}/status`,
+        { body: formData },
+      ),
   },
 
   users: {
