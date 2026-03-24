@@ -87,7 +87,7 @@ import { Filter, X, Check } from 'lucide-react';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  facetDefination?: FacetDefinition[];
+  facetDefinition?: FacetDefinition[];
   searchPlaceHolder?: string;
   simpleTable?: boolean;
   tableId?: string; // Unique identifier for sessionStorage
@@ -147,7 +147,7 @@ function areColumnFiltersEqual(
 export function DataTableClient<TData, TValue>({
   columns,
   data = [],
-  facetDefination = [],
+  facetDefinition = [],
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
   tableId = 'default-table', // Default tableId if not provided
@@ -589,7 +589,7 @@ export function DataTableClient<TData, TValue>({
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
       const selectedRowIds = Object.keys(rowSelection).filter(
-        (key) => rowSelection[key]
+        (key) => rowSelection[key],
       );
       const selectedRows = selectedRowIds
         .map((id) => {
@@ -619,7 +619,7 @@ export function DataTableClient<TData, TValue>({
     };
   }, [getStorageKey]);
 
-  const facetedWithCounts = useFacets(table, facetDefination);
+  const facetedWithCounts = useFacets(table, facetDefinition);
 
   // Use toolbar compact hook for dynamic desktop/mobile filter switching
   const {
@@ -1063,7 +1063,7 @@ export function DataTableClient<TData, TValue>({
                     ? () => onRowClick(row.original)
                     : undefined;
                   return (
-                    <div key={row.id}>
+                    <div key={row.id} className="p-0 gap-0">
                       {mobileCardRenderer(row.original, handleViewDetails)}
                     </div>
                   );
@@ -1086,7 +1086,7 @@ export function DataTableClient<TData, TValue>({
                 )}
 
                 {mobileUseTablePagination ? (
-                  <div className="rounded-md border border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">
+                  <div className="border-t border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">
                     <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
                       <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
                         <div className="whitespace-nowrap">
@@ -1108,7 +1108,8 @@ export function DataTableClient<TData, TValue>({
                             }}
                           />
                           <span>
-                            Page {pagination.pageIndex + 1} of {table.getPageCount()}
+                            Page {pagination.pageIndex + 1} of{' '}
+                            {table.getPageCount()}
                           </span>
                         </div>
                       </div>

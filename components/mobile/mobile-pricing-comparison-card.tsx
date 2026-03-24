@@ -16,7 +16,10 @@ export interface MobilePricingComparisonCardProps {
   isBestMargin: boolean;
 }
 
-function getPricingValues(supplier: QuarriesWithProduct, type: PricingComparisonType) {
+function getPricingValues(
+  supplier: QuarriesWithProduct,
+  type: PricingComparisonType,
+) {
   switch (type) {
     case 'tn':
       return {
@@ -51,11 +54,14 @@ export function MobilePricingComparisonCard({
   isLowestCost,
   isBestMargin,
 }: MobilePricingComparisonCardProps) {
-  const { costPrice, sellPrice, available } = getPricingValues(supplier, pricingType);
+  const { costPrice, sellPrice, available } = getPricingValues(
+    supplier,
+    pricingType,
+  );
 
   const costDisplay = costPrice ? centsToDollars(costPrice) : '0.00';
   const sellDisplay = sellPrice ? centsToDollars(sellPrice) : '0.00';
-  const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice;
+  const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice || 0;
   const name = supplier.quarrySupplier?.name || 'Unknown';
 
   return (
@@ -80,7 +86,9 @@ export function MobilePricingComparisonCard({
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             </div>
           )}
-          <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+          <span className="font-bold text-[#101828] text-base truncate">
+            {name}
+          </span>
         </div>
         <div className="shrink-0 ml-2">
           <TableBadges names={[available ? 'AVAILABLE' : 'UNAVAILABLE']} />
@@ -133,7 +141,9 @@ export function MobilePricingComparisonCard({
             <span>{(margin * 100).toFixed(2)}%</span>
           </div>
           {isBestMargin && (
-            <p className="text-xs text-amber-500 font-medium mt-0.5">Best margin</p>
+            <p className="text-xs text-amber-500 font-medium mt-0.5">
+              Best margin
+            </p>
           )}
         </div>
       </div>
