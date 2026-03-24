@@ -52,7 +52,9 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return <div>Status</div>;
     },
     cell: ({ row }) => {
-      return <TableBadges names={[row.original.docketStatus]} visibleCount={1} />;
+      return (
+        <TableBadges names={[row.original.docketStatus]} visibleCount={1} />
+      );
     },
     meta: 'Status',
   },
@@ -77,7 +79,17 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const productSellQty = row.original.loadSize;
       const productSellUom = row.original.jobItem.productSellUom;
-      const displayText = `${productSellQty} ${productSellUom}`;
+      const formattedLoadSize =
+        productSellUom === 'TN'
+          ? `${productSellQty} TN`
+          : productSellUom === 'M3'
+            ? `${productSellQty} m³`
+            : productSellUom === 'KG_20'
+              ? `${productSellQty} x 20kg`
+              : productSellUom === 'BULKA'
+                ? `${productSellQty} Bulka`
+                : productSellQty;
+      const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

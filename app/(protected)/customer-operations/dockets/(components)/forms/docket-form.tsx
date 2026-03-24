@@ -35,6 +35,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { useCreateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
 
 interface FormProps {
@@ -95,7 +96,7 @@ export default function DocketForm({
 
   const combineDateAndTime = (
     date: Date | undefined,
-    timeString: string
+    timeString: string,
   ): string | null => {
     if (!date || !timeString) return null;
 
@@ -119,12 +120,17 @@ export default function DocketForm({
       let estimatedVolumeM3 = 0;
       const loadSize = values.loadSize || 0;
 
-      if (lineItemDetails.productUom === 'M3' || 'm3' || lineItemDetails.productUom === 'BULKA' || 'Bulka') {
+      if (
+        lineItemDetails.productUom === 'M3' ||
+        'm3' ||
+        lineItemDetails.productUom === 'BULKA' ||
+        'Bulka'
+      ) {
         estimatedVolumeM3 = loadSize;
       } else if (lineItemDetails.productUom === 'TN') {
         estimatedVolumeM3 = loadSize / density;
       } else if (lineItemDetails.productUom === 'KG_20' || '20kg') {
-        estimatedVolumeM3 = (loadSize / 50) / density;
+        estimatedVolumeM3 = loadSize / 50 / density;
       }
 
       // Round to 2 decimal places to avoid out of bounds errors on the backend
@@ -134,11 +140,25 @@ export default function DocketForm({
       let endDateTime = values.deliveryCollectionEndTime;
 
       if (values.deliveryCollectionDate) {
-        if (values.deliveryCollectionStartTime && !values.deliveryCollectionStartTime.includes('T')) {
-          startDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionStartTime) ?? startDateTime;
+        if (
+          values.deliveryCollectionStartTime &&
+          !values.deliveryCollectionStartTime.includes('T')
+        ) {
+          startDateTime =
+            combineDateAndTime(
+              values.deliveryCollectionDate,
+              values.deliveryCollectionStartTime,
+            ) ?? startDateTime;
         }
-        if (values.deliveryCollectionEndTime && !values.deliveryCollectionEndTime.includes('T')) {
-          endDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionEndTime) ?? endDateTime;
+        if (
+          values.deliveryCollectionEndTime &&
+          !values.deliveryCollectionEndTime.includes('T')
+        ) {
+          endDateTime =
+            combineDateAndTime(
+              values.deliveryCollectionDate,
+              values.deliveryCollectionEndTime,
+            ) ?? endDateTime;
         }
       }
 
@@ -150,12 +170,12 @@ export default function DocketForm({
       if (!validUoms.includes(deliveryDistanceUom)) {
         const uomMap: Record<string, string> = {
           '20kg': 'KG_20',
-          'km': 'KM',
-          'Load': 'LOAD',
-          'TN': 'TN',
-          'Bulka': 'BULKA',
-          'Hourly': 'HOURLY',
-          'm3': 'M3'
+          km: 'KM',
+          Load: 'LOAD',
+          TN: 'TN',
+          Bulka: 'BULKA',
+          Hourly: 'HOURLY',
+          m3: 'M3',
         };
         deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
       }
@@ -184,19 +204,23 @@ export default function DocketForm({
           latitude: deliveryAddress.lat,
           longitude: deliveryAddress.lng,
         },
-        deliveryAddress: isCollection ? undefined : (deliveryAddress.googlePlaceId ? {
-          googlePlaceId: deliveryAddress.googlePlaceId,
-          formattedAddress: deliveryAddress.formattedAddress,
-          streetDetailsPrimary: deliveryAddress.address1,
-          streetDetailsOptional: deliveryAddress.address2,
-          city: deliveryAddress.city,
-          suburb: deliveryAddress.city,
-          state: deliveryAddress.region,
-          postcode: deliveryAddress.postalCode,
-          country: deliveryAddress.country,
-          latitude: deliveryAddress.lat,
-          longitude: deliveryAddress.lng,
-        } : undefined),
+        deliveryAddress: isCollection
+          ? undefined
+          : deliveryAddress.googlePlaceId
+            ? {
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
+            : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
         deliveryCollectionDate: values.deliveryCollectionDate,
@@ -204,7 +228,9 @@ export default function DocketForm({
         deliveryCollectionEndTime: endDateTime,
         customerContactName: values.customerContactName,
         customerContactPhone: values.customerContactPhone,
-        docketEmailRecipients: values.docketEmail ? values.docketEmail.split(',').map(e => e.trim()) : ['jaywoo.choi@socoro.com.au'],
+        docketEmailRecipients: values.docketEmail
+          ? values.docketEmail.split(',').map((e) => e.trim())
+          : ['jaywoo.choi@socoro.com.au'],
         notes: values.notes,
         truckType: isCollection ? undefined : lineItemDetails.truckType,
         loadSize: values.loadSize,
@@ -224,7 +250,6 @@ export default function DocketForm({
     } catch (error) {
       console.error('Error creating docket:', error);
       notifyError(extractErrorMessage(error));
-
     } finally {
       setIsSubmitting(false);
     }
@@ -350,7 +375,8 @@ export default function DocketForm({
                               className="w-full"
                               readOnly
                               value={
-                                selectedJobLineItemDetails().truckTypeLabel ?? ''
+                                selectedJobLineItemDetails().truckTypeLabel ??
+                                ''
                               }
                             />
                           </FormControl>
@@ -383,22 +409,41 @@ export default function DocketForm({
 
                   <FormField
                     name="loadSize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Load Size</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            isNumber
-                            disabled={
-                              isReadOnly || !docketForm.watch('jobLineItemId')
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const maxLoadSize =
+                        selectedJobLineItemDetails().remainingQty;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Load Size</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              {...field}
+                              isNumber
+                              max={maxLoadSize}
+                              disabled={
+                                isReadOnly || !docketForm.watch('jobLineItemId')
+                              }
+                              onChange={(e) => {
+                                const nextValue = e.target.value;
+
+                                if (nextValue === '') {
+                                  field.onChange(e);
+                                  return;
+                                }
+
+                                e.target.value = String(
+                                  Math.min(Number(nextValue), maxLoadSize),
+                                );
+                                field.onChange(e);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   {selectedJobLineItemDetails().needTruckQty && (
@@ -443,7 +488,9 @@ export default function DocketForm({
                         {docketForm.watch('loadSize')}{' '}
                         {selectedJobLineItemDetails().productUom === '20kg'
                           ? 'x 20kg'
-                          : selectedJobLineItemDetails().productUom}{' '}
+                          : selectedJobLineItemDetails().productUom === 'm3'
+                            ? 'm³'
+                            : selectedJobLineItemDetails().productUom}{' '}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -454,7 +501,9 @@ export default function DocketForm({
                         {selectedJobLineItemDetails().remainingQty}{' '}
                         {selectedJobLineItemDetails().productUom === '20kg'
                           ? 'x 20kg'
-                          : selectedJobLineItemDetails().productUom}{' '}
+                          : selectedJobLineItemDetails().productUom === 'm3'
+                            ? 'm³'
+                            : selectedJobLineItemDetails().productUom}{' '}
                         total
                       </span>
                     </div>
@@ -715,26 +764,40 @@ export default function DocketForm({
               <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                 <div>
                   <span>Product Sell</span>
-                  <span>${pricingBreakdown.productSell.toFixed(2)}</span>
+                  <span>
+                    $
+                    {formatNumberThousandSeparator(
+                      pricingBreakdown.productSell,
+                    )}
+                  </span>
                 </div>
                 {selectedJobLineItemDetails().needTruckQty && (
                   <div>
                     <span>Truck Sell</span>
-                    <span>${pricingBreakdown.truckSell.toFixed(2)}</span>
+                    <span>
+                      $
+                      {formatNumberThousandSeparator(
+                        pricingBreakdown.truckSell,
+                      )}
+                    </span>
                   </div>
                 )}
                 <div className="pt-2 border-t border-dashed border-purple-300">
                   <span>Subtotal (ex-GST)</span>
-                  <span>${pricingBreakdown.subtotal.toFixed(2)}</span>
+                  <span>
+                    ${formatNumberThousandSeparator(pricingBreakdown.subtotal)}
+                  </span>
                 </div>
                 <div>
                   <span>GST (10%)</span>
-                  <span>${pricingBreakdown.gst.toFixed(2)}</span>
+                  <span>
+                    ${formatNumberThousandSeparator(pricingBreakdown.gst)}
+                  </span>
                 </div>
                 <div className="pt-2 border-t border-dashed border-purple-300">
                   <span className="font-bold text-lg">Total Invoice</span>
                   <span className="font-bold text-lg">
-                    ${pricingBreakdown.total.toFixed(2)}
+                    ${formatNumberThousandSeparator(pricingBreakdown.total)}
                   </span>
                 </div>
               </div>
