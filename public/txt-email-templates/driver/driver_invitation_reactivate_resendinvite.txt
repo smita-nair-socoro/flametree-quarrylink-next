@@ -2,7 +2,7 @@ Hi {FullName},
 
 Welcome to the QuarryLink Drivers App!
 
-An account has been created for you by {InvitedByName} at {TenantName}.
+An account has been created for you by {ActionedByName} at {TenantName}.
 
 To activate your account and log in, use the link below to set your password:
 
