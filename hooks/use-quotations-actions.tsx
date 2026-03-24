@@ -1023,7 +1023,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       await sendToCustomerMutation.mutateAsync({
         id: quotationId,
         inclDeliveryCost: includeDeliveryPrices,
-        additionalEmailRecipients: additionalRecipientEmails,
+        emailRecipients: additionalRecipientEmails,
       });
 
       notifySuccess('Quotation sent to customer');

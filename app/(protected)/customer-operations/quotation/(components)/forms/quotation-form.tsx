@@ -654,7 +654,7 @@ export default function QuotationForm({
                 name="deliveryWindowStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window</FormLabel>
+                    <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -675,7 +675,7 @@ export default function QuotationForm({
                 name="deliveryWindowEnd"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time Window</FormLabel>
+                    <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -705,7 +705,7 @@ export default function QuotationForm({
                 name="expiryDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Expiry Date</FormLabel>
+                    <FormLabel>Expiry Date*</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
