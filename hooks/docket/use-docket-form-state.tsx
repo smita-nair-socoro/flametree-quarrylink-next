@@ -4,14 +4,16 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
-import rawJson from '@/lib/tests/jobsDetailResponseData.json';
 import rawDocketsJson from '@/lib/tests/docketsResponseData.json';
-import { JobLineItem } from '@/lib/types/job';
 import { AddressType } from '@/lib/types/address';
 import { Docket } from '@/lib/types/docket';
 import { GetTodaysDate, parseAsUTC } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
+import { useQuery } from '@tanstack/react-query';
+import { APIClient } from '@/lib/api/APIClient';
+import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
+import { toAddressType } from '@/lib/utils/address-helper';
 
 // Helper to format Date to HH:MM time string
 const formatTimeString = (dateString?: string | null) => {
@@ -66,13 +68,6 @@ const MOCK_PICK_UP_ADDRESS: AddressType = {
   googlePlaceId: '123456789012',
 };
 
-const TRUCK_TYPE_OPTIONS = [
-  { label: 'Truck', value: 'Truck' },
-  { label: 'Semi-Trailer', value: 'Semi-Trailer' },
-  { label: 'Truck + Trailer', value: 'Truck + Trailer' },
-  { label: 'Rigid truck', value: 'Rigid truck' },
-];
-
 type FormValues = z.infer<typeof DocketFormSchema>;
 
 export type SelectOption = { label: string; value: number };
@@ -82,6 +77,20 @@ type UseDocketFormStateProps = {
   isQuickDocket?: boolean;
   jobId?: number;
   onDirtyChange?: (isDirty: boolean) => void;
+};
+
+const TRUCK_TYPE_MAP: Record<string, string> = {
+  TRUCK: 'Truck',
+  SEMI_TRAILER: 'Semi-Trailer',
+  TRUCK_AND_TRAILER: 'Truck + Trailer',
+  RIGID_TRUCK: 'Rigid truck',
+  FLATBED: 'Flatbed',
+  TIPPER: 'Tipper',
+  TANDEM: 'Tandem',
+  QUAD: 'QUAD',
+  TRI_AXLE: 'Tri-Axle',
+  TAUTLINER: 'Tautliner',
+  CRANE_TRUCK: 'Crane Truck',
 };
 
 export function useDocketFormState({
@@ -117,7 +126,7 @@ export function useDocketFormState({
 
   // Sync jobId when form opens with locked job (isQuickDocket=false + jobId)
   React.useEffect(() => {
-    if (isJobLocked && jobId) {
+    if (isJobLocked && jobId && docketForm.getValues('jobId') !== jobId) {
       docketForm.setValue('jobId', jobId);
     }
   }, [isJobLocked, jobId, docketForm]);
@@ -140,55 +149,67 @@ export function useDocketFormState({
 
   const selectedJobId = docketForm.watch('jobId');
 
+  const { data: jobsData } = useQuery(JobsListQueryOptions());
+  const jobsList = Array.isArray(jobsData)
+    ? jobsData
+    : (jobsData?.content ?? []);
+
   const allJobs = React.useMemo(
     () =>
-      rawJson.items.map((job) => ({
+      jobsList.map((job) => ({
         label: `${job.jobNumber} - ${job.projectName}`,
         value: job.id,
       })),
-    []
+    [jobsList],
   );
 
+  const { data: selectedJobDetails } = useQuery({
+    ...JobItemsQueryOptions(selectedJobId),
+    enabled: !!selectedJobId,
+  });
+
   const jobLineItems = React.useMemo(() => {
-    if (!selectedJobId) return [];
-    const selectedJob = rawJson.items.find((job) => job.id === selectedJobId);
-    return (selectedJob?.jobLineItems ?? []) as unknown as JobLineItem[];
-  }, [selectedJobId]);
+    return selectedJobDetails?.jobItems ?? [];
+  }, [selectedJobDetails]);
 
   const jobLineItemOptions = React.useMemo(
     () =>
       jobLineItems
         .filter((lineItem) => lineItem.id !== undefined)
         .map((lineItem) => ({
-          label: lineItem.productName,
+          label: lineItem.product?.productName ?? 'Unknown Product',
           value: lineItem.id as number,
         })),
-    [jobLineItems]
+    [jobLineItems],
   );
 
   const selectedJob = React.useMemo(() => {
-    const job = rawJson.items.find((job) => job.id === selectedJobId);
+    const job = jobsList.find((job) => job.id === selectedJobId);
     return {
-      deliveryStartDate: job?.deliveryStartDate ?? '',
-      startTimeWindow: job?.deliveryWindowStart ?? '',
-      endTimeWindow: job?.deliveryWindowEnd ?? '',
+      deliveryStartDate: job?.estimatedStartDate ?? '',
+      startTimeWindow: job?.startTimeWindow ?? '',
+      endTimeWindow: job?.endTimeWindow ?? '',
       poNumber: job?.poNumber ?? '',
-      contactName: job?.customerName ?? '',
-      contactPhone: '+61444333222',
-      docketEmail: job?.receiptEmail ?? '',
-      createdBy: job?.createdBy ?? '',
-      lastModifiedBy: job?.lastModifiedBy ?? '',
-      createdAt: job?.createdAt ?? '',
-      updatedAt: job?.updatedAt ?? '',
+      contactName: job?.contactPersonName ?? '',
+      contactPhone: job?.contactPersonPhone ?? '',
+      docketEmail:
+        job?.docketEmail ?? job?.additionalEmailRecipients?.join(', ') ?? '',
+      createdBy: '',
+      lastModifiedBy: '',
+      createdAt: '',
+      updatedAt: '',
     };
-  }, [selectedJobId]);
+  }, [selectedJobId, jobsList]);
 
   // Update form with selected job details (create mode auto-fill)
   React.useEffect(() => {
     if (isEditing) return;
 
     if (selectedJob.deliveryStartDate) {
-      docketForm.setValue('deliveryCollectionDate', new Date(selectedJob.deliveryStartDate));
+      docketForm.setValue(
+        'deliveryCollectionDate',
+        new Date(selectedJob.deliveryStartDate),
+      );
     }
     if (selectedJob.contactName) {
       docketForm.setValue('customerContactName', selectedJob.contactName);
@@ -203,27 +224,44 @@ export function useDocketFormState({
       docketForm.setValue('docketEmail', selectedJob.docketEmail);
     }
     if (selectedJob.startTimeWindow) {
-      console.log(selectedJob.startTimeWindow);
-      docketForm.setValue('deliveryCollectionStartTime', formatTimeString(selectedJob.startTimeWindow));
+      docketForm.setValue(
+        'deliveryCollectionStartTime',
+        formatTimeString(selectedJob.startTimeWindow),
+      );
     }
     if (selectedJob.endTimeWindow) {
-      console.log(selectedJob.endTimeWindow);
-      docketForm.setValue('deliveryCollectionEndTime', formatTimeString(selectedJob.endTimeWindow));
+      docketForm.setValue(
+        'deliveryCollectionEndTime',
+        formatTimeString(selectedJob.endTimeWindow),
+      );
+    }
+
+    // Reset job line item and addresses when job changes
+    if (docketForm.getValues('jobLineItemId') !== 0) {
+      docketForm.setValue('jobLineItemId', 0);
+      docketForm.setValue('truckQty', 0);
+      setPickUpAddress(EMPTY_ADDRESS);
+      setDeliveryAddress(EMPTY_ADDRESS);
+      setPickUpSearchInput('');
+      setDeliverySearchInput('');
+      docketForm.setValue('pickUpAddressId', '');
+      docketForm.setValue('deliveryAddressId', '');
     }
   }, [selectedJob, docketForm, isEditing]);
 
   const selectedJobLineItemDetails = React.useCallback(() => {
     const selectedJobLineItemId = docketForm.watch('jobLineItemId');
     const selectedJobLineItem = jobLineItems.find(
-      (lineItem) => lineItem.id === selectedJobLineItemId
+      (lineItem) => lineItem.id === selectedJobLineItemId,
     );
     return {
-      customerDeliveryAddress: selectedJobLineItem?.customerDeliveryAddress ?? '',
-      productName: selectedJobLineItem?.productName ?? '',
-      quarryName: selectedJobLineItem?.quarryName ?? '',
+      customerDeliveryAddress:
+        selectedJobLineItem?.customerDeliveryAddress ?? null,
+      productName: selectedJobLineItem?.product?.productName ?? '',
+      quarryName: selectedJobLineItem?.quarrySupplierName ?? '',
       productUom:
         selectedJobLineItem?.productSellUom === 'TN'
-          ? 't'
+          ? 'TN'
           : selectedJobLineItem?.productSellUom === 'M3'
             ? 'm3'
             : selectedJobLineItem?.productSellUom === 'BULKA'
@@ -232,10 +270,15 @@ export function useDocketFormState({
                 ? '20kg'
                 : '',
       truckType: selectedJobLineItem?.truckType ?? '',
+      truckTypeLabel: selectedJobLineItem?.truckType
+        ? (TRUCK_TYPE_MAP[selectedJobLineItem.truckType] ??
+          selectedJobLineItem.truckType)
+        : '',
       truckSell: selectedJobLineItem?.truckSellPrice ?? 0,
+      truckSellQty: selectedJobLineItem?.truckSellQty ?? 0,
       truckUom:
         selectedJobLineItem?.truckSellUom === 'TN'
-          ? 't'
+          ? 'TN'
           : selectedJobLineItem?.truckSellUom === 'M3'
             ? 'm3'
             : selectedJobLineItem?.truckSellUom === 'BULKA'
@@ -252,7 +295,8 @@ export function useDocketFormState({
       productSell: selectedJobLineItem?.productSellPrice ?? 0,
       productSellQty: selectedJobLineItem?.productSellQty ?? 0,
       remainingQty: selectedJobLineItem?.remainingQuantity ?? 0,
-      type: selectedJobLineItem?.type ?? '',
+      type: selectedJobLineItem?.jobItemType ?? '',
+      productId: selectedJobLineItem?.productId ?? 0,
       needTruckQty:
         selectedJobLineItem?.truckSellUom === 'HOURLY' ||
         selectedJobLineItem?.truckSellUom === 'LOAD' ||
@@ -260,38 +304,44 @@ export function useDocketFormState({
     };
   }, [jobLineItems, docketForm]);
 
-  // Will uncomment
   // Update delivery address when job line item changes
-  // React.useEffect(() => {
-  //   const details = selectedJobLineItemDetails();
-  //   if (details.customerDeliveryAddress) {
-  //     const address = details.customerDeliveryAddress.address;
-  //     if (address) {
-  //       setDeliveryAddress({
-  //         address1: address.streetDetailsPrimary || '',
-  //         address2: address.streetDetailsOptional || '',
-  //         formattedAddress: address.formattedAddress || '',
-  //         city: address.city || '',
-  //         region: address.state || '',
-  //         postalCode: address.postcode || '',
-  //         country: address.country || '',
-  //         lat: address.latitude || 0,
-  //         lng: address.longitude || 0,
-  //         googlePlaceId: address.googlePlaceId || '',
-  //       });
+  React.useEffect(() => {
+    if (isEditing) return;
 
-  //       setPickUpAddress(MOCK_PICK_UP_ADDRESS);
+    const details = selectedJobLineItemDetails();
+    if (details.customerDeliveryAddress) {
+      const address = details.customerDeliveryAddress.address;
+      if (address) {
+        const mappedAddress = toAddressType(address);
 
-  //       setDeliverySearchInput(address.formattedAddress || '');
-  //       if (details.type !== 'COLLECTION') {
-  //         docketForm.setValue('deliveryAddressId', details.customerDeliveryAddress.id || '');
-  //       }
+        setDeliveryAddress(mappedAddress);
+        setDeliverySearchInput(address.formattedAddress || '');
+        if (details.type !== 'COLLECTION') {
+          docketForm.setValue(
+            'deliveryAddressId',
+            details.customerDeliveryAddress.id
+              ? String(details.customerDeliveryAddress.id)
+              : '',
+          );
+        }
 
-  //       setPickUpSearchInput(address.formattedAddress || '');
-  //       docketForm.setValue('pickUpAddressId', details.customerDeliveryAddress.id || '');
-  //     }
-  //   }
-  // }, [docketForm.watch('jobLineItemId')]);
+        // For now, duplicate delivery address to pick up address
+        setPickUpAddress(mappedAddress);
+        setPickUpSearchInput(address.formattedAddress || '');
+        docketForm.setValue(
+          'pickUpAddressId',
+          details.customerDeliveryAddress.id
+            ? String(details.customerDeliveryAddress.id)
+            : '',
+        );
+      }
+    }
+  }, [
+    docketForm.watch('jobLineItemId'),
+    isEditing,
+    selectedJobLineItemDetails,
+    docketForm,
+  ]);
 
   // Populate edit form from docket mock data
   React.useEffect(() => {
@@ -300,7 +350,6 @@ export function useDocketFormState({
     docketForm.reset({
       jobId: selectedDocket.job?.id ?? 0,
       jobLineItemId: selectedDocket.jobLineItemId ?? 0,
-      truckType: selectedDocket.truckType ?? '',
       loadSize: selectedDocket.loadSize ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
       deliveryAddressId: selectedDocket.deliveryAddress?.id
@@ -311,7 +360,9 @@ export function useDocketFormState({
       deliveryCollectionDate: selectedDocket.deliveryDate
         ? parseAsUTC(selectedDocket.deliveryDate)
         : undefined,
-      deliveryCollectionStartTime: formatTimeString(selectedDocket.startTimeWindow),
+      deliveryCollectionStartTime: formatTimeString(
+        selectedDocket.startTimeWindow,
+      ),
       deliveryCollectionEndTime: formatTimeString(selectedDocket.endTimeWindow),
       customerContactName: selectedDocket.contactName ?? '',
       customerContactPhone: selectedDocket.contactPhone ?? '',
@@ -319,7 +370,7 @@ export function useDocketFormState({
       notes: selectedDocket.notes ?? '',
     });
 
-    const pickUp = selectedDocket.pickUpAddress?.address;
+    const pickUp = selectedDocket.pickUpAddress;
     if (pickUp) {
       const mappedPickUp: AddressType = {
         address1: pickUp.streetDetailsPrimary || '',
@@ -337,7 +388,7 @@ export function useDocketFormState({
       setPickUpSearchInput(mappedPickUp.formattedAddress);
     }
 
-    const delivery = selectedDocket.deliveryAddress?.address;
+    const delivery = selectedDocket.deliveryAddress;
     if (delivery) {
       const mappedDelivery: AddressType = {
         address1: delivery.streetDetailsPrimary || '',
@@ -379,10 +430,19 @@ export function useDocketFormState({
       { lat: pickUpAddress.lat, lng: pickUpAddress.lng, color: 'red' },
       { lat: deliveryAddress.lat, lng: deliveryAddress.lng, color: 'green' },
     ],
-    [pickUpAddress, deliveryAddress]
+    [pickUpAddress, deliveryAddress],
   );
 
   const today = React.useMemo(() => GetTodaysDate(), []);
+
+  const productDetailsQuery = useQuery({
+    queryKey: ['product', selectedJobLineItemDetails().productId],
+    queryFn: () =>
+      APIClient.products.getByIdWithMaterial(
+        selectedJobLineItemDetails().productId,
+      ),
+    enabled: !!selectedJobLineItemDetails().productId,
+  });
 
   return {
     docketForm,
@@ -394,7 +454,6 @@ export function useDocketFormState({
     selectedJob,
     selectedJobLineItemDetails,
     pricingBreakdown,
-    truckTypeOptions: TRUCK_TYPE_OPTIONS,
     mapMarkers,
     today,
     pickUpAddress,
@@ -405,5 +464,6 @@ export function useDocketFormState({
     setPickUpSearchInput,
     deliverySearchInput,
     setDeliverySearchInput,
+    productDetails: productDetailsQuery.data,
   };
 }

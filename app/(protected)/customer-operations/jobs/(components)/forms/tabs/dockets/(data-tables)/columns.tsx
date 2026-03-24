@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 // import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
   Tooltip,
@@ -13,7 +13,7 @@ import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
 
-export const docketsColumns: ColumnDef<Docket>[] = [
+export const docketsColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -34,7 +34,7 @@ export const docketsColumns: ColumnDef<Docket>[] = [
   },
   {
     id: 'deliveryDate',
-    accessorFn: (row) => row.deliveryDate,
+    accessorFn: (row) => row.deliveryCollectionDate,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Delivery Date" />
@@ -47,23 +47,25 @@ export const docketsColumns: ColumnDef<Docket>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.docketStatus,
     header: () => {
       return <div>Status</div>;
     },
     cell: ({ row }) => {
-      return <TableBadges names={[row.original.status]} visibleCount={1} />;
+      return (
+        <TableBadges names={[row.original.docketStatus]} visibleCount={1} />
+      );
     },
     meta: 'Status',
   },
   {
     id: 'product',
-    accessorFn: (row) => row.productName,
+    accessorFn: (row) => row.jobItem.product.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productName = row.original.productName;
+      const productName = row.original.jobItem.product.productName;
       return <div className="py-2">{productName}</div>;
     },
     meta: 'Product',
@@ -76,8 +78,18 @@ export const docketsColumns: ColumnDef<Docket>[] = [
     },
     cell: ({ row }) => {
       const productSellQty = row.original.loadSize;
-      const productSellUom = row.original.productUoM;
-      const displayText = `${productSellQty} ${productSellUom}`;
+      const productSellUom = row.original.jobItem.productSellUom;
+      const formattedLoadSize =
+        productSellUom === 'TN'
+          ? `${productSellQty} TN`
+          : productSellUom === 'M3'
+            ? `${productSellQty} m³`
+            : productSellUom === 'KG_20'
+              ? `${productSellQty} x 20kg`
+              : productSellUom === 'BULKA'
+                ? `${productSellQty} Bulka`
+                : productSellQty;
+      const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -93,14 +105,14 @@ export const docketsColumns: ColumnDef<Docket>[] = [
     },
     meta: 'Product Sell QTY',
   },
-  {
-    id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const docket = row.original;
-      return <DocketTableActions docket={docket} />;
-    },
-  },
+  // {
+  //   id: 'actions',
+  //   header: () => {
+  //     return <div></div>;
+  //   },
+  //   cell: ({ row }) => {
+  //     const docket = row.original;
+  //     return <DocketTableActions docket={docket} />;
+  //   },
+  // },
 ];

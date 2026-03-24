@@ -26,3 +26,11 @@ export const useCreateDocket = () => {
     },
   });
 };
+
+export const DocketsByJobIdQueryOptions = (jobId: number) =>
+  queryOptions({
+    queryKey: DocketKeys.byJobId(jobId),
+    queryFn: () => APIClient.dockets.getByJobId(jobId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });

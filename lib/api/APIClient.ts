@@ -850,7 +850,7 @@ export const APIClient = {
 
   dockets: {
     create: (data: Partial<DocketDTO>) =>
-      appClient.Post<DocketDTO>('/socoro/quarrylink/api/docket', {
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/dockets', {
         body: data,
       }),
     getAll: async (params?: {
@@ -876,6 +876,17 @@ export const APIClient = {
           sortOrder: params?.sortOrder,
         },
       });
+      return response;
+    },
+    getByJobId: async (jobId: number) => {
+      const response = await appClient.Get<
+        | DocketDTO[]
+        | {
+            content: DocketDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
       return response;
     },
   },

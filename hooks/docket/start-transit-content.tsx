@@ -34,7 +34,7 @@ export function StartTransitDescription({
 }
 
 export function StartTransitContent({ docket }: { docket?: Docket | null }) {
-  const destination = docket?.deliveryAddress?.address?.formattedAddress ?? '—';
+  const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
   const driverName = docket?.contactName ?? '—';
   const truckLabel = docket?.truckType ?? '—';
 

@@ -1,6 +1,6 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
-import { CustomerDeliveryAddress } from './address';
+import { Address } from './address';
 
 export interface DocketDTO {
   id: number;
@@ -72,8 +72,8 @@ export interface Docket {
   totalInvoice: number;
   deliveryDate: string;
   poNumber?: string;
-  pickUpAddress?: Partial<CustomerDeliveryAddress>;
-  deliveryAddress?: Partial<CustomerDeliveryAddress>;
+  pickUpAddress?: Partial<Address>;
+  deliveryAddress?: Partial<Address>;
   startTimeWindow: string;
   endTimeWindow: string;
   contactName: string;
@@ -95,9 +95,9 @@ export interface DocketDTO {
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
   pickUpAddressId: number;
-  pickUpAddress: Partial<CustomerDeliveryAddress>;
+  pickUpAddress: Partial<Address>;
   deliveryAddressId: number;
-  deliveryAddress: Partial<CustomerDeliveryAddress>;
+  deliveryAddress: Partial<Address>;
   deliveryCollectionDate: Date;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
@@ -146,23 +146,9 @@ export interface DocketDTO {
   jobItem: {
     id: number;
     jobId: number;
-    jobItemType: JOB_ITEM_TYPE;
-    addressId: number;
-    address: {
-      id: number;
-      googlePlaceId: string;
-      formattedAddress: string;
-      streetDetailsPrimary: string;
-      streetDetailsOptional: string;
-      city: string;
-      suburb: string;
-      state: string;
-      postcode: string;
-      country: string;
-      latitude: number;
-      longitude: number;
-      version: number;
-    };
+    jobItemType: JOB_LINE_ITEM_TYPE;
+    customerDeliveryAddressId: number;
+    customerDeliveryAddress: CustomerDeliveryAddress;
     productId: number;
     product: {
       id: number;
@@ -175,15 +161,28 @@ export interface DocketDTO {
       version: number;
     };
     quarrySupplierId: number;
+    quarrySupplierName: string;
     totalQuantityRequired: number;
     allocatedQuantity: number;
     remainingQuantity: number;
-    overrideCostPricePerTn: number;
-    selectedCostUnit: string;
-    selectedSellUnit: string;
-    selectedTruckRateType: string;
-    selectedTruckType: string;
-    jobItemStatus: string;
+    productCostUom: string;
+    productCostQty: number;
+    productCostPrice: number;
+    totalProductCostPrice: number;
+    productSellUom: string;
+    productSellQty: number;
+    productSellPrice: number;
+    totalProductSellPrice: number;
+    truckCostUom: string;
+    truckCostQty: number;
+    truckCostPrice: number;
+    totalTruckCostPrice: number;
+    truckSellUom: string;
+    truckSellQty: number;
+    truckSellPrice: number;
+    totalTruckSellPrice: number;
+    truckType: string;
+    grossProfit: number;
     version: number;
   };
   pickUpAddress: {
