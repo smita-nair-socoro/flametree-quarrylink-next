@@ -30,6 +30,7 @@ import {
   CANCEL_REASON_LABELS,
 } from '@/hooks/job/cancel-job-content';
 import { useCancelJob } from '@/lib/api/job';
+import { extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -51,29 +52,12 @@ interface DialogConfig {
   cancelText?: string;
 }
 
-// TODO: replace with real API-driven blocker data
-const CANNOT_CANCEL_BLOCKERS: Record<
-  number,
-  {
-    type: CannotCancelBlockerType;
-    activeDeliveryCount?: number;
-    deliveredDocketCount?: number;
-    collectedDocketCount?: number;
-  }
-> = {
-  2: { type: 'active_drivers', activeDeliveryCount: 3 },
-  3: {
-    type: 'unfinalised_dockets',
-    deliveredDocketCount: 4,
-    collectedDocketCount: 1,
-  },
-  4: {
-    type: 'multiple_blockers',
-    activeDeliveryCount: 3,
-    deliveredDocketCount: 4,
-    collectedDocketCount: 1,
-  },
-};
+interface CancelBlockerState {
+  type: CannotCancelBlockerType;
+  activeDeliveryCount?: number;
+  deliveredDocketCount?: number;
+  collectedDocketCount?: number;
+}
 
 export function useJobActions(jobData?: JobDetails | null) {
   const jobId = jobData?.id;
@@ -85,9 +69,8 @@ export function useJobActions(jobData?: JobDetails | null) {
   >('stop');
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
-
-  const cancelBlocker =
-    jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
+  const [cannotCancelBlocker, setCannotCancelBlocker] =
+    React.useState<CancelBlockerState | null>(null);
 
   const cancelJobMutation = useCancelJob();
 
@@ -149,12 +132,12 @@ export function useJobActions(jobData?: JobDetails | null) {
       cannot_cancel: {
         title: 'Cannot Cancel Job',
         description: <CannotCancelJobDescription job={jobData} />,
-        content: cancelBlocker ? (
+        content: cannotCancelBlocker ? (
           <CannotCancelJobContent
-            blockerType={cancelBlocker.type}
-            activeDeliveryCount={cancelBlocker.activeDeliveryCount}
-            deliveredDocketCount={cancelBlocker.deliveredDocketCount}
-            collectedDocketCount={cancelBlocker.collectedDocketCount}
+            blockerType={cannotCancelBlocker.type}
+            activeDeliveryCount={cannotCancelBlocker.activeDeliveryCount}
+            deliveredDocketCount={cannotCancelBlocker.deliveredDocketCount}
+            collectedDocketCount={cannotCancelBlocker.collectedDocketCount}
           />
         ) : null,
         confirmActionNeeded: false,
@@ -189,7 +172,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       cancelReason,
       cancelNotes,
       isCancelFormValid,
-      cancelBlocker,
+      cannotCancelBlocker,
     ],
   );
 
@@ -203,11 +186,38 @@ export function useJobActions(jobData?: JobDetails | null) {
     },
     cancel: () => {
       if (!isCancelFormValid || jobId == null) return;
-      cancelJobMutation.mutate({
-        id: jobId,
-        cancelReason,
-        additionalNotes: cancelNotes.trim(),
-      });
+      cancelJobMutation.mutate(
+        { id: jobId, cancelReason, additionalNotes: cancelNotes.trim() },
+        {
+          onSuccess: () => {
+            setActiveDialog(null);
+          },
+          onError: (error) => {
+            const data = extractErrorData(error) as Record<string, unknown> | null;
+            const activeDeliveryCount =
+              typeof data?.activeDeliveryCount === 'number' ? data.activeDeliveryCount : 0;
+            const deliveredDocketCount =
+              typeof data?.deliveredDocketCount === 'number' ? data.deliveredDocketCount : 0;
+            const collectedDocketCount =
+              typeof data?.collectedDocketCount === 'number' ? data.collectedDocketCount : 0;
+
+            const hasActiveDeliveries = activeDeliveryCount > 0;
+            const hasUnfinalisedDockets = deliveredDocketCount > 0 || collectedDocketCount > 0;
+
+            let blockerType: CannotCancelBlockerType;
+            if (hasActiveDeliveries && hasUnfinalisedDockets) {
+              blockerType = 'multiple_blockers';
+            } else if (hasActiveDeliveries) {
+              blockerType = 'active_drivers';
+            } else {
+              blockerType = 'unfinalised_dockets';
+            }
+
+            setCannotCancelBlocker({ type: blockerType, activeDeliveryCount, deliveredDocketCount, collectedDocketCount });
+            setActiveDialog('cannot_cancel');
+          },
+        },
+      );
     },
     settle: () => {
       console.log('Settle job:', jobId, jobData);
@@ -237,12 +247,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     },
 
     cancel: () => {
-      if (cancelBlocker) {
-        setActiveDialog('cannot_cancel');
-        return;
-      }
       setCancelReason('');
       setCancelNotes('');
+      setCannotCancelBlocker(null);
       setActiveDialog('cancel');
     },
 

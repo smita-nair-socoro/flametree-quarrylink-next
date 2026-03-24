@@ -4,11 +4,6 @@ import { SelectOptions } from '@/components/ui/select-options';
 import { JobDTO } from '@/lib/types/job';
 import { Textarea } from '@/components/ui/textarea';
 
-export type CannotCancelBlockerType =
-  | 'active_drivers'
-  | 'unfinalised_dockets'
-  | 'multiple_blockers';
-
 export function CannotCancelJobDescription({
   job,
 }: {
@@ -37,6 +32,11 @@ export function CannotCancelJobDescription({
   );
 }
 
+export type CannotCancelBlockerType =
+  | 'active_drivers'
+  | 'unfinalised_dockets'
+  | 'multiple_blockers';
+
 export function CannotCancelJobContent({
   blockerType,
   activeDeliveryCount = 0,
@@ -64,10 +64,7 @@ export function CannotCancelJobContent({
       `${activeDeliveryCount} ${activeDeliveryCount === 1 ? 'delivery is' : 'deliveries are'} currently active (assigned or in transit)`,
     );
   }
-  if (
-    blockerType === 'unfinalised_dockets' ||
-    blockerType === 'multiple_blockers'
-  ) {
+  if (blockerType === 'unfinalised_dockets' || blockerType === 'multiple_blockers') {
     if (deliveredDocketCount > 0 && collectedDocketCount > 0) {
       blockingItems.push(
         `${deliveredDocketCount} delivered ${deliveredDocketCount === 1 ? 'docket' : 'dockets'} and ${collectedDocketCount} collected ${collectedDocketCount === 1 ? 'docket' : 'dockets'} haven't been finalised`,
@@ -90,10 +87,7 @@ export function CannotCancelJobContent({
   if (blockerType === 'active_drivers' || blockerType === 'multiple_blockers') {
     actionItems.push('Stop or unassign all active deliveries');
   }
-  if (
-    blockerType === 'unfinalised_dockets' ||
-    blockerType === 'multiple_blockers'
-  ) {
+  if (blockerType === 'unfinalised_dockets' || blockerType === 'multiple_blockers') {
     if (deliveredDocketCount > 0) {
       actionItems.push('Invoice or void delivered dockets');
     }
