@@ -217,7 +217,7 @@ const getDialogConfigs = (
             {/* Recipient Emails */}
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#101828]">
-                Recipient Email*
+                Recipient Emails*
               </span>
               <MultipleInput
                 value={additionalRecipientEmails?.join(', ')}
@@ -936,7 +936,10 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     if (selectedAction?.key === 'sendToCustomer') {
       const existing = quotationToUse?.additionalEmailRecipients ?? [];
       const emails = sendDialogCustomerEmail
-        ? [sendDialogCustomerEmail, ...existing.filter((e) => e !== sendDialogCustomerEmail)]
+        ? [
+            sendDialogCustomerEmail,
+            ...existing.filter((e) => e !== sendDialogCustomerEmail),
+          ]
         : existing;
       setAdditionalRecipientEmails(emails);
     }
