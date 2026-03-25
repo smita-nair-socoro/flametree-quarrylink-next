@@ -3,7 +3,11 @@
 import { Package, CircleCheckBig } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 
-export function MarkReadyDescription({ docket }: { docket?: DocketDTO | null }) {
+export function MarkReadyDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">

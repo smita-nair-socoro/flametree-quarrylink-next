@@ -112,6 +112,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
+  const selectedDocket = useDocketStore((s) => s.selectedDocket);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [selectedAction, setSelectedAction] =
@@ -514,6 +515,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const actions = {
     view: (docket?: DocketDTO | null) => {
       const toSelect = docket ?? docketData;
+      console.log('view is cliced', toSelect);
       if (toSelect != null) {
         useDocketStore.getState().setSelectedDocket(toSelect);
       }
@@ -640,24 +642,28 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   });
 
   const canEdit = docketData?.docketStatus === 'UNASSIGNED';
-  const viewDialog =
-    viewOpen && docketData?.id ? (
-      <FormDialog
-        id={docketData.id}
-        dialogTitle="View / Edit Docket"
-        open={viewOpen}
-        onOpenChangeAction={(open) => {
-          setViewOpen(open);
-        }}
-        hideTrigger
-        headerButtons={<DocketActionButtons docket={docketData} />}
-        headerInfo={{
-          useSelectedDocket: true,
-        }}
-      >
-        <DocketForm canEdit={canEdit} />
-      </FormDialog>
-    ) : null;
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={selectedDocket?.id}
+      dialogTitle="View / Edit Docket"
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setViewOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+      headerButtons={<DocketActionButtons docket={docketData} />}
+      headerInfo={{
+        useSelectedDocket: true,
+      }}
+    >
+      <DocketForm canEdit={true} />
+    </FormDialog>
+  ) : null;
 
   return {
     actions,

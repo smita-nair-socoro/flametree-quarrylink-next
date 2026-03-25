@@ -99,7 +99,6 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const loadSize = row.original.loadSize;
       const productUom = row.original.jobItem.productSellUom;
-      console.log(row.original.jobItem);
       const formattedLoadSize =
         productUom === 'TN'
           ? `${loadSize} TN`
@@ -110,7 +109,6 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
               : productUom === 'BULKA'
                 ? `${loadSize} Bulka`
                 : loadSize;
-      console.log(formattedLoadSize);
       return <div className="py-2">{formattedLoadSize}</div>;
     },
     meta: 'Load Size',

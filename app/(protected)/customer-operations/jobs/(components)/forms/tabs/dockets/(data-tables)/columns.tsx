@@ -105,14 +105,14 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
     },
     meta: 'Product Sell QTY',
   },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const docket = row.original;
-  //     return <DocketTableActions docket={docket} />;
-  //   },
-  // },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
+    },
+  },
 ];

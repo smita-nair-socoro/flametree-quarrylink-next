@@ -3,7 +3,11 @@
 import { Play, Truck } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 
-export function ResumeTransitDescription({ docket }: { docket?: DocketDTO | null }) {
+export function ResumeTransitDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
@@ -29,7 +33,11 @@ export function ResumeTransitDescription({ docket }: { docket?: DocketDTO | null
   );
 }
 
-export function ResumeTransitContent({ docket }: { docket?: DocketDTO | null }) {
+export function ResumeTransitContent({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   const stopReasonSummary = docket?.notes?.trim() || 'Vehicle breakdown';
 
   return (
@@ -42,7 +50,7 @@ export function ResumeTransitContent({ docket }: { docket?: DocketDTO | null }) 
           </div>
           <div>
             <span className="font-medium text-[#364153]">Truck:</span>{' '}
-            {docket?.truckType ?? '—'}
+            {docket?.jobItem.truckType ?? '—'}
           </div>
           <div>
             <span className="font-medium text-[#364153]">Stop Reason:</span>{' '}

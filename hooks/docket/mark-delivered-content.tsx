@@ -16,7 +16,11 @@ import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
 
-export function MarkDeliveredDescription({ docket }: { docket?: DocketDTO | null }) {
+export function MarkDeliveredDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#E8F5EC]">

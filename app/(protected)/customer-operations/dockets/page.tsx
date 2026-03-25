@@ -15,6 +15,7 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
+import { useDocketActions } from '@/hooks/use-docket-actions';
 
 export default function DocketsPage() {
   const { data: dockets } = useQuery(DocketsListQueryOptions());
@@ -26,14 +27,22 @@ export default function DocketsPage() {
     })) as DocketDTO[];
   }, [dockets]);
 
+  const { actions, viewDialog, confirmDialogs } = useDocketActions();
+
   const facetDefs: FacetDefinition[] = [
     { column: 'status', title: 'Status', icon: Plus },
     { column: 'product', title: 'Product', icon: Plus },
     { column: 'customer', title: 'Customer', icon: Plus },
   ];
 
+  const handleRowClick = (row: DocketDTO) => {
+    actions.view(row);
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Dockets</h1>
@@ -54,8 +63,9 @@ export default function DocketsPage() {
           tableId="docket_main_data_table"
           data={items ?? []}
           columns={docketColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search dockets..."
+          onRowClick={handleRowClick}
           defaultSorting={[{ id: 'docketNumber', desc: false }]}
         />
       </div>

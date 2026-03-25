@@ -257,7 +257,7 @@ export default function QuarriesSuppliersPage() {
             tableId="quarry_suppliers_table"
             data={items ?? []}
             columns={quarriesSuppliersColumns}
-            facetDefination={facetDefs}
+            facetDefinition={facetDefs}
             searchPlaceHolder="Search Quarries & Suppliers..."
             onRowClick={handleRowClick}
             defaultSorting={[{ id: 'name', desc: false }]}

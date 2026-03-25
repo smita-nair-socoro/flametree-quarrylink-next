@@ -9,7 +9,7 @@ interface DocketStore {
 
   // Actions
   setDockets: (dockets: DocketDTO[]) => void;
-  setSelectedDocket: (docket: DocketDTO | null) => void;
+  setSelectedDocket: (Docket: DocketDTO | null) => void;
   setLoading: (loading: boolean) => void;
 
   getDocketById: (id: number) => DocketDTO | undefined;

@@ -23,6 +23,8 @@ import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
+import { MobileLineItem } from '@/components/mobile/mobile-line-item';
+import { SupplierTableActions } from '../(data-tables)/supplier/supplier-table-actions';
 import { ChartColumn, Check } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
@@ -586,6 +588,8 @@ export default function ProductForm({
                 onOpenChangeAction={setIsCompareDialogOpen}
                 customWidth="!max-w-[95vw] 2xl:!max-w-[1200px]"
                 cancelText="Close"
+                padding="p-0 gap-0"
+                titlePadding="px-5"
                 title={`Compare All – ${totalSupplier} Suppliers`}
                 content={
                   <CompareSupplierTable
@@ -593,21 +597,55 @@ export default function ProductForm({
                     productName={selectedProduct?.productName}
                   />
                 }
+                cancelButtonClass="mx-5 my-3"
                 confirmActionNeeded={false}
+                cancelActionNeeded={isDesktop ? false : true}
               />
 
-              {/* Supplier Table */}
+              {/* Supplier Table / Cards */}
               <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                <DataTableClient
-                  columns={supplierColumns(selectedProduct?.id)}
-                  data={
-                    isEditing || productJustCreated
+                {isDesktop ? (
+                  <DataTableClient
+                    columns={supplierColumns(selectedProduct?.id)}
+                    data={
+                      isEditing || productJustCreated
+                        ? (selectedProduct?.quarrySupplierProducts ?? [])
+                        : []
+                    }
+                    simpleTable={true}
+                    defaultSorting={[{ id: 'name', desc: false }]}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {(isEditing || productJustCreated
                       ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
-                  }
-                  simpleTable={true}
-                  defaultSorting={[{ id: 'name', desc: false }]}
-                />
+                    ).map((supplier) => {
+                      const cost = supplier.perTnCostPrice || 0;
+                      const sell = supplier.perTnSellPrice || 0;
+                      const margin = sell === 0 ? 0 : ((sell - cost) / sell) * 100;
+                      return (
+                        <MobileLineItem
+                          key={supplier.quarrySupplierId}
+                          title={supplier.quarrySupplier?.name || 'Unknown'}
+                          subtitle={supplier.supplierProductName || 'N/A'}
+                          costPrice={cost}
+                          sellPrice={sell}
+                          costLabel="Cost (TN)"
+                          sellLabel="Sell (TN)"
+                          profitLabel="Margin"
+                          profitValue={margin}
+                          actions={
+                            <SupplierTableActions
+                              quarry={supplier}
+                              productId={selectedProduct?.id ?? supplier.productId}
+                            />
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Create flow footer buttons (Step 2) */}

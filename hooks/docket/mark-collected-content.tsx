@@ -3,7 +3,11 @@
 import { Truck, CircleCheckBig } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 
-export function MarkCollectedDescription({ docket }: { docket?: DocketDTO | null }) {
+export function MarkCollectedDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
@@ -29,7 +33,11 @@ export function MarkCollectedDescription({ docket }: { docket?: DocketDTO | null
   );
 }
 
-export function MarkCollectedContent({ docket }: { docket?: DocketDTO | null }) {
+export function MarkCollectedContent({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-md bg-[#F9FAFB] px-4 py-3">

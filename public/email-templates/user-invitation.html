@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -9,8 +9,8 @@
         margin: 0;
         padding: 0;
         background-color: #f3f4f6;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
-          sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       }
       .container {
         max-width: 600px;
@@ -115,7 +115,8 @@
         padding: 8px 12px;
         background-color: #e0f2fe;
         border-radius: 4px;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
           "Liberation Mono", "Courier New", monospace;
         font-size: 15px;
         color: #111827;
@@ -199,13 +200,12 @@
 
           <p>
             An account has been created for you by
-            <strong>{InvitedByName}</strong> at
-            <strong>{TenantName}</strong>.
+            <strong>{InvitedByName}</strong> at <strong>{TenantName}</strong>.
           </p>
 
           <p>
-            Use the details below to sign in for the first time. You’ll be prompted
-            to set a new password immediately.
+            Use the details below to sign in for the first time. You'll be
+            prompted to set a new password immediately.
           </p>
         </div>
 
@@ -219,16 +219,11 @@
             <span class="password-chip">{TemporaryPassword}</span>
           </p>
 
-          <p class="helper-text">
-            ⏱ {ValidityText}
-          </p>
+          <p class="helper-text">⏱ {ValidityText}</p>
         </div>
 
         <div class="button-container">
-          <a
-            href="{LoginUrl}"
-            class="btn-primary {ButtonColorClass}"
-          >
+          <a href="{LoginUrl}" class="btn-primary {ButtonColorClass}">
             Activate Account &amp; Set Password
           </a>
         </div>

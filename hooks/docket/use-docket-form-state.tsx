@@ -13,6 +13,7 @@ import type { MapMarker } from '@/components/ui/map';
 import { useQuery } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';
 import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
+import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { toAddressType } from '@/lib/utils/address-helper';
 
 // Helper to format Date to HH:MM time string
@@ -117,12 +118,10 @@ export function useDocketFormState({
   const [pickUpSearchInput, setPickUpSearchInput] = React.useState('');
   const [deliverySearchInput, setDeliverySearchInput] = React.useState('');
 
-  const selectedDocket = React.useMemo(() => {
-    if (!id) return null;
-    // TODO: replace mock lookup with get-docket-by-id API once backend integration is ready.
-    const source = rawDocketsJson as unknown as { items: Docket[] };
-    return source.items.find((item) => item.id === id) ?? null;
-  }, [id]);
+  const { data: selectedDocket } = useQuery({
+    ...DocketByIdQueryOptions(id || 0),
+    enabled: isEditing,
+  });
 
   // Sync jobId when form opens with locked job (isQuickDocket=false + jobId)
   React.useEffect(() => {
@@ -254,6 +253,10 @@ export function useDocketFormState({
     const selectedJobLineItem = jobLineItems.find(
       (lineItem) => lineItem.id === selectedJobLineItemId,
     );
+    const restoredAllocatedQty =
+      isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
+        ? selectedDocket.loadSize ?? 0
+        : 0;
     return {
       customerDeliveryAddress:
         selectedJobLineItem?.customerDeliveryAddress ?? null,
@@ -294,7 +297,8 @@ export function useDocketFormState({
                       : '',
       productSell: selectedJobLineItem?.productSellPrice ?? 0,
       productSellQty: selectedJobLineItem?.productSellQty ?? 0,
-      remainingQty: selectedJobLineItem?.remainingQuantity ?? 0,
+      remainingQty:
+        (selectedJobLineItem?.remainingQuantity ?? 0) + restoredAllocatedQty,
       type: selectedJobLineItem?.jobItemType ?? '',
       productId: selectedJobLineItem?.productId ?? 0,
       needTruckQty:
@@ -302,7 +306,7 @@ export function useDocketFormState({
         selectedJobLineItem?.truckSellUom === 'LOAD' ||
         selectedJobLineItem?.truckSellUom === 'KM',
     };
-  }, [jobLineItems, docketForm]);
+  }, [jobLineItems, docketForm, isEditing, selectedDocket]);
 
   // Update delivery address when job line item changes
   React.useEffect(() => {
@@ -348,25 +352,27 @@ export function useDocketFormState({
     if (!isEditing || !selectedDocket) return;
 
     docketForm.reset({
-      jobId: selectedDocket.job?.id ?? 0,
-      jobLineItemId: selectedDocket.jobLineItemId ?? 0,
+      jobId: selectedDocket.jobId ?? 0,
+      jobLineItemId: selectedDocket.jobItemId ?? 0,
       loadSize: selectedDocket.loadSize ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
       deliveryAddressId: selectedDocket.deliveryAddress?.id
         ? String(selectedDocket.deliveryAddress.id)
         : '',
-      purchaseOrder: selectedDocket.poNumber ?? '',
-      productEstimatedVolume: selectedDocket.loadSize ?? 0,
-      deliveryCollectionDate: selectedDocket.deliveryDate
-        ? parseAsUTC(selectedDocket.deliveryDate)
+      purchaseOrder: selectedDocket.purchaseOrder ?? '',
+      productEstimatedVolume: selectedDocket.productEstimatedVolume ?? 0,
+      deliveryCollectionDate: selectedDocket.deliveryCollectionDate
+        ? parseAsUTC(selectedDocket.deliveryCollectionDate as unknown as string)
         : undefined,
       deliveryCollectionStartTime: formatTimeString(
-        selectedDocket.startTimeWindow,
+        selectedDocket.deliveryCollectionStartTime,
       ),
-      deliveryCollectionEndTime: formatTimeString(selectedDocket.endTimeWindow),
-      customerContactName: selectedDocket.contactName ?? '',
-      customerContactPhone: selectedDocket.contactPhone ?? '',
-      docketEmail: selectedDocket.docketEmail ?? '',
+      deliveryCollectionEndTime: formatTimeString(
+        selectedDocket.deliveryCollectionEndTime,
+      ),
+      customerContactName: selectedDocket.customerContactName ?? '',
+      customerContactPhone: selectedDocket.customerContactPhone ?? '',
+      docketEmail: selectedDocket.docketEmailRecipients?.join(', ') ?? '',
       notes: selectedDocket.notes ?? '',
     });
 
@@ -465,5 +471,6 @@ export function useDocketFormState({
     deliverySearchInput,
     setDeliverySearchInput,
     productDetails: productDetailsQuery.data,
+    selectedDocket,
   };
 }

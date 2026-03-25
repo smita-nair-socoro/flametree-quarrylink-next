@@ -265,7 +265,7 @@ export function MobilePricingList({
   });
 
   return (
-    <div className="flex flex-col gap-3 mt-4">
+    <div className="flex flex-col gap-5 mt-4">
       {sorted.map((supplier) => {
         const cost = getCost(supplier);
         const sell = getSell(supplier);
