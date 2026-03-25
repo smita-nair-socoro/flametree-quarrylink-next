@@ -576,11 +576,8 @@ export default function QuotationForm({
                         fixedValues={fixedValues}
                         validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
                         label="Press Enter or comma to add email addresses"
-                        disabled={
-                          quotationForm.watch('customerId') === 0 ||
-                          (isEditing && !canEdit)
-                        }
                         {...field}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
