@@ -51,12 +51,7 @@ export function quotationToFormValues(
     expiryDate: quotation?.expiryDate
       ? parseAsUTC(quotation.expiryDate)
       : undefined,
-    receiptEmail: (() => {
-      const customerEmail = quotation?.email || quotation?.customerWithAddressResponseDto?.email;
-      return (quotation?.additionalEmailRecipients || [])
-        .filter((e) => e !== customerEmail)
-        .join(',');
-    })(),
+    receiptEmail: (quotation?.additionalEmailRecipients || []).join(','),
     phone: normalizePhoneNumber(
       quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),

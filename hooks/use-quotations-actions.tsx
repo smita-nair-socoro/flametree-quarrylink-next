@@ -934,11 +934,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   // Reset recipient emails when send-to-customer dialog opens
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
-      setAdditionalRecipientEmails(
-        (quotationToUse?.additionalEmailRecipients ?? []).filter(
-          (e) => e !== sendDialogCustomerEmail,
-        ),
-      );
+      const existing = quotationToUse?.additionalEmailRecipients ?? [];
+      const emails = sendDialogCustomerEmail
+        ? [sendDialogCustomerEmail, ...existing.filter((e) => e !== sendDialogCustomerEmail)]
+        : existing;
+      setAdditionalRecipientEmails(emails);
     }
   }, [selectedAction?.key]);
 
@@ -1042,9 +1042,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       await sendToCustomerMutation.mutateAsync({
         id: quotationId,
         inclDeliveryCost: includeDeliveryPrices,
-        emailRecipients: additionalRecipientEmails.filter(
-          (e) => e !== sendDialogCustomerEmail,
-        ),
+        emailRecipients: additionalRecipientEmails,
       });
 
       notifySuccess('Quotation sent to customer');

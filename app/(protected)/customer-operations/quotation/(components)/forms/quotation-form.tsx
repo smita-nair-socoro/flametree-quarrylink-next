@@ -191,11 +191,16 @@ export default function QuotationForm({
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.email || '';
 
-    const receiptEmails = values.receiptEmail
-      ? values.receiptEmail.split(',').map((e) => e.trim()).filter(Boolean)
-      : [];
-    const additionalEmails = receiptEmails.filter((e) => e !== customerEmail);
-
+    const receiptEmails = [
+      customerEmail,
+      ...(values.receiptEmail
+        ? values.receiptEmail
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : []),
+    ].filter(Boolean);
+    console.log('Parsed receipt emails:', receiptEmails);
     const customerName =
       customers.find((c) => c.id === values.customerId)?.businessName ||
       customers.find((c) => c.id === values.customerId)?.contactName ||
@@ -211,11 +216,12 @@ export default function QuotationForm({
             customerName,
             accountManagerName,
             accountManagerSub:
-              values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+              values.accountManagerSub ||
+              'f92e0468-1091-70a9-fe7e-f7ad687c6252',
             lineItemsCount: 0,
           }),
           email: customerEmail,
-          additionalEmailRecipients: additionalEmails,
+          additionalEmailRecipients: receiptEmails,
         };
 
         // For duplicate, we pass the original ID and the new form data
@@ -250,11 +256,12 @@ export default function QuotationForm({
             customerName,
             accountManagerName,
             accountManagerSub:
-              values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+              values.accountManagerSub ||
+              'f92e0468-1091-70a9-fe7e-f7ad687c6252',
             lineItemsCount: 0,
           }),
           email: customerEmail,
-          additionalEmailRecipients: additionalEmails,
+          additionalEmailRecipients: receiptEmails,
         };
 
         const newQuotation = await createQuotation.mutateAsync(transformed);
@@ -291,7 +298,7 @@ export default function QuotationForm({
           lineItemsCount: 0,
         }),
         email: customerEmail,
-        additionalEmailRecipients: additionalEmails,
+        additionalEmailRecipients: receiptEmails,
       };
 
       try {
@@ -550,7 +557,13 @@ export default function QuotationForm({
                 const fixedValues = customerEmail ? [customerEmail] : [];
 
                 return (
-                  <FormItem className={isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'}>
+                  <FormItem
+                    className={
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-1'
+                        : 'col-span-2'
+                    }
+                  >
                     <FormLabel>Recipient Email *</FormLabel>
                     <FormControl>
                       <MultipleInput
@@ -563,7 +576,10 @@ export default function QuotationForm({
                         fixedValues={fixedValues}
                         validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
                         label="Press Enter or comma to add email addresses"
-                        disabled={quotationForm.watch('customerId') === 0 || (isEditing && !canEdit)}
+                        disabled={
+                          quotationForm.watch('customerId') === 0 ||
+                          (isEditing && !canEdit)
+                        }
                         {...field}
                       />
                     </FormControl>
