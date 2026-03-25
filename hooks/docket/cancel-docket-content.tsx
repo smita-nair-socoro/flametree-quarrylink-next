@@ -3,7 +3,7 @@
 import { XCircle, AlertTriangle } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
 export const CANCEL_REASON_LABELS: Record<string, string> = {
   customer_requested: 'Customer requested',
@@ -23,7 +23,7 @@ const CANCEL_REASONS = Object.entries(CANCEL_REASON_LABELS).map(
 export function CancelDocketDescription({
   docket,
 }: {
-  docket?: Docket | null;
+  docket?: DocketDTO | null;
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -35,12 +35,12 @@ export function CancelDocketDescription({
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-          <span>{docket?.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.productUoM}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}

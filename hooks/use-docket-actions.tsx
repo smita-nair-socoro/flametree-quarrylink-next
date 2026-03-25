@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { type LucideIcon } from 'lucide-react';
 
 import { DocketDTO } from '@/lib/types/docket';
 import { ActionDialog } from '@/components/action-dialog';
@@ -84,11 +83,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
