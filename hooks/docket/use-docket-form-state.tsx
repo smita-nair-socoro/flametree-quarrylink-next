@@ -15,6 +15,32 @@ import { APIClient } from '@/lib/api/APIClient';
 import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { toAddressType } from '@/lib/utils/address-helper';
+import { centsToDollarsNum } from '@/lib/utils/currency';
+
+export const calculateConvertedQty = (
+  quantity: number,
+  fromUom: string,
+  toUom: string,
+  density: number = 1
+) => {
+  if (fromUom === toUom) return quantity;
+
+  let quantityInTn = quantity;
+  const normalizedFrom = fromUom.toLowerCase();
+  const normalizedTo = toUom.toLowerCase();
+  if (normalizedFrom === 'm3' || normalizedFrom === 'bulka') {
+    quantityInTn = quantity * density;
+  } else if (normalizedFrom === '20kg' || normalizedFrom === 'kg_20') {
+    quantityInTn = quantity / 50;
+  }
+  if (normalizedTo === 'm3' || normalizedTo === 'bulka') {
+    return quantityInTn / density;
+  } else if (normalizedTo === '20kg' || normalizedTo === 'kg_20') {
+    return quantityInTn * 50;
+  }
+
+  return quantityInTn; // Default to TN
+};
 
 // Helper to format Date to HH:MM time string
 const formatTimeString = (dateString?: string | null) => {
@@ -30,6 +56,7 @@ export const EMPTY_DOCKET_FORM_VALUES = {
   jobId: 0,
   jobLineItemId: 0,
   loadSize: 0,
+  truckQty: 0,
   pickUpAddressId: '',
   deliveryAddressId: '',
   purchaseOrder: '',
@@ -407,6 +434,7 @@ export function useDocketFormState({
       jobId: selectedDocket.jobId ?? 0,
       jobLineItemId: selectedDocket.jobItemId ?? 0,
       loadSize: selectedDocket.loadSize ?? 0,
+      truckQty: selectedDocket.deliveryDistanceQuantity ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
       deliveryAddressId: selectedDocket.deliveryAddress?.id
         ? String(selectedDocket.deliveryAddress.id)
@@ -469,15 +497,48 @@ export function useDocketFormState({
     setIsDirtyTrackingReady(true);
   }, [isEditing, selectedDocket, docketForm, selectedJob.customerEmail]);
 
+
+  const productDetailsQuery = useQuery({
+    queryKey: ['product', selectedJobLineItemDetails().productId],
+    queryFn: () =>
+      APIClient.products.getByIdWithMaterial(
+        selectedJobLineItemDetails().productId,
+      ),
+    enabled: !!selectedJobLineItemDetails().productId,
+  });
+
   const loadSize = docketForm.watch('loadSize');
+  const truckQty = docketForm.watch('truckQty');
   const jobLineItemId = docketForm.watch('jobLineItemId');
+
   const pricingBreakdown = React.useMemo(() => {
     const details = selectedJobLineItemDetails();
-    const productSell = details.productSell * (loadSize || 0);
-    const truckSell = details.truckSell;
+    const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
+
+    // details.productSell is already converted to dollars in selectedJobLineItemDetails
+    const productSell = centsToDollarsNum(details.productSell) * (loadSize || 0);
+
+    let calculatedTruckQty = 0;
+    if (details.type !== 'COLLECTION') {
+      if (details.needTruckQty) {
+        calculatedTruckQty = truckQty || 0;
+      } else {
+        calculatedTruckQty = calculateConvertedQty(
+          loadSize || 0,
+          details.productUom,
+          details.truckUom,
+          density
+        );
+      }
+    }
+
+    // details.truckSell is in cents, so we need to convert it to dollars
+    const truckSell = centsToDollarsNum(details.truckSell) * calculatedTruckQty;
+
     const subtotal = productSell + truckSell;
     const gst = subtotal * 0.1;
     const total = subtotal + gst;
+
     return {
       productSell,
       truckSell,
@@ -485,7 +546,7 @@ export function useDocketFormState({
       gst,
       total,
     };
-  }, [selectedJobLineItemDetails, loadSize, jobLineItemId]);
+  }, [selectedJobLineItemDetails, loadSize, truckQty, jobLineItemId]);
 
   const mapMarkers = React.useMemo<MapMarker[]>(
     () => [
@@ -497,14 +558,6 @@ export function useDocketFormState({
 
   const today = React.useMemo(() => GetTodaysDate(), []);
 
-  const productDetailsQuery = useQuery({
-    queryKey: ['product', selectedJobLineItemDetails().productId],
-    queryFn: () =>
-      APIClient.products.getByIdWithMaterial(
-        selectedJobLineItemDetails().productId,
-      ),
-    enabled: !!selectedJobLineItemDetails().productId,
-  });
 
   return {
     docketForm,

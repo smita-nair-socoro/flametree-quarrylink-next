@@ -86,10 +86,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       );
     },
     cell: ({ row }) => {
-      const deliveryDate =
-        row.original.deliveredAt ?? row.original.deliveryCollectionDate;
-
-      return <DateCell dateString={deliveryDate} side="top" />;
+      const deliveryDate = row.original.deliveredAt || row.original.deliveryCollectionDate;
+      return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
   },

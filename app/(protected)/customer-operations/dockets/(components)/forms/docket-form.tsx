@@ -37,6 +37,7 @@ import { useCreateDocket, useUpdateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
+import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 
 interface FormProps {
   id?: number;
@@ -199,7 +200,12 @@ export default function DocketForm({
         if (lineItemDetails.needTruckQty) {
           deliveryDistanceQuantity = values.truckQty || 0;
         } else {
-          deliveryDistanceQuantity = lineItemDetails.truckSellQty;
+          deliveryDistanceQuantity = calculateConvertedQty(
+            loadSize,
+            lineItemDetails.productUom,
+            deliveryDistanceUom,
+            density
+          );
         }
       }
 
@@ -207,34 +213,34 @@ export default function DocketForm({
         jobId: values.jobId,
         jobItemId: values.jobLineItemId,
         pickUpAddress: {
-          googlePlaceId: deliveryAddress.googlePlaceId,
-          formattedAddress: deliveryAddress.formattedAddress,
-          streetDetailsPrimary: deliveryAddress.address1,
-          streetDetailsOptional: deliveryAddress.address2,
-          city: deliveryAddress.city,
-          suburb: deliveryAddress.city,
-          state: deliveryAddress.region,
-          postcode: deliveryAddress.postalCode,
-          country: deliveryAddress.country,
-          latitude: deliveryAddress.lat,
-          longitude: deliveryAddress.lng,
+          googlePlaceId: pickUpAddress.googlePlaceId,
+          formattedAddress: pickUpAddress.formattedAddress,
+          streetDetailsPrimary: pickUpAddress.address1,
+          streetDetailsOptional: pickUpAddress.address2,
+          city: pickUpAddress.city,
+          suburb: pickUpAddress.city,
+          state: pickUpAddress.region,
+          postcode: pickUpAddress.postalCode,
+          country: pickUpAddress.country,
+          latitude: pickUpAddress.lat,
+          longitude: pickUpAddress.lng,
         },
         deliveryAddress: isCollection
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -806,7 +812,7 @@ export default function DocketForm({
                     )}
                   </span>
                 </div>
-                {selectedJobLineItemDetails().needTruckQty && (
+                {selectedJobLineItemDetails().type !== 'COLLECTION' && (
                   <div>
                     <span>Truck Sell</span>
                     <span>
