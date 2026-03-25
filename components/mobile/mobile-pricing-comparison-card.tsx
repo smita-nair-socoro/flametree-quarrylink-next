@@ -6,6 +6,11 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { TableBadges } from '@/components/table-badges';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 export type PricingComparisonType = 'tn' | 'm3' | 'kg' | 'bulka';
 
@@ -69,7 +74,7 @@ export function MobilePricingComparisonCard({
       className={cn(
         'rounded-xl border overflow-hidden',
         isLowestCost
-          ? 'border-2 border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
+          ? 'border-2 border-green-500 shadow-[0_0_3px_rgba(34,197,94,0.3)]'
           : 'border-gray-200',
       )}
     >
@@ -86,9 +91,16 @@ export function MobilePricingComparisonCard({
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             </div>
           )}
-          <span className="font-bold text-[#101828] text-base truncate">
-            {name}
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="font-bold text-[#101828] text-base truncate">
+                {name}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">{name}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         <div className="shrink-0 ml-2">
           <TableBadges names={[available ? 'AVAILABLE' : 'UNAVAILABLE']} />
@@ -101,32 +113,36 @@ export function MobilePricingComparisonCard({
       <div className="grid grid-cols-3 divide-x divide-gray-200 bg-white px-4 py-3">
         {/* Cost Price */}
         <div className="pr-3">
-          <p className="text-xs text-gray-500 mb-1">Cost Price</p>
+          <p className="text-[10px] text-gray-500 ">Cost Price</p>
           <p
             className={cn(
-              'text-sm font-semibold',
+              'text-[16px] font-semibold',
               isLowestCost ? 'text-green-600' : 'text-[#101828]',
             )}
           >
             ${costDisplay}
           </p>
           {isLowestCost && (
-            <p className="text-xs text-green-600 font-medium mt-0.5">Lowest</p>
+            <p className="text-[10px] text-green-600 font-medium mt-0.5">
+              Lowest
+            </p>
           )}
         </div>
 
         {/* Sell Price */}
         <div className="px-3">
-          <p className="text-xs text-gray-500 mb-1">Sell Price</p>
-          <p className="text-sm font-semibold text-[#101828]">${sellDisplay}</p>
+          <p className="text-[10px] text-gray-500 ">Sell Price</p>
+          <p className="text-[16px] font-semibold text-[#101828]">
+            ${sellDisplay}
+          </p>
         </div>
 
         {/* Margin */}
         <div className="pl-3">
-          <p className="text-xs text-gray-500 mb-1">Margin</p>
+          <p className="text-[10px] text-gray-500 ">Margin</p>
           <div
             className={cn(
-              'flex items-center gap-0.5 text-sm font-semibold',
+              'flex items-center gap-0.5 text-[16px] font-semibold',
               margin < 0
                 ? 'text-red-600'
                 : isBestMargin

@@ -1,6 +1,6 @@
 {
   "name": "quarrylink-next",
-  "version": "1.0.327",
+  "version": "1.0.330",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
