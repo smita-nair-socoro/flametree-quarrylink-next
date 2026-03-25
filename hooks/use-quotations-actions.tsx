@@ -48,6 +48,8 @@ import {
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { useClientStore } from '@/app/stores/client-store';
 import { MultipleInput } from '@/components/ui/multiple-input';
+import { useQuery } from '@tanstack/react-query';
+import { CustomersListQueryOptions } from '@/lib/api/customer';
 
 interface DialogConfig {
   title?: string;
@@ -88,11 +90,13 @@ const getDialogConfigs = (
   isDeclineFormValid?: boolean,
   additionalRecipientEmails?: string[],
   setAdditionalRecipientEmails?: (emails: string[]) => void,
+  fixedCustomerEmail?: string,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
   const customerName = quotationData?.customerName;
   const customerEmail =
+    fixedCustomerEmail ||
     quotationData?.email ||
     quotationData?.customerWithAddressResponseDto?.email;
   const additionalEmailRecipients =
@@ -213,7 +217,7 @@ const getDialogConfigs = (
             {/* Recipient Emails */}
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-[14px] text-[#101828]">
-                Recipient Emails*
+                Recipient Email*
               </span>
               <MultipleInput
                 value={additionalRecipientEmails?.join(', ')}
@@ -876,6 +880,18 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState(false);
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
+
+  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
+  const sendDialogCustomerEmail = React.useMemo(() => {
+    const customer = customers.find((c) => c.id === quotationToUse?.customerId);
+    return (
+      customer?.email ||
+      quotationToUse?.email ||
+      quotationToUse?.customerWithAddressResponseDto?.email ||
+      ''
+    );
+  }, [customers, quotationToUse]);
+
   const user = useClientStore((state) => state.user);
   const router = useRouter();
 
@@ -919,7 +935,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
       setAdditionalRecipientEmails(
-        quotationToUse?.additionalEmailRecipients ?? [],
+        (quotationToUse?.additionalEmailRecipients ?? []).filter(
+          (e) => e !== sendDialogCustomerEmail,
+        ),
       );
     }
   }, [selectedAction?.key]);
@@ -971,6 +989,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     isDeclineFormValid,
     additionalRecipientEmails,
     setAdditionalRecipientEmails,
+    sendDialogCustomerEmail,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1023,7 +1042,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       await sendToCustomerMutation.mutateAsync({
         id: quotationId,
         inclDeliveryCost: includeDeliveryPrices,
-        emailRecipients: additionalRecipientEmails,
+        emailRecipients: additionalRecipientEmails.filter(
+          (e) => e !== sendDialogCustomerEmail,
+        ),
       });
 
       notifySuccess('Quotation sent to customer');

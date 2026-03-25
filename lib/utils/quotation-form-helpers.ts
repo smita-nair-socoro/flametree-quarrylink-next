@@ -21,7 +21,7 @@ export function quotationToFormValues(
       deliveryWindowEnd: '',
       expiryDate: undefined,
       phone: '',
-      email: '',
+      receiptEmail: '',
       createdAt: new Date(),
       updatedAt: new Date(),
       createdBy: 'Jay Woo Choi',
@@ -51,7 +51,12 @@ export function quotationToFormValues(
     expiryDate: quotation?.expiryDate
       ? parseAsUTC(quotation.expiryDate)
       : undefined,
-    email: quotation?.email || quotation?.customerWithAddressResponseDto?.email || '',
+    receiptEmail: (() => {
+      const customerEmail = quotation?.email || quotation?.customerWithAddressResponseDto?.email;
+      return (quotation?.additionalEmailRecipients || [])
+        .filter((e) => e !== customerEmail)
+        .join(',');
+    })(),
     phone: normalizePhoneNumber(
       quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),
