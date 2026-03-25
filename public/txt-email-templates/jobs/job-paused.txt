@@ -1,0 +1,16 @@
+Hi {RecipientName},
+
+This is to notify you that a job has been PAUSED.
+
+Job Number: {JobNumber}
+Customer: {CustomerName}
+Project / Location: {ProjectName}
+
+Paused By: {UserName}
+Paused At: {Timestamp}
+
+Job execution has been temporarily halted.
+
+View Job: {JobUrl}
+
+You're receiving this notification because you're associated with this job on QuarryLink.

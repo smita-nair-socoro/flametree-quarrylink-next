@@ -1,0 +1,13 @@
+Hi {DriverName},
+
+You have been assigned to a new delivery.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+Pickup Address: {PickupAddress}
+Delivery Address: {DeliveryAddress}
+Scheduled Time: {DeliveryWindow}
+
+View Delivery: {DocketUrl}
+
+You're receiving this because you've been assigned to a delivery on QuarryLink.
