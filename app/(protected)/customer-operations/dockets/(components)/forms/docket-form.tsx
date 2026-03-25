@@ -37,6 +37,7 @@ import { useCreateDocket, useUpdateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
+import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 
 interface FormProps {
   id?: number;
@@ -186,7 +187,12 @@ export default function DocketForm({
         if (lineItemDetails.needTruckQty) {
           deliveryDistanceQuantity = values.truckQty || 0;
         } else {
-          deliveryDistanceQuantity = lineItemDetails.truckSellQty;
+          deliveryDistanceQuantity = calculateConvertedQty(
+            loadSize,
+            lineItemDetails.productUom,
+            deliveryDistanceUom,
+            density
+          );
         }
       }
 
@@ -786,7 +792,7 @@ export default function DocketForm({
                     )}
                   </span>
                 </div>
-                {selectedJobLineItemDetails().needTruckQty && (
+                {selectedJobLineItemDetails().type !== 'COLLECTION' && (
                   <div>
                     <span>Truck Sell</span>
                     <span>
