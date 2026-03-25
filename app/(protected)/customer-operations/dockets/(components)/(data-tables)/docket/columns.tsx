@@ -79,7 +79,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'deliveryDate',
-    accessorFn: (row) => row.deliveredAt,
+    accessorFn: (row) => row.deliveryCollectionDate,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Delivery Date" />
