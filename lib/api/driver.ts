@@ -1,7 +1,7 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverKeys } from './keys';
-import type { DriverCreateDTO } from '../types/driver';
+import type { DriverDTO } from '../types/driver';
 
 export const DriversListQueryOptions = () =>
   queryOptions({
@@ -15,7 +15,7 @@ export const useCreateDriver = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: DriverCreateDTO) => APIClient.drivers.create(data),
+    mutationFn: (data: DriverDTO) => APIClient.drivers.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
     },

@@ -13,7 +13,8 @@ interface Driver {
   assignedTrucks: number[];
 }
 
-interface DriverCreateDTO {
+interface DriverDTO {
+  id?: number;
   driverName: string;
   driverType: DRIVER_TYPE;
   emailAddress: string;
@@ -24,21 +25,12 @@ interface DriverCreateDTO {
   haulierEmailAddress?: string;
   haulierPhoneNumber?: string;
   truckIds?: number[];
-}
-
-interface DriverDTO {
-  id: number;
-  driverName: string;
-  driverType: DRIVER_TYPE;
-  emailAddress: string;
-  phoneNumber: string;
-  licenseNumber: string;
-  driverStatus: DRIVER_STATUS;
-  appInvitationSent: boolean;
-  appInvitationSentAt: string | null;
-  appActivated: boolean;
-  appActivatedAt: string | null;
-  deviceToken: string | null;
-  lastChecklistCompleted: string | null;
-  version: number;
+  driverStatus?: DRIVER_STATUS;
+  appInvitationSent?: boolean;
+  appInvitationSentAt?: string | null;
+  appActivated?: boolean;
+  appActivatedAt?: string | null;
+  deviceToken?: string | null;
+  lastChecklistCompleted?: string | null;
+  version?: number;
 }
