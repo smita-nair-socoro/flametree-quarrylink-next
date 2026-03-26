@@ -1,10 +1,9 @@
 'use client';
 import * as React from 'react';
-// import { FormDialog } from '@/components/form-dialog';
+import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { DriverDTO } from '@/lib/types/driver';
-// import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
-// import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
+import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
 import {
   Ban,
   TriangleAlert,
@@ -12,7 +11,6 @@ import {
   CircleX,
   CircleAlert,
 } from 'lucide-react';
-import { useDriverStore } from '@/app/stores/driver-store';
 
 interface DialogConfig {
   title?: string;
@@ -375,7 +373,6 @@ const getDialogConfigs = (
 
 export function useDriverActions(driverData?: DriverDTO | null) {
   const driverId = driverData?.id;
-  const selectedDriver = useDriverStore((s) => s.selectedDriver);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
@@ -421,12 +418,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   };
 
   const actions = {
-    /** Pass customer when opening from row click so the store updates before the dialog opens */
-    view: (driver?: DriverDTO | null) => {
-      const toSelect = driver ?? driverData;
-      if (toSelect != null) {
-        useDriverStore.getState().setSelectedDriver(toSelect);
-      }
+    view: () => {
       setViewOpen(true);
     },
 
@@ -480,27 +472,28 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     );
   });
 
-  // const viewDialog = viewOpen ? (
-  //   <FormDialog
-  //     id={selectedDriver?.id}
-  //     dialogTitle="View / Edit Driver"
-  //     open={viewOpen}
-  //     onOpenChangeAction={(open) => {
-  //       setViewOpen(open);
-  //     }}
-  //     headerButtons={<DriverActionButtons driver={selectedDriver ?? undefined} />}
-  //     hideTrigger
-  //     headerInfo={{
-  //       useSelectedDriver: true,
-  //     }}
-  //   >
-  //     <DriverForm />
-  //   </FormDialog>
-  // ) : null;
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={driverData?.id}
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+      }}
+      hideTrigger
+      headerInfo={{
+        customId: driverData?.driverName,
+        primaryBadges: driverData?.driverStatus ? [driverData.driverStatus] : [],
+        secondaryBadges: driverData?.driverType ? [driverData.driverType] : [],
+      }}
+      headerSeparator
+    >
+      <DriverForm />
+    </FormDialog>
+  ) : null;
 
   return {
     actions,
     confirmDialogs,
-    // viewDialog,
+    viewDialog,
   };
 }

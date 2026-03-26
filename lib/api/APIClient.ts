@@ -979,6 +979,10 @@ export const APIClient = {
       appClient.Post<DriverDTO>(`/socoro/quarrylink/api/driver`, {
         body: data,
       }),
+    update: (id: number, data: DriverDTO) =>
+      appClient.Put<DriverDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+        body: data,
+      }),
   },
 
   tenants: {

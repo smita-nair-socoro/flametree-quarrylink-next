@@ -21,3 +21,15 @@ export const useCreateDriver = () => {
     },
   });
 };
+
+export const useUpdateDriver = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: DriverDTO }) =>
+      APIClient.drivers.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+    },
+  });
+};

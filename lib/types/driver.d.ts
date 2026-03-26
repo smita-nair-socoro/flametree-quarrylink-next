@@ -13,6 +13,20 @@ interface Driver {
   assignedTrucks: number[];
 }
 
+interface DriverTruckAssignment {
+  id: number;
+  registration: string;
+  status: string;
+}
+
+interface DriverComplianceRecord {
+  id: number;
+  checklistId: string;
+  date: string;
+  status: string;
+  notes?: string;
+}
+
 interface DriverDTO {
   id?: number;
   driverName: string;
@@ -25,6 +39,8 @@ interface DriverDTO {
   haulierEmailAddress?: string;
   haulierPhoneNumber?: string;
   truckIds?: number[];
+  trucks?: DriverTruckAssignment[];
+  complianceRecords?: DriverComplianceRecord[];
   driverStatus?: DRIVER_STATUS;
   appInvitationSent?: boolean;
   appInvitationSentAt?: string | null;
@@ -33,4 +49,8 @@ interface DriverDTO {
   deviceToken?: string | null;
   lastChecklistCompleted?: string | null;
   version?: number;
+  createdBy?: string;
+  createdAt?: string;
+  lastModifiedBy?: string;
+  updatedAt?: string;
 }

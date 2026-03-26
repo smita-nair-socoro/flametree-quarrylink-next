@@ -31,6 +31,8 @@ export const NewDriverFormSchema = z
     status: z.nativeEnum(DRIVER_STATUS).optional(),
     type: z.nativeEnum(DRIVER_TYPE),
     haulier: z.string().trim().max(256, 'Maximum 256 characters').optional(),
+    haulierEmail: z.string().optional(),
+    haulierPhone: z.string().optional(),
     driverLicenseNumber: z
       .string()
       .trim()
