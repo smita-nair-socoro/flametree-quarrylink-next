@@ -28,7 +28,7 @@ export const NewDriverFormSchema = z
       .max(256, 'Maximum 256 characters'),
     email: EmailRequired,
     phone: PhoneRequired,
-    status: z.nativeEnum(DRIVER_STATUS).optional(),
+    status: z.nativeEnum(DRIVER_STATUS),
     type: z.nativeEnum(DRIVER_TYPE),
     haulier: z.string().trim().max(256, 'Maximum 256 characters').optional(),
     haulierEmail: z.string().optional(),

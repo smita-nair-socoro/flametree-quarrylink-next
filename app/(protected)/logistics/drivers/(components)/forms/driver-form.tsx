@@ -27,7 +27,7 @@ import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
 import {
   Tooltip,
@@ -148,6 +148,7 @@ export default function DriverForm({
       driverName: '',
       email: '',
       phone: '',
+      status: DRIVER_STATUS.ACTIVE,
       type: DRIVER_TYPE.INTERNAL,
       haulier: '',
       haulierEmail: '',
@@ -164,6 +165,7 @@ export default function DriverForm({
         driverName: driverData.driverName || '',
         email: driverData.emailAddress || '',
         phone: driverData.phoneNumber || '',
+        status: driverData.driverStatus || DRIVER_STATUS.ACTIVE,
         type: driverData.driverType || DRIVER_TYPE.INTERNAL,
         haulier: driverData.haulierName || '',
         haulierEmail: driverData.haulierEmailAddress || '',

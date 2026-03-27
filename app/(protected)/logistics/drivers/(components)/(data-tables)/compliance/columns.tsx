@@ -2,10 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { BADGE_COLORS } from '@/lib/utils';
-import { MoreHorizontal } from 'lucide-react';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
+import { ComplianceTableActions } from './compliance-table-actions';
 
 export type ComplianceRecord = {
   id: number;
@@ -56,10 +55,6 @@ export const complianceColumns: ColumnDef<ComplianceRecord>[] = [
   {
     id: 'actions',
     header: () => null,
-    cell: () => (
-      <Button type="button" variant="ghost" size="icon" className="h-7 w-7">
-        <MoreHorizontal className="h-4 w-4" />
-      </Button>
-    ),
+    cell: ({ row }) => <ComplianceTableActions record={row.original} />,
   },
 ];
