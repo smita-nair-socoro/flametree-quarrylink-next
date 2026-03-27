@@ -1,0 +1,9 @@
+Hi {RecipientName},
+
+A Driver has FAILED their PRE-START CHECKLIST.
+
+Driver: {DriverName}
+
+View Report: {ReportLink}
+
+You're receiving this notification because a pre-start checklist failure was recorded on QuarryLink.

@@ -9,7 +9,7 @@ import { TableBadges } from '@/components/table-badges';
 //   TooltipContent,
 //   TooltipTrigger,
 // } from '@/components/ui/tooltip';
-// import { DocketTableActions } from './docket-table-actions';
+import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -45,7 +45,10 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ row }) => {
-      const status = row.original.docketStatus;
+      const status =
+        (row.original.docketStatus as string) === 'READY_FOR_COLLECTION'
+          ? 'READY'
+          : row.original.docketStatus;
       return <TableBadges names={[status]} visibleCount={1} />;
     },
     meta: 'Status',
@@ -76,14 +79,15 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'deliveryDate',
-    accessorFn: (row) => row.deliveredAt,
+    accessorFn: (row) => row.deliveryCollectionDate,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Delivery Date" />
       );
     },
-    cell: ({ getValue }) => {
-      return <DateCell dateString={getValue<string>()} side="top" />;
+    cell: ({ row }) => {
+      const deliveryDate = row.original.deliveredAt || row.original.deliveryCollectionDate;
+      return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
   },
@@ -95,7 +99,18 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const loadSize = row.original.loadSize;
-      return <div className="py-2">{loadSize}</div>;
+      const productUom = row.original.jobItem.productSellUom;
+      const formattedLoadSize =
+        productUom === 'TN'
+          ? `${loadSize} TN`
+          : productUom === 'M3'
+            ? `${loadSize} m³`
+            : productUom === 'KG_20'
+              ? `${loadSize} x 20kg`
+              : productUom === 'BULKA'
+                ? `${loadSize} Bulka`
+                : loadSize;
+      return <div className="py-2">{formattedLoadSize}</div>;
     },
     meta: 'Load Size',
   },
@@ -135,18 +150,9 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div>Actions</div>;
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
     },
   },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: ({ row }) => {
-  //     const docket = row.original;
-  //     return <DocketTableActions docket={docket} />;
-  //   },
-  // },
 ];

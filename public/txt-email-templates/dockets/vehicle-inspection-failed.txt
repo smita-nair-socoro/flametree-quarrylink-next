@@ -1,0 +1,9 @@
+Hi {RecipientName},
+
+A vehicle inspection has FAILED.A vehicle has FAILED their INSPECTION.
+
+Vehicle: {VehicleName}
+
+View Report: {ReportLink}
+
+You're receiving this notification because a vehicle inspection failure was recorded on QuarryLink.

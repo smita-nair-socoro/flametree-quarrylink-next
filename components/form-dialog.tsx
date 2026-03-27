@@ -320,7 +320,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedDocket && selectedDocket) {
     finalCustomId = selectedDocket.docketNumber;
-    finalPrimaryBadges = [selectedDocket.status];
+    finalPrimaryBadges = [selectedDocket.docketStatus];
   }
 
   if (headerInfo?.useSelectedDriver && selectedDriver) {

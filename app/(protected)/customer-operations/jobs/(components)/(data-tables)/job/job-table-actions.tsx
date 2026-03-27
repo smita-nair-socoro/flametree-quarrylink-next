@@ -29,7 +29,8 @@ interface JobTableActionsProps {
 
 export function JobTableActions({ job }: JobTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useJobActions(job);
+  const { actions, confirmDialogs, viewDialog, addDocketDialog } =
+    useJobActions(job);
 
   const handleView = () => {
     setDropdownOpen(false); // Close dropdown before opening modal
@@ -70,6 +71,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
     <div>
       {confirmDialogs}
       {viewDialog}
+      {addDocketDialog}
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}

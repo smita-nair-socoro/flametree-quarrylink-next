@@ -1,9 +1,13 @@
 'use client';
 import { MapPin, Shield, User, Clock } from 'lucide-react';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { formatTimeOnly, formatWeekdayDate } from '@/lib/utils/date';
 
-export function MarkArrivedDescription({ docket }: { docket?: Docket | null }) {
+export function MarkArrivedDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex justify-start items-center gap-2">
       <div className="flex w-[42px] h-[42px] justify-center bg-[#DBEAFE] rounded-full flex-shrink-0">
@@ -14,12 +18,14 @@ export function MarkArrivedDescription({ docket }: { docket?: Docket | null }) {
       <div className="flex flex-col gap-1">
         <span className="font-medium">{docket?.docketNumber ?? '—'}</span>
         <div className="flex justify-start gap-2">
-          <span className="text-sm text-[#6A7282]">{docket?.productName}</span>
+          <span className="text-sm text-[#6A7282]">
+            {docket?.jobItem?.product?.productName}
+          </span>
           {docket?.loadSize != null && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
               <span className="text-sm text-[#6A7282]">
-                {docket.loadSize} {docket.productUoM}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}
@@ -29,13 +35,13 @@ export function MarkArrivedDescription({ docket }: { docket?: Docket | null }) {
   );
 }
 
-export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
+export function MarkArrivedContent({ docket }: { docket?: DocketDTO | null }) {
   const now = new Date();
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
 
-  const destination = docket?.deliveryAddress?.address?.formattedAddress ?? '—';
-  const customerName = docket?.job?.customerName ?? '—';
+  const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
+  const customerName = docket?.customerContactName ?? '—';
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,11 +88,11 @@ export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
           </div>
           <div className="flex flex-col">
             <span className="text-[14px] font-medium text-[#166534]">
-              {docket?.contactName ?? '—'}
+              {docket?.customerContactName ?? '—'}
             </span>
             {docket?.truckType && (
               <span className="text-[12px] font-normal text-[#15803D]">
-                {docket.truckType}
+                {docket.jobItem.truckType}
               </span>
             )}
           </div>
