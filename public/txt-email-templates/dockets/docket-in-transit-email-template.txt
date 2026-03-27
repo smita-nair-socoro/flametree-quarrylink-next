@@ -1,0 +1,13 @@
+Hi {RecipientName},
+
+A docket is now IN TRANSIT.
+
+Supplier: {TenantName}
+Docket Number: {DocketNumber}
+Product: {ProductName}
+Driver: {DriverName}
+
+Delivery Address: {DeliveryAddress}
+Scheduled Time: {DeliveryWindow}
+
+You're receiving this notification because you're associated with this docket on QuarryLink.

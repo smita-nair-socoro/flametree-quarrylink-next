@@ -1,9 +1,13 @@
 'use client';
 
 import { ClipboardList } from 'lucide-react';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
-export function StartPreparingDescription({ docket }: { docket?: Docket | null }) {
+export function StartPreparingDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FFF7ED]">
@@ -14,12 +18,12 @@ export function StartPreparingDescription({ docket }: { docket?: Docket | null }
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-          <span>{docket?.productName ?? '—'}</span>
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           {docket?.loadSize != null && (
             <>
               <span className="font-bold">•</span>
               <span>
-                {docket.loadSize} {docket.productUoM}
+                {docket.loadSize} {docket.jobItem?.productSellUom}
               </span>
             </>
           )}
@@ -29,18 +33,22 @@ export function StartPreparingDescription({ docket }: { docket?: Docket | null }
   );
 }
 
-export function StartPreparingContent({ docket }: { docket?: Docket | null }) {
+export function StartPreparingContent({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-md bg-[#F9FAFB] px-4 py-3">
         <div className="space-y-2 text-sm text-[#6A7282]">
           <div>
             <span className="font-medium text-[#364153]">Customer:</span>{' '}
-            {docket?.job?.customerName ?? '—'}
+            {docket?.customerContactName ?? '—'}
           </div>
           <div>
             <span className="font-medium text-[#364153]">Job:</span>{' '}
-            {docket?.job?.jobNumber ?? '—'}
+            {docket?.job.jobNumber ?? '—'}
           </div>
         </div>
       </div>

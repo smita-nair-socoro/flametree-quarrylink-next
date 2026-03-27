@@ -37,7 +37,7 @@ import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
-// import DocketsTab from './tabs/dockets/dockets-tab';
+import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
@@ -174,10 +174,10 @@ export default function JobForm({
         name: 'Products',
         content: <LineItemsTab jobLineItems={jobItems} />,
       },
-      // {
-      //   name: 'Dockets',
-      //   content: <DocketsTab selectedJob={null} />,
-      // },
+      {
+        name: 'Dockets',
+        content: <DocketsTab selectedJob={jobDetails ?? null} />,
+      },
       {
         name: 'Invoices',
         content: <InvoicesTab />,

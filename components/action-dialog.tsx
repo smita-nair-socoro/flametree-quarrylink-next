@@ -22,11 +22,11 @@ interface ActionDialogProps {
   cancelActionNeeded?: boolean;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -36,6 +36,8 @@ interface ActionDialogProps {
   textbelowbutton?: React.ReactNode;
   hideSeparator?: boolean;
   preventOutsideClose?: boolean;
+  padding?: string;
+  titlePadding?: string;
 }
 
 export function ActionDialog({
@@ -60,18 +62,20 @@ export function ActionDialog({
   textbelowbutton,
   hideSeparator = false,
   preventOutsideClose = false,
+  padding = '',
+  titlePadding = '',
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
     () =>
       confirmCustomColor
         ? {
-          backgroundColor: confirmCustomColor,
-          borderColor: confirmCustomColor,
-          color: 'white',
-        }
+            backgroundColor: confirmCustomColor,
+            borderColor: confirmCustomColor,
+            color: 'white',
+          }
         : undefined,
-    [confirmCustomColor]
+    [confirmCustomColor],
   );
 
   return (
@@ -79,7 +83,8 @@ export function ActionDialog({
       <DialogContent
         className={cn(
           customWidth ? customWidth : 'w-[512px]',
-          'max-w-full gap-6 max-h-[90vh] overflow-y-auto p-[24.62px]'
+          'max-w-full  max-h-[90vh] overflow-y-auto ',
+          padding ? `${padding}` : 'p-[24.62px] gap-6',
         )}
         style={{ scrollbarGutter: 'auto' }}
         onInteractOutside={(event) => {
@@ -93,7 +98,12 @@ export function ActionDialog({
           }
         }}
       >
-        <DialogHeader className={cn(title ? '' : 'hidden')}>
+        <DialogHeader
+          className={cn(
+            title ? '' : 'hidden',
+            titlePadding && `${titlePadding}`,
+          )}
+        >
           <DialogTitle>
             <div className="flex items-center gap-2">
               {titleIcon && titleIcon}
@@ -106,14 +116,13 @@ export function ActionDialog({
 
         {content && <>{content}</>}
 
-        {!hideSeparator && (<div className="border-t border-gray-200"></div>)}
+        {!hideSeparator && <div className="border-t border-gray-200"></div>}
         <div
           className={cn(
             'flex flex-col-reverse gap-3 md:grid md:gap-2',
-            cancelActionNeeded
-              ? 'md:grid-cols-2'
-              : 'md:grid-cols-1'
-          )}>
+            cancelActionNeeded ? 'md:grid-cols-2' : 'md:grid-cols-1',
+          )}
+        >
           {cancelActionNeeded && (
             <Button
               variant="outline"
@@ -123,7 +132,7 @@ export function ActionDialog({
                   ? ''
                   : cancelButtonClass
                     ? cancelButtonClass
-                    : 'md:col-span-2'
+                    : 'md:col-span-2',
               )}
             >
               {cancelText}
@@ -150,7 +159,7 @@ export function ActionDialog({
             </Button>
           )}
         </div>
-        {textbelowbutton && (textbelowbutton)}
+        {textbelowbutton && textbelowbutton}
       </DialogContent>
     </Dialog>
   );

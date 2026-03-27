@@ -17,6 +17,7 @@ export interface Address {
 
 export interface CustomerDeliveryAddress {
   id?: number;
+  address?: Address;
   customerId: number;
   addressId?: number;
   address: Address;

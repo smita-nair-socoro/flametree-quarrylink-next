@@ -1,0 +1,13 @@
+Hi {DriverName},
+
+Your delivery assignment has been updated.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+Pickup Address: {PickupAddress}
+Delivery Address: {DeliveryAddress}
+Scheduled Time: {DeliveryWindow}
+
+View Delivery: {DocketUrl}
+
+You're receiving this because your delivery assignment was updated on QuarryLink.

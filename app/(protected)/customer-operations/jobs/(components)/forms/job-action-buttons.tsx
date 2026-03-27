@@ -33,7 +33,8 @@ export function JobActionButtons({
 }: JobActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  const { actions, confirmDialogs, viewDialog } = useJobActions(job);
+  const { actions, confirmDialogs, viewDialog, addDocketDialog } =
+    useJobActions(job);
 
   if (!job) {
     return null;
@@ -57,6 +58,7 @@ export function JobActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
+        {addDocketDialog}
 
         {job.jobStatus !== JOB_STATUS.CANCELLED && job.jobStatus !== JOB_STATUS.SETTLED && (
           <DropdownMenu>
@@ -152,6 +154,7 @@ export function JobActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {addDocketDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {job.jobStatus === JOB_STATUS.PAUSED && (

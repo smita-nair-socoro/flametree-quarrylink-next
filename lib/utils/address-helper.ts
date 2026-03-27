@@ -73,7 +73,6 @@ export function toAddressPayload(
       address.postalCode !== (originalAddress.postcode || '') ||
       address.country !== (originalAddress.country || '') ||
       address.formattedAddress !== (originalAddress.formattedAddress || ''));
-  console.log(addressChanged, 'addressChanged');
 
   return {
     // Only include id if address hasn't changed (backend doesn't accept id for updates)

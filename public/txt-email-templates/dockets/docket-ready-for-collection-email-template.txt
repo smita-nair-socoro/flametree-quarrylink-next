@@ -1,0 +1,11 @@
+Hi {RecipientName},
+
+A collection docket is now READY.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+Product: {ProductName}
+
+The order is ready for collection.
+
+You're receiving this notification because you're associated with this docket on QuarryLink.

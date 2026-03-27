@@ -824,6 +824,10 @@ export const APIClient = {
 
     convertToDraft: (id: number) =>
       appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
+    convertToJob: (id: number) =>
+      appClient.Post<JobDTO>(
+        `/socoro/quarrylink/api/quote/${id}/convert-to-job`,
+      ),
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',
@@ -850,7 +854,7 @@ export const APIClient = {
 
   dockets: {
     create: (data: Partial<DocketDTO>) =>
-      appClient.Post<DocketDTO>('/socoro/quarrylink/api/docket', {
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/dockets', {
         body: data,
       }),
     getAll: async (params?: {
@@ -878,6 +882,29 @@ export const APIClient = {
       });
       return response;
     },
+    getByJobId: async (jobId: number) => {
+      const response = await appClient.Get<
+        | DocketDTO[]
+        | {
+            content: DocketDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      return response;
+    },
+    getById: (id: number) => {
+      return appClient.Get<DocketDTO>(`/socoro/quarrylink/api/dockets/${id}`);
+    },
+    update: (id: number, data: Partial<DocketDTO>) =>
+      appClient.Put<DocketDTO>(`/socoro/quarrylink/api/dockets/${id}`, {
+        body: data,
+      }),
+    updateStatus: (docketId: number, formData: FormData) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/dockets/${docketId}/status`,
+        { body: formData },
+      ),
   },
 
   users: {

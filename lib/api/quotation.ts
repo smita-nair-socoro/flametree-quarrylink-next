@@ -12,6 +12,7 @@ import {
   QuotationLineItem,
 } from '../types/quotation';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
+import { JobDTO } from '../types/job';
 
 export const QuotationsListQueryOptions = () =>
   queryOptions({
@@ -402,6 +403,27 @@ export const useUpdateQuoteDecision = () => {
       });
       queryClient.invalidateQueries({
         queryKey: [...QuotationKeys.detail(data.id), 'with-line-items'],
+      });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+    },
+  });
+};
+
+/**
+ * Mutation hook for converting a quotation to a job.
+ * Automatically invalidates the quotations list and detail cache on success.
+ */
+export const useConvertToJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number): Promise<JobDTO> =>
+      APIClient.quotations.convertToJob(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.list() });
+      queryClient.invalidateQueries({ queryKey: QuotationKeys.detail(id) });
+      queryClient.invalidateQueries({
+        queryKey: [...QuotationKeys.detail(id), 'with-line-items'],
       });
       queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
     },

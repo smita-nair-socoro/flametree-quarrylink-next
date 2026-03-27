@@ -47,7 +47,7 @@ export default function DriversPage() {
           tableId="driver_main_data_table"
           data={items}
           columns={driverColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'driverName', desc: false }]}
         />

@@ -108,6 +108,8 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       rows={rows}
       cells={cells}
       control={control}
+      mobileHiddenCells={[2]}
+      className="overflow-x-hidden"
     />
   );
 }
