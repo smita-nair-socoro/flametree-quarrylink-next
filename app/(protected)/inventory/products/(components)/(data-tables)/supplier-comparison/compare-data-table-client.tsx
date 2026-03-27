@@ -51,7 +51,7 @@ export function CompareDataTable<TData, TValue>({
             {hg.headers.map((header) => (
               <TableHead
                 key={header.id}
-                className="text-muted-foreground whitespace-nowrap font-medium border-b-0"
+                className="text-muted-foreground whitespace-nowrap font-medium border-b-0 py-3"
               >
                 {header.isPlaceholder
                   ? null
@@ -70,14 +70,14 @@ export function CompareDataTable<TData, TValue>({
             <TableRow
               key={row.id}
               className={cn(
-                'border-b border-border hover:bg-transparent',
+                'border-b border-border hover:bg-transparent h-[64px]',
                 getRowClassName?.(row.original),
               )}
             >
               {row.getVisibleCells().map((cell) => (
                 <TableCell
                   key={cell.id}
-                  className="whitespace-nowrap border-b-0"
+                  className="whitespace-nowrap border-b-0 py-3.5"
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>

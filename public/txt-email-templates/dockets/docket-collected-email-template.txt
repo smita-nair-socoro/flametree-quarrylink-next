@@ -1,0 +1,11 @@
+Hi {RecipientName},
+
+A docket has been successfully COLLECTED.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+Product: {ProductName}
+
+Collected At: {Timestamp}
+
+You're receiving this notification because you're associated with this docket on QuarryLink.

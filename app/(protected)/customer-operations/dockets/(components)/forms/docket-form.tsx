@@ -16,7 +16,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils';
+import { addNewRecordId, cn } from '@/lib/utils';
 import { FormSelect } from '@/components/ui/form-select';
 import {
   Calendar,
@@ -27,15 +27,17 @@ import {
   Truck,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { formatLocalDateShort } from '@/lib/utils/date';
+import { formatLocalDateShort, toUTCDateTimeWithoutZ } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useCreateDocket } from '@/lib/api/docket';
+import { useCreateDocket, useUpdateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
+import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 
 interface FormProps {
   id?: number;
@@ -52,9 +54,9 @@ interface FormProps {
 export default function DocketForm({
   id,
   onCancel,
-  // onSuccess,
+  onSuccess,
   onDirtyChange,
-  // onSaved,
+  onSaved,
   className,
   isQuickDocket = true,
   jobId,
@@ -64,6 +66,7 @@ export default function DocketForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
+  const updateDocket = useUpdateDocket();
 
   const {
     docketForm,
@@ -75,7 +78,6 @@ export default function DocketForm({
     selectedJob,
     selectedJobLineItemDetails,
     pricingBreakdown,
-    truckTypeOptions,
     mapMarkers,
     today,
     pickUpAddress,
@@ -86,6 +88,8 @@ export default function DocketForm({
     setPickUpSearchInput,
     deliverySearchInput,
     setDeliverySearchInput,
+    productDetails,
+    selectedDocket,
   } = useDocketFormState({
     id,
     isQuickDocket,
@@ -93,36 +97,190 @@ export default function DocketForm({
     onDirtyChange,
   });
 
+  const combineDateAndTime = (
+    date: Date | undefined,
+    timeString: string,
+  ): string | null => {
+    if (!date || !timeString) return null;
+
+    const [hours, minutes] = timeString.split(':');
+    const combined = new Date(date);
+    combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+    return toUTCDateTimeWithoutZ(combined);
+  };
+
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
 
     try {
-      await createDocket.mutateAsync({
+      const lineItemDetails = selectedJobLineItemDetails();
+      const isCollection = lineItemDetails.type === 'COLLECTION';
+
+      setIsSubmitting(true);
+
+      const density = productDetails?.densityTonnagePerM3 || 1;
+      let estimatedVolumeM3 = 0;
+      const loadSize = values.loadSize || 0;
+      const additionalDocketEmails = values.docketEmail
+        ? values.docketEmail
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : [];
+      const docketEmailRecipients = Array.from(
+        new Set(
+          [selectedJob.customerEmail, ...additionalDocketEmails].filter(
+            Boolean,
+          ),
+        ),
+      );
+
+      if (
+        lineItemDetails.productUom === 'M3' ||
+        'm3' ||
+        lineItemDetails.productUom === 'BULKA' ||
+        'Bulka'
+      ) {
+        estimatedVolumeM3 = loadSize;
+      } else if (lineItemDetails.productUom === 'TN') {
+        estimatedVolumeM3 = loadSize / density;
+      } else if (lineItemDetails.productUom === 'KG_20' || '20kg') {
+        estimatedVolumeM3 = loadSize / 50 / density;
+      }
+
+      // Round to 2 decimal places to avoid out of bounds errors on the backend
+      estimatedVolumeM3 = Math.round(estimatedVolumeM3 * 100) / 100;
+
+      let startDateTime = values.deliveryCollectionStartTime;
+      let endDateTime = values.deliveryCollectionEndTime;
+
+      if (values.deliveryCollectionDate) {
+        if (
+          values.deliveryCollectionStartTime &&
+          !values.deliveryCollectionStartTime.includes('T')
+        ) {
+          startDateTime =
+            combineDateAndTime(
+              values.deliveryCollectionDate,
+              values.deliveryCollectionStartTime,
+            ) ?? startDateTime;
+        }
+        if (
+          values.deliveryCollectionEndTime &&
+          !values.deliveryCollectionEndTime.includes('T')
+        ) {
+          endDateTime =
+            combineDateAndTime(
+              values.deliveryCollectionDate,
+              values.deliveryCollectionEndTime,
+            ) ?? endDateTime;
+        }
+      }
+
+      let deliveryDistanceQuantity = 0;
+      let deliveryDistanceUom = lineItemDetails.truckUom || 'TN';
+
+      // Ensure deliveryDistanceUom matches the backend enum
+      const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
+      if (!validUoms.includes(deliveryDistanceUom)) {
+        const uomMap: Record<string, string> = {
+          '20kg': 'KG_20',
+          km: 'KM',
+          Load: 'LOAD',
+          TN: 'TN',
+          Bulka: 'BULKA',
+          Hourly: 'HOURLY',
+          m3: 'M3',
+        };
+        deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
+      }
+
+      if (!isCollection) {
+        if (lineItemDetails.needTruckQty) {
+          deliveryDistanceQuantity = values.truckQty || 0;
+        } else {
+          deliveryDistanceQuantity = calculateConvertedQty(
+            loadSize,
+            lineItemDetails.productUom,
+            deliveryDistanceUom,
+            density
+          );
+        }
+      }
+
+      const payload = {
         jobId: values.jobId,
         jobItemId: values.jobLineItemId,
-        pickUpAddress: {},
-        deliveryAddress: {},
+        pickUpAddress: {
+          googlePlaceId: pickUpAddress.googlePlaceId,
+          formattedAddress: pickUpAddress.formattedAddress,
+          streetDetailsPrimary: pickUpAddress.address1,
+          streetDetailsOptional: pickUpAddress.address2,
+          city: pickUpAddress.city,
+          suburb: pickUpAddress.city,
+          state: pickUpAddress.region,
+          postcode: pickUpAddress.postalCode,
+          country: pickUpAddress.country,
+          latitude: pickUpAddress.lat,
+          longitude: pickUpAddress.lng,
+        },
+        deliveryAddress: isCollection
+          ? undefined
+          : deliveryAddress.googlePlaceId
+            ? {
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
+            : undefined,
         purchaseOrder: values.purchaseOrder,
-        productEstimatedVolume: values.productEstimatedVolume,
+        productEstimatedVolume: estimatedVolumeM3,
         deliveryCollectionDate: values.deliveryCollectionDate,
-        deliveryCollectionStartTime: values.deliveryCollectionStartTime,
-        deliveryCollectionEndTime: values.deliveryCollectionEndTime,
+        deliveryCollectionStartTime: startDateTime,
+        deliveryCollectionEndTime: endDateTime,
         customerContactName: values.customerContactName,
         customerContactPhone: values.customerContactPhone,
-        docketEmailRecipients: ['jaywoo.choi@socoro.com.au'],
+        docketEmailRecipients,
         notes: values.notes,
-        truckType: values.truckType,
+        truckType: isCollection ? undefined : lineItemDetails.truckType,
         loadSize: values.loadSize,
-        grossTruckWeight: 0,
+        grossTruckWeight: 100,
         tareTruckWeight: 0,
-        deliveryDistanceQuantity: 0,
-        deliveryDistanceUom: 'TN',
-      });
-      notifySuccess('Docket created successfully');
+        deliveryDistanceQuantity: deliveryDistanceQuantity,
+        deliveryDistanceUom: deliveryDistanceUom,
+        ...(isEditing && selectedDocket
+          ? { docketStatus: selectedDocket.docketStatus }
+          : {}),
+      };
+
+      if (isEditing && id) {
+        await updateDocket.mutateAsync({
+          id,
+          data: payload,
+        });
+        notifySuccess('Docket updated successfully');
+      } else {
+        const newDocket = await createDocket.mutateAsync(payload);
+        if (newDocket && typeof newDocket.id === 'number') {
+          addNewRecordId('docket_main_data_table', newDocket.id);
+        }
+        notifySuccess('Docket created successfully');
+      }
+
+      onSaved?.();
+      onSuccess?.();
     } catch (error) {
       console.error('Error creating docket:', error);
       notifyError(extractErrorMessage(error));
-
     } finally {
       setIsSubmitting(false);
     }
@@ -164,7 +322,7 @@ export default function DocketForm({
                 searchLabel="Job References"
                 options={allJobs}
                 placeholder="Select Job"
-                disabled={isJobLocked || isReadOnly}
+                disabled={isJobLocked || isReadOnly || isEditing}
                 formItemClassName={
                   isEditing && isDesktop
                     ? 'col-span-1 col-start-1'
@@ -202,7 +360,8 @@ export default function DocketForm({
                     disabled={
                       isReadOnly ||
                       !selectedJobId ||
-                      jobLineItemOptions.length === 0
+                      jobLineItemOptions.length === 0 ||
+                      isEditing
                     }
                   />
 
@@ -238,18 +397,24 @@ export default function DocketForm({
                   )}
                 >
                   {selectedJobLineItemDetails().type === 'DELIVERY' && (
-                    <FormSelect
-                      control={docketForm.control}
+                    <FormField
                       name="truckType"
-                      label="Truck Type*"
-                      searchLabel="Truck Type"
-                      options={truckTypeOptions}
-                      placeholder="Select Truck Type"
-                      disabled={
-                        isReadOnly ||
-                        !selectedJobId ||
-                        jobLineItemOptions.length === 0
-                      }
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>Truck Type</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              readOnly
+                              value={
+                                selectedJobLineItemDetails().truckTypeLabel ??
+                                ''
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   )}
 
@@ -276,22 +441,41 @@ export default function DocketForm({
 
                   <FormField
                     name="loadSize"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Load Size</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            isNumber
-                            disabled={
-                              isReadOnly || !docketForm.watch('jobLineItemId')
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const maxLoadSize =
+                        selectedJobLineItemDetails().remainingQty;
+
+                      return (
+                        <FormItem>
+                          <FormLabel>Load Size</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              {...field}
+                              isNumber
+                              max={maxLoadSize}
+                              disabled={
+                                isReadOnly || !docketForm.watch('jobLineItemId')
+                              }
+                              onChange={(e) => {
+                                const nextValue = e.target.value;
+
+                                if (nextValue === '') {
+                                  field.onChange(e);
+                                  return;
+                                }
+
+                                e.target.value = String(
+                                  Math.min(Number(nextValue), maxLoadSize),
+                                );
+                                field.onChange(e);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
 
                   {selectedJobLineItemDetails().needTruckQty && (
@@ -336,7 +520,9 @@ export default function DocketForm({
                         {docketForm.watch('loadSize')}{' '}
                         {selectedJobLineItemDetails().productUom === '20kg'
                           ? 'x 20kg'
-                          : selectedJobLineItemDetails().productUom}{' '}
+                          : selectedJobLineItemDetails().productUom === 'm3'
+                            ? 'm³'
+                            : selectedJobLineItemDetails().productUom}{' '}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -347,7 +533,9 @@ export default function DocketForm({
                         {selectedJobLineItemDetails().remainingQty}{' '}
                         {selectedJobLineItemDetails().productUom === '20kg'
                           ? 'x 20kg'
-                          : selectedJobLineItemDetails().productUom}{' '}
+                          : selectedJobLineItemDetails().productUom === 'm3'
+                            ? 'm³'
+                            : selectedJobLineItemDetails().productUom}{' '}
                         total
                       </span>
                     </div>
@@ -426,6 +614,7 @@ export default function DocketForm({
                             readOnly={isReadOnly}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -452,6 +641,7 @@ export default function DocketForm({
                               readOnly={isReadOnly}
                             />
                           </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -558,20 +748,29 @@ export default function DocketForm({
                   control={docketForm.control}
                   name="docketEmail"
                   render={({ field }) => {
-                    const fixedValues = ['jaywoo.choi@socoro.com.au'];
+                    const fixedValues = selectedJob.customerEmail
+                      ? [selectedJob.customerEmail]
+                      : [];
                     return (
                       <FormItem className={'col-span-2 col-start-1'}>
                         <FormLabel>Docket Email</FormLabel>
                         <FormControl>
                           <MultipleInput
                             className="w-full"
+                            placeholder={
+                              docketForm.watch('jobId') === 0
+                                ? 'Select Job First'
+                                : 'Enter Docket Emails'
+                            }
                             fixedValues={fixedValues}
                             validate={(s) =>
                               /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
                             }
                             label="Press Enter or comma to add email addresses for docket notifications"
                             {...field}
-                            disabled={isReadOnly}
+                            disabled={
+                              isReadOnly || docketForm.watch('jobId') === 0
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -606,74 +805,45 @@ export default function DocketForm({
               <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                 <div>
                   <span>Product Sell</span>
-                  <span>${pricingBreakdown.productSell.toFixed(2)}</span>
+                  <span>
+                    $
+                    {formatNumberThousandSeparator(
+                      pricingBreakdown.productSell,
+                    )}
+                  </span>
                 </div>
-                {selectedJobLineItemDetails().needTruckQty && (
+                {selectedJobLineItemDetails().type !== 'COLLECTION' && (
                   <div>
                     <span>Truck Sell</span>
-                    <span>${pricingBreakdown.truckSell.toFixed(2)}</span>
+                    <span>
+                      $
+                      {formatNumberThousandSeparator(
+                        pricingBreakdown.truckSell,
+                      )}
+                    </span>
                   </div>
                 )}
                 <div className="pt-2 border-t border-dashed border-purple-300">
                   <span>Subtotal (ex-GST)</span>
-                  <span>${pricingBreakdown.subtotal.toFixed(2)}</span>
+                  <span>
+                    ${formatNumberThousandSeparator(pricingBreakdown.subtotal)}
+                  </span>
                 </div>
                 <div>
                   <span>GST (10%)</span>
-                  <span>${pricingBreakdown.gst.toFixed(2)}</span>
+                  <span>
+                    ${formatNumberThousandSeparator(pricingBreakdown.gst)}
+                  </span>
                 </div>
                 <div className="pt-2 border-t border-dashed border-purple-300">
                   <span className="font-bold text-lg">Total Invoice</span>
                   <span className="font-bold text-lg">
-                    ${pricingBreakdown.total.toFixed(2)}
+                    ${formatNumberThousandSeparator(pricingBreakdown.total)}
                   </span>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Audit Information */}
-          {isEditing && (
-            <div className="col-span-full space-y-6 mt-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob.createdBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 my-6">

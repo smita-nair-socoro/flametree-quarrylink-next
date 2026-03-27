@@ -1,0 +1,13 @@
+Hi {RecipientName},
+
+A docket has been STOPPED.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+
+Stop Reason: {StopReason}
+Stop Notes: {StopNotes}
+
+View Docket: {DocketUrl}
+
+You're receiving this notification because you're associated with this docket on QuarryLink.
