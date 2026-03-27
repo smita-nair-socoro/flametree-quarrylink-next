@@ -4,6 +4,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { DriverDTO } from '@/lib/types/driver';
 import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
+import { useDriverStore } from '@/app/stores/driver-store';
 import {
   Ban,
   TriangleAlert,
@@ -375,6 +376,13 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const setSelectedDriver = useDriverStore((state) => state.setSelectedDriver);
+
+  React.useEffect(() => {
+    if (viewOpen && driverData) {
+      setSelectedDriver(driverData);
+    }
+  }, [viewOpen, driverData, setSelectedDriver]);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
@@ -480,12 +488,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         setViewOpen(open);
       }}
       hideTrigger
-      headerInfo={{
-        customId: driverData?.driverName,
-        primaryBadges: driverData?.driverStatus ? [driverData.driverStatus] : [],
-        secondaryBadges: driverData?.driverType ? [driverData.driverType] : [],
-      }}
-      headerSeparator
+      headerInfo={{ useSelectedDriver: true }}
     >
       <DriverForm />
     </FormDialog>

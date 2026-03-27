@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -20,11 +19,11 @@ import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from './haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import {
-  NewDriverFormSchema,
-  NewDriverFormValues,
-} from './schemas/driver-form-schema';
-import { Loader2, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { NewDriverFormSchema } from './schemas/driver-form-schema';
+import z from 'zod';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { complianceColumns } from '../(data-tables)/compliance/columns';
+import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -37,9 +36,9 @@ import {
 } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { BADGE_COLORS } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { DriversListQueryOptions } from '@/lib/api/driver';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
+import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
   id?: number;
@@ -75,13 +74,55 @@ const DUMMY_TRUCKS = [
 ];
 
 const DUMMY_COMPLIANCE = [
-  { id: 1, checklistId: 'CL-25-001', date: 'Jan 15, 2024', status: 'PASS', notes: 'All safety checks cleared.' },
-  { id: 2, checklistId: 'CL-25-002', date: 'Jan 16, 2024', status: 'FAIL', notes: 'Failed Health & Wellness.' },
-  { id: 3, checklistId: 'CL-25-003', date: 'Jan 17, 2024', status: 'PASS', notes: 'All safety checks cleared.' },
-  { id: 4, checklistId: 'CL-25-004', date: 'Jan 17, 2024', status: 'CONFIRMED', notes: 'External haulier check confirmed by driver.' },
-  { id: 5, checklistId: 'CL-25-005', date: 'Jan 18, 2024', status: 'FAIL', notes: 'Failed Health & Wellness.' },
-  { id: 6, checklistId: 'CL-25-006', date: 'Jan 19, 2024', status: 'PASS', notes: 'All safety checks cleared.' },
-  { id: 7, checklistId: 'CL-25-007', date: 'Jan 20, 2024', status: 'PASS', notes: 'All safety checks cleared.' },
+  {
+    id: 1,
+    checklistId: 'CL-25-001',
+    date: 'Jan 15, 2024',
+    status: 'PASS',
+    notes: 'All safety checks cleared.',
+  },
+  {
+    id: 2,
+    checklistId: 'CL-25-002',
+    date: 'Jan 16, 2024',
+    status: 'FAIL',
+    notes: 'Failed Health & Wellness.',
+  },
+  {
+    id: 3,
+    checklistId: 'CL-25-003',
+    date: 'Jan 17, 2024',
+    status: 'PASS',
+    notes: 'All safety checks cleared.',
+  },
+  {
+    id: 4,
+    checklistId: 'CL-25-004',
+    date: 'Jan 17, 2024',
+    status: 'CONFIRMED',
+    notes: 'External haulier check confirmed by driver.',
+  },
+  {
+    id: 5,
+    checklistId: 'CL-25-005',
+    date: 'Jan 18, 2024',
+    status: 'FAIL',
+    notes: 'Failed Health & Wellness.',
+  },
+  {
+    id: 6,
+    checklistId: 'CL-25-006',
+    date: 'Jan 19, 2024',
+    status: 'PASS',
+    notes: 'All safety checks cleared.',
+  },
+  {
+    id: 7,
+    checklistId: 'CL-25-007',
+    date: 'Jan 20, 2024',
+    status: 'PASS',
+    notes: 'All safety checks cleared.',
+  },
 ];
 
 export default function DriverForm({
@@ -95,21 +136,12 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [safetyOpen, setSafetyOpen] = React.useState(false);
-  const [safetySearch, setSafetySearch] = React.useState('');
-
   const createDriver = useCreateDriver();
   const updateDriver = useUpdateDriver();
 
-  // Find driver from the cached list query
-  const { data: driversData } = useQuery(DriversListQueryOptions());
-  const driverData = React.useMemo(
-    () => (isEditing && id ? (driversData ?? []).find((d) => d.id === id) : undefined),
-    [driversData, id, isEditing],
-  );
+  const { driverData } = useDriverFormState(id, isEditing);
 
-  const driverForm = useForm<NewDriverFormValues>({
+  const driverForm = useForm<z.infer<typeof NewDriverFormSchema>>({
     resolver: zodResolver(NewDriverFormSchema),
     mode: 'onChange',
     defaultValues: {
@@ -176,10 +208,10 @@ export default function DriverForm({
     return () => subscription.unsubscribe();
   }, [driverForm]);
 
-  async function onSubmit(values: NewDriverFormValues) {
-    try {
-      setIsSubmitting(true);
+  const isPending = createDriver.isPending || updateDriver.isPending;
 
+  async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
+    try {
       const payload = {
         driverName: values.driverName,
         driverType: values.type,
@@ -209,8 +241,6 @@ export default function DriverForm({
         extractErrorMessage(error) ||
           `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -224,18 +254,11 @@ export default function DriverForm({
 
   // Dummy trucks and compliance — replace with real API data when backend is available
   const trucks = isEditing ? DUMMY_TRUCKS : [];
-  const complianceRecords = isEditing
-    ? DUMMY_COMPLIANCE.filter(
-        (r) =>
-          !safetySearch ||
-          r.checklistId.toLowerCase().includes(safetySearch.toLowerCase()) ||
-          r.notes?.toLowerCase().includes(safetySearch.toLowerCase()),
-      )
-    : [];
+  const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (
     <div className="w-full relative">
-      {isSubmitting && (
+      {isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -257,7 +280,7 @@ export default function DriverForm({
           className={cn(
             'w-full flex flex-col gap-4',
             className,
-            isSubmitting && 'pointer-events-none',
+            isPending && 'pointer-events-none',
           )}
           onSubmit={driverForm.handleSubmit(onSubmit, onError)}
         >
@@ -331,12 +354,6 @@ export default function DriverForm({
               <FormItem>
                 <FormLabel>Haulier*</FormLabel>
                 <Input value="My Company Haulier" disabled />
-                {isEditing && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Internal drivers are automatically assigned to your company
-                    Haulier
-                  </p>
-                )}
               </FormItem>
             ) : (
               <SelectCreateEdit
@@ -345,7 +362,12 @@ export default function DriverForm({
                 label="Haulier*"
                 entityName="Haulier"
                 items={haulierItems}
-                renderForm={(editingItem, isEditingItem, onSave, onCancelItem) => (
+                renderForm={(
+                  editingItem,
+                  isEditingItem,
+                  onSave,
+                  onCancelItem,
+                ) => (
                   <HaulierForm
                     editingItem={editingItem}
                     isEditing={isEditingItem}
@@ -394,49 +416,44 @@ export default function DriverForm({
                 )}
               />
 
-              {/* Haulier contact — shown for subcontractors */}
-              {!isInternal && (
-                <>
-                  <FormField
-                    control={driverForm.control}
-                    name="haulierEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Haulier Email Address</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="driver@company.com"
-                            {...field}
-                            value={field.value ?? ''}
-                            readOnly={hasHaulier}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <FormField
+                control={driverForm.control}
+                name="haulierEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Haulier Email Address</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="driver@company.com"
+                        {...field}
+                        value={field.value ?? ''}
+                        readOnly={hasHaulier}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={driverForm.control}
-                    name="haulierPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Haulier Phone Number</FormLabel>
-                        <FormControl>
-                          <PhoneInput
-                            defaultCountry="AU"
-                            placeholder="+61 400 123 456"
-                            {...field}
-                            value={field.value ?? ''}
-                            disabled={hasHaulier}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+              <FormField
+                control={driverForm.control}
+                name="haulierPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Haulier Phone Number</FormLabel>
+                    <FormControl>
+                      <PhoneInput
+                        defaultCountry="AU"
+                        placeholder="+61 400 123 456"
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={hasHaulier}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 
@@ -478,10 +495,12 @@ export default function DriverForm({
                   {trucks.map((truck) => (
                     <div
                       key={truck.id}
-                      className="flex items-center justify-between rounded-md border px-4 py-3"
+                      className="flex items-center justify-between rounded-md px-4 py-3 bg-[#F9FAFB]"
                     >
                       <div className="flex flex-col gap-1">
-                        <span className="font-medium">{truck.registration}</span>
+                        <span className="font-medium">
+                          {truck.registration}
+                        </span>
                         <Badge
                           variant="outline"
                           className={
@@ -509,179 +528,78 @@ export default function DriverForm({
 
           {/* Audit Information — edit mode only */}
           {isEditing && driverData && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:max-w-3xl mt-2">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">Create By:</p>
-                <p className="text-sm text-muted-foreground">
-                  {driverData.createdBy || 'Armin Menhaji'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">Last Modified By:</p>
-                <p className="text-sm text-muted-foreground">
-                  {driverData.lastModifiedBy || 'Armin Menhaji'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">Create Date:</p>
-                <p className="text-sm text-muted-foreground">
-                  {driverData.createdAt || '10/02/25'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">Modified Date:</p>
-                <p className="text-sm text-muted-foreground">
-                  {driverData.updatedAt || '10/02/25'}
-                </p>
+            <div className="space-y-6 mt-10 mb-4">
+              <h2 className="text-2xl font-bold">Audit Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Created By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {driverData.createdBy || 'N/A'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Last Modified By:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {driverData.lastModifiedBy || 'N/A'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Created Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatLocalDateShort(driverData.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-foreground">
+                    Modified Date:
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatLocalDateShort(driverData.updatedAt)}
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
           {/* Safety & Compliance — edit mode only */}
           {isEditing && (
-            <div className="flex flex-col mt-2">
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 border rounded-md py-2 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
-                onClick={() => setSafetyOpen((prev) => !prev)}
-              >
-                {safetyOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-                Safety &amp; Compliance
-              </button>
-
-              {safetyOpen && (
-                <div className="flex flex-col gap-4 mt-4">
-                  <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
-
-                  <div className="relative">
-                    <svg
-                      className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <Input
-                      className="pl-9"
-                      placeholder="Search by keyword..."
-                      value={safetySearch}
-                      onChange={(e) => setSafetySearch(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="rounded-md border overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-muted/40">
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
-                            Checklist ID
-                          </th>
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
-                            Date
-                          </th>
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
-                            Status
-                          </th>
-                          <th className="px-4 py-2 text-left font-medium text-muted-foreground">
-                            Notes
-                          </th>
-                          <th className="px-4 py-2" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {complianceRecords.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={5}
-                              className="px-4 py-6 text-center text-muted-foreground"
-                            >
-                              No compliance records found.
-                            </td>
-                          </tr>
-                        ) : (
-                          complianceRecords.map((record) => (
-                            <tr
-                              key={record.id}
-                              className="border-b last:border-0 hover:bg-muted/20"
-                            >
-                              <td className="px-4 py-3 font-medium">
-                                {record.checklistId}
-                              </td>
-                              <td className="px-4 py-3 text-muted-foreground">
-                                {record.date}
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    record.status === 'PASS' &&
-                                      'bg-green-100 text-green-800 border-green-300',
-                                    record.status === 'FAIL' &&
-                                      'bg-red-100 text-red-800 border-red-300',
-                                    record.status === 'CONFIRMED' &&
-                                      'bg-blue-100 text-blue-800 border-blue-300',
-                                  )}
-                                >
-                                  {record.status}
-                                </Badge>
-                              </td>
-                              <td className="px-4 py-3 text-muted-foreground">
-                                {record.notes || '—'}
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                >
-                                  <svg
-                                    className="h-4 w-4"
-                                    fill="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle cx="5" cy="12" r="1.5" />
-                                    <circle cx="12" cy="12" r="1.5" />
-                                    <circle cx="19" cy="12" r="1.5" />
-                                  </svg>
-                                </Button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
+                <Separator />
+                <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
+              </div>
+              <DataTableClient
+                columns={complianceColumns}
+                data={complianceRecords}
+                searchPlaceHolder="Search by keyword..."
+              />
             </div>
           )}
 
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-2 mb-6">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button
+              variant="outline"
+              type="button"
+              className="cursor-pointer"
+              onClick={onCancel}
+            >
               Cancel
             </Button>
             <Button
               form="driver-form"
               type="submit"
-              disabled={isSubmitting}
+              disabled={isPending}
               className="cursor-pointer"
             >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending
                 ? isEditing
                   ? 'Saving Changes...'
                   : 'Adding Driver...'

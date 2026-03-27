@@ -15,10 +15,8 @@ import {
 } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  HaulierFormSchema,
-  HaulierFormValues,
-} from './schemas/haulier-form-schema';
+import { HaulierFormSchema } from './schemas/haulier-form-schema';
+import z from 'zod';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
 
 interface HaulierFormProps {
@@ -34,7 +32,7 @@ export default function HaulierForm({
   onSave,
   onCancel,
 }: HaulierFormProps) {
-  const form = useForm<HaulierFormValues>({
+  const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),
     mode: 'onChange',
     defaultValues: {
@@ -53,7 +51,7 @@ export default function HaulierForm({
     });
   }, [editingItem, form]);
 
-  function onSubmit(values: HaulierFormValues) {
+  function onSubmit(values: z.infer<typeof HaulierFormSchema>) {
     onSave({
       id: editingItem?.id ?? String(Date.now()),
       label: values.name,

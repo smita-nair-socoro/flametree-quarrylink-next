@@ -51,5 +51,3 @@ export const NewDriverFormSchema = z
       }
     }
   });
-
-export type NewDriverFormValues = z.infer<typeof NewDriverFormSchema>;
