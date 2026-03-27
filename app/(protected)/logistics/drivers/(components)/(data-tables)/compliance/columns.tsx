@@ -1,10 +1,10 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Badge } from '@/components/ui/badge';
-import { BADGE_COLORS } from '@/lib/utils';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ComplianceTableActions } from './compliance-table-actions';
+import { TableBadges } from '@/components/table-badges';
+import { DateCell } from '@/components/date-cell';
 
 export type ComplianceRecord = {
   id: number;
@@ -18,7 +18,9 @@ export const complianceColumns: ColumnDef<ComplianceRecord>[] = [
   {
     id: 'checklistId',
     accessorFn: (row) => row.checklistId,
-    header: ({ column }) => <TableClientSortableHeader column={column} title="Checklist ID" />,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Checklist ID" />
+    ),
     cell: ({ row }) => (
       <span className="font-medium py-2 block">{row.original.checklistId}</span>
     ),
@@ -26,30 +28,34 @@ export const complianceColumns: ColumnDef<ComplianceRecord>[] = [
   {
     id: 'date',
     accessorFn: (row) => row.date,
-    header: ({ column }) => <TableClientSortableHeader column={column} title="Date" />,
-    cell: ({ row }) => (
-      <span className="text-muted-foreground py-2 block">{row.original.date}</span>
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Date" />
+    ),
+    cell: ({ getValue }) => (
+      <DateCell dateString={getValue<string>()} side="top" />
     ),
   },
   {
     id: 'status',
     accessorFn: (row) => row.status,
-    header: ({ column }) => <TableClientSortableHeader column={column} title="Status" />,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Status" />
+    ),
     cell: ({ row }) => {
       const status = row.original.status;
-      return (
-        <Badge variant="outline" className={BADGE_COLORS[status]}>
-          {status}
-        </Badge>
-      );
+      return <TableBadges names={[status]} visibleCount={1} />;
     },
   },
   {
     id: 'notes',
     accessorFn: (row) => row.notes,
-    header: ({ column }) => <TableClientSortableHeader column={column} title="Notes" />,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Notes" />
+    ),
     cell: ({ row }) => (
-      <span className="text-muted-foreground py-2 block">{row.original.notes || '—'}</span>
+      <span className="text-muted-foreground py-2 block">
+        {row.original.notes || '—'}
+      </span>
     ),
   },
   {
