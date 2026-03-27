@@ -38,6 +38,7 @@ import { Badge } from '@/components/ui/badge';
 import { BADGE_COLORS } from '@/lib/utils';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
+import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { formatLocalDateShort } from '@/lib/utils/date';
 
 interface FormProps {
@@ -140,6 +141,7 @@ export default function DriverForm({
   const updateDriver = useUpdateDriver();
 
   const { driverData } = useDriverFormState(id, isEditing);
+  const { actions: truckActions, truckDialogs } = useDriverTruckActions(driverData);
 
   const driverForm = useForm<z.infer<typeof NewDriverFormSchema>>({
     resolver: zodResolver(NewDriverFormSchema),
@@ -260,6 +262,7 @@ export default function DriverForm({
 
   return (
     <div className="w-full relative">
+      {truckDialogs}
       {isPending && (
         <div
           className={cn(
@@ -483,7 +486,12 @@ export default function DriverForm({
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">Truck Assignments</h2>
-                <Button type="button" size="sm" className="cursor-pointer">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="cursor-pointer"
+                  onClick={() => truckActions.assign()}
+                >
                   Assign Trucks
                 </Button>
               </div>
@@ -518,6 +526,13 @@ export default function DriverForm({
                         variant="destructive"
                         size="sm"
                         className="cursor-pointer"
+                        onClick={() =>
+                          truckActions.unassign({
+                            id: truck.id,
+                            registration: truck.registration,
+                            status: truck.status,
+                          })
+                        }
                       >
                         Unassign
                       </Button>
