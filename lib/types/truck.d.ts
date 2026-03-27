@@ -3,6 +3,7 @@ import { TRUCK_STATUS, TRUCK_TYPE, TRUCK_BODY_TYPE } from './truck-enums';
 interface TruckDTO {
   id?: number;
   licensePlate: string;
+  vin?: string;
   model: string;
   truckType: TRUCK_TYPE;
   tankVolumeM3?: number;

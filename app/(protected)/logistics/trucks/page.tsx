@@ -8,9 +8,12 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { truckColumns } from './(components)/(data-tables)/truck/columns';
+import rawJson from '@/lib/tests/trucksResponseData.json';
 
 export default function TrucksPage() {
-  const items: TruckDTO[] = React.useMemo(() => [], []);
+  const items: TruckDTO[] = React.useMemo(() => {
+    return (rawJson.items as TruckDTO[]) ?? [];
+  }, []);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'truckStatus', title: 'Status', icon: Plus },

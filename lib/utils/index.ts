@@ -230,4 +230,16 @@ export const BADGE_COLORS: Record<string, string> = {
   'ON DUTY': 'bg-blue-100 text-blue-800 border-blue-800',
   PENDING_INVITATION: 'bg-yellow-100 text-yellow-800 border-yellow-800',
   'PENDING INVITATION': 'bg-yellow-100 text-yellow-800 border-yellow-800',
+  // Truck Type Badge Colors
+  TRUCK: 'bg-blue-600 text-blue-100 border-blue-100',
+  'TRUCK AND TRAILER': 'bg-indigo-600 text-indigo-100 border-indigo-100',
+  'SEMI TRAILER': 'bg-purple-600 text-purple-100 border-purple-100',
+  'RIGID TRUCK': 'bg-slate-600 text-slate-100 border-slate-100',
+  FLATBED: 'bg-orange-600 text-orange-100 border-orange-100',
+  TIPPER: 'bg-cyan-600 text-cyan-100 border-cyan-100',
+  TANDEM: 'bg-emerald-600 text-emerald-100 border-emerald-100',
+  QUAD: 'bg-lime-600 text-lime-100 border-lime-100',
+  'TRI AXLE': 'bg-amber-600 text-amber-100 border-amber-100',
+  TAUTLINER: 'bg-fuchsia-600 text-fuchsia-100 border-fuchsia-100',
+  'CRANE TRUCK': 'bg-rose-600 text-rose-100 border-rose-100',
 };

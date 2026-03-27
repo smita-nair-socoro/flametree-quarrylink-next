@@ -58,7 +58,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       if (!name) return <div className="py-2">-</div>;
       return (
         <div className="py-2">
-          <TableBadges names={[name]} visibleCount={1} />
+          <TableBadges names={[name]} visibleCount={1} variant="haulier" />
         </div>
       );
     },
