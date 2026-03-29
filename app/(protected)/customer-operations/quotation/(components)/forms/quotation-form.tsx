@@ -188,8 +188,6 @@ export default function QuotationForm({
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.email || '';
-    console.log('Customer Email:', customerEmail);
-    console.log('Selected Customer:', selectedCustomer);
     const receiptEmails = [
       customerEmail,
       ...(values.receiptEmail
