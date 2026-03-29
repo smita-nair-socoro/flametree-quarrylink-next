@@ -132,6 +132,9 @@ const VEHICLE_INSPECTION_QUESTIONS: Question[] = [
 export default function TruckInspectionChecklist({ onSubmit }: { onSubmit?: () => void }) {
   return (
     <BaseChecklist
+      title="Vehicle Inspection Checklist"
+      subtitle="DD-25-00002"
+      showBackButton={true}
       questions={VEHICLE_INSPECTION_QUESTIONS}
       alertMessage="Complete vehicle inspection for EXT-10042 before starting deliveries"
       submitButtonText="Confirm & Start Delivery"

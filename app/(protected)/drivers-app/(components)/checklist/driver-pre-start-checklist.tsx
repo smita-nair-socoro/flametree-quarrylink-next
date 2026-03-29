@@ -60,6 +60,7 @@ const DAILY_COMPLIANCE_QUESTIONS: Question[] = [
 export default function DriverPreStartChecklist({ onSubmit }: { onSubmit?: () => void }) {
   return (
     <BaseChecklist
+      title="Daily Compliance Checklist"
       questions={DAILY_COMPLIANCE_QUESTIONS}
       alertMessage="Complete this checklist before starting your deliveries"
       submitButtonText="Submit Checklist"

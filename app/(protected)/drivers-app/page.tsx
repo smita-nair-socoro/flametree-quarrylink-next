@@ -13,8 +13,8 @@ export default function DriversAppPage() {
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
 
   return (
-    <div className="flex min-h-screen">
-      <div className="w-full shadow-xl bg-white min-h-screen flex flex-col relative overflow-hidden">
+    <div className="flex h-full">
+      <div className="w-full shadow-xl bg-white h-full flex flex-col relative overflow-hidden">
         {isChecklistComplete && (
 
           <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-gray-100 gap-6 bg-white">

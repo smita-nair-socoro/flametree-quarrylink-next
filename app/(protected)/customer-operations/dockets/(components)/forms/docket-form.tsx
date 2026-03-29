@@ -27,7 +27,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { formatLocalDateShort, toUTCDateTimeWithoutZ } from '@/lib/utils/date';
+import { toUTCDateTimeWithoutZ } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -124,9 +124,9 @@ export default function DocketForm({
       const loadSize = values.loadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(

@@ -1,6 +1,6 @@
 'use client';
 import { ReactNode, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
@@ -14,6 +14,9 @@ import { navItems } from '@/components/app-sidebar';
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isDriversApp = pathname?.startsWith('/drivers-app');
 
   // Build quick lookup for plan by path and first essential fallback
   const { getPlanByPath, fallbackUrl } = useMemo(() => {
@@ -90,14 +93,16 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      {!isDriversApp && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
-        <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
-          {/* Mobile trigger - only visible when sidebar is closed */}
-          <SidebarTrigger className="md:hidden" />
-        </header>
-        <div className="flex-1 overflow-hidden bg-[#F9FAFB]">
-          <div className="h-full overflow-y-auto overflow-x-hidden p-4">
+        {!isDriversApp && (
+          <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
+            {/* Mobile trigger - only visible when sidebar is closed */}
+            <SidebarTrigger className="md:hidden" />
+          </header>
+        )}
+        <div className="flex-1 overflow-auto bg-[#F9FAFB]">
+          <div className="h-full overflow-auto">
             {children}
           </div>
         </div>
