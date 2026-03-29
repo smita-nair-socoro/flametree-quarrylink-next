@@ -186,11 +186,10 @@ export default function QuotationForm({
   }, [customers, quotationForm, isEditing]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    console.log(values);
-
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.email || '';
-
+    console.log('Customer Email:', customerEmail);
+    console.log('Selected Customer:', selectedCustomer);
     const receiptEmails = [
       customerEmail,
       ...(values.receiptEmail
@@ -200,7 +199,6 @@ export default function QuotationForm({
             .filter(Boolean)
         : []),
     ].filter(Boolean);
-    console.log('Parsed receipt emails:', receiptEmails);
     const customerName =
       customers.find((c) => c.id === values.customerId)?.businessName ||
       customers.find((c) => c.id === values.customerId)?.contactName ||
@@ -221,7 +219,7 @@ export default function QuotationForm({
             lineItemsCount: 0,
           }),
           email: customerEmail,
-          additionalEmailRecipients: receiptEmails,
+          emailRecipients: receiptEmails,
         };
 
         // For duplicate, we pass the original ID and the new form data
@@ -261,7 +259,7 @@ export default function QuotationForm({
             lineItemsCount: 0,
           }),
           email: customerEmail,
-          additionalEmailRecipients: receiptEmails,
+          emailRecipients: receiptEmails,
         };
 
         const newQuotation = await createQuotation.mutateAsync(transformed);
@@ -298,7 +296,7 @@ export default function QuotationForm({
           lineItemsCount: 0,
         }),
         email: customerEmail,
-        additionalEmailRecipients: receiptEmails,
+        emailRecipients: receiptEmails,
       };
 
       try {
@@ -546,45 +544,45 @@ export default function QuotationForm({
               )}
             />
 
-            <FormField
-              control={quotationForm.control}
-              name="receiptEmail"
-              render={({ field }) => {
-                const selectedCustomer = customers.find(
-                  (c) => c.id === quotationForm.watch('customerId'),
-                );
-                const customerEmail = selectedCustomer?.email;
-                const fixedValues = customerEmail ? [customerEmail] : [];
+            {isEditing && (
+              <FormField
+                control={quotationForm.control}
+                name="receiptEmail"
+                render={({ field }) => {
+                  const selectedCustomer = customers.find(
+                    (c) => c.id === quotationForm.watch('customerId'),
+                  );
+                  const customerEmail = selectedCustomer?.email;
+                  const fixedValues = customerEmail ? [customerEmail] : [];
 
-                return (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Recipient Email *</FormLabel>
-                    <FormControl>
-                      <MultipleInput
-                        className="w-full"
-                        placeholder={
-                          quotationForm.watch('customerId') === 0
-                            ? 'Select Customer First'
-                            : 'Enter Recipient Emails'
-                        }
-                        fixedValues={fixedValues}
-                        validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
-                        label="Press Enter or comma to add email addresses"
-                        {...field}
-                        disabled={isEditing && !canEdit}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+                  return (
+                    <FormItem
+                      className={
+                        isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>Recipient Email *</FormLabel>
+                      <FormControl>
+                        <MultipleInput
+                          className="w-full"
+                          placeholder={
+                            quotationForm.watch('customerId') === 0
+                              ? 'Select Customer First'
+                              : 'Enter Recipient Emails'
+                          }
+                          fixedValues={fixedValues}
+                          validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                          label="Press Enter or comma to add email addresses"
+                          {...field}
+                          disabled={!canEdit}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            )}
 
             {isEditing && (
               <FormField

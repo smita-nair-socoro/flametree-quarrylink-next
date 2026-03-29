@@ -99,8 +99,6 @@ const getDialogConfigs = (
     fixedCustomerEmail ||
     quotationData?.email ||
     quotationData?.customerWithAddressResponseDto?.email;
-  const additionalEmailRecipients =
-    quotationData?.additionalEmailRecipients ?? [];
   const totalSellPriceExGST = quotationData?.totalSellPrice || 0;
   const gst = totalSellPriceExGST * 0.1;
   const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
@@ -843,17 +841,6 @@ const getDialogConfigs = (
 };
 
 export function useQuotationActions(quotationData?: Quotation | null) {
-  const fallbackQuotation = useQuotationStore((state) =>
-    state.selectedQuotation?.id
-      ? state.getQuotationById(state.selectedQuotation.id)
-      : null,
-  );
-
-  // Prefer provided prop, then store fallback
-  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
-
-  // Use detailed data if available, otherwise fall back to list/store data
-  const quotationToUse = resolvedQuotation;
   const selectedQuotation = useQuotationStore(
     (state) => state.selectedQuotation,
   );
@@ -883,14 +870,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   const { data: customers = [] } = useQuery(CustomersListQueryOptions());
   const sendDialogCustomerEmail = React.useMemo(() => {
-    const customer = customers.find((c) => c.id === quotationToUse?.customerId);
-    return (
-      customer?.email ||
-      quotationToUse?.email ||
-      quotationToUse?.customerWithAddressResponseDto?.email ||
-      ''
-    );
-  }, [customers, quotationToUse]);
+    const customer = customers.find((c) => c.id === quotationData?.customerId);
+    return customer?.email || '';
+  }, [customers, quotationData]);
 
   const user = useClientStore((state) => state.user);
   const router = useRouter();
@@ -934,34 +916,24 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   // Reset recipient emails when send-to-customer dialog opens
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
-      const existing = quotationToUse?.additionalEmailRecipients ?? [];
-      const emails = sendDialogCustomerEmail
-        ? [
-            sendDialogCustomerEmail,
-            ...existing.filter((e) => e !== sendDialogCustomerEmail),
-          ]
-        : existing;
+      const emails = [sendDialogCustomerEmail];
       setAdditionalRecipientEmails(emails);
     }
   }, [selectedAction?.key]);
 
-  // Fetch detailed quotation data with line items from backend - REMOVED
-
-  // Update store with detailed quotation that includes line items - REMOVED
-
   // Sync includeDeliveryPrices with backend value when quotation data changes
   React.useEffect(() => {
-    if (resolvedQuotation?.inclDeliveryCost !== undefined) {
-      setIncludeDeliveryPrices(resolvedQuotation.inclDeliveryCost);
+    if (quotationData?.inclDeliveryCost !== undefined) {
+      setIncludeDeliveryPrices(quotationData.inclDeliveryCost);
     }
-  }, [resolvedQuotation?.inclDeliveryCost]);
+  }, [quotationData?.inclDeliveryCost]);
 
-  // Sync resolvedQuotation to store when view is open, to ensure FormDialog (which reads from store) has fresh data
+  // Sync quotationData to store when view is open, to ensure FormDialog (which reads from store) has fresh data
   React.useEffect(() => {
-    if (viewOpen && resolvedQuotation) {
-      setSelectedQuotation(resolvedQuotation);
+    if (viewOpen && quotationData) {
+      setSelectedQuotation(quotationData);
     }
-  }, [viewOpen, resolvedQuotation, setSelectedQuotation]);
+  }, [viewOpen, quotationData, setSelectedQuotation]);
 
   const handlePreviewFromDialog = () => {
     if (!quotationId) {
@@ -976,7 +948,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const dialogConfigs = getDialogConfigs(
-    quotationToUse,
+    quotationData,
     selectedAction || undefined,
     newExpiryDate,
     setNewExpiryDate,
@@ -1004,8 +976,8 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   const handleSendToCustomerClick = () => {
     // Guard: don't open the dialog if the quote is already expired
-    if (quotationToUse?.expiryDate) {
-      const expiry = new Date(quotationToUse.expiryDate);
+    if (quotationData?.expiryDate) {
+      const expiry = new Date(quotationData.expiryDate);
       if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
         notifyError(
           `Quote expired on ${expiry.toLocaleDateString(
@@ -1024,11 +996,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const buildUpdatePayload = (
     overrides: Partial<QuotationDTO>,
   ): Partial<QuotationDTO> | null => {
-    if (!resolvedQuotation) return null;
+    if (!quotationData) return null;
 
-    const { quoteStatus, ...quotationData } = resolvedQuotation;
+    const { quoteStatus, ...rest } = quotationData;
     return {
-      ...quotationData,
+      ...rest,
       quoteStatus: overrides.quoteStatus ?? quoteStatus,
       ...overrides,
     };
@@ -1068,7 +1040,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleApprove = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId || !quotationData) {
       notifyError(extractErrorMessage('Unable to approve quotation'));
       return;
     }
@@ -1191,7 +1163,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleArchive = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId || !quotationData) {
       notifyError(extractErrorMessage('Unable to archive quotation'));
       return;
     }
@@ -1331,7 +1303,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     );
   });
 
-  const canEdit = resolvedQuotation?.quoteStatus === 'DRAFT';
+  const canEdit = quotationData?.quoteStatus === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
@@ -1347,7 +1319,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
           }, 100);
         }
       }}
-      headerButtons={<QuotationActionButtons quotation={resolvedQuotation} />}
+      headerButtons={<QuotationActionButtons quotation={quotationData} />}
       hideTrigger
       headerInfo={{
         useSelectedQuotation: true,
@@ -1364,7 +1336,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         <span>
           Duplicating Quote{' '}
           <span className="text-purple-600">
-            {resolvedQuotation?.quoteNumber || ''}
+            {quotationData?.quoteNumber || ''}
           </span>
         </span>
       }
