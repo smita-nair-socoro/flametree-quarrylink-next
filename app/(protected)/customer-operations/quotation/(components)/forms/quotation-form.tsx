@@ -214,7 +214,7 @@ export default function QuotationForm({
             accountManagerSub:
               values.accountManagerSub ||
               'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-            lineItemsCount: 0,
+            lineItemsCount: currentQuotation?.lineItemsCount ?? 0,
           }),
           email: customerEmail,
           emailRecipients: receiptEmails,
@@ -291,7 +291,7 @@ export default function QuotationForm({
           accountManagerSub:
             values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
           quoteNumber: currentQuotation?.quoteNumber || '',
-          lineItemsCount: 0,
+          lineItemsCount: currentQuotation?.lineItemsCount ?? 0,
         }),
         email: customerEmail,
         emailRecipients: receiptEmails,
