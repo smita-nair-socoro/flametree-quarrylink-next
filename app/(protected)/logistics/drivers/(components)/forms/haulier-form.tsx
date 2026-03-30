@@ -20,6 +20,9 @@ import {
   HaulierFormValues,
 } from './schemas/haulier-form-schema';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
+import { useCreateHaulier } from '@/lib/api/haulier';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface HaulierFormProps {
   editingItem?: SelectCreateEditItem | null;
@@ -34,6 +37,8 @@ export default function HaulierForm({
   onSave,
   onCancel,
 }: HaulierFormProps) {
+  const createHaulier = useCreateHaulier();
+
   const form = useForm<HaulierFormValues>({
     resolver: zodResolver(HaulierFormSchema),
     mode: 'onChange',
@@ -53,18 +58,39 @@ export default function HaulierForm({
     });
   }, [editingItem, form]);
 
-  function onSubmit(values: HaulierFormValues) {
-    onSave({
-      id: editingItem?.id ?? String(Date.now()),
-      label: values.name,
-      fields: { email: values.email, phone: values.phone },
-    });
+  async function onSubmit(values: HaulierFormValues) {
+    if (!isEditing) {
+      try {
+        const result = await createHaulier.mutateAsync({
+          haulierName: values.name,
+          haulierEmailAddress: values.email,
+          haulierPhoneNumber: values.phone,
+        });
+        notifySuccess('Haulier created successfully.');
+        onSave({
+          id: String(result.id),
+          label: result.haulierName,
+          fields: { email: result.emailAddress, phone: result.phoneNumber },
+        });
+      } catch (error: unknown) {
+        notifyError(extractErrorMessage(error));
+      }
+    } else {
+      onSave({
+        id: editingItem?.id ?? String(Date.now()),
+        label: values.name,
+        fields: { email: values.email, phone: values.phone },
+      });
+    }
   }
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={(e) => {
+          e.stopPropagation();
+          void form.handleSubmit(onSubmit)(e);
+        }}
         className="flex flex-col gap-4"
       >
         <Separator />
@@ -122,6 +148,7 @@ export default function HaulierForm({
           <Button
             type="submit"
             className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+            disabled={createHaulier.isPending}
           >
             {isEditing ? 'Update Haulier' : 'Add Haulier'}
           </Button>
