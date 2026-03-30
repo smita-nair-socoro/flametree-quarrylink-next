@@ -25,11 +25,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDocketActions } from '@/hooks/use-docket-actions';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 interface DocketTableActionsProps {
-  docket: Docket;
+  docket: DocketDTO;
 }
 
 type ActionType =
@@ -65,62 +65,171 @@ interface ActionItem {
 
 const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.PENDING]: [
-    { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing', separator: true },
+    {
+      label: 'Start Preparing',
+      icon: CirclePlay,
+      action: 'startPreparing',
+      separator: true,
+    },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.PREPARING]: [
     { label: 'Mark Ready', icon: Check, action: 'markReady', separator: true },
-    { label: 'Back to Pending', icon: Undo2, action: 'backToPending', separator: true },
+    {
+      label: 'Back to Pending',
+      icon: Undo2,
+      action: 'backToPending',
+      separator: true,
+    },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.READY]: [
-    { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected', separator: true },
-    { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing', separator: true },
+    {
+      label: 'Mark Collected',
+      icon: CircleCheckBig,
+      action: 'markCollected',
+      separator: true,
+    },
+    {
+      label: 'Back to Preparing',
+      icon: Undo2,
+      action: 'backToPreparing',
+      separator: true,
+    },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
+    {
+      label: 'Cash Sale',
+      icon: ReceiptText,
+      action: 'cashSale',
+      separator: true,
+    },
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
-    { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts', separator: true },
+    {
+      label: 'Cash Receipts',
+      icon: ReceiptText,
+      action: 'cashReceipts',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.INVOICED]: [
-    { label: 'View Invoice', icon: Receipt, action: 'viewInvoice', separator: true },
+    {
+      label: 'View Invoice',
+      icon: Receipt,
+      action: 'viewInvoice',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
     { label: 'Assign', icon: UserRoundPlus, action: 'assign', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.ASSIGNED]: [
-    { label: 'Start Transit', icon: CirclePlay, action: 'startTransit', separator: true },
+    {
+      label: 'Start Transit',
+      icon: CirclePlay,
+      action: 'startTransit',
+      separator: true,
+    },
     { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.IN_TRANSIT]: [
-    { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived', separator: true },
-    { label: 'Stop', icon: Square, action: 'stop', className: 'text-red-600', separator: true },
+    {
+      label: 'Mark Arrived',
+      icon: CircleCheckBig,
+      action: 'markArrived',
+      separator: true,
+    },
+    {
+      label: 'Stop',
+      icon: Square,
+      action: 'stop',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.STOPPED]: [
-    { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit', separator: true },
+    {
+      label: 'Resume Transit',
+      icon: ReceiptText,
+      action: 'resumeTransit',
+      separator: true,
+    },
     { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.ARRIVED]: [
-    { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered', separator: true },
+    {
+      label: 'Mark Delivered',
+      icon: CircleCheckBig,
+      action: 'markDelivered',
+      separator: true,
+    },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.DELIVERED]: [
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
 };
 
@@ -135,7 +244,7 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
     }
   };
 
-  const currentActions = ACTION_CONFIG[docket.status] || [];
+  const currentActions = ACTION_CONFIG[docket.docketStatus] || [];
 
   return (
     <div>

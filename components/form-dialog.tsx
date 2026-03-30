@@ -316,7 +316,7 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedDocket && selectedDocket) {
     finalCustomId = selectedDocket.docketNumber;
-    finalPrimaryBadges = [selectedDocket.status];
+    finalPrimaryBadges = [selectedDocket.docketStatus];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';

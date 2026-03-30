@@ -19,7 +19,11 @@ import {
   createPricingColumns,
   MobilePricingList,
 } from './pricing-columns';
-import { createTruckRateColumns, MobileTruckRateList } from './truck-rate-columns';
+import {
+  createTruckRateColumns,
+  MobileTruckRateList,
+} from './truck-rate-columns';
+import { Separator } from 'react-aria-components';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -238,16 +242,28 @@ export function CompareSupplierTable({
       default:
         return null;
     }
-  }, [activeTab, data, tnMeta, m3Meta, kgMeta, bulkaMeta, lowestTn, availableOnly, sortCost]);
+  }, [
+    activeTab,
+    data,
+    tnMeta,
+    m3Meta,
+    kgMeta,
+    bulkaMeta,
+    lowestTn,
+    availableOnly,
+    sortCost,
+  ]);
 
   return (
     <div className="flex flex-col gap-1 overflow-x-hidden">
-      {productName && (
-        <p className="text-sm font-medium text-[#101828]">{productName}</p>
-      )}
-      <p className="text-sm text-muted-foreground">
-        Pricing Comparison · {activeTab}
-      </p>
+      <div className="px-5">
+        {productName && (
+          <p className="text-sm font-medium text-[#101828]">{productName}</p>
+        )}
+        <p className="text-sm text-muted-foreground">
+          Pricing Comparison · {activeTab}
+        </p>
+      </div>
 
       {isDesktop ? (
         <Tab
@@ -255,71 +271,73 @@ export function CompareSupplierTable({
           variant="underline"
           value={activeTab}
           onValueChange={setActiveTab}
-          className="mt-2"
+          className="mt-2 px-5"
         />
       ) : (
         <div className="mt-2">
-          <MobileScrollableTabs
-            tabs={mobileTabs}
-            value={activeTab}
-            onValueChange={setActiveTab}
-          />
+          <div className="px-5">
+            <MobileScrollableTabs
+              tabs={mobileTabs}
+              value={activeTab}
+              onValueChange={setActiveTab}
+            />
+          </div>
 
-          {/* Controls — pricing tabs only */}
-          {isPricingTab && (
-            <div className="flex items-center justify-between gap-3 mt-3">
-              <button
-                type="button"
-                onClick={() => setAvailableOnly((v) => !v)}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors',
-                  availableOnly
-                    ? 'border-[#8E51FF] text-[#8E51FF] bg-purple-50'
-                    : 'border-gray-300 text-gray-600 bg-white',
-                )}
-              >
-                <Circle
+          <Separator className="my-2" />
+          <div className="bg-[#F9FAFB] p-5 flex flex-col gap-3">
+            {/* Controls — pricing tabs only */}
+            {isPricingTab && (
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAvailableOnly((v) => !v)}
                   className={cn(
-                    'h-4 w-4',
-                    availableOnly ? 'fill-[#8E51FF] text-[#8E51FF]' : 'text-gray-400',
+                    'flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors',
+                    availableOnly
+                      ? 'border-[#8E51FF] text-[#8E51FF] bg-purple-50'
+                      : 'border-gray-300 text-gray-600 bg-white',
                   )}
-                />
-                Available only
-              </button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-600 bg-white"
-                  >
-                    <ListFilter className="h-4 w-4 text-gray-400" />
-                    Sort: Cost
-                    {sortCost === 'asc' ? (
-                      <ArrowUp className="h-3.5 w-3.5 text-gray-500" />
-                    ) : (
-                      <ArrowDown className="h-3.5 w-3.5 text-gray-500" />
+                >
+                  <Circle
+                    className={cn(
+                      'h-4 w-4',
+                      availableOnly
+                        ? 'fill-[#8E51FF] text-[#8E51FF]'
+                        : 'text-gray-400',
                     )}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSortCost('asc')}>
-                    Low to High
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortCost('desc')}>
-                    High to Low
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
+                  />
+                  Available only
+                </button>
 
-          {/* Swipe hint */}
-          <p className="text-center text-xs text-gray-400 mt-3">
-            ← swipe to switch tabs →
-          </p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-600 bg-white"
+                    >
+                      <ListFilter className="h-4 w-4 text-gray-400" />
+                      Sort: Cost
+                      {sortCost === 'asc' ? (
+                        <ArrowUp className="h-3.5 w-3.5 text-gray-500" />
+                      ) : (
+                        <ArrowDown className="h-3.5 w-3.5 text-gray-500" />
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSortCost('asc')}>
+                      Low to High
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortCost('desc')}>
+                      High to Low
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
 
-          {mobileContent}
+            {mobileContent}
+          </div>
         </div>
       )}
     </div>

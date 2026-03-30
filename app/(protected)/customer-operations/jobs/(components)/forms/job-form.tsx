@@ -27,20 +27,21 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState, EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
-import { GetTodaysDate } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { useCreateJob } from '@/lib/api/job';
+import { useCreateJob, useUpdateJob } from '@/lib/api/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
-// import DocketsTab from './tabs/dockets/dockets-tab';
+import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
+import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
+import { JobDTO } from '@/lib/types/job';
 
 
 interface FormProps {
@@ -55,7 +56,6 @@ interface FormProps {
 
 export default function JobForm({
   id,
-  canEdit,
   className,
   onDirtyChange,
   onSaved,
@@ -104,6 +104,7 @@ export default function JobForm({
   }, [isEditing, jobDetails, jobForm]);
 
   const createJob = useCreateJob();
+  const updateJob = useUpdateJob();
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -166,10 +167,6 @@ export default function JobForm({
     }));
   }, [users]);
 
-  const today = React.useMemo(() => {
-    const d = GetTodaysDate();
-    return d;
-  }, []);
 
   const tabs = React.useMemo(
     () => [
@@ -177,10 +174,10 @@ export default function JobForm({
         name: 'Products',
         content: <LineItemsTab jobLineItems={jobItems} />,
       },
-      // {
-      //   name: 'Dockets',
-      //   content: <DocketsTab selectedJob={null} />,
-      // },
+      {
+        name: 'Dockets',
+        content: <DocketsTab selectedJob={jobDetails ?? null} />,
+      },
       {
         name: 'Invoices',
         content: <InvoicesTab />,
@@ -195,7 +192,6 @@ export default function JobForm({
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
     console.log(values);
-    if (isEditing) return; // edit not yet implemented
     console.log('onSubmit function called!');
 
     try {
@@ -214,8 +210,7 @@ export default function JobForm({
         (email) => email !== selectedCustomer?.email,
       );
 
-
-      await createJob.mutateAsync({
+      const payload = {
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
@@ -223,25 +218,45 @@ export default function JobForm({
         contactPersonPhone: values.phone,
         docketEmail: selectedCustomer?.email,
         additionalEmailRecipients: additionalEmails,
-        jobStatus: JOB_STATUS.ACTIVE,
+        jobStatus: isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
         startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
         endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
-      });
+      };
 
-      notifySuccess('Job created successfully');
+      if (isEditing && jobId) {
+        await updateJob.mutateAsync({
+          id: jobId,
+          data: {
+            ...(jobDetails as JobDTO),
+            ...payload,
+          } as JobDTO
+        });
+        notifySuccess('Job updated successfully');
+      } else {
+        const createdJob = await createJob.mutateAsync(payload);
+
+        if (createdJob?.id) {
+          addNewRecordId('job_main_data_table', createdJob.id);
+        }
+
+        notifySuccess('Job created successfully');
+      }
+
       onSaved?.();
       onSuccess?.();
     } catch (error) {
       notifyError(
-        extractErrorMessage(error) || 'Failed to create job. Please try again.',
+        extractErrorMessage(error) || `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
 
+  const isPending = createJob.isPending || updateJob.isPending;
+
   return (
     <div className="w-full relative">
-      {createJob.isPending && (
+      {isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -299,7 +314,6 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
-              disabled={isEditing && !canEdit}
             />
 
             <FormSelect
@@ -412,7 +426,6 @@ export default function JobForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
-                        disabled={{ before: today }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -511,12 +524,12 @@ export default function JobForm({
                 form="add-new-job-form"
                 className="cursor-pointer"
                 type="submit"
-                disabled={createJob.isPending || (isEditing && !canEdit)}
+                disabled={isPending}
               >
-                {createJob.isPending && (
+                {isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {createJob.isPending
+                {isPending
                   ? isEditing
                     ? 'Saving Changes...'
                     : 'Adding Job...'
@@ -534,10 +547,10 @@ export default function JobForm({
                 type="submit"
                 className="cursor-pointer"
               >
-                {createJob.isPending && (
+                {isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {createJob.isPending
+                {isPending
                   ? isEditing
                     ? 'Saving Changes...'
                     : 'Adding Job...'
@@ -550,7 +563,7 @@ export default function JobForm({
                 type="button"
                 variant="outline"
                 className="cursor-pointer"
-                disabled={createJob.isPending || (isEditing && !canEdit)}
+                disabled={isPending}
                 onClick={onCancel}
               >
                 Cancel

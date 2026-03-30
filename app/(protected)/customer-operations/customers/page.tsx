@@ -53,7 +53,7 @@ export default function CustomersPage() {
     if (isEssentials) {
       // Hide remaining_credit column for Essentials users
       return customerColumns.filter(
-        (column) => column.id !== 'remaining_credit'
+        (column) => column.id !== 'remaining_credit',
       );
     }
     return customerColumns;
@@ -75,8 +75,9 @@ export default function CustomersPage() {
     {
       title: 'Total Customers',
       value: reportingData?.totalCustomers || 0,
-      description: `+${reportingData?.totalCustomersChangePercentThisMonth || 0
-        } this month`,
+      description: `+${
+        reportingData?.totalCustomersChangePercentThisMonth || 0
+      } this month`,
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -85,8 +86,9 @@ export default function CustomersPage() {
     {
       title: 'Active Customers',
       value: reportingData?.totalActiveCustomers || 0,
-      description: `${reportingData?.activeCustomersPercentOfTotal || 0
-        }% of total`,
+      description: `${
+        reportingData?.activeCustomersPercentOfTotal || 0
+      }% of total`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -95,8 +97,9 @@ export default function CustomersPage() {
     {
       title: 'Total Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
-      description: `${reportingData?.businessCustomerQuotesPercent || 0
-        }% requested quotes`,
+      description: `${
+        reportingData?.businessCustomerQuotesPercent || 0
+      }% requested quotes`,
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
       iconColor: 'text-[#8E51FF]',
@@ -105,8 +108,9 @@ export default function CustomersPage() {
     {
       title: 'Total Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
-      description: `${reportingData?.individualCustomerQuotesPercent || 0
-        }% requested quotes`,
+      description: `${
+        reportingData?.individualCustomerQuotesPercent || 0
+      }% requested quotes`,
       icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
       iconColor: 'text-[#DB2777]',
@@ -129,7 +133,7 @@ export default function CustomersPage() {
   // Mobile card renderer
   const renderCustomerCard = React.useCallback((customer: CustomerDTO) => {
     const formattedStatus = formatCustomerStatus(
-      customer.customerStatus as CUSTOMER_STATUS
+      customer.customerStatus as CUSTOMER_STATUS,
     );
     const displayName =
       customer.customerType === 'BUSINESS'
@@ -240,7 +244,7 @@ export default function CustomersPage() {
               tableId="customer_main_data_table"
               data={items ?? []}
               columns={filteredColumns}
-              facetDefination={facetDefs}
+              facetDefinition={facetDefs}
               searchPlaceHolder="Search customers..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'customer_name', desc: false }]}

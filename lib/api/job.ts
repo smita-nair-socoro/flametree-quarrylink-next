@@ -91,3 +91,31 @@ export const useCreateJobItem = () => {
     },
   });
 };
+
+export const useUpdateJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: JobDTO }) =>
+      APIClient.jobs.updateJob(id, data),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
+export const useUpdateJobItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<JobItem> }) =>
+      APIClient.jobs.updateJobItem(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.jobId) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};

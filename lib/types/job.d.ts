@@ -7,7 +7,7 @@ export interface JobDTO {
   jobNumber?: string;
   customerId: number;
   customerDto?: Partial<CustomerDTO>;
-  customerWithAddressResponseDto?: CustomerWithAddressResponseDTO;
+  customerWithAddressResponse?: CustomerWithAddressResponseDTO;
   projectName: string;
   jobStatus: JOB_STATUS;
   poNumber?: string;
@@ -31,7 +31,7 @@ export interface Job {
   customerId: number;
   email: string;
   phone: string;
-  customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
+  customerWithAddressResponse: CustomerWithAddressResponseDTO;
   accountManagerSub: string;
   accountManagerName: string;
   uninvoicedDockets: number;

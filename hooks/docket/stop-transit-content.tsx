@@ -3,7 +3,7 @@
 import { AlertTriangle, CircleStop } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
 const STOP_REASONS = [
   { value: 'vehicle-breakdown', label: 'Vehicle breakdown' },
@@ -19,7 +19,7 @@ const STOP_REASONS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function StopTransitDescription({ docket }: { docket?: Docket | null }) {
+export function StopTransitDescription({ docket }: { docket?: DocketDTO | null }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FFF7ED]">
@@ -30,9 +30,9 @@ export function StopTransitDescription({ docket }: { docket?: Docket | null }) {
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-          <span>{docket?.contactName ?? '—'}</span>
+          <span>{docket?.customerContactName ?? '—'}</span>
           <span className="font-bold">•</span>
-          <span>{docket?.truckType ?? '—'}</span>
+          <span>{docket?.jobItem.truckType ?? '—'}</span>
         </div>
       </div>
     </div>

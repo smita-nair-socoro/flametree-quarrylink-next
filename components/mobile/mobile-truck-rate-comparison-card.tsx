@@ -5,6 +5,11 @@ import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
 import { Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 export interface MobileTruckRateComparisonCardProps {
   supplier: QuarriesWithProduct;
@@ -44,7 +49,7 @@ export function MobileTruckRateComparisonCard({
       className={cn(
         'rounded-xl border overflow-hidden',
         isLowestTnRate
-          ? 'border-2 border-green-500 shadow-[0_0_12px_rgba(34,197,94,0.35)]'
+          ? 'border-2 border-green-500 shadow-[0_0_3px_rgba(34,197,94,0.3)]'
           : 'border-gray-200',
       )}
     >
@@ -61,7 +66,16 @@ export function MobileTruckRateComparisonCard({
               <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
             </div>
           )}
-          <span className="font-bold text-[#101828] text-base truncate">{name}</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="font-bold text-[#101828] text-base truncate">
+                {name}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">{name}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
         {isLowestTnRate && (
           <span className="text-sm font-medium text-green-600 shrink-0 ml-2">
@@ -93,7 +107,14 @@ export function MobileTruckRateComparisonCard({
           </div>
           <div className="flex items-center justify-between pl-4">
             <span className="text-sm text-gray-500">m³ Rate</span>
-            <span className={cn('text-sm', m3Rate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
+            <span
+              className={cn(
+                'text-sm',
+                m3Rate === 'N/A'
+                  ? 'text-gray-400'
+                  : 'font-medium text-[#101828]',
+              )}
+            >
               {m3Rate}
             </span>
           </div>
@@ -103,13 +124,27 @@ export function MobileTruckRateComparisonCard({
         <div className="grid grid-cols-2 divide-x divide-gray-200 py-2.5">
           <div className="flex items-center justify-between pr-4">
             <span className="text-sm text-gray-500">kg Rate</span>
-            <span className={cn('text-sm', kgRate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
+            <span
+              className={cn(
+                'text-sm',
+                kgRate === 'N/A'
+                  ? 'text-gray-400'
+                  : 'font-medium text-[#101828]',
+              )}
+            >
               {kgRate}
             </span>
           </div>
           <div className="flex items-center justify-between pl-4">
             <span className="text-sm text-gray-500">Bulka Rate</span>
-            <span className={cn('text-sm', bulkaRate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
+            <span
+              className={cn(
+                'text-sm',
+                bulkaRate === 'N/A'
+                  ? 'text-gray-400'
+                  : 'font-medium text-[#101828]',
+              )}
+            >
               {bulkaRate}
             </span>
           </div>
@@ -119,13 +154,27 @@ export function MobileTruckRateComparisonCard({
         <div className="grid grid-cols-2 divide-x divide-gray-200 py-2.5">
           <div className="flex items-center justify-between pr-4">
             <span className="text-sm text-gray-500">Hourly Rate</span>
-            <span className={cn('text-sm', hourlyRate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
+            <span
+              className={cn(
+                'text-sm',
+                hourlyRate === 'N/A'
+                  ? 'text-gray-400'
+                  : 'font-medium text-[#101828]',
+              )}
+            >
               {hourlyRate}
             </span>
           </div>
           <div className="flex items-center justify-between pl-4">
             <span className="text-sm text-gray-500">Load Rate</span>
-            <span className={cn('text-sm', loadRate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
+            <span
+              className={cn(
+                'text-sm',
+                loadRate === 'N/A'
+                  ? 'text-gray-400'
+                  : 'font-medium text-[#101828]',
+              )}
+            >
               {loadRate}
             </span>
           </div>
@@ -135,7 +184,14 @@ export function MobileTruckRateComparisonCard({
         <div className="grid grid-cols-2 divide-x divide-gray-200 py-2.5">
           <div className="flex items-center justify-between pr-4">
             <span className="text-sm text-gray-500">Distance Rate</span>
-            <span className={cn('text-sm', distanceRate === 'N/A' ? 'text-gray-400' : 'font-medium text-[#101828]')}>
+            <span
+              className={cn(
+                'text-sm',
+                distanceRate === 'N/A'
+                  ? 'text-gray-400'
+                  : 'font-medium text-[#101828]',
+              )}
+            >
               {distanceRate}
             </span>
           </div>
