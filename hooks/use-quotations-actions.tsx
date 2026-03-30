@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
@@ -16,7 +17,6 @@ import {
   // Quote,
   Send,
   Eye,
-  X,
   Briefcase,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
+  useConvertToJob,
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
@@ -44,12 +45,9 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import {
-  QUOTE_ITEM_TYPE as QuoteItemType,
-  QUOTE_STATUS as QuoteStatus,
-} from '@/lib/types/quotation-enums';
-import { Input } from '@/components/ui/input';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { useClientStore } from '@/app/stores/client-store';
+import { MultipleInput } from '@/components/ui/multiple-input';
 
 interface DialogConfig {
   title?: string;
@@ -73,14 +71,6 @@ interface SelectedAction {
   key: string;
 }
 
-// Rainbow chip colours for recipient email tags (used by index)
-const RECIPIENT_CHIP_COLORS = [
-  { bgColour: '#DBEAFE', textColour: '#193CB8' },
-  { bgColour: '#FEF9C2', textColour: '#894B00' },
-  { bgColour: '#CEFAFE', textColour: '#005F78' },
-  { bgColour: '#FCE7F3', textColour: '#A3004C' },
-];
-
 const getDialogConfigs = (
   quotationData?: Quotation | null,
   selectedAction?: SelectedAction,
@@ -98,8 +88,6 @@ const getDialogConfigs = (
   isDeclineFormValid?: boolean,
   additionalRecipientEmails?: string[],
   setAdditionalRecipientEmails?: (emails: string[]) => void,
-  recipientEmailInputValue?: string,
-  setRecipientEmailInputValue?: (value: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
@@ -227,85 +215,20 @@ const getDialogConfigs = (
               <span className="font-semibold text-[14px] text-[#101828]">
                 Recipient Emails*
               </span>
-              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px]">
-                {customerEmail && (
-                  <span
-                    className={
-                      'inline-flex items-center rounded-xl px-2.5 text-[14px] border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
-                    }
-                  >
-                    {customerEmail}
-                  </span>
-                )}
-                {additionalRecipientEmails?.map((email, idx) => (
-                  <span
-                    key={`${email}-${idx}`}
-                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] border-0 text-[#1F2937] font-semibold"
-                    style={{
-                      backgroundColor:
-                        RECIPIENT_CHIP_COLORS[
-                          (idx % (RECIPIENT_CHIP_COLORS.length - 1)) + 1
-                        ].bgColour,
-                      color:
-                        RECIPIENT_CHIP_COLORS[
-                          (idx % (RECIPIENT_CHIP_COLORS.length - 1)) + 1
-                        ].textColour,
-                    }}
-                  >
-                    {email}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        const next = additionalRecipientEmails.filter(
-                          (_, i) => i !== idx,
-                        );
-                        setAdditionalRecipientEmails?.(next);
-                      }}
-                      className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 hover:bg-transparent focus:outline-none focus-visible:ring-0"
-                      aria-label={`Remove ${email}`}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </span>
-                ))}
-                <Input
-                  type="email"
-                  placeholder="Add email..."
-                  value={recipientEmailInputValue ?? ''}
-                  onChange={(e) =>
-                    setRecipientEmailInputValue?.(e.target.value)
-                  }
-                  onBlur={() => setRecipientEmailInputValue?.('')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ',') {
-                      e.preventDefault();
-                      const raw = (recipientEmailInputValue ?? '')
-                        .replace(e.key === ',' ? /,\s*$/ : /^\s+|\s+$/g, '')
-                        .trim();
-                      const toAdd = raw.split(/[\s,]+/).filter(Boolean);
-                      const valid = toAdd.filter(
-                        (s) =>
-                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) &&
-                          !additionalRecipientEmails?.includes(s) &&
-                          s !== customerEmail,
-                      );
-                      if (valid.length) {
-                        setAdditionalRecipientEmails?.([
-                          ...(additionalRecipientEmails ?? []),
-                          ...valid,
-                        ]);
-                        setRecipientEmailInputValue?.('');
-                      }
-                    }
-                  }}
-                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-              <span className="text-[12px] text-[#6B7280]">
-                Press Enter or comma to add email addresses for delivery
-                receipts.
-              </span>
+              <MultipleInput
+                value={additionalRecipientEmails?.join(', ')}
+                onChange={(val) => {
+                  const emails = val
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  setAdditionalRecipientEmails?.(emails);
+                }}
+                fixedValues={customerEmail ? [customerEmail] : []}
+                validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                label="Press Enter or comma to add email addresses for delivery receipts."
+                placeholder="Add email..."
+              />
             </div>
           </div>
         ),
@@ -953,9 +876,8 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState(false);
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
-  const [recipientEmailInputValue, setRecipientEmailInputValue] =
-    React.useState('');
   const user = useClientStore((state) => state.user);
+  const router = useRouter();
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
@@ -971,6 +893,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const convertToJobMutation = useConvertToJob();
   const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
@@ -998,7 +921,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       setAdditionalRecipientEmails(
         quotationToUse?.additionalEmailRecipients ?? [],
       );
-      setRecipientEmailInputValue('');
     }
   }, [selectedAction?.key]);
 
@@ -1049,8 +971,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     isDeclineFormValid,
     additionalRecipientEmails,
     setAdditionalRecipientEmails,
-    recipientEmailInputValue,
-    setRecipientEmailInputValue,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1197,9 +1117,21 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleConvertToJob = async () => {
-    const { subscriptionPlan } = useClientStore.getState();
-    setActiveDialog(null);
-    setSelectedAction(null);
+    if (!quotationId) {
+      notifyError(extractErrorMessage('Unable to convert quotation to job'));
+      return;
+    }
+
+    try {
+      const job = await convertToJobMutation.mutateAsync(quotationId);
+      notifySuccess('Quotation converted to job');
+      setActiveDialog(null);
+      setSelectedAction(null);
+      router.push(`/customer-operations/jobs?openJobId=${job.id}`);
+    } catch (error) {
+      console.error('Failed to convert quotation to job:', error);
+      notifyError(extractErrorMessage(error));
+    }
   };
 
   const handleConvertToDraft = async () => {

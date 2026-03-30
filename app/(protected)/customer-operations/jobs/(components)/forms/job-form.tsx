@@ -11,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import rawJson from '@/lib/tests/jobsDetailResponseData.json';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -20,17 +19,18 @@ import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { JobFormSchema } from './schemas/job-form-schema';
 import { Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DatePicker } from '@/components/date-picker';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
-// import { useSelectedJob } from '@/app/stores/job-store';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
+import { useJobFormState, EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
-import { GetTodaysDate, formatLocalDateShort } from '@/lib/utils/date';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { Job, JobDetails } from '@/lib/types/job';
+import { JOB_STATUS } from '@/lib/types/job-enums';
+import { useCreateJob, useUpdateJob } from '@/lib/api/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
@@ -39,30 +39,34 @@ import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
+import { addNewRecordId } from '@/lib/utils';
+import { formatLocalDate } from '@/lib/utils/date';
+import { JobDTO } from '@/lib/types/job';
+
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
+  canEdit?: boolean;
   onSaved?: () => void;
+  onCancel?: () => void;
+  onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
-  onCancel?: () => void;
 }
 
 export default function JobForm({
   id,
-  onCancel,
   className,
   onDirtyChange,
-  // onSuccess,
-  // onSaved,
+  onSaved,
+  onCancel,
+  onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id));
+  const [isEditing] = React.useState(Boolean(id))
+  const jobId = id ?? 0;
 
-  const selectedJob = React.useMemo(() => {
-    return rawJson.items.find((job) => job.id === id) as JobDetails;
-  }, [id]);
+  const { jobDetails, jobItems } = useJobFormState(jobId, isEditing);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
     resolver: zodResolver(JobFormSchema),
@@ -70,7 +74,37 @@ export default function JobForm({
     defaultValues: EMPTY_JOB_FORM_VALUES,
   });
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  React.useEffect(() => {
+    if (isEditing && jobDetails) {
+      const deliveryDate = jobDetails.estimatedStartDate
+        ? parseISO(jobDetails.estimatedStartDate)
+        : undefined;
+      const startWindow = jobDetails.startTimeWindow
+        ? format(parseISO(jobDetails.startTimeWindow), 'HH:mm')
+        : '';
+      const endWindow = jobDetails.endTimeWindow
+        ? format(parseISO(jobDetails.endTimeWindow), 'HH:mm')
+        : '';
+
+      jobForm.reset({
+        customerId: jobDetails.customerId,
+        poNumber: jobDetails.poNumber || '',
+        projectName: jobDetails.projectName,
+        deliveryStartDate: deliveryDate,
+        deliveryWindowStart: startWindow,
+        deliveryWindowEnd: endWindow,
+        contactPersonName: jobDetails.contactPersonName,
+        phone: jobDetails.contactPersonPhone,
+        receiptEmail: (jobDetails.additionalEmailRecipients || []).join(','),
+        accountManagerSub:
+          customers.find((c) => c.id === jobDetails.customerId)?.accountManagerSub
+      });
+
+    }
+  }, [isEditing, jobDetails, jobForm]);
+
+  const createJob = useCreateJob();
+  const updateJob = useUpdateJob();
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -89,7 +123,8 @@ export default function JobForm({
       .map((customer) => ({
         label: customer.businessName || customer.contactName,
         value: customer.id!,
-      }));
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [customers]);
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
@@ -106,59 +141,21 @@ export default function JobForm({
             'phone',
             normalizePhoneNumber(selectedCustomer.phone || '') || '',
           );
-          jobForm.setValue('email', selectedCustomer.email || '');
 
           jobForm.setValue(
             'accountManagerSub',
             selectedCustomer.accountManagerSub || '',
           );
 
-          // If we are creating a new job (not editing), set the receipt email to the customer email
-          jobForm.setValue('receiptEmail', selectedCustomer.email || '');
+          // Clear additional emails when customer changes — customer email is already
+          // shown as the fixed chip in MultipleInput and sent as docketEmail
+          jobForm.setValue('receiptEmail', '');
         }
       }
     });
 
     return () => subscription.unsubscribe();
   }, [customers, jobForm, isEditing]);
-
-  // Pre-fill form when editing
-  React.useEffect(() => {
-    if (isEditing && selectedJob) {
-      jobForm.reset({
-        poNumber: selectedJob.poNumber,
-        customerId: selectedJob.customerId ?? 0,
-        accountManagerSub: selectedJob.accountManagerSub,
-        projectName: selectedJob.projectName,
-        deliveryStartDate: selectedJob.deliveryStartDate
-          ? parseISO(selectedJob.deliveryStartDate)
-          : undefined,
-        deliveryWindowStart: selectedJob.deliveryWindowStart
-          ? format(parseISO(selectedJob.deliveryWindowStart), 'HH:mm')
-          : '',
-        deliveryWindowEnd: selectedJob.deliveryWindowEnd
-          ? format(parseISO(selectedJob.deliveryWindowEnd), 'HH:mm')
-          : '',
-        receiptEmail: selectedJob.receiptEmail ?? '',
-        // We'll let the customer selection effect handle phone/email if they are missing from job data
-        // But if we had them in job data, we'd set them here:
-        // phone: selectedJob.phone,
-        // email: selectedJob.email,
-      });
-
-      // Trigger customer selection logic to fill phone/email if needed
-      if ((selectedJob as Job).customerId) {
-        const customer = customers.find((c) => c.id === selectedJob.customerId);
-        if (customer) {
-          jobForm.setValue(
-            'phone',
-            normalizePhoneNumber(customer.phone || '') || '',
-          );
-          jobForm.setValue('email', customer.email || '');
-        }
-      }
-    }
-  }, [isEditing, selectedJob, jobForm, customers]);
 
   const { data: usersData } = useQuery(UsersListQueryOptions());
   const users = React.useMemo(() => usersData || [], [usersData]);
@@ -170,31 +167,16 @@ export default function JobForm({
     }));
   }, [users]);
 
-  // Will be used later once we have API endpoint
-  // const getUserNameBySub = React.useCallback(
-  //   (subOrName?: string | null) => {
-  //     if (!subOrName) return '';
-  //     return users.find((u) => u.sub === subOrName)?.name || subOrName;
-  //   },
-  //   [users],
-  // );
-
-  const today = React.useMemo(() => {
-    const d = GetTodaysDate();
-    return d;
-  }, []);
 
   const tabs = React.useMemo(
     () => [
       {
         name: 'Products',
-        content: (
-          <LineItemsTab jobLineItems={selectedJob?.jobLineItems ?? []} />
-        ),
+        content: <LineItemsTab jobLineItems={jobItems} />,
       },
       {
         name: 'Dockets',
-        content: <DocketsTab selectedJob={selectedJob ?? null} />,
+        content: <DocketsTab selectedJob={jobDetails ?? null} />,
       },
       {
         name: 'Invoices',
@@ -205,22 +187,76 @@ export default function JobForm({
         content: <CashSalesTab />,
       },
     ],
-    [selectedJob],
+    [jobItems],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
-    setIsSubmitting(true);
-    console.log(`Job Form Values:`, values);
+    console.log(values);
+    console.log('onSubmit function called!');
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const dateStr = formatLocalDate(values.deliveryStartDate, 'yyyy-MM-dd');
+      const selectedCustomer = customers.find(
+        (c) => c.id === values.customerId,
+      );
 
-    setIsSubmitting(false);
+      // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
+      // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
+      const receiptEmails = values.receiptEmail
+        ? values.receiptEmail.split(',').map((e) => e.trim()).filter(Boolean)
+        : [];
+
+      const additionalEmails = receiptEmails.filter(
+        (email) => email !== selectedCustomer?.email,
+      );
+
+      const payload = {
+        customerId: values.customerId,
+        projectName: values.projectName,
+        poNumber: values.poNumber,
+        contactPersonName: selectedCustomer?.contactName,
+        contactPersonPhone: values.phone,
+        docketEmail: selectedCustomer?.email,
+        additionalEmailRecipients: additionalEmails,
+        jobStatus: isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
+        estimatedStartDate: `${dateStr}T00:00:00`,
+        startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
+        endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
+      };
+
+      if (isEditing && jobId) {
+        await updateJob.mutateAsync({
+          id: jobId,
+          data: {
+            ...(jobDetails as JobDTO),
+            ...payload,
+          } as JobDTO
+        });
+        notifySuccess('Job updated successfully');
+      } else {
+        const createdJob = await createJob.mutateAsync(payload);
+
+        if (createdJob?.id) {
+          addNewRecordId('job_main_data_table', createdJob.id);
+        }
+
+        notifySuccess('Job created successfully');
+      }
+
+      onSaved?.();
+      onSuccess?.();
+    } catch (error) {
+      notifyError(
+        extractErrorMessage(error) || `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+      );
+    }
   }
+
+  const isPending = createJob.isPending || updateJob.isPending;
 
   return (
     <div className="w-full relative">
-      {isSubmitting && (
+      {isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -290,6 +326,7 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
               }
+              disabled
             />
 
             <FormField
@@ -313,7 +350,7 @@ export default function JobForm({
             {isEditing && (
               <FormField
                 control={jobForm.control}
-                name="email"
+                name="contactPersonName"
                 render={({ field }) => (
                   <FormItem
                     className={
@@ -321,12 +358,12 @@ export default function JobForm({
                     }
                   >
                     <div className="flex items-center gap-2">
-                      <FormLabel>Customer Email*</FormLabel>
+                      <FormLabel>Contact Person Name*</FormLabel>
                     </div>
                     <FormControl>
                       <Input
                         className="w-full"
-                        placeholder="Enter Email"
+                        placeholder="Enter Customer Name"
                         {...field}
                         value={field.value || ''}
                       />
@@ -348,7 +385,7 @@ export default function JobForm({
                     }
                   >
                     <div className="flex items-center gap-2">
-                      <FormLabel>Customer Phone*</FormLabel>
+                      <FormLabel>Contact Person Phone*</FormLabel>
                     </div>
                     <FormControl>
                       <PhoneInput
@@ -389,7 +426,6 @@ export default function JobForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
-                        disabled={{ before: today }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -441,8 +477,11 @@ export default function JobForm({
               control={jobForm.control}
               name="receiptEmail"
               render={({ field }) => {
+                const selectedCustomer = customers.find(
+                  (c) => c.id === jobForm.watch('customerId'),
+                );
                 // Get the customer email to use as a fixed value
-                const customerEmail = jobForm.watch('email');
+                const customerEmail = selectedCustomer?.email;
                 const fixedValues = customerEmail ? [customerEmail] : [];
 
                 return (
@@ -473,50 +512,61 @@ export default function JobForm({
           {/* Form Actions */}
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 mb-6">
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
+              <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
               </Button>
               <Button
                 form="add-new-job-form"
                 className="cursor-pointer"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isPending}
               >
-                {isSubmitting && (
+                {isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting
+                {isPending
                   ? isEditing
                     ? 'Saving Changes...'
-                    : 'Adding Customer...'
+                    : 'Adding Job...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Add Customer'}
+                    : 'Add Job'}
               </Button>
+
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col col-span-2 gap-3 mb-6">
               <Button
-                form="add-new-job-form"
                 type="submit"
                 className="cursor-pointer"
-                disabled={isSubmitting}
               >
-                {isSubmitting && (
+                {isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isSubmitting
+                {isPending
                   ? isEditing
                     ? 'Saving Changes...'
-                    : 'Adding Customer...'
+                    : 'Adding Job...'
                   : isEditing
                     ? 'Save Changes'
-                    : 'Add Customer'}
+                    : 'Add Job'}
               </Button>
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
+              <Button
+                form="add-new-job-form"
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                disabled={isPending}
+                onClick={onCancel}
+              >
+                Cancel
               </Button>
             </div>
           )}
@@ -524,7 +574,7 @@ export default function JobForm({
           {isEditing && <Separator className="my-4" />}
 
           {isEditing && (
-            <div className="w-full flex min-w-0">
+            <div className="w-full flex min-w-0 mb-10">
               <Tab
                 tabs={tabs}
                 className="w-full min-w-0"
@@ -532,49 +582,6 @@ export default function JobForm({
                 tabsTriggerClassName="h-8 flex-1 justify-center"
                 enableDropdownOnMobile={true}
               />
-            </div>
-          )}
-
-          {/* Audit Information */}
-          {isEditing && (
-            <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob?.createdBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedJob?.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob?.createdAt)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedJob?.updatedAt)}
-                  </p>
-                </div>
-              </div>
             </div>
           )}
         </form>

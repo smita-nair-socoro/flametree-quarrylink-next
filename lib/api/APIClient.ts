@@ -40,10 +40,16 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
+import { DocketDTO } from '../types/docket';
+import { JobDTO, JobDetails, JobItem } from '../types/job';
 
-type RequestBody = BodyInit | FormData | object | Record<string, unknown> | null;
+type RequestBody =
+  | BodyInit
+  | FormData
+  | object
+  | Record<string, unknown>
+  | null;
 type Primitive = string | number | boolean | symbol | undefined;
-
 
 export interface HttpConfig {
   /**
@@ -124,7 +130,7 @@ export interface HttpConfig {
 function encodeRFC3986URIComponent(str: string): string {
   return encodeURIComponent(str).replace(
     /[!'()*]/g,
-    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
   );
 }
 
@@ -153,7 +159,7 @@ function encodeRFC3986URIComponent(str: string): string {
  */
 export async function HttpClient<T = unknown>(
   endpoint: string,
-  config: HttpConfig = {}
+  config: HttpConfig = {},
 ): Promise<T> {
   const fetcher =
     config.fetch ??
@@ -241,7 +247,7 @@ export async function HttpClient<T = unknown>(
   // Enhanced logging for debugging
   if (response.status >= 400) {
     console.log(
-      `API Request Failed: ${response.status} ${response.statusText}`
+      `API Request Failed: ${response.status} ${response.statusText}`,
     );
     console.log(`URL: ${url}`);
     console.log(`Method: ${init.method || 'GET'}`);
@@ -320,13 +326,16 @@ export async function HttpClient<T = unknown>(
     // It is most likely an error.
     switch (response.status) {
       case 403: {
+        // DEBUG: temporarily disabled logout to inspect 403 response — re-enable after debugging
         await handleLogout();
-        return Promise.reject(new Error('Cookie/Token expired or invalid.'));
+        // console.error('[DEBUG][403] Endpoint:', endpoint);
+        // console.error('[DEBUG][403] Response headers:', Object.fromEntries(response.headers.entries()));
+        // return Promise.reject(new Error('Cookie/Token expired or invalid.'));
       }
       case 503: {
         // Show an error toast to notify the user what occurred
         return Promise.reject(
-          new Error(`[503] Service unavailable: "${endpoint}"`)
+          new Error(`[503] Service unavailable: "${endpoint}"`),
         );
       }
       default:
@@ -415,19 +424,19 @@ export const APIClient = {
   products: {
     reporting: () =>
       appClient.Get<ProductReporting>(
-        `/socoro/quarrylink/api/product/reporting`
+        `/socoro/quarrylink/api/product/reporting`,
       ),
     getAll: () =>
       appClient.Get<ProductDetails[]>(
-        `/socoro/quarrylink/api/product/material`
+        `/socoro/quarrylink/api/product/material`,
       ),
     getByIdWithMaterial: (productId: number) =>
       appClient.Get<ProductDetails>(
-        `/socoro/quarrylink/api/product/${productId}/material`
+        `/socoro/quarrylink/api/product/${productId}/material`,
       ),
     getByIdWithQuarrySupplierProduct: (productId: number) =>
       appClient.Get<ProductDetails>(
-        `/socoro/quarrylink/api/product/${productId}/quarry-supplier`
+        `/socoro/quarrylink/api/product/${productId}/quarry-supplier`,
       ),
     createProduct: (data: Partial<Product>) =>
       appClient.Post<Product>('/socoro/quarrylink/api/product', {
@@ -440,7 +449,7 @@ export const APIClient = {
     deleteProduct: (id: number) => {
       return appClient
         .Delete<{ blockingQuoteDtos?: unknown[] }>(
-          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`
+          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
         )
         .then((res) => {
           console.log('[APIClient] products.delete response:', res);
@@ -459,11 +468,11 @@ export const APIClient = {
   quarries: {
     reporting: () =>
       appClient.Get<QuarryReporting>(
-        `/socoro/quarrylink/api/quarries/reporting`
+        `/socoro/quarrylink/api/quarries/reporting`,
       ),
     getAll: async () => {
       const quarries = await appClient.Get<Quarry[]>(
-        `/socoro/quarrylink/api/quarries`
+        `/socoro/quarrylink/api/quarries`,
       );
 
       const normalizedQuarries = quarries.map(normalizeObjectPhoneNumbers);
@@ -472,7 +481,7 @@ export const APIClient = {
     },
     getById: async (quarrySupplierId: number) => {
       const quarry = await appClient.Get<Quarry>(
-        `/socoro/quarrylink/api/quarries/${quarrySupplierId}`
+        `/socoro/quarrylink/api/quarries/${quarrySupplierId}`,
       );
 
       // Step 2: Normalize phone numbers to E.164 format
@@ -493,7 +502,7 @@ export const APIClient = {
     delete: (id: number) => {
       return appClient
         .Delete<{ blockingQuoteDtos?: unknown[] }>(
-          `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`
+          `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
         )
         .then((res) => {
           console.log('[APIClient] quarries.delete response:', res);
@@ -512,11 +521,11 @@ export const APIClient = {
       appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
       appClient.Delete(
-        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`
+        `/api/v1/quarries/quarry-product/${quarryProductPriceId}`,
       ),
     linkedProducts: (quarryId: number) =>
       appClient.Get<LinkedProduct>(
-        `/socoro/quarrylink/api/quarries/${quarryId}/linked-products`
+        `/socoro/quarrylink/api/quarries/${quarryId}/linked-products`,
       ),
   },
 
@@ -527,35 +536,35 @@ export const APIClient = {
   quarrySupplierProducts: {
     getById: (quarrySupplierId: number, productId: number) =>
       appClient.Get<QuarrySupplierProduct>(
-        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`,
       ),
     create: (data: Partial<QuarrySupplierProduct>) =>
       appClient.Post<QuarrySupplierProduct>(
         '/socoro/quarrylink/api/quarry-products',
         {
           body: data,
-        }
+        },
       ),
     update: (
       quarrySupplierId: number,
       productId: number,
-      data: Partial<QuarrySupplierProduct>
+      data: Partial<QuarrySupplierProduct>,
     ) =>
       appClient.Put<QuarrySupplierProduct>(
         `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`,
         {
           body: data,
-        }
+        },
       ),
     delete: (quarrySupplierId: number, productId: number) => {
       return appClient
         .Delete<{ blockingQuoteDtos?: unknown[] }>(
-          `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`
+          `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
         )
         .then((res) => {
           console.log(
             '[APIClient] quarrySupplierProducts.delete response:',
-            res
+            res,
           );
           const len = Array.isArray(res?.blockingQuoteDtos)
             ? res!.blockingQuoteDtos!.length
@@ -566,7 +575,7 @@ export const APIClient = {
         .catch((err) => {
           console.error(
             '[APIClient] quarrySupplierProducts.delete error:',
-            err
+            err,
           );
           throw err;
         });
@@ -576,13 +585,13 @@ export const APIClient = {
   customers: {
     reporting: () =>
       appClient.Get<CustomerReporting>(
-        `/socoro/quarrylink/api/customer/reporting`
+        `/socoro/quarrylink/api/customer/reporting`,
       ),
     getAll: () =>
       appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
     getById: (customerId: number) =>
       appClient.Get<CustomerDTO>(
-        `/socoro/quarrylink/api/customer/${customerId}`
+        `/socoro/quarrylink/api/customer/${customerId}`,
       ),
     create: (data: Partial<CustomerDTO>) =>
       appClient.Post<CustomerDTO>('/socoro/quarrylink/api/customer', {
@@ -599,12 +608,12 @@ export const APIClient = {
           queryString: {
             limit: limit?.toString(),
           },
-        }
+        },
       ),
     updateDeliveryAddressUsage: (
       customerId: number,
       customerDeliveryAddressId: number,
-      inUse: boolean
+      inUse: boolean,
     ) =>
       appClient.Put(
         `/socoro/quarrylink/api/customer/${customerId}/delivery-addresses/${customerDeliveryAddressId}/usage`,
@@ -612,14 +621,14 @@ export const APIClient = {
           queryString: {
             inUse,
           },
-        }
+        },
       ),
   },
 
   quotations: {
     reporting: () =>
       appClient.Get<QuotationReporting>(
-        `/socoro/quarrylink/api/quote/reporting`
+        `/socoro/quarrylink/api/quote/reporting`,
       ),
     /**
      * Public quotation retrieval using token from quote email link.
@@ -632,7 +641,7 @@ export const APIClient = {
       }
 
       const url = `${apiBase}/socoro/quarrylink/api/quote/public/link?token=${encodeURIComponent(
-        token
+        token,
       )}`;
 
       const response = await fetch(url, {
@@ -645,7 +654,7 @@ export const APIClient = {
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
         throw new Error(
-          `Failed to fetch public quote link: ${response.status} ${response.statusText} ${errorText}`
+          `Failed to fetch public quote link: ${response.status} ${response.statusText} ${errorText}`,
         );
       }
 
@@ -656,17 +665,17 @@ export const APIClient = {
       status: 'APPROVED' | 'DECLINED',
       token: string,
       declineReason?: string,
-      decisionMakerName?: string
+      decisionMakerName?: string,
     ) => {
       const apiBase = baseUrl();
       if (!apiBase) {
         throw new Error(
-          'Missing API base URL for public quote status update request'
+          'Missing API base URL for public quote status update request',
         );
       }
 
       const url = `${apiBase}/socoro/quarrylink/api/quote/public/link/decision?token=${encodeURIComponent(
-        token
+        token,
       )}`;
 
       const body: {
@@ -693,7 +702,7 @@ export const APIClient = {
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
         throw new Error(
-          `Failed to update public quote status: ${response.status} ${response.statusText} ${errorText}`
+          `Failed to update public quote status: ${response.status} ${response.statusText} ${errorText}`,
         );
       }
 
@@ -737,11 +746,11 @@ export const APIClient = {
     },
     getById: (quotationId: number) =>
       appClient.Get<QuotationDTO>(
-        `/socoro/quarrylink/api/quote/${quotationId}`
+        `/socoro/quarrylink/api/quote/${quotationId}`,
       ),
     getWithQuoteItems: async (quotationId: number) => {
       const response = await appClient.Get<QuotationDTO>(
-        `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`
+        `/socoro/quarrylink/api/quote/${quotationId}/quoteItem`,
       );
       return response;
     },
@@ -766,32 +775,33 @@ export const APIClient = {
           body: {
             expiryDate: toLocalDateTime(expiryDate),
           },
-        }
+        },
       ),
     duplicate: (id: number, data?: Partial<QuotationDTO>) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/duplicate`,
         {
           body: data,
-        }
+        },
       ),
     bulkArchive: (ids: number[]) =>
-      appClient.Post<void>(
-        `/socoro/quarrylink/api/quote/archive`,
-        {
-          body: { quoteIds: ids },
-        }
-      ),
-    sendToCustomer: (id: number, inclDeliveryCost: boolean, additionalEmailRecipients: string[]) =>
+      appClient.Post<void>(`/socoro/quarrylink/api/quote/archive`, {
+        body: { quoteIds: ids },
+      }),
+    sendToCustomer: (
+      id: number,
+      inclDeliveryCost: boolean,
+      additionalEmailRecipients: string[],
+    ) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
         {
           body: { inclDeliveryCost, additionalEmailRecipients },
-        }
+        },
       ),
     preview: (id: number) =>
       appClient.Get<PublicQuoteLinkResponse>(
-        `/socoro/quarrylink/api/quote/${id}/preview`
+        `/socoro/quarrylink/api/quote/${id}/preview`,
       ),
     createQuoteItem: (data: Partial<QuotationLineItem>) =>
       appClient.Post<QuotationLineItem>('/socoro/quarrylink/api/quoteItem', {
@@ -799,25 +809,29 @@ export const APIClient = {
       }),
     getQuoteItemById: (id: number) =>
       appClient.Get<QuotationLineItem>(
-        `/socoro/quarrylink/api/quoteItem/${id}`
+        `/socoro/quarrylink/api/quoteItem/${id}`,
       ),
     updateQuoteItem: (id: number, data: Partial<QuotationLineItem>) =>
       appClient.Put<QuotationLineItem>(
         `/socoro/quarrylink/api/quoteItem/${id}`,
         {
           body: convertKeysToCamelCase(data),
-        }
+        },
       ),
     deleteQuoteItem: (id: number) =>
       appClient.Delete(`/socoro/quarrylink/api/quoteItem/${id}`),
 
     convertToDraft: (id: number) =>
       appClient.Put(`/socoro/quarrylink/api/quote/${id}/convert-to-draft`),
+    convertToJob: (id: number) =>
+      appClient.Post<JobDTO>(
+        `/socoro/quarrylink/api/quote/${id}/convert-to-job`,
+      ),
     updateQuoteDecision: (
       id: number,
       status: 'APPROVED' | 'DECLINED',
       declineReason?: string,
-      decisionMakerName?: string
+      decisionMakerName?: string,
     ) => {
       const body: {
         status: string;
@@ -832,10 +846,66 @@ export const APIClient = {
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,
-        { body }
+        { body },
       );
     },
   },
+
+  dockets: {
+    create: (data: Partial<DocketDTO>) =>
+      appClient.Post<DocketDTO>('/socoro/quarrylink/api/dockets', {
+        body: data,
+      }),
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const response = await appClient.Get<
+        | DocketDTO[]
+        | {
+            content: DocketDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/dockets`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          search: params?.search,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
+      return response;
+    },
+    getByJobId: async (jobId: number) => {
+      const response = await appClient.Get<
+        | DocketDTO[]
+        | {
+            content: DocketDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      return response;
+    },
+    getById: (id: number) => {
+      return appClient.Get<DocketDTO>(`/socoro/quarrylink/api/dockets/${id}`);
+    },
+    update: (id: number, data: Partial<DocketDTO>) =>
+      appClient.Put<DocketDTO>(`/socoro/quarrylink/api/dockets/${id}`, {
+        body: data,
+      }),
+    updateStatus: (docketId: number, formData: FormData) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/dockets/${docketId}/status`,
+        { body: formData },
+      ),
+  },
+
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
     getById: (id: string) => {
@@ -856,43 +926,110 @@ export const APIClient = {
     },
     getDependencies: (id: string) =>
       appClient.Get<UserDependencies>(
-        `/socoro/quarrylink/api/users/${id}/dependencies`
+        `/socoro/quarrylink/api/users/${id}/dependencies`,
       ),
     changePassword: (data: ChangePasswordRequest) =>
       appClient.Patch<PasswordChangeResponse>(
         '/socoro/quarrylink/api/users/password',
         {
           body: data,
-        }
+        },
       ),
     resetPasswordBySuperAdmin: (id: string) =>
       appClient.Post<PasswordResetResponse>(
-        `/socoro/quarrylink/api/users/${id}/reset-password`
+        `/socoro/quarrylink/api/users/${id}/reset-password`,
       ),
+  },
+
+  jobs: {
+    create: (data: Omit<JobDTO, 'id'>) =>
+      appClient.Post<JobDTO>('/socoro/quarrylink/api/job', {
+        body: data,
+      }),
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const response = await appClient.Get<
+        | JobDTO[]
+        | {
+            content: JobDTO[];
+            totalElements: number;
+            totalPages: number;
+          }
+      >(`/socoro/quarrylink/api/job`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          search: params?.search,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
+      return response;
+    },
+    getJobItems: async (jobId: number) => {
+      const response = await appClient.Get<JobDetails>(
+        `/socoro/quarrylink/api/job/${jobId}/job-items`,
+      );
+      return response;
+    },
+    getJobItemById: async (jobItemId: number) => {
+      const response = await appClient.Get<JobItem>(
+        `/socoro/quarrylink/api/job-items/${jobItemId}`,
+      );
+      return response;
+    },
+    createJobItem: (data: Partial<JobItem>) =>
+      appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
+        body: data,
+      }),
+    updateJob: (id: number, data: JobDTO) => {
+      return appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}`, {
+        body: data,
+      });
+    },
+    updateJobItem: (id: number, data: Partial<JobItem>) => {
+      return appClient.Put<JobItem>(`/socoro/quarrylink/api/job-items/${id}`, {
+        body: data,
+      });
+    },
   },
 
   tenants: {
     getTenantDetails: () =>
       appClient.Get<TenantDetails>(
-        `/socoro/quarrylink/api/tenant/tenant-details`
+        `/socoro/quarrylink/api/tenant/tenant-details`,
       ),
     getSubscriptionsAndInvoices: () =>
       appClient.Get<SubscriptionsAndInvoices>(
-        `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`
+        `/socoro/quarrylink/api/tenant/subscriptions-and-invoices`,
       ),
     getTenantCompleteDetails: () =>
       appClient.Get<TenantCompleteDetails>(
-        `/socoro/quarrylink/api/tenant/tenant-complete-details`
+        `/socoro/quarrylink/api/tenant/tenant-complete-details`,
       ),
     uploadLogo: (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
       return appClient.Post<TenantLogoUploadResponse>(
         `/socoro/quarrylink/api/tenant/logo`,
-        { body: formData }
+        { body: formData },
       );
     },
     getLogo: () =>
       appClient.Get<TenantLogoResponse>(`/socoro/quarrylink/api/tenant/logo`),
+    getStripeProfileLink: () =>
+      appClient.Put<{ stripeProfileLink: string }>(
+        `/socoro/quarrylink/api/tenant/stripe-profile`,
+        {
+          queryString: {
+            returnUrl: 'https://app.dev.quarrylink.com.au/',
+          },
+        },
+      ),
   },
 };

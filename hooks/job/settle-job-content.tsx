@@ -1,6 +1,6 @@
 'use client';
 import { TriangleAlert } from 'lucide-react';
-import { Job } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 
 const DUMMY_OUTSTANDING_AMOUNTS: Record<number, number> = {
   1: 12500,
@@ -11,7 +11,27 @@ const DUMMY_OUTSTANDING_AMOUNTS: Record<number, number> = {
   6: 30500,
 };
 
-export function SettleJobContent({ job }: { job?: Job | null }) {
+export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
+  return (
+    <div className="flex justify-start items-center gap-2">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md">
+        <span className="flex items-center justify-center">
+          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium">{job?.projectName}</span>
+        <div className="flex justify-start gap-2">
+          <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
+          <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+          <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function SettleJobContent({ job }: { job?: JobDTO | null }) {
   const outstandingAmount = job?.id
     ? (DUMMY_OUTSTANDING_AMOUNTS[job.id] ?? 0)
     : 0;
@@ -19,22 +39,6 @@ export function SettleJobContent({ job }: { job?: Job | null }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-start items-center gap-2">
-        <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md">
-          <span className="flex items-center justify-center">
-            <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
-          </span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">{job?.projectName}</span>
-          <div className="flex justify-start gap-2">
-            <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-            <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-            <span className="text-sm text-[#6A7282]">{job?.customerName}</span>
-          </div>
-        </div>
-      </div>
-
       <div className="border border-[#FECACA] rounded-md p-4 bg-[#FFF1F2]">
         <div className="flex justify-start gap-2 self-stretch">
           <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />

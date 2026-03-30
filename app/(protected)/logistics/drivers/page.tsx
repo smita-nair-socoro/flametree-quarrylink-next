@@ -10,6 +10,8 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { driverColumns } from './(components)/(data-tables)/driver/columns';
+import { FormDialog } from '@/components/form-dialog';
+import DriverForm from './(components)/forms/driver-form';
 
 export default function CustomersPage() {
   const { items } = rawJson as unknown as {
@@ -29,13 +31,13 @@ export default function CustomersPage() {
           <h1 className="text-2xl">Drivers</h1>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {/* <FormDialog
-            dialogTitle="Add New Job"
-            dialogDescription="Fill in the required fields to add a new job."
-            buttonTitle="Add Job"
+          <FormDialog
+            dialogTitle="Add New Driver"
+            dialogDescription="Fill in the required fields to add a new driver."
+            buttonTitle="Add Driver"
           >
-            <JobForm />
-          </FormDialog> */}
+            <DriverForm />
+          </FormDialog>
         </div>
       </div>
 
@@ -44,7 +46,7 @@ export default function CustomersPage() {
           tableId="driver_main_data_table"
           data={items ?? []}
           columns={driverColumns}
-          facetDefination={facetDefs}
+          facetDefinition={facetDefs}
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'name', desc: false }]}
         />

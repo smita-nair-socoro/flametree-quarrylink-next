@@ -6,14 +6,14 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { jobLineItemsColumns } from './(data-tables)/columns';
-import { JobLineItem } from '@/lib/types/job';
+import { JobItem } from '@/lib/types/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { FormDialog } from '@/components/form-dialog';
 
 interface LineItemsTabProps {
-	jobLineItems: JobLineItem[];
+	jobLineItems: JobItem[];
 }
 
 export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
@@ -25,7 +25,7 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
 
 	const isAllCollection = React.useMemo(() => {
 		if (!jobLineItems || jobLineItems.length === 0) return false;
-		return jobLineItems.every((item) => item.type === 'COLLECTION');
+		return jobLineItems.every((item) => item.jobItemType === 'COLLECTION');
 	}, [jobLineItems]);
 
 	return (

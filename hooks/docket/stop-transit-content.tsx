@@ -3,15 +3,7 @@
 import { AlertTriangle, CircleStop } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
-import { Docket } from '@/lib/types/docket';
-
-interface StopTransitContentProps {
-  docket?: Docket | null;
-  stopReason: string;
-  onStopReasonChange: (value: string) => void;
-  stopNotes: string;
-  onStopNotesChange: (value: string) => void;
-}
+import { DocketDTO } from '@/lib/types/docket';
 
 const STOP_REASONS = [
   { value: 'vehicle-breakdown', label: 'Vehicle breakdown' },
@@ -27,33 +19,41 @@ const STOP_REASONS = [
   { value: 'other', label: 'Other' },
 ];
 
+export function StopTransitDescription({ docket }: { docket?: DocketDTO | null }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FFF7ED]">
+        <CircleStop className="h-6 w-6 text-[#F97316]" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-[#101828]">
+          {docket?.docketNumber ?? '—'}
+        </span>
+        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+          <span>{docket?.customerContactName ?? '—'}</span>
+          <span className="font-bold">•</span>
+          <span>{docket?.jobItem.truckType ?? '—'}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StopTransitContent({
-  docket,
   stopReason,
   onStopReasonChange,
   stopNotes,
   onStopNotesChange,
-}: StopTransitContentProps) {
+}: {
+  stopReason: string;
+  onStopReasonChange: (value: string) => void;
+  stopNotes: string;
+  onStopNotesChange: (value: string) => void;
+}) {
   const notesRequired = stopReason === 'other';
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FFF7ED]">
-          <CircleStop className="h-6 w-6 text-[#F97316]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium text-[#101828]">
-            {docket?.docketNumber ?? '—'}
-          </span>
-          <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-            <span>{docket?.contactName ?? '—'}</span>
-            <span className="font-bold">•</span>
-            <span>{docket?.truckType ?? '—'}</span>
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-md border border-[#FDBA74] bg-[#FFF7ED] px-4 py-4">
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#F97316]" />

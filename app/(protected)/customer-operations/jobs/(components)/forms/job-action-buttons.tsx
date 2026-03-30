@@ -19,10 +19,11 @@ import {
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobActions } from '@/hooks/use-job-actions';
-import { Job } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 
 interface JobActionButtonsProps {
-  job: Job | null | undefined;
+  job: JobDTO | null | undefined;
   layout?: 'compact' | 'expanded';
 }
 
@@ -32,7 +33,8 @@ export function JobActionButtons({
 }: JobActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
-  const { actions, confirmDialogs, viewDialog } = useJobActions(job);
+  const { actions, confirmDialogs, viewDialog, addDocketDialog } =
+    useJobActions(job);
 
   if (!job) {
     return null;
@@ -56,8 +58,9 @@ export function JobActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
+        {addDocketDialog}
 
-        {job.status !== 'CANCELLED' && job.status !== 'SETTLED' && (
+        {job.jobStatus !== JOB_STATUS.CANCELLED && job.jobStatus !== JOB_STATUS.SETTLED && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -65,7 +68,7 @@ export function JobActionButtons({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {job.status === 'PAUSED' && (
+              {job.jobStatus === JOB_STATUS.PAUSED && (
                 <>
                   <DropdownMenuItem onClick={handleResume}>
                     <CirclePlay className="h-4 w-4 mr-2" />
@@ -84,7 +87,7 @@ export function JobActionButtons({
                 </>
               )}
 
-              {job.status === 'ACTIVE' && (
+              {job.jobStatus === JOB_STATUS.ACTIVE && (
                 <>
                   <DropdownMenuItem onClick={handleAddDocket}>
                     <Plus className="h-4 w-4 mr-2" />
@@ -103,7 +106,7 @@ export function JobActionButtons({
                 </>
               )}
 
-              {job.status === 'IN_PROGRESS' && (
+              {job.jobStatus === JOB_STATUS.IN_PROGRESS && (
                 <>
                   <DropdownMenuItem onClick={handleAddDocket}>
                     <Plus className="h-4 w-4 mr-2" />
@@ -127,7 +130,7 @@ export function JobActionButtons({
                 </>
               )}
 
-              {job.status === 'COMPLETED' && (
+              {job.jobStatus === JOB_STATUS.COMPLETED && (
                 <>
                   <DropdownMenuItem onClick={handleViewDockets}>
                     <Package className="h-4 w-4 mr-2" />
@@ -151,9 +154,10 @@ export function JobActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
+      {addDocketDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {job.status === 'PAUSED' && (
+        {job.jobStatus === JOB_STATUS.PAUSED && (
           <>
             <Button
               variant="ghost"
@@ -184,7 +188,7 @@ export function JobActionButtons({
           </>
         )}
 
-        {job.status === 'ACTIVE' && (
+        {job.jobStatus === JOB_STATUS.ACTIVE && (
           <>
             <Button
               variant="ghost"
@@ -224,7 +228,7 @@ export function JobActionButtons({
           </>
         )}
 
-        {job.status === 'IN_PROGRESS' && (
+        {job.jobStatus === JOB_STATUS.IN_PROGRESS && (
           <>
             <Button
               variant="ghost"
@@ -269,7 +273,7 @@ export function JobActionButtons({
           </>
         )}
 
-        {job.status === 'COMPLETED' && (
+        {job.jobStatus === JOB_STATUS.COMPLETED && (
           <>
             <Button
               variant="ghost"

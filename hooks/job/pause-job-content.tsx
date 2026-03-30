@@ -6,7 +6,7 @@ import {
   CirclePlay,
   CircleStop,
 } from 'lucide-react';
-import { JobDetails } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 import { Docket } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { cn } from '@/lib/utils';
@@ -27,41 +27,41 @@ function getDocketStatusStyle(status: DOCKET_STATUS): {
   }
 }
 
+export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
+  return (
+    <div className="flex justify-start items-center gap-2">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
+        <span className="flex items-center justify-center">
+          <Pause className="h-[20px] w-[20px] text-[#CA3500]" />
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium">{job?.projectName}</span>
+        <div className="flex justify-start gap-2">
+          <span className="text-sm text-gray-500">{job?.jobNumber}</span>
+          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
+            <>
+              <span className="text-sm text-gray-500 font-extrabold">·</span>
+              <span className="text-sm text-gray-500">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PauseJobContent({
-  job,
   activeDockets,
   docketAction,
   onDocketActionChange,
 }: {
-  job?: JobDetails | null;
   activeDockets: Docket[];
   docketAction: 'stop' | 'allow';
   onDocketActionChange: (action: 'stop' | 'allow') => void;
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-start items-center gap-2">
-        <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
-          <span className="flex items-center justify-center">
-            <Pause className="h-[20px] w-[20px] text-[#CA3500]" />
-          </span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">{job?.projectName}</span>
-          <div className="flex justify-start gap-2">
-            <span className="text-sm text-gray-500">{job?.jobNumber}</span>
-            {job?.customerName && (
-              <>
-                <span className="text-sm text-gray-500 font-extrabold">·</span>
-                <span className="text-sm text-gray-500">
-                  {job.customerName}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       <span className="text-[14px] font-normal text-gray-700">
         Are you sure you want to pause this job?
       </span>
@@ -203,9 +203,9 @@ export function PauseJobContent({
             'Job status changes to "Paused"',
             ...(docketAction === 'stop'
               ? [
-                  'All Assigned dockets will be Unassigned',
-                  'All In Transit dockets will be Stopped',
-                ]
+                'All Assigned dockets will be Unassigned',
+                'All In Transit dockets will be Stopped',
+              ]
               : []),
             'New docket creation is blocked',
             'Can be resumed at any time',

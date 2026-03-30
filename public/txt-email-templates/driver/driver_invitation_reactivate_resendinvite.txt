@@ -1,0 +1,15 @@
+Hi {FullName},
+
+Welcome to the QuarryLink Drivers App!
+
+An account has been created for you by {ActionedByName} at {TenantName}.
+
+To activate your account and log in, use the link below to set your password:
+
+Activate Account & Set Password: {LoginUrl}
+
+Once you've set your password, you'll have access to the QuarryLink Drivers App.
+
+If you have any questions or need help getting started, please reach out to your account administrator or contact our support team.
+
+We're excited to have you on board!

@@ -295,7 +295,7 @@ export default function QuotationsPage() {
               }
               data={filteredItems ?? []}
               columns={quotationColumns}
-              facetDefination={facetDefs}
+              facetDefinition={facetDefs}
               searchPlaceHolder="Search quotes..."
               onRowClick={handleRowClick}
               enableRowSelection={true}

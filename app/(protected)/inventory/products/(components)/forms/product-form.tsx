@@ -23,15 +23,13 @@ import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
+import { MobileLineItem } from '@/components/mobile/mobile-line-item';
+import { SupplierTableActions } from '../(data-tables)/supplier/supplier-table-actions';
 import { ChartColumn, Check } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
 import { ActionDialog } from '@/components/action-dialog';
-import { tnPricingColumn } from '../(data-tables)/supplier-comparison/tn-pricing-column';
-import { m3PricingColumn } from '../(data-tables)/supplier-comparison/m3-pricing-column';
-import { kgPricingColumn } from '../(data-tables)/supplier-comparison/kg-pricing-column';
-import { bulkaPricingColumn } from '../(data-tables)/supplier-comparison/bulka-pricing.column';
-import { truckRateComparisonColumn } from '../(data-tables)/supplier-comparison/truck-rate-comparison';
+import { CompareSupplierTable } from '../(data-tables)/supplier-comparison/compare-supplier-table';
 import { useQuery } from '@tanstack/react-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -588,71 +586,66 @@ export default function ProductForm({
               <ActionDialog
                 open={isCompareDialogOpen}
                 onOpenChangeAction={setIsCompareDialogOpen}
-                customWidth="!max-w-[95vw] sm:!max-w-[90vw] md:!max-w-[85vw] lg:!max-w-[80vw] xl:!max-w-[75vw] 2xl:!max-w-[1000px]"
+                customWidth="!max-w-[95vw] 2xl:!max-w-[1200px]"
                 cancelText="Close"
-                title={`Compare All - ${totalSupplier} Suppliers`}
+                padding="p-0 gap-0"
+                titlePadding="px-5"
+                title={`Compare All – ${totalSupplier} Suppliers`}
                 content={
-                  <div className="flex flex-col space-y-4">
-                    <span className="text-lg font-semibold text-[#101828]">
-                      Pricing Comparison
-                    </span>
-                    <span className="font-normal text-[#364153]">
-                      TN Pricing
-                    </span>
-                    <DataTableClient
-                      columns={tnPricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="font-normal text-[#364153]">
-                      m³ Pricing
-                    </span>
-                    <DataTableClient
-                      columns={m3PricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="font-normal text-[#364153]">
-                      20kg Pricing
-                    </span>
-                    <DataTableClient
-                      columns={kgPricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="font-normal text-[#364153]">
-                      Bulka Pricing
-                    </span>
-                    <DataTableClient
-                      columns={bulkaPricingColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                    <span className="text-lg font-semibold text-[#101828]">
-                      Truck Rates Comparison
-                    </span>
-                    <DataTableClient
-                      columns={truckRateComparisonColumn}
-                      data={selectedProduct?.quarrySupplierProducts || []}
-                      simpleTable={true}
-                    />
-                  </div>
+                  <CompareSupplierTable
+                    data={selectedProduct?.quarrySupplierProducts || []}
+                    productName={selectedProduct?.productName}
+                  />
                 }
+                cancelButtonClass="mx-5 my-3"
                 confirmActionNeeded={false}
+                cancelActionNeeded={isDesktop ? false : true}
               />
 
-              {/* Supplier Table */}
+              {/* Supplier Table / Cards */}
               <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-                <DataTableClient
-                  columns={supplierColumns(selectedProduct?.id)}
-                  data={
-                    isEditing || productJustCreated
+                {isDesktop ? (
+                  <DataTableClient
+                    columns={supplierColumns(selectedProduct?.id)}
+                    data={
+                      isEditing || productJustCreated
+                        ? (selectedProduct?.quarrySupplierProducts ?? [])
+                        : []
+                    }
+                    simpleTable={true}
+                    defaultSorting={[{ id: 'name', desc: false }]}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {(isEditing || productJustCreated
                       ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
-                  }
-                  simpleTable={true}
-                  defaultSorting={[{ id: 'name', desc: false }]}
-                />
+                    ).map((supplier) => {
+                      const cost = supplier.perTnCostPrice || 0;
+                      const sell = supplier.perTnSellPrice || 0;
+                      const margin = sell === 0 ? 0 : ((sell - cost) / sell) * 100;
+                      return (
+                        <MobileLineItem
+                          key={supplier.quarrySupplierId}
+                          title={supplier.quarrySupplier?.name || 'Unknown'}
+                          subtitle={supplier.supplierProductName || 'N/A'}
+                          costPrice={cost}
+                          sellPrice={sell}
+                          costLabel="Cost (TN)"
+                          sellLabel="Sell (TN)"
+                          profitLabel="Margin"
+                          profitValue={margin}
+                          actions={
+                            <SupplierTableActions
+                              quarry={supplier}
+                              productId={selectedProduct?.id ?? supplier.productId}
+                            />
+                          }
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Create flow footer buttons (Step 2) */}

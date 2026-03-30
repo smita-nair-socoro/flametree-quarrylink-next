@@ -4,13 +4,7 @@ import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { MobileScrollableTabs } from '@/components/mobile/mobile-scrollable-tabs';
 
 function Tabs({ ...props }: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return <TabsPrimitive.Root data-slot="tabs" {...props} />;
@@ -121,21 +115,11 @@ function Tab({
       {enableDropdownOnMobile ? (
         <>
           <div className="w-full max-[910px]:block min-[911px]:hidden">
-            <Select value={currentValue} onValueChange={handleValueChange}>
-              <SelectTrigger className="w-full h-10">
-                <SelectValue placeholder="Select tab" />
-              </SelectTrigger>
-              <SelectContent>
-                {tabs.map((tab) => (
-                  <SelectItem key={tab.name} value={tab.name}>
-                    <div className="flex items-center gap-2">
-                      {tab.icon}
-                      <span>{tab.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MobileScrollableTabs
+              tabs={tabs.map((t) => ({ value: t.name, label: t.name, icon: t.icon }))}
+              value={currentValue}
+              onValueChange={handleValueChange}
+            />
           </div>
           <TabsList
             className={cn(listStyles, tabsClassName, 'hidden min-[911px]:flex')}

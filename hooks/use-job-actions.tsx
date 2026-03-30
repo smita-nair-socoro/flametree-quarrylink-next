@@ -2,16 +2,37 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
-import { Job, JobDetails } from '@/lib/types/job';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { JobDTO, JobDetails } from '@/lib/types/job';
 import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-form';
+import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
+import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import { Docket } from '@/lib/types/docket';
-import { ResumeJobContent } from '@/hooks/job/resume-job-content';
-import { SettleJobContent } from '@/hooks/job/settle-job-content';
-import { PauseJobContent } from '@/hooks/job/pause-job-content';
-import { CancelJobContent } from '@/hooks/job/cancel-job-content';
+import { notifyError } from '@/lib/toast';
+import {
+  ResumeJobDescription,
+  ResumeJobContent,
+} from '@/hooks/job/resume-job-content';
+import {
+  SettleJobDescription,
+  SettleJobContent,
+} from '@/hooks/job/settle-job-content';
+import {
+  PauseJobDescription,
+  PauseJobContent,
+} from '@/hooks/job/pause-job-content';
+import {
+  CancelJobDescription,
+  CancelJobContent,
+  CannotCancelJobDescription,
+  CannotCancelJobContent,
+  CannotCancelBlockerType,
+} from '@/hooks/job/cancel-job-content';
 
 interface DialogConfig {
   title?: string;
@@ -33,16 +54,46 @@ interface DialogConfig {
   cancelText?: string;
 }
 
+// TODO: replace with real API-driven blocker data
+const CANNOT_CANCEL_BLOCKERS: Record<
+  number,
+  {
+    type: CannotCancelBlockerType;
+    activeDeliveryCount?: number;
+    deliveredDocketCount?: number;
+    collectedDocketCount?: number;
+  }
+> = {
+  2: { type: 'active_drivers', activeDeliveryCount: 3 },
+  3: {
+    type: 'unfinalised_dockets',
+    deliveredDocketCount: 4,
+    collectedDocketCount: 1,
+  },
+  4: {
+    type: 'multiple_blockers',
+    activeDeliveryCount: 3,
+    deliveredDocketCount: 4,
+    collectedDocketCount: 1,
+  },
+};
+
 export function useJobActions(jobData?: JobDetails | null) {
   const jobId = jobData?.id;
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const selectedJob = useJobStore((s) => s.selectedJob);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [addDocketOpen, setAddDocketOpen] = React.useState(false);
   const [pauseDocketAction, setPauseDocketAction] = React.useState<
     'stop' | 'allow'
   >('stop');
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
+
+  const cancelBlocker =
+    jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -76,16 +127,17 @@ export function useJobActions(jobData?: JobDetails | null) {
     (): Record<string, DialogConfig> => ({
       resume: {
         title: 'Resume Job',
-        content: <ResumeJobContent job={jobData} />,
+        description: <ResumeJobDescription job={jobData} />,
+        content: <ResumeJobContent />,
         confirmText: 'Resume Job',
         confirmCustomColor: '#008236',
         confirmActionNeeded: true,
       },
       cancel: {
         title: 'Cancel Job',
+        description: <CancelJobDescription job={jobData} />,
         content: (
           <CancelJobContent
-            job={jobData}
             cancelReason={cancelReason}
             onCancelReasonChange={setCancelReason}
             cancelNotes={cancelNotes}
@@ -98,8 +150,23 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmDisabled: !isCancelFormValid,
         cancelText: 'Keep Job',
       },
+      cannot_cancel: {
+        title: 'Cannot Cancel Job',
+        description: <CannotCancelJobDescription job={jobData} />,
+        content: cancelBlocker ? (
+          <CannotCancelJobContent
+            blockerType={cancelBlocker.type}
+            activeDeliveryCount={cancelBlocker.activeDeliveryCount}
+            deliveredDocketCount={cancelBlocker.deliveredDocketCount}
+            collectedDocketCount={cancelBlocker.collectedDocketCount}
+          />
+        ) : null,
+        confirmActionNeeded: false,
+        cancelText: 'Close',
+      },
       settle: {
         title: 'Settlement Blocked',
+        description: <SettleJobDescription job={jobData} />,
         content: <SettleJobContent job={jobData} />,
         confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
@@ -107,9 +174,9 @@ export function useJobActions(jobData?: JobDetails | null) {
       },
       pause: {
         title: 'Pause Job',
+        description: <PauseJobDescription job={jobData} />,
         content: (
           <PauseJobContent
-            job={jobData}
             activeDockets={activeDockets}
             docketAction={pauseDocketAction}
             onDocketActionChange={setPauseDocketAction}
@@ -126,6 +193,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       cancelReason,
       cancelNotes,
       isCancelFormValid,
+      cancelBlocker,
     ],
   );
 
@@ -154,7 +222,7 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const actions = {
     /** Pass job when opening from row click so the store updates before the dialog opens */
-    view: (job?: Job | null) => {
+    view: (job?: JobDTO | null) => {
       const toSelect = job ?? jobData;
       if (toSelect != null) {
         useJobStore.getState().setSelectedJob(toSelect);
@@ -170,19 +238,52 @@ export function useJobActions(jobData?: JobDetails | null) {
     },
 
     cancel: () => {
+      if (cancelBlocker) {
+        setActiveDialog('cannot_cancel');
+        return;
+      }
       setCancelReason('');
       setCancelNotes('');
       setActiveDialog('cancel');
     },
 
     addDocket: () => {
-      console.log('Add docket:', jobId, jobData);
-      // TODO: implement add docket logic
+      if (!jobId) return;
+      setAddDocketOpen(true);
     },
 
-    viewDockets: () => {
-      console.log('View dockets:', jobId, jobData);
-      // TODO: implement view dockets logic
+    viewDockets: async () => {
+      if (!jobId) return;
+
+      try {
+        const dockets = await queryClient.fetchQuery(
+          DocketsByJobIdQueryOptions(jobId),
+        );
+        const docketList = Array.isArray(dockets)
+          ? dockets
+          : (dockets?.content ?? []);
+
+        if (docketList.length === 0) {
+          notifyError('No dockets found for this job.');
+          return;
+        }
+
+        const jobNumber = (
+          jobData?.jobNumber ??
+          selectedJob?.jobNumber ??
+          ''
+        ).trim();
+        const jobNumberParam = jobNumber
+          ? `&linkedJobNumber=${encodeURIComponent(jobNumber)}`
+          : '';
+
+        router.push(
+          `/customer-operations/dockets?linkedJobId=${jobId}${jobNumberParam}`,
+        );
+      } catch (error: unknown) {
+        console.error('[useJobActions] viewDockets failed:', error);
+        notifyError('Failed to load dockets for this job.');
+      }
     },
 
     settle: createDialogAction('settle'),
@@ -213,6 +314,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     );
   });
 
+  // Customer field is only editable when the job is Active
+  const canEdit = jobData?.jobStatus === JOB_STATUS.ACTIVE;
+
   const viewDialog = viewOpen ? (
     <FormDialog
       id={selectedJob?.id}
@@ -220,14 +324,37 @@ export function useJobActions(jobData?: JobDetails | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setViewOpen(false);
+          }, 100);
+        }
       }}
-      headerButtons={<JobActionButtons job={selectedJob ?? undefined} />}
+      headerButtons={<JobActionButtons job={selectedJob ?? null} />}
       hideTrigger
       headerInfo={{
         useSelectedJob: true,
       }}
     >
-      <JobForm />
+      <JobForm canEdit={canEdit} />
+    </FormDialog>
+  ) : null;
+
+  const addDocketDialog = addDocketOpen ? (
+    <FormDialog
+      dialogTitle="Add New Docket"
+      open={addDocketOpen}
+      onOpenChangeAction={(open) => {
+        setAddDocketOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setAddDocketOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+    >
+      <DocketForm isQuickDocket={false} jobId={jobId} />
     </FormDialog>
   ) : null;
 
@@ -235,5 +362,6 @@ export function useJobActions(jobData?: JobDetails | null) {
     actions,
     confirmDialogs,
     viewDialog,
+    addDocketDialog,
   };
 }

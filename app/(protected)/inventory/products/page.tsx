@@ -249,7 +249,7 @@ export default function ProductsPage() {
               }
               data={filteredItems ?? []}
               columns={productColumns}
-              facetDefination={facetDefs}
+              facetDefinition={facetDefs}
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'product_name', desc: false }]}

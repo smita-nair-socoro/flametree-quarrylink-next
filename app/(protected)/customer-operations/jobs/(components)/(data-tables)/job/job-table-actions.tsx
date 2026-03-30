@@ -20,15 +20,17 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useJobActions } from '@/hooks/use-job-actions';
-import { Job } from '@/lib/types/job';
+import { JobDetails } from '@/lib/types/job';
+
 
 interface JobTableActionsProps {
-  job: Job;
+  job: JobDetails;
 }
 
 export function JobTableActions({ job }: JobTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useJobActions(job);
+  const { actions, confirmDialogs, viewDialog, addDocketDialog } =
+    useJobActions(job);
 
   const handleView = () => {
     setDropdownOpen(false); // Close dropdown before opening modal
@@ -69,6 +71,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
     <div>
       {confirmDialogs}
       {viewDialog}
+      {addDocketDialog}
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}
@@ -85,7 +88,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
             View Details
           </DropdownMenuItem>
 
-          {(job.status == 'CANCELLED' || job.status == 'SETTLED') && (
+          {(job.jobStatus == 'CANCELLED' || job.jobStatus == 'SETTLED') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleViewDockets}>
@@ -94,7 +97,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {job.status === 'PAUSED' && (
+          {job.jobStatus === 'PAUSED' && (
             <>
               <DropdownMenuSeparator />
 
@@ -109,7 +112,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {job.status === 'ACTIVE' && (
+          {job.jobStatus === 'ACTIVE' && (
             <>
               <DropdownMenuSeparator />
 
@@ -129,7 +132,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {job.status === 'IN_PROGRESS' && (
+          {job.jobStatus === 'IN_PROGRESS' && (
             <>
               <DropdownMenuSeparator />
 
@@ -154,7 +157,7 @@ export function JobTableActions({ job }: JobTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {job.status === 'COMPLETED' && (
+          {job.jobStatus === 'COMPLETED' && (
             <>
               <DropdownMenuSeparator />
 

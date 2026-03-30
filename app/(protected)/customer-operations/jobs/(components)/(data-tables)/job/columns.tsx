@@ -2,18 +2,19 @@
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { Job, JOB_STATUS } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
 import { JobTableActions } from './job-table-actions';
-import { DateCell } from '@/components/date-cell';
+// import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
-import { centsToDollars } from '@/lib/utils/currency';
+// import { centsToDollars } from '@/lib/utils/currency';
 
-export const jobColumns: ColumnDef<Job>[] = [
+export const jobColumns: ColumnDef<JobDTO>[] = [
   {
     id: 'jobNumber',
     accessorFn: (row) => row.jobNumber,
@@ -28,12 +29,12 @@ export const jobColumns: ColumnDef<Job>[] = [
   },
   {
     id: 'customerName',
-    accessorFn: (row) => row.customerName,
+    accessorFn: (row) => row.customerDto?.businessName || row.customerDto?.contactName || 'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.customerName;
+      const customerName = row.original.customerDto?.businessName || row.original.customerDto?.contactName || 'N/A';
       return <div className="py-2">{customerName}</div>;
     },
     meta: 'Customer Name',
@@ -52,7 +53,7 @@ export const jobColumns: ColumnDef<Job>[] = [
   },
   {
     id: 'status',
-    accessorFn: (row) => row.status,
+    accessorFn: (row) => row.jobStatus,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
@@ -86,7 +87,7 @@ export const jobColumns: ColumnDef<Job>[] = [
     },
     cell: ({ row }) => {
       const unInvoicedDockets = row.original.uninvoicedDockets
-        ? centsToDollars(row.original.uninvoicedDockets)
+        ? row.original.uninvoicedDockets
         : '0';
       return <div>${unInvoicedDockets}</div>;
     },
@@ -94,33 +95,37 @@ export const jobColumns: ColumnDef<Job>[] = [
   },
   {
     id: 'accountManagerName',
-    accessorFn: (row) => row.accountManagerName,
+    accessorFn: (row) => row.customerDto?.accountManagerName,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Account Manager" />
       );
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: ({ row }) => {
+      const accountManagerName = row.original.customerDto?.accountManagerName;
+      return <div className="py-2">{accountManagerName}</div>;
+    },
     meta: 'Account Manager',
   },
 
-  {
-    id: 'createdAt',
-    accessorFn: (row) => row.createdAt,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Created At" />;
-    },
-    cell: ({ getValue }) => {
-      return <DateCell dateString={getValue<string>()} side="top" />;
-    },
-    meta: 'Created At',
-  },
+  // {
+  //   id: 'createdAt',
+  //   accessorFn: (row) => row.createdAt,
+  //   header: ({ column }) => {
+  //     return <TableClientSortableHeader column={column} title="Created At" />;
+  //   },
+  //   cell: ({ getValue }) => {
+  //     return <DateCell dateString={getValue<string>()} side="top" />;
+  //   },
+  //   meta: 'Created At',
+  // },
   {
     id: 'actions',
     header: () => {
       return <div></div>;
     },
     cell: ({ row }) => {
+      // return <div>Actions</div>
       const job = row.original;
       return <JobTableActions job={job} />;
     },
