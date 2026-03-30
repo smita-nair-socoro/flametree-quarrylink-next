@@ -1005,6 +1005,12 @@ export const APIClient = {
         body: data,
       }),
     getAll: () => appClient.Get<HaulierDTO[]>('/socoro/quarrylink/api/haulier'),
+    getById: (id: number) =>
+      appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
+    update: (id: number, data: HaulierCreateDTO) =>
+      appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
+        body: data,
+      }),
   },
 
   tenants: {

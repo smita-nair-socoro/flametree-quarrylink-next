@@ -10,6 +10,28 @@ export const useGetAllHauliers = () => {
   });
 };
 
+export const useGetHaulierById = (id: number) => {
+  return useQuery({
+    queryKey: HaulierKeys.detail(id),
+    queryFn: () => APIClient.hauliers.getById(id),
+    enabled: !!id,
+  });
+};
+
+export const useUpdateHaulier = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: HaulierCreateDTO }) =>
+      APIClient.hauliers.update(id, data),
+
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: HaulierKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: HaulierKeys.list() });
+    },
+  });
+};
+
 export const useCreateHaulier = () => {
   const queryClient = useQueryClient();
 

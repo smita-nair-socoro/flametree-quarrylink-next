@@ -20,7 +20,7 @@ import {
   HaulierFormValues,
 } from './schemas/haulier-form-schema';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
-import { useCreateHaulier } from '@/lib/api/haulier';
+import { useCreateHaulier, useGetHaulierById, useUpdateHaulier } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
@@ -38,28 +38,60 @@ export default function HaulierForm({
   onCancel,
 }: HaulierFormProps) {
   const createHaulier = useCreateHaulier();
+  const updateHaulier = useUpdateHaulier();
+  const editingId = isEditing && editingItem?.id ? Number(editingItem.id) : 0;
+
+  const { data: haulierData } = useGetHaulierById(editingId);
 
   const form = useForm<HaulierFormValues>({
     resolver: zodResolver(HaulierFormSchema),
     mode: 'onChange',
     defaultValues: {
-      name: editingItem?.label ?? '',
-      email: editingItem?.fields?.email ?? '',
-      phone: editingItem?.fields?.phone ?? '',
+      name: '',
+      email: '',
+      phone: '',
     },
   });
 
-  // Reset form when switching between add/edit
+  // Populate form with fetched data when editing (mirrors docket form pattern)
   React.useEffect(() => {
+    if (!isEditing || !haulierData) return;
+
     form.reset({
-      name: editingItem?.label ?? '',
-      email: editingItem?.fields?.email ?? '',
-      phone: editingItem?.fields?.phone ?? '',
+      name: haulierData.haulierName,
+      email: haulierData.emailAddress,
+      phone: haulierData.phoneNumber,
     });
-  }, [editingItem, form]);
+  }, [isEditing, haulierData, form]);
+
+  // Clear form when switching to add mode
+  React.useEffect(() => {
+    if (!isEditing) {
+      form.reset({ name: '', email: '', phone: '' });
+    }
+  }, [isEditing, form]);
 
   async function onSubmit(values: HaulierFormValues) {
-    if (!isEditing) {
+    if (isEditing) {
+      try {
+        const result = await updateHaulier.mutateAsync({
+          id: editingId,
+          data: {
+            haulierName: values.name,
+            haulierEmailAddress: values.email,
+            haulierPhoneNumber: values.phone,
+          },
+        });
+        notifySuccess('Haulier updated successfully.');
+        onSave({
+          id: String(result.id),
+          label: result.haulierName,
+          fields: { email: result.emailAddress, phone: result.phoneNumber },
+        });
+      } catch (error: unknown) {
+        notifyError(extractErrorMessage(error));
+      }
+    } else {
       try {
         const result = await createHaulier.mutateAsync({
           haulierName: values.name,
@@ -75,12 +107,6 @@ export default function HaulierForm({
       } catch (error: unknown) {
         notifyError(extractErrorMessage(error));
       }
-    } else {
-      onSave({
-        id: editingItem?.id ?? String(Date.now()),
-        label: values.name,
-        fields: { email: values.email, phone: values.phone },
-      });
     }
   }
 
@@ -148,7 +174,7 @@ export default function HaulierForm({
           <Button
             type="submit"
             className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
-            disabled={createHaulier.isPending}
+            disabled={createHaulier.isPending || updateHaulier.isPending}
           >
             {isEditing ? 'Update Haulier' : 'Add Haulier'}
           </Button>
