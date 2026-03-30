@@ -13,7 +13,7 @@ import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { Docket } from '@/lib/types/docket';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   ResumeJobDescription,
   ResumeJobContent,
@@ -106,7 +106,8 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const isCancelFormValid = React.useMemo(() => {
     if (!cancelReason) return false;
-    if (cancelReason === CANCEL_REASON_LABELS.other && !cancelNotes.trim()) return false;
+    if (cancelReason === CANCEL_REASON_LABELS.other && !cancelNotes.trim())
+      return false;
     return true;
   }, [cancelReason, cancelNotes]);
 
@@ -187,45 +188,58 @@ export function useJobActions(jobData?: JobDetails | null) {
   const createDialogAction = (actionKey: string) => () =>
     setActiveDialog(actionKey);
 
+  const handleCancelJob = async () => {
+    if (jobId == null) {
+      console.error('Job ID is required');
+      return;
+    }
+    try {
+      await cancelJobMutation.mutateAsync({
+        id: jobId,
+        cancelReason,
+        additionalNotes: cancelNotes.trim(),
+      });
+      notifySuccess('Job cancelled successfully.');
+      setActiveDialog(null);
+      setCannotCancelBlocker(null);
+    } catch (error: unknown) {
+      const data = extractErrorData(error) as Partial<CancelBlockerState> | null;
+      const activeDeliveryCount = data?.activeDeliveryCount ?? 0;
+      const deliveredDocketCount = data?.deliveredDocketCount ?? 0;
+      const collectedDocketCount = data?.collectedDocketCount ?? 0;
+
+      const hasBlockers =
+        activeDeliveryCount > 0 || deliveredDocketCount > 0 || collectedDocketCount > 0;
+
+      if (hasBlockers) {
+        const blockerType: CannotCancelBlockerType =
+          activeDeliveryCount > 0 && (deliveredDocketCount > 0 || collectedDocketCount > 0)
+            ? 'multiple_blockers'
+            : activeDeliveryCount > 0
+              ? 'active_drivers'
+              : 'unfinalised_dockets';
+
+        setCannotCancelBlocker({
+          type: blockerType,
+          activeDeliveryCount,
+          deliveredDocketCount,
+          collectedDocketCount,
+        });
+        setActiveDialog('cannot_cancel');
+      } else {
+        setActiveDialog(null);
+        setCannotCancelBlocker(null);
+      }
+    }
+  };
+
   const actionHandlers: Record<string, () => void> = {
     resume: () => {
       console.log('Resume job:', jobId, jobData);
       // TODO: implement resume logic
     },
     cancel: () => {
-      if (!isCancelFormValid || jobId == null) return;
-      cancelJobMutation.mutate(
-        { id: jobId, cancelReason, additionalNotes: cancelNotes.trim() },
-        {
-          onSuccess: () => {
-            setActiveDialog(null);
-          },
-          onError: (error) => {
-            const data = extractErrorData(error) as Record<string, unknown> | null;
-            const activeDeliveryCount =
-              typeof data?.activeDeliveryCount === 'number' ? data.activeDeliveryCount : 0;
-            const deliveredDocketCount =
-              typeof data?.deliveredDocketCount === 'number' ? data.deliveredDocketCount : 0;
-            const collectedDocketCount =
-              typeof data?.collectedDocketCount === 'number' ? data.collectedDocketCount : 0;
-
-            const hasActiveDeliveries = activeDeliveryCount > 0;
-            const hasUnfinalisedDockets = deliveredDocketCount > 0 || collectedDocketCount > 0;
-
-            let blockerType: CannotCancelBlockerType;
-            if (hasActiveDeliveries && hasUnfinalisedDockets) {
-              blockerType = 'multiple_blockers';
-            } else if (hasActiveDeliveries) {
-              blockerType = 'active_drivers';
-            } else {
-              blockerType = 'unfinalised_dockets';
-            }
-
-            setCannotCancelBlocker({ type: blockerType, activeDeliveryCount, deliveredDocketCount, collectedDocketCount });
-            setActiveDialog('cannot_cancel');
-          },
-        },
-      );
+      void handleCancelJob();
     },
     settle: () => {
       console.log('Settle job:', jobId, jobData);
