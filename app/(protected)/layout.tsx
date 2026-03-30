@@ -25,7 +25,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     UserDetailQueryOptions(auth.user?.userId || ''),
   );
 
-
   React.useEffect(() => {
     if (currentUser) {
       useUserStore.getState().setUserName(currentUser.name ?? '');
