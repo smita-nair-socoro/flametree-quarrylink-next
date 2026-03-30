@@ -1,6 +1,7 @@
 import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
 import { CustomerDTO, CustomerWithAddressResponseDTO } from './customer';
 import { CustomerDeliveryAddress } from './address';
+import { QuarrySupplier } from './quarry-supplier';
 
 export interface JobDTO {
   id: number;
@@ -58,6 +59,7 @@ export interface JobLineItem {
   customerDeliveryAddressId?: number;
   customerDeliveryAddress?: Partial<CustomerDeliveryAddress>;
   quarryProductId?: number;
+  quarrySupplier: Partial<QuarrySupplier>;
   productName: string;
   quarryName: string;
   supplierProductName: string;
@@ -109,6 +111,7 @@ export interface JobItem {
     version: number;
   };
   quarrySupplierId: number;
+  quarrySupplier: Partial<QuarrySupplier>;
   quarrySupplierName: string;
   totalQuantityRequired: number;
   allocatedQuantity: number;

@@ -101,6 +101,7 @@ export default function JobForm({
       });
 
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, jobDetails, jobForm]);
 
   const createJob = useCreateJob();
@@ -187,7 +188,7 @@ export default function JobForm({
         content: <CashSalesTab />,
       },
     ],
-    [jobItems],
+    [jobItems, jobDetails],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
