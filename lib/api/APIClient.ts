@@ -792,12 +792,12 @@ export const APIClient = {
     sendToCustomer: (
       id: number,
       inclDeliveryCost: boolean,
-      additionalEmailRecipients: string[],
+      emailRecipients: string[],
     ) =>
       appClient.Post<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/send-to-customer`,
         {
-          body: { inclDeliveryCost, additionalEmailRecipients },
+          body: { inclDeliveryCost, emailRecipients },
         },
       ),
     preview: (id: number) =>
@@ -987,6 +987,10 @@ export const APIClient = {
     createJobItem: (data: Partial<JobItem>) =>
       appClient.Post<JobItem>('/socoro/quarrylink/api/job-items', {
         body: data,
+      }),
+    cancelJob: (id: number, cancelReason: string, additionalNotes: string) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/cancel`, {
+        body: { cancelReason, additionalNotes },
       }),
     updateJob: (id: number, data: JobDTO) => {
       return appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}`, {

@@ -43,7 +43,7 @@ export interface QuotationDTO {
   updatedAt: string;
   lastModifiedBy: string;
   quoteItems: QuotationLineItem[];
-  additionalEmailRecipients?: string[];
+  emailRecipients?: string[];
 }
 
 export type Quotation = QuotationDTO;
