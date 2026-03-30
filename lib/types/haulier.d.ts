@@ -1,6 +1,13 @@
-interface Haulier {
+export interface HaulierCreateDTO {
+  haulierName: string;
+  haulierEmailAddress: string;
+  haulierPhoneNumber: string;
+}
+
+export interface HaulierDTO {
   id: number;
-  name: string;
-  email: string;
-  phone: string;
+  haulierName: string;
+  emailAddress: string;
+  phoneNumber: string;
+  version: number;
 }

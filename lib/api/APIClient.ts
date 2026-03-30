@@ -42,6 +42,7 @@ import {
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
+import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 
 type RequestBody =
   | BodyInit
@@ -997,6 +998,13 @@ export const APIClient = {
         body: data,
       });
     },
+  },
+
+  hauliers: {
+    create: (data: HaulierCreateDTO) =>
+      appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
+        body: data,
+      }),
   },
 
   tenants: {
