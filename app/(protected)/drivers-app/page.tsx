@@ -7,10 +7,12 @@ import CalendarTab from './(components)/tabs/calendar/calendar-tab';
 import { FileText, Calendar, Settings, StopCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useUserStore } from '@/app/stores/user-store';
 
 export default function DriversAppPage() {
   const [isChecklistComplete, setIsChecklistComplete] = useState(false);
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
+  const userName = useUserStore.getState().userName;
 
   return (
     <div className="flex h-full">
@@ -30,7 +32,7 @@ export default function DriversAppPage() {
             <div className="flex flex-col gap-1">
               <span className="text-[14px] text-[#64748B]">Welcome back,</span>
               <div className="flex flex-col gap-0.5">
-                <span className="text-[18px] font-bold text-[#0F172A]">John Smith</span>
+                <span className="text-[18px] font-bold text-[#0F172A]">{userName}</span>
                 <span className="text-[12px] text-gray-400 font-medium">ID: DRV-001</span>
               </div>
             </div>

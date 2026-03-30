@@ -106,6 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     UserDetailQueryOptions(amplifyUser?.userId || ''),
   );
 
+
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
   React.useEffect(() => {
