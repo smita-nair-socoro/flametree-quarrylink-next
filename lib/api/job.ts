@@ -86,6 +86,20 @@ export const useUpdateJob = () => {
   });
 };
 
+export const useSettleJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.jobs.settle(id),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
 export const useUpdateJobItem = () => {
   const queryClient = useQueryClient();
   return useMutation({

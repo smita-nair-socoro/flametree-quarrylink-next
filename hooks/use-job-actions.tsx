@@ -10,10 +10,12 @@ import DocketForm from '@/app/(protected)/customer-operations/dockets/(component
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
+import { useSettleJob } from '@/lib/api/job';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { Docket } from '@/lib/types/docket';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorData } from '@/lib/utils/error-message-helper';
 import {
   ResumeJobDescription,
   ResumeJobContent,
@@ -21,6 +23,7 @@ import {
 import {
   SettleJobDescription,
   SettleJobContent,
+  SettleJobInitialContent,
 } from '@/hooks/job/settle-job-content';
 import {
   PauseJobDescription,
@@ -91,6 +94,12 @@ export function useJobActions(jobData?: JobDetails | null) {
   >('stop');
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
+  const [settleBlockedData, setSettleBlockedData] = React.useState<{
+    unfinalisedDocketsCount: number;
+    unfinalisedDocketsAmount: number;
+  } | null>(null);
+
+  const settleJobMutation = useSettleJob();
 
   const cancelBlocker =
     jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
@@ -165,12 +174,26 @@ export function useJobActions(jobData?: JobDetails | null) {
         cancelText: 'Close',
       },
       settle: {
+        title: 'Settle Job',
+        description: <SettleJobDescription job={jobData} />,
+        content: <SettleJobInitialContent />,
+        confirmText: 'Settle Job',
+        confirmCustomColor: '#8E51FF',
+        cancelText: 'Cancel',
+      },
+      settle_blocked: {
         title: 'Settlement Blocked',
         description: <SettleJobDescription job={jobData} />,
-        content: <SettleJobContent job={jobData} />,
+        content: (
+          <SettleJobContent
+            unfinalisedDocketsCount={settleBlockedData?.unfinalisedDocketsCount}
+            unfinalisedDocketsAmount={settleBlockedData?.unfinalisedDocketsAmount}
+          />
+        ),
         confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
         cancelText: 'Cancel',
+        confirmActionNeeded: false,
       },
       pause: {
         title: 'Pause Job',
@@ -194,11 +217,43 @@ export function useJobActions(jobData?: JobDetails | null) {
       cancelNotes,
       isCancelFormValid,
       cancelBlocker,
+      settleBlockedData,
     ],
   );
 
   const createDialogAction = (actionKey: string) => () =>
     setActiveDialog(actionKey);
+
+  const handleSettleJob = async () => {
+    if (!jobId) return;
+
+    try {
+      await settleJobMutation.mutateAsync(jobId);
+      notifySuccess('Job settled successfully.');
+      setActiveDialog(null);
+      setSettleBlockedData(null);
+    } catch (error: unknown) {
+      const errorData = extractErrorData(error) as {
+        unfinalisedDocketsCount?: number;
+        unfinalisedDocketsAmount?: number;
+      } | null;
+
+      if (
+        errorData &&
+        (errorData.unfinalisedDocketsCount !== undefined ||
+          errorData.unfinalisedDocketsAmount !== undefined)
+      ) {
+        setSettleBlockedData({
+          unfinalisedDocketsCount: errorData.unfinalisedDocketsCount ?? 0,
+          unfinalisedDocketsAmount: errorData.unfinalisedDocketsAmount ?? 0,
+        });
+        setActiveDialog('settle_blocked');
+      } else {
+        notifyError('Failed to settle job. Please try again.');
+        setActiveDialog(null);
+      }
+    }
+  };
 
   const actionHandlers: Record<string, () => void> = {
     resume: () => {
@@ -211,8 +266,11 @@ export function useJobActions(jobData?: JobDetails | null) {
       // TODO: implement cancel logic
     },
     settle: () => {
-      console.log('Settle job:', jobId, jobData);
-      // TODO: implement settle logic
+      handleSettleJob();
+    },
+    settle_blocked: () => {
+      setActiveDialog(null);
+      setSettleBlockedData(null);
     },
     pause: () => {
       console.log('Pause job:', jobId, 'docketAction:', pauseDocketAction);
