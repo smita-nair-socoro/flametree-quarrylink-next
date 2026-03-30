@@ -219,7 +219,6 @@ export function useDocketFormState({
   const selectedJob = React.useMemo(() => {
     const job =
       selectedJobDetails ?? jobsList.find((job) => job.id === selectedJobId);
-    console.log(job, 'job');
 
     return {
       deliveryStartDate: job?.estimatedStartDate ?? '',
@@ -337,6 +336,7 @@ export function useDocketFormState({
         ? (selectedDocket.loadSize ?? 0)
         : 0;
     return {
+      pickUpAddress: selectedJobLineItem?.quarrySupplier ?? null,
       customerDeliveryAddress:
         selectedJobLineItem?.customerDeliveryAddress ?? null,
       productName: selectedJobLineItem?.product?.productName ?? '',
@@ -407,17 +407,23 @@ export function useDocketFormState({
               : '',
           );
         }
+      }
+    }
 
-        // For now, duplicate delivery address to pick up address
-        setPickUpAddress(mappedAddress);
-        setPickUpSearchInput(address.formattedAddress || '');
+    if (details.pickUpAddress) {
+      const pickUpAddress = details.pickUpAddress.address;
+      if (pickUpAddress) {
+        const mappedPickupAddress = toAddressType(pickUpAddress);
+        setPickUpAddress(mappedPickupAddress);
+        setPickUpSearchInput(pickUpAddress.formattedAddress || '');
         docketForm.setValue(
           'pickUpAddressId',
-          details.customerDeliveryAddress.id
-            ? String(details.customerDeliveryAddress.id)
+          details.pickUpAddress.id
+            ? String(details.pickUpAddress.id)
             : '',
         );
       }
+
     }
   }, [
     docketForm.watch('jobLineItemId'),

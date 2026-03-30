@@ -39,6 +39,7 @@ export default function CustomersPage() {
       actions.view(job);
       router.replace('/customer-operations/jobs');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
   const facetDefs: FacetDefinition[] = [
