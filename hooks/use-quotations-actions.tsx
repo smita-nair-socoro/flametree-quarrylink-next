@@ -916,7 +916,13 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   // Reset recipient emails when send-to-customer dialog opens
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
-      const emails = [sendDialogCustomerEmail];
+      const existing = quotationData?.emailRecipients ?? [];
+      const emails = sendDialogCustomerEmail
+        ? [
+            sendDialogCustomerEmail,
+            ...existing.filter((e) => e !== sendDialogCustomerEmail),
+          ]
+        : existing;
       setAdditionalRecipientEmails(emails);
     }
   }, [selectedAction?.key]);
