@@ -478,7 +478,7 @@ export default function DocketForm({
                     }}
                   />
 
-                  {selectedJobLineItemDetails().needTruckQty && (
+                  {selectedJobLineItemDetails().type === 'DELIVERY' && selectedJobLineItemDetails().needTruckQty && (
                     <FormField
                       name="truckQty"
                       render={({ field }) => (

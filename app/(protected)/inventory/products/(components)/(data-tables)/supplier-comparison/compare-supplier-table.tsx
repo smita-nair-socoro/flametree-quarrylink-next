@@ -99,8 +99,8 @@ export function CompareSupplierTable({
               defaultSorting={[{ id: 'cost_price', desc: false }]}
               getRowClassName={(row) =>
                 tnMeta.lowestCost !== null &&
-                row.perTnCostPrice === tnMeta.lowestCost &&
-                row.perTnCostPrice > 0
+                  row.perTnCostPrice === tnMeta.lowestCost &&
+                  row.perTnCostPrice > 0
                   ? 'bg-[#F0FDF4]'
                   : undefined
               }
@@ -118,8 +118,8 @@ export function CompareSupplierTable({
               defaultSorting={[{ id: 'cost_price', desc: false }]}
               getRowClassName={(row) =>
                 m3Meta.lowestCost !== null &&
-                row.perM3CostPrice === m3Meta.lowestCost &&
-                row.perM3CostPrice > 0
+                  row.perM3CostPrice === m3Meta.lowestCost &&
+                  row.perM3CostPrice > 0
                   ? 'bg-[#F0FDF4]'
                   : undefined
               }
@@ -137,8 +137,8 @@ export function CompareSupplierTable({
               defaultSorting={[{ id: 'cost_price', desc: false }]}
               getRowClassName={(row) =>
                 kgMeta.lowestCost !== null &&
-                row.per20kgCostPrice === kgMeta.lowestCost &&
-                row.per20kgCostPrice > 0
+                  row.per20kgCostPrice === kgMeta.lowestCost &&
+                  row.per20kgCostPrice > 0
                   ? 'bg-[#F0FDF4]'
                   : undefined
               }
@@ -156,8 +156,8 @@ export function CompareSupplierTable({
               defaultSorting={[{ id: 'cost_price', desc: false }]}
               getRowClassName={(row) =>
                 bulkaMeta.lowestCost !== null &&
-                row.perBulkaCostPrice === bulkaMeta.lowestCost &&
-                row.perBulkaCostPrice > 0
+                  row.perBulkaCostPrice === bulkaMeta.lowestCost &&
+                  row.perBulkaCostPrice > 0
                   ? 'bg-[#F0FDF4]'
                   : undefined
               }
@@ -175,8 +175,8 @@ export function CompareSupplierTable({
               defaultSorting={[{ id: 'truck_tn_rate', desc: false }]}
               getRowClassName={(row) =>
                 lowestTn !== null &&
-                row.tnTruckRate === lowestTn &&
-                row.tnTruckRate > 0
+                  row.tnTruckRate === lowestTn &&
+                  row.tnTruckRate > 0
                   ? 'bg-[#F0FDF4]'
                   : undefined
               }
@@ -185,7 +185,7 @@ export function CompareSupplierTable({
         ),
       },
     ],
-    [data, tnColumns, m3Columns, kgColumns, bulkaColumns, truckColumns],
+    [data, tnColumns, m3Columns, kgColumns, bulkaColumns, truckColumns, tnMeta, m3Meta, kgMeta, bulkaMeta, lowestTn],
   );
 
   // Mobile: MobileScrollableTabs handles nav; content rendered separately
