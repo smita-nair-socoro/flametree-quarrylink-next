@@ -6,6 +6,7 @@ import { FormDialog } from '@/components/form-dialog';
 import JobForm from './(components)/forms/job-form';
 import { JobDTO } from '@/lib/types/job';
 import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 import {
   DataTableClient,
@@ -28,6 +29,22 @@ export default function CustomersPage() {
   }, [jobs]);
 
   const { actions, viewDialog, confirmDialogs } = useJobActions();
+
+  // URL-driven filtering for linked jobs
+  const jobIdsParam = searchParams.get('jobIds');
+  const jobIdsSet = React.useMemo(() => {
+    if (!jobIdsParam) return null;
+    const ids = jobIdsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return new Set(ids);
+  }, [jobIdsParam]);
+
+  const filteredItems = React.useMemo(() => {
+    if (!jobIdsSet) return items;
+    return items.filter((j) => jobIdsSet.has(j.id));
+  }, [items, jobIdsSet]);
 
   // Auto-open job view when navigated from quote convert-to-job
   React.useEffect(() => {
@@ -72,9 +89,23 @@ export default function CustomersPage() {
       </div>
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+        {jobIdsSet && (
+          <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
+            <div className="mt-1 text-sm text-muted-foreground">
+              <span>Showing filtered jobs</span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push('/customer-operations/jobs')}
+            >
+              Reset Filter
+            </Button>
+          </div>
+        )}
         <DataTableClient
           tableId="job_main_data_table"
-          data={items ?? []}
+          data={filteredItems ?? []}
           columns={jobColumns}
           facetDefinition={facetDefs}
           searchPlaceHolder="Search jobs..."
