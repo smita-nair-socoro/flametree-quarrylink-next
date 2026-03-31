@@ -998,7 +998,7 @@ export const APIClient = {
       });
     },
     settle: (id: number) =>
-      appClient.Post<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
   },
 
   tenants: {
