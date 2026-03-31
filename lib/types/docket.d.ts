@@ -49,6 +49,7 @@ export interface DocketDTO {
   jobId: number;
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
+  stopReason?: string;
   pickUpAddressId: number;
   pickUpAddress: Partial<Address>;
   deliveryAddressId: number;

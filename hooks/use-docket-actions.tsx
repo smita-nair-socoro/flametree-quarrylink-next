@@ -50,7 +50,7 @@ import {
   StartPreparingContent,
 } from '@/hooks/docket/start-preparing-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus } from '@/lib/api/dockets';
+import { useUpdateDocketStatus } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
@@ -640,7 +640,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     );
   });
 
-  const canEdit = docketData?.docketStatus === 'UNASSIGNED';
+  const canEdit = (docketData ?? selectedDocket)?.docketStatus === 'UNASSIGNED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={selectedDocket?.id}
