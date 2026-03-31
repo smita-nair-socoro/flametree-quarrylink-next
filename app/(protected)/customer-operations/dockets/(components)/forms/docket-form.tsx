@@ -147,8 +147,18 @@ export default function DocketForm({
     if (!actionLabel) return null;
 
     const actorName = getActorName(selectedDocket.lastModifiedBy);
-    const actionDate = formatLocalDateTime(selectedDocket.updatedAt);
-    const reason = selectedDocket.stopReason?.trim() || 'N/A';
+    const actionDate = formatLocalDateTime(
+      actionLabel === 'stopped'
+        ? (selectedDocket.stoppedAt ?? selectedDocket.updatedAt)
+        : selectedDocket.updatedAt,
+    );
+    const reason =
+      (actionLabel === 'stopped'
+        ? selectedDocket.stopReason
+        : actionLabel === 'cancelled'
+          ? selectedDocket.cancelReason
+          : selectedDocket.voidReason
+      )?.trim() || 'N/A';
     const note = selectedDocket.notes?.trim();
 
     return (
