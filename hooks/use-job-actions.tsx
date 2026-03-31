@@ -15,7 +15,6 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { Docket } from '@/lib/types/docket';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
 import {
   ResumeJobDescription,
   ResumeJobContent,
@@ -35,7 +34,10 @@ import {
   CannotCancelJobDescription,
   CannotCancelJobContent,
   CannotCancelBlockerType,
+  CANCEL_REASON_LABELS,
 } from '@/hooks/job/cancel-job-content';
+import { useCancelJob } from '@/lib/api/job';
+import { extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -57,29 +59,12 @@ interface DialogConfig {
   cancelText?: string;
 }
 
-// TODO: replace with real API-driven blocker data
-const CANNOT_CANCEL_BLOCKERS: Record<
-  number,
-  {
-    type: CannotCancelBlockerType;
-    activeDeliveryCount?: number;
-    deliveredDocketCount?: number;
-    collectedDocketCount?: number;
-  }
-> = {
-  2: { type: 'active_drivers', activeDeliveryCount: 3 },
-  3: {
-    type: 'unfinalised_dockets',
-    deliveredDocketCount: 4,
-    collectedDocketCount: 1,
-  },
-  4: {
-    type: 'multiple_blockers',
-    activeDeliveryCount: 3,
-    deliveredDocketCount: 4,
-    collectedDocketCount: 1,
-  },
-};
+interface CancelBlockerState {
+  type: CannotCancelBlockerType;
+  activeDeliveryCount?: number;
+  deliveredDocketCount?: number;
+  collectedDocketCount?: number;
+}
 
 export function useJobActions(jobData?: JobDetails | null) {
   const jobId = jobData?.id;
@@ -100,9 +85,10 @@ export function useJobActions(jobData?: JobDetails | null) {
   } | null>(null);
 
   const settleJobMutation = useSettleJob();
+  const [cannotCancelBlocker, setCannotCancelBlocker] =
+    React.useState<CancelBlockerState | null>(null);
 
-  const cancelBlocker =
-    jobId != null ? CANNOT_CANCEL_BLOCKERS[jobId] : undefined;
+  const cancelJobMutation = useCancelJob();
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -128,7 +114,8 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const isCancelFormValid = React.useMemo(() => {
     if (!cancelReason) return false;
-    if (cancelReason === 'other' && !cancelNotes.trim()) return false;
+    if (cancelReason === CANCEL_REASON_LABELS.other && !cancelNotes.trim())
+      return false;
     return true;
   }, [cancelReason, cancelNotes]);
 
@@ -162,12 +149,12 @@ export function useJobActions(jobData?: JobDetails | null) {
       cannot_cancel: {
         title: 'Cannot Cancel Job',
         description: <CannotCancelJobDescription job={jobData} />,
-        content: cancelBlocker ? (
+        content: cannotCancelBlocker ? (
           <CannotCancelJobContent
-            blockerType={cancelBlocker.type}
-            activeDeliveryCount={cancelBlocker.activeDeliveryCount}
-            deliveredDocketCount={cancelBlocker.deliveredDocketCount}
-            collectedDocketCount={cancelBlocker.collectedDocketCount}
+            blockerType={cannotCancelBlocker.type}
+            activeDeliveryCount={cannotCancelBlocker.activeDeliveryCount}
+            deliveredDocketCount={cannotCancelBlocker.deliveredDocketCount}
+            collectedDocketCount={cannotCancelBlocker.collectedDocketCount}
           />
         ) : null,
         confirmActionNeeded: false,
@@ -187,7 +174,9 @@ export function useJobActions(jobData?: JobDetails | null) {
         content: (
           <SettleJobContent
             unfinalisedDocketsCount={settleBlockedData?.unfinalisedDocketsCount}
-            unfinalisedDocketsAmount={settleBlockedData?.unfinalisedDocketsAmount}
+            unfinalisedDocketsAmount={
+              settleBlockedData?.unfinalisedDocketsAmount
+            }
           />
         ),
         confirmText: 'Resolve Dockets',
@@ -216,8 +205,8 @@ export function useJobActions(jobData?: JobDetails | null) {
       cancelReason,
       cancelNotes,
       isCancelFormValid,
-      cancelBlocker,
       settleBlockedData,
+      cannotCancelBlocker,
     ],
   );
 
@@ -255,15 +244,63 @@ export function useJobActions(jobData?: JobDetails | null) {
     }
   };
 
+  const handleCancelJob = async () => {
+    if (jobId == null) {
+      console.error('Job ID is required');
+      return;
+    }
+    try {
+      await cancelJobMutation.mutateAsync({
+        id: jobId,
+        cancelReason,
+        additionalNotes: cancelNotes.trim(),
+      });
+      notifySuccess('Job cancelled successfully.');
+      setActiveDialog(null);
+      setCannotCancelBlocker(null);
+    } catch (error: unknown) {
+      const data = extractErrorData(
+        error,
+      ) as Partial<CancelBlockerState> | null;
+      const activeDeliveryCount = data?.activeDeliveryCount ?? 0;
+      const deliveredDocketCount = data?.deliveredDocketCount ?? 0;
+      const collectedDocketCount = data?.collectedDocketCount ?? 0;
+
+      const hasBlockers =
+        activeDeliveryCount > 0 ||
+        deliveredDocketCount > 0 ||
+        collectedDocketCount > 0;
+
+      if (hasBlockers) {
+        const blockerType: CannotCancelBlockerType =
+          activeDeliveryCount > 0 &&
+          (deliveredDocketCount > 0 || collectedDocketCount > 0)
+            ? 'multiple_blockers'
+            : activeDeliveryCount > 0
+              ? 'active_drivers'
+              : 'unfinalised_dockets';
+
+        setCannotCancelBlocker({
+          type: blockerType,
+          activeDeliveryCount,
+          deliveredDocketCount,
+          collectedDocketCount,
+        });
+        setActiveDialog('cannot_cancel');
+      } else {
+        setActiveDialog(null);
+        setCannotCancelBlocker(null);
+      }
+    }
+  };
+
   const actionHandlers: Record<string, () => void> = {
     resume: () => {
       console.log('Resume job:', jobId, jobData);
       // TODO: implement resume logic
     },
     cancel: () => {
-      if (!isCancelFormValid) return;
-      console.log('Cancel job:', jobId, jobData, { cancelReason, cancelNotes });
-      // TODO: implement cancel logic
+      void handleCancelJob();
     },
     settle: () => {
       handleSettleJob();
@@ -296,12 +333,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     },
 
     cancel: () => {
-      if (cancelBlocker) {
-        setActiveDialog('cannot_cancel');
-        return;
-      }
       setCancelReason('');
       setCancelNotes('');
+      setCannotCancelBlocker(null);
       setActiveDialog('cancel');
     },
 

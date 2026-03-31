@@ -50,6 +50,27 @@ export const JobItemByIdQueryOptions = (jobItemId: number) =>
     staleTime: 5_000,
   });
 
+export const useCancelJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      cancelReason,
+      additionalNotes,
+    }: {
+      id: number;
+      cancelReason: string;
+      additionalNotes: string;
+    }) => APIClient.jobs.cancelJob(id, cancelReason, additionalNotes),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
 export const useCreateJobItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
