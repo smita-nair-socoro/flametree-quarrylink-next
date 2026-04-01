@@ -50,10 +50,11 @@ import {
   StartPreparingContent,
 } from '@/hooks/docket/start-preparing-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus } from '@/lib/api/docket';
+import { useUpdateDocketStatus, DocketByIdQueryOptions } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { useQuery } from '@tanstack/react-query';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -118,6 +119,19 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     React.useState<SelectedAction | null>(null);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
+
+  // Subscribe to the full DocketDTO from getById. After a status change,
+  // invalidateQueries triggers a fresh getById refetch, and this syncs the
+  // complete data (including job, jobItem, addresses) to the store.
+  const { data: freshDocket } = useQuery({
+    ...DocketByIdQueryOptions(selectedDocket?.id ?? 0),
+    enabled: viewOpen && !!selectedDocket?.id,
+  });
+  React.useEffect(() => {
+    if (freshDocket) {
+      useDocketStore.getState().setSelectedDocket(freshDocket);
+    }
+  }, [freshDocket]);
 
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
     const [header, data] = dataUrl.split(',');
