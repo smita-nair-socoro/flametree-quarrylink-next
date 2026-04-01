@@ -8,6 +8,6 @@ Customer: {CustomerName}
 Void Reason: {VoidReason}
 Void Notes: {VoidNotes}
 
-View Docket: {DocketUrl}
+View Docket: https://app.{environment}.quarrylink/customer-operations/dockets/?docketId={DocketId}
 
 You're receiving this notification because you're associated with this docket on QuarryLink.
