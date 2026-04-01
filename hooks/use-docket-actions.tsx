@@ -83,11 +83,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
@@ -655,12 +655,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         }
       }}
       hideTrigger
-      headerButtons={<DocketActionButtons docket={docketData} />}
+      headerButtons={
+        <DocketActionButtons docket={docketData ?? selectedDocket} />
+      }
       headerInfo={{
         useSelectedDocket: true,
       }}
     >
-      <DocketForm canEdit={true} />
+      <DocketForm canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
