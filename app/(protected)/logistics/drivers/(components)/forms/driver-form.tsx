@@ -52,20 +52,6 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-const truckTypeOptions = [
-  { label: 'Truck', value: 'Truck' },
-  { label: 'Semi-Trailer', value: 'Semi-Trailer' },
-  { label: 'Truck + Trailer', value: 'Truck + Trailer' },
-  { label: 'Rigid truck', value: 'Rigid truck' },
-  { label: 'B-Double', value: 'B-Double' },
-  { label: 'Road train', value: 'Road train' },
-  { label: 'Dog Truck', value: 'Dog Truck' },
-  { label: 'Flatbed', value: 'Flatbed' },
-  { label: 'Tipper', value: 'Tipper' },
-  { label: 'Semi-Tipper', value: 'Semi-Tipper' },
-  { label: 'Side-Tipper', value: 'Side-Tipper' },
-  { label: 'Truck and Dog', value: 'Truck and Dog' },
-];
 
 const DUMMY_COMPLIANCE = [
   {
@@ -143,7 +129,6 @@ export default function DriverForm({
   const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
   const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const createDriver = useCreateDriver();
   const updateDriver = useUpdateDriver();
 
@@ -222,7 +207,6 @@ export default function DriverForm({
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
-      setIsSubmitting(true);
       const selectedHaulierData = isInternal
         ? internalHaulier
         : hauliers.find((h) => String(h.id) === values.haulier);
@@ -259,7 +243,7 @@ export default function DriverForm({
   }
 
   // Dummy trucks and compliance — replace with real API data when backend is available
-  const trucks = isEditing || [];
+  const trucks: { id: number; registration: string; status: string }[] = [];
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (

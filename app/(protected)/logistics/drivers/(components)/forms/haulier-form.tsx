@@ -73,7 +73,7 @@ export default function HaulierForm({
     }
   }, [isEditing, form]);
 
-  async function onSubmit(values: HaulierFormValues) {
+  async function onSubmit(values: z.infer<typeof HaulierFormSchema>) {
     if (isEditing) {
       try {
         const result = await updateHaulier.mutateAsync({
