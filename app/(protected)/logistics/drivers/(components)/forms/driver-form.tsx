@@ -29,6 +29,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
+import { useGetAllHauliers } from '@/lib/api/haulier';
+import { useQuery } from '@tanstack/react-query';
+import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import {
   Tooltip,
   TooltipContent,
@@ -49,28 +52,19 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-const haulierItems = [
-  {
-    id: '1',
-    label: 'ABC Transport',
-    fields: { email: 'abc@transport.com.au', phone: '+61400123456' },
-  },
-  {
-    id: '2',
-    label: 'XYZ Logistics',
-    fields: { email: 'info@xyzlogistics.com', phone: '+61400333444' },
-  },
-  {
-    id: '3',
-    label: 'Quick Haul',
-    fields: { email: 'info@quickhaul.com.au', phone: '+61400345678' },
-  },
-];
-
-// Dummy data — replace with real API data when available
-const DUMMY_TRUCKS = [
-  { id: 1, registration: 'EXT-LMN333', status: 'ACTIVE' },
-  { id: 2, registration: 'EXT-BM65KJ', status: 'ACTIVE' },
+const truckTypeOptions = [
+  { label: 'Truck', value: 'Truck' },
+  { label: 'Semi-Trailer', value: 'Semi-Trailer' },
+  { label: 'Truck + Trailer', value: 'Truck + Trailer' },
+  { label: 'Rigid truck', value: 'Rigid truck' },
+  { label: 'B-Double', value: 'B-Double' },
+  { label: 'Road train', value: 'Road train' },
+  { label: 'Dog Truck', value: 'Dog Truck' },
+  { label: 'Flatbed', value: 'Flatbed' },
+  { label: 'Tipper', value: 'Tipper' },
+  { label: 'Semi-Tipper', value: 'Semi-Tipper' },
+  { label: 'Side-Tipper', value: 'Side-Tipper' },
+  { label: 'Truck and Dog', value: 'Truck and Dog' },
 ];
 
 const DUMMY_COMPLIANCE = [
@@ -136,6 +130,20 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
+  const { data: hauliers = [] } = useGetAllHauliers();
+  const haulierItems = hauliers.map((h) => ({
+    id: String(h.id),
+    label: h.haulierName,
+    fields: { email: h.emailAddress, phone: h.phoneNumber },
+  }));
+
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantCompleteDetailsQueryOptions(),
+  );
+  const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const createDriver = useCreateDriver();
   const updateDriver = useUpdateDriver();
 
@@ -214,28 +222,24 @@ export default function DriverForm({
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
-      const payload = {
+      setIsSubmitting(true);
+      const selectedHaulierData = isInternal
+        ? internalHaulier
+        : hauliers.find((h) => String(h.id) === values.haulier);
+      await createDriver.mutateAsync({
         driverName: values.driverName,
         driverType: values.type,
         emailAddress: values.email,
         phoneNumber: values.phone,
         licenseNumber: values.driverLicenseNumber,
-        haulierName: values.haulier,
-        haulierEmailAddress: values.haulierEmail,
-        haulierPhoneNumber: values.haulierPhone,
-      };
-
-      if (isEditing && id) {
-        await updateDriver.mutateAsync({
-          id,
-          data: { ...(driverData ?? {}), ...payload },
-        });
-        notifySuccess('Driver Updated Successfully!');
-      } else {
-        await createDriver.mutateAsync(payload);
-        notifySuccess('Driver Added Successfully!');
-      }
-
+        haulierId: selectedHaulierData?.id,
+        haulierName: selectedHaulierData?.haulierName,
+      });
+      notifySuccess(
+        isEditing
+          ? 'Driver Updated Successfully!'
+          : 'Driver Added Successfully!',
+      );
       onSuccess?.();
       onSaved?.();
     } catch (error) {
@@ -255,7 +259,7 @@ export default function DriverForm({
   }
 
   // Dummy trucks and compliance — replace with real API data when backend is available
-  const trucks = isEditing ? DUMMY_TRUCKS : [];
+  const trucks = isEditing || [];
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (
@@ -354,8 +358,15 @@ export default function DriverForm({
 
             {isInternal ? (
               <FormItem>
-                <FormLabel>Haulier*</FormLabel>
-                <Input value="My Company Haulier" disabled />
+                <FormLabel>Haulier</FormLabel>
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
+                />
               </FormItem>
             ) : (
               <SelectCreateEdit
