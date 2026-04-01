@@ -30,9 +30,9 @@ export default function DriversAppPage() {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-screen">
       <div className="w-full shadow-xl bg-white h-full flex flex-col relative overflow-hidden">
-        <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-b border-gray-100 gap-6 bg-white">
+        <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-b border-gray-100 gap-1 bg-white">
           <div className="flex items-center justify-between">
             <span className="text-[20px] font-bold text-[#0F172A]">
               Deliveries
@@ -71,7 +71,7 @@ export default function DriversAppPage() {
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col w-full bg-[#F8FAFC] overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {!isChecklistComplete && (
-            <div className="mx-4 mt-6 p-4 rounded-xl border border-[#B9F8CF] bg-[#F0FDF4] flex items-center justify-between">
+            <div className="mx-4 mt-4 p-4 rounded-xl border border-[#B9F8CF] bg-[#F0FDF4] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Info className="h-5 w-5 text-green-600" />
                 <span className="text-[15px] font-medium text-green-700">Daily Checklist Required</span>
@@ -92,7 +92,7 @@ export default function DriversAppPage() {
         </div>
 
         {/* Bottom Navigation Tabs */}
-        <div className="h-24 border-t border-gray-200 flex items-center w-full bg-white shrink-0">
+        <div className="h-20 border-t border-gray-200 flex items-center w-full bg-white shrink-0">
           <div className="flex-1 flex justify-center">
             <button
               onClick={() => setActiveTab('dockets')}
@@ -105,10 +105,10 @@ export default function DriversAppPage() {
                 "p-2 rounded-md transition-colors",
                 activeTab === 'dockets' ? "bg-[#F3E8FF]" : "bg-transparent"
               )}>
-                <FileText className={cn("h-[24px] w-[24px]", activeTab === 'dockets' ? "text-[#8E51FF]" : "text-gray-400")} strokeWidth={2.5} />
+                <FileText className={cn("h-[20px] w-[20px]", activeTab === 'dockets' ? "text-[#8E51FF]" : "text-gray-400")} strokeWidth={2.5} />
               </div>
               <span className={cn(
-                "text-[15px] font-semibold tracking-wide",
+                "text-[13px] font-semibold tracking-wide",
                 activeTab === 'dockets' ? "text-[#8E51FF] border-b-2 border-[#8E51FF]" : "text-gray-400"
               )}>
                 Dockets
@@ -128,10 +128,10 @@ export default function DriversAppPage() {
                 "p-2 rounded-md transition-colors",
                 activeTab === 'calendar' ? "bg-[#F3E8FF]" : "bg-transparent"
               )}>
-                <Calendar className={cn("h-[24px] w-[24px]", activeTab === 'calendar' ? "text-[#8E51FF]" : "text-gray-400")} strokeWidth={2.5} />
+                <Calendar className={cn("h-[20px] w-[20px]", activeTab === 'calendar' ? "text-[#8E51FF]" : "text-gray-400")} strokeWidth={2.5} />
               </div>
               <span className={cn(
-                "text-[15px] font-semibold tracking-wide",
+                "text-[13px] font-semibold tracking-wide",
                 activeTab === 'calendar' ? "text-[#8E51FF] border-b-2 border-[#8E51FF]" : "text-gray-400"
               )}>
                 Calendar

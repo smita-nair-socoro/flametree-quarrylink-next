@@ -67,6 +67,7 @@ export default function DriverPreStartChecklist({ onSubmit, onBack }: { onSubmit
       onSubmit={onSubmit}
       showBackButton={!!onBack}
       onBack={onBack}
+      needPhotoAndDetails={false}
     />
   );
 }

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { DocketDTO } from '@/lib/types/docket';
 import rawJson from '@/lib/tests/driverDocketsResponseData.json';
 import { format } from 'date-fns';
-import { MapPin, Package, Truck, Clock, Info, X, Edit2 } from 'lucide-react';
+import { MapPin, Package, Truck, Clock, Info, X, Pencil, CheckCircle, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,6 +16,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { TableBadges } from '@/components/table-badges';
+import { Separator } from '@/components/ui/separator';
 
 export default function DocketsTab() {
   const { items } = rawJson as unknown as {
@@ -128,7 +129,7 @@ export default function DocketsTab() {
       {otherDockets.map((docket) => renderDocketCard(docket, false))}
 
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="bg-[#F8FAFC] max-h-[90vh] flex flex-col rounded-t-2xl">
+        <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
           {selectedDocket && (
             <>
               <DrawerHeader className="border-b border-gray-100 pb-4 pt-6 px-6 shrink-0 rounded-t-2xl">
@@ -158,18 +159,23 @@ export default function DocketsTab() {
                         {selectedDocket.job?.customerName}
                       </span>
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Contact</span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.customerContactName || selectedDocket.job?.contactPersonName}
                       </span>
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Phone</span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.customerContactPhone || selectedDocket.job?.contactPersonPhone}
                       </span>
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Account Manager</span>
                       <span className="text-[14px] font-medium text-gray-900">
@@ -183,44 +189,50 @@ export default function DocketsTab() {
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <h3 className="text-[14px] font-bold text-gray-900 mb-4">Delivery Information</h3>
                   <div className="flex flex-col gap-3">
-                    <div className="grid grid-cols-2 items-center -mt-2">
+                    <div className="grid grid-cols-2 items-center -my-2">
                       <span className="text-[13px] text-gray-400">Load Size</span>
                       <div className="grid grid-cols-2 items-center">
                         <span className="text-[14px] font-bold text-gray-900">
                           {selectedDocket.loadSize}{selectedDocket.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket.jobItem.productSellUom}
                         </span>
-                        <Button variant="ghost" className="text-[#8E51FF] hover:text-[#7c46e0] hover:bg-purple-50 text-[13px] font-medium gap-1">
-                          <Edit2 className="h-2 w-2" size="xs" /> Update
+                        <Button variant="ghost" className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1">
+                          <Pencil className="h-2 w-2" size="xs" /> Update
                         </Button>
                       </div>
-
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Product</span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.jobItem?.product?.productName}
                       </span>
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Assigned Truck</span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.truckType}
                       </span>
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Time Window</span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {formatTimeWindow(selectedDocket.deliveryCollectionStartTime, selectedDocket.deliveryCollectionEndTime)}
                       </span>
                     </div>
+
                   </div>
                 </div>
 
                 {/* Addresses */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-center mb-4">
+                  <div className="flex justify-between items-center mb-2">
                     <h3 className="text-[14px] font-bold text-gray-900">Addresses</h3>
-                    <Button variant="ghost" className="h-6 px-2 text-[#8E51FF] hover:text-[#7c46e0] hover:bg-purple-50 text-[13px] font-medium gap-1">
+                    <Button variant="ghost" className="h-6 px-2 text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1">
                       View Map
                     </Button>
                   </div>
@@ -235,6 +247,8 @@ export default function DocketsTab() {
                         {selectedDocket.pickUpAddress?.formattedAddress}
                       </span>
                     </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
 
                     <div className="flex flex-col gap-1">
                       <span className="text-[12px] text-gray-400 mb-1">Delivery</span>
@@ -263,16 +277,25 @@ export default function DocketsTab() {
               <div className="bg-white p-4 border-t border-gray-100 shrink-0 flex flex-col gap-3 pb-8">
                 {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                   <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
-                    Mark Arrived
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Mark Arrived
+                    </span>
                   </Button>
                 )}
                 {selectedDocket.docketStatus === 'ASSIGNED' && (
                   <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
-                    Start Delivery
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Start Delivery
+                    </span>
                   </Button>
                 )}
-                <Button variant="outline" className="w-full border-orange-200 text-orange-500 hover:bg-orange-50 hover:text-orange-600 h-12 rounded-xl text-[16px] font-semibold">
-                  Stop
+                <Button variant="outline" className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold">
+                  <span className="flex items-center gap-2">
+                    <Pause className="h-4 w-4" />
+                    Stop
+                  </span>
                 </Button>
               </div>
             </>
