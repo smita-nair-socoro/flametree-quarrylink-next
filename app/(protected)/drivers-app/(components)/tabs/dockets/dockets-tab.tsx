@@ -18,7 +18,11 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 
-export default function DocketsTab() {
+interface DocketsTabProps {
+  onOpenChecklist?: (type: 'pre-start' | 'vehicle-inspection', docketNumber?: string) => void;
+}
+
+export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
   const { items } = rawJson as unknown as {
     items: DocketDTO[];
   };
@@ -293,7 +297,13 @@ export default function DocketsTab() {
                   </Button>
                 )}
                 {selectedDocket.docketStatus === 'ASSIGNED' && (
-                  <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
+                  <Button 
+                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200"
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      onOpenChecklist?.('vehicle-inspection', selectedDocket.docketNumber);
+                    }}
+                  >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Start Delivery
