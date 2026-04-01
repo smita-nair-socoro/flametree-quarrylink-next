@@ -31,6 +31,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver } from '@/lib/api/driver';
+import { useGetAllHauliers } from '@/lib/api/haulier';
 import {
   Tooltip,
   TooltipContent,
@@ -45,24 +46,6 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
 }
-
-const haulierItems = [
-  {
-    id: '1',
-    label: 'ABC Transport',
-    fields: { email: 'abc@transport.com.au', phone: '+61400123456' },
-  },
-  {
-    id: '2',
-    label: 'XYZ Logistics',
-    fields: { email: 'xyz@logistics.com.au', phone: '+61400234567' },
-  },
-  {
-    id: '3',
-    label: 'Quick Haul',
-    fields: { email: 'info@quickhaul.com.au', phone: '+61400345678' },
-  },
-];
 
 const truckTypeOptions = [
   { label: 'Truck', value: 'Truck' },
@@ -88,6 +71,13 @@ export default function DriverForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
+
+  const { data: hauliers = [] } = useGetAllHauliers();
+  const haulierItems = hauliers.map((h) => ({
+    id: String(h.id),
+    label: h.haulierName,
+    fields: { email: h.emailAddress, phone: h.phoneNumber },
+  }));
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const createDriver = useCreateDriver();
