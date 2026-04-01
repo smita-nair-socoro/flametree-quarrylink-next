@@ -32,6 +32,8 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver } from '@/lib/api/driver';
 import { useGetAllHauliers } from '@/lib/api/haulier';
+import { useQuery } from '@tanstack/react-query';
+import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import {
   Tooltip,
   TooltipContent,
@@ -79,6 +81,10 @@ export default function DriverForm({
     fields: { email: h.emailAddress, phone: h.phoneNumber },
   }));
 
+  const { data: tenantCompleteDetails } = useQuery(TenantCompleteDetailsQueryOptions());
+  const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const createDriver = useCreateDriver();
 
@@ -117,9 +123,9 @@ export default function DriverForm({
   async function onSubmit(values: NewDriverFormValues) {
     try {
       setIsSubmitting(true);
-      const selectedHaulierData = hauliers.find(
-        (h) => String(h.id) === values.haulier,
-      );
+      const selectedHaulierData = isInternal
+        ? internalHaulier
+        : hauliers.find((h) => String(h.id) === values.haulier);
       await createDriver.mutateAsync({
         driverName: values.driverName,
         driverType: values.type,
@@ -252,7 +258,7 @@ export default function DriverForm({
             {isInternal ? (
               <FormItem>
                 <FormLabel>Haulier</FormLabel>
-                <Input value="My Company Haulier" disabled />
+                <Input value={internalHaulier?.haulierName ?? tenantName ?? 'My Company Haulier'} disabled />
               </FormItem>
             ) : (
               <SelectCreateEdit
