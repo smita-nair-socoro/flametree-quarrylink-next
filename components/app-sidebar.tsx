@@ -45,11 +45,8 @@ export const navItems = [
         plan: 'ESSENTIAL',
       },
       { title: 'Jobs', url: '/customer-operations/jobs', plan: 'PLUS' },
-      {
-        title: 'Dockets',
-        url: '/customer-operations/dockets',
-        plan: 'PLUS',
-      },
+      { title: 'Dockets', url: '/customer-operations/dockets', plan: 'PLUS' },
+
     ],
   },
   {
@@ -108,6 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
   );
+
 
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 

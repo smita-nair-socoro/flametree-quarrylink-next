@@ -1,6 +1,7 @@
 'use client';
-import { ReactNode, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import * as React from 'react';
+
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
 import {
@@ -11,12 +12,30 @@ import {
 import { Loader2 } from 'lucide-react';
 import { navItems } from '@/components/app-sidebar';
 
-export default function ProtectedLayout({ children }: { children: ReactNode }) {
+import { UserDetailQueryOptions } from '@/lib/api/user';
+import { useQuery } from '@tanstack/react-query';
+import { useUserStore } from '@/app/stores/user-store';
+
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const { data: currentUser } = useQuery(
+    UserDetailQueryOptions(auth.user?.userId || ''),
+  );
+
+
+  React.useEffect(() => {
+    if (currentUser) {
+      useUserStore.getState().setUserName(currentUser.name ?? '');
+    }
+  }, [currentUser]);
+
+  const isDriversApp = pathname?.startsWith('/drivers-app');
 
   // Build quick lookup for plan by path and first essential fallback
-  const { getPlanByPath, fallbackUrl } = useMemo(() => {
+  const { getPlanByPath, fallbackUrl } = React.useMemo(() => {
     const pathToPlan = new Map<string, string>();
     const customersPath = '/customer-operations/customers';
 
@@ -50,24 +69,44 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
       const currentPath = window.location.pathname + window.location.search;
       router.replace(`/login?returnTo=${encodeURIComponent(currentPath)}`);
     }
   }, [auth.isLoading, auth.isAuthenticated, router]);
 
-  // Block access to non-Essential pages (PRO/PLUS)
-  useEffect(() => {
+  // Block access to non-Essential pages (PRO/PLUS) and enforce driver routing
+  React.useEffect(() => {
     if (auth.isLoading || !auth.isAuthenticated) return;
-    const path = window.location.pathname.toUpperCase();
-    const plan = getPlanByPath(path);
+
+    const path = window.location.pathname;
+
+    // Only enforce driver routing if we have the user data loaded
+    if (currentUser) {
+      const isDriver = currentUser.groups?.includes('driver') || false;
+
+      // If user is a driver, they can ONLY access /drivers-app
+      if (isDriver && !path.startsWith('/drivers-app')) {
+        router.replace('/drivers-app');
+        return;
+      }
+
+      // If user is NOT a driver, they CANNOT access /drivers-app
+      if (!isDriver && path.startsWith('/drivers-app')) {
+        router.replace('/customer-operations/customers');
+        return;
+      }
+    }
+
+    const plan = getPlanByPath(path.toUpperCase());
     if (plan === 'PRO' || plan === 'PLUS') {
       router.replace(fallbackUrl);
     }
   }, [
     auth.isLoading,
     auth.isAuthenticated,
+    currentUser,
     getPlanByPath,
     fallbackUrl,
     router,
@@ -90,14 +129,16 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      {!isDriversApp && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
-        <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
-          {/* Mobile trigger - only visible when sidebar is closed */}
-          <SidebarTrigger className="md:hidden" />
-        </header>
-        <div className="flex-1 overflow-hidden bg-[#F9FAFB]">
-          <div className="h-full overflow-y-auto overflow-x-hidden p-4">
+        {!isDriversApp && (
+          <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
+            {/* Mobile trigger - only visible when sidebar is closed */}
+            <SidebarTrigger className="md:hidden" />
+          </header>
+        )}
+        <div className="flex-1 overflow-auto bg-[#F9FAFB]">
+          <div className="h-full overflow-auto">
             {children}
           </div>
         </div>
