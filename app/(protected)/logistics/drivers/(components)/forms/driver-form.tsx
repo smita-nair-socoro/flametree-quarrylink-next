@@ -117,13 +117,17 @@ export default function DriverForm({
   async function onSubmit(values: NewDriverFormValues) {
     try {
       setIsSubmitting(true);
+      const selectedHaulierData = hauliers.find(
+        (h) => String(h.id) === values.haulier,
+      );
       await createDriver.mutateAsync({
         driverName: values.driverName,
         driverType: values.type,
         emailAddress: values.email,
         phoneNumber: values.phone,
         licenseNumber: values.driverLicenseNumber,
-        haulierName: values.haulier,
+        haulierId: selectedHaulierData?.id,
+        haulierName: selectedHaulierData?.haulierName,
       });
       notifySuccess(
         isEditing
