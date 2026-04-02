@@ -9,6 +9,6 @@ Attempted At: {Timestamp}
 
 The invoice associated with this job was not successfully synced to Xero. Please review the error and take action.
 
-View Job: {JobUrl}
+View Job: https://app.{environment}.quarrylink/customer-operations/jobs/?jobIds={JobIds}
 
 You're receiving this notification because you're associated with this job on QuarryLink.
