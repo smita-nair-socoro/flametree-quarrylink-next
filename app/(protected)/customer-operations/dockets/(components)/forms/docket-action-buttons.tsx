@@ -66,19 +66,37 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.PENDING]: [
     { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.PREPARING]: [
     { label: 'Mark Ready', icon: Check, action: 'markReady' },
     { label: 'Back to Pending', icon: Undo2, action: 'backToPending' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.READY]: [
     { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected' },
     { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.COLLECTED]: [
     { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale' },
@@ -93,13 +111,25 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.UNASSIGNED]: [
     { label: 'Assign', icon: UserRoundPlus, action: 'assign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.ASSIGNED]: [
     { label: 'Start Transit', icon: CirclePlay, action: 'startTransit' },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.IN_TRANSIT]: [
     { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived' },
@@ -109,21 +139,40 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit' },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.ARRIVED]: [
     { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.DELIVERED]: [
     { label: 'Invoice', icon: Receipt, action: 'invoice' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
-    { label: 'Void', icon: Trash2, action: 'void', className: 'text-red-600', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
 };
 
 export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
   if (!docket || !docket.id) {
@@ -166,7 +215,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
         </Button>
 
         {secondaryActions.length > 0 && (
-          <DropdownMenu modal={false}>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -181,10 +230,15 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
                 <React.Fragment key={`${item.label}-${index}`}>
                   {item.separator && <DropdownMenuSeparator />}
                   <DropdownMenuItem
-                    onClick={() => handleAction(item.action)}
+                    onSelect={() => {
+                      setDropdownOpen(false);
+                      handleAction(item.action);
+                    }}
                     className={item.className}
                   >
-                    <item.icon className={`h-4 w-4 mr-2 ${item.className || ''}`} />
+                    <item.icon
+                      className={`h-4 w-4 mr-2 ${item.className || ''}`}
+                    />
                     {item.label}
                   </DropdownMenuItem>
                 </React.Fragment>

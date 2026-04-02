@@ -51,6 +51,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { MultipleInput } from '@/components/ui/multiple-input';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -171,7 +172,7 @@ export default function QuotationForm({
             'phone',
             normalizePhoneNumber(selectedCustomer.phone || '') || '',
           );
-          quotationForm.setValue('email', selectedCustomer.email || '');
+          quotationForm.setValue('receiptEmail', '');
 
           quotationForm.setValue(
             'accountManagerSub',
@@ -185,16 +186,17 @@ export default function QuotationForm({
   }, [customers, quotationForm, isEditing]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    console.log(values);
-
-    // Check for missing email when creating a quotation
-    if (!isEditing && !values.email?.trim()) {
-      notifyError(
-        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.',
-      );
-      return;
-    }
-
+    const selectedCustomer = customers.find((c) => c.id === values.customerId);
+    const customerEmail = selectedCustomer?.email || '';
+    const receiptEmails = [
+      customerEmail,
+      ...(values.receiptEmail
+        ? values.receiptEmail
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : []),
+    ].filter(Boolean);
     const customerName =
       customers.find((c) => c.id === values.customerId)?.businessName ||
       customers.find((c) => c.id === values.customerId)?.contactName ||
@@ -205,13 +207,18 @@ export default function QuotationForm({
 
     if (isDuplicate) {
       try {
-        const transformed = transformFormDataToQuoteDto(values, {
-          customerName,
-          accountManagerName,
-          accountManagerSub:
-            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-          lineItemsCount: 0,
-        });
+        const transformed = {
+          ...transformFormDataToQuoteDto(values, {
+            customerName,
+            accountManagerName,
+            accountManagerSub:
+              values.accountManagerSub ||
+              'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+            lineItemsCount: currentQuotation?.lineItemsCount ?? 0,
+          }),
+          email: customerEmail,
+          emailRecipients: receiptEmails,
+        };
 
         // For duplicate, we pass the original ID and the new form data
         const newQuotation = await duplicateQuotation.mutateAsync({
@@ -240,13 +247,18 @@ export default function QuotationForm({
       }
     } else if (!isEditing) {
       try {
-        const transformed = transformFormDataToQuoteDto(values, {
-          customerName,
-          accountManagerName,
-          accountManagerSub:
-            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-          lineItemsCount: 0,
-        });
+        const transformed = {
+          ...transformFormDataToQuoteDto(values, {
+            customerName,
+            accountManagerName,
+            accountManagerSub:
+              values.accountManagerSub ||
+              'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+            lineItemsCount: 0,
+          }),
+          email: customerEmail,
+          emailRecipients: receiptEmails,
+        };
 
         const newQuotation = await createQuotation.mutateAsync(transformed);
 
@@ -272,14 +284,18 @@ export default function QuotationForm({
       }
     } else {
       // Update existing quotation - keep the original quote number
-      const transformed = transformFormDataToQuoteDto(values, {
-        customerName,
-        accountManagerName,
-        accountManagerSub:
-          values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-        quoteNumber: currentQuotation?.quoteNumber || '',
-        lineItemsCount: 0,
-      });
+      const transformed = {
+        ...transformFormDataToQuoteDto(values, {
+          customerName,
+          accountManagerName,
+          accountManagerSub:
+            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+          quoteNumber: currentQuotation?.quoteNumber || '',
+          lineItemsCount: currentQuotation?.lineItemsCount ?? 0,
+        }),
+        email: customerEmail,
+        emailRecipients: receiptEmails,
+      };
 
       try {
         await updateQuotation.mutateAsync({
@@ -529,44 +545,40 @@ export default function QuotationForm({
             {isEditing && (
               <FormField
                 control={quotationForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-1'
-                    }
-                  >
-                    <div className="flex items-center gap-2">
-                      <FormLabel>Customer Email*</FormLabel>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="right"
-                          className="max-w-[250px]"
-                          backgroundClassName="bg-gray-900 text-white"
-                          arrowClassName="bg-gray-900 fill-gray-900"
-                        >
-                          <p className="text-xs">
-                            Recipient email address for this quote only.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Email"
-                        {...field}
-                        disabled={isEditing && !canEdit}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name="receiptEmail"
+                render={({ field }) => {
+                  const selectedCustomer = customers.find(
+                    (c) => c.id === quotationForm.watch('customerId'),
+                  );
+                  const customerEmail = selectedCustomer?.email;
+                  const fixedValues = customerEmail ? [customerEmail] : [];
+
+                  return (
+                    <FormItem
+                      className={
+                        isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>Recipient Email *</FormLabel>
+                      <FormControl>
+                        <MultipleInput
+                          className="w-full"
+                          placeholder={
+                            quotationForm.watch('customerId') === 0
+                              ? 'Select Customer First'
+                              : 'Enter Recipient Emails'
+                          }
+                          fixedValues={fixedValues}
+                          validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                          label="Press Enter or comma to add email addresses"
+                          {...field}
+                          disabled={!canEdit}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             )}
 
@@ -654,7 +666,7 @@ export default function QuotationForm({
                 name="deliveryWindowStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window</FormLabel>
+                    <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -675,7 +687,7 @@ export default function QuotationForm({
                 name="deliveryWindowEnd"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time Window</FormLabel>
+                    <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -705,7 +717,7 @@ export default function QuotationForm({
                 name="expiryDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Expiry Date</FormLabel>
+                    <FormLabel>Expiry Date*</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
