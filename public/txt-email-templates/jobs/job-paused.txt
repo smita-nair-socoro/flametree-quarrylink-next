@@ -11,6 +11,6 @@ Paused At: {Timestamp}
 
 Job execution has been temporarily halted.
 
-View Job: {JobUrl}
+View Job: https://app.{environment}.quarrylink/customer-operations/jobs/?jobIds={JobIds}
 
 You're receiving this notification because you're associated with this job on QuarryLink.
