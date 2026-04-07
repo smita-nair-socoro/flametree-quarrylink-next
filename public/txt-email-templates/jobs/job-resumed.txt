@@ -1,15 +1,13 @@
 Hi {RecipientName},
 
-This is to notify you that a job has been PAUSED.
+This is to notify you that a job has been RESUMED.
 
 Job Number: {JobNumber}
 Customer: {CustomerName}
-Project / Location: {ProjectName}
+Project: {ProjectName}
 
-Paused By: {UserName}
-Paused At: {Timestamp}
-
-Job execution has been temporarily halted.
+Resumed By: {UserName}
+Resumed At: {Timestamp}
 
 View Job: https://app.{environment}.quarrylink/customer-operations/jobs/?jobIds={JobIds}
 

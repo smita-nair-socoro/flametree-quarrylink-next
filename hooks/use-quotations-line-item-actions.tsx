@@ -73,10 +73,10 @@ const getDialogConfigs = (
                 <Trash2 className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
                   <span className="text-[16px] text-[#E7000B] font-medium">
-                    LIne Item Removal
+                    Line Item Removal
                   </span>
                   <span className="text-[14px] font-normal text-[#E7000B]">
-                    This line item will be permanentl yremoved from the quote.
+                    This line item will be permanently removed from the quote.
                     This action cannot be undone.
                   </span>
                 </div>
