@@ -47,6 +47,7 @@ export interface DocketDTO {
   id: number;
   docketNumber: string;
   jobId: number;
+  truckInsepctionRequired: boolean;
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
   pickUpAddressId: number;
