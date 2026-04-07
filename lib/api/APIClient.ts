@@ -43,7 +43,7 @@ import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
-import { DriverDTO, DriverDetailDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO } from '../types/driver';
+import { DriverDTO, DriverDetailDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO, PutDriverDTO } from '../types/driver';
 
 type RequestBody =
   | BodyInit
@@ -1012,8 +1012,8 @@ export const APIClient = {
       appClient.Post<DriverDTO>(`/socoro/quarrylink/api/driver`, {
         body: data,
       }),
-    update: (id: number, data: DriverDTO) =>
-      appClient.Put<DriverDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+    update: (id: number, data: PutDriverDTO) =>
+      appClient.Put<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, {
         body: data,
       }),
     patchInfo: (id: number, data: PatchDriverInfoDTO) =>

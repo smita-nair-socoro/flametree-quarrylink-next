@@ -1,17 +1,4 @@
-import { DRIVER_STATUS, DRIER_TYPE, DRIVER_TYPE } from './driver-enums';
-
-interface Driver {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: DRIVER_STATUS;
-  type: DRIER_TYPE;
-  haulier: number;
-  haulierName: string;
-  driverLicenseNumber: string;
-  assignedTrucks: number[];
-}
+import { DRIVER_STATUS, DRIVER_TYPE } from './driver-enums';
 
 interface DriverTruckAssignment {
   id: number;
@@ -48,6 +35,16 @@ export interface PatchDriverTrucksDTO {
 
 export interface PatchDriverHaulierDTO {
   haulierId: number;
+}
+
+export interface PutDriverDTO {
+  version: number;
+  driverName: string;
+  licenseNumber: string;
+  driverType: DRIVER_TYPE;
+  driverStatus: DRIVER_STATUS;
+  truckIds: number[];
+  haulierId?: number;
 }
 
 export interface DriverHaulierDetail {
