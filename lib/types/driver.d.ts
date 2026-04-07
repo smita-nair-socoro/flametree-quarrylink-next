@@ -41,6 +41,8 @@ export interface PutDriverDTO {
   version: number;
   driverName: string;
   licenseNumber: string;
+  emailAddress: string;
+  phoneNumber: string;
   driverType: DRIVER_TYPE;
   driverStatus: DRIVER_STATUS;
   truckIds: number[];

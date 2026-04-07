@@ -52,7 +52,6 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-
 const DUMMY_COMPLIANCE = [
   {
     id: 1,
@@ -117,11 +116,15 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const { data: hauliers = [] } = useGetAllHauliers();
-  const haulierItems = hauliers.map((h) => ({
-    id: String(h.id),
-    label: h.haulierName,
-    fields: { email: h.emailAddress, phone: h.phoneNumber },
-  }));
+  const haulierItems = React.useMemo(
+    () =>
+      hauliers.map((h) => ({
+        id: String(h.id),
+        label: h.haulierName,
+        fields: { email: h.emailAddress, phone: h.phoneNumber },
+      })),
+    [hauliers],
+  );
 
   const { data: tenantCompleteDetails } = useQuery(
     TenantCompleteDetailsQueryOptions(),
@@ -160,7 +163,7 @@ export default function DriverForm({
         phone: driverData.phoneNumber || '',
         status: driverData.driverStatus || DRIVER_STATUS.ACTIVE,
         type: driverData.driverType || DRIVER_TYPE.INTERNAL,
-        haulier: driverData.haulier?.haulierName || '',
+        haulier: driverData.haulier ? String(driverData.haulier.id) : '',
         haulierEmail: driverData.haulier?.emailAddress || '',
         haulierPhone: driverData.haulier?.phoneNumber || '',
         driverLicenseNumber: driverData.licenseNumber || '',
@@ -181,19 +184,20 @@ export default function DriverForm({
   }, [driverForm.formState.isDirty]);
 
   // Clear haulier fields when switching to internal
+  // Clear haulier fields when switching to internal (create mode only)
   React.useEffect(() => {
-    if (isInternal) {
+    if (isInternal && !isEditing) {
       driverForm.setValue('haulier', '');
       driverForm.setValue('haulierEmail', '');
       driverForm.setValue('haulierPhone', '');
     }
-  }, [isInternal, driverForm]);
+  }, [isInternal, isEditing, driverForm]);
 
   // Auto-fill haulier email/phone when haulier is selected
   React.useEffect(() => {
     const subscription = driverForm.watch((value, { name }) => {
       if (name === 'haulier' && value.haulier) {
-        const match = haulierItems.find((h) => h.label === value.haulier);
+        const match = haulierItems.find((h) => h.id === value.haulier);
         if (match) {
           driverForm.setValue('haulierEmail', match.fields.email);
           driverForm.setValue('haulierPhone', match.fields.phone);
@@ -201,7 +205,7 @@ export default function DriverForm({
       }
     });
     return () => subscription.unsubscribe();
-  }, [driverForm]);
+  }, [driverForm, haulierItems]);
 
   const isPending = createDriver.isPending || updateDriver.isPending;
 
@@ -218,6 +222,8 @@ export default function DriverForm({
             version: driverData.version,
             driverName: values.driverName,
             licenseNumber: values.driverLicenseNumber,
+            emailAddress: values.email,
+            phoneNumber: values.phone,
             driverType: values.type,
             driverStatus: driverData.driverStatus,
             truckIds: driverData.truckIds ?? [],
@@ -441,7 +447,7 @@ export default function DriverForm({
                         placeholder="driver@company.com"
                         {...field}
                         value={field.value ?? ''}
-                        readOnly={hasHaulier}
+                        disabled={hasHaulier || isEditing}
                       />
                     </FormControl>
                     <FormMessage />
@@ -461,7 +467,7 @@ export default function DriverForm({
                         placeholder="+61 400 123 456"
                         {...field}
                         value={field.value ?? ''}
-                        disabled={hasHaulier}
+                        disabled={hasHaulier || isEditing}
                       />
                     </FormControl>
                     <FormMessage />
