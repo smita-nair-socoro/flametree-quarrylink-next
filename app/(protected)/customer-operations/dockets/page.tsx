@@ -32,6 +32,8 @@ export default function DocketsPage() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
 
+
+
   const {
     data: allDockets,
     isLoading: isAllDocketsLoading,
@@ -65,6 +67,21 @@ export default function DocketsPage() {
       ...docket,
     })) as DocketDTO[];
   }, [dockets]);
+
+  const docketIdsParam = searchParams.get('docketId');
+  const docketIdsSet = React.useMemo(() => {
+    if (!docketIdsParam) return null;
+    const ids = docketIdsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return new Set(ids);
+  }, [docketIdsParam]);
+
+  const filteredItems = React.useMemo(() => {
+    if (!docketIdsSet) return items;
+    return items.filter((d) => docketIdsSet.has(d.id));
+  }, [items, docketIdsSet]);
 
   const { actions, viewDialog, confirmDialogs } = useDocketActions();
 
@@ -117,12 +134,16 @@ export default function DocketsPage() {
           </div>
         ) : (
           <>
-            {linkedJobId && (
+            {(linkedJobId || docketIdsSet) && (
               <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
                 <div className="mt-1 text-sm text-muted-foreground">
-                  <span>Showing dockets</span>
-                  {linkedJobNumberParam ? (
+                  {docketIdsSet ? (
                     <>
+                      <span>Showing a selected docket</span>
+                    </>
+                  ) : linkedJobNumberParam ? (
+                    <>
+                      <span>Showing dockets</span>
                       <span>{' for '}</span>
                       <span className="font-semibold text-foreground">
                         {linkedJobNumberParam}
@@ -143,11 +164,13 @@ export default function DocketsPage() {
             )}
             <DataTableClient
               tableId={
-                linkedJobId
-                  ? `docket_linked_${linkedJobId}`
-                  : 'docket_main_data_table'
+                docketIdsSet
+                  ? `docket_filtered_${Array.from(docketIdsSet).join('_')}`
+                  : linkedJobId
+                    ? `docket_linked_${linkedJobId}`
+                    : 'docket_main_data_table'
               }
-              data={items ?? []}
+              data={filteredItems ?? []}
               columns={docketColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search dockets..."
