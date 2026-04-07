@@ -21,15 +21,16 @@ import HaulierForm from './haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
 import { Loader2 } from 'lucide-react';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useGetAllHauliers } from '@/lib/api/haulier';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { DataTableClient } from '@/components/ui/data-table-client';
+import { useQuery } from '@tanstack/react-query';
+import { DriversListQueryOptions } from '@/lib/api/driver';
 import { formatLocalDateShort } from '@/lib/utils/date';
+import { DataTableClient } from '@/components/ui/data-table-client';
 
 interface FormProps {
   id?: number;
@@ -39,6 +40,12 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
 }
+
+const currentYear = new Date().getFullYear();
+const yearOptions: FormSelectOption[] = Array.from({ length: currentYear - 1979 }, (_, i) => {
+  const y = String(currentYear - i);
+  return { label: y, value: y };
+});
 
 const truckTypeOptions: FormSelectOption[] = [
   { label: 'Truck', value: TRUCK_TYPE.TRUCK },
@@ -92,29 +99,36 @@ export default function TruckForm({
     [hauliers],
   );
 
+  const { data: drivers = [] } = useQuery(DriversListQueryOptions());
+  const driverOptions: FormSelectOption[] = React.useMemo(
+    () =>
+      (Array.isArray(drivers) ? drivers : []).map((d) => ({
+        label: d.driverName,
+        value: String(d.id),
+      })),
+    [drivers],
+  );
+
   const truckForm = useForm<TruckFormValues>({
     resolver: zodResolver(TruckFormSchema),
     mode: 'onChange',
     defaultValues: {
       type: 'INTERNAL',
       haulier: '',
-      haulierEmail: '',
-      haulierPhone: '',
       licensePlate: '',
       vin: '',
       model: '',
       year: undefined,
-      truckType: TRUCK_TYPE.TIPPER,
+      truckType: undefined,
       tankVolumeM3: undefined,
       tareWeight: undefined,
       combinationGvm: undefined,
+      driverId: '',
     },
   });
 
   const selectedType = truckForm.watch('type');
-  const selectedHaulier = truckForm.watch('haulier');
   const isInternal = selectedType === 'INTERNAL';
-  const hasHaulier = Boolean(selectedHaulier);
 
   // Report dirty state to parent
   React.useEffect(() => {
@@ -122,28 +136,12 @@ export default function TruckForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [truckForm.formState.isDirty]);
 
-  // Clear haulier fields when switching to internal (create mode only)
+  // Clear haulier field when switching to internal (create mode only)
   React.useEffect(() => {
     if (isInternal && !isEditing) {
       truckForm.setValue('haulier', '');
-      truckForm.setValue('haulierEmail', '');
-      truckForm.setValue('haulierPhone', '');
     }
   }, [isInternal, isEditing, truckForm]);
-
-  // Auto-fill haulier email/phone when haulier is selected
-  React.useEffect(() => {
-    const subscription = truckForm.watch((value, { name }) => {
-      if (name === 'haulier' && value.haulier) {
-        const match = haulierItems.find((h) => h.id === value.haulier);
-        if (match) {
-          truckForm.setValue('haulierEmail', match.fields.email);
-          truckForm.setValue('haulierPhone', match.fields.phone);
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [truckForm, haulierItems]);
 
   async function onSubmit(values: TruckFormValues) {
     try {
@@ -202,6 +200,10 @@ export default function TruckForm({
           )}
           onSubmit={truckForm.handleSubmit(onSubmit, onError)}
         >
+          {/* Basic Information */}
+          <h2 className="text-lg font-bold">Basic Information</h2>
+          <Separator />
+
           {/* Truck Type (ownership) */}
           <FormField
             control={truckForm.control}
@@ -233,10 +235,13 @@ export default function TruckForm({
             )}
           />
 
-          <Separator />
-
           {/* Haulier */}
-          {!isInternal && (
+          {isInternal ? (
+            <FormItem>
+              <FormLabel>Haulier</FormLabel>
+              <Input value="My Company Haulier" disabled />
+            </FormItem>
+          ) : (
             <SelectCreateEdit
               control={truckForm.control}
               name="haulier"
@@ -254,116 +259,60 @@ export default function TruckForm({
             />
           )}
 
-          {/* Haulier Email + Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={truckForm.control}
-              name="haulierEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Haulier Email Address{!isInternal && ' *'}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="haulier@company.com"
-                      {...field}
-                      value={field.value ?? ''}
-                      disabled={hasHaulier || isEditing || isInternal}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Truck Registration */}
+          <FormField
+            control={truckForm.control}
+            name="licensePlate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Truck Registration*</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., ABC123" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={truckForm.control}
-              name="haulierPhone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Haulier Phone Number{!isInternal && ' *'}</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      defaultCountry="AU"
-                      placeholder="+61 400 123 456"
-                      {...field}
-                      value={field.value ?? ''}
-                      disabled={hasHaulier || isEditing || isInternal}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          {/* VIN */}
+          <FormField
+            control={truckForm.control}
+            name="vin"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>VIN (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="ABC123" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          <Separator />
+          {/* Make & Model */}
+          <FormField
+            control={truckForm.control}
+            name="model"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Make &amp; Model*</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Volvo FH16 500hp" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          {/* Truck Registration + VIN */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={truckForm.control}
-              name="licensePlate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Truck Registration*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. ABC123" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={truckForm.control}
-              name="vin"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>VIN (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Vehicle Identification Number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Make & Model + Year */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={truckForm.control}
-              name="model"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Make &amp; Model*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Volvo FH16 500hp" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={truckForm.control}
-              name="year"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Year*</FormLabel>
-                  <FormControl>
-                    <Input
-                      isNumber
-                      placeholder="e.g. 2022"
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          {/* Year */}
+          <FormSelect
+            control={truckForm.control}
+            name="year"
+            label="Year*"
+            searchLabel="Year"
+            options={yearOptions}
+            placeholder="Select Year"
+          />
 
           {/* Truck Type (vehicle category) */}
           <FormSelect
@@ -376,67 +325,69 @@ export default function TruckForm({
           />
 
           {/* Volume & Weight */}
-          <div className="flex flex-col gap-4">
-            <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
-            <Separator />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={truckForm.control}
-                name="tankVolumeM3"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Volume m³*</FormLabel>
-                    <FormControl>
-                      <Input isNumber placeholder="0" {...field} value={field.value ?? ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
+          <Separator />
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={truckForm.control}
+              name="tankVolumeM3"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Volume <sup>m3</sup>*
+                  </FormLabel>
+                  <FormControl>
+                    <Input isNumber placeholder="" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={truckForm.control}
-                name="tareWeight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tare Weight t™</FormLabel>
-                    <FormControl>
-                      <Input isNumber placeholder="0" {...field} value={field.value ?? ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={truckForm.control}
+              name="tareWeight"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Tare Weight <sup>TN</sup>*
+                  </FormLabel>
+                  <FormControl>
+                    <Input isNumber placeholder="" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={truckForm.control}
-                name="combinationGvm"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>GVM Weight t™</FormLabel>
-                    <FormControl>
-                      <Input isNumber placeholder="0" {...field} value={field.value ?? ''} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={truckForm.control}
+              name="combinationGvm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    GVM Weight <sup>TN</sup>*
+                  </FormLabel>
+                  <FormControl>
+                    <Input isNumber placeholder="" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
-          {/* Driver Assignment — edit mode only */}
-          {isEditing && (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Driver Assignment</h2>
-                <Button type="button" size="sm" className="cursor-pointer">
-                  Assign Drivers
-                </Button>
-              </div>
-              <Separator />
-              <p className="text-sm text-muted-foreground py-2">No drivers assigned.</p>
-            </div>
-          )}
+          {/* Driver Assignment */}
+          <h2 className="text-lg font-bold">Driver Assignment</h2>
+          <Separator />
+          <FormSelect
+            control={truckForm.control}
+            name="driverId"
+            label="Drivers (Optional)"
+            searchLabel="Driver"
+            options={driverOptions}
+            placeholder="Search or Select Drivers"
+          />
 
           {/* Audit Information — edit mode only */}
           {isEditing && truckData && (
