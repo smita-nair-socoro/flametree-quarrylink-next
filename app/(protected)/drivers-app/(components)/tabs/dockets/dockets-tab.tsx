@@ -1,7 +1,307 @@
+'use client';
+
+import * as React from 'react';
+
+import { DocketDTO } from '@/lib/types/docket';
+import rawJson from '@/lib/tests/driverDocketsResponseData.json';
+import { format } from 'date-fns';
+import { MapPin, Package, Truck, Clock, Info, X, Pencil, CheckCircle, Pause } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
+import { TableBadges } from '@/components/table-badges';
+import { Separator } from '@/components/ui/separator';
+
 export default function DocketsTab() {
+  const { items } = rawJson as unknown as {
+    items: DocketDTO[];
+  };
+
+  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+
+  const activeDocket = items.find((d) => d.docketStatus === 'IN_TRANSIT');
+  const otherDockets = items.filter((d) => d.docketStatus !== 'IN_TRANSIT');
+
+  const formatTimeWindow = (start: string, end: string) => {
+    try {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      return `${format(startDate, 'EEE, d MMM')} · ${format(startDate, 'HH:mm')} - ${format(endDate, 'HH:mm')}`;
+    } catch {
+      return 'Invalid Date';
+    }
+  };
+
+  const openDocketDetails = (docket: DocketDTO) => {
+    setSelectedDocket(docket);
+    setIsDrawerOpen(true);
+  };
+
+  const renderDocketCard = (docket: DocketDTO, isActive: boolean = false) => {
+    return (
+      <div
+        key={docket.id}
+        className={cn(
+          "bg-white rounded-xl cursor-pointer transition-all active:scale-[0.98]",
+          isActive ? "border-2 border-[#8E51FF] shadow-sm" : "border border-gray-200 shadow-sm"
+        )}
+        onClick={() => openDocketDetails(docket)}
+      >
+        {isActive && (
+          <div className="bg-[#F3E8FF] text-[#8E51FF] text-[10px] font-bold px-3 py-1.5 rounded-tl-lg rounded-br-xl inline-flex items-center gap-1.5 tracking-wider uppercase">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#8E51FF] font-bold" />
+            <span className="font-extrabold">ACTIVE DELIVERY</span>
+          </div>
+        )}
+
+        <div className={cn("p-4", isActive ? "pt-3" : "")}>
+          <div className="flex justify-between items-start mb-1">
+            <span className="text-[13px] font-bold text-gray-900">{docket.docketNumber}</span>
+            <div className="flex items-center gap-2">
+              <TableBadges names={[docket.docketStatus]} />
+            </div>
+          </div>
+
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h3 className="text-[18px] font-bold text-[#0F172A] leading-tight mb-0.5">
+                {docket.job?.projectName || 'Unknown Customer'}
+              </h3>
+              <p className="text-[14px] text-gray-500">
+                {docket.jobItem?.product?.productName}
+              </p>
+            </div>
+            <span className="text-[14px] font-medium text-gray-400 mt-1">
+              {docket.loadSize}{docket.jobItem?.productSellUom === 'TN' ? 'T' : docket.jobItem?.productSellUom === 'M3' ? 'm³' : ''}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-2.5 mb-4">
+            <div className="flex items-start gap-2.5">
+              <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+              <span className="text-[14px] text-[#45556C] leading-snug">
+                {docket.deliveryAddress?.formattedAddress}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Package className="w-4 h-4 text-gray-400 shrink-0" />
+              <span className="text-[14px] text-[#45556C]">
+                {docket.jobItem?.product?.productName}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Truck className="w-4 h-4 text-gray-400 shrink-0" />
+              <span className="text-[14px] text-[#45556C] font-mono">
+                {docket.truckType}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Clock className="w-4 h-4 text-gray-400 shrink-0" />
+              <span className="text-[14px] text-[#45556C]">
+                {formatTimeWindow(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+              </span>
+            </div>
+          </div>
+
+          {docket.notes && (
+            <div className="bg-[#F8FAFC] rounded-lg p-3 flex items-start gap-2 border border-gray-100">
+              <Info className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+              <span className="text-[13px] text-gray-500 italic">
+                {docket.notes}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="">
-      <h1>Dockets Tab</h1>
+    <div className="flex flex-col gap-4 p-4 pb-24">
+      {activeDocket && renderDocketCard(activeDocket, true)}
+      {otherDockets.map((docket) => renderDocketCard(docket, false))}
+
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
+          {selectedDocket && (
+            <>
+              <DrawerHeader className="border-b border-gray-100 pb-4 pt-6 px-6 shrink-0 rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <DrawerTitle className="text-[22px] font-bold text-[#0F172A]">
+                    {selectedDocket.docketNumber}
+                  </DrawerTitle>
+                  <div className="flex items-center gap-3">
+                    <TableBadges names={[selectedDocket.docketStatus]} />
+                    <DrawerClose asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </DrawerClose>
+                  </div>
+                </div>
+              </DrawerHeader>
+
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {/* Customer Information */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <h3 className="text-[14px] font-bold text-gray-900 mb-4">Customer Information</h3>
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Customer</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {selectedDocket.job?.customerName}
+                      </span>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Contact</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {selectedDocket.customerContactName || selectedDocket.job?.contactPersonName}
+                      </span>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Phone</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {selectedDocket.customerContactPhone || selectedDocket.job?.contactPersonPhone}
+                      </span>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Account Manager</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {selectedDocket.job?.accountManagerName || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delivery Information */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <h3 className="text-[14px] font-bold text-gray-900 mb-4">Delivery Information</h3>
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2 items-center -my-2">
+                      <span className="text-[13px] text-gray-400">Load Size</span>
+                      <div className="grid grid-cols-2 items-center">
+                        <span className="text-[14px] font-bold text-gray-900">
+                          {selectedDocket.loadSize}{selectedDocket.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket.jobItem.productSellUom}
+                        </span>
+                        <Button variant="ghost" className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1">
+                          <Pencil className="h-2 w-2" size="xs" /> Update
+                        </Button>
+                      </div>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Product</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {selectedDocket.jobItem?.product?.productName}
+                      </span>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Assigned Truck</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {selectedDocket.truckType}
+                      </span>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
+                    <div className="grid grid-cols-2">
+                      <span className="text-[13px] text-gray-400">Time Window</span>
+                      <span className="text-[14px] font-medium text-gray-900">
+                        {formatTimeWindow(selectedDocket.deliveryCollectionStartTime, selectedDocket.deliveryCollectionEndTime)}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Addresses */}
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-[14px] font-bold text-gray-900">Addresses</h3>
+                    <Button variant="ghost" className="h-6 px-2 text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1">
+                      View Map
+                    </Button>
+                  </div>
+
+                  <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[12px] text-gray-400 mb-1">Collection</span>
+                      <span className="text-[14px] font-bold text-gray-900">
+                        {selectedDocket.jobItem?.quarrySupplierName}
+                      </span>
+                      <span className="text-[13px] text-gray-500 leading-snug">
+                        {selectedDocket.pickUpAddress?.formattedAddress}
+                      </span>
+                    </div>
+                    <Separator className="bg-gray-100 -my-1" />
+
+
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[12px] text-gray-400 mb-1">Delivery</span>
+                      <span className="text-[14px] font-bold text-gray-900">
+                        {selectedDocket.job?.projectName}
+                      </span>
+                      <span className="text-[13px] text-gray-500 leading-snug">
+                        {selectedDocket.deliveryAddress?.formattedAddress}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                {selectedDocket.notes && (
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-2">
+                    <h3 className="text-[14px] font-bold text-gray-900 mb-2">Notes</h3>
+                    <span className="text-[14px] text-gray-500 italic block">
+                      {selectedDocket.notes}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="bg-white p-4 border-t border-gray-100 shrink-0 flex flex-col gap-3 pb-8">
+                {selectedDocket.docketStatus === 'IN_TRANSIT' && (
+                  <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Mark Arrived
+                    </span>
+                  </Button>
+                )}
+                {selectedDocket.docketStatus === 'ASSIGNED' && (
+                  <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Start Delivery
+                    </span>
+                  </Button>
+                )}
+                <Button variant="outline" className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold">
+                  <span className="flex items-center gap-2">
+                    <Pause className="h-4 w-4" />
+                    Stop
+                  </span>
+                </Button>
+              </div>
+            </>
+          )}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
