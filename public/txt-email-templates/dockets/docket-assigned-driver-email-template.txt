@@ -8,6 +8,6 @@ Pickup Address: {PickupAddress}
 Delivery Address: {DeliveryAddress}
 Scheduled Time: {DeliveryWindow}
 
-View Delivery: {DocketUrl}
+View Delivery: https://app.{environment}.quarrylink/customer-operations/dockets/?docketId={DocketId}
 
 You're receiving this because you've been assigned to a delivery on QuarryLink.

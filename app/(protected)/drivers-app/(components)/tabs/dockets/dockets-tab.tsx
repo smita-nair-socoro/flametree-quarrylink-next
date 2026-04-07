@@ -379,7 +379,6 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
             <Button
               className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-[#8E51FF] hover:bg-[#7c46e0] text-white shadow-sm"
               onClick={() => {
-                // Here you would typically update the docket's load size
                 setIsUpdateDrawerOpen(false);
               }}
             >

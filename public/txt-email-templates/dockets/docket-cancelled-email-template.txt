@@ -8,6 +8,6 @@ Customer: {CustomerName}
 Cancellation Reason: {CancellationReason}
 Cancellation Notes: {CancellationNotes}
 
-View Docket: {DocketUrl}
+View Docket: https://app.{environment}.quarrylink/customer-operations/dockets/?docketId={DocketId}
 
 You're receiving this notification because you're associated with this docket on QuarryLink.
