@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { TruckDTO } from '@/lib/types/truck';
+import { useTruckActions } from '@/hooks/use-truck-actions';
 
 interface TruckTableActionsProps {
   truck: TruckDTO;
@@ -18,6 +19,7 @@ interface TruckTableActionsProps {
 
 export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const { actions, confirmDialogs } = useTruckActions(truck);
 
   const handleView = () => {
     setDropdownOpen(false);
@@ -25,18 +27,21 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
 
   const handleDeactivate = () => {
     setDropdownOpen(false);
+    actions.deactivate();
   };
 
   const handleReactivate = () => {
     setDropdownOpen(false);
+    actions.reactivate();
   };
 
   const handleDelete = () => {
     setDropdownOpen(false);
+    actions.delete();
   };
 
   return (
-    <div>
+    <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -77,6 +82,8 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+
+      {confirmDialogs}
+    </>
   );
 }
