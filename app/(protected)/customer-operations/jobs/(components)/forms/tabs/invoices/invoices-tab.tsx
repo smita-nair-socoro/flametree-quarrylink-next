@@ -1,8 +1,12 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { InvoicesListQueryOptions } from '@/lib/api/job';
 
-export default function InvoicesTab() {
+export default function InvoicesTab({ jobId }: { jobId: number }) {
+	const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
+	console.log(invoices);
 	return (
 		<div>
 			<h1>Invoices</h1>

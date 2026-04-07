@@ -181,7 +181,7 @@ export default function JobForm({
       },
       {
         name: 'Invoices',
-        content: <InvoicesTab />,
+        content: <InvoicesTab jobId={jobId} />,
       },
       {
         name: 'Cash Sales',

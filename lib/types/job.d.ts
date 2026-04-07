@@ -147,3 +147,11 @@ export interface JobItem {
 export interface JobDetails extends JobDTO {
   jobItems?: JobItem[];
 }
+
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  invoiceDate: string;
+  invoiceAmount: number;
+  invoiceStatus: string;
+}

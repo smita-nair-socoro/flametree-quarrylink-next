@@ -90,3 +90,9 @@ export const DocketKeys = {
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
 };
+
+export const InvoicesKeys = {
+  all: ['invoices'] as const,
+  list: (jobId: number) => [...InvoicesKeys.all, 'list', jobId] as const,
+  detail: (id: number) => [...InvoicesKeys.all, 'detail', id] as const,
+};

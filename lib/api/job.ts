@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { JobKeys } from './keys';
+import { InvoicesKeys, JobKeys } from './keys';
 import type { JobDTO, JobItem } from '../types/job';
 
 /**
@@ -131,3 +131,19 @@ export const useDeleteJobItem = () => {
     },
   });
 };
+
+export const InvoicesListQueryOptions = (jobId: number) =>
+  queryOptions({
+    queryKey: InvoicesKeys.list(jobId),
+    queryFn: () => APIClient.invoices.getAll(jobId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const InvoiceByIdQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: InvoicesKeys.detail(id),
+    queryFn: () => APIClient.invoices.getById(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
