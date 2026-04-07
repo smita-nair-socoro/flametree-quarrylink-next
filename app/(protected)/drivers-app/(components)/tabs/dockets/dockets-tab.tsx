@@ -191,12 +191,13 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
-      {confirmDialogs}
       {activeDocket && renderDocketCard(activeDocket, true)}
       {otherDockets.map((docket) => renderDocketCard(docket, false))}
 
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
+          {confirmDialogs}
+
           {selectedDocket && (
             <>
               <DrawerHeader className="border-b border-gray-100 pb-4 pt-6 px-6 shrink-0 rounded-t-2xl">
