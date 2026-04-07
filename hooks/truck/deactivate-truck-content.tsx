@@ -1,6 +1,6 @@
 'use client';
 
-import { Ban, TriangleAlert, CheckCircle2 } from 'lucide-react';
+import { Ban, TriangleAlert, CheckCircle2, CircleX } from 'lucide-react';
 import { TruckDTO } from '@/lib/types/truck';
 
 // ─── Deactivate ───────────────────────────────────────────────────────────────
@@ -48,14 +48,14 @@ export function DeactivateTruckContent({
       {assignedDrivers.length > 0 && (
         <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] p-4 flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <TriangleAlert className="h-4 w-4 text-[#D97706] flex-shrink-0" />
-            <span className="text-[14px] font-semibold text-[#92400E]">
+            <TriangleAlert className="h-4 w-4 text-[#CA8A04] flex-shrink-0" />
+            <span className="text-[14px] font-medium text-[#854D0E]">
               Driver Assignment
             </span>
           </div>
-          <div className="flex flex-col gap-1 pl-6">
+          <div className="flex flex-col gap-1 ">
             {assignedDrivers.map((driver) => (
-              <span key={driver} className="text-[14px] text-[#B45309]">
+              <span key={driver} className="text-[14px] text-[#A16207]">
                 {driver} will remain assigned to this truck.
               </span>
             ))}
@@ -65,35 +65,37 @@ export function DeactivateTruckContent({
 
       {/* Data Preservation */}
       {totalCompleted > 0 && (
-        <div className="rounded-md border border-[#BFDBFE] bg-[#EFF6FF] p-4 flex flex-col gap-2">
-          <span className="text-[14px] font-semibold text-[#1E40AF]">
+        <div className="rounded-md border border-[#BAE6FD] bg-[#F0F9FF] p-4 flex flex-col gap-2">
+          <span className="text-[14px] font-medium text-[#075985]">
             Data Preservation
           </span>
-          <span className="text-[14px] text-[#1D4ED8]">
-            <span className="font-semibold">{totalCompleted} completed dockets</span>{' '}
+          <span className="text-[14px] text-[#0C4A6E]">
+            <span className="font-semibold">
+              {totalCompleted} completed dockets
+            </span>{' '}
             will be preserved:
           </span>
           <div className="flex flex-col gap-1 pl-1">
             {completedDocketBreakdown.delivered > 0 && (
-              <div className="flex items-center gap-2 text-[14px] text-[#1D4ED8]">
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
                 {completedDocketBreakdown.delivered} Delivered
               </div>
             )}
             {completedDocketBreakdown.collected > 0 && (
-              <div className="flex items-center gap-2 text-[14px] text-[#1D4ED8]">
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
                 {completedDocketBreakdown.collected} Collected
               </div>
             )}
             {completedDocketBreakdown.cancelled > 0 && (
-              <div className="flex items-center gap-2 text-[14px] text-[#1D4ED8]">
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
+                <CircleX className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
                 {completedDocketBreakdown.cancelled} Cancelled
               </div>
             )}
-            <div className="flex items-center gap-2 text-[14px] text-[#1D4ED8]">
-              <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
+              <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
               All maintenance records
             </div>
           </div>
@@ -101,8 +103,8 @@ export function DeactivateTruckContent({
       )}
 
       {/* Archive Effects */}
-      <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-semibold text-gray-900">
+      <div className="flex flex-col gap-2 bg-[#F9FAFB] p-4 round-md">
+        <span className="text-[14px] font-semibold text-[#101828] ">
           Archive Effects
         </span>
         <ul className="flex flex-col gap-1 pl-1">

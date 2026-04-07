@@ -22,7 +22,12 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmCustomColor?: string;
-  confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+  confirmVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmActionNeeded?: boolean;
   confirmDisabled?: boolean;
   cancelText?: string;
@@ -38,10 +43,18 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     React.useState<CannotDeactivateState | null>(null);
 
   // TODO: replace with real assigned drivers from API
-  const assignedDrivers: string[] = ['John Smith', 'Armin Menhaji', 'Jayden Olivo'];
+  const assignedDrivers: string[] = [
+    'John Smith',
+    'Armin Menhaji',
+    'Jayden Olivo',
+  ];
 
   // TODO: replace with real completed docket breakdown from API
-  const completedDocketBreakdown = { delivered: 10, collected: 3, cancelled: 2 };
+  const completedDocketBreakdown = {
+    delivered: 10,
+    collected: 3,
+    cancelled: 2,
+  };
 
   const handleDeactivate = async () => {
     if (!truckData?.id) return;
@@ -60,7 +73,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         setCannotDeactivateState({ activeDocketCount });
         setActiveDialog('cannot_deactivate');
       } else {
-        notifyError(extractErrorMessage(error) || 'Failed to deactivate truck.');
+        notifyError(
+          extractErrorMessage(error) || 'Failed to deactivate truck.',
+        );
         setActiveDialog(null);
       }
     }
@@ -91,7 +106,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         ),
         confirmText: 'Mark as Unavailable',
         confirmVariant: 'destructive',
-        confirmCustomColor: '#E7000B',
+        confirmCustomColor: '#DC2626',
         cancelText: 'Cancel',
       },
       cannot_deactivate: {
@@ -110,11 +125,16 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         description: <ReactivateTruckDescription truck={truckData} />,
         content: <ReactivateTruckContent />,
         confirmText: 'Mark as Available',
-        confirmCustomColor: '#008236',
+        confirmCustomColor: '#22C55E',
         cancelText: 'Cancel',
       },
     }),
-    [truckData, cannotDeactivateState, assignedDrivers, completedDocketBreakdown],
+    [
+      truckData,
+      cannotDeactivateState,
+      assignedDrivers,
+      completedDocketBreakdown,
+    ],
   );
 
   const actionHandlers: Record<string, () => void> = {
