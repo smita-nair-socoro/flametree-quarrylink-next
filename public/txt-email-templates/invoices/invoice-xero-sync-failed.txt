@@ -1,15 +1,13 @@
 Hi {RecipientName},
 
-This is to notify you that a job has been PAUSED.
+This is to notify you that an invoice has FAILED TO SYNC with Xero.
 
 Job Number: {JobNumber}
 Customer: {CustomerName}
-Project / Location: {ProjectName}
+Error Message: {ErrorMessage}
+Attempted At: {Timestamp}
 
-Paused By: {UserName}
-Paused At: {Timestamp}
-
-Job execution has been temporarily halted.
+The invoice associated with this job was not successfully synced to Xero. Please review the error and take action.
 
 View Job: https://app.{environment}.quarrylink/customer-operations/jobs/?jobIds={JobIds}
 

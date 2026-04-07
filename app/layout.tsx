@@ -29,7 +29,6 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className="[scrollbar-gutter:stable]"
     >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
