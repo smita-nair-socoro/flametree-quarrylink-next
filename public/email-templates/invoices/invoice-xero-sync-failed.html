@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>New Delivery Assignment — QuarryLink</title>
+    <title>Invoice Sync Failure – QuarryLink</title>
     <style>
       body {
         margin: 0;
         padding: 0;
         background-color: #f3f4f6;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
-          sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       }
       .container {
         max-width: 600px;
@@ -215,26 +215,32 @@
         <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
       <div class="card">
-        <div class="header">Hi {DriverName},</div>
+        <div class="header">Hi {RecipientName},</div>
         <div class="content">
-          <p>You have been <strong>assigned</strong> to a new delivery.</p>
+          <p>
+            This is to notify you that an invoice has
+            <strong>Failed to Sync</strong> with Xero.
+          </p>
         </div>
         <div class="block-details {BorderColorClass}">
-          <p><strong>Docket Number:</strong> {DocketNumber}</p>
+          <p><strong>Job Number:</strong> {JobNumber}</p>
           <p><strong>Customer:</strong> {CustomerName}</p>
-          <p><strong>Pickup Address:</strong> {PickupAddress}</p>
-          <p><strong>Delivery Address:</strong> {DeliveryAddress}</p>
-          <p><strong>Scheduled Time:</strong> {DeliveryWindow}</p>
+          <p><strong>Error Message:</strong> {ErrorMessage}</p>
+          <p><strong>Attempted At:</strong> {Timestamp}</p>
+        </div>
+        <div class="content">
+          <p>
+            The invoice associated with this job was not successfully synced to
+            Xero. Please review the error and take action.
+          </p>
         </div>
         <div class="button-container">
-          <a href="https://app.{environment}.quarrylink/customer-operations/dockets/?docketId={DocketId}" class="btn-primary {ButtonColorClass}"
-            >View Delivery</a
-          >
+          <a href="https://app.{environment}.quarrylink/customer-operations/jobs/?jobIds={JobIds}" class="btn-primary {ButtonColorClass}">View Job</a>
         </div>
         <div class="card-footer">
           <p>
-            You're receiving this because you've been assigned to a delivery on
-            QuarryLink.
+            You're receiving this notification because you're associated with
+            this job on QuarryLink.
           </p>
         </div>
       </div>
