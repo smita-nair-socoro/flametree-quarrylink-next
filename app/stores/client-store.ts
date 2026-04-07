@@ -8,6 +8,7 @@ interface ClientStore {
   isLoading: boolean;
   user: string;
   subscriptionPlan: string | null;
+  tenantName: string | null;
 
   // Actions
   setClients: (clients: Client[]) => void;
@@ -15,10 +16,12 @@ interface ClientStore {
   setLoading: (loading: boolean) => void;
   setUser: (userName: string) => void;
   setSubscriptionPlan: (plan: string | null) => void;
+  setTenantName: (name: string | null) => void;
 
   getClientById: (id: number) => Client | undefined;
   getClientsByStatus: (status: string) => Client[];
   getUser: () => string;
+  getTenantName: () => string | null;
 }
 
 export const useClientStore = create<ClientStore>()(
@@ -29,6 +32,7 @@ export const useClientStore = create<ClientStore>()(
       isLoading: false,
       user: '',
       subscriptionPlan: null,
+      tenantName: null,
 
       // Actions
       setClients: (clients) => set({ clients }),
@@ -38,6 +42,8 @@ export const useClientStore = create<ClientStore>()(
       setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
 
       setSelectedClient: (client) => set({ selectedClient: client }),
+
+      setTenantName: (name) => set({ tenantName: name }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 
@@ -55,6 +61,11 @@ export const useClientStore = create<ClientStore>()(
       getClientsByStatus: (status) => {
         const state = get();
         return state.clients.filter((c) => c.clientStatus === status);
+      },
+
+      getTenantName: () => {
+        const state = get();
+        return state.tenantName;
       },
     }),
     { name: 'client-store' },

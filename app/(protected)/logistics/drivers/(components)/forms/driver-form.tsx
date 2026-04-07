@@ -39,6 +39,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useClientStore } from '@/app/stores/client-store';
 
 interface FormProps {
   id?: number;
@@ -81,8 +82,7 @@ export default function DriverForm({
     fields: { email: h.emailAddress, phone: h.phoneNumber },
   }));
 
-  const { data: tenantCompleteDetails } = useQuery(TenantCompleteDetailsQueryOptions());
-  const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
+  const tenantName = useClientStore((state) => state.getTenantName());
   const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -96,14 +96,14 @@ export default function DriverForm({
       email: '',
       phone: '',
       type: DRIVER_TYPE.INTERNAL,
-      haulier: '',
+      haulierId: 0,
       driverLicenseNumber: '',
       assignedTrucks: [],
     },
   });
 
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulier');
+  const selectedHaulier = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
   const hasHaulier = Boolean(selectedHaulier);
 
@@ -115,7 +115,7 @@ export default function DriverForm({
   // Clear haulier and assigned trucks when switching to internal
   React.useEffect(() => {
     if (isInternal) {
-      driverForm.setValue('haulier', '');
+      driverForm.setValue('haulierId', 0);
       driverForm.setValue('assignedTrucks', []);
     }
   }, [isInternal, driverForm]);
@@ -125,7 +125,7 @@ export default function DriverForm({
       setIsSubmitting(true);
       const selectedHaulierData = isInternal
         ? internalHaulier
-        : hauliers.find((h) => String(h.id) === values.haulier);
+        : hauliers.find((h) => h.id === values.haulierId);
       await createDriver.mutateAsync({
         driverName: values.driverName,
         driverType: values.type,
@@ -133,7 +133,6 @@ export default function DriverForm({
         phoneNumber: values.phone,
         licenseNumber: values.driverLicenseNumber,
         haulierId: selectedHaulierData?.id,
-        haulierName: selectedHaulierData?.haulierName,
       });
       notifySuccess(
         isEditing
@@ -258,12 +257,19 @@ export default function DriverForm({
             {isInternal ? (
               <FormItem>
                 <FormLabel>Haulier</FormLabel>
-                <Input value={internalHaulier?.haulierName ?? tenantName ?? 'My Company Haulier'} disabled />
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
+                />
               </FormItem>
             ) : (
               <SelectCreateEdit
                 control={driverForm.control}
-                name="haulier"
+                name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
                 items={haulierItems}
