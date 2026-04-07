@@ -160,9 +160,9 @@ export default function DriverForm({
         phone: driverData.phoneNumber || '',
         status: driverData.driverStatus || DRIVER_STATUS.ACTIVE,
         type: driverData.driverType || DRIVER_TYPE.INTERNAL,
-        haulier: driverData.haulierName || '',
-        haulierEmail: driverData.haulierEmailAddress || '',
-        haulierPhone: driverData.haulierPhoneNumber || '',
+        haulier: driverData.haulier?.haulierName || '',
+        haulierEmail: driverData.haulier?.emailAddress || '',
+        haulierPhone: driverData.haulier?.phoneNumber || '',
         driverLicenseNumber: driverData.licenseNumber || '',
         assignedTrucks: [],
       });
@@ -210,15 +210,32 @@ export default function DriverForm({
       const selectedHaulierData = isInternal
         ? internalHaulier
         : hauliers.find((h) => String(h.id) === values.haulier);
-      await createDriver.mutateAsync({
-        driverName: values.driverName,
-        driverType: values.type,
-        emailAddress: values.email,
-        phoneNumber: values.phone,
-        licenseNumber: values.driverLicenseNumber,
-        haulierId: selectedHaulierData?.id,
-        haulierName: selectedHaulierData?.haulierName,
-      });
+
+      if (isEditing && id && driverData) {
+        await updateDriver.mutateAsync({
+          id,
+          data: {
+            version: driverData.version,
+            driverName: values.driverName,
+            licenseNumber: values.driverLicenseNumber,
+            driverType: values.type,
+            driverStatus: driverData.driverStatus,
+            truckIds: driverData.truckIds ?? [],
+            haulierId: selectedHaulierData?.id,
+          },
+        });
+      } else {
+        await createDriver.mutateAsync({
+          driverName: values.driverName,
+          driverType: values.type,
+          emailAddress: values.email,
+          phoneNumber: values.phone,
+          licenseNumber: values.driverLicenseNumber,
+          haulierId: selectedHaulierData?.id,
+          haulierName: selectedHaulierData?.haulierName,
+        });
+      }
+
       notifySuccess(
         isEditing
           ? 'Driver Updated Successfully!'
