@@ -416,16 +416,9 @@ export default function QuotationForm({
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
               const decisionMakerName = decisionMaker.split('-')[1];
-              const rawDeclineReason = currentQuotation?.declineReason?.trim();
-              const hyphenIndex = rawDeclineReason ? rawDeclineReason.indexOf('-') : -1;
-              const reasonLabel =
-                hyphenIndex !== -1
-                  ? rawDeclineReason!.slice(0, hyphenIndex).trim()
-                  : rawDeclineReason || '';
-              const reasonNote =
-                hyphenIndex !== -1
-                  ? rawDeclineReason!.slice(hyphenIndex + 1).trim()
-                  : '';
+              const { reason: reasonLabel, note: reasonNote } = splitReasonNote(
+                currentQuotation?.declineReason,
+              );
               const decisionDate = currentQuotation?.customerResponseAt
                 ? formatLocalDateTime(currentQuotation.customerResponseAt)
                 : '';
