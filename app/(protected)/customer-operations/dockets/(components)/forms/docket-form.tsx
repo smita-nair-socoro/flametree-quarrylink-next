@@ -28,7 +28,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { toUTCDateTimeWithoutZ } from '@/lib/utils/date';
+import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
