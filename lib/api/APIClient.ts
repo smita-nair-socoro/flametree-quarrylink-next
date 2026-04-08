@@ -1015,6 +1015,8 @@ export const APIClient = {
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },
+    settle: (id: number) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
   },
 
   drivers: {
@@ -1062,8 +1064,6 @@ export const APIClient = {
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
-    settle: (id: number) =>
-      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
   },
 
   tenants: {
