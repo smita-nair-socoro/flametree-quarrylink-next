@@ -27,13 +27,17 @@ import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
+import { useGetAllHauliers } from '@/lib/api/haulier';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useClientStore } from '@/app/stores/client-store';
+import { addNewRecordId } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { BADGE_COLORS } from '@/lib/utils';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -49,30 +53,6 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
 }
-
-const haulierItems = [
-  {
-    id: '1',
-    label: 'ABC Transport',
-    fields: { email: 'abc@transport.com.au', phone: '+61400123456' },
-  },
-  {
-    id: '2',
-    label: 'XYZ Logistics',
-    fields: { email: 'info@xyzlogistics.com', phone: '+61400333444' },
-  },
-  {
-    id: '3',
-    label: 'Quick Haul',
-    fields: { email: 'info@quickhaul.com.au', phone: '+61400345678' },
-  },
-];
-
-// Dummy data — replace with real API data when available
-const DUMMY_TRUCKS = [
-  { id: 1, registration: 'EXT-LMN333', status: 'ACTIVE' },
-  { id: 2, registration: 'EXT-BM65KJ', status: 'ACTIVE' },
-];
 
 const DUMMY_COMPLIANCE = [
   {
@@ -137,6 +117,20 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
+  const { data: hauliers = [] } = useGetAllHauliers();
+  const haulierItems = React.useMemo(
+    () =>
+      hauliers.map((h) => ({
+        id: h.id,
+        label: h.haulierName,
+        fields: { email: h.emailAddress, phone: h.phoneNumber },
+      })),
+    [hauliers],
+  );
+
+  const tenantName = useClientStore((state) => state.getTenantName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+
   const createDriver = useCreateDriver();
   const updateDriver = useUpdateDriver();
 
@@ -150,11 +144,8 @@ export default function DriverForm({
       driverName: '',
       email: '',
       phone: '',
-      status: DRIVER_STATUS.ACTIVE,
       type: DRIVER_TYPE.INTERNAL,
-      haulier: '',
-      haulierEmail: '',
-      haulierPhone: '',
+      haulierId: 0,
       driverLicenseNumber: '',
       assignedTrucks: [],
     },
@@ -167,11 +158,8 @@ export default function DriverForm({
         driverName: driverData.driverName || '',
         email: driverData.emailAddress || '',
         phone: driverData.phoneNumber || '',
-        status: driverData.driverStatus || DRIVER_STATUS.ACTIVE,
         type: driverData.driverType || DRIVER_TYPE.INTERNAL,
-        haulier: driverData.haulierName || '',
-        haulierEmail: driverData.haulierEmailAddress || '',
-        haulierPhone: driverData.haulierPhoneNumber || '',
+        haulierId: driverData.haulier?.id || 0,
         driverLicenseNumber: driverData.licenseNumber || '',
         assignedTrucks: [],
       });
@@ -179,9 +167,13 @@ export default function DriverForm({
   }, [isEditing, driverData, driverForm]);
 
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulier');
+  const selectedHaulierId = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
-  const hasHaulier = Boolean(selectedHaulier);
+
+  const selectedHaulierInfo = React.useMemo(() => {
+    if (isInternal) return internalHaulier;
+    return hauliers.find((h) => h.id === selectedHaulierId);
+  }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -189,61 +181,62 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverForm.formState.isDirty]);
 
-  // Clear haulier fields when switching to internal
+  // Clear haulier selection when switching to internal (create mode only)
   React.useEffect(() => {
-    if (isInternal) {
-      driverForm.setValue('haulier', '');
-      driverForm.setValue('haulierEmail', '');
-      driverForm.setValue('haulierPhone', '');
+    if (isInternal && !isEditing) {
+      driverForm.setValue('haulierId', 0);
     }
-  }, [isInternal, driverForm]);
-
-  // Auto-fill haulier email/phone when haulier is selected
-  React.useEffect(() => {
-    const subscription = driverForm.watch((value, { name }) => {
-      if (name === 'haulier' && value.haulier) {
-        const match = haulierItems.find((h) => h.label === value.haulier);
-        if (match) {
-          driverForm.setValue('haulierEmail', match.fields.email);
-          driverForm.setValue('haulierPhone', match.fields.phone);
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [driverForm]);
+  }, [isInternal, isEditing, driverForm]);
 
   const isPending = createDriver.isPending || updateDriver.isPending;
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
-      const payload = {
-        driverName: values.driverName,
-        driverType: values.type,
-        emailAddress: values.email,
-        phoneNumber: values.phone,
-        licenseNumber: values.driverLicenseNumber,
-        haulierName: values.haulier,
-        haulierEmailAddress: values.haulierEmail,
-        haulierPhoneNumber: values.haulierPhone,
-      };
+      const selectedHaulierData = isInternal
+        ? internalHaulier
+        : hauliers.find((h) => h.id === values.haulierId);
 
-      if (isEditing && id) {
+      if (isEditing && id && driverData) {
         await updateDriver.mutateAsync({
           id,
-          data: { ...(driverData ?? {}), ...payload },
+          data: {
+            version: driverData.version,
+            driverName: values.driverName,
+            licenseNumber: values.driverLicenseNumber,
+            emailAddress: values.email,
+            phoneNumber: values.phone,
+            driverType: values.type,
+            driverStatus: driverData.driverStatus,
+            truckIds: driverData.truckIds ?? [],
+            haulierId: selectedHaulierData?.id,
+          },
         });
-        notifySuccess('Driver Updated Successfully!');
       } else {
-        await createDriver.mutateAsync(payload);
-        notifySuccess('Driver Added Successfully!');
+        const newDriver = await createDriver.mutateAsync({
+          driverName: values.driverName,
+          driverType: values.type,
+          emailAddress: values.email,
+          phoneNumber: values.phone,
+          licenseNumber: values.driverLicenseNumber,
+          haulierId: selectedHaulierData?.id,
+        });
+
+        if (newDriver && typeof newDriver.id === 'number') {
+          addNewRecordId('driver_main_data_table', newDriver.id);
+        }
       }
 
+      notifySuccess(
+        isEditing
+          ? 'Driver Updated Successfully!'
+          : 'Driver Added Successfully!',
+      );
       onSuccess?.();
       onSaved?.();
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -257,7 +250,7 @@ export default function DriverForm({
   }
 
   // Dummy trucks and compliance — replace with real API data when backend is available
-  const trucks = isEditing ? DUMMY_TRUCKS : [];
+  const trucks: { id: number; registration: string; status: string }[] = [];
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (
@@ -357,13 +350,20 @@ export default function DriverForm({
 
             {isInternal ? (
               <FormItem>
-                <FormLabel>Haulier*</FormLabel>
-                <Input value="My Company Haulier" disabled />
+                <FormLabel>Haulier</FormLabel>
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
+                />
               </FormItem>
             ) : (
               <SelectCreateEdit
                 control={driverForm.control}
-                name="haulier"
+                name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
                 items={haulierItems}
@@ -421,44 +421,24 @@ export default function DriverForm({
                 )}
               />
 
-              <FormField
-                control={driverForm.control}
-                name="haulierEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Haulier Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="driver@company.com"
-                        {...field}
-                        value={field.value ?? ''}
-                        readOnly={hasHaulier}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Haulier Email Address</FormLabel>
+                <Input
+                  value={selectedHaulierInfo?.emailAddress ?? ''}
+                  disabled
+                  placeholder="Auto-filled from selected haulier"
+                />
+              </FormItem>
 
-              <FormField
-                control={driverForm.control}
-                name="haulierPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Haulier Phone Number</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        defaultCountry="AU"
-                        placeholder="+61 400 123 456"
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={hasHaulier}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Haulier Phone Number</FormLabel>
+                <PhoneInput
+                  defaultCountry="AU"
+                  value={selectedHaulierInfo?.phoneNumber ?? ''}
+                  disabled
+                  placeholder="Auto-filled from selected haulier"
+                />
+              </FormItem>
             </div>
           </div>
 
@@ -587,10 +567,8 @@ export default function DriverForm({
           {/* Safety & Compliance — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-4">
-                <Separator />
-                <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
-              </div>
+              <Separator />
+              <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
               <DataTableClient
                 columns={complianceColumns}
                 data={complianceRecords}

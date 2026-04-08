@@ -49,6 +49,12 @@ export interface DocketDTO {
   jobId: number;
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
+  stopReason?: string;
+  resumeReason?: string;
+  cancelledReason?: string;
+  voidedReason?: string;
+  stoppedAt?: string;
+  resumedAt?: string;
   pickUpAddressId: number;
   pickUpAddress: Partial<Address>;
   deliveryAddressId: number;
@@ -84,6 +90,8 @@ export interface DocketDTO {
     id: number;
     jobNumber: string;
     customerId: number;
+    customerName?: string;
+    accountManagerName?: string;
     projectName: string;
     jobStatus: JOB_STATUS;
     poNumber: string;
@@ -116,7 +124,7 @@ export interface DocketDTO {
       version: number;
     };
     quarrySupplierId: number;
-    quarrySupplierName: string;
+    quarrySupplierName?: string;
     totalQuantityRequired: number;
     allocatedQuantity: number;
     remainingQuantity: number;

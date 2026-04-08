@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ComplianceTableActions } from './compliance-table-actions';
 import { TableBadges } from '@/components/table-badges';
-import { DateCell } from '@/components/date-cell';
+// import { DateCell } from '@/components/date-cell';
 
 export type ComplianceRecord = {
   id: number;
@@ -31,9 +31,11 @@ export const complianceColumns: ColumnDef<ComplianceRecord>[] = [
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Date" />
     ),
-    cell: ({ getValue }) => (
-      <DateCell dateString={getValue<string>()} side="top" />
-    ),
+    cell: ({ getValue }) => {
+      return <span className="font-medium py-2 block">{getValue<string>()}</span>
+      // Change to below once API ready
+      // <DateCell dateString={getValue<string>()} side="top" />
+    },
   },
   {
     id: 'status',

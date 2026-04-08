@@ -176,16 +176,16 @@ export const useSendToCustomer = () => {
     mutationFn: ({
       id,
       inclDeliveryCost,
-      additionalEmailRecipients,
+      emailRecipients,
     }: {
       id: number;
       inclDeliveryCost: boolean;
-      additionalEmailRecipients: string[];
+      emailRecipients: string[];
     }) =>
       APIClient.quotations.sendToCustomer(
         id,
         inclDeliveryCost,
-        additionalEmailRecipients,
+        emailRecipients,
       ),
 
     onSuccess: (data) => {
