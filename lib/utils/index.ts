@@ -230,4 +230,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'ON DUTY': 'bg-blue-100 text-blue-800 border-blue-800',
   PENDING_INVITATION: 'bg-yellow-100 text-yellow-800 border-yellow-800',
   'PENDING INVITATION': 'bg-yellow-100 text-yellow-800 border-yellow-800',
+  PASS: 'bg-green-100 text-green-800 border-green-900',
+  FAIL: 'bg-red-100 text-red-800 border-red-900',
+  CONFIRMED: 'bg-yellow-100 text-yellow-800 border-yellow-900',
 };
