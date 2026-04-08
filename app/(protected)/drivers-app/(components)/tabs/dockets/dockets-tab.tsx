@@ -5,7 +5,7 @@ import * as React from 'react';
 import { DocketDTO } from '@/lib/types/docket';
 import rawJson from '@/lib/tests/driverDocketsResponseData.json';
 import { format } from 'date-fns';
-import { MapPin, Package, Truck, Clock, Info, X, Pencil, CheckCircle, Pause } from 'lucide-react';
+import { MapPin, Package, Truck, Clock, Info, X, Pencil, CheckCircle, Pause, Delete } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,13 +18,19 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 
-export default function DocketsTab() {
+interface DocketsTabProps {
+  onOpenChecklist?: (type: 'pre-start' | 'vehicle-inspection', docketNumber?: string) => void;
+}
+
+export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
   const { items } = rawJson as unknown as {
     items: DocketDTO[];
   };
 
   const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
+  const [updateValue, setUpdateValue] = React.useState('');
 
   const activeDocket = items.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = items.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -195,7 +201,14 @@ export default function DocketsTab() {
                         <span className="text-[14px] font-bold text-gray-900">
                           {selectedDocket.loadSize}{selectedDocket.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket.jobItem.productSellUom}
                         </span>
-                        <Button variant="ghost" className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1">
+                        <Button
+                          variant="ghost"
+                          className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
+                          onClick={() => {
+                            setUpdateValue(selectedDocket.loadSize?.toString() || '');
+                            setIsUpdateDrawerOpen(true);
+                          }}
+                        >
                           <Pencil className="h-2 w-2" size="xs" /> Update
                         </Button>
                       </div>
@@ -284,7 +297,13 @@ export default function DocketsTab() {
                   </Button>
                 )}
                 {selectedDocket.docketStatus === 'ASSIGNED' && (
-                  <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
+                  <Button 
+                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200"
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      onOpenChecklist?.('vehicle-inspection', selectedDocket.docketNumber);
+                    }}
+                  >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Start Delivery
@@ -300,6 +319,72 @@ export default function DocketsTab() {
               </div>
             </>
           )}
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer open={isUpdateDrawerOpen} onOpenChange={setIsUpdateDrawerOpen}>
+        <DrawerContent className="bg-[#E2E8F0] flex flex-col rounded-t-3xl pb-safe">
+          <div className="flex flex-col items-center pt-8 pb-6">
+            <div className="flex items-baseline gap-1">
+              <span className="text-[56px] font-medium text-[#0F172A] leading-none tracking-tight">
+                {updateValue || '0'}
+              </span>
+              <span className="text-[24px] text-[#64748B] font-medium">
+                {selectedDocket?.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket?.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket?.jobItem?.productSellUom}
+              </span>
+            </div>
+            <span className="text-[13px] text-[#64748B] font-medium mt-2">
+              Current: <span className="font-bold">{selectedDocket?.loadSize}{selectedDocket?.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket?.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket?.jobItem?.productSellUom}</span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 bg-[#CBD5E1] gap-[1px] border-y border-[#CBD5E1]">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((key) => (
+              <button
+                key={key}
+                className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
+                onClick={() => setUpdateValue(prev => prev + key)}
+              >
+                {key}
+              </button>
+            ))}
+            <button
+              className="h-[68px] bg-[#94A3B8]/30 text-[28px] text-[#0F172A] active:bg-[#94A3B8]/50 flex items-center justify-center font-normal"
+              onClick={() => setUpdateValue(prev => prev.includes('.') ? prev : prev + '.')}
+            >
+              .
+            </button>
+            <button
+              className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
+              onClick={() => setUpdateValue(prev => prev + '0')}
+            >
+              0
+            </button>
+            <button
+              className="h-[68px] bg-[#94A3B8]/30 text-[#0F172A] active:bg-[#94A3B8]/50 flex items-center justify-center"
+              onClick={() => setUpdateValue(prev => prev.slice(0, -1))}
+            >
+              <Delete className="h-6 w-6 text-[#334155]" strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-4 p-5 bg-[#E2E8F0]">
+            <Button
+              variant="outline"
+              className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-white border-white text-[#475569] shadow-sm hover:bg-gray-50"
+              onClick={() => setIsUpdateDrawerOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-[#8E51FF] hover:bg-[#7c46e0] text-white shadow-sm"
+              onClick={() => {
+                setIsUpdateDrawerOpen(false);
+              }}
+            >
+              Confirm
+            </Button>
+          </div>
         </DrawerContent>
       </Drawer>
     </div>
