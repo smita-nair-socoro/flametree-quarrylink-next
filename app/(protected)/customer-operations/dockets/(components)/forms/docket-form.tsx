@@ -28,11 +28,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import {
-  formatLocalDateShort,
-  formatLocalDateTime,
-  toUTCDateTimeWithoutZ,
-} from '@/lib/utils/date';
+import { toUTCDateTimeWithoutZ } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -619,11 +615,15 @@ export default function DocketForm({
                 <div className="items-center flex gap-2">
                   <Calendar className="w-5 h-5" />
                   <span className="text-[17px] font-medium">
-                    Delivery Information
+                    {selectedJobLineItemDetails().type === 'COLLECTION'
+                      ? 'Collection Information'
+                      : 'Delivery Information'}
                   </span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Delivery date, address, and purchase order
+                  {selectedJobLineItemDetails().type === 'COLLECTION'
+                    ? 'Collection date, address, and purchase order'
+                    : 'Delivery date, address, and purchase order'}
                 </span>
               </div>
               <div className="flex flex-col gap-2">
@@ -730,7 +730,9 @@ export default function DocketForm({
                   </span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Delivery timing and contact information
+                  {selectedJobLineItemDetails().type === 'COLLECTION'
+                    ? 'Collection timing and contact information'
+                    : 'Delivery timing and contact information'}
                 </span>
               </div>
               <div className="flex flex-col gap-1">

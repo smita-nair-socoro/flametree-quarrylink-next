@@ -82,14 +82,14 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.606 0.25 292.717);
-  --taupe-100: #EBE5DE;
-  --taupe-600: #8B7E74;
-  --mauve-100: #F0D9E3;
-  --mauve-600: #9E5E7F;
-  --mist-100: #DAE4E8;
-  --mist-600: #6B8C9E;
-  --olive-100: #E8E8C8;
-  --olive-600: #7A7A38;
+  --taupe-100: #ebe5de;
+  --taupe-600: #8b7e74;
+  --mauve-100: #f0d9e3;
+  --mauve-600: #9e5e7f;
+  --mist-100: #dae4e8;
+  --mist-600: #6b8c9e;
+  --olive-100: #e8e8c8;
+  --olive-600: #7a7a38;
 }
 
 @layer base {
@@ -99,6 +99,7 @@
   html,
   body {
     overflow-x: hidden;
+    height: 100%;
   }
   body {
     @apply bg-background text-foreground;

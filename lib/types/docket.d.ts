@@ -90,6 +90,8 @@ export interface DocketDTO {
     id: number;
     jobNumber: string;
     customerId: number;
+    customerName?: string;
+    accountManagerName?: string;
     projectName: string;
     jobStatus: JOB_STATUS;
     poNumber: string;
@@ -122,7 +124,7 @@ export interface DocketDTO {
       version: number;
     };
     quarrySupplierId: number;
-    quarrySupplierName: string;
+    quarrySupplierName?: string;
     totalQuantityRequired: number;
     allocatedQuantity: number;
     remainingQuantity: number;
