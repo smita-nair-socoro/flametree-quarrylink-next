@@ -234,7 +234,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -552,10 +552,8 @@ export default function DriverForm({
           {/* Safety & Compliance — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-4">
-                <Separator />
-                <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
-              </div>
+              <Separator />
+              <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
               <DataTableClient
                 columns={complianceColumns}
                 data={complianceRecords}
