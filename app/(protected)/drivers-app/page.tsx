@@ -21,41 +21,43 @@ export default function DriversAppPage() {
   return (
     <div className="flex h-screen">
       <div className="w-full shadow-xl bg-white h-full flex flex-col relative overflow-hidden">
-        <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-b border-gray-100 gap-1 bg-white">
-          <div className="flex items-center justify-between">
-            <span className="text-[20px] font-bold text-[#0F172A]">
-              Deliveries
-            </span>
-            <Button variant="ghost" className="flex items-center justify-center">
-              <Settings className="h-[16px] w-[16px] text-[#64748B]" />
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-[14px] text-[#64748B]">Welcome back,</span>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[18px] font-bold text-[#0F172A]">{userName}</span>
-              <span className="text-[12px] text-gray-400 font-medium">ID: DRV-001</span>
+        {activeTab !== 'calendar' && (
+          <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-b border-gray-100 gap-1 bg-white">
+            <div className="flex items-center justify-between">
+              <span className="text-[20px] font-bold text-[#0F172A]">
+                Deliveries
+              </span>
+              <Button variant="ghost" className="flex items-center justify-center">
+                <Settings className="h-[16px] w-[16px] text-[#64748B]" />
+              </Button>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
-              <FileText className="h-[16px] w-[16px] text-gray-600" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[14px] font-bold text-[#0F172A] leading-none">3</span>
-                <span className="text-[12px] text-[#64748B] font-medium leading-none">Assigned</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[14px] text-[#64748B]">Welcome back,</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[18px] font-bold text-[#0F172A]">{userName}</span>
+                <span className="text-[12px] text-gray-400 font-medium">ID: DRV-001</span>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
-              <StopCircleIcon className="h-[16px] w-[16px] text-gray-600" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[14px] font-bold text-[#0F172A] leading-none">0</span>
-                <span className="text-[13px] text-[#64748B] font-medium leading-none">Stopped</span>
+
+            <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
+                <FileText className="h-[16px] w-[16px] text-gray-600" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[14px] font-bold text-[#0F172A] leading-none">3</span>
+                  <span className="text-[12px] text-[#64748B] font-medium leading-none">Assigned</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
+                <StopCircleIcon className="h-[16px] w-[16px] text-gray-600" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[14px] font-bold text-[#0F172A] leading-none">0</span>
+                  <span className="text-[13px] text-[#64748B] font-medium leading-none">Stopped</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col w-full bg-[#F8FAFC] overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -81,12 +83,12 @@ export default function DriversAppPage() {
           )}
 
           {activeTab === 'dockets' && (
-            <DocketsTab 
+            <DocketsTab
               onOpenChecklist={(type, docketNumber) => {
                 setChecklistType(type);
                 setActiveDocketNumber(docketNumber);
                 setIsChecklistPromptOpen(true);
-              }} 
+              }}
             />
           )}
           {activeTab === 'calendar' && <CalendarTab />}
