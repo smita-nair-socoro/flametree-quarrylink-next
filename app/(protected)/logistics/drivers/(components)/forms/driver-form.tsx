@@ -77,7 +77,7 @@ export default function DriverForm({
 
   const { data: hauliers = [] } = useGetAllHauliers();
   const haulierItems = hauliers.map((h) => ({
-    id: String(h.id),
+    id: h.id,
     label: h.haulierName,
     fields: { email: h.emailAddress, phone: h.phoneNumber },
   }));
