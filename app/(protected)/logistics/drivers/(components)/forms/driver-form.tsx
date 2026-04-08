@@ -32,8 +32,7 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver } from '@/lib/api/driver';
 import { useGetAllHauliers } from '@/lib/api/haulier';
-import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+
 import {
   Tooltip,
   TooltipContent,

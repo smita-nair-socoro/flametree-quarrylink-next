@@ -1,6 +1,6 @@
 import z from 'zod';
 import { isValidPhoneNumber } from 'react-phone-number-input';
-import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 
 const PhoneRequired = z
   .string()
@@ -28,7 +28,6 @@ export const NewDriverFormSchema = z
       .max(256, 'Maximum 256 characters'),
     email: EmailRequired,
     phone: PhoneRequired,
-    status: z.nativeEnum(DRIVER_STATUS).optional(),
     type: z.nativeEnum(DRIVER_TYPE),
     haulierId: z.coerce.number().min(0, { message: 'Cannot be less than 0' }),
     driverLicenseNumber: z
