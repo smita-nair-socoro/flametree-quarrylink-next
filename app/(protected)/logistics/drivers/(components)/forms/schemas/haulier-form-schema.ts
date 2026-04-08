@@ -24,4 +24,3 @@ export const HaulierFormSchema = z.object({
     }),
 });
 
-export type HaulierFormValues = z.infer<typeof HaulierFormSchema>;
