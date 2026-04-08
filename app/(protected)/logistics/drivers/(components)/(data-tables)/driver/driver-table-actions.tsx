@@ -26,12 +26,11 @@ interface DriverTableActionsProps {
 
 export function DriverTableActions({ driver }: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  // const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
-  const { actions, confirmDialogs } = useDriverActions(driver);
+  const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
 
   const handleView = () => {
     setDropdownOpen(false);
-    // actions.view();
+    actions.view();
   };
 
   const handleResendAppInvitation = () => {
@@ -57,7 +56,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
   return (
     <div>
       {confirmDialogs}
-      {/* {viewDialog} */}
+      {viewDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">

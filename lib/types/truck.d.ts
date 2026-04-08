@@ -1,4 +1,4 @@
-import { TRUCK_STATUS, TRUCK_TYPE, TRUCK_BODY_TYPE } from './truck-enums';
+import { TRUCK_STATUS, TRUCK_TYPE } from './truck-enums';
 
 interface TruckDTO {
   id?: number;
@@ -9,7 +9,6 @@ interface TruckDTO {
   tankVolumeM3?: number;
   truckStatus?: TRUCK_STATUS;
   year?: number;
-  truckBodyType?: TRUCK_BODY_TYPE;
   pbsApproved?: boolean;
   tareWeight?: number;
   netWeight?: number;
