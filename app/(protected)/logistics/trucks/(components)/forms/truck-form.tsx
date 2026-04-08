@@ -28,6 +28,7 @@ import { useGetAllHauliers } from '@/lib/api/haulier';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
+import { useClientStore } from '@/app/stores/client-store';
 import { DriversListQueryOptions } from '@/lib/api/driver';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { DataTableClient } from '@/components/ui/data-table-client';
@@ -42,10 +43,13 @@ interface FormProps {
 }
 
 const currentYear = new Date().getFullYear();
-const yearOptions: FormSelectOption[] = Array.from({ length: currentYear - 1979 }, (_, i) => {
-  const y = String(currentYear - i);
-  return { label: y, value: y };
-});
+const yearOptions: FormSelectOption[] = Array.from(
+  { length: currentYear - 1979 },
+  (_, i) => {
+    const y = String(currentYear - i);
+    return { label: y, value: y };
+  },
+);
 
 const truckTypeOptions: FormSelectOption[] = [
   { label: 'Truck', value: TRUCK_TYPE.TRUCK },
@@ -63,9 +67,30 @@ const truckTypeOptions: FormSelectOption[] = [
 
 // TODO: replace with real inspection columns when backend is ready
 const DUMMY_INSPECTIONS = [
-  { id: 1, checklistId: 'TI-24-001', date: 'Feb 10, 2024', driver: 'John Smith', status: 'PASS', notes: 'No defects identified during inspection.' },
-  { id: 2, checklistId: 'TI-24-002', date: 'Feb 11, 2024', driver: 'Armin Menhaji', status: 'FAIL', notes: 'Failed Engine oil level, Coolant level.' },
-  { id: 3, checklistId: 'TI-24-003', date: 'Feb 12, 2024', driver: 'Jaywoo Choi', status: 'PASS', notes: 'No defects identified during inspection.' },
+  {
+    id: 1,
+    checklistId: 'TI-24-001',
+    date: 'Feb 10, 2024',
+    driver: 'John Smith',
+    status: 'PASS',
+    notes: 'No defects identified during inspection.',
+  },
+  {
+    id: 2,
+    checklistId: 'TI-24-002',
+    date: 'Feb 11, 2024',
+    driver: 'Armin Menhaji',
+    status: 'FAIL',
+    notes: 'Failed Engine oil level, Coolant level.',
+  },
+  {
+    id: 3,
+    checklistId: 'TI-24-003',
+    date: 'Feb 12, 2024',
+    driver: 'Jaywoo Choi',
+    status: 'PASS',
+    notes: 'No defects identified during inspection.',
+  },
 ];
 
 const inspectionColumns = [
@@ -89,10 +114,13 @@ export default function TruckForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { data: hauliers = [] } = useGetAllHauliers();
+  const tenantName = useClientStore((state) => state.getTenantName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+
   const haulierItems = React.useMemo(
     () =>
       hauliers.map((h) => ({
-        id: String(h.id),
+        id: h.id,
         label: h.haulierName,
         fields: { email: h.emailAddress, phone: h.phoneNumber },
       })),
@@ -114,7 +142,7 @@ export default function TruckForm({
     mode: 'onChange',
     defaultValues: {
       type: 'INTERNAL',
-      haulier: '',
+      haulierId: 0,
       licensePlate: '',
       vin: '',
       model: '',
@@ -139,7 +167,9 @@ export default function TruckForm({
   // Clear haulier field when switching to internal (create mode only)
   React.useEffect(() => {
     if (isInternal && !isEditing) {
-      truckForm.setValue('haulier', '');
+      truckForm.setValue('haulierId', internalHaulier?.id ?? 0, {
+        shouldDirty: true,
+      });
     }
   }, [isInternal, isEditing, truckForm]);
 
@@ -148,7 +178,9 @@ export default function TruckForm({
       setIsSubmitting(true);
       // TODO: wire up create/update truck API calls
       console.log('Truck form values:', values);
-      notifySuccess(isEditing ? 'Truck Updated Successfully!' : 'Truck Added Successfully!');
+      notifySuccess(
+        isEditing ? 'Truck Updated Successfully!' : 'Truck Added Successfully!',
+      );
       onSuccess?.();
       onSaved?.();
     } catch (error) {
@@ -239,16 +271,28 @@ export default function TruckForm({
           {isInternal ? (
             <FormItem>
               <FormLabel>Haulier</FormLabel>
-              <Input value="My Company Haulier" disabled />
+              <Input
+                value={
+                  internalHaulier?.haulierName ??
+                  tenantName ??
+                  'My Company Haulier'
+                }
+                disabled
+              />
             </FormItem>
           ) : (
             <SelectCreateEdit
               control={truckForm.control}
-              name="haulier"
+              name="haulierId"
               label="Haulier*"
               entityName="Haulier"
               items={haulierItems}
-              renderForm={(editingItem, isEditingItem, onSave, onCancelItem) => (
+              renderForm={(
+                editingItem,
+                isEditingItem,
+                onSave,
+                onCancelItem,
+              ) => (
                 <HaulierForm
                   editingItem={editingItem}
                   isEditing={isEditingItem}
@@ -337,7 +381,12 @@ export default function TruckForm({
                     Volume <sup>m3</sup>*
                   </FormLabel>
                   <FormControl>
-                    <Input isNumber placeholder="" {...field} value={field.value ?? ''} />
+                    <Input
+                      isNumber
+                      placeholder=""
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -353,7 +402,12 @@ export default function TruckForm({
                     Tare Weight <sup>TN</sup>*
                   </FormLabel>
                   <FormControl>
-                    <Input isNumber placeholder="" {...field} value={field.value ?? ''} />
+                    <Input
+                      isNumber
+                      placeholder=""
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -369,7 +423,12 @@ export default function TruckForm({
                     GVM Weight <sup>TN</sup>*
                   </FormLabel>
                   <FormControl>
-                    <Input isNumber placeholder="" {...field} value={field.value ?? ''} />
+                    <Input
+                      isNumber
+                      placeholder=""
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -395,27 +454,40 @@ export default function TruckForm({
               <h2 className="text-2xl font-bold">Audit Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Created By:</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    Created By:
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {(truckData as Record<string, string>).createdBy || 'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Last Modified By:</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    Last Modified By:
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string>).lastModifiedBy || 'N/A'}
+                    {(truckData as Record<string, string>).lastModifiedBy ||
+                      'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Created Date:</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    Created Date:
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort((truckData as Record<string, string>).createdAt)}
+                    {formatLocalDateShort(
+                      (truckData as Record<string, string>).createdAt,
+                    )}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">Modified Date:</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    Modified Date:
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort((truckData as Record<string, string>).updatedAt)}
+                    {formatLocalDateShort(
+                      (truckData as Record<string, string>).updatedAt,
+                    )}
                   </p>
                 </div>
               </div>
@@ -453,7 +525,9 @@ export default function TruckForm({
               disabled={isSubmitting}
               className="cursor-pointer"
             >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               {isSubmitting
                 ? isEditing
                   ? 'Saving Changes...'

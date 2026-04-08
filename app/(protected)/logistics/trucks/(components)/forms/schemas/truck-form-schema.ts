@@ -4,7 +4,7 @@ import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 export const TruckFormSchema = z
   .object({
     type: z.enum(['INTERNAL', 'EXTERNAL']),
-    haulier: z.string().trim().optional(),
+    haulierId: z.number(),
     licensePlate: z
       .string()
       .trim()
@@ -24,11 +24,11 @@ export const TruckFormSchema = z
     driverId: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.type === 'EXTERNAL' && (!data.haulier || data.haulier.trim().length === 0)) {
+    if (!data.haulierId || data.haulierId === 0) {
       ctx.addIssue({
-        path: ['haulier'],
+        path: ['haulierId'],
         code: z.ZodIssueCode.custom,
-        message: 'Haulier is required for External trucks',
+        message: 'Haulier is required',
       });
     }
   });
