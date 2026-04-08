@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
-import HaulierForm from './haulier-form';
+import HaulierForm from '@/app/(protected)/logistics/drivers/(components)/forms/haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
 import { Loader2 } from 'lucide-react';
