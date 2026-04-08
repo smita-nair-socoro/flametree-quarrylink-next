@@ -27,7 +27,7 @@ import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
 import { useGetAllHauliers } from '@/lib/api/haulier';
 
@@ -142,11 +142,8 @@ export default function DriverForm({
       driverName: '',
       email: '',
       phone: '',
-      status: DRIVER_STATUS.ACTIVE,
       type: DRIVER_TYPE.INTERNAL,
       haulierId: 0,
-      haulierEmail: '',
-      haulierPhone: '',
       driverLicenseNumber: '',
       assignedTrucks: [],
     },
@@ -159,11 +156,8 @@ export default function DriverForm({
         driverName: driverData.driverName || '',
         email: driverData.emailAddress || '',
         phone: driverData.phoneNumber || '',
-        status: driverData.driverStatus || DRIVER_STATUS.ACTIVE,
         type: driverData.driverType || DRIVER_TYPE.INTERNAL,
-        haulier: driverData.haulier ? String(driverData.haulier.id) : '',
-        haulierEmail: driverData.haulier?.emailAddress || '',
-        haulierPhone: driverData.haulier?.phoneNumber || '',
+        haulierId: driverData.haulier?.id || 0,
         driverLicenseNumber: driverData.licenseNumber || '',
         assignedTrucks: [],
       });
@@ -171,9 +165,13 @@ export default function DriverForm({
   }, [isEditing, driverData, driverForm]);
 
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulierId');
+  const selectedHaulierId = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
-  const hasHaulier = Boolean(selectedHaulier);
+
+  const selectedHaulierInfo = React.useMemo(() => {
+    if (isInternal) return internalHaulier;
+    return hauliers.find((h) => h.id === selectedHaulierId);
+  }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -181,29 +179,12 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverForm.formState.isDirty]);
 
-  // Clear haulier fields when switching to internal
-  // Clear haulier fields when switching to internal (create mode only)
+  // Clear haulier selection when switching to internal (create mode only)
   React.useEffect(() => {
     if (isInternal && !isEditing) {
       driverForm.setValue('haulierId', 0);
-      driverForm.setValue('haulierEmail', '');
-      driverForm.setValue('haulierPhone', '');
     }
   }, [isInternal, isEditing, driverForm]);
-
-  // Auto-fill haulier email/phone when haulier is selected
-  React.useEffect(() => {
-    const subscription = driverForm.watch((value, { name }) => {
-      if (name === 'haulier' && value.haulier) {
-        const match = haulierItems.find((h) => h.id === value.haulier);
-        if (match) {
-          driverForm.setValue('haulierEmail', match.fields.email);
-          driverForm.setValue('haulierPhone', match.fields.phone);
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [driverForm, haulierItems]);
 
   const isPending = createDriver.isPending || updateDriver.isPending;
 
@@ -437,44 +418,24 @@ export default function DriverForm({
                 )}
               />
 
-              <FormField
-                control={driverForm.control}
-                name="haulierEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Haulier Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="driver@company.com"
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={hasHaulier || isEditing}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Haulier Email Address</FormLabel>
+                <Input
+                  value={selectedHaulierInfo?.emailAddress ?? ''}
+                  disabled
+                  placeholder="Auto-filled from selected haulier"
+                />
+              </FormItem>
 
-              <FormField
-                control={driverForm.control}
-                name="haulierPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Haulier Phone Number</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        defaultCountry="AU"
-                        placeholder="+61 400 123 456"
-                        {...field}
-                        value={field.value ?? ''}
-                        disabled={hasHaulier || isEditing}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Haulier Phone Number</FormLabel>
+                <PhoneInput
+                  defaultCountry="AU"
+                  value={selectedHaulierInfo?.phoneNumber ?? ''}
+                  disabled
+                  placeholder="Auto-filled from selected haulier"
+                />
+              </FormItem>
             </div>
           </div>
 
