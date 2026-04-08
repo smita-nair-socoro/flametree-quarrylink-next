@@ -98,8 +98,6 @@ export default function TruckForm({
     defaultValues: {
       type: 'INTERNAL',
       haulier: '',
-      haulierEmail: '',
-      haulierPhone: '',
       licensePlate: '',
       vin: '',
       model: '',
@@ -114,7 +112,11 @@ export default function TruckForm({
   const selectedType = truckForm.watch('type');
   const selectedHaulier = truckForm.watch('haulier');
   const isInternal = selectedType === 'INTERNAL';
-  const hasHaulier = Boolean(selectedHaulier);
+
+  const selectedHaulierInfo = React.useMemo(
+    () => hauliers.find((h) => String(h.id) === selectedHaulier),
+    [selectedHaulier, hauliers],
+  );
 
   // Report dirty state to parent
   React.useEffect(() => {
@@ -122,28 +124,12 @@ export default function TruckForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [truckForm.formState.isDirty]);
 
-  // Clear haulier fields when switching to internal (create mode only)
+  // Clear haulier selection when switching to internal (create mode only)
   React.useEffect(() => {
     if (isInternal && !isEditing) {
       truckForm.setValue('haulier', '');
-      truckForm.setValue('haulierEmail', '');
-      truckForm.setValue('haulierPhone', '');
     }
   }, [isInternal, isEditing, truckForm]);
-
-  // Auto-fill haulier email/phone when haulier is selected
-  React.useEffect(() => {
-    const subscription = truckForm.watch((value, { name }) => {
-      if (name === 'haulier' && value.haulier) {
-        const match = haulierItems.find((h) => h.id === value.haulier);
-        if (match) {
-          truckForm.setValue('haulierEmail', match.fields.email);
-          truckForm.setValue('haulierPhone', match.fields.phone);
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [truckForm, haulierItems]);
 
   async function onSubmit(values: TruckFormValues) {
     try {
@@ -254,47 +240,29 @@ export default function TruckForm({
             />
           )}
 
-          {/* Haulier Email + Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={truckForm.control}
-              name="haulierEmail"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Haulier Email Address{!isInternal && ' *'}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="haulier@company.com"
-                      {...field}
-                      value={field.value ?? ''}
-                      disabled={hasHaulier || isEditing || isInternal}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Haulier Email + Phone — display only, derived from selected haulier */}
+          {!isInternal && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormItem>
+                <FormLabel>Haulier Email Address</FormLabel>
+                <Input
+                  value={selectedHaulierInfo?.emailAddress ?? ''}
+                  disabled
+                  placeholder="Auto-filled from selected haulier"
+                />
+              </FormItem>
 
-            <FormField
-              control={truckForm.control}
-              name="haulierPhone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Haulier Phone Number{!isInternal && ' *'}</FormLabel>
-                  <FormControl>
-                    <PhoneInput
-                      defaultCountry="AU"
-                      placeholder="+61 400 123 456"
-                      {...field}
-                      value={field.value ?? ''}
-                      disabled={hasHaulier || isEditing || isInternal}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+              <FormItem>
+                <FormLabel>Haulier Phone Number</FormLabel>
+                <PhoneInput
+                  defaultCountry="AU"
+                  value={selectedHaulierInfo?.phoneNumber ?? ''}
+                  disabled
+                  placeholder="Auto-filled from selected haulier"
+                />
+              </FormItem>
+            </div>
+          )}
 
           <Separator />
 

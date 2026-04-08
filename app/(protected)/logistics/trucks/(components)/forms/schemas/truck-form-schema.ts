@@ -5,8 +5,6 @@ export const TruckFormSchema = z
   .object({
     type: z.enum(['INTERNAL', 'EXTERNAL']),
     haulier: z.string().trim().optional(),
-    haulierEmail: z.string().trim().optional(),
-    haulierPhone: z.string().trim().optional(),
     licensePlate: z
       .string()
       .trim()
