@@ -20,7 +20,11 @@ import {
   HaulierFormValues,
 } from './schemas/haulier-form-schema';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
-import { useCreateHaulier, useGetHaulierById, useUpdateHaulier } from '@/lib/api/haulier';
+import {
+  useCreateHaulier,
+  useGetHaulierById,
+  useUpdateHaulier,
+} from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
@@ -84,7 +88,7 @@ export default function HaulierForm({
         });
         notifySuccess('Haulier updated successfully.');
         onSave({
-          id: String(result.id),
+          id: result.id,
           label: result.haulierName,
           fields: { email: result.emailAddress, phone: result.phoneNumber },
         });
@@ -168,7 +172,12 @@ export default function HaulierForm({
         />
 
         <div className="flex justify-center gap-3 pt-2 pb-4">
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+          >
             Cancel
           </Button>
           <Button
