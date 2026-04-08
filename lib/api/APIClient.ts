@@ -1007,6 +1007,13 @@ export const APIClient = {
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },
+    pause: (
+      id: number,
+      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+    ) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
+        body: { pauseStrategy },
+      }),
   },
 
   drivers: {

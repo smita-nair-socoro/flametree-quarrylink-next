@@ -34,8 +34,8 @@ import {
   CannotCancelBlockerType,
   CANCEL_REASON_LABELS,
 } from '@/hooks/job/cancel-job-content';
-import { useCancelJob } from '@/lib/api/job';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
+import { useCancelJob, usePauseJob } from '@/lib/api/job';
+import { extractErrorData, extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -81,6 +81,7 @@ export function useJobActions(jobData?: JobDetails | null) {
     React.useState<CancelBlockerState | null>(null);
 
   const cancelJobMutation = useCancelJob();
+  const pauseJobMutation = usePauseJob();
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -188,6 +189,21 @@ export function useJobActions(jobData?: JobDetails | null) {
   const createDialogAction = (actionKey: string) => () =>
     setActiveDialog(actionKey);
 
+  const handlePauseJob = async () => {
+    if (jobId == null) return;
+    try {
+      const pauseStrategy =
+        pauseDocketAction === 'stop'
+          ? 'STOP_ALL_DOCKETS'
+          : 'ALLOW_DRIVERS_TO_COMPLETE';
+      await pauseJobMutation.mutateAsync({ id: jobId, pauseStrategy });
+      notifySuccess('Job paused successfully.');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handleCancelJob = async () => {
     if (jobId == null) {
       console.error('Job ID is required');
@@ -246,8 +262,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       // TODO: implement settle logic
     },
     pause: () => {
-      console.log('Pause job:', jobId, 'docketAction:', pauseDocketAction);
-      // TODO: implement pause logic
+      void handlePauseJob();
     },
   };
 

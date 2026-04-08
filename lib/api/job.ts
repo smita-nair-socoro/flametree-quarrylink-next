@@ -131,3 +131,21 @@ export const useDeleteJobItem = () => {
     },
   });
 };
+
+export const usePauseJob = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      pauseStrategy,
+    }: {
+      id: number;
+      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE';
+    }) => APIClient.jobs.pause(id, pauseStrategy),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
