@@ -18,8 +18,3 @@ export enum TRUCK_TYPE {
   TAUTLINER = 'TAUTLINER',
   CRANE_TRUCK = 'CRANE_TRUCK',
 }
-
-export enum TRUCK_BODY_TYPE {
-  ALUMINIUM = 'ALUMINIUM',
-  STEEL = 'STEEL',
-}
