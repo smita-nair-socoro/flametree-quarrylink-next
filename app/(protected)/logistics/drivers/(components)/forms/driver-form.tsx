@@ -30,11 +30,16 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { useCreateDriver } from '@/lib/api/driver';
+import { useGetAllHauliers } from '@/lib/api/haulier';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useClientStore } from '@/app/stores/client-store';
+import { addNewRecordId } from '@/lib/utils';
 
 interface FormProps {
   id?: number;
@@ -44,24 +49,6 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
 }
-
-const haulierItems = [
-  {
-    id: '1',
-    label: 'ABC Transport',
-    fields: { email: 'abc@transport.com.au', phone: '+61400123456' },
-  },
-  {
-    id: '2',
-    label: 'XYZ Logistics',
-    fields: { email: 'xyz@logistics.com.au', phone: '+61400234567' },
-  },
-  {
-    id: '3',
-    label: 'Quick Haul',
-    fields: { email: 'info@quickhaul.com.au', phone: '+61400345678' },
-  },
-];
 
 const truckTypeOptions = [
   { label: 'Truck', value: 'Truck' },
@@ -88,7 +75,18 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
+  const { data: hauliers = [] } = useGetAllHauliers();
+  const haulierItems = hauliers.map((h) => ({
+    id: h.id,
+    label: h.haulierName,
+    fields: { email: h.emailAddress, phone: h.phoneNumber },
+  }));
+
+  const tenantName = useClientStore((state) => state.getTenantName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const createDriver = useCreateDriver();
 
   const driverForm = useForm<NewDriverFormValues>({
     resolver: zodResolver(NewDriverFormSchema),
@@ -98,14 +96,14 @@ export default function DriverForm({
       email: '',
       phone: '',
       type: DRIVER_TYPE.INTERNAL,
-      haulier: '',
+      haulierId: 0,
       driverLicenseNumber: '',
       assignedTrucks: [],
     },
   });
 
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulier');
+  const selectedHaulier = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
   const hasHaulier = Boolean(selectedHaulier);
 
@@ -117,7 +115,7 @@ export default function DriverForm({
   // Clear haulier and assigned trucks when switching to internal
   React.useEffect(() => {
     if (isInternal) {
-      driverForm.setValue('haulier', '');
+      driverForm.setValue('haulierId', 0);
       driverForm.setValue('assignedTrucks', []);
     }
   }, [isInternal, driverForm]);
@@ -125,8 +123,22 @@ export default function DriverForm({
   async function onSubmit(values: NewDriverFormValues) {
     try {
       setIsSubmitting(true);
-      console.log('Driver Form Values:', values);
-      // TODO: wire up create/update driver API calls
+      const selectedHaulierData = isInternal
+        ? internalHaulier
+        : hauliers.find((h) => h.id === values.haulierId);
+      const newDriver = await createDriver.mutateAsync({
+        driverName: values.driverName,
+        driverType: values.type,
+        emailAddress: values.email,
+        phoneNumber: values.phone,
+        licenseNumber: values.driverLicenseNumber,
+        haulierId: selectedHaulierData?.id,
+      });
+
+      if (newDriver && typeof newDriver.id === 'number') {
+        addNewRecordId('driver_main_data_table', newDriver.id);
+      }
+
       notifySuccess(
         isEditing
           ? 'Driver Updated Successfully!'
@@ -250,12 +262,19 @@ export default function DriverForm({
             {isInternal ? (
               <FormItem>
                 <FormLabel>Haulier</FormLabel>
-                <Input value="My Company Haulier" disabled />
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
+                />
               </FormItem>
             ) : (
               <SelectCreateEdit
                 control={driverForm.control}
-                name="haulier"
+                name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
                 items={haulierItems}
