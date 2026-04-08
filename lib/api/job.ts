@@ -50,6 +50,27 @@ export const JobItemByIdQueryOptions = (jobItemId: number) =>
     staleTime: 5_000,
   });
 
+export const useCancelJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      cancelReason,
+      additionalNotes,
+    }: {
+      id: number;
+      cancelReason: string;
+      additionalNotes: string;
+    }) => APIClient.jobs.cancelJob(id, cancelReason, additionalNotes),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
 export const useCreateJobItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -91,6 +112,18 @@ export const useUpdateJobItem = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<JobItem> }) =>
       APIClient.jobs.updateJobItem(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.jobId) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
+export const useDeleteJobItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.jobs.deleteJobItem(id),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.jobId) });

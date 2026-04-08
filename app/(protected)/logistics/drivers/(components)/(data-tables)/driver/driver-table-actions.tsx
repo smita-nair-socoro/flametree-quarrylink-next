@@ -17,21 +17,20 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Driver } from '@/lib/types/driver';
+import { DriverDTO } from '@/lib/types/driver';
 import { useDriverActions } from '@/hooks/use-driver-actions';
 
 interface DriverTableActionsProps {
-  driver: Driver;
+  driver: DriverDTO;
 }
 
 export function DriverTableActions({ driver }: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  // const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
-  const { actions, confirmDialogs } = useDriverActions(driver);
+  const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
 
   const handleView = () => {
     setDropdownOpen(false);
-    // actions.view();
+    actions.view();
   };
 
   const handleResendAppInvitation = () => {
@@ -57,7 +56,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
   return (
     <div>
       {confirmDialogs}
-      {/* {viewDialog} */}
+      {viewDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -69,7 +68,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {driver.status === 'DEACTIVATED' && (
+          {driver.driverStatus === 'DEACTIVATED' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivateDriver}>
@@ -78,7 +77,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {driver.status === 'ACTIVE' && (
+          {driver.driverStatus === 'ACTIVE' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeactivate}>
@@ -87,7 +86,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {driver.status === 'PENDING_INVITATION' && (
+          {driver.driverStatus === 'PENDING_INVITATION' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleResendAppInvitation}>
@@ -96,7 +95,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {driver.status !== 'ON_DUTY' && (
+          {driver.driverStatus !== 'ON_DUTY' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeleteDriver}>
