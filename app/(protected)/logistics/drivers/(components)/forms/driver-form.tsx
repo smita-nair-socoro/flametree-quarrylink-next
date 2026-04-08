@@ -30,13 +30,17 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
-import { useGetAllHauliers } from '@/lib/api/haulier';
 import { useCreateDriver } from '@/lib/api/driver';
+import { useGetAllHauliers } from '@/lib/api/haulier';
+import { useQuery } from '@tanstack/react-query';
+import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useClientStore } from '@/app/stores/client-store';
+import { addNewRecordId } from '@/lib/utils';
 
 interface FormProps {
   id?: number;
@@ -74,10 +78,13 @@ export default function DriverForm({
 
   const { data: hauliers = [] } = useGetAllHauliers();
   const haulierItems = hauliers.map((h) => ({
-    id: String(h.id),
+    id: h.id,
     label: h.haulierName,
     fields: { email: h.emailAddress, phone: h.phoneNumber },
   }));
+
+  const tenantName = useClientStore((state) => state.getTenantName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const createDriver = useCreateDriver();
@@ -90,14 +97,14 @@ export default function DriverForm({
       email: '',
       phone: '',
       type: DRIVER_TYPE.INTERNAL,
-      haulier: '',
+      haulierId: 0,
       driverLicenseNumber: '',
       assignedTrucks: [],
     },
   });
 
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulier');
+  const selectedHaulier = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
   const hasHaulier = Boolean(selectedHaulier);
 
@@ -109,7 +116,7 @@ export default function DriverForm({
   // Clear haulier and assigned trucks when switching to internal
   React.useEffect(() => {
     if (isInternal) {
-      driverForm.setValue('haulier', '');
+      driverForm.setValue('haulierId', 0);
       driverForm.setValue('assignedTrucks', []);
     }
   }, [isInternal, driverForm]);
@@ -117,14 +124,22 @@ export default function DriverForm({
   async function onSubmit(values: NewDriverFormValues) {
     try {
       setIsSubmitting(true);
-      await createDriver.mutateAsync({
+      const selectedHaulierData = isInternal
+        ? internalHaulier
+        : hauliers.find((h) => h.id === values.haulierId);
+      const newDriver = await createDriver.mutateAsync({
         driverName: values.driverName,
         driverType: values.type,
         emailAddress: values.email,
         phoneNumber: values.phone,
         licenseNumber: values.driverLicenseNumber,
-        haulierName: values.haulier,
+        haulierId: selectedHaulierData?.id,
       });
+
+      if (newDriver && typeof newDriver.id === 'number') {
+        addNewRecordId('driver_main_data_table', newDriver.id);
+      }
+
       notifySuccess(
         isEditing
           ? 'Driver Updated Successfully!'
@@ -248,12 +263,19 @@ export default function DriverForm({
             {isInternal ? (
               <FormItem>
                 <FormLabel>Haulier</FormLabel>
-                <Input value="My Company Haulier" disabled />
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
+                />
               </FormItem>
             ) : (
               <SelectCreateEdit
                 control={driverForm.control}
-                name="haulier"
+                name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
                 items={haulierItems}

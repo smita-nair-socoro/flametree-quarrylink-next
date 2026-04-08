@@ -46,7 +46,6 @@ export const navItems = [
       },
       { title: 'Jobs', url: '/customer-operations/jobs', plan: 'PLUS' },
       { title: 'Dockets', url: '/customer-operations/dockets', plan: 'PLUS' },
-
     ],
   },
   {
@@ -101,11 +100,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
 
-  // Fetch current user details so name/email reflect updates immediately after saving in settings
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
   );
 
+  const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
 
   const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
@@ -157,7 +156,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       .getState()
       .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
     useClientStore.getState().setUser(displayName);
-  }, [subscriptionPlan, displayName]);
+    useClientStore.getState().setTenantName(tenantName ?? 'Unknown Tenant');
+  }, [subscriptionPlan, displayName, tenantName]);
 
   React.useEffect(() => {
     claritySafe((c) => {

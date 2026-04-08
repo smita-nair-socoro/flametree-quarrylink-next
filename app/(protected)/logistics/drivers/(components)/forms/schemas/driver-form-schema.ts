@@ -30,7 +30,7 @@ export const NewDriverFormSchema = z
     phone: PhoneRequired,
     status: z.nativeEnum(DRIVER_STATUS).optional(),
     type: z.nativeEnum(DRIVER_TYPE),
-    haulier: z.string().trim().max(256, 'Maximum 256 characters').optional(),
+    haulierId: z.coerce.number().min(0, { message: 'Cannot be less than 0' }),
     driverLicenseNumber: z
       .string()
       .trim()
@@ -40,7 +40,7 @@ export const NewDriverFormSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.type === DRIVER_TYPE.SUBCONTRACTOR) {
-      if (!data.haulier || data.haulier.trim().length === 0) {
+      if (!data.haulierId) {
         ctx.addIssue({
           path: ['haulier'],
           code: z.ZodIssueCode.custom,
