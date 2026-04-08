@@ -187,15 +187,6 @@ export function QuestionCard({
                 value={notes}
                 onChange={(e) => onNotesChange(e.target.value)}
               />
-              {answer === 'no' && (
-                <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg text-orange-700 text-xs">
-                  <AlertTriangle className="h-4 w-4 shrink-0 text-orange-500" />
-                  <span className="font-medium">
-                    Some items were marked No — supervisor may need to be
-                    notified.
-                  </span>
-                </div>
-              )}
             </CollapsibleContent>
           </Collapsible>
         </div>
@@ -260,6 +251,7 @@ export function BaseChecklist({
 
   const categories = Array.from(new Set(questions.map((q) => q.category)));
   const remainingCount = totalQuestions - answeredCount;
+  const hasNoAnswers = Object.values(answers).some((answer) => answer === 'no');
 
   return (
     <div className="flex flex-col w-full bg-white h-full overflow-hidden">
@@ -354,7 +346,7 @@ export function BaseChecklist({
         </div>
 
         {/* Additional Notes */}
-        <div className="flex flex-col gap-2 pb-8">
+        <div className="flex flex-col gap-2 pb-5">
           <h2 className="text-gray-900 font-bold text-[16px]">
             Additional Notes (Optional)
           </h2>
@@ -365,27 +357,35 @@ export function BaseChecklist({
             onChange={(e) => setAdditionalNotes(e.target.value)}
           />
         </div>
+      </div >
 
-        {/* Fixed Bottom Action Bar */}
-        <div className="w-full pb-4">
-          {remainingCount > 0 ? (
-            <Button
-              variant="secondary"
-              className="w-full bg-gray-100 text-gray-400 hover:bg-gray-200 h-12 rounded-xl font-medium"
-              disabled
-            >
-              Complete All {remainingCount} Remaining Questions
-            </Button>
-          ) : (
-            <Button
-              className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-lg font-semibold shadow-lg shadow-purple-200 active:scale-[0.98] transition-all"
-              onClick={onSubmit}
-            >
-              {submitButtonText}
-            </Button>
-          )}
-        </div>
+      {/* Fixed Bottom Action Bar */}
+      <div className="w-full p-4 flex flex-col gap-4 border-t border-gray-200">
+        {hasNoAnswers && (
+          <div className="flex items-center gap-2 p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-orange-700 text-[13px]">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-orange-500" />
+            <span className="font-medium leading-snug">
+              Some items were marked No — supervisor may need to be notified.
+            </span>
+          </div>
+        )}
+        {remainingCount > 0 ? (
+          <Button
+            variant="secondary"
+            className="w-full bg-gray-100 text-gray-400 hover:bg-gray-200 h-12 rounded-xl font-medium"
+            disabled
+          >
+            Complete All {remainingCount} Remaining Questions
+          </Button>
+        ) : (
+          <Button
+            className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-lg font-semibold shadow-lg shadow-purple-200 active:scale-[0.98] transition-all"
+            onClick={onSubmit}
+          >
+            {submitButtonText}
+          </Button>
+        )}
       </div>
-    </div>
+    </div >
   );
 }
