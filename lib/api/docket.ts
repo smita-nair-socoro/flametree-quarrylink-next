@@ -103,7 +103,8 @@ export const useUpdateDocketStatus = () => {
       if (receiverOnSite !== undefined) {
         formData.append('receiverOnSite', String(receiverOnSite));
       }
-      if (receiverName !== undefined) formData.append('receiverName', receiverName);
+      if (receiverName !== undefined)
+        formData.append('receiverName', receiverName);
       if (signatureImage) formData.append('signatureImage', signatureImage);
       if (unloadedPhoto) formData.append('unloadedPhotos', unloadedPhoto);
       if (receiptPhoto) formData.append('receivedPhotos', receiptPhoto);

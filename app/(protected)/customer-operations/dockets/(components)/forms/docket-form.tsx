@@ -157,7 +157,6 @@ export default function DocketForm({
 
     const { reason: parsedReason, note } = splitReasonNote(rawReason);
     const reason = parsedReason || 'N/A';
-    console.log('reason', reason, note);
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
         <div className="flex items-start gap-2 font-medium text-sm">
@@ -188,9 +187,9 @@ export default function DocketForm({
       const loadSize = values.loadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -293,18 +292,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,

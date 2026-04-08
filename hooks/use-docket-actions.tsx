@@ -82,11 +82,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
@@ -111,25 +111,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
   const selectedDocket = useDocketStore((s) => s.selectedDocket);
+  const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
-
-  // Subscribe to the full DocketDTO from getById. After a status change,
-  // invalidateQueries triggers a fresh getById refetch, and this syncs the
-  // complete data (including job, jobItem, addresses) to the store.
-  const { data: freshDocket } = useQuery({
-    ...DocketByIdQueryOptions(selectedDocket?.id ?? 0),
-    enabled: viewOpen && !!selectedDocket?.id,
-  });
-  React.useEffect(() => {
-    if (freshDocket) {
-      useDocketStore.getState().setSelectedDocket(freshDocket);
-    }
-  }, [freshDocket]);
 
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
     const [header, data] = dataUrl.split(',');
@@ -159,6 +147,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         unloadedPhoto,
         receiptPhoto,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.DELIVERED,
+      });
       notifySuccess('Docket marked as Delivered');
       setActiveDialog(null);
       setDeliveredProductsConfirmed(false);
@@ -177,6 +169,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     try {
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
       notifySuccess('Docket status updated to In Transit');
@@ -211,6 +207,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         latitude,
         longitude,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.ARRIVED,
+      });
       notifySuccess('Docket marked as Arrived');
       setActiveDialog(null);
     } catch (error) {
@@ -225,6 +225,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
       notifySuccess('Docket transit resumed');
       setActiveDialog(null);
     } catch (error) {
@@ -237,6 +241,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     try {
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.COLLECTED,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
         docketStatus: DOCKET_STATUS.COLLECTED,
       });
       notifySuccess('Docket marked as Collected');
@@ -267,6 +275,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.PREPARING,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.PREPARING,
+      });
       notifySuccess('Docket status updated to Preparing');
       setActiveDialog(null);
     } catch (error) {
@@ -285,6 +297,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.STOPPED,
         reason: composedReason,
         notes: stopNotes.trim() || undefined,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.STOPPED,
       });
       notifySuccess('Docket transit stopped');
       setActiveDialog(null);
@@ -318,6 +334,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.VOIDED,
         reason: composedReason,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.VOIDED,
+      });
       notifySuccess('Docket voided');
       setActiveDialog(null);
       setVoidReason('');
@@ -337,6 +357,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.CANCELLED,
         reason: composedReason,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.CANCELLED,
       });
       notifySuccess('Docket cancelled');
       setActiveDialog(null);
@@ -524,9 +548,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const actions = {
     view: (docket?: DocketDTO | null) => {
       const toSelect = docket ?? docketData;
-      console.log('view is cliced', toSelect);
       if (toSelect != null) {
-        useDocketStore.getState().setSelectedDocket(toSelect);
+        setSelectedDocket(toSelect);
       }
       setViewOpen(true);
     },
