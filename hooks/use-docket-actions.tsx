@@ -38,22 +38,21 @@ import {
 import {
   VoidDocketDescription,
   VoidDocketContent,
-  VOID_REASON_LABELS,
 } from '@/hooks/docket/void-docket-content';
 import {
   CancelDocketDescription,
   CancelDocketContent,
-  CANCEL_REASON_LABELS,
 } from '@/hooks/docket/cancel-docket-content';
 import {
   StartPreparingDescription,
   StartPreparingContent,
 } from '@/hooks/docket/start-preparing-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus } from '@/lib/api/dockets';
+import { useUpdateDocketStatus, DocketByIdQueryOptions } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { useQuery } from '@tanstack/react-query';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -83,11 +82,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
@@ -112,6 +111,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
   const selectedDocket = useDocketStore((s) => s.selectedDocket);
+  const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [selectedAction, setSelectedAction] =
@@ -147,6 +147,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         unloadedPhoto,
         receiptPhoto,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.DELIVERED,
+      });
       notifySuccess('Docket marked as Delivered');
       setActiveDialog(null);
       setDeliveredProductsConfirmed(false);
@@ -165,6 +169,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     try {
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
       notifySuccess('Docket status updated to In Transit');
@@ -199,6 +207,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         latitude,
         longitude,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.ARRIVED,
+      });
       notifySuccess('Docket marked as Arrived');
       setActiveDialog(null);
     } catch (error) {
@@ -213,6 +225,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
       notifySuccess('Docket transit resumed');
       setActiveDialog(null);
     } catch (error) {
@@ -225,6 +241,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     try {
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.COLLECTED,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
         docketStatus: DOCKET_STATUS.COLLECTED,
       });
       notifySuccess('Docket marked as Collected');
@@ -255,6 +275,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.PREPARING,
       });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.PREPARING,
+      });
       notifySuccess('Docket status updated to Preparing');
       setActiveDialog(null);
     } catch (error) {
@@ -266,13 +290,17 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     if (!docketData?.id) return;
     try {
       const composedReason = stopNotes.trim()
-        ? `${stopReason} - ${stopNotes.trim()}`
+        ? `${stopReason}-${stopNotes.trim()}`
         : stopReason;
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.STOPPED,
         reason: composedReason,
         notes: stopNotes.trim() || undefined,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.STOPPED,
       });
       notifySuccess('Docket transit stopped');
       setActiveDialog(null);
@@ -298,14 +326,17 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleVoidDocket = async () => {
     if (!docketData?.id) return;
     try {
-      const reasonLabel = VOID_REASON_LABELS[voidReason] || voidReason;
       const composedReason = voidNotes.trim()
-        ? `${reasonLabel}-${voidNotes.trim()}`
-        : reasonLabel;
+        ? `${voidReason}-${voidNotes.trim()}`
+        : voidReason;
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.VOIDED,
         reason: composedReason,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.VOIDED,
       });
       notifySuccess('Docket voided');
       setActiveDialog(null);
@@ -319,14 +350,17 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleCancelDocket = async () => {
     if (!docketData?.id) return;
     try {
-      const reasonLabel = CANCEL_REASON_LABELS[cancelReason] || cancelReason;
       const composedReason = cancelNotes.trim()
-        ? `${reasonLabel}-${cancelNotes.trim()}`
-        : reasonLabel;
+        ? `${cancelReason}-${cancelNotes.trim()}`
+        : cancelReason;
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.CANCELLED,
         reason: composedReason,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.CANCELLED,
       });
       notifySuccess('Docket cancelled');
       setActiveDialog(null);
@@ -514,9 +548,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const actions = {
     view: (docket?: DocketDTO | null) => {
       const toSelect = docket ?? docketData;
-      console.log('view is cliced', toSelect);
       if (toSelect != null) {
-        useDocketStore.getState().setSelectedDocket(toSelect);
+        setSelectedDocket(toSelect);
       }
       setViewOpen(true);
     },
@@ -640,7 +673,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     );
   });
 
-  const canEdit = docketData?.docketStatus === 'UNASSIGNED';
+  const canEdit = (docketData ?? selectedDocket)?.docketStatus === 'UNASSIGNED';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={selectedDocket?.id}

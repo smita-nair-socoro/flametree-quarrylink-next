@@ -142,6 +142,24 @@ export function removeNewRecordId(tableId: string, recordId: number | string) {
 }
 
 /**
+ * Splits a reason string on the first hyphen into a reason and an optional note.
+ * e.g. "Bad weather - reschedule to 9-10am" → { reason: "Bad weather", note: "reschedule to 9-10am" }
+ */
+export function splitReasonNote(raw: string | null | undefined): {
+  reason: string;
+  note: string | undefined;
+} {
+  const trimmed = raw?.trim();
+  if (!trimmed) return { reason: '', note: undefined };
+  const hyphenIndex = trimmed.indexOf('-');
+  if (hyphenIndex === -1) return { reason: trimmed, note: undefined };
+  return {
+    reason: trimmed.slice(0, hyphenIndex).trim().replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()),
+    note: trimmed.slice(hyphenIndex + 1).trim() || undefined,
+  };
+}
+
+/**
  * A sorting function you can reuse on any date-string column.
  * Returns negative if a < b, positive if a > b.
  */
@@ -230,4 +248,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'ON DUTY': 'bg-blue-100 text-blue-800 border-blue-800',
   PENDING_INVITATION: 'bg-yellow-100 text-yellow-800 border-yellow-800',
   'PENDING INVITATION': 'bg-yellow-100 text-yellow-800 border-yellow-800',
+  PASS: 'bg-green-100 text-green-800 border-green-900',
+  FAIL: 'bg-red-100 text-red-800 border-red-900',
+  CONFIRMED: 'bg-yellow-100 text-yellow-800 border-yellow-900',
 };

@@ -84,9 +84,21 @@ export const UserKeys = {
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
 
+export const DriverKeys = {
+  all: ['drivers'] as const,
+  list: () => [...DriverKeys.all, 'list'] as const,
+  detail: (id: number) => [...DriverKeys.all, 'detail', id] as const,
+};
+
 export const DocketKeys = {
   all: ['dockets'] as const,
   list: () => [...DocketKeys.all, 'list'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
+};
+
+export const HaulierKeys = {
+  all: ['hauliers'] as const,
+  list: () => [...HaulierKeys.all, 'list'] as const,
+  detail: (id: number) => [...HaulierKeys.all, 'detail', id] as const,
 };

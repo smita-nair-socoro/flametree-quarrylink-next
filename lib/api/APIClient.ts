@@ -42,6 +42,8 @@ import {
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
+import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
+import { DriverDTO, DriverDetailDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO, PutDriverDTO } from '../types/driver';
 
 type RequestBody =
   | BodyInit
@@ -178,11 +180,10 @@ export async function HttpClient<T = unknown>(
   const authUser = await getUser(); // ✅ Properly awaited
   const tenantId = await getTenantId();
 
-  if (authUser?.access_token && authUser.id_token) {
+  if (authUser?.access_token) {
     init.headers = {
       ...init.headers,
-      Authorization: `Bearer ${authUser.id_token}`,
-      // 'access-token': authUser.access_token,
+      Authorization: `Bearer ${authUser.access_token}`,
       // 'id-token': authUser.id_token,
       'X-Tenant-ID': tenantId || '',
     };
@@ -1006,6 +1007,42 @@ export const APIClient = {
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },
+  },
+
+  drivers: {
+    getAll: () => appClient.Get<DriverDTO[]>(`/socoro/quarrylink/api/driver`),
+    getById: (id: number) =>
+      appClient.Get<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`),
+    create: (data: DriverDTO) =>
+      appClient.Post<DriverDTO>(`/socoro/quarrylink/api/driver`, {
+        body: data,
+      }),
+    update: (id: number, data: PutDriverDTO) =>
+      appClient.Put<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+        body: data,
+      }),
+    patchInfo: (id: number, data: PatchDriverInfoDTO) =>
+      appClient.Patch<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, { body: data }),
+    patchType: (id: number, data: PatchDriverTypeDTO) =>
+      appClient.Patch<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}/type`, { body: data }),
+    patchTrucks: (id: number, data: PatchDriverTrucksDTO) =>
+      appClient.Patch<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}/trucks`, { body: data }),
+    patchHaulier: (id: number, data: PatchDriverHaulierDTO) =>
+      appClient.Patch<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}/haulier`, { body: data }),
+  },
+
+  hauliers: {
+    create: (data: HaulierCreateDTO) =>
+      appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
+        body: data,
+      }),
+    getAll: () => appClient.Get<HaulierDTO[]>('/socoro/quarrylink/api/haulier'),
+    getById: (id: number) =>
+      appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
+    update: (id: number, data: HaulierCreateDTO) =>
+      appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
+        body: data,
+      }),
   },
 
   tenants: {
