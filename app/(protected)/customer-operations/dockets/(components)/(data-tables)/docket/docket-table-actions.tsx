@@ -27,6 +27,7 @@ import {
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { useDocketStore } from '@/app/stores/docket-store';
 
 interface DocketTableActionsProps {
   docket: DocketDTO;
@@ -237,7 +238,10 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
+  const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
+
   const handleAction = (actionType: ActionType) => {
+    setSelectedDocket(docket);
     setDropdownOpen(false);
     if (actions[actionType]) {
       actions[actionType]();

@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
+import { cn, splitReasonNote } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -416,10 +416,9 @@ export default function QuotationForm({
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
               const decisionMakerName = decisionMaker.split('-')[1];
-              const reasonLabel =
-                currentQuotation?.declineReason?.split('-')[0] || '';
-              const reasonNote =
-                currentQuotation?.declineReason?.split('-')[1] || '';
+              const { reason: reasonLabel, note: reasonNote } = splitReasonNote(
+                currentQuotation?.declineReason,
+              );
               const decisionDate = currentQuotation?.customerResponseAt
                 ? formatLocalDateTime(currentQuotation.customerResponseAt)
                 : '';

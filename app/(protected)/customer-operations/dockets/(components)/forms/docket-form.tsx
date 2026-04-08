@@ -16,18 +16,19 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { addNewRecordId, cn } from '@/lib/utils';
+import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
 import { FormSelect } from '@/components/ui/form-select';
 import {
   Calendar,
   Clock,
   FileText,
+  Info,
   MapPin,
   Package,
   Truck,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { toUTCDateTimeWithoutZ } from '@/lib/utils/date';
+import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -38,6 +39,9 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
+import { useQuery } from '@tanstack/react-query';
+import { UsersListQueryOptions } from '@/lib/api/user';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 interface FormProps {
   id?: number;
@@ -67,6 +71,7 @@ export default function DocketForm({
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
+  const { data: users = [] } = useQuery(UsersListQueryOptions());
 
   const {
     docketForm,
@@ -109,6 +114,64 @@ export default function DocketForm({
 
     return toUTCDateTimeWithoutZ(combined);
   };
+
+  const getActorName = React.useCallback(
+    (actor?: string | null) => {
+      if (!actor) return 'Unknown';
+
+      const matchedUser = users.find((user) => user.sub === actor)?.name;
+      if (matchedUser) return matchedUser;
+
+      const [, parsedName] = actor.split('-', 2);
+      return parsedName || actor;
+    },
+    [users],
+  );
+
+  const statusBanner = React.useMemo(() => {
+    if (!isEditing || !selectedDocket) return null;
+
+    const bannerConfig: Partial<
+      Record<DOCKET_STATUS, 'stopped' | 'cancelled' | 'voided'>
+    > = {
+      [DOCKET_STATUS.STOPPED]: 'stopped',
+      [DOCKET_STATUS.CANCELLED]: 'cancelled',
+      [DOCKET_STATUS.VOIDED]: 'voided',
+    };
+
+    const actionLabel = bannerConfig[selectedDocket.docketStatus];
+    if (!actionLabel) return null;
+
+    const actorName = getActorName(selectedDocket.lastModifiedBy);
+    const actionDate = formatLocalDateTime(
+      actionLabel === 'stopped'
+        ? (selectedDocket.stoppedAt ?? selectedDocket.updatedAt)
+        : selectedDocket.updatedAt,
+    );
+    const rawReason =
+      actionLabel === 'stopped'
+        ? selectedDocket.stopReason
+        : actionLabel === 'cancelled'
+          ? selectedDocket.cancelledReason
+          : selectedDocket.voidedReason;
+
+    const { reason: parsedReason, note } = splitReasonNote(rawReason);
+    const reason = parsedReason || 'N/A';
+    return (
+      <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+        <div className="flex items-start gap-2 font-medium text-sm">
+          <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[#EF4444]" />
+          <div className="flex flex-col text-[#7F1D1D]">
+            <span>
+              This docket was {actionLabel} by {actorName} - Reason: {reason} (
+              {actionDate}).
+            </span>
+            {note && <span>Note: {note}.</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }, [getActorName, isEditing, selectedDocket]);
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
@@ -204,7 +267,7 @@ export default function DocketForm({
             loadSize,
             lineItemDetails.productUom,
             deliveryDistanceUom,
-            density
+            density,
           );
         }
       }
@@ -309,6 +372,7 @@ export default function DocketForm({
           className={cn('p-1 w-full flex flex-col', className)}
           onSubmit={docketForm.handleSubmit(onSubmit)}
         >
+          {statusBanner}
           <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
             <div className="border rounded-md p-4 flex flex-col gap-8">
               <div className="items-center flex gap-2">
@@ -478,30 +542,31 @@ export default function DocketForm({
                     }}
                   />
 
-                  {selectedJobLineItemDetails().type === 'DELIVERY' && selectedJobLineItemDetails().needTruckQty && (
-                    <FormField
-                      name="truckQty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Delivery Distance</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              isNumber
-                              disabled={isReadOnly}
-                              suffix={
-                                selectedJobLineItemDetails().truckUom
-                                  ? selectedJobLineItemDetails().truckUom
-                                  : ''
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  {selectedJobLineItemDetails().type === 'DELIVERY' &&
+                    selectedJobLineItemDetails().needTruckQty && (
+                      <FormField
+                        name="truckQty"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Delivery Distance</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                isNumber
+                                disabled={isReadOnly}
+                                suffix={
+                                  selectedJobLineItemDetails().truckUom
+                                    ? selectedJobLineItemDetails().truckUom
+                                    : ''
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                 </div>
 
                 <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
@@ -549,11 +614,15 @@ export default function DocketForm({
                 <div className="items-center flex gap-2">
                   <Calendar className="w-5 h-5" />
                   <span className="text-[17px] font-medium">
-                    {selectedJobLineItemDetails().type === 'COLLECTION' ? 'Collection Information' : 'Delivery Information'}
+                    {selectedJobLineItemDetails().type === 'COLLECTION'
+                      ? 'Collection Information'
+                      : 'Delivery Information'}
                   </span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {selectedJobLineItemDetails().type === 'COLLECTION' ? 'Collection date, address, and purchase order' : 'Delivery date, address, and purchase order'}
+                  {selectedJobLineItemDetails().type === 'COLLECTION'
+                    ? 'Collection date, address, and purchase order'
+                    : 'Delivery date, address, and purchase order'}
                 </span>
               </div>
               <div className="flex flex-col gap-2">
@@ -660,7 +729,9 @@ export default function DocketForm({
                   </span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {selectedJobLineItemDetails().type === 'COLLECTION' ? 'Collection timing and contact information' : 'Delivery timing and contact information'}
+                  {selectedJobLineItemDetails().type === 'COLLECTION'
+                    ? 'Collection timing and contact information'
+                    : 'Delivery timing and contact information'}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
