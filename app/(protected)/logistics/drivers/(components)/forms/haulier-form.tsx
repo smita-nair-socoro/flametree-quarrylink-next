@@ -86,7 +86,7 @@ export default function HaulierForm({
         });
         notifySuccess('Haulier updated successfully.');
         onSave({
-          id: String(result.id),
+          id: result.id,
           label: result.haulierName,
           fields: { email: result.emailAddress, phone: result.phoneNumber },
         });

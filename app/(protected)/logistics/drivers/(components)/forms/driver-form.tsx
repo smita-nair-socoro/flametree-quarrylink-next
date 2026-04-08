@@ -30,13 +30,14 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
 import { useGetAllHauliers } from '@/lib/api/haulier';
-import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useClientStore } from '@/app/stores/client-store';
+import { addNewRecordId } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { BADGE_COLORS } from '@/lib/utils';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -119,17 +120,14 @@ export default function DriverForm({
   const haulierItems = React.useMemo(
     () =>
       hauliers.map((h) => ({
-        id: String(h.id),
+        id: h.id,
         label: h.haulierName,
         fields: { email: h.emailAddress, phone: h.phoneNumber },
       })),
     [hauliers],
   );
 
-  const { data: tenantCompleteDetails } = useQuery(
-    TenantCompleteDetailsQueryOptions(),
-  );
-  const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
+  const tenantName = useClientStore((state) => state.getTenantName());
   const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
 
   const createDriver = useCreateDriver();
@@ -146,7 +144,7 @@ export default function DriverForm({
       phone: '',
       status: DRIVER_STATUS.ACTIVE,
       type: DRIVER_TYPE.INTERNAL,
-      haulier: '',
+      haulierId: 0,
       haulierEmail: '',
       haulierPhone: '',
       driverLicenseNumber: '',
@@ -173,7 +171,7 @@ export default function DriverForm({
   }, [isEditing, driverData, driverForm]);
 
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulier');
+  const selectedHaulier = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
   const hasHaulier = Boolean(selectedHaulier);
 
@@ -187,7 +185,7 @@ export default function DriverForm({
   // Clear haulier fields when switching to internal (create mode only)
   React.useEffect(() => {
     if (isInternal && !isEditing) {
-      driverForm.setValue('haulier', '');
+      driverForm.setValue('haulierId', 0);
       driverForm.setValue('haulierEmail', '');
       driverForm.setValue('haulierPhone', '');
     }
@@ -213,7 +211,7 @@ export default function DriverForm({
     try {
       const selectedHaulierData = isInternal
         ? internalHaulier
-        : hauliers.find((h) => String(h.id) === values.haulier);
+        : hauliers.find((h) => h.id === values.haulierId);
 
       if (isEditing && id && driverData) {
         await updateDriver.mutateAsync({
@@ -231,15 +229,18 @@ export default function DriverForm({
           },
         });
       } else {
-        await createDriver.mutateAsync({
+        const newDriver = await createDriver.mutateAsync({
           driverName: values.driverName,
           driverType: values.type,
           emailAddress: values.email,
           phoneNumber: values.phone,
           licenseNumber: values.driverLicenseNumber,
           haulierId: selectedHaulierData?.id,
-          haulierName: selectedHaulierData?.haulierName,
         });
+
+        if (newDriver && typeof newDriver.id === 'number') {
+          addNewRecordId('driver_main_data_table', newDriver.id);
+        }
       }
 
       notifySuccess(
@@ -378,7 +379,7 @@ export default function DriverForm({
             ) : (
               <SelectCreateEdit
                 control={driverForm.control}
-                name="haulier"
+                name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
                 items={haulierItems}

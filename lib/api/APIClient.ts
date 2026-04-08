@@ -1002,6 +1002,11 @@ export const APIClient = {
         body: data,
       });
     },
+    deleteJobItem: (id: number) => {
+      return appClient.Delete<JobItem>(
+        `/socoro/quarrylink/api/job-items/${id}`,
+      );
+    },
   },
 
   drivers: {

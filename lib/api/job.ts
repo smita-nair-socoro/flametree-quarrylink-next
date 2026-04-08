@@ -119,3 +119,15 @@ export const useUpdateJobItem = () => {
     },
   });
 };
+
+export const useDeleteJobItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.jobs.deleteJobItem(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.jobId) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
