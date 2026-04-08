@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useClientStore } from '@/app/stores/client-store';
+import { addNewRecordId } from '@/lib/utils';
 
 interface FormProps {
   id?: number;
@@ -126,7 +127,7 @@ export default function DriverForm({
       const selectedHaulierData = isInternal
         ? internalHaulier
         : hauliers.find((h) => h.id === values.haulierId);
-      await createDriver.mutateAsync({
+      const newDriver = await createDriver.mutateAsync({
         driverName: values.driverName,
         driverType: values.type,
         emailAddress: values.email,
@@ -134,6 +135,11 @@ export default function DriverForm({
         licenseNumber: values.driverLicenseNumber,
         haulierId: selectedHaulierData?.id,
       });
+
+      if (newDriver && typeof newDriver.id === 'number') {
+        addNewRecordId('driver_main_data_table', newDriver.id);
+      }
+
       notifySuccess(
         isEditing
           ? 'Driver Updated Successfully!'
