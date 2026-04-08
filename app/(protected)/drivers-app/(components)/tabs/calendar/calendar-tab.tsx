@@ -22,16 +22,17 @@ import {
   MapPin,
   Package,
   Truck,
-  Clock,
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 export default function CalendarTab() {
   const { items } = rawJson as unknown as {
     items: DocketDTO[];
   };
+
 
   const today = new Date();
 
@@ -53,9 +54,12 @@ export default function CalendarTab() {
     end: endDate,
   });
 
+  // Filter out dockets that are not assigned, delivered, in transit, arrived, or stopped
+  const filteredItems = items.filter((docket) => [DOCKET_STATUS.ASSIGNED, DOCKET_STATUS.DELIVERED, DOCKET_STATUS.IN_TRANSIT, DOCKET_STATUS.ARRIVED, DOCKET_STATUS.STOPPED].includes(docket.docketStatus));
+
   // Get dockets for a specific date
   const getDocketsForDate = (date: Date) => {
-    return items.filter((docket) => {
+    return filteredItems.filter((docket) => {
       if (!docket.deliveryCollectionDate) return false;
       const docketDate = parseISO(docket.deliveryCollectionDate.toString());
       return isSameDay(docketDate, date);
@@ -187,7 +191,7 @@ export default function CalendarTab() {
           ))}
 
           {/* Days */}
-          {days.map((day, dayIdx) => {
+          {days.map((day) => {
             const isSelected = isSameDay(day, selectedDate);
             const isCurrentMonth = isSameMonth(day, currentDate);
             const docketsForDay = getDocketsForDate(day);
