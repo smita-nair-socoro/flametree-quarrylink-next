@@ -16,7 +16,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { addNewRecordId, cn } from '@/lib/utils';
+import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
 import { FormSelect } from '@/components/ui/form-select';
 import {
   Calendar,
@@ -152,14 +152,15 @@ export default function DocketForm({
         ? (selectedDocket.stoppedAt ?? selectedDocket.updatedAt)
         : selectedDocket.updatedAt,
     );
-    const reason =
-      (actionLabel === 'stopped'
+    const rawReason =
+      actionLabel === 'stopped'
         ? selectedDocket.stopReason
         : actionLabel === 'cancelled'
-          ? selectedDocket.cancelReason
-          : selectedDocket.voidReason
-      )?.trim() || 'N/A';
-    const note = selectedDocket.notes?.trim();
+          ? selectedDocket.cancelledReason
+          : selectedDocket.voidedReason;
+
+    const { reason: parsedReason, note } = splitReasonNote(rawReason);
+    const reason = parsedReason || 'N/A';
 
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">

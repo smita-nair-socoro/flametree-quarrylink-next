@@ -51,8 +51,8 @@ export interface DocketDTO {
   docketStatus: DOCKET_STATUS;
   stopReason?: string;
   resumeReason?: string;
-  cancelReason?: string;
-  voidReason?: string;
+  cancelledReason?: string;
+  voidedReason?: string;
   stoppedAt?: string;
   resumedAt?: string;
   pickUpAddressId: number;
