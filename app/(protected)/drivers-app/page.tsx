@@ -1,7 +1,8 @@
 'use client';
 
+import * as React from 'react';
 import { useState } from 'react';
-import DriverPreStartChecklist from './(components)/checklist/driver-pre-start-checklist';
+import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
 import { FileText, Calendar, Settings, StopCircleIcon, Info } from 'lucide-react';
@@ -11,23 +12,11 @@ import { useUserStore } from '@/app/stores/user-store';
 
 export default function DriversAppPage() {
   const [isChecklistComplete, setIsChecklistComplete] = useState(false);
-  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
+  const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
+  const [activeDocketNumber, setActiveDocketNumber] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
-
-  if (isChecklistOpen) {
-    return (
-      <div className="flex h-full w-full absolute inset-0 z-50 bg-white">
-        <DriverPreStartChecklist
-          onSubmit={() => {
-            setIsChecklistComplete(true);
-            setIsChecklistOpen(false);
-          }}
-          onBack={() => setIsChecklistOpen(false)}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen">
@@ -80,14 +69,26 @@ export default function DriversAppPage() {
                 variant="outline"
                 className="bg-white border-[#7BF1A8] text-green-700 hover:bg-green-50 h-9 px-5 rounded-lg text-sm font-medium"
                 size="xs"
-                onClick={() => setIsChecklistOpen(true)}
+                onClick={() => {
+                  setChecklistType('pre-start');
+                  setActiveDocketNumber(undefined);
+                  setIsChecklistPromptOpen(true);
+                }}
               >
                 Start
               </Button>
             </div>
           )}
 
-          {activeTab === 'dockets' && <DocketsTab />}
+          {activeTab === 'dockets' && (
+            <DocketsTab 
+              onOpenChecklist={(type, docketNumber) => {
+                setChecklistType(type);
+                setActiveDocketNumber(docketNumber);
+                setIsChecklistPromptOpen(true);
+              }} 
+            />
+          )}
           {activeTab === 'calendar' && <CalendarTab />}
         </div>
 
@@ -140,6 +141,25 @@ export default function DriversAppPage() {
           </div>
         </div>
       </div>
+
+      <ChecklistPromptDrawer
+        open={isChecklistPromptOpen}
+        onOpenChange={setIsChecklistPromptOpen}
+        type={checklistType}
+        docketNumber={activeDocketNumber}
+        onCompleteExternally={() => {
+          if (checklistType === 'pre-start') {
+            setIsChecklistComplete(true);
+          }
+          setIsChecklistPromptOpen(false);
+        }}
+        onCompleteNow={() => {
+          if (checklistType === 'pre-start') {
+            setIsChecklistComplete(true);
+          }
+          setIsChecklistPromptOpen(false);
+        }}
+      />
     </div>
   );
 }

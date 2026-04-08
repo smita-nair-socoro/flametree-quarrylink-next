@@ -1,13 +1,6 @@
 'use client';
 import * as React from 'react';
-import {
-  MoreHorizontal,
-  Eye,
-  SendToBack,
-  PowerOff,
-  Power,
-  Delete,
-} from 'lucide-react';
+import { MoreHorizontal, Eye, PowerOff, Power, Delete } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,25 +10,19 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { DriverDTO } from '@/lib/types/driver';
-import { useDriverActions } from '@/hooks/use-driver-actions';
+import { TruckDTO } from '@/lib/types/truck';
+import { useTruckActions } from '@/hooks/use-truck-actions';
 
-interface DriverTableActionsProps {
-  driver: DriverDTO;
+interface TruckTableActionsProps {
+  truck: TruckDTO;
 }
 
-export function DriverTableActions({ driver }: DriverTableActionsProps) {
+export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
+  const { actions, confirmDialogs } = useTruckActions(truck);
 
   const handleView = () => {
     setDropdownOpen(false);
-    actions.view();
-  };
-
-  const handleResendAppInvitation = () => {
-    setDropdownOpen(false);
-    // actions.resendAppInvitation();
   };
 
   const handleDeactivate = () => {
@@ -43,20 +30,17 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
     actions.deactivate();
   };
 
-  const handleDeleteDriver = () => {
-    setDropdownOpen(false);
-    actions.delete();
-  };
-
-  const handleReactivateDriver = () => {
+  const handleReactivate = () => {
     setDropdownOpen(false);
     actions.reactivate();
   };
 
+  const handleDelete = () => {
+    setDropdownOpen(false);
+  };
+
   return (
-    <div>
-      {confirmDialogs}
-      {viewDialog}
+    <>
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -68,16 +52,16 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {driver.driverStatus === 'DEACTIVATED' && (
+          {truck.truckStatus === 'DEACTIVATED' && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleReactivateDriver}>
+              <DropdownMenuItem onClick={handleReactivate}>
                 <Power className="h-4 w-4 mr-2 text-green-600" />
-                <span className="text-green-600">Reactivate Driver</span>
+                <span className="text-green-600">Reactivate Truck</span>
               </DropdownMenuItem>
             </>
           )}
-          {driver.driverStatus === 'ACTIVE' && (
+          {(truck.truckStatus === 'ACTIVE' || truck.truckStatus === 'AVAILABLE') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeactivate}>
@@ -86,26 +70,19 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {driver.driverStatus === 'PENDING_INVITATION' && (
+          {truck.truckStatus !== 'ON_DUTY' && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleResendAppInvitation}>
-                <SendToBack className="h-4 w-4 mr-2" />
-                <span>Resend App Invitation</span>
-              </DropdownMenuItem>
-            </>
-          )}
-          {driver.driverStatus !== 'ON_DUTY' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDeleteDriver}>
+              <DropdownMenuItem onClick={handleDelete}>
                 <Delete className="h-4 w-4 mr-2 text-red-600" />
-                <span className="text-red-600">Delete Driver</span>
+                <span className="text-red-600">Delete Truck</span>
               </DropdownMenuItem>
             </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+
+      {confirmDialogs}
+    </>
   );
 }

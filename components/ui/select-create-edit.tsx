@@ -33,7 +33,7 @@ import {
 import { ChevronsUpDown, Plus } from 'lucide-react';
 
 export interface SelectCreateEditItem {
-  id: string;
+  id: number | string;
   label: string;
   fields?: Record<string, string>;
 }
@@ -67,9 +67,11 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
   renderForm,
 }: SelectCreateEditProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
-  const [items, setItems] = React.useState<SelectCreateEditItem[]>(initialItems);
+  const [items, setItems] =
+    React.useState<SelectCreateEditItem[]>(initialItems);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editingItem, setEditingItem] = React.useState<SelectCreateEditItem | null>(null);
+  const [editingItem, setEditingItem] =
+    React.useState<SelectCreateEditItem | null>(null);
 
   function openAdd() {
     setEditingItem(null);
@@ -120,7 +122,8 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
                     <span className="flex-1 text-left truncate">
                       {selected
                         ? selected.label
-                        : (selectPlaceholder ?? `Search or Select ${entityName}...`)}
+                        : (selectPlaceholder ??
+                          `Search or Select ${entityName}...`)}
                     </span>
                     <ChevronsUpDown className="opacity-50 ml-2 h-4 w-4 flex-shrink-0" />
                   </Button>
@@ -132,11 +135,15 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
                 >
                   <Command>
                     <CommandInput
-                      placeholder={searchPlaceholder ?? `Search ${entityName}...`}
+                      placeholder={
+                        searchPlaceholder ?? `Search ${entityName}...`
+                      }
                       className="h-9"
                     />
                     <CommandList>
-                      <CommandEmpty>No {entityName.toLowerCase()} found.</CommandEmpty>
+                      <CommandEmpty>
+                        No {entityName.toLowerCase()} found.
+                      </CommandEmpty>
                       <CommandGroup>
                         {items.map((item) => {
                           let clickedEdit = false;
@@ -156,7 +163,9 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onMouseDown={() => { clickedEdit = true; }}
+                                onMouseDown={() => {
+                                  clickedEdit = true;
+                                }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openEdit(item, e);
@@ -194,14 +203,19 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
         }}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={(v) => !v && setDialogOpen(false)}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(v) => !v && setDialogOpen(false)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl">
               {isEditing ? `Edit ${entityName}` : `Add New ${entityName}`}
             </DialogTitle>
           </DialogHeader>
-          {renderForm(editingItem, isEditing, handleSave, () => setDialogOpen(false))}
+          {renderForm(editingItem, isEditing, handleSave, () =>
+            setDialogOpen(false),
+          )}
         </DialogContent>
       </Dialog>
     </>
