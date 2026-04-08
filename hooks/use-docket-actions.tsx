@@ -38,12 +38,10 @@ import {
 import {
   VoidDocketDescription,
   VoidDocketContent,
-  VOID_REASON_LABELS,
 } from '@/hooks/docket/void-docket-content';
 import {
   CancelDocketDescription,
   CancelDocketContent,
-  CANCEL_REASON_LABELS,
 } from '@/hooks/docket/cancel-docket-content';
 import {
   StartPreparingDescription,
@@ -280,7 +278,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     if (!docketData?.id) return;
     try {
       const composedReason = stopNotes.trim()
-        ? `${stopReason} - ${stopNotes.trim()}`
+        ? `${stopReason}-${stopNotes.trim()}`
         : stopReason;
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
@@ -312,10 +310,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleVoidDocket = async () => {
     if (!docketData?.id) return;
     try {
-      const reasonLabel = VOID_REASON_LABELS[voidReason] || voidReason;
       const composedReason = voidNotes.trim()
-        ? `${reasonLabel}-${voidNotes.trim()}`
-        : reasonLabel;
+        ? `${voidReason}-${voidNotes.trim()}`
+        : voidReason;
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.VOIDED,
@@ -333,10 +330,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleCancelDocket = async () => {
     if (!docketData?.id) return;
     try {
-      const reasonLabel = CANCEL_REASON_LABELS[cancelReason] || cancelReason;
       const composedReason = cancelNotes.trim()
-        ? `${reasonLabel}-${cancelNotes.trim()}`
-        : reasonLabel;
+        ? `${cancelReason}-${cancelNotes.trim()}`
+        : cancelReason;
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.CANCELLED,

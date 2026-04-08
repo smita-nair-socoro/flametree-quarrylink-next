@@ -154,7 +154,7 @@ export function splitReasonNote(raw: string | null | undefined): {
   const hyphenIndex = trimmed.indexOf('-');
   if (hyphenIndex === -1) return { reason: trimmed, note: undefined };
   return {
-    reason: trimmed.slice(0, hyphenIndex).trim(),
+    reason: trimmed.slice(0, hyphenIndex).trim().replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()),
     note: trimmed.slice(hyphenIndex + 1).trim() || undefined,
   };
 }

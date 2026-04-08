@@ -161,7 +161,7 @@ export default function DocketForm({
 
     const { reason: parsedReason, note } = splitReasonNote(rawReason);
     const reason = parsedReason || 'N/A';
-
+    console.log('reason', reason, note);
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
         <div className="flex items-start gap-2 font-medium text-sm">
