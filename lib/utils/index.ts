@@ -242,4 +242,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'TRI AXLE': 'bg-amber-600 text-amber-100 border-amber-100',
   TAUTLINER: 'bg-fuchsia-600 text-fuchsia-100 border-fuchsia-100',
   'CRANE TRUCK': 'bg-rose-600 text-rose-100 border-rose-100',
+  PASS: 'bg-green-100 text-green-800 border-green-900',
+  FAIL: 'bg-red-100 text-red-800 border-red-900',
+  CONFIRMED: 'bg-yellow-100 text-yellow-800 border-yellow-900',
 };
