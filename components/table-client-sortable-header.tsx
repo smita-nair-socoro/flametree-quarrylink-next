@@ -33,6 +33,7 @@ export function TableClientSortableHeader<TData>({
 
   return (
     <Button
+      type="button"
       variant="ghost"
       onClick={handleClick}
       className="
