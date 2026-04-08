@@ -17,7 +17,7 @@ import z from 'zod';
 import React from 'react';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { JobFormSchema } from './schemas/job-form-schema';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -40,7 +40,7 @@ import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
-import { formatLocalDate } from '@/lib/utils/date';
+import { formatLocalDate, formatLocalDateTime } from '@/lib/utils/date';
 import { JobDTO } from '@/lib/types/job';
 
 
@@ -168,6 +168,41 @@ export default function JobForm({
     }));
   }, [users]);
 
+  const getActorName = React.useCallback(
+    (actor?: string | null) => {
+      if (!actor) return 'Unknown';
+      const matchedUser = users.find((user) => user.sub === actor)?.name;
+      if (matchedUser) return matchedUser;
+      const [, parsedName] = actor.split('-', 2);
+      return parsedName || actor;
+    },
+    [users],
+  );
+
+  const statusBanner = React.useMemo(() => {
+    if (!isEditing || !jobDetails) return null;
+    if (jobDetails.jobStatus !== JOB_STATUS.CANCELLED) return null;
+
+    const actorName = getActorName(jobDetails.lastModifiedBy);
+    const actionDate = formatLocalDateTime(jobDetails.updatedAt);
+    const reason = jobDetails.reason || 'N/A';
+    const notes = jobDetails.notes;
+
+    return (
+      <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
+        <div className="flex items-start gap-2 font-medium text-sm">
+          <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[#EF4444]" />
+          <div className="flex flex-col text-[#7F1D1D]">
+            <span>
+              This job was cancelled by {actorName} - Reason: {reason}
+              {actionDate ? ` (${actionDate})` : ''}
+            </span>
+            {notes && <span>Note: {notes}</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }, [isEditing, jobDetails, getActorName]);
 
   const tabs = React.useMemo(
     () => [
@@ -278,6 +313,7 @@ export default function JobForm({
           className={cn('p-1 w-full flex flex-col', className)}
           onSubmit={jobForm.handleSubmit(onSubmit)}
         >
+          {statusBanner}
           <div
             className={cn(
               'p-1 gap-1 w-full',
