@@ -703,5 +703,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     actions,
     confirmDialogs,
     viewDialog,
+    isDialogOpen: activeDialog !== null,
   };
 }

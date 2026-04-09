@@ -69,7 +69,7 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
     null,
   );
 
-  const { actions, confirmDialogs } =
+  const { actions, confirmDialogs, isDialogOpen } =
     useDocketActions(selectedDocket);
 
   const handleAction = (actionType: ActionType) => {
@@ -194,10 +194,16 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
       {activeDocket && renderDocketCard(activeDocket, true)}
       {otherDockets.map((docket) => renderDocketCard(docket, false))}
 
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
-          {confirmDialogs}
+      {confirmDialogs}
 
+      <Drawer 
+        open={isDrawerOpen} 
+        onOpenChange={(open) => {
+          if (!open && isDialogOpen) return;
+          setIsDrawerOpen(open);
+        }}
+      >
+        <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
           {selectedDocket && (
             <>
               <DrawerHeader className="border-b border-gray-100 pb-4 pt-6 px-6 shrink-0 rounded-t-2xl">
