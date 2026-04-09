@@ -112,7 +112,9 @@ export default function TruckForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [truckOwnerType, setTruckOwnerType] = React.useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
+  const [truckOwnerType, setTruckOwnerType] = React.useState<
+    'INTERNAL' | 'EXTERNAL'
+  >('INTERNAL');
 
   const { data: hauliers = [] } = useGetAllHauliers();
   const tenantName = useClientStore((state) => state.getTenantName());
@@ -240,7 +242,9 @@ export default function TruckForm({
             <FormLabel>Truck Type*</FormLabel>
             <RadioGroup
               value={truckOwnerType}
-              onValueChange={(v) => setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')}
+              onValueChange={(v) =>
+                setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')
+              }
               className="flex gap-6"
             >
               <FormItem className="flex items-center gap-2">
@@ -369,7 +373,7 @@ export default function TruckForm({
                     <Input
                       isNumber
                       placeholder=""
-                      suffix="M3"
+                      suffix="m³"
                       {...field}
                       value={field.value ?? ''}
                     />
