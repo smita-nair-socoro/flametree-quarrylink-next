@@ -43,7 +43,15 @@ import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
-import { DriverDTO } from '../types/driver';
+import {
+  DriverDTO,
+  DriverDetailDTO,
+  PatchDriverInfoDTO,
+  PatchDriverTypeDTO,
+  PatchDriverTrucksDTO,
+  PatchDriverHaulierDTO,
+  PutDriverDTO,
+} from '../types/driver';
 
 type RequestBody =
   | BodyInit
@@ -1011,10 +1019,35 @@ export const APIClient = {
 
   drivers: {
     getAll: () => appClient.Get<DriverDTO[]>(`/socoro/quarrylink/api/driver`),
+    getById: (id: number) =>
+      appClient.Get<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`),
     create: (data: DriverDTO) =>
       appClient.Post<DriverDTO>(`/socoro/quarrylink/api/driver`, {
         body: data,
       }),
+    update: (id: number, data: PutDriverDTO) =>
+      appClient.Put<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+        body: data,
+      }),
+    patchInfo: (id: number, data: PatchDriverInfoDTO) =>
+      appClient.Patch<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+        body: data,
+      }),
+    patchType: (id: number, data: PatchDriverTypeDTO) =>
+      appClient.Patch<DriverDetailDTO>(
+        `/socoro/quarrylink/api/driver/${id}/type`,
+        { body: data },
+      ),
+    patchTrucks: (id: number, data: PatchDriverTrucksDTO) =>
+      appClient.Patch<DriverDetailDTO>(
+        `/socoro/quarrylink/api/driver/${id}/trucks`,
+        { body: data },
+      ),
+    patchHaulier: (id: number, data: PatchDriverHaulierDTO) =>
+      appClient.Patch<DriverDetailDTO>(
+        `/socoro/quarrylink/api/driver/${id}/haulier`,
+        { body: data },
+      ),
   },
 
   hauliers: {

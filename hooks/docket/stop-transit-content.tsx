@@ -6,16 +6,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
 
 const STOP_REASONS = [
-  { value: 'vehicle-breakdown', label: 'Vehicle breakdown' },
-  { value: 'traffic-delay', label: 'Traffic delay' },
-  { value: 'site-access-issue', label: 'Site access issue' },
-  { value: 'customer-not-ready', label: 'Customer not ready' },
-  { value: 'safety-concern', label: 'Safety concern' },
-  { value: 'weather-conditions', label: 'Weather conditions' },
-  { value: 'incorrect-delivery-details', label: 'Incorrect delivery details' },
-  { value: 'load-issue-detected', label: 'Load issue detected' },
-  { value: 'driver-rest-fatigue-break', label: 'Driver rest / fatigue break' },
-  { value: 'awaiting-instructions', label: 'Awaiting instructions' },
+  { value: 'vehicle_breakdown', label: 'Vehicle breakdown' },
+  { value: 'traffic_delay', label: 'Traffic delay' },
+  { value: 'site_access_issue', label: 'Site access issue' },
+  { value: 'customer_not_ready', label: 'Customer not ready' },
+  { value: 'safety_concern', label: 'Safety concern' },
+  { value: 'weather_conditions', label: 'Weather conditions' },
+  { value: 'incorrect_delivery_details', label: 'Incorrect delivery details' },
+  { value: 'load_issue_detected', label: 'Load issue detected' },
+  { value: 'driver_rest_fatigue_break', label: 'Driver rest / fatigue break' },
+  { value: 'awaiting_instructions', label: 'Awaiting instructions' },
   { value: 'other', label: 'Other' },
 ];
 

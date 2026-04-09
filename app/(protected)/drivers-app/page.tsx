@@ -1,7 +1,8 @@
 'use client';
 
+import * as React from 'react';
 import { useState } from 'react';
-import DriverPreStartChecklist from './(components)/checklist/driver-pre-start-checklist';
+import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
 import { FileText, Calendar, Settings, StopCircleIcon, Info } from 'lucide-react';
@@ -11,62 +12,52 @@ import { useUserStore } from '@/app/stores/user-store';
 
 export default function DriversAppPage() {
   const [isChecklistComplete, setIsChecklistComplete] = useState(false);
-  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
+  const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
+  const [activeDocketNumber, setActiveDocketNumber] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
-
-  if (isChecklistOpen) {
-    return (
-      <div className="flex h-full w-full absolute inset-0 z-50 bg-white">
-        <DriverPreStartChecklist
-          onSubmit={() => {
-            setIsChecklistComplete(true);
-            setIsChecklistOpen(false);
-          }}
-          onBack={() => setIsChecklistOpen(false)}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen">
       <div className="w-full shadow-xl bg-white h-full flex flex-col relative overflow-hidden">
-        <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-b border-gray-100 gap-1 bg-white">
-          <div className="flex items-center justify-between">
-            <span className="text-[20px] font-bold text-[#0F172A]">
-              Deliveries
-            </span>
-            <Button variant="ghost" className="flex items-center justify-center">
-              <Settings className="h-[16px] w-[16px] text-[#64748B]" />
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-[14px] text-[#64748B]">Welcome back,</span>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[18px] font-bold text-[#0F172A]">{userName}</span>
-              <span className="text-[12px] text-gray-400 font-medium">ID: DRV-001</span>
+        {activeTab !== 'calendar' && (
+          <div className="flex flex-col px-6 pt-6 pb-4 shrink-0 shadow-sm border-b border-gray-100 gap-1 bg-white">
+            <div className="flex items-center justify-between">
+              <span className="text-[20px] font-bold text-[#0F172A]">
+                Deliveries
+              </span>
+              <Button variant="ghost" className="flex items-center justify-center">
+                <Settings className="h-[16px] w-[16px] text-[#64748B]" />
+              </Button>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3 mt-2">
-            <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
-              <FileText className="h-[16px] w-[16px] text-gray-600" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[14px] font-bold text-[#0F172A] leading-none">3</span>
-                <span className="text-[12px] text-[#64748B] font-medium leading-none">Assigned</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[14px] text-[#64748B]">Welcome back,</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[18px] font-bold text-[#0F172A]">{userName}</span>
+                <span className="text-[12px] text-gray-400 font-medium">ID: DRV-001</span>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
-              <StopCircleIcon className="h-[16px] w-[16px] text-gray-600" />
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[14px] font-bold text-[#0F172A] leading-none">0</span>
-                <span className="text-[13px] text-[#64748B] font-medium leading-none">Stopped</span>
+
+            <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
+                <FileText className="h-[16px] w-[16px] text-gray-600" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[14px] font-bold text-[#0F172A] leading-none">3</span>
+                  <span className="text-[12px] text-[#64748B] font-medium leading-none">Assigned</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
+                <StopCircleIcon className="h-[16px] w-[16px] text-gray-600" />
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[14px] font-bold text-[#0F172A] leading-none">0</span>
+                  <span className="text-[13px] text-[#64748B] font-medium leading-none">Stopped</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Scrollable content area */}
         <div className="flex-1 flex flex-col w-full bg-[#F8FAFC] overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -80,14 +71,26 @@ export default function DriversAppPage() {
                 variant="outline"
                 className="bg-white border-[#7BF1A8] text-green-700 hover:bg-green-50 h-9 px-5 rounded-lg text-sm font-medium"
                 size="xs"
-                onClick={() => setIsChecklistOpen(true)}
+                onClick={() => {
+                  setChecklistType('pre-start');
+                  setActiveDocketNumber(undefined);
+                  setIsChecklistPromptOpen(true);
+                }}
               >
                 Start
               </Button>
             </div>
           )}
 
-          {activeTab === 'dockets' && <DocketsTab />}
+          {activeTab === 'dockets' && (
+            <DocketsTab
+              onOpenChecklist={(type, docketNumber) => {
+                setChecklistType(type);
+                setActiveDocketNumber(docketNumber);
+                setIsChecklistPromptOpen(true);
+              }}
+            />
+          )}
           {activeTab === 'calendar' && <CalendarTab />}
         </div>
 
@@ -140,6 +143,25 @@ export default function DriversAppPage() {
           </div>
         </div>
       </div>
+
+      <ChecklistPromptDrawer
+        open={isChecklistPromptOpen}
+        onOpenChange={setIsChecklistPromptOpen}
+        type={checklistType}
+        docketNumber={activeDocketNumber}
+        onCompleteExternally={() => {
+          if (checklistType === 'pre-start') {
+            setIsChecklistComplete(true);
+          }
+          setIsChecklistPromptOpen(false);
+        }}
+        onCompleteNow={() => {
+          if (checklistType === 'pre-start') {
+            setIsChecklistComplete(true);
+          }
+          setIsChecklistPromptOpen(false);
+        }}
+      />
     </div>
   );
 }

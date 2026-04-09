@@ -5,7 +5,18 @@ import * as React from 'react';
 import { DocketDTO } from '@/lib/types/docket';
 import rawJson from '@/lib/tests/driverDocketsResponseData.json';
 import { format } from 'date-fns';
-import { MapPin, Package, Truck, Clock, Info, X, Pencil, CheckCircle, Pause, Delete } from 'lucide-react';
+import {
+  MapPin,
+  Package,
+  Truck,
+  Clock,
+  Info,
+  X,
+  Pencil,
+  CheckCircle,
+  Pause,
+  Delete,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,13 +28,54 @@ import {
 } from '@/components/ui/drawer';
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
+import { useDocketActions } from '@/hooks/use-docket-actions';
 
-export default function DocketsTab() {
+interface DocketsTabProps {
+  onOpenChecklist?: (
+    type: 'pre-start' | 'vehicle-inspection',
+    docketNumber?: string,
+  ) => void;
+}
+
+type ActionType =
+  | 'view'
+  | 'cancel'
+  | 'markArrived'
+  | 'markDelivered'
+  | 'markReady'
+  | 'markCollected'
+  | 'stop'
+  | 'void'
+  | 'remove'
+  | 'duplicate'
+  | 'startTransit'
+  | 'resumeTransit'
+  | 'unassign'
+  | 'startPreparing'
+  | 'cashSale'
+  | 'invoice'
+  | 'cashReceipts'
+  | 'viewInvoice'
+  | 'assign'
+  | 'backToPending'
+  | 'backToPreparing';
+
+export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
   const { items } = rawJson as unknown as {
     items: DocketDTO[];
   };
 
-  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(null);
+  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
+    null,
+  );
+
+  const { actions, confirmDialogs } =
+    useDocketActions(selectedDocket);
+
+  const handleAction = (actionType: ActionType) => {
+    actions[actionType]();
+  };
+
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
@@ -51,8 +103,10 @@ export default function DocketsTab() {
       <div
         key={docket.id}
         className={cn(
-          "bg-white rounded-xl cursor-pointer transition-all active:scale-[0.98]",
-          isActive ? "border-2 border-[#8E51FF] shadow-sm" : "border border-gray-200 shadow-sm"
+          'bg-white rounded-xl cursor-pointer transition-all active:scale-[0.98]',
+          isActive
+            ? 'border-2 border-[#8E51FF] shadow-sm'
+            : 'border border-gray-200 shadow-sm',
         )}
         onClick={() => openDocketDetails(docket)}
       >
@@ -63,9 +117,11 @@ export default function DocketsTab() {
           </div>
         )}
 
-        <div className={cn("p-4", isActive ? "pt-3" : "")}>
+        <div className={cn('p-4', isActive ? 'pt-3' : '')}>
           <div className="flex justify-between items-start mb-1">
-            <span className="text-[13px] font-bold text-gray-900">{docket.docketNumber}</span>
+            <span className="text-[13px] font-bold text-gray-900">
+              {docket.docketNumber}
+            </span>
             <div className="flex items-center gap-2">
               <TableBadges names={[docket.docketStatus]} />
             </div>
@@ -81,7 +137,12 @@ export default function DocketsTab() {
               </p>
             </div>
             <span className="text-[14px] font-medium text-gray-400 mt-1">
-              {docket.loadSize}{docket.jobItem?.productSellUom === 'TN' ? 'T' : docket.jobItem?.productSellUom === 'M3' ? 'm³' : ''}
+              {docket.loadSize}
+              {docket.jobItem?.productSellUom === 'TN'
+                ? 'T'
+                : docket.jobItem?.productSellUom === 'M3'
+                  ? 'm³'
+                  : ''}
             </span>
           </div>
 
@@ -107,7 +168,10 @@ export default function DocketsTab() {
             <div className="flex items-center gap-2.5">
               <Clock className="w-4 h-4 text-gray-400 shrink-0" />
               <span className="text-[14px] text-[#45556C]">
-                {formatTimeWindow(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+                {formatTimeWindow(
+                  docket.deliveryCollectionStartTime,
+                  docket.deliveryCollectionEndTime,
+                )}
               </span>
             </div>
           </div>
@@ -132,6 +196,8 @@ export default function DocketsTab() {
 
       <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
+          {confirmDialogs}
+
           {selectedDocket && (
             <>
               <DrawerHeader className="border-b border-gray-100 pb-4 pt-6 px-6 shrink-0 rounded-t-2xl">
@@ -142,7 +208,11 @@ export default function DocketsTab() {
                   <div className="flex items-center gap-3">
                     <TableBadges names={[selectedDocket.docketStatus]} />
                     <DrawerClose asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500"
+                      >
                         <X className="h-4 w-4" />
                       </Button>
                     </DrawerClose>
@@ -153,10 +223,14 @@ export default function DocketsTab() {
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {/* Customer Information */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                  <h3 className="text-[14px] font-bold text-gray-900 mb-4">Customer Information</h3>
+                  <h3 className="text-[14px] font-bold text-gray-900 mb-4">
+                    Customer Information
+                  </h3>
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-2">
-                      <span className="text-[13px] text-gray-400">Customer</span>
+                      <span className="text-[13px] text-gray-400">
+                        Customer
+                      </span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.job?.customerName}
                       </span>
@@ -165,7 +239,8 @@ export default function DocketsTab() {
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Contact</span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.customerContactName || selectedDocket.job?.contactPersonName}
+                        {selectedDocket.customerContactName ||
+                          selectedDocket.job?.contactPersonName}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -173,13 +248,16 @@ export default function DocketsTab() {
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Phone</span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.customerContactPhone || selectedDocket.job?.contactPersonPhone}
+                        {selectedDocket.customerContactPhone ||
+                          selectedDocket.job?.contactPersonPhone}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
 
                     <div className="grid grid-cols-2">
-                      <span className="text-[13px] text-gray-400">Account Manager</span>
+                      <span className="text-[13px] text-gray-400">
+                        Account Manager
+                      </span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.job?.accountManagerName || 'N/A'}
                       </span>
@@ -189,19 +267,30 @@ export default function DocketsTab() {
 
                 {/* Delivery Information */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                  <h3 className="text-[14px] font-bold text-gray-900 mb-4">Delivery Information</h3>
+                  <h3 className="text-[14px] font-bold text-gray-900 mb-4">
+                    Delivery Information
+                  </h3>
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-2 items-center -my-2">
-                      <span className="text-[13px] text-gray-400">Load Size</span>
+                      <span className="text-[13px] text-gray-400">
+                        Load Size
+                      </span>
                       <div className="grid grid-cols-2 items-center">
                         <span className="text-[14px] font-bold text-gray-900">
-                          {selectedDocket.loadSize}{selectedDocket.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket.jobItem.productSellUom}
+                          {selectedDocket.loadSize}
+                          {selectedDocket.jobItem?.productSellUom === 'TN'
+                            ? 'T'
+                            : selectedDocket.jobItem?.productSellUom === 'M3'
+                              ? 'm³'
+                              : selectedDocket.jobItem.productSellUom}
                         </span>
                         <Button
                           variant="ghost"
                           className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                           onClick={() => {
-                            setUpdateValue(selectedDocket.loadSize?.toString() || '');
+                            setUpdateValue(
+                              selectedDocket.loadSize?.toString() || '',
+                            );
                             setIsUpdateDrawerOpen(true);
                           }}
                         >
@@ -220,7 +309,9 @@ export default function DocketsTab() {
                     <Separator className="bg-gray-100 -my-1" />
 
                     <div className="grid grid-cols-2">
-                      <span className="text-[13px] text-gray-400">Assigned Truck</span>
+                      <span className="text-[13px] text-gray-400">
+                        Assigned Truck
+                      </span>
                       <span className="text-[14px] font-medium text-gray-900">
                         {selectedDocket.truckType}
                       </span>
@@ -228,27 +319,38 @@ export default function DocketsTab() {
                     <Separator className="bg-gray-100 -my-1" />
 
                     <div className="grid grid-cols-2">
-                      <span className="text-[13px] text-gray-400">Time Window</span>
+                      <span className="text-[13px] text-gray-400">
+                        Time Window
+                      </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {formatTimeWindow(selectedDocket.deliveryCollectionStartTime, selectedDocket.deliveryCollectionEndTime)}
+                        {formatTimeWindow(
+                          selectedDocket.deliveryCollectionStartTime,
+                          selectedDocket.deliveryCollectionEndTime,
+                        )}
                       </span>
                     </div>
-
                   </div>
                 </div>
 
                 {/* Addresses */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-[14px] font-bold text-gray-900">Addresses</h3>
-                    <Button variant="ghost" className="h-6 px-2 text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1">
+                    <h3 className="text-[14px] font-bold text-gray-900">
+                      Addresses
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      className="h-6 px-2 text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
+                    >
                       View Map
                     </Button>
                   </div>
 
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[12px] text-gray-400 mb-1">Collection</span>
+                      <span className="text-[12px] text-gray-400 mb-1">
+                        Collection
+                      </span>
                       <span className="text-[14px] font-bold text-gray-900">
                         {selectedDocket.jobItem?.quarrySupplierName}
                       </span>
@@ -258,9 +360,10 @@ export default function DocketsTab() {
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
 
-
                     <div className="flex flex-col gap-1">
-                      <span className="text-[12px] text-gray-400 mb-1">Delivery</span>
+                      <span className="text-[12px] text-gray-400 mb-1">
+                        Delivery
+                      </span>
                       <span className="text-[14px] font-bold text-gray-900">
                         {selectedDocket.job?.projectName}
                       </span>
@@ -274,7 +377,9 @@ export default function DocketsTab() {
                 {/* Notes */}
                 {selectedDocket.notes && (
                   <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-2">
-                    <h3 className="text-[14px] font-bold text-gray-900 mb-2">Notes</h3>
+                    <h3 className="text-[14px] font-bold text-gray-900 mb-2">
+                      Notes
+                    </h3>
                     <span className="text-[14px] text-gray-500 italic block">
                       {selectedDocket.notes}
                     </span>
@@ -285,27 +390,86 @@ export default function DocketsTab() {
               {/* Action Buttons */}
               <div className="bg-white p-4 border-t border-gray-100 shrink-0 flex flex-col gap-3 pb-8">
                 {selectedDocket.docketStatus === 'IN_TRANSIT' && (
-                  <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
+                  <Button
+                    onClick={() => handleAction('markArrived')}
+                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
+                  >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Mark Arrived
                     </span>
                   </Button>
                 )}
+                {selectedDocket.truckInsepctionRequired && (
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      onOpenChecklist?.(
+                        'vehicle-inspection',
+                        selectedDocket.docketNumber,
+                      );
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      Truck Insepction Required
+                    </span>
+                  </Button>
+                )}
                 {selectedDocket.docketStatus === 'ASSIGNED' && (
-                  <Button className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] font-semibold shadow-lg shadow-purple-200">
+                  <Button
+                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
+                    onClick={() => {
+                      handleAction('startTransit');
+                    }}
+                    disabled={selectedDocket.truckInsepctionRequired}
+                  >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
                       Start Delivery
                     </span>
                   </Button>
                 )}
-                <Button variant="outline" className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold">
-                  <span className="flex items-center gap-2">
-                    <Pause className="h-4 w-4" />
-                    Stop
-                  </span>
-                </Button>
+                {(selectedDocket.docketStatus !== 'STOPPED' && selectedDocket.docketStatus !== 'ARRIVED') && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleAction('stop')}
+                    className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Pause className="h-4 w-4" />
+                      Stop
+                    </span>
+                  </Button>
+                )}
+                {selectedDocket.docketStatus === 'STOPPED' && (
+                  <Button
+                    className="w-full bg-[#008236] text-white h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                    onClick={() => handleAction('resumeTransit')}
+                  >
+                    Resume Transit
+                  </Button>
+                )}
+                {selectedDocket.docketStatus === 'ARRIVED' && (
+                  <>
+                    <Button
+                      className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
+                      onClick={() => handleAction('markDelivered')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Mark Delivered
+                      </span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full border-[#6366F1] text-[#6366F1] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                    >
+                      Back to In Transit
+                    </Button>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -320,11 +484,23 @@ export default function DocketsTab() {
                 {updateValue || '0'}
               </span>
               <span className="text-[24px] text-[#64748B] font-medium">
-                {selectedDocket?.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket?.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket?.jobItem?.productSellUom}
+                {selectedDocket?.jobItem?.productSellUom === 'TN'
+                  ? 'T'
+                  : selectedDocket?.jobItem?.productSellUom === 'M3'
+                    ? 'm³'
+                    : selectedDocket?.jobItem?.productSellUom}
               </span>
             </div>
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
-              Current: <span className="font-bold">{selectedDocket?.loadSize}{selectedDocket?.jobItem?.productSellUom === 'TN' ? 'T' : selectedDocket?.jobItem?.productSellUom === 'M3' ? 'm³' : selectedDocket?.jobItem?.productSellUom}</span>
+              Current:{' '}
+              <span className="font-bold">
+                {selectedDocket?.loadSize}
+                {selectedDocket?.jobItem?.productSellUom === 'TN'
+                  ? 'T'
+                  : selectedDocket?.jobItem?.productSellUom === 'M3'
+                    ? 'm³'
+                    : selectedDocket?.jobItem?.productSellUom}
+              </span>
             </span>
           </div>
 
@@ -333,26 +509,30 @@ export default function DocketsTab() {
               <button
                 key={key}
                 className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
-                onClick={() => setUpdateValue(prev => prev + key)}
+                onClick={() => setUpdateValue((prev) => prev + key)}
               >
                 {key}
               </button>
             ))}
             <button
               className="h-[68px] bg-[#94A3B8]/30 text-[28px] text-[#0F172A] active:bg-[#94A3B8]/50 flex items-center justify-center font-normal"
-              onClick={() => setUpdateValue(prev => prev.includes('.') ? prev : prev + '.')}
+              onClick={() =>
+                setUpdateValue((prev) =>
+                  prev.includes('.') ? prev : prev + '.',
+                )
+              }
             >
               .
             </button>
             <button
               className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
-              onClick={() => setUpdateValue(prev => prev + '0')}
+              onClick={() => setUpdateValue((prev) => prev + '0')}
             >
               0
             </button>
             <button
               className="h-[68px] bg-[#94A3B8]/30 text-[#0F172A] active:bg-[#94A3B8]/50 flex items-center justify-center"
-              onClick={() => setUpdateValue(prev => prev.slice(0, -1))}
+              onClick={() => setUpdateValue((prev) => prev.slice(0, -1))}
             >
               <Delete className="h-6 w-6 text-[#334155]" strokeWidth={1.5} />
             </button>
