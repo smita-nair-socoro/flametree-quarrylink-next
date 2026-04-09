@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
-import HaulierForm from './haulier-form';
+import HaulierForm from '@/app/(protected)/logistics/drivers/(components)/forms/haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
 import { Loader2 } from 'lucide-react';
@@ -112,6 +112,7 @@ export default function TruckForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [truckOwnerType, setTruckOwnerType] = React.useState<'INTERNAL' | 'EXTERNAL'>('INTERNAL');
 
   const { data: hauliers = [] } = useGetAllHauliers();
   const tenantName = useClientStore((state) => state.getTenantName());
@@ -141,7 +142,6 @@ export default function TruckForm({
     resolver: zodResolver(TruckFormSchema),
     mode: 'onChange',
     defaultValues: {
-      type: 'INTERNAL',
       haulierId: 0,
       licensePlate: '',
       vin: '',
@@ -155,8 +155,7 @@ export default function TruckForm({
     },
   });
 
-  const selectedType = truckForm.watch('type');
-  const isInternal = selectedType === 'INTERNAL';
+  const isInternal = truckOwnerType === 'INTERNAL';
 
   // Report dirty state to parent
   React.useEffect(() => {
@@ -237,35 +236,23 @@ export default function TruckForm({
           <Separator />
 
           {/* Truck Type (ownership) */}
-          <FormField
-            control={truckForm.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Truck Type*</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="flex gap-6"
-                  >
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <RadioGroupItem value="INTERNAL" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Internal</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <RadioGroupItem value="EXTERNAL" />
-                      </FormControl>
-                      <FormLabel className="font-normal">External</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
+          <FormItem>
+            <FormLabel>Truck Type*</FormLabel>
+            <RadioGroup
+              value={truckOwnerType}
+              onValueChange={(v) => setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')}
+              className="flex gap-6"
+            >
+              <FormItem className="flex items-center gap-2">
+                <RadioGroupItem value="INTERNAL" />
+                <FormLabel className="font-normal">Internal</FormLabel>
               </FormItem>
-            )}
-          />
+              <FormItem className="flex items-center gap-2">
+                <RadioGroupItem value="EXTERNAL" />
+                <FormLabel className="font-normal">External</FormLabel>
+              </FormItem>
+            </RadioGroup>
+          </FormItem>
 
           {/* Haulier */}
           {isInternal ? (
@@ -377,13 +364,12 @@ export default function TruckForm({
               name="tankVolumeM3"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Volume <sup>m3</sup>*
-                  </FormLabel>
+                  <FormLabel>Volume*</FormLabel>
                   <FormControl>
                     <Input
                       isNumber
                       placeholder=""
+                      suffix="M3"
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -398,13 +384,12 @@ export default function TruckForm({
               name="tareWeight"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    Tare Weight <sup>TN</sup>*
-                  </FormLabel>
+                  <FormLabel>Tare Weight*</FormLabel>
                   <FormControl>
                     <Input
                       isNumber
                       placeholder=""
+                      suffix="TN"
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -419,13 +404,12 @@ export default function TruckForm({
               name="combinationGvm"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    GVM Weight <sup>TN</sup>*
-                  </FormLabel>
+                  <FormLabel>GVM Weight*</FormLabel>
                   <FormControl>
                     <Input
                       isNumber
                       placeholder=""
+                      suffix="TN"
                       {...field}
                       value={field.value ?? ''}
                     />

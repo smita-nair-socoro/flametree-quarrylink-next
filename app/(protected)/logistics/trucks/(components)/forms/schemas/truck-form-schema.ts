@@ -3,7 +3,6 @@ import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 
 export const TruckFormSchema = z
   .object({
-    type: z.enum(['INTERNAL', 'EXTERNAL']),
     haulierId: z.number(),
     licensePlate: z
       .string()
