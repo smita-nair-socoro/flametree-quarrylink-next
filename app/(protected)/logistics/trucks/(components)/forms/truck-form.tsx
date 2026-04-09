@@ -32,6 +32,7 @@ import { useClientStore } from '@/app/stores/client-store';
 import { DriversListQueryOptions } from '@/lib/api/driver';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { DataTableClient } from '@/components/ui/data-table-client';
+import { PhoneInput } from '@/components/ui/phone-input';
 
 interface FormProps {
   id?: number;
@@ -138,6 +139,14 @@ export default function TruckForm({
     [drivers],
   );
 
+  const isInternal = truckOwnerType === 'INTERNAL';
+
+  const selectedHaulierId = truckForm.watch('haulierId');
+  const selectedHaulierInfo = React.useMemo(() => {
+    if (isInternal) return internalHaulier;
+    return hauliers.find((h) => h.id === selectedHaulierId);
+  }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
+
   const truckForm = useForm<TruckFormValues>({
     resolver: zodResolver(TruckFormSchema),
     mode: 'onChange',
@@ -154,8 +163,6 @@ export default function TruckForm({
       driverId: '',
     },
   });
-
-  const isInternal = truckOwnerType === 'INTERNAL';
 
   // Report dirty state to parent
   React.useEffect(() => {
@@ -242,6 +249,7 @@ export default function TruckForm({
               value={truckOwnerType}
               onValueChange={(v) => setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')}
               className="flex gap-6"
+              disabled={isEditing}
             >
               <FormItem className="flex items-center gap-2">
                 <RadioGroupItem value="INTERNAL" />
@@ -255,7 +263,36 @@ export default function TruckForm({
           </FormItem>
 
           {/* Haulier */}
-          {isInternal ? (
+          {isEditing ? (
+            <>
+              <FormItem>
+                <FormLabel>Haulier</FormLabel>
+                <Input
+                  value={selectedHaulierInfo?.haulierName ?? tenantName ?? 'My Company Haulier'}
+                  disabled
+                />
+              </FormItem>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormItem>
+                  <FormLabel>Haulier Email Address</FormLabel>
+                  <Input
+                    value={selectedHaulierInfo?.emailAddress ?? ''}
+                    disabled
+                    placeholder="Auto-filled from haulier"
+                  />
+                </FormItem>
+                <FormItem>
+                  <FormLabel>Haulier Phone Number</FormLabel>
+                  <PhoneInput
+                    defaultCountry="AU"
+                    value={selectedHaulierInfo?.phoneNumber ?? ''}
+                    disabled
+                    placeholder="Auto-filled from haulier"
+                  />
+                </FormItem>
+              </div>
+            </>
+          ) : isInternal ? (
             <FormItem>
               <FormLabel>Haulier</FormLabel>
               <Input
@@ -421,19 +458,37 @@ export default function TruckForm({
           </div>
 
           {/* Driver Assignment */}
-          <h2 className="text-lg font-bold">Driver Assignment</h2>
-          <Separator />
-          <FormSelect
-            control={truckForm.control}
-            name="driverId"
-            label="Drivers (Optional)"
-            searchLabel="Driver"
-            options={driverOptions}
-            placeholder="Search or Select Drivers"
-          />
+          {isEditing ? (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold">Driver Assignment</h2>
+                <Button type="button" size="sm" className="cursor-pointer">
+                  Assign Drivers
+                </Button>
+              </div>
+              <Separator />
+              {/* TODO: replace with real assigned drivers from truck data */}
+              <p className="text-sm text-muted-foreground py-2">
+                No drivers assigned.
+              </p>
+            </div>
+          ) : (
+            <>
+              <h2 className="text-lg font-bold">Driver Assignment</h2>
+              <Separator />
+              <FormSelect
+                control={truckForm.control}
+                name="driverId"
+                label="Drivers (Optional)"
+                searchLabel="Driver"
+                options={driverOptions}
+                placeholder="Search or Select Drivers"
+              />
+            </>
+          )}
 
           {/* Audit Information — edit mode only */}
-          {isEditing && truckData && (
+          {isEditing && (
             <div className="space-y-6 mt-10 mb-4">
               <h2 className="text-2xl font-bold">Audit Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
@@ -442,7 +497,7 @@ export default function TruckForm({
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string>).createdBy || 'N/A'}
+                    {(truckData as Record<string, string> | null)?.createdBy || 'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -450,8 +505,7 @@ export default function TruckForm({
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string>).lastModifiedBy ||
-                      'N/A'}
+                    {(truckData as Record<string, string> | null)?.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -460,7 +514,7 @@ export default function TruckForm({
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {formatLocalDateShort(
-                      (truckData as Record<string, string>).createdAt,
+                      (truckData as Record<string, string> | null)?.createdAt,
                     )}
                   </p>
                 </div>
@@ -470,7 +524,7 @@ export default function TruckForm({
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {formatLocalDateShort(
-                      (truckData as Record<string, string>).updatedAt,
+                      (truckData as Record<string, string> | null)?.updatedAt,
                     )}
                   </p>
                 </div>

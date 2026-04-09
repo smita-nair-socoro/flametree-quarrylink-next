@@ -2,7 +2,9 @@
 
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
+import { FormDialog } from '@/components/form-dialog';
 import { TruckDTO } from '@/lib/types/truck';
+import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import {
@@ -49,6 +51,7 @@ interface CannotDeleteState {
 
 export function useTruckActions(truckData?: TruckDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [viewOpen, setViewOpen] = React.useState(false);
   const [cannotDeactivateState, setCannotDeactivateState] =
     React.useState<CannotDeactivateState | null>(null);
   const [cannotDeleteState, setCannotDeleteState] =
@@ -200,6 +203,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
+    view: () => {
+      setViewOpen(true);
+    },
     deactivate: () => {
       setCannotDeactivateState(null);
       setActiveDialog('deactivate');
@@ -233,8 +239,28 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     />
   ));
 
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={truckData?.id}
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+      }}
+      hideTrigger
+      dialogTitle="View / Edit Truck"
+      headerInfo={{
+        customId: truckData?.licensePlate,
+        primaryBadges: truckData?.truckStatus ? [truckData.truckStatus] : [],
+        secondaryBadges: truckData?.haulierName ? [truckData.haulierName] : [],
+      }}
+    >
+      <TruckForm />
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     confirmDialogs,
+    viewDialog,
   };
 }
