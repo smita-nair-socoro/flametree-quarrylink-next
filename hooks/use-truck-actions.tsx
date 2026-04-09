@@ -39,20 +39,14 @@ interface DialogConfig {
   cancelText?: string;
 }
 
-interface CannotDeactivateState {
-  activeDocketCount: number;
-}
-
-interface CannotDeleteState {
-  activeDocketCount: number;
-}
-
 export function useTruckActions(truckData?: TruckDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
-  const [cannotDeactivateState, setCannotDeactivateState] =
-    React.useState<CannotDeactivateState | null>(null);
-  const [cannotDeleteState, setCannotDeleteState] =
-    React.useState<CannotDeleteState | null>(null);
+  const [cannotDeactivateCount, setCannotDeactivateCount] = React.useState<
+    number | null
+  >(null);
+  const [cannotDeleteCount, setCannotDeleteCount] = React.useState<
+    number | null
+  >(null);
 
   // TODO: replace with real assigned drivers from API
   const assignedDrivers: string[] = [
@@ -76,13 +70,11 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
-      // If the API returns active dockets, show cannot deactivate dialog
       // TODO: parse activeDocketCount from error response when API is ready
       const activeDocketCount = 2; // placeholder — replace with parsed error data
-      const hasBlockers = activeDocketCount > 0;
 
-      if (hasBlockers) {
-        setCannotDeactivateState({ activeDocketCount });
+      if (activeDocketCount > 0) {
+        setCannotDeactivateCount(activeDocketCount);
         setActiveDialog('cannot_deactivate');
       } else {
         notifyError(
@@ -115,10 +107,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     } catch (error: unknown) {
       // TODO: parse activeDocketCount from error response when API is ready
       const activeDocketCount = 2; // placeholder — replace with parsed error data
-      const hasBlockers = activeDocketCount > 0;
 
-      if (hasBlockers) {
-        setCannotDeleteState({ activeDocketCount });
+      if (activeDocketCount > 0) {
+        setCannotDeleteCount(activeDocketCount);
         setActiveDialog('cannot_delete');
       } else {
         notifyError(extractErrorMessage(error) || 'Failed to delete truck.');
@@ -146,11 +137,11 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       cannot_deactivate: {
         title: 'Cannot Deactivate Truck',
         description: <CannotDeactivateTruckDescription truck={truckData} />,
-        content: cannotDeactivateState ? (
+        content: (
           <CannotDeactivateTruckContent
-            activeDocketCount={cannotDeactivateState.activeDocketCount}
+            activeDocketCount={cannotDeactivateCount ?? 0}
           />
-        ) : null,
+        ),
         confirmActionNeeded: false,
         cancelText: 'Cancel',
       },
@@ -174,20 +165,20 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       cannot_delete: {
         title: 'Cannot Delete Truck',
         description: <CannotDeleteTruckDescription truck={truckData} />,
-        content: cannotDeleteState ? (
+        content: (
           <CannotDeleteTruckContent
             truck={truckData}
-            activeDocketCount={cannotDeleteState.activeDocketCount}
+            activeDocketCount={cannotDeleteCount ?? 0}
           />
-        ) : null,
+        ),
         confirmActionNeeded: false,
         cancelText: 'Close',
       },
     }),
     [
       truckData,
-      cannotDeactivateState,
-      cannotDeleteState,
+      cannotDeactivateCount,
+      cannotDeleteCount,
       assignedDrivers,
       completedDocketBreakdown,
     ],
@@ -200,17 +191,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
-    deactivate: () => {
-      setCannotDeactivateState(null);
-      setActiveDialog('deactivate');
-    },
-    reactivate: () => {
-      setActiveDialog('reactivate');
-    },
-    delete: () => {
-      setCannotDeleteState(null);
-      setActiveDialog('delete');
-    },
+    deactivate: () => setActiveDialog('deactivate'),
+    reactivate: () => setActiveDialog('reactivate'),
+    delete: () => setActiveDialog('delete'),
   };
 
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => (
