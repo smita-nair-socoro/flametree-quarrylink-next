@@ -7,7 +7,8 @@ import { DriverDTO } from '@/lib/types/driver';
 
 export type TruckOption = {
   id: number;
-  registration: string;
+  licensePlate: string;
+  haulierName?: string;
 };
 
 export function AssignTruckDescription({ driver }: { driver?: DriverDTO | null }) {
@@ -28,12 +29,18 @@ export function AssignTruckContent({
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
 
-  const filtered = React.useMemo(
-    () => trucks.filter((t) =>
-      t.registration.toLowerCase().includes(search.toLowerCase()),
-    ),
-    [trucks, search],
-  );
+  const groups = React.useMemo(() => {
+    const filtered = trucks.filter((t) =>
+      t.licensePlate.toLowerCase().includes(search.toLowerCase()),
+    );
+    const map = new Map<string, TruckOption[]>();
+    for (const truck of filtered) {
+      const group = truck.haulierName ?? 'Trucks';
+      if (!map.has(group)) map.set(group, []);
+      map.get(group)!.push(truck);
+    }
+    return map;
+  }, [trucks, search]);
 
   const toggle = (id: number) => {
     const updated = selectedIds.includes(id)
@@ -56,20 +63,27 @@ export function AssignTruckContent({
       </div>
 
       <div className="border rounded-md overflow-hidden">
-        {filtered.length === 0 ? (
+        {groups.size === 0 ? (
           <p className="text-sm text-muted-foreground p-4">No trucks found.</p>
         ) : (
-          filtered.map((truck) => (
-            <label
-              key={truck.id}
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50"
-            >
-              <Checkbox
-                checked={selectedIds.includes(truck.id)}
-                onCheckedChange={() => toggle(truck.id)}
-              />
-              <span className="text-sm font-medium">{truck.registration}</span>
-            </label>
+          Array.from(groups.entries()).map(([haulierName, groupTrucks]) => (
+            <div key={haulierName}>
+              <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
+                {haulierName}
+              </p>
+              {groupTrucks.map((truck) => (
+                <label
+                  key={truck.id}
+                  className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/50"
+                >
+                  <Checkbox
+                    checked={selectedIds.includes(truck.id)}
+                    onCheckedChange={() => toggle(truck.id)}
+                  />
+                  <span className="text-sm font-medium">{truck.licensePlate}</span>
+                </label>
+              ))}
+            </div>
           ))
         )}
       </div>

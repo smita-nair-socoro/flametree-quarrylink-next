@@ -16,10 +16,20 @@ import { DriverDTO } from '@/lib/types/driver';
 
 // Dummy available trucks for assignment — replace with real API data
 // TODO: replace with real truck list from API (filtered by haulier)
+// TODO: replace with real truck list from API (filtered by haulier)
 const AVAILABLE_TRUCKS: TruckOption[] = [
-  { id: 3, registration: 'INT-XYZ789' },
-  { id: 4, registration: 'INT-ABC123' },
-  { id: 5, registration: 'EXT-DEF456' },
+  { id: 3, licensePlate: 'ABC-123', haulierName: 'Acme Hauliers' },
+  { id: 4, licensePlate: 'DEF-456', haulierName: 'Acme Hauliers' },
+  { id: 5, licensePlate: 'GHI-789', haulierName: 'Acme Hauliers' },
+  { id: 6, licensePlate: 'ABC-123', haulierName: 'Acme Hauliers' },
+  { id: 7, licensePlate: 'DEF-22456', haulierName: 'Acme Hauliers' },
+  { id: 8, licensePlate: 'GHI-11789', haulierName: 'Acme Hauliers' },
+  { id: 9, licensePlate: 'ABC-124', haulierName: 'Acme Hauliers' },
+  { id: 10, licensePlate: 'DEF-2456', haulierName: 'Acme Hauliers' },
+  { id: 11, licensePlate: 'GHI-1789', haulierName: 'Acme Hauliers' },
+  { id: 12, licensePlate: 'ABC-1233', haulierName: 'Acme Hauliers' },
+  { id: 13, licensePlate: 'DEF-4526', haulierName: 'Acme Hauliers' },
+  { id: 14, licensePlate: 'GHI-7819', haulierName: 'Acme Hauliers' },
 ];
 
 interface DialogConfig {
@@ -28,7 +38,12 @@ interface DialogConfig {
   content: React.ReactNode;
   confirmText?: string;
   confirmCustomColor?: string;
-  confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+  confirmVariant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   confirmActionNeeded?: boolean;
   cancelText?: string;
@@ -46,7 +61,9 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     setSelectedTruckIds([]);
   };
 
-  const handleUnassignTruck = async (truck: UnassignTruckInfo & { id: number }) => {
+  const handleUnassignTruck = async (
+    truck: UnassignTruckInfo & { id: number },
+  ) => {
     // TODO: wire up unassign truck API call
     console.log('Unassign truck:', driverData?.id, truck.id);
     setActiveDialog(null);
