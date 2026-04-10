@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/data-table-client';
 import { truckColumns } from './(components)/(data-tables)/truck/columns';
 import rawJson from '@/lib/tests/trucksResponseData.json';
+import { FormDialog } from '@/components/form-dialog';
+import TruckForm from './(components)/forms/truck-form';
 
 export default function TrucksPage() {
   const items: TruckDTO[] = React.useMemo(() => {
@@ -26,6 +28,15 @@ export default function TrucksPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Trucks</h1>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <FormDialog
+            dialogTitle="Add New Truck"
+            dialogDescription="Fill in the required fields to add a new truck."
+            buttonTitle="Add Truck"
+          >
+            <TruckForm />
+          </FormDialog>
         </div>
       </div>
 

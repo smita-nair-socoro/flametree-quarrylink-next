@@ -29,8 +29,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
-import { useGetAllHauliers } from '@/lib/api/haulier';
-
+import { HauliersListQueryOptions } from '@/lib/api/haulier';
+import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
   TooltipContent,
@@ -116,7 +116,7 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { data: hauliers = [] } = useGetAllHauliers();
+  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const haulierItems = React.useMemo(
     () =>
       hauliers.map((h) => ({
