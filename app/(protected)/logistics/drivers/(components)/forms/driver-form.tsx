@@ -183,14 +183,7 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverForm.formState.isDirty]);
 
-  // Clear haulier selection when switching to internal (create mode only)
-  React.useEffect(() => {
-    if (isInternal && !isEditing) {
-      driverForm.setValue('haulierId', 0);
-    }
-  }, [isInternal, isEditing, driverForm]);
-
-  const isPending = createDriver.isPending || updateDriver.isPending;
+const isPending = createDriver.isPending || updateDriver.isPending;
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
@@ -308,6 +301,7 @@ export default function DriverForm({
                   <RadioGroup
                     value={field.value}
                     onValueChange={field.onChange}
+                    disabled={isEditing}
                     className="flex gap-6"
                   >
                     <FormItem className="flex items-center gap-2">
@@ -381,6 +375,7 @@ export default function DriverForm({
                 name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
+                disabled={isEditing}
                 items={haulierItems}
                 renderForm={(
                   editingItem,
