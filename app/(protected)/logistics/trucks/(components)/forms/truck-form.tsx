@@ -32,6 +32,8 @@ import { useClientStore } from '@/app/stores/client-store';
 import { DriversListQueryOptions } from '@/lib/api/driver';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { DataTableClient } from '@/components/ui/data-table-client';
+import { YearPicker } from '@/components/year-picker';
+import { FormMultiSelect } from '@/components/ui/form-multi-select';
 
 interface FormProps {
   id?: number;
@@ -187,7 +189,7 @@ export default function TruckForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -339,14 +341,24 @@ export default function TruckForm({
             )}
           />
 
-          {/* Year */}
-          <FormSelect
+          <FormField
             control={truckForm.control}
             name="year"
-            label="Year*"
-            searchLabel="Year"
-            options={yearOptions}
-            placeholder="Select Year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year*</FormLabel>
+                <FormControl>
+                  <YearPicker
+                    value={field.value ? new Date(parseInt(field.value), 0, 1) : undefined}
+                    onChangeAction={(date) => {
+                      field.onChange(date ? date.getFullYear().toString() : undefined);
+                    }}
+                    placeholder="Select Year"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           {/* Truck Type (vehicle category) */}
@@ -427,11 +439,10 @@ export default function TruckForm({
           {/* Driver Assignment */}
           <h2 className="text-lg font-bold">Driver Assignment</h2>
           <Separator />
-          <FormSelect
+          <FormMultiSelect
             control={truckForm.control}
             name="driverId"
             label="Drivers (Optional)"
-            searchLabel="Driver"
             options={driverOptions}
             placeholder="Search or Select Drivers"
           />

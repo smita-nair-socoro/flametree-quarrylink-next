@@ -30,8 +30,6 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
 import { useGetAllHauliers } from '@/lib/api/haulier';
-import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
 import {
   Tooltip,
   TooltipContent,
@@ -235,7 +233,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
