@@ -1043,15 +1043,6 @@ export const APIClient = {
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
-    assignTrucks: (driverId: number, truckIds: number[]) =>
-      appClient.Post<DriverDTO>(
-        `/socoro/quarrylink/api/driver/${driverId}/trucks`,
-        { body: { truckIds } },
-      ),
-    unassignTruck: (driverId: number, truckId: number) =>
-      appClient.Delete<DriverDTO>(
-        `/socoro/quarrylink/api/driver/${driverId}/trucks/${truckId}`,
-      ),
   },
 
   tenants: {

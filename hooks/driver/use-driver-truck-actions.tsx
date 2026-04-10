@@ -13,15 +13,13 @@ import {
   UnassignTruckInfo,
 } from './unassign-truck-content';
 import { DriverDTO } from '@/lib/types/driver';
-import { useAssignTrucks, useUnassignTruck } from '@/lib/api/driver';
-import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 // Dummy available trucks for assignment — replace with real API data
+// TODO: replace with real truck list from API (filtered by haulier)
 const AVAILABLE_TRUCKS: TruckOption[] = [
   { id: 3, registration: 'INT-XYZ789' },
   { id: 4, registration: 'INT-ABC123' },
-  { id: 5, registration: 'EXT-DEF456', groupName: 'External' },
+  { id: 5, registration: 'EXT-DEF456' },
 ];
 
 interface DialogConfig {
@@ -42,39 +40,17 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
 
-  const assignTrucks = useAssignTrucks();
-  const unassignTruck = useUnassignTruck();
-
   const handleAssignTrucks = async () => {
-    if (!driverData?.id || selectedTruckIds.length === 0) return;
-    try {
-      await assignTrucks.mutateAsync({
-        driverId: driverData.id,
-        truckIds: selectedTruckIds,
-      });
-      notifySuccess('Trucks assigned successfully.');
-      setSelectedTruckIds([]);
-    } catch (error) {
-      notifyError(
-        extractErrorMessage(error) || 'Failed to assign trucks. Please try again.',
-      );
-    }
+    // TODO: wire up assign trucks API call
+    console.log('Assign trucks:', driverData?.id, selectedTruckIds);
+    setSelectedTruckIds([]);
   };
 
   const handleUnassignTruck = async (truck: UnassignTruckInfo & { id: number }) => {
-    if (!driverData?.id) return;
-    try {
-      await unassignTruck.mutateAsync({
-        driverId: driverData.id,
-        truckId: truck.id,
-      });
-      notifySuccess('Truck unassigned successfully.');
-      setActiveDialog(null);
-      setSelectedTruck(null);
-    } catch (error) {
-      // Backend returns an error when the truck cannot be unassigned due to active deliveries
-      setActiveDialog('unassignBlocked');
-    }
+    // TODO: wire up unassign truck API call
+    console.log('Unassign truck:', driverData?.id, truck.id);
+    setActiveDialog(null);
+    setSelectedTruck(null);
   };
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(

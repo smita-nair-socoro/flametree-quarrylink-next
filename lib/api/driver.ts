@@ -91,36 +91,3 @@ export const usePatchDriverHaulier = () => {
   });
 };
 
-export const useAssignTrucks = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      driverId,
-      truckIds,
-    }: {
-      driverId: number;
-      truckIds: number[];
-    }) => APIClient.drivers.assignTrucks(driverId, truckIds),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
-    },
-  });
-};
-
-export const useUnassignTruck = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      driverId,
-      truckId,
-    }: {
-      driverId: number;
-      truckId: number;
-    }) => APIClient.drivers.unassignTruck(driverId, truckId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
-    },
-  });
-};
