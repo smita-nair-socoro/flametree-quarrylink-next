@@ -194,10 +194,10 @@ export function MarkDeliveredContent({
                 <button
                   type="button"
                   onClick={() => onUnloadedPhotoChange(null)}
-                  className="absolute right-2 top-2 z-20 rounded-full bg-white/90 p-1 text-[#374151] shadow"
+                  className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-3 text-[#374151] shadow"
                   aria-label="Remove unloaded photo"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             ) : (
@@ -253,10 +253,10 @@ export function MarkDeliveredContent({
                 <button
                   type="button"
                   onClick={() => onReceiptPhotoChange(null)}
-                  className="absolute right-2 top-2 z-20 rounded-full bg-white/90 p-1 text-[#374151] shadow"
+                  className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-3 text-[#374151] shadow"
                   aria-label="Remove receipt photo"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             ) : (

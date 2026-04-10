@@ -47,7 +47,11 @@ export interface DocketDTO {
   id: number;
   docketNumber: string;
   jobId: number;
-  truckInsepctionRequired: boolean;
+  truckInspectionRequired: boolean;
+
+  // Remove this once API is ready
+  preStartRequired?: boolean;
+
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
   stopReason?: string;
