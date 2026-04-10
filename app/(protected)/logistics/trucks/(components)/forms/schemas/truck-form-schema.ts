@@ -15,11 +15,17 @@ export const TruckFormSchema = z
       .trim()
       .nonempty({ message: 'Make & Model is required' })
       .max(256, 'Maximum 256 characters'),
-    year: z.string().optional(),
+    year: z.string().nonempty({ message: 'Year is required' }),
     truckType: z.nativeEnum(TRUCK_TYPE, { message: 'Truck type is required' }),
-    tankVolumeM3: z.coerce.number().nonnegative().optional(),
-    tareWeight: z.coerce.number().nonnegative().optional(),
-    combinationGvm: z.coerce.number().nonnegative().optional(),
+    tankVolumeM3: z.coerce
+      .number()
+      .positive({ message: 'Volume must be greater than 0' }),
+    tareWeight: z.coerce
+      .number()
+      .positive({ message: 'Tare weight must be greater than 0' }),
+    combinationGvm: z.coerce
+      .number()
+      .positive({ message: 'GVM weight must be greater than 0' }),
     driverId: z.string().optional(),
   })
   .superRefine((data, ctx) => {
