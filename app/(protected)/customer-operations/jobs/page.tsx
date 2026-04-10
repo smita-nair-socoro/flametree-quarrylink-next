@@ -32,9 +32,9 @@ export default function CustomersPage() {
   // Statistics cards data
   const statsCards: StatsCardData[] = [
     {
-      title: 'Jobs in Progress',
+      title: 'Open Jobs',
       value: '15',
-      description: 'Active jobs requiring resources',
+      description: 'Jobs requiring resources',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -51,9 +51,8 @@ export default function CustomersPage() {
     },
     {
       title: 'Completed Jobs ',
-      title2: '(Ready for invoicing)',
       value: '12',
-      description: 'Across 24 dockets',
+      description: '24 dockets ready for invoicing',
       icon: Package,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
