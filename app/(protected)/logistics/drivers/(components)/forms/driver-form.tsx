@@ -238,7 +238,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
