@@ -37,6 +37,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
 
   const handleDelete = () => {
     setDropdownOpen(false);
+    actions.delete();
   };
 
   return (
