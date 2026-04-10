@@ -249,6 +249,7 @@ export default function TruckForm({
                 onValueChange={(v) =>
                   setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')
                 }
+                disabled={isEditing}
                 className="flex gap-6"
               >
                 <FormItem className="flex items-center gap-2">
