@@ -251,10 +251,11 @@ export default function DriverForm({
   }
 
   // TODO: replace with real truck list from API (filtered by haulier)
+  const haulierName = selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks';
   const truckOptions = [
-    { label: 'ABC-123', value: 'ABC-123' },
-    { label: 'DEF-456', value: 'DEF-456' },
-    { label: 'GHI-789', value: 'GHI-789' },
+    { label: 'ABC-123', value: 'ABC-123', group: haulierName },
+    { label: 'DEF-456', value: 'DEF-456', group: haulierName },
+    { label: 'GHI-789', value: 'GHI-789', group: haulierName },
   ];
 
   // Dummy trucks and compliance — replace with real API data when backend is available

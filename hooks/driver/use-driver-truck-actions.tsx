@@ -3,7 +3,6 @@ import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import {
   AssignTruckContent,
-  AssignTruckDescription,
   TruckOption,
 } from './assign-truck-content';
 import {
@@ -74,7 +73,6 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     () => ({
       assign: {
         title: 'Assign Truck',
-        description: <AssignTruckDescription driver={driverData} />,
         content: (
           <AssignTruckContent
             trucks={AVAILABLE_TRUCKS}
