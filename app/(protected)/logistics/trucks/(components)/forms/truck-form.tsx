@@ -141,12 +141,6 @@ export default function TruckForm({
 
   const isInternal = truckOwnerType === 'INTERNAL';
 
-  const selectedHaulierId = truckForm.watch('haulierId');
-  const selectedHaulierInfo = React.useMemo(() => {
-    if (isInternal) return internalHaulier;
-    return hauliers.find((h) => h.id === selectedHaulierId);
-  }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
-
   const truckForm = useForm<TruckFormValues>({
     resolver: zodResolver(TruckFormSchema),
     mode: 'onChange',
@@ -163,6 +157,12 @@ export default function TruckForm({
       driverId: '',
     },
   });
+
+  const selectedHaulierId = truckForm.watch('haulierId');
+  const selectedHaulierInfo = React.useMemo(() => {
+    if (isInternal) return internalHaulier;
+    return hauliers.find((h) => h.id === selectedHaulierId);
+  }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
   // Report dirty state to parent
   React.useEffect(() => {

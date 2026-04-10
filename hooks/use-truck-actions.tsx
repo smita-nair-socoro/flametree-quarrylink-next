@@ -43,6 +43,7 @@ interface DialogConfig {
 
 export function useTruckActions(truckData?: TruckDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
+  const [viewOpen, setViewOpen] = React.useState(false);
   const [cannotDeactivateCount, setCannotDeactivateCount] = React.useState<
     number | null
   >(null);
@@ -193,6 +194,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
+    view: () => setViewOpen(true),
     deactivate: () => setActiveDialog('deactivate'),
     reactivate: () => setActiveDialog('reactivate'),
     delete: () => setActiveDialog('delete'),
