@@ -18,9 +18,10 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { HaulierFormSchema } from './schemas/haulier-form-schema';
 import z from 'zod';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
+import { useQuery } from '@tanstack/react-query';
 import {
   useCreateHaulier,
-  useGetHaulierById,
+  HaulierDetailQueryOptions,
   useUpdateHaulier,
 } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -43,7 +44,7 @@ export default function HaulierForm({
   const updateHaulier = useUpdateHaulier();
   const editingId = isEditing && editingItem?.id ? Number(editingItem.id) : 0;
 
-  const { data: haulierData } = useGetHaulierById(editingId);
+  const { data: haulierData } = useQuery(HaulierDetailQueryOptions(editingId));
 
   const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),

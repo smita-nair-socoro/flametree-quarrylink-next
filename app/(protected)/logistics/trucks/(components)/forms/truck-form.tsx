@@ -24,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import { useGetAllHauliers } from '@/lib/api/haulier';
+import { HauliersListQueryOptions } from '@/lib/api/haulier';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
@@ -110,18 +110,20 @@ export default function TruckForm({
     'INTERNAL' | 'EXTERNAL'
   >('INTERNAL');
 
-  const { data: hauliers = [] } = useGetAllHauliers();
+  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const tenantName = useClientStore((state) => state.getTenantName());
   const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
 
   const haulierItems = React.useMemo(
     () =>
-      hauliers.map((h) => ({
-        id: h.id,
-        label: h.haulierName,
-        fields: { email: h.emailAddress, phone: h.phoneNumber },
-      })),
-    [hauliers],
+      hauliers
+        .filter((h) => h.haulierName !== tenantName)
+        .map((h) => ({
+          id: h.id,
+          label: h.haulierName,
+          fields: { email: h.emailAddress, phone: h.phoneNumber },
+        })),
+    [hauliers, tenantName],
   );
 
   const { data: drivers = [] } = useQuery(DriversListQueryOptions());
@@ -166,7 +168,7 @@ export default function TruckForm({
         shouldDirty: true,
       });
     }
-  }, [isInternal, isEditing, truckForm]);
+  }, [isInternal, isEditing, truckForm, internalHaulier?.id]);
 
   async function onSubmit(values: TruckFormValues) {
     try {
@@ -228,159 +230,106 @@ export default function TruckForm({
           onSubmit={truckForm.handleSubmit(onSubmit, onError)}
         >
           {/* Basic Information */}
-          <h2 className="text-lg font-bold">Basic Information</h2>
-          <Separator />
+          <div className="flex flex-col gap-3">
+            <h2 className="text-lg font-bold">Basic Information</h2>
+            <Separator />
 
-          {/* Truck Type (ownership) */}
-          <FormItem>
-            <FormLabel>Truck Type*</FormLabel>
-            <RadioGroup
-              value={truckOwnerType}
-              onValueChange={(v) =>
-                setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')
-              }
-              className="flex gap-6"
-            >
-              <FormItem className="flex items-center gap-2">
-                <RadioGroupItem value="INTERNAL" />
-                <FormLabel className="font-normal">Internal</FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center gap-2">
-                <RadioGroupItem value="EXTERNAL" />
-                <FormLabel className="font-normal">External</FormLabel>
-              </FormItem>
-            </RadioGroup>
-          </FormItem>
-
-          {/* Haulier */}
-          {isInternal ? (
-            <FormItem>
-              <FormLabel>Haulier</FormLabel>
-              <Input
-                value={
-                  internalHaulier?.haulierName ??
-                  tenantName ??
-                  'My Company Haulier'
+            {/* Truck Type (ownership) */}
+            <FormItem className="mb-3">
+              <FormLabel>Truck Type*</FormLabel>
+              <RadioGroup
+                value={truckOwnerType}
+                onValueChange={(v) =>
+                  setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')
                 }
-                disabled
-              />
+                className="flex gap-6"
+              >
+                <FormItem className="flex items-center gap-2">
+                  <RadioGroupItem value="INTERNAL" />
+                  <FormLabel className="font-normal">Internal</FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center gap-2">
+                  <RadioGroupItem value="EXTERNAL" />
+                  <FormLabel className="font-normal">External</FormLabel>
+                </FormItem>
+              </RadioGroup>
             </FormItem>
-          ) : (
-            <SelectCreateEdit
-              control={truckForm.control}
-              name="haulierId"
-              label="Haulier*"
-              entityName="Haulier"
-              items={haulierItems}
-              renderForm={(
-                editingItem,
-                isEditingItem,
-                onSave,
-                onCancelItem,
-              ) => (
-                <HaulierForm
-                  editingItem={editingItem}
-                  isEditing={isEditingItem}
-                  onSave={onSave}
-                  onCancel={onCancelItem}
+
+            {/* Haulier */}
+            {isInternal ? (
+              <FormItem className="mb-5">
+                <FormLabel>Haulier</FormLabel>
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
                 />
-              )}
-            />
-          )}
-
-          {/* Truck Registration */}
-          <FormField
-            control={truckForm.control}
-            name="licensePlate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Truck Registration*</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., ABC123" {...field} />
-                </FormControl>
-                <FormMessage />
               </FormItem>
-            )}
-          />
-
-          {/* VIN */}
-          <FormField
-            control={truckForm.control}
-            name="vin"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>VIN (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="ABC123" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Make & Model */}
-          <FormField
-            control={truckForm.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Make &amp; Model*</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Volvo FH16 500hp" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={truckForm.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year*</FormLabel>
-                <FormControl>
-                  <YearPicker
-                    value={field.value ? new Date(parseInt(field.value), 0, 1) : undefined}
-                    onChangeAction={(date) => {
-                      field.onChange(date ? date.getFullYear().toString() : undefined);
-                    }}
-                    placeholder="Select Year"
+            ) : (
+              <SelectCreateEdit
+                control={truckForm.control}
+                name="haulierId"
+                label="Haulier*"
+                entityName="Haulier"
+                items={haulierItems}
+                renderForm={(
+                  editingItem,
+                  isEditingItem,
+                  onSave,
+                  onCancelItem,
+                ) => (
+                  <HaulierForm
+                    editingItem={editingItem}
+                    isEditing={isEditingItem}
+                    onSave={onSave}
+                    onCancel={onCancelItem}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+                )}
+              />
             )}
-          />
 
-          {/* Truck Type (vehicle category) */}
-          <FormSelect
-            control={truckForm.control}
-            name="truckType"
-            label="Truck Type*"
-            searchLabel="Truck Type"
-            options={truckTypeOptions}
-            placeholder="Select Truck Type"
-          />
-
-          {/* Volume & Weight */}
-          <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
-          <Separator />
-          <div className="grid grid-cols-3 gap-4">
+            {/* Truck Registration */}
             <FormField
               control={truckForm.control}
-              name="tankVolumeM3"
+              name="licensePlate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Volume*</FormLabel>
+                  <FormLabel>Truck Registration*</FormLabel>
                   <FormControl>
-                    <Input
-                      isNumber
-                      placeholder=""
-                      suffix="m³"
-                      {...field}
-                      value={field.value ?? ''}
-                    />
+                    <Input placeholder="e.g., ABC123" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* VIN */}
+            <FormField
+              control={truckForm.control}
+              name="vin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>VIN (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ABC123" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Make & Model */}
+            <FormField
+              control={truckForm.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Make &amp; Model*</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Volvo FH16 500hp" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -389,17 +338,17 @@ export default function TruckForm({
 
             <FormField
               control={truckForm.control}
-              name="tareWeight"
+              name="year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tare Weight*</FormLabel>
+                  <FormLabel>Year*</FormLabel>
                   <FormControl>
-                    <Input
-                      isNumber
-                      placeholder=""
-                      suffix="TN"
-                      {...field}
-                      value={field.value ?? ''}
+                    <YearPicker
+                      value={field.value ? new Date(parseInt(field.value), 0, 1) : undefined}
+                      onChangeAction={(date) => {
+                        field.onChange(date ? date.getFullYear().toString() : undefined);
+                      }}
+                      placeholder="Select Year"
                     />
                   </FormControl>
                   <FormMessage />
@@ -407,27 +356,85 @@ export default function TruckForm({
               )}
             />
 
-            <FormField
+            {/* Truck Type (vehicle category) */}
+            <FormSelect
               control={truckForm.control}
-              name="combinationGvm"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>GVM Weight*</FormLabel>
-                  <FormControl>
-                    <Input
-                      isNumber
-                      placeholder=""
-                      suffix="TN"
-                      {...field}
-                      value={field.value ?? ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="truckType"
+              label="Truck Type*"
+              searchLabel="Truck Type"
+              options={truckTypeOptions}
+              placeholder="Select Truck Type"
             />
+
           </div>
 
+          <div className="flex flex-col gap-3">
+            {/* Volume & Weight */}
+            <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
+            <Separator />
+            <div className={cn("grid grid-cols-3 gap-4", isDesktop ? 'grid-cols-3' : 'grid-cols-1')}>
+              <FormField
+                control={truckForm.control}
+                name="tankVolumeM3"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Volume*</FormLabel>
+                    <FormControl>
+                      <Input
+                        isNumber
+                        placeholder=""
+                        suffix="m³"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={truckForm.control}
+                name="tareWeight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tare Weight*</FormLabel>
+                    <FormControl>
+                      <Input
+                        isNumber
+                        placeholder=""
+                        suffix="TN"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={truckForm.control}
+                name="combinationGvm"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>GVM Weight*</FormLabel>
+                    <FormControl>
+                      <Input
+                        isNumber
+                        placeholder=""
+                        suffix="TN"
+                        {...field}
+                        value={field.value ?? ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+          </div>
           {/* Driver Assignment */}
           <h2 className="text-lg font-bold">Driver Assignment</h2>
           <Separator />
@@ -501,33 +508,62 @@ export default function TruckForm({
           )}
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-2 mb-6">
-            <Button
-              variant="outline"
-              type="button"
-              className="cursor-pointer"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              form="truck-form"
-              type="submit"
-              disabled={isSubmitting}
-              className="cursor-pointer"
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Truck...'
-                : isEditing
-                  ? 'Update Truck'
-                  : 'Add Truck'}
-            </Button>
-          </div>
+          {isDesktop && (
+            <div className="flex justify-end gap-3 pt-2 mb-6">
+              <Button
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+              <Button
+                form="truck-form"
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer"
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Truck...'
+                  : isEditing
+                    ? 'Update Truck'
+                    : 'Add Truck'}
+              </Button>
+            </div>
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 my-6">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Truck...'
+                  : isEditing
+                    ? 'Update Truck'
+                    : 'Add Truck'}
+              </Button>
+              <Button
+                form="truck-form"
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                disabled={isSubmitting}
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>
