@@ -72,7 +72,7 @@ export default function DocketsPage() {
     {
       title: 'Scheduled Dockets Today',
       value: '15',
-      description: '12 Delivery | Collection',
+      description: '12 Delivery | 3 Collection',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
