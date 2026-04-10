@@ -33,6 +33,7 @@ import { DriversListQueryOptions } from '@/lib/api/driver';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
 
 interface FormProps {
   id?: number;
@@ -66,7 +67,7 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-// TODO: replace with real inspection columns when backend is ready
+// TODO: replace with real inspection data from API
 const DUMMY_INSPECTIONS = [
   {
     id: 1,
@@ -92,15 +93,16 @@ const DUMMY_INSPECTIONS = [
     status: 'PASS',
     notes: 'No defects identified during inspection.',
   },
+  {
+    id: 4,
+    checklistId: 'TI-24-004',
+    date: 'Feb 13, 2024',
+    driver: 'John Smith',
+    status: 'CONFIRMED',
+    notes: 'External haulier check confirmed by driver.',
+  },
 ];
 
-const inspectionColumns = [
-  { accessorKey: 'checklistId', header: 'Inspection ID' },
-  { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'driver', header: 'Driver' },
-  { accessorKey: 'status', header: 'Status' },
-  { accessorKey: 'notes', header: 'Notes' },
-];
 
 export default function TruckForm({
   id,
