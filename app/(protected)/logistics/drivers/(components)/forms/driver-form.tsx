@@ -44,6 +44,7 @@ import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
+import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -182,7 +183,7 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverForm.formState.isDirty]);
 
-const isPending = createDriver.isPending || updateDriver.isPending;
+  const isPending = createDriver.isPending || updateDriver.isPending;
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
@@ -194,13 +195,13 @@ const isPending = createDriver.isPending || updateDriver.isPending;
         await updateDriver.mutateAsync({
           id,
           data: {
-            version: driverData.version,
+            version: driverData.version ?? 0,
             driverName: values.driverName,
             licenseNumber: values.driverLicenseNumber,
             emailAddress: values.email,
             phoneNumber: values.phone,
             driverType: values.type,
-            driverStatus: driverData.driverStatus,
+            driverStatus: driverData.driverStatus ?? DRIVER_STATUS.ACTIVE,
             truckIds: driverData.truckIds ?? [],
             haulierId: selectedHaulierData?.id,
           },
@@ -230,7 +231,7 @@ const isPending = createDriver.isPending || updateDriver.isPending;
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -300,8 +301,8 @@ const isPending = createDriver.isPending || updateDriver.isPending;
                   <RadioGroup
                     value={field.value}
                     onValueChange={field.onChange}
+                    className="flex gap-6 mt-2"
                     disabled={isEditing}
-                    className="flex gap-6"
                   >
                     <FormItem className="flex items-center gap-2">
                       <FormControl>
@@ -323,7 +324,7 @@ const isPending = createDriver.isPending || updateDriver.isPending;
             )}
           />
 
-          <Separator />
+          <Separator className="my-3" />
 
           {/* Driver Name + Haulier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -389,6 +390,7 @@ const isPending = createDriver.isPending || updateDriver.isPending;
                     onCancel={onCancelItem}
                   />
                 )}
+                disabled={isEditing}
               />
             )}
           </div>
