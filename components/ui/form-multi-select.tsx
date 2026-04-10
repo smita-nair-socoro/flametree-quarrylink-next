@@ -7,23 +7,21 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from '@/components/ui/command';
 import { FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ChevronsUpDown, X, Check } from 'lucide-react';
+import { ChevronsUpDown, X, Search } from 'lucide-react';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+
+export interface FormMultiSelectOption extends FormSelectOption {
+  group?: string;
+}
 
 interface FormMultiSelectProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;
   name: Path<TFieldValues>;
   label?: string;
-  options: readonly FormSelectOption[];
+  options: readonly FormMultiSelectOption[];
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -43,6 +41,7 @@ export function FormMultiSelect<TFieldValues extends FieldValues>({
   searchPlaceholder = 'Search...',
 }: FormMultiSelectProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
 
   const {
     field,
@@ -61,6 +60,24 @@ export function FormMultiSelect<TFieldValues extends FieldValues>({
   function remove(value: string) {
     field.onChange(selected.filter((v) => v !== value));
   }
+
+  const filtered = React.useMemo(
+    () =>
+      options.filter((o) =>
+        String(o.label).toLowerCase().includes(search.toLowerCase()),
+      ),
+    [options, search],
+  );
+
+  const groups = React.useMemo(() => {
+    const map = new Map<string, FormMultiSelectOption[]>();
+    for (const opt of filtered) {
+      const group = opt.group ?? '';
+      if (!map.has(group)) map.set(group, []);
+      map.get(group)!.push(opt);
+    }
+    return map;
+  }, [filtered]);
 
   const triggerLabel =
     selected.length === 0
@@ -92,46 +109,51 @@ export function FormMultiSelect<TFieldValues extends FieldValues>({
         </PopoverTrigger>
 
         <PopoverContent
-          className="p-1 w-[var(--radix-popover-trigger-width)]"
+          className="p-0 w-[var(--radix-popover-trigger-width)] overflow-hidden"
           align="start"
         >
-          <Command>
-            <CommandInput placeholder={searchPlaceholder} className="h-9" />
-            <CommandList>
-              <CommandEmpty>No options found.</CommandEmpty>
-              <CommandGroup>
-                {options.map((opt) => {
-                  const isSelected = selected.includes(String(opt.value));
-                  return (
-                    <CommandItem
-                      key={opt.value}
-                      value={`${opt.label} __${String(opt.value)}`}
-                      onSelect={() => toggle(String(opt.value))}
-                      className="cursor-pointer flex items-center gap-2"
-                    >
-                      {/* Checkbox */}
-                      <div
-                        className={cn(
-                          'h-4 w-4 rounded flex items-center justify-center border flex-shrink-0',
-                          isSelected
-                            ? 'bg-violet-600 border-violet-600'
-                            : 'border-input bg-background',
-                        )}
+          {/* Search */}
+          <div className="relative border-b">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 border-0 rounded-none shadow-none focus-visible:ring-0"
+            />
+          </div>
+
+          {/* List */}
+          <div className="max-h-60 overflow-y-auto">
+            {groups.size === 0 ? (
+              <p className="text-sm text-muted-foreground p-4">No options found.</p>
+            ) : (
+              Array.from(groups.entries()).map(([groupName, groupOpts]) => (
+                <div key={groupName}>
+                  {groupName && (
+                    <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
+                      {groupName}
+                    </p>
+                  )}
+                  {groupOpts.map((opt) => {
+                    const isSelected = selected.includes(String(opt.value));
+                    return (
+                      <label
+                        key={opt.value}
+                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
                       >
-                        {isSelected && (
-                          <Check
-                            className="h-3 w-3 text-white"
-                            strokeWidth={1.5}
-                          />
-                        )}
-                      </div>
-                      <span>{opt.label}</span>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggle(String(opt.value))}
+                        />
+                        <span className="text-sm font-medium">{opt.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ))
+            )}
+          </div>
         </PopoverContent>
       </Popover>
 
@@ -160,7 +182,7 @@ export function FormMultiSelect<TFieldValues extends FieldValues>({
             variant="ghost"
             size="sm"
             onClick={() => field.onChange([])}
-            className=" h-auto px-2 py-1 border rounded-md text-sm font-normal"
+            className="h-auto px-2 py-1 border rounded-md text-sm font-normal"
           >
             Clear all
           </Button>
