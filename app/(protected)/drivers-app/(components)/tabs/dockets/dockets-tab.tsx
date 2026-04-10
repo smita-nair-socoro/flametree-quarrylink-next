@@ -196,8 +196,8 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
 
       {confirmDialogs}
 
-      <Drawer 
-        open={isDrawerOpen} 
+      <Drawer
+        open={isDrawerOpen}
         onOpenChange={(open) => {
           if (!open && isDialogOpen) return;
           setIsDrawerOpen(open);
@@ -406,7 +406,24 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
                     </span>
                   </Button>
                 )}
-                {selectedDocket.truckInsepctionRequired && (
+                {selectedDocket.preStartRequired && (
+                  <Button
+                    variant="outline"
+                    className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
+                    onClick={() => {
+                      setIsDrawerOpen(false);
+                      onOpenChecklist?.(
+                        'pre-start',
+                        selectedDocket.docketNumber,
+                      );
+                    }}
+                  >
+                    <span className="flex items-center gap-2">
+                      Pre-Start Checklist Required
+                    </span>
+                  </Button>
+                )}
+                {selectedDocket.truckInspectionRequired && !selectedDocket.preStartRequired && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -419,7 +436,7 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
                     }}
                   >
                     <span className="flex items-center gap-2">
-                      Truck Insepction Required
+                      Truck Inspection Required
                     </span>
                   </Button>
                 )}
@@ -429,7 +446,7 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
                     onClick={() => {
                       handleAction('startTransit');
                     }}
-                    disabled={selectedDocket.truckInsepctionRequired}
+                    disabled={selectedDocket.truckInspectionRequired}
                   >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />

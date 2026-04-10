@@ -35,11 +35,11 @@ interface DialogConfig {
   confirmCustomColor?: string;
   confirmIcon?: React.ReactNode;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   confirmActionNeeded?: boolean;
   cancelText?: string;

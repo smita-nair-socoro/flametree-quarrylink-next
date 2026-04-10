@@ -120,9 +120,9 @@ export default function HaulierForm({
           e.stopPropagation();
           void form.handleSubmit(onSubmit)(e);
         }}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-2"
       >
-        <Separator />
+        <Separator className="mb-3" />
 
         <FormField
           control={form.control}
@@ -170,18 +170,17 @@ export default function HaulierForm({
           )}
         />
 
-        <div className="flex justify-center gap-3 pt-2 pb-4">
+        <div className="flex justify-end gap-3">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
-            className="flex-1"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+            variant="default"
             disabled={createHaulier.isPending || updateHaulier.isPending}
           >
             {isEditing ? 'Update Haulier' : 'Add Haulier'}

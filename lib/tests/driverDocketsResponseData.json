@@ -3,7 +3,8 @@
     {
       "id": 1,
       "docketNumber": "DD-2026-0011",
-      "truckInsepctionRequired": false,
+      "truckInspectionRequired": false,
+      "preStartRequired": false,
       "jobId": 1,
       "jobItemId": 1,
       "docketStatus": "IN_TRANSIT",
@@ -168,7 +169,8 @@
     {
       "id": 2,
       "docketNumber": "DD-2026-0012",
-      "truckInsepctionRequired": false,
+      "truckInspectionRequired": false,
+      "preStartRequired": false,
       "jobId": 1,
       "jobItemId": 1,
       "docketStatus": "STOPPED",
@@ -505,7 +507,8 @@
     {
       "id": 4,
       "docketNumber": "DD-2026-0014",
-      "truckInsepctionRequired": false,
+      "truckInspectionRequired": false,
+      "preStartRequired": false,
       "jobId": 2,
       "jobItemId": 3,
       "docketStatus": "ARRIVED",
@@ -677,7 +680,8 @@
     {
       "id": 5,
       "docketNumber": "DD-2026-0015",
-      "truckInsepctionRequired": true,
+      "truckInspectionRequired": true,
+      "preStartRequired": true,
       "jobId": 3,
       "jobItemId": 4,
       "docketStatus": "ASSIGNED",
@@ -842,7 +846,8 @@
     {
       "id": 6,
       "docketNumber": "DD-2026-0015",
-      "truckInsepctionRequired": false,
+      "truckInspectionRequired": true,
+      "preStartRequired": false,
       "jobId": 3,
       "jobItemId": 4,
       "docketStatus": "ASSIGNED",

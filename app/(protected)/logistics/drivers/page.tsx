@@ -12,6 +12,7 @@ import {
 import { driverColumns } from './(components)/(data-tables)/driver/columns';
 import { FormDialog } from '@/components/form-dialog';
 import DriverForm from './(components)/forms/driver-form';
+import { useDriverActions } from '@/hooks/use-driver-actions';
 
 export default function DriversPage() {
   const { data: drivers } = useQuery(DriversListQueryOptions());
@@ -23,10 +24,19 @@ export default function DriversPage() {
   const facetDefs: FacetDefinition[] = [
     { column: 'driverStatus', title: 'Status', icon: Plus },
     { column: 'driverType', title: 'Driver Type', icon: Plus },
+    { column: 'haulier', title: 'Haulier', icon: Plus },
   ];
+
+  const { actions, confirmDialogs, viewDialog } = useDriverActions();
+
+  const handleRowClick = (driverData: DriverDTO) => {
+    actions.view(driverData);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Drivers</h1>
@@ -50,6 +60,7 @@ export default function DriversPage() {
           facetDefinition={facetDefs}
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'driverName', desc: false }]}
+          onRowClick={handleRowClick}
         />
       </div>
     </div>

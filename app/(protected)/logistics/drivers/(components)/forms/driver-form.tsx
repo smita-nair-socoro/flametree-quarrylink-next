@@ -45,6 +45,7 @@ import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
+import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -202,13 +203,13 @@ export default function DriverForm({
         await updateDriver.mutateAsync({
           id,
           data: {
-            version: driverData.version,
+            version: driverData.version ?? 0,
             driverName: values.driverName,
             licenseNumber: values.driverLicenseNumber,
             emailAddress: values.email,
             phoneNumber: values.phone,
             driverType: values.type,
-            driverStatus: driverData.driverStatus,
+            driverStatus: driverData.driverStatus ?? DRIVER_STATUS.ACTIVE,
             truckIds: driverData.truckIds ?? [],
             haulierId: selectedHaulierData?.id,
           },
@@ -308,7 +309,8 @@ export default function DriverForm({
                   <RadioGroup
                     value={field.value}
                     onValueChange={field.onChange}
-                    className="flex gap-6"
+                    className="flex gap-6 mt-2"
+                    disabled={isEditing}
                   >
                     <FormItem className="flex items-center gap-2">
                       <FormControl>
@@ -330,7 +332,7 @@ export default function DriverForm({
             )}
           />
 
-          <Separator />
+          <Separator className="my-3" />
 
           {/* Driver Name + Haulier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -395,6 +397,7 @@ export default function DriverForm({
                     onCancel={onCancelItem}
                   />
                 )}
+                disabled={isEditing}
               />
             )}
           </div>
