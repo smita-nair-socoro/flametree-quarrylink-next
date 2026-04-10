@@ -369,7 +369,7 @@ export default function DocketForm({
       <Form {...docketForm}>
         <form
           id="add-new-docket-form"
-          className={cn('p-1 w-full flex flex-col', className)}
+          className={cn('w-full flex flex-col', className)}
           onSubmit={docketForm.handleSubmit(onSubmit)}
         >
           {statusBanner}
