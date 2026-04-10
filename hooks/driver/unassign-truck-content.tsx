@@ -4,15 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { BADGE_COLORS } from '@/lib/utils';
 
 export type UnassignTruckInfo = {
-  registration: string;
+  licensePlate: string;
   status: string;
 };
 
 export function UnassignTruckDescription({
-  truckRegistration,
+  licensePlate,
   driverName,
 }: {
-  truckRegistration: string;
+  licensePlate: string;
   driverName: string;
 }) {
   return (
@@ -23,16 +23,16 @@ export function UnassignTruckDescription({
         </span>
       </div>
       <span className="font-medium">
-        {truckRegistration} / {driverName}
+        {licensePlate} / {driverName}
       </span>
     </div>
   );
 }
 
 export function UnassignTruckBlockedContent({
-  truckRegistration,
+  licensePlate,
 }: {
-  truckRegistration: string;
+  licensePlate: string;
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -48,8 +48,8 @@ export function UnassignTruckBlockedContent({
               Cannot Unassign Truck
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
-              <span className="font-semibold">{truckRegistration}</span> cannot
-              be unassigned because they have active deliveries with this driver.
+              <span className="font-semibold">{licensePlate}</span> cannot be
+              unassigned because they have active deliveries with this driver.
             </span>
           </div>
         </div>
@@ -84,7 +84,7 @@ export function UnassignTruckContent({ truck }: { truck: UnassignTruckInfo }) {
       </span>
 
       <div className="flex items-center justify-between rounded-md border px-4 py-3">
-        <span className="text-sm font-medium">{truck.registration}</span>
+        <span className="text-sm font-medium">{truck.licensePlate}</span>
         <Badge
           variant="outline"
           className={

@@ -1,10 +1,8 @@
 'use client';
 import * as React from 'react';
+import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
-import {
-  AssignTruckContent,
-  TruckOption,
-} from './assign-truck-content';
+import { AssignTruckContent, TruckOption } from './assign-truck-content';
 import {
   UnassignTruckContent,
   UnassignTruckDescription,
@@ -13,17 +11,15 @@ import {
 } from './unassign-truck-content';
 import { DriverDTO } from '@/lib/types/driver';
 
-// Dummy available trucks for assignment — replace with real API data
-// TODO: replace with real truck list from API (filtered by haulier)
 // TODO: replace with real truck list from API (filtered by haulier)
 const AVAILABLE_TRUCKS: TruckOption[] = [
   { id: 3, licensePlate: 'ABC-123', haulierName: 'Acme Hauliers' },
   { id: 4, licensePlate: 'DEF-456', haulierName: 'Acme Hauliers' },
   { id: 5, licensePlate: 'GHI-789', haulierName: 'Acme Hauliers' },
-  { id: 6, licensePlate: 'ABC-123', haulierName: 'Acme Hauliers' },
+  { id: 6, licensePlate: 'ABC-124', haulierName: 'Acme Hauliers' },
   { id: 7, licensePlate: 'DEF-22456', haulierName: 'Acme Hauliers' },
   { id: 8, licensePlate: 'GHI-11789', haulierName: 'Acme Hauliers' },
-  { id: 9, licensePlate: 'ABC-124', haulierName: 'Acme Hauliers' },
+  { id: 9, licensePlate: 'ABC-125', haulierName: 'Acme Hauliers' },
   { id: 10, licensePlate: 'DEF-2456', haulierName: 'Acme Hauliers' },
   { id: 11, licensePlate: 'GHI-1789', haulierName: 'Acme Hauliers' },
   { id: 12, licensePlate: 'ABC-1233', haulierName: 'Acme Hauliers' },
@@ -37,6 +33,7 @@ interface DialogConfig {
   content: React.ReactNode;
   confirmText?: string;
   confirmCustomColor?: string;
+  confirmIcon?: React.ReactNode;
   confirmVariant?:
     | 'default'
     | 'destructive'
@@ -53,6 +50,10 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   const [selectedTruck, setSelectedTruck] =
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
+  // Prevents ActionDialog's auto-close from resetting activeDialog when
+  // transitioning to a follow-up dialog (e.g. unassign → unassignBlocked).
+  // Can be removed once ActionDialog is refactored to not auto-close after confirm.
+  const transitioningRef = React.useRef(false);
 
   const handleAssignTrucks = async () => {
     // TODO: wire up assign trucks API call
@@ -64,7 +65,18 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     truck: UnassignTruckInfo & { id: number },
   ) => {
     // TODO: wire up unassign truck API call
+    // If API returns active deliveries error, call setActiveDialog('unassignBlocked')
     console.log('Unassign truck:', driverData?.id, truck.id);
+
+    // MOCK: simulate backend blocking all trucks due to active deliveries
+    // TODO: replace with real API error parsing — only block when response indicates active deliveries
+    transitioningRef.current = true;
+    setActiveDialog('unassignBlocked');
+  };
+
+  const handleTransferDockets = async () => {
+    // TODO: wire up transfer dockets API call / navigation
+    console.log('Transfer dockets for truck:', selectedTruck);
     setActiveDialog(null);
     setSelectedTruck(null);
   };
@@ -80,44 +92,59 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
           />
         ),
         confirmText: 'Assign',
-        confirmCustomColor: '#155DFC',
+        confirmCustomColor: '#8E51FF',
         confirmDisabled: selectedTruckIds.length === 0,
         cancelText: 'Cancel',
       },
       unassign: {
-        title: 'Unassign Truck',
+        title: 'Unassign Truck from Driver?',
         description: selectedTruck ? (
           <UnassignTruckDescription
-            truckRegistration={selectedTruck.registration}
+            licensePlate={selectedTruck.licensePlate}
             driverName={driverData?.driverName ?? ''}
           />
         ) : undefined,
         content: selectedTruck ? (
           <UnassignTruckContent truck={selectedTruck} />
         ) : null,
-        confirmText: 'Unassign',
+        confirmText: 'Unassign Driver',
         confirmCustomColor: '#E7000B',
         cancelText: 'Cancel',
       },
       unassignBlocked: {
-        title: 'Cannot Unassign Truck',
+        title: 'Unassign Truck from Driver?',
         description: selectedTruck ? (
           <UnassignTruckDescription
-            truckRegistration={selectedTruck.registration}
+            licensePlate={selectedTruck.licensePlate}
             driverName={driverData?.driverName ?? ''}
           />
         ) : undefined,
         content: selectedTruck ? (
           <UnassignTruckBlockedContent
-            truckRegistration={selectedTruck.registration}
+            licensePlate={selectedTruck.licensePlate}
           />
         ) : null,
-        confirmActionNeeded: false,
-        cancelText: 'Close',
+        confirmText: 'Transfer Dockets',
+        confirmCustomColor: '#8E51FF',
+        confirmIcon: <ArrowLeftRight className="h-4 w-4" />,
+        cancelText: 'Cancel',
       },
     }),
     [driverData, selectedTruck, selectedTruckIds],
   );
+
+  const actionHandlers: Record<string, () => Promise<void>> = {
+    assign: () => handleAssignTrucks(),
+    unassign: () => {
+      if (selectedTruck && 'id' in selectedTruck) {
+        return handleUnassignTruck(
+          selectedTruck as UnassignTruckInfo & { id: number },
+        );
+      }
+      return Promise.resolve();
+    },
+    unassignBlocked: () => handleTransferDockets(),
+  };
 
   const actions = {
     assign: () => {
@@ -139,6 +166,11 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
           if (!open) {
+            // TODO: need to change to API response check instead of hardcoding transitioning state
+            if (transitioningRef.current) {
+              transitioningRef.current = false;
+              return;
+            }
             setActiveDialog(null);
             setSelectedTruck(null);
           }
@@ -148,24 +180,12 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content={config.content}
         confirmText={config.confirmText ?? ''}
         confirmCustomColor={config.confirmCustomColor}
+        confirmIcon={config.confirmIcon}
         confirmVariant={config.confirmVariant}
         confirmDisabled={config.confirmDisabled}
         confirmActionNeeded={config.confirmActionNeeded}
         cancelText={config.cancelText}
-        onConfirmAction={async () => {
-          switch (key) {
-            case 'assign':
-              await handleAssignTrucks();
-              break;
-            case 'unassign':
-              if (selectedTruck && 'id' in selectedTruck) {
-                await handleUnassignTruck(
-                  selectedTruck as UnassignTruckInfo & { id: number },
-                );
-              }
-              break;
-          }
-        }}
+        onConfirmAction={() => actionHandlers[key]?.()}
       />
     );
   });

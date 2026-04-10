@@ -136,7 +136,8 @@ export default function DriverForm({
   const updateDriver = useUpdateDriver();
 
   const { driverData } = useDriverFormState(id, isEditing);
-  const { actions: truckActions, truckDialogs } = useDriverTruckActions(driverData);
+  const { actions: truckActions, truckDialogs } =
+    useDriverTruckActions(driverData);
 
   const driverForm = useForm<z.infer<typeof NewDriverFormSchema>>({
     resolver: zodResolver(NewDriverFormSchema),
@@ -237,7 +238,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -251,15 +252,20 @@ export default function DriverForm({
   }
 
   // TODO: replace with real truck list from API (filtered by haulier)
-  const haulierName = selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks';
+  const haulierName =
+    selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks';
   const truckOptions = [
     { label: 'ABC-123', value: 'ABC-123', group: haulierName },
     { label: 'DEF-456', value: 'DEF-456', group: haulierName },
     { label: 'GHI-789', value: 'GHI-789', group: haulierName },
   ];
 
-  // Dummy trucks and compliance — replace with real API data when backend is available
-  const trucks: { id: number; registration: string; status: string }[] = [];
+  // TODO: replace with real assigned trucks from API
+  const trucks: { id: number; licensePlate: string; status: string }[] = [
+    { id: 1, licensePlate: 'ABC-123', status: 'ACTIVE' },
+    { id: 2, licensePlate: 'DEF-456', status: 'ACTIVE' },
+    { id: 3, licensePlate: 'GHI-789', status: 'INACTIVE' },
+  ];
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (
@@ -499,7 +505,7 @@ export default function DriverForm({
                 <Button
                   type="button"
                   size="sm"
-                  className="cursor-pointer"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={() => truckActions.assign()}
                 >
                   Assign Trucks
@@ -519,7 +525,7 @@ export default function DriverForm({
                     >
                       <div className="flex flex-col gap-1">
                         <span className="font-medium">
-                          {truck.registration}
+                          {truck.licensePlate}
                         </span>
                         <Badge
                           variant="outline"
@@ -539,7 +545,7 @@ export default function DriverForm({
                         onClick={() =>
                           truckActions.unassign({
                             id: truck.id,
-                            registration: truck.registration,
+                            licensePlate: truck.licensePlate,
                             status: truck.status,
                           })
                         }
