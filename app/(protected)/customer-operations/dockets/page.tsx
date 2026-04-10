@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
-import { Plus } from 'lucide-react';
+import { Package, FileText, Plus, Wallet, CircleAlert } from 'lucide-react';
 import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery } from '@tanstack/react-query';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/data-table-client';
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
 import { useDocketActions } from '@/hooks/use-docket-actions';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function DocketsPage() {
   const router = useRouter();
@@ -31,8 +32,6 @@ export default function DocketsPage() {
     const parsed = Number(linkedJobIdParam);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
-
-
 
   const {
     data: allDockets,
@@ -67,6 +66,49 @@ export default function DocketsPage() {
       ...docket,
     })) as DocketDTO[];
   }, [dockets]);
+
+  // Statistics cards data
+  const statsCards: StatsCardData[] = [
+    {
+      title: 'Scheduled Dockets Today',
+      value: '15',
+      description: '12 Delivery | Collection',
+      icon: FileText,
+      iconBgColor: 'bg-[#EDE9FE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Unassigned Dockets',
+      title2: '(Next 7 Days)',
+      value: '3',
+      description: 'Need attention',
+      icon: CircleAlert,
+      iconBgColor: 'bg-[#FEF9C2]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#E7000B]',
+    },
+    {
+      title: 'Value of Uninvoiced Dockets',
+      value: '$1,043,570',
+      description: '12 Delivery | 10 Collection',
+      icon: Wallet,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Quantity Scheduled Today',
+      title2: '(Tonnes)',
+      value: '342.5',
+      description: 'Across 24 dockets',
+      icon: Package,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+
+  ]
 
   const docketIdsParam = searchParams.get('docketId');
   const docketIdsSet = React.useMemo(() => {
@@ -119,6 +161,13 @@ export default function DocketsPage() {
           </FormDialog>
         </div>
       </div>
+
+      {/* Statistics Cards */}
+      <StatsCards
+        cards={statsCards}
+        mobileGridCols={1}
+        desktopGridCols={4}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (

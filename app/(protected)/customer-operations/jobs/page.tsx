@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import JobForm from './(components)/forms/job-form';
 import { JobDTO } from '@/lib/types/job';
-import { Plus } from 'lucide-react';
+import { Plus, FileText, Wallet, Package, CircleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import {
@@ -16,6 +16,7 @@ import { jobColumns } from './(components)/(data-tables)/job/columns';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
 import { JobsListQueryOptions } from '@/lib/api/job';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
@@ -27,6 +28,47 @@ export default function CustomersPage() {
       ...job,
     })) as JobDTO[];
   }, [jobs]);
+
+  // Statistics cards data
+  const statsCards: StatsCardData[] = [
+    {
+      title: 'Jobs in Progress',
+      value: '15',
+      description: 'Active jobs requiring resources',
+      icon: FileText,
+      iconBgColor: 'bg-[#EDE9FE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Value of Uninvoiced Dockets',
+      value: '$1,043,570',
+      description: '12 Delivery | 10 Collection',
+      icon: Wallet,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Completed Jobs ',
+      title2: '(Ready for invoicing)',
+      value: '12',
+      description: 'Across 24 dockets',
+      icon: Package,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+    {
+      title: 'Paused Jobs',
+      value: '3',
+      description: 'Need attention',
+      icon: CircleAlert,
+      iconBgColor: 'bg-[#FEF9C2]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#E7000B]',
+    },
+  ]
 
   const { actions, viewDialog, confirmDialogs } = useJobActions();
 
@@ -87,6 +129,13 @@ export default function CustomersPage() {
           </FormDialog>
         </div>
       </div>
+
+      {/* Statistics Cards */}
+      <StatsCards
+        cards={statsCards}
+        mobileGridCols={1}
+        desktopGridCols={4}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {jobIdsSet && (
