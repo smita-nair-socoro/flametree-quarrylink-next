@@ -44,14 +44,6 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-const currentYear = new Date().getFullYear();
-const yearOptions: FormSelectOption[] = Array.from(
-  { length: currentYear - 1979 },
-  (_, i) => {
-    const y = String(currentYear - i);
-    return { label: y, value: y };
-  },
-);
 
 const truckTypeOptions: FormSelectOption[] = [
   { label: 'Truck', value: TRUCK_TYPE.TRUCK },
