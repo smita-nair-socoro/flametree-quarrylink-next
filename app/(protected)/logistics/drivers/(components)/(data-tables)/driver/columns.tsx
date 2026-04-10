@@ -22,7 +22,7 @@ export const driverColumns: ColumnDef<DriverDTO>[] = [
     id: 'driverType',
     accessorFn: (row) => row.driverType,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Type" />;
+      return <TableClientSortableHeader column={column} title="Driver Type" />;
     },
     cell: ({ getValue }) => {
       const type = getValue<string>() as DRIVER_TYPE;
@@ -35,10 +35,26 @@ export const driverColumns: ColumnDef<DriverDTO>[] = [
     meta: 'Type',
   },
   {
+    id: 'haulier',
+    accessorFn: (row) => row.haulier?.haulierName,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Haulier" />;
+    },
+    cell: ({ getValue }) => {
+      const haulier = getValue<string>();
+      return (
+        <div className="py-2">
+          <TableBadges names={[haulier]} visibleCount={1} />
+        </div>
+      );
+    },
+    meta: 'Haulier',
+  },
+  {
     id: 'emailAddress',
     accessorFn: (row) => row.emailAddress,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Email" />;
+      return <TableClientSortableHeader column={column} title="Email Address" />;
     },
     cell: ({ row }) => {
       return <div className="py-2">{row.original.emailAddress}</div>;
@@ -49,7 +65,7 @@ export const driverColumns: ColumnDef<DriverDTO>[] = [
     id: 'phoneNumber',
     accessorFn: (row) => row.phoneNumber,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Phone" />;
+      return <TableClientSortableHeader column={column} title="Phone Number" />;
     },
     cell: ({ row }) => {
       return <div className="py-2">{row.original.phoneNumber}</div>;
