@@ -44,6 +44,7 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { formatLocalDateShort } from '@/lib/utils/date';
+import { FormMultiSelect } from '@/components/ui/form-multi-select';
 
 interface FormProps {
   id?: number;
@@ -249,6 +250,13 @@ export default function DriverForm({
     );
   }
 
+  // TODO: replace with real truck list from API (filtered by haulier)
+  const truckOptions = [
+    { label: 'ABC-123', value: 'ABC-123' },
+    { label: 'DEF-456', value: 'DEF-456' },
+    { label: 'GHI-789', value: 'GHI-789' },
+  ];
+
   // Dummy trucks and compliance — replace with real API data when backend is available
   const trucks: { id: number; registration: string; status: string }[] = [];
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
@@ -421,24 +429,28 @@ export default function DriverForm({
                 )}
               />
 
-              <FormItem>
-                <FormLabel>Haulier Email Address</FormLabel>
-                <Input
-                  value={selectedHaulierInfo?.emailAddress ?? ''}
-                  disabled
-                  placeholder="Auto-filled from selected haulier"
-                />
-              </FormItem>
+              {isEditing && (
+                <>
+                  <FormItem>
+                    <FormLabel>Haulier Email Address</FormLabel>
+                    <Input
+                      value={selectedHaulierInfo?.emailAddress ?? ''}
+                      disabled
+                      placeholder="Auto-filled from selected haulier"
+                    />
+                  </FormItem>
 
-              <FormItem>
-                <FormLabel>Haulier Phone Number</FormLabel>
-                <PhoneInput
-                  defaultCountry="AU"
-                  value={selectedHaulierInfo?.phoneNumber ?? ''}
-                  disabled
-                  placeholder="Auto-filled from selected haulier"
-                />
-              </FormItem>
+                  <FormItem>
+                    <FormLabel>Haulier Phone Number</FormLabel>
+                    <PhoneInput
+                      defaultCountry="AU"
+                      value={selectedHaulierInfo?.phoneNumber ?? ''}
+                      disabled
+                      placeholder="Auto-filled from selected haulier"
+                    />
+                  </FormItem>
+                </>
+              )}
             </div>
           </div>
 
@@ -446,19 +458,36 @@ export default function DriverForm({
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">License &amp; Assignment</h2>
             <Separator />
-            <FormField
-              control={driverForm.control}
-              name="driverLicenseNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>License Number*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ABC123456" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <FormField
+                control={driverForm.control}
+                name="driverLicenseNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>License Number*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ABC123456" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {!isEditing && (
+                <FormMultiSelect
+                  control={driverForm.control}
+                  name="assignedTrucks"
+                  label="Assigned Trucks (Optional)"
+                  options={selectedHaulierId || isInternal ? truckOptions : []}
+                  placeholder={
+                    !selectedHaulierId && !isInternal
+                      ? 'Select Haulier first...'
+                      : 'Select trucks...'
+                  }
+                  disabled={!selectedHaulierId && !isInternal}
+                  searchPlaceholder="Search trucks..."
+                />
               )}
-            />
+            </div>
           </div>
 
           {/* Truck Assignments — edit mode only */}
