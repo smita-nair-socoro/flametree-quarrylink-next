@@ -33,7 +33,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
 				<DataTableClient
 					columns={invoicesColumns}
 					data={[]}
-					// data={items ?? []}
+					// data={invoices ?? []}
 					simpleTable={true}
 					defaultSorting={[{ id: 'docketNumber', desc: false }]}
 				/>
