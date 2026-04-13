@@ -163,7 +163,7 @@ export default function TeamAdminTab() {
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
     () => createTeamMemberColumns(rolesOptions, 1),
-    [], // rolesOptions is a constant, no need to track it
+    [],
   );
 
   const facetDefs: FacetDefinition[] = [
@@ -225,6 +225,8 @@ export default function TeamAdminTab() {
     },
     [],
   );
+
+  if (!isSuperAdmin) return null;
 
   return (
     <>

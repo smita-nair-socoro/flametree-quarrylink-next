@@ -46,7 +46,7 @@ export const createTeamMemberColumns = (
     cell: ({ row }) => {
       const groups = row.original.groups;
       if (!groups || !Array.isArray(groups) || groups.length === 0) {
-        return <div className="py-2">User</div>;
+        return <div className="py-2 text-left">User</div>;
       }
       const g = groups.join(',').toLowerCase();
       const formattedRole =
@@ -57,7 +57,7 @@ export const createTeamMemberColumns = (
           : g.includes('admin')
           ? 'Admin'
           : 'User';
-      return <div className="py-2">{formattedRole}</div>;
+      return <div className="py-2 text-left">{formattedRole}</div>;
     },
     meta: 'Role',
     size: 120,
@@ -78,19 +78,14 @@ export const createTeamMemberColumns = (
   // },
   {
     id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const teamMember = row.original;
-      return (
-        <TeamMemberTableActions
-          teamMember={teamMember}
-          roles={rolesOptions}
-          currentUserId={currentUserId}
-        />
-      );
-    },
+    header: () => <div></div>,
+    cell: ({ row }) => (
+      <TeamMemberTableActions
+        teamMember={row.original}
+        roles={rolesOptions}
+        currentUserId={currentUserId}
+      />
+    ),
   },
 ];
 

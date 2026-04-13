@@ -12,7 +12,6 @@ import { User } from '@/lib/types/user';
 import { useClientUserActions } from '@/hooks/use-client-user-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
-import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 interface UserTableActionsProps {
   user: User;
@@ -26,7 +25,6 @@ export function UserTableActions({
   currentUserId
 }: UserTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const isSuperAdmin = useIsSuperAdmin();
 
   // Get the Zustand store setter to update selected user
   const setSelectedTeamMember = useTeamMemberStore(state => state.setSelectedTeamMember);
@@ -66,7 +64,6 @@ export function UserTableActions({
               <Eye className="h-4 w-4 mr-2" />
               View/Edit User
             </DropdownMenuItem>
-          {isSuperAdmin && (
             <DropdownMenuItem
               onClick={handleDelete}
               className="text-destructive focus:text-destructive"
@@ -74,8 +71,7 @@ export function UserTableActions({
               <Delete className="h-4 w-4 mr-2 text-red-600" />
               Delete User
             </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
+          </DropdownMenuContent>
       </DropdownMenu>
     </div>
     </>
