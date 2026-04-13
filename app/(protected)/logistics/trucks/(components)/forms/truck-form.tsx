@@ -36,6 +36,8 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
 import { YearPicker } from '@/components/year-picker';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
+import { TableBadges } from '@/components/table-badges';
+import { useTruckActions } from '@/hooks/use-truck-actions';
 
 interface FormProps {
   id?: number;
@@ -208,8 +210,20 @@ export default function TruckForm({
   const truckData = isEditing ? null : null;
   const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
 
+  // TODO: replace with real assigned drivers from API
+  const assignedDrivers: { id: number; driverName: string; status: string }[] =
+    [
+      { id: 1, driverName: 'John Smith', status: 'ACTIVE' },
+      { id: 2, driverName: 'Armin Menhaji', status: 'ACTIVE' },
+      { id: 3, driverName: 'Jayden Olivo', status: 'INACTIVE' },
+    ];
+
+  const { actions: driverActions, confirmDialogs: driverDialogs } =
+    useTruckActions(truckData);
+
   return (
     <div className="w-full relative">
+      {driverDialogs}
       {isSubmitting && (
         <div
           className={cn(
@@ -490,15 +504,50 @@ export default function TruckForm({
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">Driver Assignment</h2>
-                <Button type="button" size="sm" className="cursor-pointer">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => driverActions.assignDriver()}
+                >
                   Assign Drivers
                 </Button>
               </div>
               <Separator />
-              {/* TODO: replace with real assigned drivers from truck data */}
-              <p className="text-sm text-muted-foreground py-2">
-                No drivers assigned.
-              </p>
+              {assignedDrivers.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">
+                  No drivers assigned.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {assignedDrivers.map((driver) => (
+                    <div
+                      key={driver.id}
+                      className="flex items-center justify-between rounded-md px-4 py-3 bg-[#F9FAFB]"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">{driver.driverName}</span>
+                        <TableBadges names={[driver.status]} visibleCount={1} />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() =>
+                          driverActions.unassignDriver({
+                            id: driver.id,
+                            driverName: driver.driverName,
+                            status: driver.status,
+                          })
+                        }
+                      >
+                        Unassign
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <>

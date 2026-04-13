@@ -43,6 +43,7 @@ import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
+import { TruckDTO } from '../types/truck';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -1045,6 +1046,20 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver/${id}/haulier`,
         { body: data },
       ),
+  },
+
+  trucks: {
+    getAll: () => appClient.Get<TruckDTO[]>(`/socoro/quarrylink/api/truck`),
+    getById: (id: number) =>
+      appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
+    create: (data: TruckDTO) =>
+      appClient.Post<TruckDTO>(`/socoro/quarrylink/api/truck`, { body: data }),
+    update: (id: number, data: TruckDTO) =>
+      appClient.Put<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`, {
+        body: data,
+      }),
+    delete: (id: number) =>
+      appClient.Delete<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
   },
 
   hauliers: {

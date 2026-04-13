@@ -38,8 +38,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useClientStore } from '@/app/stores/client-store';
 import { addNewRecordId } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { BADGE_COLORS } from '@/lib/utils';
+import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
@@ -232,7 +231,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -523,15 +522,7 @@ export default function DriverForm({
                         <span className="font-medium">
                           {truck.licensePlate}
                         </span>
-                        <Badge
-                          variant="outline"
-                          className={
-                            BADGE_COLORS[truck.status] ||
-                            'bg-green-100 text-green-800 border-green-300'
-                          }
-                        >
-                          {truck.status}
-                        </Badge>
+                        <TableBadges names={[truck.status]} visibleCount={1} />
                       </div>
                       <Button
                         type="button"
