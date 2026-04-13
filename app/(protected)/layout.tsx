@@ -32,6 +32,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   }, [currentUser]);
 
   const isDriversApp = pathname?.startsWith('/drivers-app');
+  const isDeliveries = pathname?.startsWith('/logistics/deliveries');
 
   // Build quick lookup for plan by path and first essential fallback
   const { getPlanByPath, fallbackUrl } = React.useMemo(() => {
@@ -128,7 +129,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      {!isDriversApp && <AppSidebar />}
+      {!isDriversApp && !isDeliveries && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
         {!isDriversApp && (
           <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
