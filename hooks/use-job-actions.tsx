@@ -267,9 +267,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       console.log('Settle job:', jobId, jobData);
       // TODO: implement settle logic
     },
-    pause: () => {
-      void handlePauseJob();
-    },
+    pause: () => handlePauseJob(),
   };
 
   const actions = {
