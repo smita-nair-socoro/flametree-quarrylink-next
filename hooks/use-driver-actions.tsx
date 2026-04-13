@@ -12,6 +12,9 @@ import {
   CircleX,
   CircleAlert,
 } from 'lucide-react';
+import { useDeleteDriver, useDeactivateDriver, useReactivateDriver } from '@/lib/api/driver';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -378,6 +381,10 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const selectedDriver = useDriverStore((state) => state.selectedDriver);
 
+  const deleteDriverMutation = useDeleteDriver();
+  const deactivateDriverMutation = useDeactivateDriver();
+  const reactivateDriverMutation = useReactivateDriver();
+
 
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
@@ -394,31 +401,43 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     };
   };
 
-  const handleDeactivate = () => {
-    console.log('Deactivate driver:', driverId, driverData);
-    // TODO: implement deactivate logic
+  const handleDeactivate = async () => {
+    if (driverId == null) return;
+    try {
+      await deactivateDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver deactivated successfully.');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
   };
 
-  const handleCannotDeactivate = () => {
-    console.log('Cannot deactivate driver:', driverId, driverData);
-    // TODO: implement cannot deactivate logic
+  const handleReactivate = async () => {
+    if (driverId == null) return;
+    try {
+      await reactivateDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver reactivated successfully.');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
   };
 
-  const handleReactivate = () => {
-    console.log('Reactivate driver:', driverId, driverData);
-    // TODO: implement reactivate logic
+  const handleDelete = async () => {
+    if (driverId == null) return;
+    try {
+      await deleteDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver deleted successfully.');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
   };
 
-  const handleDelete = () => {
-    console.log('Delete driver:', driverId, driverData);
-    // TODO: implement delete logic
-  };
-
-  const actionHandlers: Record<string, () => void> = {
+  const actionHandlers: Record<string, () => Promise<void>> = {
     deactivate: handleDeactivate,
-    cannotDeactivate: handleCannotDeactivate,
     reactivate: handleReactivate,
-    cannotDelete: handleDelete,
+    delete: handleDelete,
   };
 
   const actions = {
@@ -470,10 +489,10 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         confirmActionNeeded={config.confirmActionNeeded}
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           const handler = actionHandlers[key];
           if (handler) {
-            handler();
+            await handler();
           }
         }}
       />
