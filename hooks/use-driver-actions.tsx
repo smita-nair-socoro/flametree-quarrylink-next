@@ -3,6 +3,7 @@ import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import { DriverDTO } from '@/lib/types/driver';
+import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
 import { useDriverStore } from '@/app/stores/driver-store';
 import {
@@ -13,6 +14,7 @@ import {
   CircleAlert,
 } from 'lucide-react';
 import { useDeleteDriver, useDeactivateDriver, useReactivateDriver } from '@/lib/api/driver';
+import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
@@ -406,6 +408,13 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     try {
       await deactivateDriverMutation.mutateAsync(driverId);
       notifySuccess('Driver deactivated successfully.');
+      const current = useDriverStore.getState().selectedDriver;
+      if (current) {
+        useDriverStore.getState().setSelectedDriver({
+          ...current,
+          driverStatus: DRIVER_STATUS.INACTIVE,
+        });
+      }
       setActiveDialog(null);
     } catch (error) {
       notifyError(extractErrorMessage(error));
@@ -417,6 +426,13 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     try {
       await reactivateDriverMutation.mutateAsync(driverId);
       notifySuccess('Driver reactivated successfully.');
+      const current = useDriverStore.getState().selectedDriver;
+      if (current) {
+        useDriverStore.getState().setSelectedDriver({
+          ...current,
+          driverStatus: DRIVER_STATUS.ACTIVE,
+        });
+      }
       setActiveDialog(null);
     } catch (error) {
       notifyError(extractErrorMessage(error));
@@ -508,6 +524,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       }}
       hideTrigger
       headerInfo={{ useSelectedDriver: true }}
+      headerButtons={
+        <DriverActionButtons driver={driverData ?? selectedDriver} />
+      }
     >
       <DriverForm />
     </FormDialog>
