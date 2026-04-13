@@ -226,8 +226,6 @@ export default function TeamAdminTab() {
     [],
   );
 
-  if (!isSuperAdmin) return null;
-
   return (
     <>
       {viewDialog}
