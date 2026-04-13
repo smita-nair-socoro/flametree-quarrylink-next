@@ -127,6 +127,23 @@ export function AssignTruckContent({
               ))
             )}
           </div>
+
+          {selectedIds.length > 0 && (
+            <>
+              <div className="border-t" />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setSelectedIds([]);
+                  onSelectionChange?.([]);
+                }}
+                className="w-full py-2 text-sm text-center text-muted-foreground hover:bg-muted/50 cursor-pointer rounded-none"
+              >
+                Clear all
+              </Button>
+            </>
+          )}
         </PopoverContent>
       </Popover>
 
@@ -149,18 +166,6 @@ export function AssignTruckContent({
               </Button>
             );
           })}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSelectedIds([]);
-              onSelectionChange?.([]);
-            }}
-            className="h-auto px-2 py-1 border rounded-md text-sm font-normal"
-          >
-            Clear all
-          </Button>
         </div>
       )}
     </div>

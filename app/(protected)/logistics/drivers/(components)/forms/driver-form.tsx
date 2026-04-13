@@ -390,7 +390,6 @@ export default function DriverForm({
                     onCancel={onCancelItem}
                   />
                 )}
-                disabled={isEditing}
               />
             )}
           </div>

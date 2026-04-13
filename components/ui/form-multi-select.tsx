@@ -154,6 +154,21 @@ export function FormMultiSelect<TFieldValues extends FieldValues>({
               ))
             )}
           </div>
+
+          {/* Clear all — inside dropdown, mirroring table-faceted-filter pattern */}
+          {selected.length > 0 && (
+            <>
+              <div className="border-t" />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => field.onChange([])}
+                className="w-full py-2 text-sm text-center text-muted-foreground hover:bg-muted/50 cursor-pointer rounded-none"
+              >
+                Clear all
+              </Button>
+            </>
+          )}
         </PopoverContent>
       </Popover>
 
@@ -177,15 +192,6 @@ export function FormMultiSelect<TFieldValues extends FieldValues>({
               </Button>
             );
           })}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => field.onChange([])}
-            className="h-auto px-2 py-1 border rounded-md text-sm font-normal"
-          >
-            Clear all
-          </Button>
         </div>
       )}
 
