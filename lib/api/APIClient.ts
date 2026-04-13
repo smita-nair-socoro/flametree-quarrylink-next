@@ -1021,6 +1021,10 @@ export const APIClient = {
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
         body: { pauseStrategy },
       }),
+    resume: (id: number) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
+        body: { id },
+      }),
   },
 
   drivers: {

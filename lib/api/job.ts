@@ -132,6 +132,18 @@ export const useDeleteJobItem = () => {
   });
 };
 
+export const useResumeJob = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: number }) => APIClient.jobs.resume(id),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
 export const usePauseJob = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -34,7 +34,7 @@ import {
   CannotCancelBlockerType,
   CANCEL_REASON_LABELS,
 } from '@/hooks/job/cancel-job-content';
-import { useCancelJob, usePauseJob } from '@/lib/api/job';
+import { useCancelJob, usePauseJob, useResumeJob } from '@/lib/api/job';
 import {
   extractErrorData,
   extractErrorMessage,
@@ -85,6 +85,7 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const cancelJobMutation = useCancelJob();
   const pauseJobMutation = usePauseJob();
+  const resumeJobMutation = useResumeJob();
 
   // TODO: replace with real active dockets from API
   const activeDockets: Docket[] = [
@@ -192,6 +193,17 @@ export function useJobActions(jobData?: JobDetails | null) {
   const createDialogAction = (actionKey: string) => () =>
     setActiveDialog(actionKey);
 
+  const handleResumeJob = async () => {
+    if (jobId == null) return;
+    try {
+      await resumeJobMutation.mutateAsync({ id: jobId });
+      notifySuccess('Job resumed successfully.');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handlePauseJob = async () => {
     if (jobId == null) return;
     try {
@@ -258,10 +270,7 @@ export function useJobActions(jobData?: JobDetails | null) {
   };
 
   const actionHandlers: Record<string, () => Promise<void>> = {
-    resume: async () => {
-      console.log('Resume job:', jobId, jobData);
-      // TODO: implement resume logic
-    },
+    resume: () => handleResumeJob(),
     cancel: handleCancelJob,
     settle: async () => {
       console.log('Settle job:', jobId, jobData);
