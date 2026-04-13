@@ -1,7 +1,6 @@
 'use client';
 import { TriangleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { BADGE_COLORS } from '@/lib/utils';
+import { TableBadges } from '@/components/table-badges';
 
 export type UnassignDriverInfo = {
   driverName: string;
@@ -89,15 +88,10 @@ export function UnassignDriverContent({
 
       <div className="flex items-center justify-between rounded-md border px-4 py-3">
         <span className="text-sm font-medium">{driver.driverName}</span>
-        <Badge
-          variant="outline"
-          className={
-            BADGE_COLORS[driver.status] ||
-            'bg-green-100 text-green-800 border-green-300'
-          }
-        >
-          {driver.status}
-        </Badge>
+        <TableBadges
+          names={[driver.status]}
+          visibleCount={1}
+        />
       </div>
     </div>
   );
