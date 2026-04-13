@@ -1,4 +1,5 @@
 import { DRIVER_STATUS, DRIVER_TYPE } from './driver-enums';
+import { HaulierDTO } from './haulier';
 
 interface DriverTruckAssignment {
   id: number;
@@ -62,29 +63,6 @@ export interface DriverHaulierDetail {
   deleted: boolean;
 }
 
-export interface DriverDetailDTO {
-  id: number;
-  driverName: string;
-  driverType: DRIVER_TYPE;
-  emailAddress: string;
-  phoneNumber: string;
-  licenseNumber: string;
-  driverStatus: DRIVER_STATUS;
-  appInvitationSent: boolean;
-  appInvitationSentAt: string | null;
-  appActivated: boolean;
-  appActivatedAt: string | null;
-  updatedAt: string;
-  lastModifiedBy: string;
-  deviceToken: string | null;
-  lastChecklistCompleted: string | null;
-  truckIds: number[];
-  haulier: DriverHaulierDetail | null;
-  createdBy?: string;
-  createdAt?: string;
-  version: number;
-}
-
 interface DriverDTO {
   id?: number;
   driverName: string;
@@ -93,9 +71,7 @@ interface DriverDTO {
   phoneNumber: string;
   licenseNumber: string;
   haulierId?: number;
-  haulierName?: string;
-  haulierEmailAddress?: string;
-  haulierPhoneNumber?: string;
+  haulier?: HaulierDTO;
   truckIds?: number[];
   trucks?: DriverTruckAssignment[];
   complianceRecords?: DriverComplianceRecord[];

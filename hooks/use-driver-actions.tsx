@@ -20,11 +20,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -376,13 +376,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
-  const setSelectedDriver = useDriverStore((state) => state.setSelectedDriver);
+  const selectedDriver = useDriverStore((state) => state.selectedDriver);
 
-  React.useEffect(() => {
-    if (viewOpen && driverData) {
-      setSelectedDriver(driverData);
-    }
-  }, [viewOpen, driverData, setSelectedDriver]);
+
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
@@ -426,7 +422,11 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   };
 
   const actions = {
-    view: () => {
+    view: (driver?: DriverDTO | null) => {
+      const toSelect = driver ?? driverData;
+      if (toSelect != null) {
+        useDriverStore.getState().setSelectedDriver(toSelect);
+      }
       setViewOpen(true);
     },
 
@@ -482,7 +482,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
 
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={driverData?.id}
+      id={selectedDriver?.id}
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);

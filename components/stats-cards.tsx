@@ -13,6 +13,7 @@ import {
 
 export interface StatsCardData {
   title: string;
+  title2?: string;
   value: string | number;
   description: string;
   icon: LucideIcon;
@@ -55,6 +56,7 @@ export function StatsCards({
 
   // Helper to extract short title from full title
   const getShortTitle = (title: string) => {
+
     // Extract key words from titles
     const titleMap: Record<string, string> = {
       'Total Customers': 'Total',
@@ -163,24 +165,25 @@ export function StatsCards({
     <div className={`grid ${gridColsClass} gap-4`}>
       {isLoading
         ? Array.from({ length: loadingCount }).map((_, index) => (
-            <Card key={index} className="p-5">
-              <CardContent className="p-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <Skeleton className="h-4 w-[140px]" />
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                </div>
-                <Skeleton className="h-9 w-[100px] mt-4" />
-                <Skeleton className="h-3 w-[120px] mt-2" />
-              </CardContent>
-            </Card>
-          ))
+          <Card key={index} className="p-5">
+            <CardContent className="p-2 space-y-1">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-[140px]" />
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </div>
+              <Skeleton className="h-9 w-[100px] mt-4" />
+              <Skeleton className="h-3 w-[120px] mt-2" />
+            </CardContent>
+          </Card>
+        ))
         : cards.map((card) => {
-            const Icon = card.icon;
+          const Icon = card.icon;
 
-            return (
-              <Card key={card.title} className="p-5 overflow-hidden">
-                <CardContent className="p-2 space-y-1">
-                  <div className="flex justify-between gap-2 items-start">
+          return (
+            <Card key={card.title} className="p-5 overflow-hidden">
+              <CardContent className="p-2 space-y-1">
+                <div className="flex justify-between gap-2 items-start">
+                  <div className="flex flex-col min-w-0">
                     <Tooltip delayDuration={300}>
                       <TooltipTrigger asChild>
                         <span className="font-medium leading-tight text-[#737373] text-sm truncate">
@@ -191,40 +194,53 @@ export function StatsCards({
                         <p>{card.title}</p>
                       </TooltipContent>
                     </Tooltip>
-                    <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
-                    >
-                      <Icon
-                        className={`h-5 w-5 opacity-70 ${card.iconColor}`}
-                      />
-                    </div>
+                    {card.title2 && (
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <span className="font-medium leading-tight text-[#737373] text-sm truncate mt-0.5">
+                            {card.title2}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent variant="white">
+                          <p>{card.title2}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
                   </div>
-                  <Tooltip delayDuration={300}>
-                    <TooltipTrigger asChild>
-                      <div className="text-2xl font-bold pt-1 truncate">
-                        {card.value}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent variant="white">
-                      <p>{String(card.value)}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <Tooltip delayDuration={300}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className={`text-sm font-normal ${card.descriptionColor} truncate`}
-                      >
-                        {card.description}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent variant="white">
-                      <p>{card.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full flex-shrink-0 ${card.iconBgColor}`}
+                  >
+                    <Icon
+                      className={`h-5 w-5 opacity-70 ${card.iconColor}`}
+                    />
+                  </div>
+                </div>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <div className="text-2xl font-bold pt-1 truncate">
+                      {card.value}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent variant="white">
+                    <p>{String(card.value)}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`text-sm font-normal ${card.descriptionColor} truncate`}
+                    >
+                      {card.description}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent variant="white">
+                    <p>{card.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardContent>
+            </Card>
+          );
+        })}
     </div>
   );
 }

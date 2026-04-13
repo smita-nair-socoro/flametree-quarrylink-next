@@ -47,8 +47,19 @@ export interface DocketDTO {
   id: number;
   docketNumber: string;
   jobId: number;
+  truckInspectionRequired: boolean;
+
+  // Remove this once API is ready
+  preStartRequired?: boolean;
+
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
+  stopReason?: string;
+  resumeReason?: string;
+  cancelledReason?: string;
+  voidedReason?: string;
+  stoppedAt?: string;
+  resumedAt?: string;
   pickUpAddressId: number;
   pickUpAddress: Partial<Address>;
   deliveryAddressId: number;
