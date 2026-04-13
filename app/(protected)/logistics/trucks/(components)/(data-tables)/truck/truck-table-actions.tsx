@@ -55,7 +55,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {truck.truckStatus === 'DEACTIVATED' && (
+          {truck.truckStatus === 'INACTIVE' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivate}>
