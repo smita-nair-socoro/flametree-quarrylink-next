@@ -20,6 +20,11 @@ import { Button } from '@/components/ui/button';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Upload, X } from 'lucide-react';
 import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { useUploadTenantLogo, TenantLogoQueryOptions } from '@/lib/api/tenant';
@@ -36,6 +41,7 @@ export default function BrandingTab() {
     null
   );
   const [hasNewFile, setHasNewFile] = React.useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Set logo preview from fetched data when available
@@ -142,6 +148,21 @@ export default function BrandingTab() {
 
   return (
     <div className="py-3 relative">
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-2xl flex items-center justify-center p-6">
+          <DialogTitle className="sr-only">Logo Preview</DialogTitle>
+          {logoPreview && (
+            <div className="relative w-full h-80">
+              <Image
+                src={logoPreview}
+                alt="Logo preview"
+                fill
+                className="object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       {isSubmitting && (
         <div
           className={cn(
@@ -191,7 +212,7 @@ export default function BrandingTab() {
                                 'w-full sm:w-[200px] border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 transition-colors bg-gray-50',
                                 logoPreview ? 'h-40' : 'h-[120px]'
                               )}
-                              onClick={handleUploadClick}
+                              onClick={() => logoPreview ? setIsPreviewOpen(true) : handleUploadClick()}
                             >
                               {isLoadingLogo ? (
                                 <>
