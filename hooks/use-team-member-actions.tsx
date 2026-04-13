@@ -22,6 +22,7 @@ import {
   useResetPasswordBySuperAdmin,
 } from '@/lib/api/user';
 import { notifyError, notifySuccess } from '@/lib/toast';
+import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 interface DialogConfig {
   title?: string;
@@ -50,6 +51,7 @@ export function useTeamMemberActions(
 ) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const isSuperAdmin = useIsSuperAdmin();
 
   const {
     data: userDependencies,
@@ -424,7 +426,7 @@ export function useTeamMemberActions(
   };
 
   // Render delete dialog
-  const deleteDialog = (
+  const deleteDialog = isSuperAdmin ? (
     <ActionDialog
       open={isDeleteDialogOpen}
       onOpenChangeAction={(open) => {
@@ -446,7 +448,7 @@ export function useTeamMemberActions(
       confirmDisabled={deleteDialogConfig.confirmDisabled}
       onConfirmAction={handleDeleteConfirm}
     />
-  );
+  ) : null;
 
   // Render view/edit dialog
   const viewDialog = viewOpen ? (

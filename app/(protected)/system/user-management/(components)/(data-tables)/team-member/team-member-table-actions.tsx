@@ -13,6 +13,7 @@ import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 interface TeamMemberTableActionsProps {
   teamMember: User;
@@ -27,6 +28,7 @@ export function TeamMemberTableActions({
 }: TeamMemberTableActionsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const isSuperAdmin = useIsSuperAdmin();
   const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
     teamMember.sub,
     teamMember,
@@ -66,13 +68,15 @@ export function TeamMemberTableActions({
             <Eye className="h-4 w-4" />
             View/Edit User
           </Button>
-          <Button
-            variant="outline"
-            className="rounded-none px-4 h-auto py-2 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
-            onClick={handleDelete}
-          >
-            Delete User
-          </Button>
+          {isSuperAdmin && (
+            <Button
+              variant="outline"
+              className="rounded-none px-4 h-auto py-2 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
+              onClick={handleDelete}
+            >
+              Delete User
+            </Button>
+          )}
         </div>
       ) : (
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -87,13 +91,15 @@ export function TeamMemberTableActions({
               View/Edit User
             </DropdownMenuItem>
 
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-              Delete User
-            </DropdownMenuItem>
+            {isSuperAdmin && (
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+                Delete User
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )}

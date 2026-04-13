@@ -6,6 +6,7 @@ import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { User } from '@/lib/types/user';
 import { UserStatus } from '@/lib/types/user-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 interface TeamMemberActionButtonsProps {
   teamMember: User | null | undefined;
@@ -18,6 +19,7 @@ export function TeamMemberActionButtons({
   roles,
   currentUserId,
 }: TeamMemberActionButtonsProps) {
+  const isSuperAdmin = useIsSuperAdmin();
   const { actions, deleteDialog } = useTeamMemberActions(
     teamMember?.sub,
     teamMember,
@@ -48,14 +50,16 @@ export function TeamMemberActionButtons({
           null
         )}
 
-        <Button
-          variant="outline"
-          className="rounded-none px-4 h-auto py-1.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
-          onClick={actions.delete}
-        >
-          <Trash2 className="h-4 w-4" />
-          Delete User
-        </Button>
+        {isSuperAdmin && (
+          <Button
+            variant="outline"
+            className="rounded-none px-4 h-auto py-1.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
+            onClick={actions.delete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete User
+          </Button>
+        )}
       </div>
     </div>
   );

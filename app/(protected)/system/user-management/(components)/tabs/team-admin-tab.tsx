@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { getRelativeTimeFuture } from '@/lib/utils/date';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
+import { useUserStore, useIsSuperAdmin } from '@/app/stores/user-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
@@ -78,6 +79,12 @@ function getRoleLabel(groups: string[] | undefined) {
 
 export default function TeamAdminTab() {
   const isMobile = useMediaQuery('(max-width: 910px)');
+  const userGroups = useUserStore((state) => state.userGroups);
+  const isSuperAdmin = useIsSuperAdmin();
+
+  React.useEffect(() => {
+    console.log('[TeamAdminTab] userGroups:', userGroups);
+  }, [userGroups]);
 
   // Fetch users from API
   const {
@@ -240,17 +247,19 @@ export default function TeamAdminTab() {
                 Team Members
               </h1>
             </div>
-            <div>
-              <FormDialog
-                dialogTitle="Invite User"
-                dialogWidth="max-w-md"
-                buttonTitle={isMobile ? 'Invite' : 'Invite User'}
-                headerClassName="pb-2 h-[32px] pb-6"
-                preserveEmptyBadgeSpace={false}
-              >
-                <InviteUserForm roleOptions={rolesOptions} />
-              </FormDialog>
-            </div>
+            {isSuperAdmin && (
+              <div>
+                <FormDialog
+                  dialogTitle="Invite User"
+                  dialogWidth="max-w-md"
+                  buttonTitle={isMobile ? 'Invite' : 'Invite User'}
+                  headerClassName="pb-2 h-[32px] pb-6"
+                  preserveEmptyBadgeSpace={false}
+                >
+                  <InviteUserForm roleOptions={rolesOptions} />
+                </FormDialog>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
