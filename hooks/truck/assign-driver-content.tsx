@@ -88,16 +88,16 @@ export function AssignDriverContent({
         </PopoverTrigger>
 
         <PopoverContent
-          className="p-0 w-[var(--radix-popover-trigger-width)] overflow-hidden"
+          className="p-0 w-72 overflow-hidden"
           align="start"
         >
-          <div className="relative border-b">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2 border-b px-3">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Input
               placeholder="Search drivers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 border-0 rounded-none shadow-none focus-visible:ring-0"
+              className="border-0 rounded-none shadow-none focus-visible:ring-0 px-0"
             />
           </div>
 
