@@ -12,12 +12,6 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { cn } from '@/lib/utils';
 
-export type DriverOption = {
-  id: number;
-  driverName: string;
-  haulierName?: string;
-};
-
 export function AssignDriverDescription({
   driver,
 }: {
@@ -34,7 +28,7 @@ export function AssignDriverContent({
   drivers,
   onSelectionChange,
 }: {
-  drivers: DriverOption[];
+  drivers: DriverDTO[];
   onSelectionChange?: (ids: number[]) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -45,9 +39,9 @@ export function AssignDriverContent({
     const filtered = drivers.filter((d) =>
       d.driverName.toLowerCase().includes(search.toLowerCase()),
     );
-    const map = new Map<string, DriverOption[]>();
+    const map = new Map<string, DriverDTO[]>();
     for (const driver of filtered) {
-      const group = driver.haulierName ?? 'Drivers';
+      const group = driver.haulier?.haulierName ?? 'Drivers';
       if (!map.has(group)) map.set(group, []);
       map.get(group)!.push(driver);
     }
@@ -113,27 +107,29 @@ export function AssignDriverContent({
                 No drivers found.
               </p>
             ) : (
-              Array.from(groups.entries()).map(([haulierName, groupDrivers]) => (
-                <div key={haulierName}>
-                  <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
-                    {haulierName}
-                  </p>
-                  {groupDrivers.map((driver) => (
-                    <label
-                      key={driver.id}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selectedIds.includes(driver.id)}
-                        onCheckedChange={() => toggle(driver.id)}
-                      />
-                      <span className="text-sm font-medium">
-                        {driver.driverName}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              ))
+              Array.from(groups.entries()).map(
+                ([haulierName, groupDrivers]) => (
+                  <div key={haulierName}>
+                    <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
+                      {haulierName}
+                    </p>
+                    {groupDrivers.map((driver) => (
+                      <label
+                        key={driver.id}
+                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
+                      >
+                        <Checkbox
+                          checked={selectedIds.includes(driver.id ?? 0)}
+                          onCheckedChange={() => toggle(driver.id ?? 0)}
+                        />
+                        <span className="text-sm font-medium">
+                          {driver.driverName}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ),
+              )
             )}
           </div>
 

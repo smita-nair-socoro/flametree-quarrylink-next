@@ -4,15 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { InspectionTableActions } from './inspection-table-actions';
 import { TableBadges } from '@/components/table-badges';
-
-export type InspectionRecord = {
-  id: number;
-  checklistId: string;
-  date: string;
-  driver: string;
-  status: string;
-  notes?: string;
-};
+import { InspectionRecord } from '@/lib/types/truck-inspection';
 
 export const inspectionColumns: ColumnDef<InspectionRecord>[] = [
   {
@@ -42,7 +34,9 @@ export const inspectionColumns: ColumnDef<InspectionRecord>[] = [
       <TableClientSortableHeader column={column} title="Driver" />
     ),
     cell: ({ row }) => (
-      <span className="font-medium py-2 block">{row.original.driver}</span>
+      <span className="font-medium py-2 block">
+        {row.original.driver?.driverName}
+      </span>
     ),
   },
   {
