@@ -12,13 +12,11 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { cn } from '@/lib/utils';
 
-export type TruckOption = {
-  id: number;
-  licensePlate: string;
-  haulierName?: string;
-};
-
-export function AssignTruckDescription({ driver }: { driver?: DriverDTO | null }) {
+export function AssignDriverDescription({
+  driver,
+}: {
+  driver?: DriverDTO | null;
+}) {
   return (
     <div className="flex justify-start items-center gap-2">
       <span className="font-medium">{driver?.driverName}</span>
@@ -26,11 +24,11 @@ export function AssignTruckDescription({ driver }: { driver?: DriverDTO | null }
   );
 }
 
-export function AssignTruckContent({
-  trucks,
+export function AssignDriverContent({
+  drivers,
   onSelectionChange,
 }: {
-  trucks: TruckOption[];
+  drivers: DriverDTO[];
   onSelectionChange?: (ids: number[]) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -38,17 +36,17 @@ export function AssignTruckContent({
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
 
   const groups = React.useMemo(() => {
-    const filtered = trucks.filter((t) =>
-      t.licensePlate.toLowerCase().includes(search.toLowerCase()),
+    const filtered = drivers.filter((d) =>
+      d.driverName.toLowerCase().includes(search.toLowerCase()),
     );
-    const map = new Map<string, TruckOption[]>();
-    for (const truck of filtered) {
-      const group = truck.haulierName ?? 'Trucks';
+    const map = new Map<string, DriverDTO[]>();
+    for (const driver of filtered) {
+      const group = driver.haulier?.haulierName ?? 'Drivers';
       if (!map.has(group)) map.set(group, []);
-      map.get(group)!.push(truck);
+      map.get(group)!.push(driver);
     }
     return map;
-  }, [trucks, search]);
+  }, [drivers, search]);
 
   const toggle = (id: number) => {
     const updated = selectedIds.includes(id)
@@ -66,10 +64,11 @@ export function AssignTruckContent({
 
   const triggerLabel =
     selectedIds.length === 0
-      ? 'Select trucks...'
+      ? 'Select drivers...'
       : selectedIds.length === 1
-        ? (trucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected')
-        : `${selectedIds.length} trucks selected`;
+        ? (drivers.find((d) => d.id === selectedIds[0])?.driverName ??
+          '1 selected')
+        : `${selectedIds.length} drivers selected`;
 
   return (
     <div className="flex flex-col gap-2">
@@ -95,7 +94,7 @@ export function AssignTruckContent({
           <div className="relative border-b">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search trucks..."
+              placeholder="Search drivers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 border-0 rounded-none shadow-none focus-visible:ring-0"
@@ -104,27 +103,33 @@ export function AssignTruckContent({
 
           <div className="max-h-60 overflow-y-auto">
             {groups.size === 0 ? (
-              <p className="text-sm text-muted-foreground p-4">No trucks found.</p>
+              <p className="text-sm text-muted-foreground p-4">
+                No drivers found.
+              </p>
             ) : (
-              Array.from(groups.entries()).map(([haulierName, groupTrucks]) => (
-                <div key={haulierName}>
-                  <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
-                    {haulierName}
-                  </p>
-                  {groupTrucks.map((truck) => (
-                    <label
-                      key={truck.id}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selectedIds.includes(truck.id)}
-                        onCheckedChange={() => toggle(truck.id)}
-                      />
-                      <span className="text-sm font-medium">{truck.licensePlate}</span>
-                    </label>
-                  ))}
-                </div>
-              ))
+              Array.from(groups.entries()).map(
+                ([haulierName, groupDrivers]) => (
+                  <div key={haulierName}>
+                    <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
+                      {haulierName}
+                    </p>
+                    {groupDrivers.map((driver) => (
+                      <label
+                        key={driver.id}
+                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
+                      >
+                        <Checkbox
+                          checked={selectedIds.includes(driver.id ?? 0)}
+                          onCheckedChange={() => toggle(driver.id ?? 0)}
+                        />
+                        <span className="text-sm font-medium">
+                          {driver.driverName}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ),
+              )
             )}
           </div>
 
@@ -151,7 +156,7 @@ export function AssignTruckContent({
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedIds.map((id) => {
-            const truck = trucks.find((t) => t.id === id);
+            const driver = drivers.find((d) => d.id === id);
             return (
               <Button
                 key={id}
@@ -161,7 +166,7 @@ export function AssignTruckContent({
                 onClick={() => remove(id)}
                 className="h-auto px-2 py-1 text-sm font-normal gap-1"
               >
-                {truck?.licensePlate ?? id}
+                {driver?.driverName ?? id}
                 <X className="h-3 w-3 text-muted-foreground" />
               </Button>
             );

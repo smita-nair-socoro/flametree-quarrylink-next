@@ -19,10 +19,11 @@ interface TruckTableActionsProps {
 
 export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs } = useTruckActions(truck);
+  const { actions, confirmDialogs, viewDialog } = useTruckActions(truck);
 
   const handleView = () => {
     setDropdownOpen(false);
+    actions.view();
   };
 
   const handleDeactivate = () => {
@@ -42,6 +43,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
 
   return (
     <>
+      {viewDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
