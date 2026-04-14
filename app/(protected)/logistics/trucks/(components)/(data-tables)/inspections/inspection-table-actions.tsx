@@ -9,13 +9,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { InspectionRecord } from './columns';
+import type { InspectionRecord } from '@/lib/types/truck-inspection';
 
 interface InspectionTableActionsProps {
   record: InspectionRecord;
 }
 
-export function InspectionTableActions({ record }: InspectionTableActionsProps) {
+export function InspectionTableActions({
+  record,
+}: InspectionTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   const handleViewDetails = () => {
