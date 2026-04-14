@@ -22,9 +22,7 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
     },
     cell: ({ row }) => {
       const invoiceNumber = row.original.invoiceNumber || 'N/A';
-      return (
-        <div className="py-2">{invoiceNumber}</div>
-      );
+      return <div className="py-2">{invoiceNumber}</div>;
     },
     meta: 'Invoice Number',
   },
@@ -32,9 +30,7 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
     id: 'dockets',
     accessorFn: (row) => row.docketCount,
     header: ({ column }) => {
-      return (
-        <TableClientSortableHeader column={column} title="Dockets" />
-      );
+      return <TableClientSortableHeader column={column} title="Dockets" />;
     },
     cell: ({ row }) => {
       const docketCount = row.original.docketCount;
@@ -55,16 +51,18 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
         style: 'currency',
         currency: 'AUD',
       }).format(dollars);
-      return <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div className="py-2 font-medium w-36 max-w-36 truncate">
-            {formatted}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{formatted}</p>
-        </TooltipContent>
-      </Tooltip>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Amount',
   },
@@ -101,7 +99,7 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: ({ row }) => {
+    cell: () => {
       return <div></div>;
     },
   },

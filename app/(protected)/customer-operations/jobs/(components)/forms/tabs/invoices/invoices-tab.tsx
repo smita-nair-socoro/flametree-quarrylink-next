@@ -9,35 +9,34 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
-	const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isDesktop = useMediaQuery('(min-width: 768px)');
 
-	const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
+  const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
+  console.log(invoices);
 
-	console.log(invoices);
-	return (
-		<div className="flex flex-col gap-4 mt-6">
-			<div
-				className={cn(
-					isDesktop
-						? 'flex justify-between items-center'
-						: 'flex flex-col gap-4',
-				)}
-			>
-				<span className="text-lg font-semibold">Invoices</span>
-				{/* <FormDialog dialogTitle="Add New Docket" buttonTitle="Add New Docket">
+  return (
+    <div className="flex flex-col gap-4 mt-6">
+      <div
+        className={cn(
+          isDesktop
+            ? 'flex justify-between items-center'
+            : 'flex flex-col gap-4',
+        )}
+      >
+        <span className="text-lg font-semibold">Invoices</span>
+        {/* <FormDialog dialogTitle="Add New Docket" buttonTitle="Add New Docket">
 					<DocketForm isQuickDocket={false} jobId={jobId} />
 				</FormDialog> */}
-			</div>
+      </div>
 
-			<div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-				<DataTableClient
-					columns={invoicesColumns}
-					data={[]}
-					// data={invoices ?? []}
-					simpleTable={true}
-					defaultSorting={[{ id: 'docketNumber', desc: false }]}
-				/>
-			</div>
-		</div>
-	);
+      <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+        <DataTableClient
+          columns={invoicesColumns}
+          data={invoices ?? []}
+          simpleTable={true}
+          defaultSorting={[{ id: 'docketNumber', desc: false }]}
+        />
+      </div>
+    </div>
+  );
 }
