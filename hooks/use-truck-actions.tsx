@@ -33,8 +33,7 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
-import { useAssignDriversToTruck } from '@/lib/api/truck';
-import { DriverByIdQueryOptions, usePatchDriverTrucks } from '@/lib/api/driver';
+import { useAssignDriversToTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
 
 interface DialogConfig {
   title: string;
@@ -77,7 +76,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
   const { data: availableDrivers = [] } = useQuery(HaulierDriversQueryOptions(haulierId));
   const assignDriversToTruck = useAssignDriversToTruck();
-  const patchDriverTrucks = usePatchDriverTrucks();
   const queryClient = useQueryClient();
 
   // TODO: replace with real assigned drivers from API
@@ -153,11 +151,14 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleAssignDrivers = async () => {
     if (!truckData?.id) return;
     try {
+      // Fetch fresh truck data to get the current driver list before merging
+      const freshTruck = await queryClient.fetchQuery(TruckByIdQueryOptions(truckData.id));
+      const merged = [...new Set([...(freshTruck.driverIds ?? []), ...selectedDriverIds])];
       await assignDriversToTruck.mutateAsync({
         truckId: truckData.id,
         data: {
-          version: truckData.version ?? 0,
-          driverIds: selectedDriverIds,
+          version: freshTruck.version ?? 0,
+          driverIds: merged,
         },
       });
       notifySuccess('Drivers assigned successfully.');
@@ -173,13 +174,13 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   ) => {
     if (!truckData?.id) return;
     try {
-      // Fetch the driver's latest data to get their current version and truck list
-      const driverData = await queryClient.fetchQuery(DriverByIdQueryOptions(driver.id));
-      await patchDriverTrucks.mutateAsync({
-        id: driver.id,
+      // Fetch fresh truck data to get the current driver list before filtering
+      const freshTruck = await queryClient.fetchQuery(TruckByIdQueryOptions(truckData.id));
+      await assignDriversToTruck.mutateAsync({
+        truckId: truckData.id,
         data: {
-          version: driverData.version ?? 0,
-          truckIds: (driverData.truckIds ?? []).filter((id) => id !== truckData.id),
+          version: freshTruck.version ?? 0,
+          driverIds: (freshTruck.driverIds ?? []).filter((id) => id !== driver.id),
         },
       });
       notifySuccess('Driver unassigned successfully.');

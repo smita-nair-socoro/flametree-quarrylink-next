@@ -30,5 +30,7 @@ interface TruckDTO {
   haulierId?: number;
   /** Nested haulier object returned by the API */
   haulier?: HaulierDTO;
+  /** Driver IDs currently assigned to this truck (returned by getById) */
+  driverIds?: number[];
   version?: number;
 }
