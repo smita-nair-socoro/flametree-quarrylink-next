@@ -1,0 +1,45 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "docketNumber": "DD-2026-0011",
+
+      "deliveryCollectionDate": "2026-03-30",
+      "loadSize": 32.0,
+      "jobItem": {
+        "product": {
+          "productName": "Crushed Granite"
+        },
+        "productSellUom": "TN",
+        "productSellQty": 10.0
+      }
+    },
+    {
+      "id": 2,
+      "docketNumber": "DD-2026-0012",
+
+      "deliveryCollectionDate": "2026-03-30",
+      "loadSize": 35.0,
+      "jobItem": {
+        "product": {
+          "productName": "Jay Product"
+        },
+        "productSellUom": "BULKA",
+        "productSellQty": 14.0
+      }
+    },
+    {
+      "id": 3,
+      "docketNumber": "DD-2026-0013",
+      "deliveryCollectionDate": "2026-03-30",
+      "loadSize": 40.0,
+      "jobItem": {
+        "product": {
+          "productName": "QUARRYLINK"
+        },
+        "productSellUom": "M3",
+        "productSellQty": 12.0
+      }
+    }
+  ]
+}
