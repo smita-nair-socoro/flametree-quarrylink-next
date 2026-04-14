@@ -24,10 +24,9 @@ import {
   CannotDeleteTruckDescription,
   CannotDeleteTruckContent,
 } from '@/hooks/truck/delete-truck-content';
-import {
-  AssignDriverContent,
-  DriverOption,
-} from '@/hooks/truck/assign-driver-content';
+import { AssignDriverContent } from '@/hooks/truck/assign-driver-content';
+import { DriverDTO } from '@/lib/types/driver';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import {
   UnassignDriverContent,
   UnassignDriverDescription,
@@ -36,10 +35,10 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 
 // TODO: replace with real driver list from API (filtered by haulier)
-const AVAILABLE_DRIVERS: DriverOption[] = [
-  { id: 1, driverName: 'John Smith', haulierName: 'Acme Hauliers' },
-  { id: 2, driverName: 'Armin Menhaji', haulierName: 'Acme Hauliers' },
-  { id: 3, driverName: 'Jayden Olivo', haulierName: 'Acme Hauliers' },
+const AVAILABLE_DRIVERS: DriverDTO[] = [
+  { id: 1, driverName: 'John Smith', driverType: DRIVER_TYPE.INTERNAL, emailAddress: '', phoneNumber: '', licenseNumber: '' },
+  { id: 2, driverName: 'Armin Menhaji', driverType: DRIVER_TYPE.INTERNAL, emailAddress: '', phoneNumber: '', licenseNumber: '' },
+  { id: 3, driverName: 'Jayden Olivo', driverType: DRIVER_TYPE.INTERNAL, emailAddress: '', phoneNumber: '', licenseNumber: '' },
 ];
 
 interface DialogConfig {
