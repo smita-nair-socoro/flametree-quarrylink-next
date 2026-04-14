@@ -33,7 +33,7 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
-import { useAssignDriversToTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
+import { useAssignDriversToTruck, useDeactivateTruck, useReactivateTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
 
 interface DialogConfig {
   title: string;
@@ -76,6 +76,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
   const { data: availableDrivers = [] } = useQuery(HaulierDriversQueryOptions(haulierId));
   const assignDriversToTruck = useAssignDriversToTruck();
+  const deactivateTruck = useDeactivateTruck();
+  const reactivateTruck = useReactivateTruck();
   const queryClient = useQueryClient();
 
   // TODO: replace with real assigned drivers from API
@@ -95,8 +97,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDeactivate = async () => {
     if (!truckData?.id) return;
     try {
-      // TODO: wire up deactivate truck API call
-      console.log('Deactivate truck:', truckData.id);
+      await deactivateTruck.mutateAsync(truckData.id);
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
@@ -118,8 +119,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleReactivate = async () => {
     if (!truckData?.id) return;
     try {
-      // TODO: wire up reactivate truck API call
-      console.log('Reactivate truck:', truckData.id);
+      await reactivateTruck.mutateAsync(truckData.id);
       notifySuccess('Truck reactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
