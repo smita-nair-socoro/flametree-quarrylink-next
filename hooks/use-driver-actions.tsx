@@ -13,7 +13,11 @@ import {
   CircleX,
   CircleAlert,
 } from 'lucide-react';
-import { useDeleteDriver, useDeactivateDriver, useReactivateDriver } from '@/lib/api/driver';
+import {
+  useDeleteDriver,
+  useDeactivateDriver,
+  useReactivateDriver,
+} from '@/lib/api/driver';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -25,11 +29,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -387,7 +391,6 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const deactivateDriverMutation = useDeactivateDriver();
   const reactivateDriverMutation = useReactivateDriver();
 
-
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
@@ -417,7 +420,13 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       }
       setActiveDialog(null);
     } catch (error) {
-      notifyError(extractErrorMessage(error));
+      const message = extractErrorMessage(error);
+      if (message.includes('currently on a delivery')) {
+        setSelectedAction({ key: 'cannotDeactivate' });
+        setActiveDialog('cannotDeactivate');
+      } else {
+        notifyError(message);
+      }
     }
   };
 
@@ -446,7 +455,17 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       notifySuccess('Driver deleted successfully.');
       setActiveDialog(null);
     } catch (error) {
-      notifyError(extractErrorMessage(error));
+      const message = extractErrorMessage(error);
+      if (
+        message.includes('active') ||
+        message.includes('delivery') ||
+        message.includes('deliveries')
+      ) {
+        setSelectedAction({ key: 'cannotDelete' });
+        setActiveDialog('cannotDelete');
+      } else {
+        notifyError(message);
+      }
     }
   };
 
