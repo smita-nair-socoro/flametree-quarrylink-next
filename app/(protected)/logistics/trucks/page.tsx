@@ -2,20 +2,23 @@
 
 import React from 'react';
 import { Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { TrucksListQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
 import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { truckColumns } from './(components)/(data-tables)/truck/columns';
-import rawJson from '@/lib/tests/trucksResponseData.json';
 import { FormDialog } from '@/components/form-dialog';
 import TruckForm from './(components)/forms/truck-form';
 
 export default function TrucksPage() {
+  const { data: trucks } = useQuery(TrucksListQueryOptions());
+
   const items: TruckDTO[] = React.useMemo(() => {
-    return (rawJson.items as TruckDTO[]) ?? [];
-  }, []);
+    return Array.isArray(trucks) ? trucks : [];
+  }, [trucks]);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'truckStatus', title: 'Status', icon: Plus },
