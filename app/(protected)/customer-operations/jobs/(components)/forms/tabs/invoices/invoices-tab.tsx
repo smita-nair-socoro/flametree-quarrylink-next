@@ -12,7 +12,6 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
-  console.log(invoices);
 
   return (
     <div className="flex flex-col gap-4 mt-6">
