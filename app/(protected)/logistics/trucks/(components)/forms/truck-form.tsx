@@ -34,9 +34,12 @@ import { formatLocalDateShort } from '@/lib/utils/date';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
-import { InspectionRecord } from '@/lib/types/truck-inspection';
+import type { InspectionRecord } from '@/lib/types/truck-inspection';
 import { YearPicker } from '@/components/year-picker';
-import { FormMultiSelect, FormMultiSelectOption } from '@/components/ui/form-multi-select';
+import {
+  FormMultiSelect,
+  FormMultiSelectOption,
+} from '@/components/ui/form-multi-select';
 import { TableBadges } from '@/components/table-badges';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 
@@ -64,12 +67,12 @@ const truckTypeOptions: FormSelectOption[] = [
 ];
 
 // TODO: replace with real inspection data from API
-const DUMMY_INSPECTIONS = [
+const DUMMY_INSPECTIONS: InspectionRecord[] = [
   {
     id: 1,
     checklistId: 'TI-24-001',
     date: 'Feb 10, 2024',
-    driver: { driverName: 'John Smith' },
+    driver: { driverName: 'John Smith' } as InspectionRecord['driver'],
     status: 'PASS',
     notes: 'No defects identified during inspection.',
   },
@@ -77,7 +80,7 @@ const DUMMY_INSPECTIONS = [
     id: 2,
     checklistId: 'TI-24-002',
     date: 'Feb 11, 2024',
-    driver: { driverName: 'Armin Menhaji' },
+    driver: { driverName: 'Armin Menhaji' } as InspectionRecord['driver'],
     status: 'FAIL',
     notes: 'Failed Engine oil level, Coolant level.',
   },
@@ -85,7 +88,7 @@ const DUMMY_INSPECTIONS = [
     id: 3,
     checklistId: 'TI-24-003',
     date: 'Feb 12, 2024',
-    driver: { driverName: 'Jaywoo Choi' },
+    driver: { driverName: 'Jaywoo Choi' } as InspectionRecord['driver'],
     status: 'PASS',
     notes: 'No defects identified during inspection.',
   },
@@ -93,7 +96,7 @@ const DUMMY_INSPECTIONS = [
     id: 4,
     checklistId: 'TI-24-004',
     date: 'Feb 13, 2024',
-    driver: { driverName: 'John Smith' },
+    driver: { driverName: 'John Smith' } as InspectionRecord['driver'],
     status: 'CONFIRMED',
     notes: 'External haulier check confirmed by driver.',
   },

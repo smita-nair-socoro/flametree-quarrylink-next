@@ -15,7 +15,9 @@ interface InspectionTableActionsProps {
   record: InspectionRecord;
 }
 
-export function InspectionTableActions({ record }: InspectionTableActionsProps) {
+export function InspectionTableActions({
+  record,
+}: InspectionTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   const handleViewDetails = () => {

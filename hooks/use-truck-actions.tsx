@@ -26,6 +26,7 @@ import {
 } from '@/hooks/truck/delete-truck-content';
 import { AssignDriverContent } from '@/hooks/truck/assign-driver-content';
 import { DriverDTO } from '@/lib/types/driver';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import {
   UnassignDriverContent,
   UnassignDriverDescription,
@@ -34,11 +35,32 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 
 // TODO: replace with real driver list from API (filtered by haulier)
-const AVAILABLE_DRIVERS = [
-  { id: 1, driverName: 'John Smith' },
-  { id: 2, driverName: 'Armin Menhaji' },
-  { id: 3, driverName: 'Jayden Olivo' },
-] as DriverDTO[];
+const AVAILABLE_DRIVERS: DriverDTO[] = [
+  {
+    id: 1,
+    driverName: 'John Smith',
+    driverType: DRIVER_TYPE.INTERNAL,
+    emailAddress: '',
+    phoneNumber: '',
+    licenseNumber: '',
+  },
+  {
+    id: 2,
+    driverName: 'Armin Menhaji',
+    driverType: DRIVER_TYPE.INTERNAL,
+    emailAddress: '',
+    phoneNumber: '',
+    licenseNumber: '',
+  },
+  {
+    id: 3,
+    driverName: 'Jayden Olivo',
+    driverType: DRIVER_TYPE.INTERNAL,
+    emailAddress: '',
+    phoneNumber: '',
+    licenseNumber: '',
+  },
+];
 
 interface DialogConfig {
   title: string;
@@ -267,7 +289,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           />
         ) : undefined,
         content: selectedDriver ? (
-          <UnassignDriverBlockedContent driverName={selectedDriver.driverName} />
+          <UnassignDriverBlockedContent
+            driverName={selectedDriver.driverName}
+          />
         ) : null,
         confirmText: 'Transfer Dockets',
         confirmCustomColor: '#8E51FF',
