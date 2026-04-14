@@ -183,10 +183,6 @@ export default function JobForm({
         name: 'Invoices',
         content: <InvoicesTab jobId={jobId} />,
       },
-      {
-        name: 'Cash Sales',
-        content: <CashSalesTab />,
-      },
     ],
     [jobItems, jobDetails, jobId],
   );
@@ -205,9 +201,9 @@ export default function JobForm({
       // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
 
       const additionalEmails = receiptEmails.filter(
@@ -253,7 +249,7 @@ export default function JobForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
