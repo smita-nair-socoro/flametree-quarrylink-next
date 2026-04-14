@@ -49,7 +49,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
   },
   {
     id: 'haulierName',
-    accessorFn: (row) => row.haulierName,
+    accessorFn: (row) => row.haulier?.haulierName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Haulier" />;
     },
@@ -90,11 +90,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
     cell: ({ getValue }) => {
       const value = getValue<number | undefined>();
       if (value == null) return <div className="py-2">-</div>;
-      return (
-        <div className="py-2">
-          {value}T
-        </div>
-      );
+      return <div className="py-2">{value}T</div>;
     },
     meta: 'GVM',
   },

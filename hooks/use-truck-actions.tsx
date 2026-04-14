@@ -25,42 +25,16 @@ import {
   CannotDeleteTruckContent,
 } from '@/hooks/truck/delete-truck-content';
 import { AssignDriverContent } from '@/hooks/truck/assign-driver-content';
-import { DriverDTO } from '@/lib/types/driver';
-import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import {
   UnassignDriverContent,
   UnassignDriverDescription,
   UnassignDriverBlockedContent,
   UnassignDriverInfo,
 } from '@/hooks/truck/unassign-driver-content';
-
-// TODO: replace with real driver list from API (filtered by haulier)
-const AVAILABLE_DRIVERS: DriverDTO[] = [
-  {
-    id: 1,
-    driverName: 'John Smith',
-    driverType: DRIVER_TYPE.INTERNAL,
-    emailAddress: '',
-    phoneNumber: '',
-    licenseNumber: '',
-  },
-  {
-    id: 2,
-    driverName: 'Armin Menhaji',
-    driverType: DRIVER_TYPE.INTERNAL,
-    emailAddress: '',
-    phoneNumber: '',
-    licenseNumber: '',
-  },
-  {
-    id: 3,
-    driverName: 'Jayden Olivo',
-    driverType: DRIVER_TYPE.INTERNAL,
-    emailAddress: '',
-    phoneNumber: '',
-    licenseNumber: '',
-  },
-];
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
+import { useAssignDriversToTruck } from '@/lib/api/truck';
+import { DriverByIdQueryOptions, usePatchDriverTrucks } from '@/lib/api/driver';
 
 interface DialogConfig {
   title: string;
@@ -99,6 +73,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   // transitioning to a follow-up dialog (e.g. unassignDriver → unassignDriverBlocked).
   // Can be removed once ActionDialog is refactored to not auto-close after confirm.
   const transitioningRef = React.useRef(false);
+
+  const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
+  const { data: availableDrivers = [] } = useQuery(HaulierDriversQueryOptions(haulierId));
+  const assignDriversToTruck = useAssignDriversToTruck();
+  const patchDriverTrucks = usePatchDriverTrucks();
+  const queryClient = useQueryClient();
 
   // TODO: replace with real assigned drivers from API
   const assignedDrivers: string[] = [
@@ -171,22 +151,46 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const handleAssignDrivers = async () => {
-    // TODO: wire up assign drivers API call
-    console.log('Assign drivers:', truckData?.id, selectedDriverIds);
-    setSelectedDriverIds([]);
+    if (!truckData?.id) return;
+    try {
+      await assignDriversToTruck.mutateAsync({
+        truckId: truckData.id,
+        data: {
+          version: truckData.version ?? 0,
+          driverIds: selectedDriverIds,
+        },
+      });
+      notifySuccess('Drivers assigned successfully.');
+      setActiveDialog(null);
+      setSelectedDriverIds([]);
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to assign drivers.');
+    }
   };
 
   const handleUnassignDriver = async (
     driver: UnassignDriverInfo & { id: number },
   ) => {
-    // TODO: wire up unassign driver API call
-    // If API returns active deliveries error, call setActiveDialog('unassignDriverBlocked')
-    console.log('Unassign driver:', truckData?.id, driver.id);
-
-    // MOCK: simulate backend blocking all drivers due to active deliveries
-    // TODO: replace with real API error parsing — only block when response indicates active deliveries
-    transitioningRef.current = true;
-    setActiveDialog('unassignDriverBlocked');
+    if (!truckData?.id) return;
+    try {
+      // Fetch the driver's latest data to get their current version and truck list
+      const driverData = await queryClient.fetchQuery(DriverByIdQueryOptions(driver.id));
+      await patchDriverTrucks.mutateAsync({
+        id: driver.id,
+        data: {
+          version: driverData.version ?? 0,
+          truckIds: (driverData.truckIds ?? []).filter((id) => id !== truckData.id),
+        },
+      });
+      notifySuccess('Driver unassigned successfully.');
+      setActiveDialog(null);
+      setSelectedDriver(null);
+    } catch (error) {
+      // TODO: inspect error response for active-deliveries indicator when API contract is confirmed
+      notifyError(extractErrorMessage(error) || 'Failed to unassign driver.');
+      transitioningRef.current = true;
+      setActiveDialog('unassignDriverBlocked');
+    }
   };
 
   const handleTransferDockets = async () => {
@@ -256,7 +260,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         title: 'Assign Driver',
         content: (
           <AssignDriverContent
-            drivers={AVAILABLE_DRIVERS}
+            drivers={availableDrivers}
             onSelectionChange={setSelectedDriverIds}
           />
         ),
@@ -377,7 +381,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       headerInfo={{
         customId: truckData?.licensePlate,
         primaryBadges: truckData?.truckStatus ? [truckData.truckStatus] : [],
-        secondaryBadges: truckData?.haulierName ? [truckData.haulierName] : [],
+        secondaryBadges: truckData?.haulier?.haulierName ? [truckData.haulier.haulierName] : [],
       }}
     >
       <TruckForm />
