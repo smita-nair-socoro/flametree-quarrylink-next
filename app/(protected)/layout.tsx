@@ -16,7 +16,11 @@ import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useQuery } from '@tanstack/react-query';
 import { useUserStore } from '@/app/stores/user-store';
 
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -131,16 +135,14 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <SidebarProvider>
       {!isDriversApp && !isDeliveries && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
-        {!isDriversApp && (
+        {!isDriversApp && !isDeliveries && (
           <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
             {/* Mobile trigger - only visible when sidebar is closed */}
             <SidebarTrigger className="md:hidden" />
           </header>
         )}
         <div className="flex-1 overflow-auto bg-[#F9FAFB]">
-          <div className="h-full overflow-auto">
-            {children}
-          </div>
+          <div className="h-full overflow-auto">{children}</div>
         </div>
       </SidebarInset>
     </SidebarProvider>

@@ -1,49 +1,83 @@
 'use client';
 
 import * as React from 'react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import DriverPreStartChecklist from '../../drivers-app/(components)/checklist/driver-pre-start-checklist';
-import TruckInspectionChecklist from '../../drivers-app/(components)/checklist/truck-inspection-checklist';
+import { startOfDay } from 'date-fns';
+
+import { DeliveriesDateNav } from './(components)/deliveries-date-nav';
+import {
+  DeliveriesOperationsHeader,
+  DeliveriesOperationsNav,
+} from './(components)/deliveries-operations-sidebar';
+import type { DeliveriesOperationsTab } from './(components)/deliveries-operations-sidebar';
+import {
+  DeliveriesPeriodToggle,
+  DeliveriesResourceToggle,
+} from './(components)/deliveries-toolbar-toggles';
+import DispatchTab from './(components)/tabs/dispatch/dispatch-tab';
+import ScheduleTab from './(components)/tabs/schedule/schedule-tab';
 
 export default function DeliveriesPage() {
-  const [selectedChecklist, setSelectedChecklist] = React.useState<
-    'daily' | 'vehicle'
-  >('daily');
+  const [activeTab, setActiveTab] =
+    React.useState<DeliveriesOperationsTab>('dispatch');
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const [selectedDate, setSelectedDate] = React.useState(() =>
+    startOfDay(new Date()),
+  );
+  const [resourceView, setResourceView] = React.useState<'trucks' | 'drivers'>(
+    'trucks',
+  );
+  const [periodView, setPeriodView] = React.useState<'week' | 'month'>('week');
 
   return (
-    <div className="flex flex-col items-center gap-6 p-8 bg-gray-50 min-h-screen">
-      <div className="w-[430px] bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-        <RadioGroup
-          defaultValue="daily"
-          value={selectedChecklist}
-          onValueChange={(v) => setSelectedChecklist(v as 'daily' | 'vehicle')}
-          className="flex flex-col gap-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="daily" id="daily" />
-            <Label htmlFor="daily" className="cursor-pointer">
-              Daily Compliance Checklist
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="vehicle" id="vehicle" />
-            <Label htmlFor="vehicle" className="cursor-pointer">
-              Vehicle Inspection Checklist
-            </Label>
-          </div>
-        </RadioGroup>
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-[#F9FAFB]">
+      <div className="flex h-[70px] border-b border-gray-200 bg-white">
+        <DeliveriesOperationsHeader
+          collapsed={sidebarCollapsed}
+          onToggleCollapsed={() => setSidebarCollapsed((c) => !c)}
+        />
+        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2 px-4">
+          <DeliveriesDateNav
+            date={selectedDate}
+            onDateChange={setSelectedDate}
+          />
+          {!(activeTab === 'schedule' && periodView === 'month') && (
+            <DeliveriesResourceToggle
+              value={resourceView}
+              onChange={setResourceView}
+            />
+          )}
+          {activeTab === 'schedule' && (
+            <DeliveriesPeriodToggle
+              value={periodView}
+              onChange={setPeriodView}
+            />
+          )}
+        </div>
       </div>
 
-      {selectedChecklist === 'daily' ? (
-        <div className="w-[430px]">
-          <DriverPreStartChecklist />
-        </div>
-      ) : (
-        <div className="w-[430px]">
-          <TruckInspectionChecklist />
-        </div>
-      )}
+      <div className="flex min-h-0 flex-1">
+        <DeliveriesOperationsNav
+          collapsed={sidebarCollapsed}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+        <main className="min-w-0 flex-1 overflow-auto">
+          <h1 className="sr-only">Deliveries</h1>
+          {activeTab === 'dispatch' && (
+            <DispatchTab
+              resourceView={resourceView}
+              selectedDate={selectedDate}
+            />
+          )}
+          {activeTab === 'schedule' && (
+            <ScheduleTab
+              resourceView={resourceView}
+              periodView={periodView}
+              selectedDate={selectedDate}
+            />
+          )}
+        </main>
+      </div>
     </div>
   );
 }
