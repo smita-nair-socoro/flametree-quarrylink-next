@@ -19,6 +19,15 @@ export const DriverByIdQueryOptions = (id: number) =>
     staleTime: 5_000,
   });
 
+export const DriverAssignmentsQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: DriverKeys.assignments(id),
+    queryFn: () => APIClient.drivers.getAssignments(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!id,
+  });
+
 export const useCreateDriver = () => {
   const queryClient = useQueryClient();
 

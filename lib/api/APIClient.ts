@@ -43,7 +43,7 @@ import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
-import { TruckDTO } from '../types/truck';
+import { TruckDTO, AssignDriversToTruckDTO } from '../types/truck';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -1058,6 +1058,8 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver/${id}/reactivate`,
         {},
       ),
+    getAssignments: (id: number) =>
+      appClient.Get<Record<string, unknown>>(`/socoro/quarrylink/api/driver/${id}/assignments`),
   },
 
   trucks: {
@@ -1072,6 +1074,14 @@ export const APIClient = {
       }),
     delete: (id: number) =>
       appClient.Delete<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
+    assignDrivers: (truckId: number, data: AssignDriversToTruckDTO) =>
+      appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${truckId}/drivers`, {
+        body: data,
+      }),
+    deactivate: (id: number) =>
+      appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/deactivate`, {}),
+    reactivate: (id: number) =>
+      appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/reactivate`, {}),
   },
 
   hauliers: {
@@ -1086,6 +1096,10 @@ export const APIClient = {
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
+    getDrivers: (haulierId: number) =>
+      appClient.Get<DriverDTO[]>(`/socoro/quarrylink/api/haulier/${haulierId}/drivers`),
+    getTrucks: (haulierId: number) =>
+      appClient.Get<TruckDTO[]>(`/socoro/quarrylink/api/haulier/${haulierId}/trucks`),
   },
 
   tenants: {
