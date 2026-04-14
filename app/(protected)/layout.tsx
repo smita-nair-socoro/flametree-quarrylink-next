@@ -28,6 +28,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   React.useEffect(() => {
     if (currentUser) {
       useUserStore.getState().setUserName(currentUser.name ?? '');
+      useUserStore.getState().setUserGroups(currentUser.groups ?? []);
     }
   }, [currentUser]);
 

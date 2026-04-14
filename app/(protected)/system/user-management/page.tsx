@@ -15,19 +15,26 @@ import TeamAdminTab from './(components)/tabs/team-admin-tab';
 import RolesTab from './(components)/tabs/roles-tab';
 import BillingTab from './(components)/tabs/billing-tab';
 import BrandingTab from './(components)/tabs/branding-tab';
+import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 export default function UserRolesPage() {
+  const isSuperAdmin = useIsSuperAdmin();
+
   const tabs = [
     {
       name: 'Settings',
       content: <SettingsTab />,
       icon: <SettingsIcon className="w-4 h-4" />,
     },
-    {
-      name: 'Team & Admin',
-      content: <TeamAdminTab />,
-      icon: <UsersRound className="w-4 h-4" />,
-    },
+    ...(isSuperAdmin
+      ? [
+          {
+            name: 'Team & Admin',
+            content: <TeamAdminTab />,
+            icon: <UsersRound className="w-4 h-4" />,
+          },
+        ]
+      : []),
     {
       name: 'Roles',
       content: <RolesTab />,

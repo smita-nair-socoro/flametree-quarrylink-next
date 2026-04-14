@@ -1046,6 +1046,18 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver/${id}/haulier`,
         { body: data },
       ),
+    delete: (id: number) =>
+      appClient.Delete<void>(`/socoro/quarrylink/api/driver/${id}`),
+    deactivate: (id: number) =>
+      appClient.Patch<DriverDTO>(
+        `/socoro/quarrylink/api/driver/${id}/deactivate`,
+        {},
+      ),
+    reactivate: (id: number) =>
+      appClient.Patch<DriverDTO>(
+        `/socoro/quarrylink/api/driver/${id}/reactivate`,
+        {},
+      ),
   },
 
   trucks: {
