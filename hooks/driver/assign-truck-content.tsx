@@ -38,7 +38,7 @@ export function AssignTruckContent({
     );
     const map = new Map<string, TruckDTO[]>();
     for (const truck of filtered) {
-      const group = truck.haulierName ?? 'Trucks';
+      const group = truck.haulier?.haulierName ?? 'Trucks';
       if (!map.has(group)) map.set(group, []);
       map.get(group)!.push(truck);
     }

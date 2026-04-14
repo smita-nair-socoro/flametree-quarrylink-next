@@ -29,7 +29,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
-import { HauliersListQueryOptions } from '@/lib/api/haulier';
+import { HauliersListQueryOptions, HaulierTrucksQueryOptions } from '@/lib/api/haulier';
 import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
@@ -244,14 +244,19 @@ export default function DriverForm({
     );
   }
 
-  // TODO: replace with real truck list from API (filtered by haulier)
-  const haulierName =
-    selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks';
-  const truckOptions = [
-    { label: 'ABC-123', value: 'ABC-123', group: haulierName },
-    { label: 'DEF-456', value: 'DEF-456', group: haulierName },
-    { label: 'GHI-789', value: 'GHI-789', group: haulierName },
-  ];
+  const effectiveHaulierId = isInternal
+    ? (internalHaulier?.id ?? 0)
+    : (selectedHaulierId ?? 0);
+  const { data: haulierTrucks = [] } = useQuery(HaulierTrucksQueryOptions(effectiveHaulierId));
+  const truckOptions = React.useMemo(
+    () =>
+      haulierTrucks.map((t) => ({
+        label: t.licensePlate,
+        value: String(t.id),
+        group: t.haulier?.haulierName ?? selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks',
+      })),
+    [haulierTrucks, selectedHaulierInfo, tenantName],
+  );
 
   // TODO: replace with real assigned trucks from API
   const trucks: { id: number; licensePlate: string; status: string }[] = [
