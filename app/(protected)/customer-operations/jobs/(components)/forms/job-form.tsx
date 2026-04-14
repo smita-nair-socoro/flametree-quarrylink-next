@@ -25,7 +25,10 @@ import { DatePicker } from '@/components/date-picker';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useJobFormState, EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
+import {
+  useJobFormState,
+  EMPTY_JOB_FORM_VALUES,
+} from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
@@ -42,7 +45,6 @@ import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
 import { JobDTO } from '@/lib/types/job';
-
 
 interface FormProps {
   id?: number;
@@ -63,7 +65,7 @@ export default function JobForm({
   onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id))
+  const [isEditing] = React.useState(Boolean(id));
   const jobId = id ?? 0;
 
   const { jobDetails, jobItems } = useJobFormState(jobId, isEditing);
@@ -96,10 +98,9 @@ export default function JobForm({
         contactPersonName: jobDetails.contactPersonName,
         phone: jobDetails.contactPersonPhone,
         receiptEmail: (jobDetails.additionalEmailRecipients || []).join(','),
-        accountManagerSub:
-          customers.find((c) => c.id === jobDetails.customerId)?.accountManagerSub
+        accountManagerSub: customers.find((c) => c.id === jobDetails.customerId)
+          ?.accountManagerSub,
       });
-
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, jobDetails, jobForm]);
@@ -168,7 +169,6 @@ export default function JobForm({
     }));
   }, [users]);
 
-
   const tabs = React.useMemo(
     () => [
       {
@@ -181,14 +181,14 @@ export default function JobForm({
       },
       {
         name: 'Invoices',
-        content: <InvoicesTab />,
+        content: <InvoicesTab jobId={jobId} />,
       },
       {
         name: 'Cash Sales',
         content: <CashSalesTab />,
       },
     ],
-    [jobItems, jobDetails],
+    [jobItems, jobDetails, jobId],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
@@ -204,7 +204,10 @@ export default function JobForm({
       // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
       // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
-        ? values.receiptEmail.split(',').map((e) => e.trim()).filter(Boolean)
+        ? values.receiptEmail
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
 
       const additionalEmails = receiptEmails.filter(
@@ -219,7 +222,8 @@ export default function JobForm({
         contactPersonPhone: values.phone,
         docketEmail: selectedCustomer?.email,
         additionalEmailRecipients: additionalEmails,
-        jobStatus: isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
+        jobStatus:
+          isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
         startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
         endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
@@ -231,7 +235,7 @@ export default function JobForm({
           data: {
             ...(jobDetails as JobDTO),
             ...payload,
-          } as JobDTO
+          } as JobDTO,
         });
         notifySuccess('Job updated successfully');
       } else {
@@ -248,7 +252,8 @@ export default function JobForm({
       onSuccess?.();
     } catch (error) {
       notifyError(
-        extractErrorMessage(error) || `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+        extractErrorMessage(error) ||
+          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
@@ -527,9 +532,7 @@ export default function JobForm({
                 type="submit"
                 disabled={isPending}
               >
-                {isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isPending
                   ? isEditing
                     ? 'Saving Changes...'
@@ -538,19 +541,13 @@ export default function JobForm({
                     ? 'Save Changes'
                     : 'Add Job'}
               </Button>
-
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col col-span-2 gap-3 mb-6">
-              <Button
-                type="submit"
-                className="cursor-pointer"
-              >
-                {isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+              <Button type="submit" className="cursor-pointer">
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isPending
                   ? isEditing
                     ? 'Saving Changes...'

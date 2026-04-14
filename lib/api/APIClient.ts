@@ -41,7 +41,7 @@ import {
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
-import { JobDTO, JobDetails, JobItem } from '../types/job';
+import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
 import {
@@ -1120,5 +1120,12 @@ export const APIClient = {
           },
         },
       ),
+  },
+
+  invoices: {
+    getAll: (jobId: number) =>
+      appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
+    getById: (invoiceId: number) =>
+      appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
   },
 };
