@@ -310,13 +310,13 @@ export default function JobForm({
       <Form {...jobForm}>
         <form
           id="add-new-job-form"
-          className={cn('p-1 w-full flex flex-col', className)}
+          className={cn('py-1 w-full flex flex-col', className)}
           onSubmit={jobForm.handleSubmit(onSubmit)}
         >
           {statusBanner}
           <div
             className={cn(
-              'p-1 gap-1 w-full',
+              'gap-1 w-full',
               isDesktop && isEditing
                 ? 'grid grid-cols-2 gap-x-8'
                 : 'grid grid-cols-1',

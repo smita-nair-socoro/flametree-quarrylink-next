@@ -233,19 +233,17 @@ export function useJobActions(jobData?: JobDetails | null) {
     }
   };
 
-  const actionHandlers: Record<string, () => void> = {
-    resume: () => {
+  const actionHandlers: Record<string, () => Promise<void>> = {
+    resume: async () => {
       console.log('Resume job:', jobId, jobData);
       // TODO: implement resume logic
     },
-    cancel: () => {
-      void handleCancelJob();
-    },
-    settle: () => {
+    cancel: handleCancelJob,
+    settle: async () => {
       console.log('Settle job:', jobId, jobData);
       // TODO: implement settle logic
     },
-    pause: () => {
+    pause: async () => {
       console.log('Pause job:', jobId, 'docketAction:', pauseDocketAction);
       // TODO: implement pause logic
     },
@@ -337,7 +335,12 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmActionNeeded={config.confirmActionNeeded}
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
-        onConfirmAction={() => actionHandlers[key]?.()}
+        onConfirmAction={async () => {
+            const handler = actionHandlers[key];
+            if (handler) {
+              await handler();
+            }
+          }}
       />
     );
   });
