@@ -108,3 +108,9 @@ export const HaulierKeys = {
   list: () => [...HaulierKeys.all, 'list'] as const,
   detail: (id: number) => [...HaulierKeys.all, 'detail', id] as const,
 };
+
+export const TruckKeys = {
+  all: ['trucks'] as const,
+  list: () => [...TruckKeys.all, 'list'] as const,
+  detail: (id: number) => [...TruckKeys.all, 'detail', id] as const,
+};

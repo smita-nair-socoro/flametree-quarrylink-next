@@ -189,7 +189,7 @@ export default function SettingsTab() {
     } catch (error) {
       console.error('Error changing password:', error);
       notifyError('Password Change Failed', {
-        description: 'Check current password and try again',
+        description: extractErrorMessage(error),
       });
     } finally {
       setIsSubmitting(false);
@@ -199,9 +199,7 @@ export default function SettingsTab() {
   // Handle Change Password form validation errors
   function onErrorChangePassword(errors: unknown) {
     console.error('Change Password validation errors:', errors);
-    notifyError('Password Change Failed', {
-      description: 'Check current password and try again',
-    });
+    notifyError('Please fix the validation errors before submitting.');
   }
 
   // Show loading state while fetching user
@@ -409,6 +407,15 @@ export default function SettingsTab() {
                     </FormItem>
                   )}
                 />
+                <div className="text-sm text-muted-foreground mt-1 mb-1">
+                  <div className="font-medium mb-1">Password Requirements:</div>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>At least 8 characters long</li>
+                    <li>Contains uppercase and lowercase letters</li>
+                    <li>Contains at least one number</li>
+                    <li>Contains at least one special character (@$!%*?&)</li>
+                  </ul>
+                </div>
 
                 <Button
                   type="submit"
