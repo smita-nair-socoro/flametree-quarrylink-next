@@ -14,7 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { HaulierTrucksQueryOptions } from '@/lib/api/haulier';
 import { usePatchDriverTrucks } from '@/lib/api/driver';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title: string;
@@ -83,10 +83,17 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       setActiveDialog(null);
       setSelectedTruck(null);
     } catch (error) {
-      // TODO: inspect error response for active-deliveries indicator when API contract is confirmed
-      notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
-      transitioningRef.current = true;
-      setActiveDialog('unassignBlocked');
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const hasActiveDeliveries =
+        typeof errorData?.activeDeliveryCount === 'number' &&
+        errorData.activeDeliveryCount > 0;
+
+      if (hasActiveDeliveries) {
+        transitioningRef.current = true;
+        setActiveDialog('unassignBlocked');
+      } else {
+        notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
+      }
     }
   };
 

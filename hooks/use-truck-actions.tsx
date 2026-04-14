@@ -7,7 +7,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { TruckDTO } from '@/lib/types/truck';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 import {
   DeactivateTruckDescription,
   DeactivateTruckContent,
@@ -101,16 +101,17 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
-      // TODO: parse activeDocketCount from error response when API is ready
-      const activeDocketCount = 2; // placeholder — replace with parsed error data
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const activeDocketCount =
+        typeof errorData?.activeDocketCount === 'number'
+          ? errorData.activeDocketCount
+          : null;
 
-      if (activeDocketCount > 0) {
+      if (activeDocketCount !== null && activeDocketCount > 0) {
         setCannotDeactivateCount(activeDocketCount);
         setActiveDialog('cannot_deactivate');
       } else {
-        notifyError(
-          extractErrorMessage(error) || 'Failed to deactivate truck.',
-        );
+        notifyError(extractErrorMessage(error) || 'Failed to deactivate truck.');
         setActiveDialog(null);
       }
     }
@@ -187,10 +188,17 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       setActiveDialog(null);
       setSelectedDriver(null);
     } catch (error) {
-      // TODO: inspect error response for active-deliveries indicator when API contract is confirmed
-      notifyError(extractErrorMessage(error) || 'Failed to unassign driver.');
-      transitioningRef.current = true;
-      setActiveDialog('unassignDriverBlocked');
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const hasActiveDeliveries =
+        typeof errorData?.activeDeliveryCount === 'number' &&
+        errorData.activeDeliveryCount > 0;
+
+      if (hasActiveDeliveries) {
+        transitioningRef.current = true;
+        setActiveDialog('unassignDriverBlocked');
+      } else {
+        notifyError(extractErrorMessage(error) || 'Failed to unassign driver.');
+      }
     }
   };
 
