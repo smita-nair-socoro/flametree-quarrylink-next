@@ -61,7 +61,7 @@ export default function DeliveriesPage() {
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        <main className="min-w-0 flex-1 overflow-auto">
+        <main className="min-w-0 flex-1">
           <h1 className="sr-only">Deliveries</h1>
           {activeTab === 'dispatch' && (
             <DispatchTab
