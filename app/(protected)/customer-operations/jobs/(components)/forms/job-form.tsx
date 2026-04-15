@@ -41,10 +41,16 @@ import { Tab } from '@/components/ui/tabs';
 import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
-import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
 import { JobDTO } from '@/lib/types/job';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface FormProps {
   id?: number;
@@ -201,9 +207,9 @@ export default function JobForm({
       // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
 
       const additionalEmails = receiptEmails.filter(
@@ -249,7 +255,7 @@ export default function JobForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
@@ -409,7 +415,7 @@ export default function JobForm({
                 'col-span-2',
                 isEditing && isDesktop
                   ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-2 gap-2',
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
@@ -419,9 +425,7 @@ export default function JobForm({
                 control={jobForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem
-                    className={isEditing && isDesktop ? 'col-span-2' : ''}
-                  >
+                  <FormItem className="col-span-2">
                     <FormLabel>Delivery Date*</FormLabel>
                     <FormControl>
                       <DatePicker
@@ -442,13 +446,25 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-start"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
-                      />
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -462,13 +478,25 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>End Time Window</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-end"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
-                      />
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -57,6 +57,13 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface FormProps {
   id?: number;
@@ -192,9 +199,9 @@ export default function QuotationForm({
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : []),
     ].filter(Boolean);
     const customerName =
@@ -367,24 +374,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-          <div
-            className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-              isDesktop ? '' : 'pt-10',
-            )}
-          >
-            <div className="flex flex-col items-center space-y-4 p-8">
-              <Spinner size="medium" />
-              <p className="text-lg text-muted-foreground font-bold">
-                {isDuplicate
-                  ? 'Creating Duplicate Quote...'
-                  : createQuotation.isPending
-                    ? 'Adding Quote...'
-                    : 'Updating Quote...'}
-              </p>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isDuplicate
+                ? 'Creating Duplicate Quote...'
+                : createQuotation.isPending
+                  ? 'Adding Quote...'
+                  : 'Updating Quote...'}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <Form {...quotationForm}>
         <form
@@ -395,7 +402,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-            'pointer-events-none',
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -471,7 +478,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -632,7 +639,7 @@ export default function QuotationForm({
                 'col-span-2',
                 isEditing && isDesktop
                   ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-2 gap-2',
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
@@ -642,9 +649,7 @@ export default function QuotationForm({
                 control={quotationForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem
-                    className={isEditing && isDesktop ? 'col-span-2' : ''}
-                  >
+                  <FormItem className="col-span-2">
                     <FormLabel>{dateLabel}*</FormLabel>
                     <FormControl>
                       <DatePicker
@@ -667,14 +672,26 @@ export default function QuotationForm({
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-start"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
-                      />
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -688,14 +705,26 @@ export default function QuotationForm({
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-end"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
-                      />
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
