@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/form-multi-select';
 import { TableBadges } from '@/components/table-badges';
 import { useTruckActions } from '@/hooks/use-truck-actions';
+import { useTruckFormState } from '@/hooks/truck/use-truck-form-state';
 
 interface FormProps {
   id?: number;
@@ -170,6 +171,8 @@ export default function TruckForm({
     return hauliers.find((h) => h.id === selectedHaulierId);
   }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
+  const { truckData } = useTruckFormState(id, isEditing);
+
   // Report dirty state to parent
   React.useEffect(() => {
     onDirtyChange?.(truckForm.formState.isDirty);
@@ -184,6 +187,27 @@ export default function TruckForm({
       });
     }
   }, [isInternal, isEditing, truckForm, internalHaulier?.id]);
+
+  // Populate form when editing and truck data is loaded
+  React.useEffect(() => {
+    if (isEditing && truckData) {
+      const isInternalTruck = truckData.haulier?.id === internalHaulier?.id;
+      setTruckOwnerType(isInternalTruck ? 'INTERNAL' : 'EXTERNAL');
+      truckForm.reset({
+        haulierId: truckData.haulier?.id ?? truckData.haulierId ?? 0,
+        licensePlate: truckData.licensePlate ?? '',
+        vin: '',
+        model: truckData.model ?? '',
+        year: truckData.year?.toString() ?? '',
+        truckType: truckData.truckType,
+        tankVolumeM3: truckData.tankVolumeM3 ?? 0,
+        tareWeight: truckData.tareWeight ?? 0,
+        combinationGvm: truckData.combinationGvm ?? 0,
+        driverId: '',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, truckData]);
 
   async function onSubmit(values: TruckFormValues) {
     try {
@@ -212,17 +236,9 @@ export default function TruckForm({
     });
   }
 
-  // TODO: replace with real truck data when editing
-  const truckData = isEditing ? null : null;
   const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
 
-  // TODO: replace with real assigned drivers from API
-  const assignedDrivers: { id: number; driverName: string; status: string }[] =
-    [
-      { id: 1, driverName: 'John Smith', status: 'ACTIVE' },
-      { id: 2, driverName: 'Armin Menhaji', status: 'ACTIVE' },
-      { id: 3, driverName: 'Jayden Olivo', status: 'INACTIVE' },
-    ];
+  const assignedDrivers: { id: number; driverName: string; status: string }[] = [];
 
   const { actions: driverActions, confirmDialogs: driverDialogs } =
     useTruckActions(truckData);
@@ -452,7 +468,6 @@ export default function TruckForm({
                     <FormLabel>Volume*</FormLabel>
                     <FormControl>
                       <Input
-                        isNumber
                         placeholder=""
                         suffix="m³"
                         {...field}
@@ -472,7 +487,6 @@ export default function TruckForm({
                     <FormLabel>Tare Weight*</FormLabel>
                     <FormControl>
                       <Input
-                        isNumber
                         placeholder=""
                         suffix="TN"
                         {...field}
@@ -492,7 +506,6 @@ export default function TruckForm({
                     <FormLabel>GVM Weight*</FormLabel>
                     <FormControl>
                       <Input
-                        isNumber
                         placeholder=""
                         suffix="TN"
                         {...field}
@@ -570,7 +583,7 @@ export default function TruckForm({
           )}
 
           {/* Audit Information — edit mode only */}
-          {isEditing && (
+          {isEditing && truckData && (
             <div className="space-y-6 mt-10 mb-4">
               <h2 className="text-2xl font-bold">Audit Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
@@ -579,8 +592,7 @@ export default function TruckForm({
                     Created By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string> | null)?.createdBy ||
-                      'N/A'}
+                    {truckData.createdBy || 'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -588,8 +600,7 @@ export default function TruckForm({
                     Last Modified By:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string> | null)
-                      ?.lastModifiedBy || 'N/A'}
+                    {truckData.lastModifiedBy || 'N/A'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -597,9 +608,7 @@ export default function TruckForm({
                     Created Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(
-                      (truckData as Record<string, string> | null)?.createdAt,
-                    )}
+                    {formatLocalDateShort(truckData.createdAt)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -607,9 +616,7 @@ export default function TruckForm({
                     Modified Date:
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(
-                      (truckData as Record<string, string> | null)?.updatedAt,
-                    )}
+                    {formatLocalDateShort(truckData.updatedAt)}
                   </p>
                 </div>
               </div>

@@ -9,9 +9,9 @@ export interface AssignDriversToTruckDTO {
 interface TruckDTO {
   id?: number;
   licensePlate: string;
-  vin?: string;
   model: string;
   truckType: TRUCK_TYPE;
+  truckBodyType?: string;
   tankVolumeM3?: number;
   truckStatus?: TRUCK_STATUS;
   year?: number;
@@ -33,4 +33,8 @@ interface TruckDTO {
   /** Driver IDs currently assigned to this truck (returned by getById) */
   driverIds?: number[];
   version?: number;
+  createdBy?: string;
+  createdAt?: string;
+  lastModifiedBy?: string;
+  updatedAt?: string;
 }
