@@ -24,6 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
+import { useCreateTruck, useUpdateTruck } from '@/lib/api/truck';
 import { HauliersListQueryOptions, HaulierDriversQueryOptions } from '@/lib/api/haulier';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -112,10 +113,12 @@ export default function TruckForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [truckOwnerType, setTruckOwnerType] = React.useState<
     'INTERNAL' | 'EXTERNAL'
   >('INTERNAL');
+
+  const createTruck = useCreateTruck();
+  const updateTruck = useUpdateTruck();
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const tenantName = useClientStore((state) => state.getTenantName());
@@ -157,7 +160,10 @@ export default function TruckForm({
     ? (internalHaulier?.id ?? 0)
     : (selectedHaulierId ?? 0);
 
-  const { data: haulierDrivers = [] } = useQuery(HaulierDriversQueryOptions(effectiveHaulierId));
+  const { data: haulierDriversRaw = [] } = useQuery(HaulierDriversQueryOptions(effectiveHaulierId));
+  const haulierDrivers = Array.isArray(haulierDriversRaw)
+    ? haulierDriversRaw
+    : (haulierDriversRaw as { content?: typeof haulierDriversRaw })?.content ?? [];
   const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
       haulierDrivers
@@ -212,11 +218,38 @@ export default function TruckForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, truckData]);
 
+  const isSubmitting = createTruck.isPending || updateTruck.isPending;
+
   async function onSubmit(values: TruckFormValues) {
+    const selectedHaulierData = isInternal
+      ? internalHaulier
+      : hauliers.find((h) => h.id === values.haulierId);
+
+    if (!selectedHaulierData?.id) {
+      notifyError('Haulier is required. Please select a haulier.');
+      return;
+    }
+
     try {
-      setIsSubmitting(true);
-      // TODO: wire up create/update truck API calls
-      console.log('Truck form values:', values);
+      const payload = {
+        haulierId: selectedHaulierData.id,
+        truckBusinessType: truckOwnerType,
+        licensePlate: values.licensePlate,
+        vin: values.vin || undefined,
+        model: values.model,
+        year: values.year ? parseInt(values.year) : undefined,
+        truckType: values.truckType,
+        tankVolumeM3: values.tankVolumeM3,
+        tareWeight: values.tareWeight,
+        combinationGvm: values.combinationGvm,
+      };
+
+      if (isEditing && id && truckData) {
+        await updateTruck.mutateAsync({ id, data: { ...payload, version: truckData.version ?? 0 } });
+      } else {
+        await createTruck.mutateAsync(payload);
+      }
+
       notifySuccess(
         isEditing ? 'Truck Updated Successfully!' : 'Truck Added Successfully!',
       );
@@ -227,8 +260,6 @@ export default function TruckForm({
         extractErrorMessage(error) ||
           `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 

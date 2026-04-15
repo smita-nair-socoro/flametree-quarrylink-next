@@ -10,7 +10,9 @@ export interface AssignDriversToTruckDTO {
 interface TruckDTO {
   id?: number;
   licensePlate: string;
+  vin?: string;
   model: string;
+  truckBusinessType?: 'INTERNAL' | 'EXTERNAL';
   truckType: TRUCK_TYPE;
   truckBodyType?: string;
   tankVolumeM3?: number;

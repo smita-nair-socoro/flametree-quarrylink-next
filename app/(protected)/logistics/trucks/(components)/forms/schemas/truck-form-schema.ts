@@ -3,7 +3,7 @@ import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 
 export const TruckFormSchema = z
   .object({
-    haulierId: z.number(),
+    haulierId: z.coerce.number(),
     licensePlate: z
       .string()
       .trim()
@@ -28,14 +28,6 @@ export const TruckFormSchema = z
       .positive({ message: 'GVM weight must be greater than 0' }),
     driverId: z.string().optional(),
   })
-  .superRefine((data, ctx) => {
-    if (!data.haulierId || data.haulierId === 0) {
-      ctx.addIssue({
-        path: ['haulierId'],
-        code: z.ZodIssueCode.custom,
-        message: 'Haulier is required',
-      });
-    }
-  });
+  ;
 
 export type TruckFormValues = z.infer<typeof TruckFormSchema>;
