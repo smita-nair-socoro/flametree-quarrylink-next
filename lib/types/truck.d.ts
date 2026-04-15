@@ -1,5 +1,6 @@
 import { TRUCK_STATUS, TRUCK_TYPE } from './truck-enums';
 import { HaulierDTO } from './haulier';
+import { DriverTruckEntry } from './driver';
 
 export interface AssignDriversToTruckDTO {
   version: number;
@@ -15,7 +16,6 @@ interface TruckDTO {
   tankVolumeM3?: number;
   truckStatus?: TRUCK_STATUS;
   year?: number;
-  truckBodyType?: string;
   pbsApproved?: boolean;
   tareWeight?: number;
   netWeight?: number;
@@ -28,9 +28,11 @@ interface TruckDTO {
   pbsClassification?: string;
   /** Flat ID used in create/update request bodies */
   haulierId?: number;
-  /** Nested haulier object returned by the API */
+  /** Nested haulier object returned by getById */
   haulier?: HaulierDTO;
-  /** Driver IDs currently assigned to this truck (returned by getById) */
+  /** Driver assignments returned by getByIdWithDrivers */
+  driverTrucks?: DriverTruckEntry[];
+  /** Flat driver IDs used in create/update request bodies */
   driverIds?: number[];
   version?: number;
   createdBy?: string;

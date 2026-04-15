@@ -19,6 +19,14 @@ export const TruckByIdQueryOptions = (id: number) =>
     staleTime: 5_000,
   });
 
+export const TruckByIdWithDriversQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: TruckKeys.drivers(id),
+    queryFn: () => APIClient.trucks.getByIdWithDrivers(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 export const useCreateTruck = () => {
   const queryClient = useQueryClient();
 

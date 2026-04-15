@@ -1066,6 +1066,8 @@ export const APIClient = {
     getAll: () => appClient.Get<TruckDTO[]>(`/socoro/quarrylink/api/truck`),
     getById: (id: number) =>
       appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
+    getByIdWithDrivers: (id: number) =>
+      appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/driver`),
     create: (data: TruckDTO) =>
       appClient.Post<TruckDTO>(`/socoro/quarrylink/api/truck`, { body: data }),
     update: (id: number, data: TruckDTO) =>

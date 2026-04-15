@@ -238,7 +238,11 @@ export default function TruckForm({
 
   const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
 
-  const assignedDrivers: { id: number; driverName: string; status: string }[] = [];
+  const assignedDrivers = (truckData?.driverTrucks ?? []).map((entry) => ({
+    id: entry.driver.id!,
+    driverName: entry.driver.driverName,
+    status: entry.driver.driverStatus ?? 'ACTIVE',
+  }));
 
   const { actions: driverActions, confirmDialogs: driverDialogs } =
     useTruckActions(truckData);
