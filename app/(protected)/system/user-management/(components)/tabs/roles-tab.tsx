@@ -1,6 +1,7 @@
 'use client';
 
 import { PermissionMatrix } from './roles/permission-matrix';
+import { UpgradeFeaturesCard } from './roles/upgrade-features-card';
 
 const roles = [
   { name: 'Super Admin', isAdmin: true },
@@ -183,6 +184,15 @@ export default function RolesTab() {
         roles={roles}
         sections={sections}
         footerNote="Billing and subscription settings stay Super Admin only. Drivers are limited to the Driver App row unless your organisation assigns additional roles."
+      />
+
+      <UpgradeFeaturesCard
+        title="Change docket volume or add-ons"
+        description="Use the pricing calculator or Billing in QuarryLink when you need to adjust your plan."
+        buttonText="View pricing"
+        onUpgrade={() => {
+          console.log('View pricing clicked');
+        }}
       />
     </div>
   );
