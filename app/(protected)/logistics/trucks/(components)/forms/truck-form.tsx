@@ -200,7 +200,7 @@ export default function TruckForm({
   // Populate form when editing and truck data is loaded
   React.useEffect(() => {
     if (isEditing && truckData) {
-      const isInternalTruck = truckData.haulier?.id === internalHaulier?.id;
+      const isInternalTruck = truckData.truckBusinessType === 'INTERNAL';
       setTruckOwnerType(isInternalTruck ? 'INTERNAL' : 'EXTERNAL');
       truckForm.reset({
         haulierId: truckData.haulier?.id ?? truckData.haulierId ?? 0,
@@ -221,19 +221,20 @@ export default function TruckForm({
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
   async function onSubmit(values: TruckFormValues) {
-    const selectedHaulierData = isInternal
-      ? internalHaulier
-      : hauliers.find((h) => h.id === values.haulierId);
-
-    if (!selectedHaulierData?.id) {
+    console.log('Form values on submit:', values, { effectiveHaulierId, isInternal });
+    if (!isInternal && !effectiveHaulierId) {
       notifyError('Haulier is required. Please select a haulier.');
       return;
     }
 
     try {
+      const resolvedHaulierId = isInternal ? internalHaulier?.id : values.haulierId;
+
       const payload = {
-        haulierId: selectedHaulierData.id,
-        truckBusinessType: truckOwnerType,
+        haulierId: resolvedHaulierId || undefined,
+        truckBusinessType: truckOwnerType === 'EXTERNAL' ? 'SUBCONTRACTOR' as const : 'INTERNAL' as const,
+        truckBodyType: 'ALUMINIUM',
+        pbsApproved: false,
         licensePlate: values.licensePlate,
         vin: values.vin || undefined,
         model: values.model,

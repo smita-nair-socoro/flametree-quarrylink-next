@@ -12,7 +12,7 @@ interface TruckDTO {
   licensePlate: string;
   vin?: string;
   model: string;
-  truckBusinessType?: 'INTERNAL' | 'EXTERNAL';
+  truckBusinessType?: 'INTERNAL' | 'SUBCONTRACTOR';
   truckType: TRUCK_TYPE;
   truckBodyType?: string;
   tankVolumeM3?: number;
