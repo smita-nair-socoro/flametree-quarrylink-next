@@ -34,6 +34,7 @@ import {
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
 import { useAssignDriversToTruck, useDeactivateTruck, useReactivateTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
+import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 
 interface DialogConfig {
   title: string;
@@ -387,6 +388,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       }}
       hideTrigger
       dialogTitle="View / Edit Truck"
+      headerButtons={<TruckActionButtons truck={truckData} />}
       headerInfo={{
         customId: truckData?.licensePlate,
         primaryBadges: truckData?.truckStatus ? [truckData.truckStatus] : [],

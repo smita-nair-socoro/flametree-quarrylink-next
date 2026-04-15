@@ -55,7 +55,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {truck.truckStatus === 'INACTIVE' && (
+          {truck.truckStatus === 'DEACTIVATED' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivate}>
@@ -64,7 +64,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {(truck.truckStatus === 'ACTIVE' || truck.truckStatus === 'AVAILABLE') && (
+          {truck.truckStatus === 'ACTIVE' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeactivate}>
