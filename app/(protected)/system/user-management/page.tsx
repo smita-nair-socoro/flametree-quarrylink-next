@@ -40,11 +40,11 @@ export default function UserRolesPage() {
       content: <RolesTab />,
       icon: <Shield className="w-4 h-4" />,
     },
-    {
-      name: 'Billing',
-      content: <BillingTab />,
-      icon: <CreditCard className="w-4 h-4" />,
-    },
+    // {
+    //   name: 'Billing',
+    //   content: <BillingTab />,
+    //   icon: <CreditCard className="w-4 h-4" />,
+    // },
     {
       name: 'Branding',
       content: <BrandingTab />,
@@ -69,8 +69,8 @@ export default function UserRolesPage() {
         <Tab
           tabs={tabs}
           className="w-full min-w-0"
-          tabsClassName="h-15 w-full overflow-x-auto flex-nowrap"
-          tabsTriggerClassName="h-13 flex-1 justify-center"
+          tabsClassName="h-12 w-full overflow-x-auto flex-nowrap rounded-lg"
+          tabsTriggerClassName="h-10 flex-1 justify-center"
           enableDropdownOnMobile={true}
         />
       </div>
