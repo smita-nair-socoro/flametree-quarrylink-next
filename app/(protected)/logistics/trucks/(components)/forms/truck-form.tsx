@@ -24,12 +24,11 @@ import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import { HauliersListQueryOptions } from '@/lib/api/haulier';
+import { HauliersListQueryOptions, HaulierDriversQueryOptions } from '@/lib/api/haulier';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
 import { useClientStore } from '@/app/stores/client-store';
-import { DriversListQueryOptions } from '@/lib/api/driver';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -134,18 +133,6 @@ export default function TruckForm({
     [hauliers, tenantName],
   );
 
-  const { data: drivers = [] } = useQuery(DriversListQueryOptions());
-  const driverOptions: FormMultiSelectOption[] = React.useMemo(
-    () =>
-      drivers
-        .filter((d) => d.id != null)
-        .map((d) => ({
-          label: d.driverName,
-          value: String(d.id),
-        })),
-    [drivers],
-  );
-
   const isInternal = truckOwnerType === 'INTERNAL';
 
   const truckForm = useForm<TruckFormValues>({
@@ -166,6 +153,22 @@ export default function TruckForm({
   });
 
   const selectedHaulierId = truckForm.watch('haulierId');
+  const effectiveHaulierId = isInternal
+    ? (internalHaulier?.id ?? 0)
+    : (selectedHaulierId ?? 0);
+
+  const { data: haulierDrivers = [] } = useQuery(HaulierDriversQueryOptions(effectiveHaulierId));
+  const driverOptions: FormMultiSelectOption[] = React.useMemo(
+    () =>
+      haulierDrivers
+        .filter((d) => d.id != null)
+        .map((d) => ({
+          label: d.driverName,
+          value: String(d.id),
+        })),
+    [haulierDrivers],
+  );
+
   const selectedHaulierInfo = React.useMemo(() => {
     if (isInternal) return internalHaulier;
     return hauliers.find((h) => h.id === selectedHaulierId);
@@ -580,8 +583,14 @@ export default function TruckForm({
                 control={truckForm.control}
                 name="driverId"
                 label="Drivers (Optional)"
-                options={driverOptions}
-                placeholder="Search or Select Drivers"
+                options={selectedHaulierId || isInternal ? driverOptions : []}
+                placeholder={
+                  !selectedHaulierId && !isInternal
+                    ? 'Select Haulier first...'
+                    : 'Select drivers...'
+                }
+                disabled={!selectedHaulierId && !isInternal}
+                searchPlaceholder="Search drivers..."
               />
             </>
           )}
