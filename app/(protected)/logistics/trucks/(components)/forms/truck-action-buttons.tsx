@@ -38,14 +38,14 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
     actions.deactivate();
   };
 
-  const handleDelete = () => {
-    setDropdownOpen(false);
-    actions.delete();
-  };
-
   const handleReactivate = () => {
     setDropdownOpen(false);
     actions.reactivate();
+  };
+
+  const handleDelete = () => {
+    setDropdownOpen(false);
+    actions.delete();
   };
 
   // ON_DUTY — no actions
@@ -53,39 +53,25 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
     return <>{confirmDialogs}</>;
   }
 
-  // DEACTIVATED — Reactivate only
-  if (status === TRUCK_STATUS.DEACTIVATED) {
-    return (
-      <div className="flex items-start">
-        {confirmDialogs}
-        <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleReactivate}>
-                <Power className="h-4 w-4 mr-2 text-green-600" />
-                <span className="text-green-600">Reactivate Truck</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
-  }
-
-  // ACTIVE — ellipsis with "Deactivate Truck" + "Delete Truck"
   return (
     <div className="flex items-start">
       {confirmDialogs}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
+
+        {/* DEACTIVATED — Reactivate primary button */}
+        {status === TRUCK_STATUS.DEACTIVATED && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReactivate}
+            className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
+          >
+            <Power className="h-4 w-4 mr-2" />
+            Reactivate Truck
+          </Button>
+        )}
+
+        {/* Dropdown for secondary actions */}
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -97,17 +83,22 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleDeactivate}>
-              <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
-              <span className="text-orange-900">Deactivate Truck</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {status === TRUCK_STATUS.ACTIVE && (
+              <>
+                <DropdownMenuItem onClick={handleDeactivate}>
+                  <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
+                  <span className="text-orange-900">Deactivate Truck</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleDelete}>
               <Trash2 className="h-4 w-4 mr-2 text-red-600" />
               <span className="text-red-600">Delete Truck</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
       </div>
     </div>
   );

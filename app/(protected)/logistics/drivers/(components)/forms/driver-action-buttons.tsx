@@ -46,17 +46,17 @@ export function DriverActionButtons({
     actions.deactivate();
   };
 
-  const handleDelete = () => {
-    setDropdownOpen(false);
-    actions.delete();
-  };
-
   const handleReactivate = () => {
     setDropdownOpen(false);
     actions.reactivate();
   };
 
-  // ON_DUTY — only show "Assigned Dockets", no ellipsis
+  const handleDelete = () => {
+    setDropdownOpen(false);
+    actions.delete();
+  };
+
+  // ON_DUTY — Assigned Dockets only, no dropdown
   if (status === DRIVER_STATUS.ON_DUTY) {
     return (
       <div className="flex items-start">
@@ -76,45 +76,13 @@ export function DriverActionButtons({
     );
   }
 
-  // INACTIVE — only ellipsis with "Reactivate Driver" + "Delete Driver"
-  if (status === DRIVER_STATUS.INACTIVE) {
-    return (
-      <div className="flex items-start">
-        {confirmDialogs}
-        <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleReactivate}>
-                <Power className="h-4 w-4 mr-2 text-green-600" />
-                <span className="text-green-600">Reactivate Driver</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete}>
-                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-                <span className="text-red-600">Delete Driver</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div className="flex items-start">
+      {confirmDialogs}
+      <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
 
-  // PENDING_INVITATION — "Resend Invitation" outside + ellipsis with "Deactivate Driver", "Delete Driver"
-  if (status === DRIVER_STATUS.PENDING_INVITATION) {
-    return (
-      <div className="flex items-start">
-        {confirmDialogs}
-        <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
+        {/* PENDING_INVITATION — Resend Invitation primary button */}
+        {status === DRIVER_STATUS.PENDING_INVITATION && (
           <Button
             variant="ghost"
             size="sm"
@@ -124,47 +92,22 @@ export function DriverActionButtons({
             <RefreshCw className="h-4 w-4 mr-2" />
             Resend Invitation
           </Button>
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleDeactivate}>
-                <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
-                <span className="text-orange-900">Deactivate Driver</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete}>
-                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-                <span className="text-red-600">Delete Driver</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
-  }
+        )}
 
-  // ACTIVE (default) — "Assigned Dockets" outside + ellipsis with "Deactivate Driver", "Delete Driver"
-  return (
-    <div className="flex items-start">
-      {confirmDialogs}
-      <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onAssignedDockets}
-          className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          Assigned Dockets
-        </Button>
+        {/* INACTIVE — Reactivate primary button */}
+        {status === DRIVER_STATUS.INACTIVE && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReactivate}
+            className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
+          >
+            <Power className="h-4 w-4 mr-2" />
+            Reactivate Driver
+          </Button>
+        )}
+
+        {/* Dropdown for secondary actions */}
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -176,17 +119,23 @@ export function DriverActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleDeactivate}>
-              <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
-              <span className="text-orange-900">Deactivate Driver</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            {(status === DRIVER_STATUS.ACTIVE ||
+              status === DRIVER_STATUS.PENDING_INVITATION) && (
+              <>
+                <DropdownMenuItem onClick={handleDeactivate}>
+                  <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
+                  <span className="text-orange-900">Deactivate Driver</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem onClick={handleDelete}>
               <Trash2 className="h-4 w-4 mr-2 text-red-600" />
               <span className="text-red-600">Delete Driver</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
       </div>
     </div>
   );
