@@ -50,7 +50,6 @@ export function useTeamMemberActions(
 ) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [viewOpen, setViewOpen] = React.useState(false);
-
   const {
     data: userDependencies,
     isLoading: isUserDependenciesLoading,

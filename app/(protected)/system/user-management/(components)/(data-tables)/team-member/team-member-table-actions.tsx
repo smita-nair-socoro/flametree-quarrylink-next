@@ -86,7 +86,6 @@ export function TeamMemberTableActions({
               <Eye className="h-4 w-4 mr-2" />
               View/Edit User
             </DropdownMenuItem>
-
             <DropdownMenuItem
               onClick={handleDelete}
               className="text-destructive focus:text-destructive"
