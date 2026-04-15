@@ -56,7 +56,7 @@ export function PermissionMatrix({
           <p className="text-[13px] font-normal text-muted-foreground">
             <span className="hidden md:inline">{description}</span>
             <span className="md:hidden">
-              Who can use each module on your subscription
+              Example access by role for each module on this subscription
             </span>
           </p>
         </div>
@@ -100,7 +100,10 @@ export function PermissionMatrix({
                     </TableCell>
                   </TableRow>
                   {section.modules.map((module) => (
-                    <TableRow key={module.name} className="bg-white hover:bg-gray-50">
+                    <TableRow
+                      key={module.name}
+                      className="bg-white hover:bg-gray-50"
+                    >
                       <TableCell className="text-[13px] font-medium">
                         {module.name}
                       </TableCell>
@@ -136,7 +139,7 @@ export function PermissionMatrix({
           {sections.map((section) => (
             <React.Fragment key={section.sectionName}>
               <div className="py-2 px-6 bg-[#F9FAFB]">
-                <p className="text-[12px] font-medium text-muted-foreground">
+                <p className="text-[11px] md:text-[12px] font-bold md:font-medium text-muted-foreground uppercase">
                   {section.sectionName}
                 </p>
               </div>
@@ -186,9 +189,7 @@ export function PermissionMatrix({
         </div>
 
         {footerNote && (
-          <p className="text-[12px] text-muted-foreground py-4">
-            {footerNote}
-          </p>
+          <p className="text-[12px] text-muted-foreground py-4">{footerNote}</p>
         )}
       </CardContent>
     </Card>
