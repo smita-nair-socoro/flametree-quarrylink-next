@@ -4,6 +4,22 @@ export enum TRUCK_STATUS {
   DEACTIVATED = 'DEACTIVATED',
 }
 
+/** Maps raw backend status values to frontend display enum */
+const TRUCK_STATUS_MAP: Record<string, TRUCK_STATUS> = {
+  AVAILABLE: TRUCK_STATUS.ACTIVE,
+  UNAVAILABLE: TRUCK_STATUS.DEACTIVATED,
+  UNDER_MAINTENANCE: TRUCK_STATUS.DEACTIVATED,
+  ON_DUTY: TRUCK_STATUS.ON_DUTY,
+  // pass-through for values already in frontend format
+  ACTIVE: TRUCK_STATUS.ACTIVE,
+  DEACTIVATED: TRUCK_STATUS.DEACTIVATED,
+};
+
+export function normalizeTruckStatus(status: string | undefined): TRUCK_STATUS | undefined {
+  if (!status) return undefined;
+  return TRUCK_STATUS_MAP[status];
+}
+
 export enum TRUCK_TYPE {
   TRUCK = 'TRUCK',
   TRUCK_AND_TRAILER = 'TRUCK_AND_TRAILER',

@@ -151,7 +151,7 @@ export default function TruckForm({
       tankVolumeM3: 0,
       tareWeight: 0,
       combinationGvm: 0,
-      driverId: '',
+      driverIds: [],
     },
   });
 
@@ -160,10 +160,8 @@ export default function TruckForm({
     ? (internalHaulier?.id ?? 0)
     : (selectedHaulierId ?? 0);
 
-  const { data: haulierDriversRaw = [] } = useQuery(HaulierDriversQueryOptions(effectiveHaulierId));
-  const haulierDrivers = Array.isArray(haulierDriversRaw)
-    ? haulierDriversRaw
-    : (haulierDriversRaw as { content?: typeof haulierDriversRaw })?.content ?? [];
+  const { data: haulierDriversData } = useQuery(HaulierDriversQueryOptions(effectiveHaulierId));
+  const haulierDrivers = haulierDriversData?.driverFullDetailsResponseDtoList ?? [];
   const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
       haulierDrivers
@@ -212,7 +210,7 @@ export default function TruckForm({
         tankVolumeM3: truckData.tankVolumeM3 ?? 0,
         tareWeight: truckData.tareWeight ?? 0,
         combinationGvm: truckData.combinationGvm ?? 0,
-        driverId: '',
+        driverIds: [],
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -243,6 +241,7 @@ export default function TruckForm({
         tankVolumeM3: values.tankVolumeM3,
         tareWeight: values.tareWeight,
         combinationGvm: values.combinationGvm,
+        driverIds: values.driverIds?.map(Number) ?? [],
       };
 
       if (isEditing && id && truckData) {
@@ -613,7 +612,7 @@ export default function TruckForm({
               <Separator />
               <FormMultiSelect
                 control={truckForm.control}
-                name="driverId"
+                name="driverIds"
                 label="Drivers (Optional)"
                 options={selectedHaulierId || isInternal ? driverOptions : []}
                 placeholder={

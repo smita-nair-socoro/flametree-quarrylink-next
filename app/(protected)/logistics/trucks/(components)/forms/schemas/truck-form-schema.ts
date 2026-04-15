@@ -26,7 +26,7 @@ export const TruckFormSchema = z
     combinationGvm: z.coerce
       .number()
       .positive({ message: 'GVM weight must be greater than 0' }),
-    driverId: z.string().optional(),
+    driverIds: z.array(z.string()).optional(),
   })
   ;
 

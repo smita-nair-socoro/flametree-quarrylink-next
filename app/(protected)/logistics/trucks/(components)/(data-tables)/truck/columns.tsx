@@ -3,7 +3,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { TruckDTO } from '@/lib/types/truck';
-import { TRUCK_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
+import { TRUCK_TYPE, normalizeTruckStatus } from '@/lib/types/truck-enums';
 import { TruckTableActions } from './truck-table-actions';
 
 export const truckColumns: ColumnDef<TruckDTO>[] = [
@@ -75,7 +75,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       if (value == null) return <div className="py-2">-</div>;
       return (
         <div className="py-2">
-          {value}m<sup>3</sup>
+          {value} m<sup>3</sup>
         </div>
       );
     },
@@ -90,7 +90,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
     cell: ({ getValue }) => {
       const value = getValue<number | undefined>();
       if (value == null) return <div className="py-2">-</div>;
-      return <div className="py-2">{value}T</div>;
+      return <div className="py-2">{value} TN</div>;
     },
     meta: 'GVM',
   },
@@ -101,10 +101,11 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       return <TableClientSortableHeader column={column} title="Status" />;
     },
     cell: ({ getValue }) => {
-      const status = getValue<string>() as TRUCK_STATUS;
+      const raw = getValue<string>();
+      const status = normalizeTruckStatus(raw);
       return (
         <div className="py-2">
-          <TableBadges names={[status]} visibleCount={1} />
+          <TableBadges names={status ? [status] : [raw]} visibleCount={1} />
         </div>
       );
     },

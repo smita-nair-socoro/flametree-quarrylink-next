@@ -75,7 +75,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const transitioningRef = React.useRef(false);
 
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
-  const { data: availableDrivers = [] } = useQuery(HaulierDriversQueryOptions(haulierId));
+  const { data: availableDriversData } = useQuery(HaulierDriversQueryOptions(haulierId));
+  const availableDrivers = availableDriversData?.driverFullDetailsResponseDtoList ?? [];
   const assignDriversToTruck = useAssignDriversToTruck();
   const deactivateTruck = useDeactivateTruck();
   const reactivateTruck = useReactivateTruck();

@@ -17,7 +17,11 @@ export const HaulierDetailQueryOptions = (id: number) => ({
 export const HaulierDriversQueryOptions = (haulierId: number) =>
   queryOptions({
     queryKey: HaulierKeys.drivers(haulierId),
-    queryFn: () => APIClient.hauliers.getDrivers(haulierId),
+    queryFn: async () => {
+      const res = await APIClient.hauliers.getDrivers(haulierId);
+      console.log('[HaulierDrivers] haulierId:', haulierId, 'response:', res);
+      return res;
+    },
     placeholderData: keepPreviousData,
     staleTime: 5_000,
     enabled: !!haulierId,

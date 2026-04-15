@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { TruckDTO } from '@/lib/types/truck';
-import { TRUCK_STATUS } from '@/lib/types/truck-enums';
+import { TRUCK_STATUS, normalizeTruckStatus } from '@/lib/types/truck-enums';
 
 interface TruckActionButtonsProps {
   truck: TruckDTO | null | undefined;
@@ -33,7 +33,7 @@ export function TruckActionButtons({ truck, onAssignedDockets }: TruckActionButt
     return null;
   }
 
-  const status = truck.truckStatus;
+  const status = normalizeTruckStatus(truck.truckStatus);
 
   const handleDeactivate = () => {
     setDropdownOpen(false);
