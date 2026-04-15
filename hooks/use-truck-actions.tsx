@@ -33,7 +33,7 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
-import { useAssignDriversToTruck, useDeactivateTruck, useReactivateTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
+import { useAssignDriversToTruck, useDeactivateTruck, useReactivateTruck, useDeleteTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 
 interface DialogConfig {
@@ -80,6 +80,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const assignDriversToTruck = useAssignDriversToTruck();
   const deactivateTruck = useDeactivateTruck();
   const reactivateTruck = useReactivateTruck();
+  const deleteTruck = useDeleteTruck();
   const queryClient = useQueryClient();
 
   // TODO: replace with real assigned drivers from API
@@ -133,15 +134,18 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDelete = async () => {
     if (!truckData?.id) return;
     try {
-      // TODO: wire up delete truck API call
-      console.log('Delete truck:', truckData.id);
+      await deleteTruck.mutateAsync(truckData.id);
       notifySuccess('Truck deleted successfully.');
       setActiveDialog(null);
+      setViewOpen(false);
     } catch (error: unknown) {
-      // TODO: parse activeDocketCount from error response when API is ready
-      const activeDocketCount = 2; // placeholder — replace with parsed error data
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const activeDocketCount =
+        typeof errorData?.activeDocketCount === 'number'
+          ? errorData.activeDocketCount
+          : null;
 
-      if (activeDocketCount > 0) {
+      if (activeDocketCount !== null && activeDocketCount > 0) {
         setCannotDeleteCount(activeDocketCount);
         setActiveDialog('cannot_delete');
       } else {
