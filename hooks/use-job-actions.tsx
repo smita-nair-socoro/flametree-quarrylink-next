@@ -12,7 +12,7 @@ import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   ResumeJobDescription,
@@ -87,27 +87,18 @@ export function useJobActions(jobData?: JobDetails | null) {
   const pauseJobMutation = usePauseJob();
   const resumeJobMutation = useResumeJob();
 
-  // TODO: replace with real active dockets from API
-  const activeDockets: Docket[] = [
-    {
-      id: 1,
-      docketNumber: 'DOC-2026-011',
-      status: DOCKET_STATUS.ASSIGNED,
-      contactName: 'John Doe',
-    },
-    {
-      id: 2,
-      docketNumber: 'DOC-2026-021',
-      status: DOCKET_STATUS.IN_TRANSIT,
-      contactName: 'Jane Smith',
-    },
-    {
-      id: 3,
-      docketNumber: 'DOC-2026-031',
-      status: DOCKET_STATUS.ARRIVED,
-      contactName: 'Bob Johnson',
-    },
-  ] as Docket[];
+  const [activeDockets, setActiveDockets] = React.useState<DocketDTO[]>([]);
+
+  const ACTIVE_STATUSES = new Set([
+    DOCKET_STATUS.UNASSIGNED,
+    DOCKET_STATUS.ASSIGNED,
+    DOCKET_STATUS.IN_TRANSIT,
+    DOCKET_STATUS.ARRIVED,
+    DOCKET_STATUS.STOPPED,
+    DOCKET_STATUS.PENDING,
+    DOCKET_STATUS.PREPARING,
+    DOCKET_STATUS.READY,
+  ]);
 
   const isCancelFormValid = React.useMemo(() => {
     if (!cancelReason) return false;
@@ -291,8 +282,22 @@ export function useJobActions(jobData?: JobDetails | null) {
 
     resume: createDialogAction('resume'),
 
-    pause: () => {
+    pause: async () => {
+      if (!jobId) return;
       setPauseDocketAction('stop');
+      try {
+        const result = await queryClient.fetchQuery(
+          DocketsByJobIdQueryOptions(jobId),
+        );
+        const docketList: DocketDTO[] = Array.isArray(result)
+          ? result
+          : (result?.content ?? []);
+        setActiveDockets(
+          docketList.filter((d) => ACTIVE_STATUSES.has(d.docketStatus)),
+        );
+      } catch {
+        setActiveDockets([]);
+      }
       setActiveDialog('pause');
     },
 

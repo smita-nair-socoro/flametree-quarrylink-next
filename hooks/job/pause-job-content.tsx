@@ -7,25 +7,10 @@ import {
   CircleStop,
 } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
-import { Docket } from '@/lib/types/docket';
-import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { DocketDTO } from '@/lib/types/docket';
 import { cn } from '@/lib/utils';
+import { TableBadges } from '@/components/table-badges';
 
-function getDocketStatusStyle(status: DOCKET_STATUS): {
-  label: string;
-  className: string;
-} {
-  switch (status) {
-    case DOCKET_STATUS.IN_TRANSIT:
-      return { label: 'IN TRANSIT', className: 'bg-blue-100 text-[#1E40AF]' };
-    case DOCKET_STATUS.ASSIGNED:
-      return { label: 'ASSIGNED', className: 'bg-blue-100 text-[#1E40AF]' };
-    case DOCKET_STATUS.ARRIVED:
-      return { label: 'ARRIVED', className: 'bg-blue-100 text-[#1E40AF]' };
-    default:
-      return { label: status, className: 'bg-gray-100 text-gray-600' };
-  }
-}
 
 export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
   return (
@@ -56,7 +41,7 @@ export function PauseJobContent({
   docketAction,
   onDocketActionChange,
 }: {
-  activeDockets: Docket[];
+  activeDockets: DocketDTO[];
   docketAction: 'stop' | 'allow';
   onDocketActionChange: (action: 'stop' | 'allow') => void;
 }) {
@@ -86,7 +71,6 @@ export function PauseJobContent({
 
           <div className="rounded-md bg-[#F9FAFB] py-2 px-4 border border-[#E5E5E5]">
             {activeDockets.map((docket) => {
-              const statusStyle = getDocketStatusStyle(docket.status);
               return (
                 <div
                   key={docket.id}
@@ -95,20 +79,13 @@ export function PauseJobContent({
                   <div className="flex items-center gap-2 text-[14px]">
                     <Truck className="h-[20px] w-[20px] text-[#6A7282]" />
                     <span className="font-medium">{docket.docketNumber}</span>
-                    {docket.contactName && (
+                    {docket.driver?.driverName && (
                       <span className="text-[#6A7282]">
-                        - {docket.contactName}
+                        - {docket.driver.driverName}
                       </span>
                     )}
                   </div>
-                  <span
-                    className={cn(
-                      'text-xs font-normal px-2 py-0.5 rounded-full',
-                      statusStyle.className,
-                    )}
-                  >
-                    {statusStyle.label}
-                  </span>
+                  <TableBadges names={docket.docketStatus} />
                 </div>
               );
             })}
@@ -201,7 +178,7 @@ export function PauseJobContent({
         <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
           {[
             'Job status changes to "Paused"',
-            ...(docketAction === 'stop'
+            ...(activeDockets.length > 0 && docketAction === 'stop'
               ? [
                 'All Assigned dockets will be Unassigned',
                 'All In Transit dockets will be Stopped',

@@ -898,7 +898,13 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
+        queryString: {
+          page: '0',
+          size: '1000',
+          sort: 'id',
+        },
+      });
       return response;
     },
     getById: (id: number) => {
