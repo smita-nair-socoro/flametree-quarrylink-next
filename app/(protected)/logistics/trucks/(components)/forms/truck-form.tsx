@@ -468,7 +468,6 @@ export default function TruckForm({
                     <FormLabel>Volume*</FormLabel>
                     <FormControl>
                       <Input
-                        isNumber
                         placeholder=""
                         suffix="m³"
                         {...field}
@@ -488,7 +487,6 @@ export default function TruckForm({
                     <FormLabel>Tare Weight*</FormLabel>
                     <FormControl>
                       <Input
-                        isNumber
                         placeholder=""
                         suffix="TN"
                         {...field}
@@ -508,7 +506,6 @@ export default function TruckForm({
                     <FormLabel>GVM Weight*</FormLabel>
                     <FormControl>
                       <Input
-                        isNumber
                         placeholder=""
                         suffix="TN"
                         {...field}
