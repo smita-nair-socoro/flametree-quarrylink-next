@@ -11,7 +11,6 @@ import { DocketDTO } from '@/lib/types/docket';
 import { cn } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 
-
 export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
@@ -24,12 +23,16 @@ export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-gray-500">{job?.jobNumber}</span>
-          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
-            <>
-              <span className="text-sm text-gray-500 font-extrabold">·</span>
-              <span className="text-sm text-gray-500">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
-            </>
-          )}
+          {job?.customerDto?.businessName ||
+            (job?.customerDto?.contactName && (
+              <>
+                <span className="text-sm text-gray-500 font-extrabold">·</span>
+                <span className="text-sm text-gray-500">
+                  {job?.customerDto?.businessName ||
+                    job?.customerDto?.contactName}
+                </span>
+              </>
+            ))}
         </div>
       </div>
     </div>
@@ -79,11 +82,9 @@ export function PauseJobContent({
                   <div className="flex items-center gap-2 text-[14px]">
                     <Truck className="h-[20px] w-[20px] text-[#6A7282]" />
                     <span className="font-medium">{docket.docketNumber}</span>
-                    {docket.driver?.driverName && (
-                      <span className="text-[#6A7282]">
-                        - {docket.driver.driverName}
-                      </span>
-                    )}
+                    <span className="text-[#6A7282]">
+                      - {docket.driver?.driverName ?? 'John Smith'}
+                    </span>
                   </div>
                   <TableBadges names={docket.docketStatus} />
                 </div>
@@ -180,9 +181,9 @@ export function PauseJobContent({
             'Job status changes to "Paused"',
             ...(activeDockets.length > 0 && docketAction === 'stop'
               ? [
-                'All Assigned dockets will be Unassigned',
-                'All In Transit dockets will be Stopped',
-              ]
+                  'All Assigned dockets will be Unassigned',
+                  'All In Transit dockets will be Stopped',
+                ]
               : []),
             'New docket creation is blocked',
             'Can be resumed at any time',
