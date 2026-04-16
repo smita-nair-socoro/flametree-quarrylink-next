@@ -286,6 +286,10 @@ export default function CustomerForm({
       // Handle INDIVIDUAL type specific fields
       if (values.customer_type === 'INDIVIDUAL') {
         customerData.contactName = values.contact_person_name || '';
+        // Backend @NotBlank requires contactPersonFirstName/LastName for all customer types
+        const nameParts = (values.contact_person_name || '').trim().split(/\s+/);
+        customerData.firstName = nameParts[0] || '';
+        customerData.lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0] || '';
         customerData.abn = 'N/A';
         // Default fields for INDIVIDUAL type
         customerData.dateOfBirth = new Date().toISOString();
