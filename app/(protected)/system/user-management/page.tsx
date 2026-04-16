@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Tab } from '@/components/ui/tabs';
 import {
-  CreditCard,
+  // CreditCard,
   SettingsIcon,
   Shield,
   UsersRound,
@@ -13,7 +13,7 @@ import {
 import SettingsTab from './(components)/tabs/settings-tab';
 import TeamAdminTab from './(components)/tabs/team-admin-tab';
 import RolesTab from './(components)/tabs/roles-tab';
-import BillingTab from './(components)/tabs/billing-tab';
+// import BillingTab from './(components)/tabs/billing-tab';
 import BrandingTab from './(components)/tabs/branding-tab';
 import { useIsSuperAdmin } from '@/app/stores/user-store';
 
@@ -28,12 +28,12 @@ export default function UserRolesPage() {
     },
     ...(isSuperAdmin
       ? [
-          {
-            name: 'Team & Admin',
-            content: <TeamAdminTab />,
-            icon: <UsersRound className="w-4 h-4" />,
-          },
-        ]
+        {
+          name: 'Team & Admin',
+          content: <TeamAdminTab />,
+          icon: <UsersRound className="w-4 h-4" />,
+        },
+      ]
       : []),
     {
       name: 'Roles',

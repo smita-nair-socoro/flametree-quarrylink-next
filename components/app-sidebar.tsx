@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { LayoutDashboard, Package, Truck, Users } from 'lucide-react';
+import { Blocks, Package, Truck, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 import { claritySafe } from '@/lib/clarity';
@@ -24,28 +24,25 @@ import { useClientStore } from '@/app/stores/client-store';
 
 export const navItems = [
   {
-    title: 'Reports & Dashboard',
-    url: '/dashboard',
-    icon: LayoutDashboard,
-    plan: 'PLUS',
-  },
-  {
     title: 'Customer Operations',
     url: '/customer-operations',
     icon: Users,
     items: [
-      {
-        title: 'Customers',
-        url: '/customer-operations/customers',
-        plan: 'ESSENTIAL',
-      },
-      {
-        title: 'Quotations',
-        url: '/customer-operations/quotation',
-        plan: 'ESSENTIAL',
-      },
-      { title: 'Jobs', url: '/customer-operations/jobs', plan: 'PLUS' },
-      { title: 'Dockets', url: '/customer-operations/dockets', plan: 'PLUS' },
+      { title: 'Customers', url: '/customer-operations/customers' },
+      { title: 'Quotations', url: '/customer-operations/quotation' },
+      { title: 'Jobs', url: '/customer-operations/jobs' },
+      { title: 'Dockets', url: '/customer-operations/dockets' },
+      { title: 'Schedule', url: '/logistics/deliveries' },
+    ],
+  },
+  {
+    title: 'Logistics',
+    url: '/logistics',
+    icon: Truck,
+    items: [
+      { title: 'Drivers', url: '/logistics/drivers' },
+      { title: 'Trucks', url: '/logistics/trucks' },
+      { title: 'Dispatch', url: '/logistics/deliveries' },
     ],
   },
   {
@@ -53,51 +50,28 @@ export const navItems = [
     url: '/inventory',
     icon: Package,
     items: [
-      { title: 'Products', url: '/inventory/products', plan: 'ESSENTIAL' },
-      {
-        title: 'Quarries & Suppliers',
-        url: '/inventory/quarries-suppliers',
-        plan: 'ESSENTIAL',
-      },
-      { title: 'Stockpile', url: '/inventory/stockpile', plan: 'PRO' },
-      { title: 'Weighbridge', url: '/inventory/weigh-bridge', plan: 'PLUS' },
-      {
-        title: 'Production Planning',
-        url: '/inventory/production',
-        plan: 'PRO',
-      },
+      { title: 'Products', url: '/inventory/products' },
+      { title: 'Quarries & Suppliers', url: '/inventory/quarries-suppliers' },
     ],
   },
   {
-    title: 'Logistics',
-    url: '/logistics',
-    icon: Truck,
-    plan: 'PLUS',
+    title: 'Add-ons',
+    url: '/add-ons',
+    icon: Blocks,
     items: [
-      { title: 'Drivers', url: '/logistics/drivers', plan: 'PLUS' },
-      { title: 'Trucks', url: '/logistics/trucks', plan: 'PLUS' },
-      { title: 'Deliveries', url: '/logistics/deliveries', plan: 'PLUS' },
-      {
-        title: 'Site & Driver Sign-In',
-        url: '/logistics/sign-in',
-        plan: 'PRO',
-      },
+      { title: 'Reports & Dashboard', url: '/dashboard', isDisabled: true },
+      { title: 'Stockpile', url: '/inventory/stockpile', isDisabled: true },
+      { title: 'Weighbridge', url: '/inventory/weigh-bridge', isDisabled: true },
+      { title: 'Production Planning', url: '/inventory/production', isDisabled: true },
+      { title: 'Site & Driver Sign-In', url: '/logistics/sign-in', isDisabled: true },
     ],
   },
-  // {
-  //   title: 'Tenant Management',
-  //   url: '/system/tenant-management',
-  //   icon: Settings2,
-  //   plan: 'ESSENTIAL',
-  // },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
   const {
     data: tenantCompleteDetails,
-    isLoading,
-    isFetching,
   } = useQuery(TenantCompleteDetailsQueryOptions());
 
   const { data: currentUser } = useQuery(
@@ -105,8 +79,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   );
 
   const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
-
-  const isPending = isLoading || (isFetching && !tenantCompleteDetails);
 
   React.useEffect(() => {
     if (tenantCompleteDetails) {
@@ -183,15 +155,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarTrigger className="h-8 w-8 text-white" />
         </div>
         <div className="mb-1">
-          <QuarryLinkBranding
-            subscriptionType={subscriptionPlan}
-            isLoading={isPending}
-          />
+          <QuarryLinkBranding />
         </div>
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} subscriptionPlan={subscriptionPlan} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

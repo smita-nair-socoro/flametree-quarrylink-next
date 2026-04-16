@@ -8,20 +8,13 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import Image from 'next/image';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-export function QuarryLinkBranding({
-  subscriptionType,
-  isLoading = false,
-}: {
-  subscriptionType?: string;
-  isLoading?: boolean;
-}) {
+export function QuarryLinkBranding() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -51,20 +44,6 @@ export function QuarryLinkBranding({
                   <p>QuarryLink</p>
                 </TooltipContent>
               </Tooltip>
-              {isLoading ? (
-                <Skeleton className="h-3 w-20 bg-white/30" />
-              ) : (
-                <Tooltip delayDuration={300} mobileClickable={false}>
-                  <TooltipTrigger asChild>
-                    <span className="truncate text-xs text-[#71717B]">
-                      {subscriptionType || 'Lite Plus'}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent variant="white">
-                    <p>{subscriptionType || 'Lite Plus'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
             </div>
           </Link>
         </SidebarMenuButton>
