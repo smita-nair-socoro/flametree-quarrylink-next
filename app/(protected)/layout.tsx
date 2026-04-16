@@ -10,7 +10,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
-import { navItems } from '@/components/app-sidebar';
 
 import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useQuery } from '@tanstack/react-query';
@@ -39,40 +38,6 @@ export default function ProtectedLayout({
   const isDriversApp = pathname?.startsWith('/drivers-app');
   const isDeliveries = pathname?.startsWith('/logistics/deliveries');
 
-  // Build quick lookup for plan by path and first essential fallback
-  const { getPlanByPath, fallbackUrl } = React.useMemo(() => {
-    const pathToPlan = new Map<string, string>();
-    const customersPath = '/customer-operations/customers';
-
-    for (const item of navItems) {
-      if ('plan' in item && item.plan) {
-        pathToPlan.set(item.url, item.plan);
-      }
-      if (item.items) {
-        for (const sub of item.items) {
-          if (sub.plan) {
-            pathToPlan.set(sub.url, sub.plan);
-          }
-        }
-      }
-    }
-
-    return {
-      getPlanByPath: (path: string) => {
-        if (pathToPlan.has(path)) return pathToPlan.get(path);
-        let matchedBasePath: string | undefined;
-        for (const key of pathToPlan.keys()) {
-          if (path === key || path.startsWith(`${key}/`)) {
-            if (!matchedBasePath || key.length > matchedBasePath.length) {
-              matchedBasePath = key;
-            }
-          }
-        }
-        return matchedBasePath ? pathToPlan.get(matchedBasePath) : undefined;
-      },
-      fallbackUrl: customersPath,
-    };
-  }, []);
 
   React.useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
@@ -104,16 +69,11 @@ export default function ProtectedLayout({
       }
     }
 
-    const plan = getPlanByPath(path.toUpperCase());
-    if (plan === 'PRO' || plan === 'PLUS') {
-      router.replace(fallbackUrl);
-    }
+
   }, [
     auth.isLoading,
     auth.isAuthenticated,
     currentUser,
-    getPlanByPath,
-    fallbackUrl,
     router,
   ]);
 
