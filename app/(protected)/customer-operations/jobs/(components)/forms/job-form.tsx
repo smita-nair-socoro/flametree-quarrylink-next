@@ -105,7 +105,7 @@ export default function JobForm({
         deliveryWindowEnd: endWindow,
         contactPersonName: jobDetails.contactPersonName,
         phone: jobDetails.contactPersonPhone,
-        receiptEmail: (jobDetails.additionalEmailRecipients || []).join(','),
+        receiptEmail: (jobDetails.emailRecipients || []).join(','),
         accountManagerSub: customers.find((c) => c.id === jobDetails.customerId)
           ?.accountManagerSub,
       });
@@ -272,7 +272,7 @@ export default function JobForm({
         contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.individualContactName,
         contactPersonPhone: values.phone,
         docketEmail: selectedCustomer?.contactPersonEmail,
-        additionalEmailRecipients: additionalEmails,
+        emailRecipients: additionalEmails,
         jobStatus:
           isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,

@@ -107,7 +107,7 @@ export interface DocketDTO {
     docketEmail: string;
     uninvoicedDockets: number;
     quoteId: number;
-    additionalEmails: string[];
+    emailRecipients: string[];
     estimatedStartDate: string;
     startTimeWindow: string;
     endTimeWindow: string;

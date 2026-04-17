@@ -226,7 +226,7 @@ export function useDocketFormState({
       contactName: job?.contactPersonName ?? '',
       contactPhone: job?.contactPersonPhone ?? '',
       customerEmail: job?.customerWithAddressResponse?.email ?? '',
-      additionalDocketEmails: job?.additionalEmailRecipients?.join(', ') ?? '',
+      additionalDocketEmails: job?.emailRecipients?.join(', ') ?? '',
       createdBy: '',
       lastModifiedBy: '',
       createdAt: '',
