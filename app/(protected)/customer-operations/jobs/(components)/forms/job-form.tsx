@@ -44,6 +44,7 @@ import DocketsTab from './tabs/dockets/dockets-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate, formatLocalDateTime } from '@/lib/utils/date';
 import { JobDTO } from '@/lib/types/job';
+import { useJobStore } from '@/app/stores/job-store';
 import {
   Select,
   SelectTrigger,
@@ -75,6 +76,7 @@ export default function JobForm({
   const jobId = id ?? 0;
 
   const { jobDetails, jobItems } = useJobFormState(jobId, isEditing);
+  const selectedJob = useJobStore((s) => s.selectedJob);
 
   const jobForm = useForm<z.infer<typeof JobFormSchema>>({
     resolver: zodResolver(JobFormSchema),
@@ -197,12 +199,14 @@ export default function JobForm({
 
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !jobDetails) return null;
-    if (jobDetails.jobStatus !== JOB_STATUS.CANCELLED) return null;
+    // Use selectedJob (store) for live status/cancel data since it's updated by mutations
+    const liveJob = selectedJob ?? jobDetails;
+    if (liveJob.jobStatus !== JOB_STATUS.CANCELLED) return null;
 
-    const actorName = getActorName(jobDetails.lastModifiedBy);
-    const actionDate = formatLocalDateTime(jobDetails.updatedAt);
-    const reason = jobDetails.reason || 'N/A';
-    const notes = jobDetails.notes;
+    const actorName = getActorName(liveJob.lastModifiedBy);
+    const actionDate = formatLocalDateTime(liveJob.updatedAt);
+    const reason = liveJob.reason || 'N/A';
+    const notes = liveJob.notes;
 
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
@@ -218,7 +222,7 @@ export default function JobForm({
         </div>
       </div>
     );
-  }, [isEditing, jobDetails, getActorName]);
+  }, [isEditing, jobDetails, selectedJob, getActorName]);
 
   const tabs = React.useMemo(
     () => [
