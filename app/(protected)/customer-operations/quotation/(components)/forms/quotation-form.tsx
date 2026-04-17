@@ -131,18 +131,25 @@ export default function QuotationForm({
     if (!customers) return [];
     return customers
       .filter((customer) => customer.id !== undefined)
-      .map((customer) => ({
-        label: customer.businessName || customer.contactName,
-        value: customer.id!,
-      }));
+      .map((customer) => {
+        if (customer.customerType === 'BUSINESS') {
+          return {
+            label: customer.businessName as string,
+            value: customer.id!,
+          };
+        } else {
+          return {
+            label: `${customer.contactPersonFirstName} ${customer.contactPersonLastName}`,
+            value: customer.id!,
+          };
+        }
+      })
   }, [customers]);
 
   const getCustomerNameById = React.useCallback(
     (customerId: number) => {
       return (
-        customers.find((c) => c.id === customerId)?.businessName ||
-        customers.find((c) => c.id === customerId)?.contactName ||
-        ''
+        customers.find((c) => c.id === customerId)?.customerType === 'BUSINESS' ? customers.find((c) => c.id === customerId)?.businessName : customers.find((c) => c.id === customerId)?.contactPersonFirstName + ' ' + customers.find((c) => c.id === customerId)?.contactPersonLastName
       );
     },
     [customers],
@@ -177,7 +184,7 @@ export default function QuotationForm({
           // Update phone and email fields whenever customer changes
           quotationForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') || '',
           );
           quotationForm.setValue('receiptEmail', '');
 
@@ -194,20 +201,19 @@ export default function QuotationForm({
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
-    const customerEmail = selectedCustomer?.email || '';
+    const customerEmail = selectedCustomer?.contactPersonEmail || '';
     const receiptEmails = [
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : []),
     ].filter(Boolean);
     const customerName =
-      customers.find((c) => c.id === values.customerId)?.businessName ||
-      customers.find((c) => c.id === values.customerId)?.contactName ||
-      '';
+      customers.find((c) => c.id === values.customerId)?.customerType === 'BUSINESS' ? customers.find((c) => c.id === values.customerId)?.businessName :
+        customers.find((c) => c.id === values.customerId)?.contactPersonFirstName + ' ' + customers.find((c) => c.id === values.customerId)?.contactPersonLastName || '';
 
     const accountManagerName =
       users.find((user) => user.sub === values.accountManagerSub)?.name || '';
@@ -216,7 +222,7 @@ export default function QuotationForm({
       try {
         const transformed = {
           ...transformFormDataToQuoteDto(values, {
-            customerName,
+            customerName: customerName || '',
             accountManagerName,
             accountManagerSub:
               values.accountManagerSub ||
@@ -256,7 +262,7 @@ export default function QuotationForm({
       try {
         const transformed = {
           ...transformFormDataToQuoteDto(values, {
-            customerName,
+            customerName: customerName || '',
             accountManagerName,
             accountManagerSub:
               values.accountManagerSub ||
@@ -293,7 +299,7 @@ export default function QuotationForm({
       // Update existing quotation - keep the original quote number
       const transformed = {
         ...transformFormDataToQuoteDto(values, {
-          customerName,
+          customerName: customerName || '',
           accountManagerName,
           accountManagerSub:
             values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
@@ -374,24 +380,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-        <div
-          className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10',
-          )}
-        >
-          <div className="flex flex-col items-center space-y-4 p-8">
-            <Spinner size="medium" />
-            <p className="text-lg text-muted-foreground font-bold">
-              {isDuplicate
-                ? 'Creating Duplicate Quote...'
-                : createQuotation.isPending
-                  ? 'Adding Quote...'
-                  : 'Updating Quote...'}
-            </p>
+          <div
+            className={cn(
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              isDesktop ? '' : 'pt-10',
+            )}
+          >
+            <div className="flex flex-col items-center space-y-4 p-8">
+              <Spinner size="medium" />
+              <p className="text-lg text-muted-foreground font-bold">
+                {isDuplicate
+                  ? 'Creating Duplicate Quote...'
+                  : createQuotation.isPending
+                    ? 'Adding Quote...'
+                    : 'Updating Quote...'}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <Form {...quotationForm}>
         <form
@@ -402,7 +408,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-              'pointer-events-none',
+            'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -478,7 +484,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none',
+              'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -556,7 +562,7 @@ export default function QuotationForm({
                   const selectedCustomer = customers.find(
                     (c) => c.id === quotationForm.watch('customerId'),
                   );
-                  const customerEmail = selectedCustomer?.email;
+                  const customerEmail = selectedCustomer?.contactPersonEmail;
                   const fixedValues = customerEmail ? [customerEmail] : [];
 
                   return (
