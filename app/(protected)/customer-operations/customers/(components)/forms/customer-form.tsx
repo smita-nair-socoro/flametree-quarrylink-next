@@ -95,8 +95,16 @@ export default function CustomerForm({
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
 
-  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
-  const [savedCustomerId, setSavedCustomerId] = React.useState<number | null>(null);
+  // TODO: remove dummy data
+  // const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
+  // const [savedCustomerId, setSavedCustomerId] = React.useState<number | null>(null);
+
+  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(
+    'Xero validation failed: contact email is already in use by another Xero contact.',
+  );
+  const [savedCustomerId, setSavedCustomerId] = React.useState<number | null>(
+    id ?? null,
+  );
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -261,8 +269,8 @@ export default function CustomerForm({
         customerData.businessPhone = values.business_phone || '';
         customerData.individualContactName =
           values.contact_person_first_name +
-          ' ' +
-          values.contact_person_last_name || '';
+            ' ' +
+            values.contact_person_last_name || '';
         customerData.contactPersonFirstName =
           values.contact_person_first_name || '';
         customerData.contactPersonLastName =
@@ -290,7 +298,8 @@ export default function CustomerForm({
 
       console.log('Customer Data Payload:', customerData);
 
-      const NOT_LINKED_MSG = 'Customer is not linked to any accounting software';
+      const NOT_LINKED_MSG =
+        'Customer is not linked to any accounting software';
 
       // Call the appropriate mutation (savedCustomerId = retry after xero error)
       if (isEditing || savedCustomerId) {
@@ -454,18 +463,23 @@ export default function CustomerForm({
                     Xero contact could not be created
                   </span>
                   <span className="text-sm text-[#DC2626]">
-                    This customer is saved in QuarryLink, but a matching Xero contact was not created (e.g. validation or connection issue). Review the details below, then use Retry sync button.
+                    This customer is saved in QuarryLink, but a matching Xero
+                    contact was not created (e.g. validation or connection
+                    issue). Review the details below, then use Retry sync
+                    button.
                   </span>
                 </div>
               </div>
               <Button
                 type="button"
                 variant="outline"
-                className="flex-shrink-0 gap-2"
+                className="flex-shrink-0 gap-2 border-[#FFA2A2] text-[#82181A] hover:text-[#82181A]"
                 disabled={isSubmitting}
                 onClick={() => customerForm.handleSubmit(onSubmit, onError)()}
               >
-                <RefreshCw className={cn('h-4 w-4', isSubmitting && 'animate-spin')} />
+                <RefreshCw
+                  className={cn('h-4 w-4', isSubmitting && 'animate-spin')}
+                />
                 Retry sync
               </Button>
             </div>
