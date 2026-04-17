@@ -95,15 +95,14 @@ export default function CustomerForm({
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
 
+  // When true, onSubmit always calls create (Xero retry sync bypasses update path)
+  const isRetrySyncRef = React.useRef(false);
+
   // TODO: remove dummy data
   // const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
-  // const [savedCustomerId, setSavedCustomerId] = React.useState<number | null>(null);
 
   const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(
     'Xero validation failed: contact email is already in use by another Xero contact.',
-  );
-  const [savedCustomerId, setSavedCustomerId] = React.useState<number | null>(
-    id ?? null,
   );
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
@@ -299,14 +298,13 @@ export default function CustomerForm({
       const NOT_LINKED_MSG =
         'Customer is not linked to any accounting software';
 
-      // Call the appropriate mutation
-      if (isEditing) {
+      // Call the appropriate mutation (retry sync always uses create, never update)
+      if (isEditing && !isRetrySyncRef.current) {
         const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
         const syncNote = result.accSoftwareNotes;
         if (syncNote && syncNote !== NOT_LINKED_MSG) {
           setXeroSyncError(syncNote);
-          setSavedCustomerId(result.id ?? id ?? null);
           return;
         }
       } else {
@@ -321,7 +319,6 @@ export default function CustomerForm({
         const syncNote = newCustomer.accSoftwareNotes;
         if (syncNote && syncNote !== NOT_LINKED_MSG) {
           setXeroSyncError(syncNote);
-          setSavedCustomerId(newCustomer.id ?? null);
           return;
         }
       }
@@ -473,7 +470,12 @@ export default function CustomerForm({
                 variant="outline"
                 className="flex-shrink-0 gap-2 border-[#FFA2A2] text-[#82181A] hover:text-[#82181A]"
                 disabled={isSubmitting}
-                onClick={() => customerForm.handleSubmit(onSubmit, onError)()}
+                onClick={() => {
+                  isRetrySyncRef.current = true;
+                  customerForm.handleSubmit(onSubmit, onError)().finally(() => {
+                    isRetrySyncRef.current = false;
+                  });
+                }}
               >
                 <RefreshCw
                   className={cn('h-4 w-4', isSubmitting && 'animate-spin')}
