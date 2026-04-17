@@ -43,6 +43,7 @@ import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 import { JobDTO } from '@/lib/types/job';
 import {
   Select,
@@ -174,6 +175,14 @@ export default function JobForm({
       value: user.sub,
     }));
   }, [users]);
+
+  const getUserNameBySub = React.useCallback(
+    (subOrName?: string | null) => {
+      if (!subOrName) return '';
+      return users.find((u) => u.sub === subOrName)?.name || subOrName;
+    },
+    [users],
+  );
 
   const tabs = React.useMemo(
     () => [
@@ -605,6 +614,15 @@ export default function JobForm({
                 enableDropdownOnMobile={true}
               />
             </div>
+          )}
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={getUserNameBySub(jobDetails?.createdBy)}
+              lastModifiedBy={getUserNameBySub(jobDetails?.lastModifiedBy)}
+              createdAt={jobDetails?.createdAt}
+              updatedAt={jobDetails?.updatedAt}
+            />
           )}
         </form>
       </Form>

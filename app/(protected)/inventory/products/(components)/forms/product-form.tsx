@@ -45,7 +45,7 @@ import {
 import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { ProductDetails } from '@/lib/types/product';
 import { Separator } from '@/components/ui/separator';
-import { formatLocalDateShort } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 
 interface FormProps {
   id?: number;
@@ -671,54 +671,14 @@ export default function ProductForm({
             </div>
           )}
 
-          {/* Audit Information */}
           {isEditing && (
-            <div
-              className={cn(
-                isDesktop ? 'col-span-2' : 'col-span-1',
-                'space-y-6 mb-10',
-              )}
-            >
-              <h2 className="text-[18px] font-semibold">Audit Information</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedProduct?.createdBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {latestAuditData?.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedProduct?.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(latestAuditData?.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <AuditInformation
+              createdBy={selectedProduct?.createdBy}
+              lastModifiedBy={latestAuditData?.lastModifiedBy}
+              createdAt={selectedProduct?.createdAt}
+              updatedAt={latestAuditData?.updatedAt}
+              className={cn(isDesktop ? 'col-span-2' : 'col-span-1', 'mb-10')}
+            />
           )}
         </form>
       </Form>

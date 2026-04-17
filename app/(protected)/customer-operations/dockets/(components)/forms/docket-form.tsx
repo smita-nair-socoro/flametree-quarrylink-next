@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -946,6 +947,16 @@ export default function DocketForm({
               </div>
             </div>
           </div>
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={getActorName(selectedDocket?.createdBy)}
+              lastModifiedBy={getActorName(selectedDocket?.lastModifiedBy)}
+              createdAt={selectedDocket?.createdAt}
+              updatedAt={selectedDocket?.updatedAt}
+              className="px-1"
+            />
+          )}
 
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 my-6">
