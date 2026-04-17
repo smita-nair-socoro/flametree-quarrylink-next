@@ -329,7 +329,7 @@ export function useJobActions(jobData?: JobDetails | null) {
     settle: async () => {
       handleSettleJob();
     },
-    settle_blocked: () => {
+    settle_blocked: async () => {
       setActiveDialog(null);
       setSettleBlockedData(null);
     },
