@@ -32,7 +32,7 @@ export const navItems = [
       { title: 'Quotations', url: '/customer-operations/quotation' },
       { title: 'Jobs', url: '/customer-operations/jobs' },
       { title: 'Dockets', url: '/customer-operations/dockets' },
-      { title: 'Schedule', url: '/logistics/deliveries' },
+      { title: 'Schedule', url: '/logistics/deliveries?tab=schedule' },
     ],
   },
   {
@@ -42,7 +42,7 @@ export const navItems = [
     items: [
       { title: 'Drivers', url: '/logistics/drivers' },
       { title: 'Trucks', url: '/logistics/trucks' },
-      { title: 'Dispatch', url: '/logistics/deliveries' },
+      { title: 'Dispatch', url: '/logistics/deliveries?tab=dispatch' },
     ],
   },
   {

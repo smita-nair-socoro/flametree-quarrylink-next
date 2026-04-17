@@ -12,61 +12,175 @@ import {
 } from '@/components/ui/select';
 import { Separator } from 'react-aria-components';
 import { format } from 'date-fns';
+import { useDraggable } from '@dnd-kit/core';
+import { DispatchDocket, formatTimeRange } from '../views/drivers-view';
+import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import { DocketDTO } from '@/lib/types/docket';
 
-export default function UnassignedDockets({ date }: { date: Date }) {
+
+function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { docket: DispatchDocket; activeTab: string; isSelected?: boolean; onSelect?: () => void }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: String(docket.id),
+  });
+  console.log(docket, 'docket');
+
+  return (
+    <div
+      ref={setNodeRef}
+      onClick={onSelect}
+      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]' : 'border-[#E2E8F0]'
+        } ${isDragging ? 'opacity-50' : ''}`}
+    >
+      {/* Drag Handle Area */}
+      <div
+        {...listeners}
+        {...attributes}
+        className="w-8 bg-[#FEFCE8] flex items-center justify-center border-r border-[#E2E8F0] shrink-0 cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4 text-[#D97706]" />
+      </div>
+
+      {/* Card Content */}
+      <div className="flex-1 p-3 flex flex-col gap-3 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[13px] font-medium text-[#64748B]">
+            {docket.docketNumber}
+          </span>
+          <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
+            {docket.loadSize} {docket.jobItem?.productSellUom === 'M3' ? 'm³' : docket.jobItem?.productSellUom === 'KG_20' ? 'x 20kg' : docket.jobItem?.productSellUom}
+          </span>
+          <span className="px-2 py-0.5 rounded-full border border-[#E2E8F0] text-[12px] font-semibold text-[#0F172A] bg-white whitespace-nowrap">
+            {formatTimeRange(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+          </span>
+        </div>
+        <div className="">
+          {activeTab === 'all_dates' && (
+            <span className="px-2 py-0.5 rounded-full border border-[#E9D5FF] text-[12px] font-semibold text-[#6D28D9] bg-[#FAF5FF] whitespace-nowrap">
+              {docket.deliveryCollectionDate ? format(new Date(docket.deliveryCollectionDate), 'EEE d MMM') : ''}
+            </span>
+          )}
+        </div>
+
+        <div>
+          <h3 className="text-[16px] font-bold text-[#0F172A] leading-tight truncate">
+            {docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS ? docket.job?.customerDto?.businessName : docket.job.contactPersonName}
+          </h3>
+          <p className="text-[13px] text-[#64748B] truncate">{docket.jobItem?.product?.productName || ''}</p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
+            <span className="text-[13px] font-bold tracking-wider text-[#64748B] uppercase">
+              PICKUP
+            </span>
+            <span className="text-[14px] font-semibold text-[#0F172A] truncate">
+              {docket.pickUpAddress?.formattedAddress || ''}
+            </span>
+          </div>
+          <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
+            <span className="text-[13px] font-bold tracking-wider text-[#64748B] uppercase">
+              DROP
+            </span>
+            <span className="text-[14px] font-semibold text-[#0F172A] truncate">
+              {docket.deliveryAddress?.formattedAddress || ''}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
+  return (
+    <div className="bg-white border border-[#E2E8F0] rounded-xl flex overflow-hidden shadow-2xl shrink-0 rotate-2 cursor-grabbing w-[320px]">
+      {/* Drag Handle Area */}
+      <div className="w-8 bg-[#FEFCE8] flex items-center justify-center pt-4 border-r border-[#E2E8F0] shrink-0">
+        <GripVertical className="h-4 w-4 text-[#D97706]" />
+      </div>
+
+      {/* Card Content */}
+      <div className="flex-1 p-3 flex flex-col gap-3 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[13px] font-medium text-[#64748B]">
+            {docket.docketNumber}
+          </span>
+          <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
+            {docket.loadSize} {docket.jobItem?.productSellUom === 'M3' ? 'm³' : docket.jobItem?.productSellUom === 'KG_20' ? 'x 20kg' : docket.jobItem?.productSellUom}
+          </span>
+          <span className="px-2 py-0.5 rounded-full border border-[#E2E8F0] text-[12px] font-semibold text-[#0F172A] bg-white whitespace-nowrap">
+            {formatTimeRange(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+          </span>
+        </div>
+
+        <div>
+          <h3 className="text-[16px] font-bold text-[#0F172A] leading-tight truncate">
+            {docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS ? docket.job?.customerDto?.businessName : docket.job.contactPersonName}
+          </h3>
+          <p className="text-[13px] text-[#64748B] truncate">{docket.jobItem?.product?.productName || ''}</p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
+            <span className="text-[13px] font-bold tracking-wider text-[#64748B] uppercase">
+              PICKUP
+            </span>
+            <span className="text-[14px] font-semibold text-[#0F172A] truncate">
+              {docket.pickUpAddress?.formattedAddress || ''}
+            </span>
+          </div>
+          <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
+            <span className="text-[13px] font-bold tracking-wider text-[#64748B] uppercase">
+              DROP
+            </span>
+            <span className="text-[14px] font-semibold text-[#0F172A] truncate">
+              {docket.deliveryAddress?.formattedAddress || ''}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function UnassignedDockets({
+  date,
+  dockets,
+  isLoading,
+  selectedDocketId,
+  onSelectDocket,
+}: {
+  date: Date;
+  dockets: DispatchDocket[];
+  isLoading?: boolean;
+  selectedDocketId?: string | null;
+  onSelectDocket?: (id: string) => void;
+}) {
   const [activeTab, setActiveTab] = React.useState<'this_day' | 'all_dates'>(
     'this_day',
   );
 
-  const mockDockets = [
-    {
-      id: 1,
-      docketNumber: 'DD-25-00001',
-      qty: '10 bulk bags',
-      time: '09:00 - 11:00',
-      date: 'Sun 1 Feb',
-      customerName: 'City Council',
-      product: 'limestone',
-      pickup: 'Kealba VIC',
-      delivery: 'Port Melbourne VIC',
-    },
-    {
-      id: 2,
-      docketNumber: 'DD-25-00011',
-      qty: '10 TN',
-      time: '07:00 - 09:00',
-      date: 'Sun 1 Feb',
-      customerName: 'ABC Construction Ltd',
-      product: 'limestone',
-      pickup: 'Laverton North VIC',
-      delivery: 'Footscray VIC',
-    },
-    {
-      id: 3,
-      docketNumber: 'DD-25-00029',
-      qty: '22 TN',
-      time: '09:00 - 11:00',
-      date: 'Sun 1 Feb',
-      customerName: 'Summit Constructions',
-      product: 'Gravel Mix',
-      pickup: 'Sunshine VIC',
-      delivery: 'Tullamarine VIC',
-    },
-    {
-      id: 4,
-      docketNumber: 'DD-25-00030',
-      qty: '22 x 20kg',
-      time: '09:00 - 11:00',
-      date: 'Sun 2 Feb',
-      customerName: 'QuarryLink',
-      product: 'Crushed Granite',
-      pickup: 'North Sydney',
-      delivery: 'Sydney CBD',
-    },
-  ]
+  console.log(dockets, 'dockets');
+
+
+  const unassignedDockets = dockets.filter((d) => {
+    const isUnassigned = d.docketStatus === 'UNASSIGNED';
+    if (!isUnassigned) return false;
+
+    if (activeTab === 'this_day') {
+      const docketDate = new Date(d.deliveryCollectionDate);
+      return (
+        docketDate.getFullYear() === date.getFullYear() &&
+        docketDate.getMonth() === date.getMonth() &&
+        docketDate.getDate() === date.getDate()
+      );
+    }
+
+    return true;
+  });
 
   return (
-    <div className="bg-white border border-[#FDE68A] h-[90vh] rounded-xl flex flex-col">
+    <div className="bg-white border border-[#FDE68A] h-full rounded-xl flex flex-col">
       {/* Header Section */}
       <div className="p-4 flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -82,7 +196,7 @@ export default function UnassignedDockets({ date }: { date: Date }) {
         </div>
 
         <p className="text-[14px] text-[#64748B]">
-          3 dockets waiting for assignment
+          {unassignedDockets.length} dockets waiting for assignment
         </p>
 
         {/* Custom Toggle Tabs */}
@@ -139,62 +253,25 @@ export default function UnassignedDockets({ date }: { date: Date }) {
       <Separator className="my-2" />
       {/* Scrollable Dockets List */}
       <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
-        {mockDockets.map((docket) => (
-          <div key={docket.id} className="bg-white border border-[#E2E8F0] rounded-xl flex overflow-hidden shadow-sm shrink-0">
-            {/* Drag Handle Area */}
-            <div className="w-8 bg-[#FEFCE8] flex items-start justify-center pt-4 border-r border-[#E2E8F0] shrink-0">
-              <GripVertical className="h-4 w-4 text-[#D97706]" />
-            </div>
-
-            {/* Card Content */}
-            <div className="flex-1 p-3 flex flex-col gap-3 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[13px] font-medium text-[#64748B]">
-                  {docket.docketNumber}
-                </span>
-                <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-                  {docket.qty}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-0.5 rounded-full border border-[#E2E8F0] text-[12px] font-semibold text-[#0F172A] bg-white whitespace-nowrap">
-                  {docket.time}
-                </span>
-                {activeTab === 'all_dates' && (
-                  <span className="px-2 py-0.5 rounded-full border border-[#E9D5FF] text-[12px] font-semibold text-[#6D28D9] bg-[#FAF5FF] whitespace-nowrap">
-                    {docket.date}
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-[16px] font-bold text-[#0F172A] leading-tight truncate">
-                  {docket.customerName}
-                </h3>
-                <p className="text-[13px] text-[#64748B] truncate">{docket.product}</p>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
-                  <span className="text-[13px] font-bold tracking-wider text-[#64748B] uppercase">
-                    PICKUP
-                  </span>
-                  <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-                    {docket.pickup}
-                  </span>
-                </div>
-                <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
-                  <span className="text-[13px] font-bold tracking-wider text-[#64748B] uppercase">
-                    DROP
-                  </span>
-                  <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-                    {docket.delivery}
-                  </span>
-                </div>
-              </div>
-            </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full text-sm text-gray-500">
+            Loading dockets...
           </div>
-        ))}
+        ) : unassignedDockets.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-sm text-gray-500">
+            No unassigned dockets found.
+          </div>
+        ) : (
+          unassignedDockets.map((docket) => (
+            <DraggableDocketCard
+              key={docket.id}
+              docket={docket}
+              activeTab={activeTab}
+              isSelected={selectedDocketId === String(docket.id)}
+              onSelect={() => onSelectDocket?.(String(docket.id))}
+            />
+          ))
+        )}
       </div>
     </div>
   );
