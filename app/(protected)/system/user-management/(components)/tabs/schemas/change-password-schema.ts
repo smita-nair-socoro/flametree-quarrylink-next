@@ -21,6 +21,6 @@ export const ChangePasswordSchema = z
     path: ['confirm_password'],
   })
   .refine((data) => data.new_password !== data.current_password, {
-    message: 'Choose another password',
+    message: 'New password must be different from current password',
     path: ['new_password'],
   });
