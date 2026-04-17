@@ -1,6 +1,7 @@
 import z from 'zod';
 // import isValidABN from 'is-valid-abn';
 import { isValidPhoneNumber } from 'react-phone-number-input';
+import { CUSTOMER_TYPE, PAYMENT_TYPE, PAYMENT_TERM_TYPE } from '@/lib/types/customer-enums';
 
 const PhoneRequired = z
   .string()
@@ -37,8 +38,8 @@ const EmailRequired = z
 
 // Parts common to both customer types
 const Base = z.object({
-  customer_type: z.string(),
-  payment_type: z.string(),
+  customer_type: z.nativeEnum(CUSTOMER_TYPE),
+  payment_type: z.nativeEnum(PAYMENT_TYPE),
   // For INDIVIDUAL type
   contact_person_name: z
     .string()
@@ -79,7 +80,7 @@ const Base = z.object({
     .number()
     .int('Decimal numbers are not allowed')
     .optional(),
-  payment_terms: z.string().trim().optional(),
+  payment_terms: z.nativeEnum(PAYMENT_TERM_TYPE).optional(),
   account_manager: z.string().trim().min(1, 'Required'),
   billing_address: z
     .string()
@@ -95,7 +96,7 @@ const Base = z.object({
 // Export the schema with conditional validation using superRefine
 export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
   // Payment type specific validations
-  if (data.payment_type === 'CREDIT') {
+  if (data.payment_type === PAYMENT_TYPE.CREDIT) {
     // Credit limit is mandatory for credit payment type
     if (
       data.credit_limit === undefined ||
@@ -130,8 +131,8 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       // Compare against select option values (codes), not labels
       // OFFOLLOWINGMONTH / OFCURRENTMONTH => 1..31
       // DAYSAFTERBILLDATE / DAYSAFTERBILLMONTH => 1..99
-      const terms = String(data.payment_terms);
-      if (terms === 'OFFOLLOWINGMONTH' || terms === 'OFCURRENTMONTH') {
+      const terms = data.payment_terms;
+      if (terms === PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH || terms === PAYMENT_TERM_TYPE.OFCURRENTMONTH) {
         if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
           ctx.addIssue({
             path: ['payment_terms_day'],
@@ -140,8 +141,8 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
           });
         }
       } else if (
-        terms === 'DAYSAFTERBILLDATE' ||
-        terms === 'DAYSAFTERBILLMONTH'
+        terms === PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE ||
+        terms === PAYMENT_TERM_TYPE.DAYSAFTERBILLMONTH
       ) {
         if (data.payment_terms_day < 1 || data.payment_terms_day > 99) {
           ctx.addIssue({
@@ -155,7 +156,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
   }
 
   // Customer type specific validations
-  if (data.customer_type === 'BUSINESS') {
+  if (data.customer_type === CUSTOMER_TYPE.BUSINESS) {
     // Business name is required for Business customers
     if (!data.business_name || data.business_name.trim().length < 2) {
       ctx.addIssue({
@@ -276,7 +277,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Credit limit validation for Business customers (only if not already validated by payment type)
-    if (data.payment_type !== 'credit') {
+    if (data.payment_type !== PAYMENT_TYPE.CREDIT) {
       if (
         data.credit_limit === undefined ||
         data.credit_limit === null ||
@@ -289,7 +290,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         });
       }
     }
-  } else if (data.customer_type === 'INDIVIDUAL') {
+  } else if (data.customer_type === CUSTOMER_TYPE.INDIVIDUAL) {
     // Contact Person Name is required for Individual customers
     if (
       !data.contact_person_name ||
@@ -350,7 +351,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     }
 
     // Optional validation: if credit limit is provided, it should be valid (only if not already validated by payment type)
-    if (data.payment_type !== 'credit') {
+    if (data.payment_type !== PAYMENT_TYPE.CREDIT) {
       if (
         data.credit_limit !== undefined &&
         data.credit_limit !== null &&

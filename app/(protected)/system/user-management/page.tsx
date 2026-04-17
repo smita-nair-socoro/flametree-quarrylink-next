@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Tab } from '@/components/ui/tabs';
 import {
-  CreditCard,
+  // CreditCard,
   SettingsIcon,
   Shield,
   UsersRound,
@@ -13,31 +13,38 @@ import {
 import SettingsTab from './(components)/tabs/settings-tab';
 import TeamAdminTab from './(components)/tabs/team-admin-tab';
 import RolesTab from './(components)/tabs/roles-tab';
-import BillingTab from './(components)/tabs/billing-tab';
+// import BillingTab from './(components)/tabs/billing-tab';
 import BrandingTab from './(components)/tabs/branding-tab';
+import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 export default function UserRolesPage() {
+  const isSuperAdmin = useIsSuperAdmin();
+
   const tabs = [
     {
       name: 'Settings',
       content: <SettingsTab />,
       icon: <SettingsIcon className="w-4 h-4" />,
     },
-    {
-      name: 'Team & Admin',
-      content: <TeamAdminTab />,
-      icon: <UsersRound className="w-4 h-4" />,
-    },
+    ...(isSuperAdmin
+      ? [
+        {
+          name: 'Team & Admin',
+          content: <TeamAdminTab />,
+          icon: <UsersRound className="w-4 h-4" />,
+        },
+      ]
+      : []),
     {
       name: 'Roles',
       content: <RolesTab />,
       icon: <Shield className="w-4 h-4" />,
     },
-    {
-      name: 'Billing',
-      content: <BillingTab />,
-      icon: <CreditCard className="w-4 h-4" />,
-    },
+    // {
+    //   name: 'Billing',
+    //   content: <BillingTab />,
+    //   icon: <CreditCard className="w-4 h-4" />,
+    // },
     {
       name: 'Branding',
       content: <BrandingTab />,
@@ -62,8 +69,8 @@ export default function UserRolesPage() {
         <Tab
           tabs={tabs}
           className="w-full min-w-0"
-          tabsClassName="h-15 w-full overflow-x-auto flex-nowrap"
-          tabsTriggerClassName="h-13 flex-1 justify-center"
+          tabsClassName="h-12 w-full overflow-x-auto flex-nowrap rounded-lg"
+          tabsTriggerClassName="h-10 flex-1 justify-center"
           enableDropdownOnMobile={true}
         />
       </div>

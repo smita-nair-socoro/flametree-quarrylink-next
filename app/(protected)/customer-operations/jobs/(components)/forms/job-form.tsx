@@ -25,7 +25,10 @@ import { DatePicker } from '@/components/date-picker';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useJobFormState, EMPTY_JOB_FORM_VALUES } from '@/hooks/job/use-job-form-state';
+import {
+  useJobFormState,
+  EMPTY_JOB_FORM_VALUES,
+} from '@/hooks/job/use-job-form-state';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
@@ -38,11 +41,16 @@ import { Tab } from '@/components/ui/tabs';
 import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
-import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate, formatLocalDateTime } from '@/lib/utils/date';
 import { JobDTO } from '@/lib/types/job';
-
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface FormProps {
   id?: number;
@@ -63,7 +71,7 @@ export default function JobForm({
   onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [isEditing] = React.useState(Boolean(id))
+  const [isEditing] = React.useState(Boolean(id));
   const jobId = id ?? 0;
 
   const { jobDetails, jobItems } = useJobFormState(jobId, isEditing);
@@ -96,10 +104,9 @@ export default function JobForm({
         contactPersonName: jobDetails.contactPersonName,
         phone: jobDetails.contactPersonPhone,
         receiptEmail: (jobDetails.additionalEmailRecipients || []).join(','),
-        accountManagerSub:
-          customers.find((c) => c.id === jobDetails.customerId)?.accountManagerSub
+        accountManagerSub: customers.find((c) => c.id === jobDetails.customerId)
+          ?.accountManagerSub,
       });
-
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, jobDetails, jobForm]);
@@ -121,10 +128,19 @@ export default function JobForm({
     if (!customers) return [];
     return customers
       .filter((customer) => customer.id !== undefined)
-      .map((customer) => ({
-        label: customer.businessName || customer.contactName,
-        value: customer.id!,
-      }))
+      .map((customer) => {
+        if (customer.customerType === 'BUSINESS') {
+          return {
+            label: customer.businessName as string,
+            value: customer.id!,
+          };
+        } else {
+          return {
+            label: `${customer.contactPersonFirstName} ${customer.contactPersonLastName}`,
+            value: customer.id!,
+          };
+        }
+      })
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [customers]);
 
@@ -140,7 +156,7 @@ export default function JobForm({
           // Update phone and email fields whenever customer changes
           jobForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') || '',
           );
 
           jobForm.setValue(
@@ -216,14 +232,10 @@ export default function JobForm({
       },
       {
         name: 'Invoices',
-        content: <InvoicesTab />,
-      },
-      {
-        name: 'Cash Sales',
-        content: <CashSalesTab />,
+        content: <InvoicesTab jobId={jobId} />,
       },
     ],
-    [jobItems, jobDetails],
+    [jobItems, jobDetails, jobId],
   );
 
   async function onSubmit(values: z.infer<typeof JobFormSchema>) {
@@ -239,22 +251,26 @@ export default function JobForm({
       // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
       // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
-        ? values.receiptEmail.split(',').map((e) => e.trim()).filter(Boolean)
+        ? values.receiptEmail
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
 
       const additionalEmails = receiptEmails.filter(
-        (email) => email !== selectedCustomer?.email,
+        (email) => email !== selectedCustomer?.contactPersonEmail,
       );
 
       const payload = {
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
-        contactPersonName: selectedCustomer?.contactName,
+        contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.contactPersonFirstName + ' ' + selectedCustomer?.contactPersonLastName,
         contactPersonPhone: values.phone,
-        docketEmail: selectedCustomer?.email,
+        docketEmail: selectedCustomer?.contactPersonEmail,
         additionalEmailRecipients: additionalEmails,
-        jobStatus: isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
+        jobStatus:
+          isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
         startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
         endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
@@ -266,7 +282,7 @@ export default function JobForm({
           data: {
             ...(jobDetails as JobDTO),
             ...payload,
-          } as JobDTO
+          } as JobDTO,
         });
         notifySuccess('Job updated successfully');
       } else {
@@ -283,7 +299,8 @@ export default function JobForm({
       onSuccess?.();
     } catch (error) {
       notifyError(
-        extractErrorMessage(error) || `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+        extractErrorMessage(error) ||
+        `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
@@ -444,7 +461,7 @@ export default function JobForm({
                 'col-span-2',
                 isEditing && isDesktop
                   ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-2 gap-2',
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
@@ -454,9 +471,7 @@ export default function JobForm({
                 control={jobForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem
-                    className={isEditing && isDesktop ? 'col-span-2' : ''}
-                  >
+                  <FormItem className="col-span-2">
                     <FormLabel>Delivery Date*</FormLabel>
                     <FormControl>
                       <DatePicker
@@ -477,13 +492,25 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-start"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
-                      />
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -497,13 +524,25 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>End Time Window</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-end"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
-                      />
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -518,7 +557,7 @@ export default function JobForm({
                   (c) => c.id === jobForm.watch('customerId'),
                 );
                 // Get the customer email to use as a fixed value
-                const customerEmail = selectedCustomer?.email;
+                const customerEmail = selectedCustomer?.contactPersonEmail;
                 const fixedValues = customerEmail ? [customerEmail] : [];
 
                 return (
@@ -563,9 +602,7 @@ export default function JobForm({
                 type="submit"
                 disabled={isPending}
               >
-                {isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isPending
                   ? isEditing
                     ? 'Saving Changes...'
@@ -574,19 +611,13 @@ export default function JobForm({
                     ? 'Save Changes'
                     : 'Add Job'}
               </Button>
-
             </div>
           )}
 
           {!isDesktop && (
             <div className="flex flex-col col-span-2 gap-3 mb-6">
-              <Button
-                type="submit"
-                className="cursor-pointer"
-              >
-                {isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+              <Button type="submit" className="cursor-pointer">
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isPending
                   ? isEditing
                     ? 'Saving Changes...'

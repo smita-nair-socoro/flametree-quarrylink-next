@@ -2,6 +2,7 @@ import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
 import { CustomerDTO, CustomerWithAddressResponseDTO } from './customer';
 import { CustomerDeliveryAddress } from './address';
 import { QuarrySupplier } from './quarry-supplier';
+import { INVOICE_STATUS } from './invoice-enums';
 
 export interface JobDTO {
   id: number;
@@ -150,4 +151,13 @@ export interface JobDetails extends JobDTO {
   notes?: string;
   updatedAt?: string;
   lastModifiedBy?: string;
+}
+
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  docketCount: number;
+  amount: number;
+  dueDate: string;
+  status: INVOICE_STATUS;
 }

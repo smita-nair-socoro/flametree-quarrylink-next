@@ -36,9 +36,30 @@ import {
 
 // TODO: replace with real driver list from API (filtered by haulier)
 const AVAILABLE_DRIVERS: DriverDTO[] = [
-  { id: 1, driverName: 'John Smith', driverType: DRIVER_TYPE.INTERNAL, emailAddress: '', phoneNumber: '', licenseNumber: '' },
-  { id: 2, driverName: 'Armin Menhaji', driverType: DRIVER_TYPE.INTERNAL, emailAddress: '', phoneNumber: '', licenseNumber: '' },
-  { id: 3, driverName: 'Jayden Olivo', driverType: DRIVER_TYPE.INTERNAL, emailAddress: '', phoneNumber: '', licenseNumber: '' },
+  {
+    id: 1,
+    driverName: 'John Smith',
+    driverType: DRIVER_TYPE.INTERNAL,
+    emailAddress: '',
+    phoneNumber: '',
+    licenseNumber: '',
+  },
+  {
+    id: 2,
+    driverName: 'Armin Menhaji',
+    driverType: DRIVER_TYPE.INTERNAL,
+    emailAddress: '',
+    phoneNumber: '',
+    licenseNumber: '',
+  },
+  {
+    id: 3,
+    driverName: 'Jayden Olivo',
+    driverType: DRIVER_TYPE.INTERNAL,
+    emailAddress: '',
+    phoneNumber: '',
+    licenseNumber: '',
+  },
 ];
 
 interface DialogConfig {
@@ -268,7 +289,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           />
         ) : undefined,
         content: selectedDriver ? (
-          <UnassignDriverBlockedContent driverName={selectedDriver.driverName} />
+          <UnassignDriverBlockedContent
+            driverName={selectedDriver.driverName}
+          />
         ) : null,
         confirmText: 'Transfer Dockets',
         confirmCustomColor: '#8E51FF',

@@ -1,0 +1,5 @@
+export enum INVOICE_STATUS {
+  PENDING = 'PENDING',
+  SYNCED = 'SYNCED',
+  FAILED = 'FAILED',
+}

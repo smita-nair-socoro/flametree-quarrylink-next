@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
-import { AssignTruckContent, TruckOption } from './assign-truck-content';
+import { AssignTruckContent } from './assign-truck-content';
+import { TruckDTO } from '@/lib/types/truck';
 import {
   UnassignTruckContent,
   UnassignTruckDescription,
@@ -12,7 +13,7 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 
 // TODO: replace with real truck list from API (filtered by haulier)
-const AVAILABLE_TRUCKS: TruckOption[] = [
+const AVAILABLE_TRUCKS = [
   { id: 3, licensePlate: 'ABC-123', haulierName: 'Acme Hauliers' },
   { id: 4, licensePlate: 'DEF-456', haulierName: 'Acme Hauliers' },
   { id: 5, licensePlate: 'GHI-789', haulierName: 'Acme Hauliers' },
@@ -25,7 +26,7 @@ const AVAILABLE_TRUCKS: TruckOption[] = [
   { id: 12, licensePlate: 'ABC-1233', haulierName: 'Acme Hauliers' },
   { id: 13, licensePlate: 'DEF-4526', haulierName: 'Acme Hauliers' },
   { id: 14, licensePlate: 'GHI-7819', haulierName: 'Acme Hauliers' },
-];
+] as TruckDTO[];
 
 interface DialogConfig {
   title: string;

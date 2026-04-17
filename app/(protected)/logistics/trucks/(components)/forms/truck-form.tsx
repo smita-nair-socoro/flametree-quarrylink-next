@@ -36,7 +36,10 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
 import type { InspectionRecord } from '@/lib/types/truck-inspection';
 import { YearPicker } from '@/components/year-picker';
-import { FormMultiSelect } from '@/components/ui/form-multi-select';
+import {
+  FormMultiSelect,
+  FormMultiSelectOption,
+} from '@/components/ui/form-multi-select';
 import { TableBadges } from '@/components/table-badges';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 
@@ -97,7 +100,7 @@ const DUMMY_INSPECTIONS: InspectionRecord[] = [
     status: 'CONFIRMED',
     notes: 'External haulier check confirmed by driver.',
   },
-];
+] as InspectionRecord[];
 
 export default function TruckForm({
   id,
@@ -131,12 +134,14 @@ export default function TruckForm({
   );
 
   const { data: drivers = [] } = useQuery(DriversListQueryOptions());
-  const driverOptions: FormSelectOption[] = React.useMemo(
+  const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
-      (Array.isArray(drivers) ? drivers : []).map((d) => ({
-        label: d.driverName,
-        value: String(d.id),
-      })),
+      drivers
+        .filter((d) => d.id != null)
+        .map((d) => ({
+          label: d.driverName,
+          value: String(d.id),
+        })),
     [drivers],
   );
 
