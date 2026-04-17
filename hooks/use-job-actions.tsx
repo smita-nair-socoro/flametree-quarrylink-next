@@ -218,7 +218,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       return;
     }
     try {
-      await cancelJobMutation.mutateAsync({
+      const updated = await cancelJobMutation.mutateAsync({
         id: jobId,
         cancelReason,
         additionalNotes: cancelNotes.trim(),
@@ -226,6 +226,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       notifySuccess('Job cancelled successfully.');
       setActiveDialog(null);
       setCannotCancelBlocker(null);
+      useJobStore.getState().setSelectedJob(updated);
     } catch (error: unknown) {
       const data = extractErrorData(
         error,

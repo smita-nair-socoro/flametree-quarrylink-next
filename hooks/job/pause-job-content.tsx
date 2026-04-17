@@ -23,20 +23,16 @@ export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-gray-500">{job?.jobNumber}</span>
-          {job?.customerDto?.businessName ||
-            (job?.customerDto?.contactPersonFirstName +
-              ' ' +
-              job?.customerDto?.contactPersonLastName && (
-              <>
-                <span className="text-sm text-gray-500 font-extrabold">·</span>
-                <span className="text-sm text-gray-500">
-                  {job?.customerDto?.businessName ||
-                    job?.customerDto?.contactPersonFirstName +
-                      ' ' +
-                      job?.customerDto?.contactPersonLastName}
-                </span>
-              </>
-            ))}
+          {job?.customerDto && (
+            <>
+              <span className="text-sm text-gray-500 font-extrabold">·</span>
+              <span className="text-sm text-gray-500">
+                {job.customerDto.customerType === 'BUSINESS'
+                  ? job.customerDto.businessName
+                  : job.customerDto.individualContactName}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
