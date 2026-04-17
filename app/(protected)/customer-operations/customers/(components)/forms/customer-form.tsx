@@ -20,7 +20,13 @@ import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Info, TriangleAlert, RefreshCw } from 'lucide-react';
+import {
+  Loader2,
+  Info,
+  TriangleAlert,
+  RefreshCw,
+  Settings,
+} from 'lucide-react';
 
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
@@ -38,6 +44,7 @@ import {
   useUpdateCustomer,
   CustomerDetailQueryOptions,
 } from '@/lib/api/customer';
+import { useRouter } from 'next/navigation';
 import { CustomerDTO } from '@/lib/types/customer';
 import {
   CUSTOMER_STATUS,
@@ -70,6 +77,7 @@ export default function CustomerForm({
   className,
   onSuccess,
 }: FormProps) {
+  const router = useRouter();
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const customerId = id ?? 0;
@@ -95,14 +103,19 @@ export default function CustomerForm({
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
 
-  // When true, onSubmit always calls create (Xero retry sync bypasses update path)
+  // When true, onSubmit bypasses the isEditing check and always calls create (retry sync)
   const isRetrySyncRef = React.useRef(false);
 
-  // TODO: remove dummy data
-  // const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
-
+  // TODO: replace dummy IDs with real accSoftwareNotes from API response
+  const DUMMY_NOT_SYNCED_ID = 10;
+  const DUMMY_NOT_LINKED_ID = 6;
   const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(
-    'Xero validation failed: contact email is already in use by another Xero contact.',
+    id === DUMMY_NOT_SYNCED_ID
+      ? 'Customer is not synced to Xero due to a validation error.'
+      : null,
+  );
+  const [notLinkedWarning, setNotLinkedWarning] = React.useState(
+    id === DUMMY_NOT_LINKED_ID,
   );
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
@@ -208,6 +221,21 @@ export default function CustomerForm({
     }
   }, [isEditing, selectedCustomer, users, customerForm]);
 
+  const NOT_LINKED_MSG = 'Customer is not linked to any accounting software';
+
+  const handleSyncNote = (note?: string): boolean => {
+    if (!note) return false;
+    if (note.toLowerCase().includes('not synced')) {
+      setXeroSyncError(note);
+      return true;
+    }
+    if (note === NOT_LINKED_MSG) {
+      setNotLinkedWarning(true);
+      return true;
+    }
+    return false;
+  };
+
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
     console.log('onSubmit function called!');
     console.log('Customer Form Values:', values);
@@ -295,18 +323,11 @@ export default function CustomerForm({
 
       console.log('Customer Data Payload:', customerData);
 
-      const NOT_LINKED_MSG =
-        'Customer is not linked to any accounting software';
-
       // Call the appropriate mutation (retry sync always uses create, never update)
       if (isEditing && !isRetrySyncRef.current) {
         const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
-        const syncNote = result.accSoftwareNotes;
-        if (syncNote && syncNote !== NOT_LINKED_MSG) {
-          setXeroSyncError(syncNote);
-          return;
-        }
+        if (handleSyncNote(result.accSoftwareNotes)) return;
       } else {
         const newCustomer = await createCustomer.mutateAsync(customerData);
         notifySuccess('Customer Added Successfully!');
@@ -316,11 +337,7 @@ export default function CustomerForm({
           addNewRecordId('customer_main_data_table', newCustomer.id);
         }
 
-        const syncNote = newCustomer.accSoftwareNotes;
-        if (syncNote && syncNote !== NOT_LINKED_MSG) {
-          setXeroSyncError(syncNote);
-          return;
-        }
+        if (handleSyncNote(newCustomer.accSoftwareNotes)) return;
       }
 
       onSuccess?.();
@@ -481,6 +498,34 @@ export default function CustomerForm({
                   className={cn('h-4 w-4', isSubmitting && 'animate-spin')}
                 />
                 Retry sync
+              </Button>
+            </div>
+          )}
+
+          {/* Accounting not linked banner */}
+          {notLinkedWarning && (
+            <div className="col-span-full border border-[#D97706] bg-[#FFFBEB] rounded-md p-4 flex items-center justify-between gap-4 mb-2">
+              <div className="flex items-start gap-3">
+                <TriangleAlert className="h-4 w-4 text-[#D97706] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-[#92400E]">
+                    Accounting integration not set up
+                  </span>
+                  <span className="text-sm text-[#B45309]">
+                    This customer will be saved in QuarryLink only. To sync
+                    customers with your accounting system, please configure your
+                    connection in Settings first.
+                  </span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-shrink-0 gap-2 border-[#D97706] text-[#92400E] hover:text-[#92400E]"
+                onClick={() => router.push('/system/accounting')}
+              >
+                <Settings className="h-4 w-4" />
+                Go to Settings
               </Button>
             </div>
           )}
