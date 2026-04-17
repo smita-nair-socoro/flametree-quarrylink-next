@@ -12,7 +12,7 @@ import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   ResumeJobDescription,
@@ -34,8 +34,11 @@ import {
   CannotCancelBlockerType,
   CANCEL_REASON_LABELS,
 } from '@/hooks/job/cancel-job-content';
-import { useCancelJob } from '@/lib/api/job';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
+import { useCancelJob, usePauseJob, useResumeJob } from '@/lib/api/job';
+import {
+  extractErrorData,
+  extractErrorMessage,
+} from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -81,28 +84,21 @@ export function useJobActions(jobData?: JobDetails | null) {
     React.useState<CancelBlockerState | null>(null);
 
   const cancelJobMutation = useCancelJob();
+  const pauseJobMutation = usePauseJob();
+  const resumeJobMutation = useResumeJob();
 
-  // TODO: replace with real active dockets from API
-  const activeDockets: Docket[] = [
-    {
-      id: 1,
-      docketNumber: 'DOC-2026-011',
-      status: DOCKET_STATUS.ASSIGNED,
-      contactName: 'John Doe',
-    },
-    {
-      id: 2,
-      docketNumber: 'DOC-2026-021',
-      status: DOCKET_STATUS.IN_TRANSIT,
-      contactName: 'Jane Smith',
-    },
-    {
-      id: 3,
-      docketNumber: 'DOC-2026-031',
-      status: DOCKET_STATUS.ARRIVED,
-      contactName: 'Bob Johnson',
-    },
-  ] as Docket[];
+  const [activeDockets, setActiveDockets] = React.useState<DocketDTO[]>([]);
+
+  const ACTIVE_STATUSES = new Set([
+    DOCKET_STATUS.UNASSIGNED,
+    DOCKET_STATUS.ASSIGNED,
+    DOCKET_STATUS.IN_TRANSIT,
+    DOCKET_STATUS.ARRIVED,
+    DOCKET_STATUS.STOPPED,
+    DOCKET_STATUS.PENDING,
+    DOCKET_STATUS.PREPARING,
+    DOCKET_STATUS.READY,
+  ]);
 
   const isCancelFormValid = React.useMemo(() => {
     if (!cancelReason) return false;
@@ -188,6 +184,34 @@ export function useJobActions(jobData?: JobDetails | null) {
   const createDialogAction = (actionKey: string) => () =>
     setActiveDialog(actionKey);
 
+  const handleResumeJob = async () => {
+    if (jobId == null) return;
+    try {
+      const updated = await resumeJobMutation.mutateAsync({ id: jobId });
+      notifySuccess('Job resumed successfully.');
+      setActiveDialog(null);
+      useJobStore.getState().setSelectedJob(updated);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handlePauseJob = async () => {
+    if (jobId == null) return;
+    try {
+      const pauseStrategy =
+        pauseDocketAction === 'stop'
+          ? 'STOP_ALL_DOCKETS'
+          : 'ALLOW_DRIVERS_TO_COMPLETE';
+      const updated = await pauseJobMutation.mutateAsync({ id: jobId, pauseStrategy });
+      notifySuccess('Job paused successfully.');
+      setActiveDialog(null);
+      useJobStore.getState().setSelectedJob(updated);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handleCancelJob = async () => {
     if (jobId == null) {
       console.error('Job ID is required');
@@ -204,17 +228,22 @@ export function useJobActions(jobData?: JobDetails | null) {
       setCannotCancelBlocker(null);
       useJobStore.getState().setSelectedJob(updated);
     } catch (error: unknown) {
-      const data = extractErrorData(error) as Partial<CancelBlockerState> | null;
+      const data = extractErrorData(
+        error,
+      ) as Partial<CancelBlockerState> | null;
       const activeDeliveryCount = data?.activeDeliveryCount ?? 0;
       const deliveredDocketCount = data?.deliveredDocketCount ?? 0;
       const collectedDocketCount = data?.collectedDocketCount ?? 0;
 
       const hasBlockers =
-        activeDeliveryCount > 0 || deliveredDocketCount > 0 || collectedDocketCount > 0;
+        activeDeliveryCount > 0 ||
+        deliveredDocketCount > 0 ||
+        collectedDocketCount > 0;
 
       if (hasBlockers) {
         const blockerType: CannotCancelBlockerType =
-          activeDeliveryCount > 0 && (deliveredDocketCount > 0 || collectedDocketCount > 0)
+          activeDeliveryCount > 0 &&
+          (deliveredDocketCount > 0 || collectedDocketCount > 0)
             ? 'multiple_blockers'
             : activeDeliveryCount > 0
               ? 'active_drivers'
@@ -235,19 +264,13 @@ export function useJobActions(jobData?: JobDetails | null) {
   };
 
   const actionHandlers: Record<string, () => Promise<void>> = {
-    resume: async () => {
-      console.log('Resume job:', jobId, jobData);
-      // TODO: implement resume logic
-    },
+    resume: () => handleResumeJob(),
     cancel: handleCancelJob,
     settle: async () => {
       console.log('Settle job:', jobId, jobData);
       // TODO: implement settle logic
     },
-    pause: async () => {
-      console.log('Pause job:', jobId, 'docketAction:', pauseDocketAction);
-      // TODO: implement pause logic
-    },
+    pause: () => handlePauseJob(),
   };
 
   const actions = {
@@ -262,8 +285,22 @@ export function useJobActions(jobData?: JobDetails | null) {
 
     resume: createDialogAction('resume'),
 
-    pause: () => {
+    pause: async () => {
+      if (!jobId) return;
       setPauseDocketAction('stop');
+      try {
+        const result = await queryClient.fetchQuery(
+          DocketsByJobIdQueryOptions(jobId),
+        );
+        const docketList: DocketDTO[] = Array.isArray(result)
+          ? result
+          : (result?.content ?? []);
+        setActiveDockets(
+          docketList.filter((d) => ACTIVE_STATUSES.has(d.docketStatus)),
+        );
+      } catch {
+        setActiveDockets([]);
+      }
       setActiveDialog('pause');
     },
 
@@ -337,11 +374,11 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
         onConfirmAction={async () => {
-            const handler = actionHandlers[key];
-            if (handler) {
-              await handler();
-            }
-          }}
+          const handler = actionHandlers[key];
+          if (handler) {
+            await handler();
+          }
+        }}
       />
     );
   });
