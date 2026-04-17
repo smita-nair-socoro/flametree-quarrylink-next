@@ -29,8 +29,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
-import { useGetAllHauliers } from '@/lib/api/haulier';
-
+import { HauliersListQueryOptions } from '@/lib/api/haulier';
+import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
   TooltipContent,
@@ -38,11 +38,13 @@ import {
 } from '@/components/ui/tooltip';
 import { useClientStore } from '@/app/stores/client-store';
 import { addNewRecordId } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { BADGE_COLORS } from '@/lib/utils';
+import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
+import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { formatLocalDateShort } from '@/lib/utils/date';
+import { FormMultiSelect } from '@/components/ui/form-multi-select';
+import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -116,7 +118,7 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { data: hauliers = [] } = useGetAllHauliers();
+  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const haulierItems = React.useMemo(
     () =>
       hauliers.map((h) => ({
@@ -134,6 +136,8 @@ export default function DriverForm({
   const updateDriver = useUpdateDriver();
 
   const { driverData } = useDriverFormState(id, isEditing);
+  const { actions: truckActions, truckDialogs } =
+    useDriverTruckActions(driverData);
 
   const driverForm = useForm<z.infer<typeof NewDriverFormSchema>>({
     resolver: zodResolver(NewDriverFormSchema),
@@ -179,13 +183,6 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverForm.formState.isDirty]);
 
-  // Clear haulier selection when switching to internal (create mode only)
-  React.useEffect(() => {
-    if (isInternal && !isEditing) {
-      driverForm.setValue('haulierId', 0);
-    }
-  }, [isInternal, isEditing, driverForm]);
-
   const isPending = createDriver.isPending || updateDriver.isPending;
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
@@ -198,13 +195,13 @@ export default function DriverForm({
         await updateDriver.mutateAsync({
           id,
           data: {
-            version: driverData.version,
+            version: driverData.version ?? 0,
             driverName: values.driverName,
             licenseNumber: values.driverLicenseNumber,
             emailAddress: values.email,
             phoneNumber: values.phone,
             driverType: values.type,
-            driverStatus: driverData.driverStatus,
+            driverStatus: driverData.driverStatus ?? DRIVER_STATUS.ACTIVE,
             truckIds: driverData.truckIds ?? [],
             haulierId: selectedHaulierData?.id,
           },
@@ -234,7 +231,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -247,12 +244,26 @@ export default function DriverForm({
     );
   }
 
-  // Dummy trucks and compliance — replace with real API data when backend is available
-  const trucks: { id: number; registration: string; status: string }[] = [];
+  // TODO: replace with real truck list from API (filtered by haulier)
+  const haulierName =
+    selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks';
+  const truckOptions = [
+    { label: 'ABC-123', value: 'ABC-123', group: haulierName },
+    { label: 'DEF-456', value: 'DEF-456', group: haulierName },
+    { label: 'GHI-789', value: 'GHI-789', group: haulierName },
+  ];
+
+  // TODO: replace with real assigned trucks from API
+  const trucks: { id: number; licensePlate: string; status: string }[] = [
+    { id: 1, licensePlate: 'ABC-123', status: 'ACTIVE' },
+    { id: 2, licensePlate: 'DEF-456', status: 'ACTIVE' },
+    { id: 3, licensePlate: 'GHI-789', status: 'INACTIVE' },
+  ];
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (
     <div className="w-full relative">
+      {truckDialogs}
       {isPending && (
         <div
           className={cn(
@@ -290,7 +301,8 @@ export default function DriverForm({
                   <RadioGroup
                     value={field.value}
                     onValueChange={field.onChange}
-                    className="flex gap-6"
+                    className="flex gap-6 mt-2"
+                    disabled={isEditing}
                   >
                     <FormItem className="flex items-center gap-2">
                       <FormControl>
@@ -312,7 +324,7 @@ export default function DriverForm({
             )}
           />
 
-          <Separator />
+          <Separator className="my-3" />
 
           {/* Driver Name + Haulier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -363,6 +375,7 @@ export default function DriverForm({
                 name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
+                disabled={isEditing}
                 items={haulierItems}
                 renderForm={(
                   editingItem,
@@ -418,24 +431,28 @@ export default function DriverForm({
                 )}
               />
 
-              <FormItem>
-                <FormLabel>Haulier Email Address</FormLabel>
-                <Input
-                  value={selectedHaulierInfo?.emailAddress ?? ''}
-                  disabled
-                  placeholder="Auto-filled from selected haulier"
-                />
-              </FormItem>
+              {isEditing && (
+                <>
+                  <FormItem>
+                    <FormLabel>Haulier Email Address</FormLabel>
+                    <Input
+                      value={selectedHaulierInfo?.emailAddress ?? ''}
+                      disabled
+                      placeholder="Auto-filled from selected haulier"
+                    />
+                  </FormItem>
 
-              <FormItem>
-                <FormLabel>Haulier Phone Number</FormLabel>
-                <PhoneInput
-                  defaultCountry="AU"
-                  value={selectedHaulierInfo?.phoneNumber ?? ''}
-                  disabled
-                  placeholder="Auto-filled from selected haulier"
-                />
-              </FormItem>
+                  <FormItem>
+                    <FormLabel>Haulier Phone Number</FormLabel>
+                    <PhoneInput
+                      defaultCountry="AU"
+                      value={selectedHaulierInfo?.phoneNumber ?? ''}
+                      disabled
+                      placeholder="Auto-filled from selected haulier"
+                    />
+                  </FormItem>
+                </>
+              )}
             </div>
           </div>
 
@@ -443,19 +460,36 @@ export default function DriverForm({
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">License &amp; Assignment</h2>
             <Separator />
-            <FormField
-              control={driverForm.control}
-              name="driverLicenseNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>License Number*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="ABC123456" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <FormField
+                control={driverForm.control}
+                name="driverLicenseNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>License Number*</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ABC123456" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {!isEditing && (
+                <FormMultiSelect
+                  control={driverForm.control}
+                  name="assignedTrucks"
+                  label="Assigned Trucks (Optional)"
+                  options={selectedHaulierId || isInternal ? truckOptions : []}
+                  placeholder={
+                    !selectedHaulierId && !isInternal
+                      ? 'Select Haulier first...'
+                      : 'Select trucks...'
+                  }
+                  disabled={!selectedHaulierId && !isInternal}
+                  searchPlaceholder="Search trucks..."
+                />
               )}
-            />
+            </div>
           </div>
 
           {/* Truck Assignments — edit mode only */}
@@ -463,7 +497,12 @@ export default function DriverForm({
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold">Truck Assignments</h2>
-                <Button type="button" size="sm" className="cursor-pointer">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => truckActions.assign()}
+                >
                   Assign Trucks
                 </Button>
               </div>
@@ -481,23 +520,22 @@ export default function DriverForm({
                     >
                       <div className="flex flex-col gap-1">
                         <span className="font-medium">
-                          {truck.registration}
+                          {truck.licensePlate}
                         </span>
-                        <Badge
-                          variant="outline"
-                          className={
-                            BADGE_COLORS[truck.status] ||
-                            'bg-green-100 text-green-800 border-green-300'
-                          }
-                        >
-                          {truck.status}
-                        </Badge>
+                        <TableBadges names={[truck.status]} visibleCount={1} />
                       </div>
                       <Button
                         type="button"
                         variant="destructive"
                         size="sm"
                         className="cursor-pointer"
+                        onClick={() =>
+                          truckActions.unassign({
+                            id: truck.id,
+                            licensePlate: truck.licensePlate,
+                            status: truck.status,
+                          })
+                        }
                       >
                         Unassign
                       </Button>

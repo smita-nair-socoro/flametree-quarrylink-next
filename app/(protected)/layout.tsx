@@ -10,13 +10,16 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
-import { navItems } from '@/components/app-sidebar';
 
 import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useQuery } from '@tanstack/react-query';
 import { useUserStore } from '@/app/stores/user-store';
 
-export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+export default function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -28,45 +31,13 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   React.useEffect(() => {
     if (currentUser) {
       useUserStore.getState().setUserName(currentUser.name ?? '');
+      useUserStore.getState().setUserGroups(currentUser.groups ?? []);
     }
   }, [currentUser]);
 
   const isDriversApp = pathname?.startsWith('/drivers-app');
+  const isDeliveries = pathname?.startsWith('/logistics/deliveries');
 
-  // Build quick lookup for plan by path and first essential fallback
-  const { getPlanByPath, fallbackUrl } = React.useMemo(() => {
-    const pathToPlan = new Map<string, string>();
-    const customersPath = '/customer-operations/customers';
-
-    for (const item of navItems) {
-      if ('plan' in item && item.plan) {
-        pathToPlan.set(item.url, item.plan);
-      }
-      if (item.items) {
-        for (const sub of item.items) {
-          if (sub.plan) {
-            pathToPlan.set(sub.url, sub.plan);
-          }
-        }
-      }
-    }
-
-    return {
-      getPlanByPath: (path: string) => {
-        if (pathToPlan.has(path)) return pathToPlan.get(path);
-        let matchedBasePath: string | undefined;
-        for (const key of pathToPlan.keys()) {
-          if (path === key || path.startsWith(`${key}/`)) {
-            if (!matchedBasePath || key.length > matchedBasePath.length) {
-              matchedBasePath = key;
-            }
-          }
-        }
-        return matchedBasePath ? pathToPlan.get(matchedBasePath) : undefined;
-      },
-      fallbackUrl: customersPath,
-    };
-  }, []);
 
   React.useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
@@ -98,16 +69,11 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       }
     }
 
-    const plan = getPlanByPath(path.toUpperCase());
-    if (plan === 'PRO' || plan === 'PLUS') {
-      router.replace(fallbackUrl);
-    }
+
   }, [
     auth.isLoading,
     auth.isAuthenticated,
     currentUser,
-    getPlanByPath,
-    fallbackUrl,
     router,
   ]);
 
@@ -128,18 +94,16 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider>
-      {!isDriversApp && <AppSidebar />}
+      {!isDriversApp && !isDeliveries && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
-        {!isDriversApp && (
+        {!isDriversApp && !isDeliveries && (
           <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
             {/* Mobile trigger - only visible when sidebar is closed */}
             <SidebarTrigger className="md:hidden" />
           </header>
         )}
         <div className="flex-1 overflow-auto bg-[#F9FAFB]">
-          <div className="h-full overflow-auto">
-            {children}
-          </div>
+          <div className="h-full overflow-auto">{children}</div>
         </div>
       </SidebarInset>
     </SidebarProvider>

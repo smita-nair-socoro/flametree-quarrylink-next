@@ -41,8 +41,9 @@ import {
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
-import { JobDTO, JobDetails, JobItem } from '../types/job';
+import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
+import { TruckDTO } from '../types/truck';
 import {
   DriverDTO,
   DriverDetailDTO,
@@ -898,7 +899,13 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
+        queryString: {
+          page: '0',
+          size: '1000',
+          sort: 'id',
+        },
+      });
       return response;
     },
     getById: (id: number) => {
@@ -1015,6 +1022,17 @@ export const APIClient = {
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },
+    pause: (
+      id: number,
+      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+    ) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
+        body: { pauseStrategy },
+      }),
+    resume: (id: number) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
+        body: { id },
+      }),
     settle: (id: number) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
   },
@@ -1022,13 +1040,13 @@ export const APIClient = {
   drivers: {
     getAll: () => appClient.Get<DriverDTO[]>(`/socoro/quarrylink/api/driver`),
     getById: (id: number) =>
-      appClient.Get<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`),
+      appClient.Get<DriverDTO>(`/socoro/quarrylink/api/driver/${id}`),
     create: (data: DriverDTO) =>
       appClient.Post<DriverDTO>(`/socoro/quarrylink/api/driver`, {
         body: data,
       }),
     update: (id: number, data: PutDriverDTO) =>
-      appClient.Put<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+      appClient.Put<DriverDTO>(`/socoro/quarrylink/api/driver/${id}`, {
         body: data,
       }),
     patchInfo: (id: number, data: PatchDriverInfoDTO) =>
@@ -1098,5 +1116,12 @@ export const APIClient = {
           },
         },
       ),
+  },
+
+  invoices: {
+    getAll: (jobId: number) =>
+      appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
+    getById: (invoiceId: number) =>
+      appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
   },
 };

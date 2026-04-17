@@ -90,3 +90,36 @@ export const usePatchDriverHaulier = () => {
     },
   });
 };
+
+export const useDeleteDriver = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.drivers.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+    },
+  });
+};
+
+export const useDeactivateDriver = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.drivers.deactivate(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: DriverKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+    },
+  });
+};
+
+export const useReactivateDriver = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.drivers.reactivate(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: DriverKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+    },
+  });
+};
+

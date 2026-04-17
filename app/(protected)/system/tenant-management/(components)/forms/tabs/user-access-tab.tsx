@@ -8,6 +8,7 @@ import { FormSelectOption } from '@/components/ui/form-select';
 import { Role } from '@/lib/types/user-enums';
 import { useClientUserActions } from '@/hooks/use-client-user-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
+import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 // Roles options for the form
 const rolesOptions: readonly FormSelectOption[] = [
@@ -24,10 +25,11 @@ export default function UserAccessTab({
   convertedClientWithUsers,
 }: UserAccessTabProps) {
   const teamMemberCount = convertedClientWithUsers.length;
+  const isSuperAdmin = useIsSuperAdmin();
 
   // Use Zustand store for selected team member
   const setSelectedTeamMember = useTeamMemberStore(
-    (state) => state.setSelectedTeamMember
+    (state) => state.setSelectedTeamMember,
   );
 
   // Separate state for the actions hook
@@ -41,7 +43,7 @@ export default function UserAccessTab({
     selectedUserForActions?.sub,
     selectedUserForActions,
     rolesOptions,
-    undefined // TODO: Pass actual currentUserId when available
+    undefined, // TODO: Pass actual currentUserId when available
   );
 
   // Handle row click to open user details
@@ -62,7 +64,7 @@ export default function UserAccessTab({
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
     () => createUserColumns(rolesOptions, undefined), // TODO: Pass actual currentUserId when available
-    []
+    [],
   );
 
   return (
@@ -75,18 +77,18 @@ export default function UserAccessTab({
               Users ({teamMemberCount}/20)
             </h1>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <FormDialog
-                dialogTitle="Invite User"
-                dialogWidth="max-w-md"
-                buttonTitle="Invite User"
-                headerClassName="pb-2 h-[32px] pt-10"
-                preserveEmptyBadgeSpace={false}
-                key={teamMemberCount}
-              >
-                <InviteUserForm
-                  roleOptions={rolesOptions}
-                />
-              </FormDialog>
+              {isSuperAdmin && (
+                <FormDialog
+                  dialogTitle="Invite User"
+                  dialogWidth="max-w-md"
+                  buttonTitle="Invite User"
+                  headerClassName="pb-2 h-[32px] pt-10"
+                  preserveEmptyBadgeSpace={false}
+                  key={teamMemberCount}
+                >
+                  <InviteUserForm roleOptions={rolesOptions} />
+                </FormDialog>
+              )}
             </div>
           </div>
           <DataTableClient

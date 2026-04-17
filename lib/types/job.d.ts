@@ -2,6 +2,7 @@ import { JOB_STATUS, JOB_LINE_ITEM_TYPE } from './job-enums';
 import { CustomerDTO, CustomerWithAddressResponseDTO } from './customer';
 import { CustomerDeliveryAddress } from './address';
 import { QuarrySupplier } from './quarry-supplier';
+import { INVOICE_STATUS } from './invoice-enums';
 
 export interface JobDTO {
   id: number;
@@ -21,6 +22,12 @@ export interface JobDTO {
   estimatedStartDate?: string;
   startTimeWindow?: string;
   endTimeWindow?: string;
+  reason?: string;
+  notes?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
   version?: number;
 }
 
@@ -146,4 +153,13 @@ export interface JobItem {
 
 export interface JobDetails extends JobDTO {
   jobItems?: JobItem[];
+}
+
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  docketCount: number;
+  amount: number;
+  dueDate: string;
+  status: INVOICE_STATUS;
 }

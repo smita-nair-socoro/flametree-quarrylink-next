@@ -1,6 +1,7 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
 import { Address } from './address';
+import { DriverDTO } from './driver';
 
 export interface Docket {
   id: number;
@@ -47,8 +48,19 @@ export interface DocketDTO {
   id: number;
   docketNumber: string;
   jobId: number;
+  truckInspectionRequired: boolean;
+
+  // Remove this once API is ready
+  preStartRequired?: boolean;
+
   jobItemId: number;
   docketStatus: DOCKET_STATUS;
+  stopReason?: string;
+  resumeReason?: string;
+  cancelledReason?: string;
+  voidedReason?: string;
+  stoppedAt?: string;
+  resumedAt?: string;
   pickUpAddressId: number;
   pickUpAddress: Partial<Address>;
   deliveryAddressId: number;
@@ -61,6 +73,7 @@ export interface DocketDTO {
   docketEmailRecipients: string[];
   notes: string;
   driverId: number;
+  driver?: DriverDTO;
   truckId: number;
   driverChecklistId: number;
   truckChecklistId: number;

@@ -92,6 +92,10 @@
   --olive-600: #7a7a38;
 }
 
+[data-scroll-locked][data-scroll-locked] {
+  overflow: scroll !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
