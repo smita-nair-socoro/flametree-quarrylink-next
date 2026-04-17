@@ -255,11 +255,9 @@ export default function CustomerForm({
           values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
       }
 
-      // Add id for updates (includes retry after create with xero error)
+      // Add id for updates
       if (isEditing && id) {
         customerData.id = id;
-      } else if (savedCustomerId) {
-        customerData.id = savedCustomerId;
       }
 
       // Handle BUSINESS type specific fields
@@ -301,8 +299,8 @@ export default function CustomerForm({
       const NOT_LINKED_MSG =
         'Customer is not linked to any accounting software';
 
-      // Call the appropriate mutation (savedCustomerId = retry after xero error)
-      if (isEditing || savedCustomerId) {
+      // Call the appropriate mutation
+      if (isEditing) {
         const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
         const syncNote = result.accSoftwareNotes;
