@@ -213,10 +213,11 @@ export function useJobActions(jobData?: JobDetails | null) {
     if (!jobId) return;
 
     try {
-      await settleJobMutation.mutateAsync(jobId);
+      const updated = await settleJobMutation.mutateAsync(jobId);
       notifySuccess('Job settled successfully.');
       setActiveDialog(null);
       setSettleBlockedData(null);
+      useJobStore.getState().setSelectedJob(updated);
     } catch (error: unknown) {
       const errorData = extractErrorData(error) as {
         unfinalisedDocketsCount?: number;
