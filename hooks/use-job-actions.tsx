@@ -187,9 +187,10 @@ export function useJobActions(jobData?: JobDetails | null) {
   const handleResumeJob = async () => {
     if (jobId == null) return;
     try {
-      await resumeJobMutation.mutateAsync({ id: jobId });
+      const updated = await resumeJobMutation.mutateAsync({ id: jobId });
       notifySuccess('Job resumed successfully.');
       setActiveDialog(null);
+      useJobStore.getState().setSelectedJob(updated);
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -202,9 +203,10 @@ export function useJobActions(jobData?: JobDetails | null) {
         pauseDocketAction === 'stop'
           ? 'STOP_ALL_DOCKETS'
           : 'ALLOW_DRIVERS_TO_COMPLETE';
-      await pauseJobMutation.mutateAsync({ id: jobId, pauseStrategy });
+      const updated = await pauseJobMutation.mutateAsync({ id: jobId, pauseStrategy });
       notifySuccess('Job paused successfully.');
       setActiveDialog(null);
+      useJobStore.getState().setSelectedJob(updated);
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
