@@ -221,7 +221,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -568,7 +568,7 @@ export default function QuarrySupplierForm({
           {/* Audit Information */}
           {isEditing && (
             <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
+              <h2 className="text-[18px] font-bold">Audit Information</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
@@ -624,8 +624,9 @@ export default function QuarrySupplierForm({
               >
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                  }`}
+                  : `Add ${
+                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                    }`}
               </Button>
             </div>
           )}
@@ -635,8 +636,9 @@ export default function QuarrySupplierForm({
               <Button type="submit" className="cursor-pointer">
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                  }`}
+                  : `Add ${
+                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                    }`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

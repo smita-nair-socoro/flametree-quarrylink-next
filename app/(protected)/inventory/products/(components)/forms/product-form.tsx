@@ -623,7 +623,8 @@ export default function ProductForm({
                     ).map((supplier) => {
                       const cost = supplier.perTnCostPrice || 0;
                       const sell = supplier.perTnSellPrice || 0;
-                      const margin = sell === 0 ? 0 : ((sell - cost) / sell) * 100;
+                      const margin =
+                        sell === 0 ? 0 : ((sell - cost) / sell) * 100;
                       return (
                         <MobileLineItem
                           key={supplier.quarrySupplierId}
@@ -638,7 +639,9 @@ export default function ProductForm({
                           actions={
                             <SupplierTableActions
                               quarry={supplier}
-                              productId={selectedProduct?.id ?? supplier.productId}
+                              productId={
+                                selectedProduct?.id ?? supplier.productId
+                              }
                             />
                           }
                         />
@@ -676,7 +679,7 @@ export default function ProductForm({
                 'space-y-6 mb-10',
               )}
             >
-              <h2 className="text-lg font-semibold">Audit Information</h2>
+              <h2 className="text-[18px] font-semibold">Audit Information</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">

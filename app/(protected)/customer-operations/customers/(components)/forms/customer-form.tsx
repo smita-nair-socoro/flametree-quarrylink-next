@@ -83,7 +83,7 @@ export default function CustomerForm({
         label: user.name,
         value: user.sub,
       })),
-    [users]
+    [users],
   );
 
   // Mutation hooks
@@ -105,11 +105,7 @@ export default function CustomerForm({
     setAddress,
     searchInput,
     setSearchInput,
-  } = useCustomerFormState(
-    selectedCustomer ?? null,
-    isEditing,
-    customerForm
-  );
+  } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -121,7 +117,7 @@ export default function CustomerForm({
 
   const handleFormFieldChange = (
     field: 'customer_type' | 'payment_type',
-    value: string
+    value: string,
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
@@ -155,7 +151,7 @@ export default function CustomerForm({
     'billing_address',
     address,
     setAddress,
-    setSearchInput
+    setSearchInput,
   );
 
   const paymentTermsOptions = [
@@ -204,14 +200,14 @@ export default function CustomerForm({
       // Convert address using helper function
       const billingAddressData = toAddressPayload(
         address,
-        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null
+        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null,
       );
 
       // Backend requires billingAddressId (maps to customers.billing_address_id) on update.
       const billingAddressIdFromExisting =
         (isEditing && selectedCustomer
-          ? selectedCustomer.billingAddressId ??
-          selectedCustomer.billingAddress?.id
+          ? (selectedCustomer.billingAddressId ??
+            selectedCustomer.billingAddress?.id)
           : undefined) ?? billingAddressData?.id;
 
       // Build the CustomerDTO payload
@@ -268,8 +264,9 @@ export default function CustomerForm({
 
       // Handle BUSINESS type specific fields
       if (values.customer_type === 'BUSINESS') {
-        customerData.contactName = `${values.contact_person_first_name || ''} ${values.contact_person_last_name || ''
-          }`.trim();
+        customerData.contactName = `${values.contact_person_first_name || ''} ${
+          values.contact_person_last_name || ''
+        }`.trim();
         customerData.businessName = values.business_name || '';
         customerData.businessEmail = values.business_email || '';
         customerData.businessPhone = values.business_phone || '';
@@ -287,9 +284,14 @@ export default function CustomerForm({
       if (values.customer_type === 'INDIVIDUAL') {
         customerData.contactName = values.contact_person_name || '';
         // Backend @NotBlank requires contactPersonFirstName/LastName for all customer types
-        const nameParts = (values.contact_person_name || '').trim().split(/\s+/);
+        const nameParts = (values.contact_person_name || '')
+          .trim()
+          .split(/\s+/);
         customerData.firstName = nameParts[0] || '';
-        customerData.lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0] || '';
+        customerData.lastName =
+          nameParts.length > 1
+            ? nameParts.slice(1).join(' ')
+            : nameParts[0] || '';
         customerData.abn = 'N/A';
         // Default fields for INDIVIDUAL type
         customerData.dateOfBirth = new Date().toISOString();
@@ -323,7 +325,7 @@ export default function CustomerForm({
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} customer:`,
-        error
+        error,
       );
 
       // Extract normalized error response and message
@@ -383,7 +385,7 @@ export default function CustomerForm({
 
       // Fallback error using extracted message
       notifyError(
-        messageFromErr || 'Failed to save customer. Please try again.'
+        messageFromErr || 'Failed to save customer. Please try again.',
       );
     } finally {
       setIsSubmitting(false);
@@ -397,7 +399,7 @@ export default function CustomerForm({
       isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer',
       {
         description: 'Check required fields',
-      }
+      },
     );
   }
 
@@ -418,7 +420,7 @@ export default function CustomerForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -439,7 +441,7 @@ export default function CustomerForm({
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
           onSubmit={customerForm.handleSubmit(onSubmit, onError)}
         >
@@ -946,7 +948,7 @@ export default function CustomerForm({
                   ? selectedCustomerType === 'BUSINESS'
                     ? 'col-span-1 col-start-2'
                     : 'col-span-1 col-start-1'
-                  : 'col-span-2'
+                  : 'col-span-2',
               )}
             >
               <FormLabel>Invoice Due Date*</FormLabel>
@@ -1046,7 +1048,7 @@ export default function CustomerForm({
           {/* Audit Information */}
           {isEditing && (
             <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
+              <h2 className="text-[18px] font-bold">Audit Information</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">
