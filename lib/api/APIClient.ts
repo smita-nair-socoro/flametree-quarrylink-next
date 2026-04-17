@@ -46,7 +46,6 @@ import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
 import {
   DriverDTO,
-  DriverDetailDTO,
   PatchDriverInfoDTO,
   PatchDriverTypeDTO,
   PatchDriverTrucksDTO,
@@ -1050,21 +1049,19 @@ export const APIClient = {
         body: data,
       }),
     patchInfo: (id: number, data: PatchDriverInfoDTO) =>
-      appClient.Patch<DriverDetailDTO>(`/socoro/quarrylink/api/driver/${id}`, {
+      appClient.Patch<DriverDTO>(`/socoro/quarrylink/api/driver/${id}`, {
         body: data,
       }),
     patchType: (id: number, data: PatchDriverTypeDTO) =>
-      appClient.Patch<DriverDetailDTO>(
-        `/socoro/quarrylink/api/driver/${id}/type`,
-        { body: data },
-      ),
+      appClient.Patch<DriverDTO>(`/socoro/quarrylink/api/driver/${id}/type`, {
+        body: data,
+      }),
     patchTrucks: (id: number, data: PatchDriverTrucksDTO) =>
-      appClient.Patch<DriverDetailDTO>(
-        `/socoro/quarrylink/api/driver/${id}/trucks`,
-        { body: data },
-      ),
+      appClient.Patch<DriverDTO>(`/socoro/quarrylink/api/driver/${id}/trucks`, {
+        body: data,
+      }),
     patchHaulier: (id: number, data: PatchDriverHaulierDTO) =>
-      appClient.Patch<DriverDetailDTO>(
+      appClient.Patch<DriverDTO>(
         `/socoro/quarrylink/api/driver/${id}/haulier`,
         { body: data },
       ),
