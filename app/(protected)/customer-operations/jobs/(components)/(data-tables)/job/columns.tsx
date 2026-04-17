@@ -29,12 +29,18 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
   },
   {
     id: 'customerName',
-    accessorFn: (row) => row.customerDto?.businessName || row.customerDto?.contactName || 'N/A',
+    accessorFn: (row) =>
+      row.customerDto?.businessName ||
+      row.customerDto?.individualContactName ||
+      'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.customerDto?.businessName || row.original.customerDto?.contactName || 'N/A';
+      const customerName =
+        row.original.customerDto?.businessName ||
+        row.original.customerDto?.individualContactName ||
+        'N/A';
       return <div className="py-2">{customerName}</div>;
     },
     meta: 'Customer Name',

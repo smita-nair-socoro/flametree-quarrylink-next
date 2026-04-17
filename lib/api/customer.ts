@@ -35,7 +35,7 @@ export const CustomerReportingQueryOptions = () =>
 
 export const CustomerDeliveryAddressesQueryOptions = (
   customerId: number,
-  limit?: number
+  limit?: number,
 ) =>
   queryOptions({
     queryKey: CustomerKeys.deliveryAddresses(customerId, limit),
@@ -65,13 +65,17 @@ export const useUpdateDeliveryAddressUsage = () => {
       APIClient.customers.updateDeliveryAddressUsage(
         customerId,
         customerDeliveryAddressId,
-        inUse
+        inUse,
       ),
 
     onSuccess: (_data, variables) => {
       // Invalidate all delivery addresses queries for this customer (partial match)
       queryClient.invalidateQueries({
-        queryKey: [...CustomerKeys.all, 'delivery-addresses', variables.customerId],
+        queryKey: [
+          ...CustomerKeys.all,
+          'delivery-addresses',
+          variables.customerId,
+        ],
       });
     },
   });

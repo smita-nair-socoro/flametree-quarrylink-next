@@ -20,10 +20,10 @@ export function CannotCancelJobDescription({
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
+          {job?.customerDto?.businessName || job?.customerDto?.contactPersonFirstName + ' ' + job?.customerDto?.contactPersonLastName && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
+              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactPersonFirstName + ' ' + job?.customerDto?.contactPersonLastName}</span>
             </>
           )}
         </div>
@@ -179,10 +179,10 @@ export function CancelJobDescription({ job }: { job?: JobDTO | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
+          {job?.customerDto?.businessName || job?.customerDto?.contactPersonFirstName + ' ' + job?.customerDto?.contactPersonLastName && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
+              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactPersonFirstName + ' ' + job?.customerDto?.contactPersonLastName}</span>
             </>
           )}
         </div>

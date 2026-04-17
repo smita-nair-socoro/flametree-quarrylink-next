@@ -41,10 +41,16 @@ import { Tab } from '@/components/ui/tabs';
 import LineItemsTab from './tabs/line-items/line-itmes-tab';
 import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
-import CashSalesTab from './tabs/cash-sales/cash-sales-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate } from '@/lib/utils/date';
 import { JobDTO } from '@/lib/types/job';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface FormProps {
   id?: number;
@@ -122,10 +128,19 @@ export default function JobForm({
     if (!customers) return [];
     return customers
       .filter((customer) => customer.id !== undefined)
-      .map((customer) => ({
-        label: customer.businessName || customer.contactName,
-        value: customer.id!,
-      }))
+      .map((customer) => {
+        if (customer.customerType === 'BUSINESS') {
+          return {
+            label: customer.businessName as string,
+            value: customer.id!,
+          };
+        } else {
+          return {
+            label: `${customer.contactPersonFirstName} ${customer.contactPersonLastName}`,
+            value: customer.id!,
+          };
+        }
+      })
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [customers]);
 
@@ -141,7 +156,7 @@ export default function JobForm({
           // Update phone and email fields whenever customer changes
           jobForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') || '',
           );
 
           jobForm.setValue(
@@ -207,16 +222,16 @@ export default function JobForm({
         : [];
 
       const additionalEmails = receiptEmails.filter(
-        (email) => email !== selectedCustomer?.email,
+        (email) => email !== selectedCustomer?.contactPersonEmail,
       );
 
       const payload = {
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
-        contactPersonName: selectedCustomer?.contactName,
+        contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.contactPersonFirstName + ' ' + selectedCustomer?.contactPersonLastName,
         contactPersonPhone: values.phone,
-        docketEmail: selectedCustomer?.email,
+        docketEmail: selectedCustomer?.contactPersonEmail,
         additionalEmailRecipients: additionalEmails,
         jobStatus:
           isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
@@ -409,7 +424,7 @@ export default function JobForm({
                 'col-span-2',
                 isEditing && isDesktop
                   ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-2 gap-2',
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
@@ -419,9 +434,7 @@ export default function JobForm({
                 control={jobForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem
-                    className={isEditing && isDesktop ? 'col-span-2' : ''}
-                  >
+                  <FormItem className="col-span-2">
                     <FormLabel>Delivery Date*</FormLabel>
                     <FormControl>
                       <DatePicker
@@ -442,13 +455,25 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-start"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
-                      />
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -462,13 +487,25 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>End Time Window</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-end"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
-                      />
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -483,7 +520,7 @@ export default function JobForm({
                   (c) => c.id === jobForm.watch('customerId'),
                 );
                 // Get the customer email to use as a fixed value
-                const customerEmail = selectedCustomer?.email;
+                const customerEmail = selectedCustomer?.contactPersonEmail;
                 const fixedValues = customerEmail ? [customerEmail] : [];
 
                 return (
