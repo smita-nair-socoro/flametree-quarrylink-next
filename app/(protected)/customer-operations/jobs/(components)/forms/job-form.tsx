@@ -138,7 +138,7 @@ export default function JobForm({
           };
         } else {
           return {
-            label: `${customer.contactPersonFirstName} ${customer.contactPersonLastName}`,
+            label: customer.individualContactName ?? '',
             value: customer.id!,
           };
         }
@@ -269,7 +269,7 @@ export default function JobForm({
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
-        contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.contactPersonFirstName + ' ' + selectedCustomer?.contactPersonLastName,
+        contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.individualContactName,
         contactPersonPhone: values.phone,
         docketEmail: selectedCustomer?.contactPersonEmail,
         additionalEmailRecipients: additionalEmails,
