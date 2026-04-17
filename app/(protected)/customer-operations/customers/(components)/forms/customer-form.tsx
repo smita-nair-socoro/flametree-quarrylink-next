@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { cn, addNewRecordId } from '@/lib/utils';
+import { cn, addNewRecordId, addSyncErrorRecordId } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -335,6 +335,9 @@ export default function CustomerForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newCustomer && typeof newCustomer.id === 'number') {
           addNewRecordId('customer_main_data_table', newCustomer.id);
+          if (newCustomer.accSoftwareNotes?.toLowerCase().includes('not synced')) {
+            addSyncErrorRecordId('customer_main_data_table', newCustomer.id);
+          }
         }
 
         if (handleSyncNote(newCustomer.accSoftwareNotes)) return;
