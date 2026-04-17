@@ -8,57 +8,10 @@ import { APIClient } from './APIClient';
 import { CustomerKeys } from './keys';
 import { CustomerDTO } from '../types/customer';
 
-// Backend uses different field names — this intersection lets us read them without breaking the DTO type
-type CustomerApiRaw = CustomerDTO & {
-  individualContactName?: string;
-  contactPersonEmail?: string;
-  contactPersonPhone?: string;
-  contactPersonFirstName?: string;
-  contactPersonLastName?: string;
-  invoiceDueDateDayCount?: number;
-};
-
-/**
- * Maps a raw backend customer response to the frontend CustomerDTO shape.
- * Backend uses: individualContactName, contactPersonEmail, contactPersonPhone,
- *               contactPersonFirstName, contactPersonLastName, invoiceDueDateDayCount
- * Frontend uses: contactName, email, phone, firstName, lastName, invoiceDueDate
- */
-function mapCustomerFromApi(raw: CustomerApiRaw): CustomerDTO {
-  return {
-    ...raw,
-    contactName: raw.individualContactName ?? raw.contactName ?? '',
-    email: raw.contactPersonEmail ?? raw.email ?? '',
-    phone: raw.contactPersonPhone ?? raw.phone ?? '',
-    firstName: raw.contactPersonFirstName ?? raw.firstName,
-    lastName: raw.contactPersonLastName ?? raw.lastName,
-    invoiceDueDate: raw.invoiceDueDateDayCount ?? raw.invoiceDueDate ?? 0,
-  };
-}
-
-/**
- * Maps a frontend CustomerDTO payload to the backend field names before sending.
- */
-function mapCustomerToApi(dto: Partial<CustomerDTO>): Partial<CustomerApiRaw> {
-  const { contactName, email, phone, firstName, lastName, invoiceDueDate, ...rest } = dto;
-  return {
-    ...rest,
-    individualContactName: contactName,
-    contactPersonEmail: email,
-    contactPersonPhone: phone,
-    ...(firstName !== undefined ? { contactPersonFirstName: firstName } : {}),
-    ...(lastName !== undefined ? { contactPersonLastName: lastName } : {}),
-    invoiceDueDateDayCount: invoiceDueDate,
-  };
-}
-
 export const CustomersListQueryOptions = () =>
   queryOptions({
     queryKey: CustomerKeys.list(),
-    queryFn: async () => {
-      const data = await APIClient.customers.getAll();
-      return (data as CustomerApiRaw[]).map(mapCustomerFromApi);
-    },
+    queryFn: () => APIClient.customers.getAll(),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -66,10 +19,7 @@ export const CustomersListQueryOptions = () =>
 export const CustomerDetailQueryOptions = (customerId: number) =>
   queryOptions({
     queryKey: CustomerKeys.detail(customerId),
-    queryFn: async () => {
-      const data = await APIClient.customers.getById(customerId);
-      return mapCustomerFromApi(data as CustomerApiRaw);
-    },
+    queryFn: () => APIClient.customers.getById(customerId),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
     enabled: !!customerId,
@@ -85,7 +35,7 @@ export const CustomerReportingQueryOptions = () =>
 
 export const CustomerDeliveryAddressesQueryOptions = (
   customerId: number,
-  limit?: number
+  limit?: number,
 ) =>
   queryOptions({
     queryKey: CustomerKeys.deliveryAddresses(customerId, limit),
@@ -115,13 +65,17 @@ export const useUpdateDeliveryAddressUsage = () => {
       APIClient.customers.updateDeliveryAddressUsage(
         customerId,
         customerDeliveryAddressId,
-        inUse
+        inUse,
       ),
 
     onSuccess: (_data, variables) => {
       // Invalidate all delivery addresses queries for this customer (partial match)
       queryClient.invalidateQueries({
-        queryKey: [...CustomerKeys.all, 'delivery-addresses', variables.customerId],
+        queryKey: [
+          ...CustomerKeys.all,
+          'delivery-addresses',
+          variables.customerId,
+        ],
       });
     },
   });
@@ -136,7 +90,7 @@ export const useCreateCustomer = () => {
 
   return useMutation({
     mutationFn: (data: Partial<CustomerDTO>) =>
-      APIClient.customers.create(mapCustomerToApi(data)),
+      APIClient.customers.create(data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
@@ -154,7 +108,7 @@ export const useUpdateCustomer = () => {
 
   return useMutation({
     mutationFn: (data: Partial<CustomerDTO>) =>
-      APIClient.customers.update(mapCustomerToApi(data)),
+      APIClient.customers.update(data),
 
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });

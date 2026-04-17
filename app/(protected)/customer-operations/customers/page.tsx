@@ -137,8 +137,8 @@ export default function CustomersPage() {
     );
     const displayName =
       customer.customerType === 'BUSINESS'
-        ? customer.businessName?.trim() || customer.contactName
-        : customer.contactName;
+        ? customer.businessName?.trim() || customer.individualContactName
+        : customer.individualContactName;
     const formattedCreditLimit = centsToDollars(customer.creditLimit);
 
     return (
@@ -155,12 +155,12 @@ export default function CustomersPage() {
           {
             icon: <User className="h-4 w-4" />,
             label: 'Contact',
-            value: customer.contactName,
+            value: customer.individualContactName,
           },
           {
             icon: <Mail className="h-4 w-4" />,
             label: 'Email',
-            value: customer.email,
+            value: customer.contactPersonEmail,
           },
           {
             icon: <CreditCard className="h-4 w-4" />,

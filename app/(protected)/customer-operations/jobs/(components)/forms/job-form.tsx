@@ -129,10 +129,19 @@ export default function JobForm({
     if (!customers) return [];
     return customers
       .filter((customer) => customer.id !== undefined)
-      .map((customer) => ({
-        label: customer.businessName || customer.contactName,
-        value: customer.id!,
-      }))
+      .map((customer) => {
+        if (customer.customerType === 'BUSINESS') {
+          return {
+            label: customer.businessName as string,
+            value: customer.id!,
+          };
+        } else {
+          return {
+            label: `${customer.contactPersonFirstName} ${customer.contactPersonLastName}`,
+            value: customer.id!,
+          };
+        }
+      })
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [customers]);
 
@@ -148,7 +157,7 @@ export default function JobForm({
           // Update phone and email fields whenever customer changes
           jobForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') || '',
           );
 
           jobForm.setValue(
@@ -216,22 +225,22 @@ export default function JobForm({
       // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
 
       const additionalEmails = receiptEmails.filter(
-        (email) => email !== selectedCustomer?.email,
+        (email) => email !== selectedCustomer?.contactPersonEmail,
       );
 
       const payload = {
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
-        contactPersonName: selectedCustomer?.contactName,
+        contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.contactPersonFirstName + ' ' + selectedCustomer?.contactPersonLastName,
         contactPersonPhone: values.phone,
-        docketEmail: selectedCustomer?.email,
+        docketEmail: selectedCustomer?.contactPersonEmail,
         additionalEmailRecipients: additionalEmails,
         jobStatus:
           isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
@@ -264,7 +273,7 @@ export default function JobForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
@@ -520,7 +529,7 @@ export default function JobForm({
                   (c) => c.id === jobForm.watch('customerId'),
                 );
                 // Get the customer email to use as a fixed value
-                const customerEmail = selectedCustomer?.email;
+                const customerEmail = selectedCustomer?.contactPersonEmail;
                 const fixedValues = customerEmail ? [customerEmail] : [];
 
                 return (
