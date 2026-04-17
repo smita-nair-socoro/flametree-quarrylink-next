@@ -20,7 +20,7 @@ import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Info } from 'lucide-react';
+import { Loader2, Info, TriangleAlert, RefreshCw } from 'lucide-react';
 
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
@@ -94,6 +94,9 @@ export default function CustomerForm({
   // Mutation hooks
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+
+  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
+  const [savedCustomerId, setSavedCustomerId] = React.useState<number | null>(null);
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -244,9 +247,11 @@ export default function CustomerForm({
           values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
       }
 
-      // Add id for updates
+      // Add id for updates (includes retry after create with xero error)
       if (isEditing && id) {
         customerData.id = id;
+      } else if (savedCustomerId) {
+        customerData.id = savedCustomerId;
       }
 
       // Handle BUSINESS type specific fields
@@ -285,10 +290,18 @@ export default function CustomerForm({
 
       console.log('Customer Data Payload:', customerData);
 
-      // Call the appropriate mutation
-      if (isEditing) {
-        await updateCustomer.mutateAsync(customerData);
+      const NOT_LINKED_MSG = 'Customer is not linked to any accounting software';
+
+      // Call the appropriate mutation (savedCustomerId = retry after xero error)
+      if (isEditing || savedCustomerId) {
+        const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
+        const syncNote = result.accSoftwareNotes;
+        if (syncNote && syncNote !== NOT_LINKED_MSG) {
+          setXeroSyncError(syncNote);
+          setSavedCustomerId(result.id ?? id ?? null);
+          return;
+        }
       } else {
         const newCustomer = await createCustomer.mutateAsync(customerData);
         notifySuccess('Customer Added Successfully!');
@@ -296,6 +309,13 @@ export default function CustomerForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newCustomer && typeof newCustomer.id === 'number') {
           addNewRecordId('customer_main_data_table', newCustomer.id);
+        }
+
+        const syncNote = newCustomer.accSoftwareNotes;
+        if (syncNote && syncNote !== NOT_LINKED_MSG) {
+          setXeroSyncError(syncNote);
+          setSavedCustomerId(newCustomer.id ?? null);
+          return;
         }
       }
 
@@ -424,6 +444,33 @@ export default function CustomerForm({
           )}
           onSubmit={customerForm.handleSubmit(onSubmit, onError)}
         >
+          {/* Xero sync error banner */}
+          {xeroSyncError && (
+            <div className="col-span-full border border-[#DC2626] bg-[#FEF2F2] rounded-md p-4 flex items-center justify-between gap-4 mb-2">
+              <div className="flex items-start gap-3">
+                <TriangleAlert className="h-4 w-4 text-[#DC2626] flex-shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-[#7F1D1D]">
+                    Xero contact could not be created
+                  </span>
+                  <span className="text-sm text-[#DC2626]">
+                    This customer is saved in QuarryLink, but a matching Xero contact was not created (e.g. validation or connection issue). Review the details below, then use Retry sync button.
+                  </span>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-shrink-0 gap-2"
+                disabled={isSubmitting}
+                onClick={() => customerForm.handleSubmit(onSubmit, onError)()}
+              >
+                <RefreshCw className={cn('h-4 w-4', isSubmitting && 'animate-spin')} />
+                Retry sync
+              </Button>
+            </div>
+          )}
+
           {/* Warning for incomplete data from Xero sync */}
           {isEditing &&
             selectedCustomer &&

@@ -46,6 +46,7 @@ export interface CustomerDTO {
   updatedAt?: string;
   lastModifiedBy?: string;
   isDeleted?: boolean;
+  accSoftwareNotes?: string;
 }
 
 export interface CustomerWithAddressResponseDTO {
