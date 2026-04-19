@@ -252,8 +252,6 @@ export default function JobForm({
         (c) => c.id === values.customerId,
       );
 
-      // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
-      // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
           .split(',')
@@ -261,9 +259,11 @@ export default function JobForm({
           .filter(Boolean)
         : [];
 
-      const additionalEmails = receiptEmails.filter(
-        (email) => email !== selectedCustomer?.contactPersonEmail,
-      );
+      const customerEmail = selectedCustomer?.contactPersonEmail;
+      const emailRecipients = [
+        ...(customerEmail ? [customerEmail] : []),
+        ...receiptEmails.filter((email) => email !== customerEmail),
+      ];
 
       const payload = {
         customerId: values.customerId,
@@ -271,8 +271,7 @@ export default function JobForm({
         poNumber: values.poNumber,
         contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.individualContactName,
         contactPersonPhone: values.phone,
-        docketEmail: selectedCustomer?.contactPersonEmail,
-        emailRecipients: additionalEmails,
+        emailRecipients,
         jobStatus:
           isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
