@@ -398,7 +398,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       headerInfo={{
         customId: truckData?.licensePlate,
         primaryBadges: truckData?.truckStatus ? [truckData.truckStatus] : [],
-        secondaryBadges: truckData?.haulier?.haulierName ? [truckData.haulier.haulierName] : [],
+        secondaryBadges: truckData?.truckBusinessType ? [truckData.truckBusinessType] : [],
       }}
     >
       <TruckForm id={truckData?.id} />

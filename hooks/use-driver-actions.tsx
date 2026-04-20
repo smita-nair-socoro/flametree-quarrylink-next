@@ -542,7 +542,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         setViewOpen(open);
       }}
       hideTrigger
-      headerInfo={{ useSelectedDriver: true }}
+      headerInfo={{
+        useSelectedDriver: true,
+      }}
       headerButtons={
         <DriverActionButtons driver={driverData ?? selectedDriver} />
       }
