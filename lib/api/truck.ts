@@ -62,6 +62,18 @@ export const useDeleteTruck = () => {
   });
 };
 
+export const useUnassignDriverFromTruck = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ truckId, data }: { truckId: number; data: { version: number; driverId: number } }) =>
+      APIClient.trucks.unassignDriver(truckId, data),
+    onSuccess: (_data, { truckId }) => {
+      queryClient.invalidateQueries({ queryKey: TruckKeys.detail(truckId) });
+      queryClient.invalidateQueries({ queryKey: TruckKeys.drivers(truckId) });
+    },
+  });
+};
+
 export const useAssignDriversToTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({

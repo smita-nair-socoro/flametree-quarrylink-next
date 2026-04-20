@@ -30,9 +30,14 @@ export function UnassignDriverDescription({
 
 export function UnassignDriverBlockedContent({
   driverName,
+  activeDocketIds = [],
 }: {
   driverName: string;
+  activeDocketIds?: number[];
 }) {
+  const docketCount = activeDocketIds.length;
+  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
+
   return (
     <div className="flex flex-col gap-5">
       <span className="text-[14px] font-normal text-gray-700">
@@ -44,7 +49,7 @@ export function UnassignDriverBlockedContent({
           <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1">
             <span className="text-[16px] text-[#991B1B] font-medium">
-              Cannot Unassign Truck
+              Cannot Unassign Driver
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
               <span className="font-semibold">{driverName}</span> cannot be
@@ -71,6 +76,22 @@ export function UnassignDriverBlockedContent({
           </ul>
         </div>
       </div>
+
+      {docketCount > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold text-gray-900">
+            Active Dockets Found:
+          </span>
+          <div className="border border-[#FFD6A7] rounded-md px-4 py-3 bg-[#FFF3E6]">
+            <a
+              href={docketLink}
+              className="text-[14px] text-[#155DFC] underline font-medium"
+            >
+              {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -76,6 +76,18 @@ export const usePatchDriverType = () => {
   });
 };
 
+export const useUnassignTruckFromDriver = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ driverId, data }: { driverId: number; data: { version: number; truckId: number } }) =>
+      APIClient.drivers.unassignTruck(driverId, data),
+    onSuccess: (_data, { driverId }) => {
+      queryClient.invalidateQueries({ queryKey: DriverKeys.detail(driverId) });
+      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+    },
+  });
+};
+
 export const usePatchDriverTrucks = () => {
   const queryClient = useQueryClient();
   return useMutation({

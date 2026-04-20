@@ -33,7 +33,7 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
-import { useAssignDriversToTruck, useDeactivateTruck, useReactivateTruck, useDeleteTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
+import { useAssignDriversToTruck, useUnassignDriverFromTruck, useDeactivateTruck, useReactivateTruck, useDeleteTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 
 interface DialogConfig {
@@ -66,6 +66,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const [selectedDriver, setSelectedDriver] = React.useState<
     (UnassignDriverInfo & { id: number }) | null
   >(null);
+  const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
   const [selectedDriverIds, setSelectedDriverIds] = React.useState<number[]>(
     [],
   );
@@ -78,6 +79,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const { data: availableDriversData } = useQuery(HaulierDriversQueryOptions(haulierId));
   const availableDrivers = availableDriversData?.drivers ?? [];
   const assignDriversToTruck = useAssignDriversToTruck();
+  const unassignDriverFromTruck = useUnassignDriverFromTruck();
   const deactivateTruck = useDeactivateTruck();
   const reactivateTruck = useReactivateTruck();
   const deleteTruck = useDeleteTruck();
@@ -181,13 +183,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   ) => {
     if (!truckData?.id) return;
     try {
-      // Fetch fresh truck data to get the current driver list before filtering
       const freshTruck = await queryClient.fetchQuery(TruckByIdQueryOptions(truckData.id));
-      await assignDriversToTruck.mutateAsync({
+      await unassignDriverFromTruck.mutateAsync({
         truckId: truckData.id,
         data: {
           version: freshTruck.version ?? 0,
-          driverIds: (freshTruck.driverIds ?? []).filter((id) => id !== driver.id),
+          driverId: driver.id,
         },
       });
       notifySuccess('Driver unassigned successfully.');
@@ -200,6 +201,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         errorData.activeDeliveryCount > 0;
 
       if (hasActiveDeliveries) {
+        const docketIds = Array.isArray(errorData?.activeDocketIds)
+          ? (errorData.activeDocketIds as number[])
+          : [];
+        setBlockedDocketIds(docketIds);
         transitioningRef.current = true;
         setActiveDialog('unassignDriverBlocked');
       } else {
@@ -310,6 +315,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: selectedDriver ? (
           <UnassignDriverBlockedContent
             driverName={selectedDriver.driverName}
+            activeDocketIds={blockedDocketIds}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -327,6 +333,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       selectedDriver,
       selectedDriverIds,
       availableDrivers,
+      blockedDocketIds,
     ],
   );
 
@@ -369,6 +376,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           }
           setActiveDialog(null);
           setSelectedDriver(null);
+          setBlockedDocketIds([]);
         }
       }}
       title={config.title}

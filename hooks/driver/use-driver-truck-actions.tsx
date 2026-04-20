@@ -12,7 +12,7 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { useQuery } from '@tanstack/react-query';
 import { HaulierTrucksQueryOptions } from '@/lib/api/haulier';
-import { usePatchDriverTrucks } from '@/lib/api/driver';
+import { usePatchDriverTrucks, useUnassignTruckFromDriver } from '@/lib/api/driver';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 
@@ -48,6 +48,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   const { data: availableTrucksData } = useQuery(HaulierTrucksQueryOptions(haulierId));
   const availableTrucks = availableTrucksData?.trucks ?? [];
   const patchDriverTrucks = usePatchDriverTrucks();
+  const unassignTruckFromDriver = useUnassignTruckFromDriver();
 
   const handleAssignTrucks = async () => {
     if (!driverData?.id) return;
@@ -73,11 +74,11 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   ) => {
     if (!driverData?.id) return;
     try {
-      await patchDriverTrucks.mutateAsync({
-        id: driverData.id,
+      await unassignTruckFromDriver.mutateAsync({
+        driverId: driverData.id,
         data: {
           version: driverData.version ?? 0,
-          truckIds: (driverData.truckIds ?? []).filter((id) => id !== truck.id),
+          truckId: truck.id,
         },
       });
       notifySuccess('Truck unassigned successfully.');
