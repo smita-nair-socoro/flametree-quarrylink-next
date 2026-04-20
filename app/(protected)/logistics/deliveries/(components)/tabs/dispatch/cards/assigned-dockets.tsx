@@ -184,7 +184,7 @@ function DocketCard({
   return (
     <div
       style={style}
-      onClick={(e) => {
+      onClick={() => {
         if (!isResizing && onSelect) {
           onSelect();
         }
@@ -232,27 +232,27 @@ function DocketCard({
 }
 
 export default function AssignedDockets({
-  date,
+  // date,
   trucks,
   dockets,
   isLoading,
   onUpdateDocket,
   selectedDocketId,
   onSelectDocket,
-  onUnassignDocket,
+  // onUnassignDocket,
+  viewType = 'drivers',
 }: {
-  date: Date;
+  // date: Date;
   trucks: Truck[];
   dockets: DispatchDocket[];
   isLoading?: boolean;
   onUpdateDocket?: (docketId: string, updates: Partial<DispatchDocket>) => void;
   selectedDocketId?: string | null;
   onSelectDocket?: (id: string | null) => void;
-  onUnassignDocket?: () => void;
+  // onUnassignDocket?: () => void;
+  viewType?: 'trucks' | 'drivers';
 }) {
   const [expandedTruckId, setExpandedTruckId] = React.useState<string | null>(null);
-
-  const selectedDocket = selectedDocketId ? dockets.find(d => String(d.id) === selectedDocketId) : null;
 
   const renderTruckCard = (truck: Truck) => {
     const isExpanded = expandedTruckId === truck.id;
@@ -275,7 +275,9 @@ export default function AssignedDockets({
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-[22px] font-bold text-[#0F172A]">{truck.drivers}</h3>
+                <h3 className="text-[22px] font-bold text-[#0F172A]">
+                  {viewType === 'trucks' ? truck.name : truck.drivers}
+                </h3>
                 <span className="px-2 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] text-[11px] font-bold tracking-wide">
                   INTERNAL
                 </span>
@@ -292,18 +294,37 @@ export default function AssignedDockets({
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-              <span className="text-[18px] font-bold text-[#0F172A]">1</span>
-              <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trucks today</span>
-            </div>
-            <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-              <span className="text-[18px] font-bold text-[#0F172A]">{truck.trips}</span>
-              <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trips today</span>
-            </div>
-            <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-              <span className="text-[18px] font-bold text-[#0F172A]">11</span>
-              <span className="text-[11px] text-[#64748B] font-medium mt-0.5">This week</span>
-            </div>
+            {viewType === 'trucks' ? (
+              <>
+                <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
+                  <span className="text-[18px] font-bold text-[#0F172A]">{truck.capacity}</span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Capacity</span>
+                </div>
+                <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
+                  <span className="text-[18px] font-bold text-[#0F172A]">{truck.trips}</span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trips today</span>
+                </div>
+                <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
+                  <span className="text-[18px] font-bold text-[#0F172A]">1</span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Drivers</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
+                  <span className="text-[18px] font-bold text-[#0F172A]">1</span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trucks today</span>
+                </div>
+                <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
+                  <span className="text-[18px] font-bold text-[#0F172A]">{truck.trips}</span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trips today</span>
+                </div>
+                <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
+                  <span className="text-[18px] font-bold text-[#0F172A]">11</span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">This week</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

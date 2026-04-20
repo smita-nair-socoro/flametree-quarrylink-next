@@ -15,7 +15,6 @@ import { format } from 'date-fns';
 import { useDraggable } from '@dnd-kit/core';
 import { DispatchDocket, formatTimeRange } from '../views/drivers-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
-import { DocketDTO } from '@/lib/types/docket';
 
 
 function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { docket: DispatchDocket; activeTab: string; isSelected?: boolean; onSelect?: () => void }) {

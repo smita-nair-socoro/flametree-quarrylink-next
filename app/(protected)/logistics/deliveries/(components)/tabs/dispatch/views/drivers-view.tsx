@@ -5,7 +5,7 @@ import UnassignedDockets from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
 import { DocketDetailsPanel } from '../cards/docket-details-panel';
 import { format } from 'date-fns';
-import { DndContext, DragEndEvent, DragStartEvent, DragCancelEvent, DragOverlay } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
 import { useQuery } from '@tanstack/react-query';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
@@ -92,7 +92,7 @@ export function DispatchDriversView({ date }: { date: Date }) {
     }
   };
 
-  const handleDragCancel = (event: DragCancelEvent) => {
+  const handleDragCancel = () => {
     setActiveId(null);
   };
 
@@ -162,14 +162,15 @@ export function DispatchDriversView({ date }: { date: Date }) {
         </div>
         <div className="flex-1 min-w-0">
           <AssignedDockets
-            date={date}
+            // date={date}
             trucks={mockTrucks}
             dockets={dockets}
             isLoading={isLoading}
             onUpdateDocket={handleUpdateDocket}
             selectedDocketId={selectedDocketId}
             onSelectDocket={setSelectedDocketId}
-            onUnassignDocket={handleUnassign}
+            // onUnassignDocket={handleUnassign}
+            viewType="drivers"
           />
         </div>
         {selectedDocket && (
