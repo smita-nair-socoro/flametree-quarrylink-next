@@ -54,6 +54,23 @@ export function PauseJobContent({
         Are you sure you want to pause this job?
       </span>
 
+      {activeDockets.length === 0 && (
+        <div className="border border-[#FFD6A7] rounded-md p-4 bg-[#FFF3E6]">
+          <div className="flex justify-start gap-2 self-stretch">
+            <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[16px] text-[#CA3500] font-medium">
+                Business Impact
+              </span>
+              <span className="text-[14px] font-normal text-[#9F2D00]">
+                Pausing this job will prevent new docket creation, and
+                automatically cancel any unassigned dockets.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeDockets.length > 0 && (
         <>
           <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
