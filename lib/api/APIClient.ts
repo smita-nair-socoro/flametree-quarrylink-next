@@ -1032,6 +1032,8 @@ export const APIClient = {
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
         body: { id },
       }),
+    settle: (id: number) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
   },
 
   drivers: {
