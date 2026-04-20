@@ -163,6 +163,14 @@ export default function TruckForm({
     ? (internalHaulier?.id ?? 0)
     : (selectedHaulierId ?? 0);
 
+  const prevHaulierIdRef = React.useRef<number | undefined>(undefined);
+  React.useEffect(() => {
+    if (prevHaulierIdRef.current !== undefined && prevHaulierIdRef.current !== effectiveHaulierId) {
+      truckForm.setValue('driverIds', []);
+    }
+    prevHaulierIdRef.current = effectiveHaulierId;
+  }, [effectiveHaulierId, truckForm]);
+
   const { data: haulierDriversData } = useQuery(
     HaulierDriversQueryOptions(effectiveHaulierId),
   );
