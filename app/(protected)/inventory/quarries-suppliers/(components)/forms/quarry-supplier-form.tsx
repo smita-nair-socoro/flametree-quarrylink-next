@@ -571,7 +571,6 @@ export default function QuarrySupplierForm({
               lastModifiedBy={selectedQuarrySupplier?.lastModifiedBy}
               createdAt={selectedQuarrySupplier?.createdAt}
               updatedAt={selectedQuarrySupplier?.updatedAt}
-              className="col-span-full mt-10"
             />
           )}
 

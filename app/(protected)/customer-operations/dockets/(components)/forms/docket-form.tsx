@@ -954,7 +954,6 @@ export default function DocketForm({
               lastModifiedBy={getActorName(selectedDocket?.lastModifiedBy)}
               createdAt={selectedDocket?.createdAt}
               updatedAt={selectedDocket?.updatedAt}
-              className="px-1"
             />
           )}
 

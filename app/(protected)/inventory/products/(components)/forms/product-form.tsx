@@ -677,7 +677,6 @@ export default function ProductForm({
               lastModifiedBy={latestAuditData?.lastModifiedBy}
               createdAt={selectedProduct?.createdAt}
               updatedAt={latestAuditData?.updatedAt}
-              className={cn(isDesktop ? 'col-span-2' : 'col-span-1', 'mb-10')}
             />
           )}
         </form>

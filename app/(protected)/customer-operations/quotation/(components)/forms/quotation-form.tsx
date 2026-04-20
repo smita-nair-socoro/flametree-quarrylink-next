@@ -20,10 +20,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
-import {
-  GetTodaysDate,
-  formatLocalDateTime,
-} from '@/lib/utils/date';
+import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
@@ -143,7 +140,7 @@ export default function QuotationForm({
             value: customer.id!,
           };
         }
-      })
+      });
   }, [customers]);
 
   const getCustomerNameById = React.useCallback(
@@ -165,14 +162,6 @@ export default function QuotationForm({
     }));
   }, [users]);
 
-  const getUserNameBySub = React.useCallback(
-    (subOrName?: string | null) => {
-      if (!subOrName) return '';
-      return users.find((u) => u.sub === subOrName)?.name || subOrName;
-    },
-    [users],
-  );
-
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
     const subscription = quotationForm.watch((value, { name }) => {
@@ -185,7 +174,8 @@ export default function QuotationForm({
           // Update phone and email fields whenever customer changes
           quotationForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
+              '',
           );
           quotationForm.setValue('receiptEmail', '');
 
@@ -207,15 +197,16 @@ export default function QuotationForm({
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : []),
     ].filter(Boolean);
     const submitCustomer = customers.find((c) => c.id === values.customerId);
-    const customerName = submitCustomer?.customerType === 'BUSINESS'
-      ? (submitCustomer.businessName ?? '')
-      : (submitCustomer?.individualContactName ?? '');
+    const customerName =
+      submitCustomer?.customerType === 'BUSINESS'
+        ? (submitCustomer.businessName ?? '')
+        : (submitCustomer?.individualContactName ?? '');
 
     const accountManagerName =
       users.find((user) => user.sub === values.accountManagerSub)?.name || '';
@@ -382,24 +373,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-          <div
-            className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-              isDesktop ? '' : 'pt-10',
-            )}
-          >
-            <div className="flex flex-col items-center space-y-4 p-8">
-              <Spinner size="medium" />
-              <p className="text-lg text-muted-foreground font-bold">
-                {isDuplicate
-                  ? 'Creating Duplicate Quote...'
-                  : createQuotation.isPending
-                    ? 'Adding Quote...'
-                    : 'Updating Quote...'}
-              </p>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isDuplicate
+                ? 'Creating Duplicate Quote...'
+                : createQuotation.isPending
+                  ? 'Adding Quote...'
+                  : 'Updating Quote...'}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <Form {...quotationForm}>
         <form
@@ -410,7 +401,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-            'pointer-events-none',
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -486,7 +477,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -965,8 +956,8 @@ export default function QuotationForm({
 
                 {!isDuplicate && (
                   <AuditInformation
-                    createdBy={getUserNameBySub(currentQuotation?.createdBy)}
-                    lastModifiedBy={getUserNameBySub(currentQuotation?.lastModifiedBy)}
+                    createdBy={currentQuotation?.createdBy}
+                    lastModifiedBy={currentQuotation?.lastModifiedBy}
                     createdAt={currentQuotation?.createdAt}
                     updatedAt={currentQuotation?.updatedAt}
                     className="mt-10"
