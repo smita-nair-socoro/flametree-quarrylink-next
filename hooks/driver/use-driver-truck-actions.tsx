@@ -44,8 +44,9 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   // Can be removed once ActionDialog is refactored to not auto-close after confirm.
   const transitioningRef = React.useRef(false);
 
-  const haulierId = driverData?.haulier?.id ?? 0;
-  const { data: availableTrucks = [] } = useQuery(HaulierTrucksQueryOptions(haulierId));
+  const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
+  const { data: availableTrucksData } = useQuery(HaulierTrucksQueryOptions(haulierId));
+  const availableTrucks = Array.isArray(availableTrucksData) ? availableTrucksData : [];
   const patchDriverTrucks = usePatchDriverTrucks();
 
   const handleAssignTrucks = async () => {
@@ -153,7 +154,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         cancelText: 'Cancel',
       },
     }),
-    [driverData, selectedTruck, selectedTruckIds],
+    [driverData, selectedTruck, selectedTruckIds, availableTrucks],
   );
 
   const actionHandlers: Record<string, () => Promise<void>> = {
