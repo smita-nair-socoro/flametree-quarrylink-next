@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Maximize2, Minimize2, GripVertical } from 'lucide-react';
-import { Truck, DispatchDocket, formatTimeRange } from '../views/drivers-view';
+import { Truck, DispatchDocket, formatTimeRange } from '../views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 
 const TIME_SLOTS = [

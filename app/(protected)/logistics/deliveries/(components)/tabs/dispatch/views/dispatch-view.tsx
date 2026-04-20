@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
 import { DocketDTO } from '@/lib/types/docket';
-import { DispatchDriversFilter } from './drivers-filter';
+import { DispatchDriversTrucksFilter } from './drivers-trucks-filter';
 
 export type DispatchDocket = DocketDTO & {
   uiAssignedTruckId?: string | null;
@@ -52,7 +52,7 @@ const mockTrucks: Truck[] = [
 
 ];
 
-export function DispatchDriversView({ date }: { date: Date }) {
+export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks' | 'drivers' }) {
   const [dockets, setDockets] = useState<DispatchDocket[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedDocketId, setSelectedDocketId] = useState<string | null>(null);
@@ -118,7 +118,7 @@ export function DispatchDriversView({ date }: { date: Date }) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <DispatchDriversFilter />
+      <DispatchDriversTrucksFilter viewType={viewType} />
       <div className="border-b pl-6 py-2.5 bg-white">
         <div className="flex items-center gap-3">
           <span className="text-[12px] font-medium text-[#64748B]">
@@ -170,7 +170,7 @@ export function DispatchDriversView({ date }: { date: Date }) {
             selectedDocketId={selectedDocketId}
             onSelectDocket={setSelectedDocketId}
             // onUnassignDocket={handleUnassign}
-            viewType="drivers"
+            viewType={viewType}
           />
         </div>
         {selectedDocket && (

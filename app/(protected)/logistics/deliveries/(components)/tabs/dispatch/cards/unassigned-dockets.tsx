@@ -13,7 +13,7 @@ import {
 import { Separator } from 'react-aria-components';
 import { format } from 'date-fns';
 import { useDraggable } from '@dnd-kit/core';
-import { DispatchDocket, formatTimeRange } from '../views/drivers-view';
+import { DispatchDocket, formatTimeRange } from '../views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 
 
