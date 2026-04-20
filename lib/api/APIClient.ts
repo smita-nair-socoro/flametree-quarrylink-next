@@ -1101,7 +1101,7 @@ export const APIClient = {
     getDrivers: (haulierId: number) =>
       appClient.Get<{ drivers: DriverDTO[] }>(`/socoro/quarrylink/api/haulier/${haulierId}/drivers`),
     getTrucks: (haulierId: number) =>
-      appClient.Get<TruckDTO[]>(`/socoro/quarrylink/api/haulier/${haulierId}/trucks`),
+      appClient.Get<{ trucks: TruckDTO[] }>(`/socoro/quarrylink/api/haulier/${haulierId}/trucks`),
   },
 
   tenants: {

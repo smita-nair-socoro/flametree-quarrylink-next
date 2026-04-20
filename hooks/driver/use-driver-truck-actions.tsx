@@ -46,7 +46,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
 
   const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
   const { data: availableTrucksData } = useQuery(HaulierTrucksQueryOptions(haulierId));
-  const availableTrucks = Array.isArray(availableTrucksData) ? availableTrucksData : [];
+  const availableTrucks = availableTrucksData?.trucks ?? [];
   const patchDriverTrucks = usePatchDriverTrucks();
 
   const handleAssignTrucks = async () => {
