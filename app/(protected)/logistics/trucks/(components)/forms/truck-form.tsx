@@ -25,7 +25,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useCreateTruck, useUpdateTruck } from '@/lib/api/truck';
-import { HauliersListQueryOptions, HaulierDriversQueryOptions } from '@/lib/api/haulier';
+import {
+  HauliersListQueryOptions,
+  HaulierDriversQueryOptions,
+} from '@/lib/api/haulier';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
@@ -160,8 +163,10 @@ export default function TruckForm({
     ? (internalHaulier?.id ?? 0)
     : (selectedHaulierId ?? 0);
 
-  const { data: haulierDriversData } = useQuery(HaulierDriversQueryOptions(effectiveHaulierId));
-  const haulierDrivers = haulierDriversData?.driverFullDetailsResponseDtoList ?? [];
+  const { data: haulierDriversData } = useQuery(
+    HaulierDriversQueryOptions(effectiveHaulierId),
+  );
+  const haulierDrivers = haulierDriversData?.drivers ?? [];
   const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
       haulierDrivers
@@ -219,18 +224,26 @@ export default function TruckForm({
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
   async function onSubmit(values: TruckFormValues) {
-    console.log('Form values on submit:', values, { effectiveHaulierId, isInternal });
+    console.log('Form values on submit:', values, {
+      effectiveHaulierId,
+      isInternal,
+    });
     if (!isInternal && !effectiveHaulierId) {
       notifyError('Haulier is required. Please select a haulier.');
       return;
     }
 
     try {
-      const resolvedHaulierId = isInternal ? internalHaulier?.id : values.haulierId;
+      const resolvedHaulierId = isInternal
+        ? internalHaulier?.id
+        : values.haulierId;
 
       const payload = {
         haulierId: resolvedHaulierId || undefined,
-        truckBusinessType: truckOwnerType === 'EXTERNAL' ? 'SUBCONTRACTOR' as const : 'INTERNAL' as const,
+        truckBusinessType:
+          truckOwnerType === 'EXTERNAL'
+            ? ('SUBCONTRACTOR' as const)
+            : ('INTERNAL' as const),
         truckBodyType: 'ALUMINIUM',
         pbsApproved: false,
         licensePlate: values.licensePlate,
@@ -245,7 +258,10 @@ export default function TruckForm({
       };
 
       if (isEditing && id && truckData) {
-        await updateTruck.mutateAsync({ id, data: { ...payload, version: truckData.version ?? 0 } });
+        await updateTruck.mutateAsync({
+          id,
+          data: { ...payload, version: truckData.version ?? 0 },
+        });
       } else {
         await createTruck.mutateAsync(payload);
       }

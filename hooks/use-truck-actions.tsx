@@ -76,7 +76,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
 
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
   const { data: availableDriversData } = useQuery(HaulierDriversQueryOptions(haulierId));
-  const availableDrivers = availableDriversData?.driverFullDetailsResponseDtoList ?? [];
+  const availableDrivers = availableDriversData?.drivers ?? [];
   const assignDriversToTruck = useAssignDriversToTruck();
   const deactivateTruck = useDeactivateTruck();
   const reactivateTruck = useReactivateTruck();
@@ -326,6 +326,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       completedDocketBreakdown,
       selectedDriver,
       selectedDriverIds,
+      availableDrivers,
     ],
   );
 
@@ -400,7 +401,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         secondaryBadges: truckData?.haulier?.haulierName ? [truckData.haulier.haulierName] : [],
       }}
     >
-      <TruckForm />
+      <TruckForm id={truckData?.id} />
     </FormDialog>
   ) : null;
 
