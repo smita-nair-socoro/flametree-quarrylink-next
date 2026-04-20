@@ -47,7 +47,7 @@ export default function DriversPage() {
     {
       title: 'Available for Dispatch',
       value: '3',
-      description: 'O out of 3 on duty',
+      description: '0 out of 3 on duty',
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
