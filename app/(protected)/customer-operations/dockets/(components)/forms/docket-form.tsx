@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -42,6 +43,13 @@ import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { useQuery } from '@tanstack/react-query';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface FormProps {
   id?: number;
@@ -187,9 +195,9 @@ export default function DocketForm({
       const loadSize = values.loadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -292,18 +300,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -743,14 +751,26 @@ export default function DocketForm({
                       <FormItem>
                         <FormLabel>Start Time Window</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="time"
-                            id="time-picker-start"
-                            value={field.value ?? ''}
-                            className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
+                          <Select
+                            value={field.value || undefined}
+                            onValueChange={field.onChange}
                             disabled={isReadOnly}
-                          />
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                              {Array.from({ length: 24 }, (_, i) => {
+                                const hour = String(i).padStart(2, '0');
+                                return (
+                                  <SelectItem key={hour} value={`${hour}:00`}>
+                                    {hour}:00
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -764,14 +784,26 @@ export default function DocketForm({
                       <FormItem>
                         <FormLabel>End Time Window</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            type="time"
-                            id="time-picker-end"
-                            value={field.value ?? ''}
-                            className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
+                          <Select
+                            value={field.value || undefined}
+                            onValueChange={field.onChange}
                             disabled={isReadOnly}
-                          />
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+
+                            <SelectContent>
+                              {Array.from({ length: 24 }, (_, i) => {
+                                const hour = String(i).padStart(2, '0');
+                                return (
+                                  <SelectItem key={hour} value={`${hour}:00`}>
+                                    {hour}:00
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -915,6 +947,16 @@ export default function DocketForm({
               </div>
             </div>
           </div>
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={getActorName(selectedDocket?.createdBy)}
+              lastModifiedBy={getActorName(selectedDocket?.lastModifiedBy)}
+              createdAt={selectedDocket?.createdAt}
+              updatedAt={selectedDocket?.updatedAt}
+              className="px-1"
+            />
+          )}
 
           {isDesktop && (
             <div className="flex justify-end space-x-2 col-span-2 my-6">

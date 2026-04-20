@@ -24,7 +24,11 @@ export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
           <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-          <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
+          <span className="text-sm text-[#6A7282]">
+            {job?.customerDto?.customerType === 'BUSINESS'
+              ? job.customerDto.businessName
+              : job?.customerDto?.individualContactName}
+          </span>
         </div>
       </div>
     </div>

@@ -38,7 +38,7 @@ interface TruckDTO {
   driverIds?: number[];
   version?: number;
   createdBy?: string;
-  createdAt?: string;
   lastModifiedBy?: string;
+  createdAt?: string;
   updatedAt?: string;
 }

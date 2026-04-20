@@ -5,6 +5,11 @@ import { UseFormReturn } from 'react-hook-form';
 import { CustomerDTO } from '@/lib/types/customer';
 import { AddressType } from '@/lib/types/address';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import {
+  CUSTOMER_TYPE,
+  PAYMENT_TYPE,
+  PAYMENT_TERM_TYPE,
+} from '@/lib/types/customer-enums';
 
 const EMPTY_CUSTOMER_ADDRESS: AddressType = {
   address1: '',
@@ -20,8 +25,8 @@ const EMPTY_CUSTOMER_ADDRESS: AddressType = {
 };
 
 export const EMPTY_CUSTOMER_FORM_VALUES = {
-  customer_type: 'BUSINESS',
-  payment_type: 'CREDIT',
+  customer_type: CUSTOMER_TYPE.BUSINESS,
+  payment_type: PAYMENT_TYPE.CREDIT,
   business_name: '',
   business_email: '',
   business_phone: '',
@@ -32,7 +37,7 @@ export const EMPTY_CUSTOMER_FORM_VALUES = {
   contact_person_email: '',
   contact_person_phone: '',
   credit_limit: 0,
-  payment_terms: 'OFFOLLOWINGMONTH',
+  payment_terms: PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
   payment_terms_day: 0,
   account_manager: '',
   billing_address: '',
@@ -42,7 +47,9 @@ export const EMPTY_CUSTOMER_FORM_VALUES = {
   last_modified_by: 'current_user',
 };
 
-function addressFromCustomer(customer: CustomerDTO | null): AddressType {
+function addressFromCustomer(
+  customer: CustomerDTO | null,
+): AddressType {
   if (!customer?.billingAddress) return EMPTY_CUSTOMER_ADDRESS;
   const a = customer.billingAddress;
   return {
@@ -60,8 +67,7 @@ function addressFromCustomer(customer: CustomerDTO | null): AddressType {
 }
 
 function formValuesFromCustomer(customer: CustomerDTO) {
-  const paymentType =
-    customer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
+  const paymentType = customer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
 
   return {
     customer_type: customer.customerType ?? 'BUSINESS',
@@ -69,27 +75,29 @@ function formValuesFromCustomer(customer: CustomerDTO) {
     business_name: customer.businessName ?? '',
     business_email: customer.businessEmail ?? '',
     business_phone: normalizePhoneNumber(customer.businessPhone ?? '') ?? '',
-    abn: customer.abn === 'N/A' ? '' : customer.abn ?? '',
+    abn: customer.abn === 'N/A' ? '' : (customer.abn ?? ''),
     contact_person_name:
       customer.customerType === 'INDIVIDUAL'
-        ? customer.contactName ?? ''
+        ? (customer.individualContactName ?? '')
         : '',
     contact_person_first_name:
       customer.customerType === 'BUSINESS'
-        ? customer.firstName ?? ''
+        ? (customer.contactPersonFirstName ?? '')
         : '',
     contact_person_last_name:
       customer.customerType === 'BUSINESS'
-        ? customer.lastName ?? ''
+        ? (customer.contactPersonLastName ?? '')
         : '',
-    contact_person_email: customer.email ?? '',
-    contact_person_phone: normalizePhoneNumber(customer.phone ?? '') ?? '',
+    contact_person_email: customer.contactPersonEmail ?? '',
+    contact_person_phone:
+      normalizePhoneNumber(customer.contactPersonPhone ?? '') ?? '',
     credit_limit: customer.creditLimit ? customer.creditLimit / 100 : 0,
-    payment_terms_day: customer.invoiceDueDate ?? 0,
+    payment_terms_day: customer.invoiceDueDateDayCount ?? 0,
     payment_terms:
-      customer.paymentTermType && customer.paymentTermType !== 'N/A'
+      customer.paymentTermType &&
+      customer.paymentTermType !== PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE
         ? customer.paymentTermType
-        : 'OFFOLLOWINGMONTH',
+        : PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
     account_manager: customer.accountManagerSub ?? '',
     billing_address: customer.billingAddress?.formattedAddress ?? '',
     created_at: customer.createdAt ? new Date(customer.createdAt) : undefined,
@@ -106,16 +114,14 @@ function formValuesFromCustomer(customer: CustomerDTO) {
 export function useCustomerFormState(
   selectedCustomer: CustomerDTO | null,
   isEditing: boolean,
-  customerForm: UseFormReturn<any>
+  customerForm: UseFormReturn<any>,
 ) {
-  const [selectedCustomerType, setSelectedCustomerType] = React.useState<string>(
-    'BUSINESS'
-  );
-  const [selectedPaymentType, setSelectedPaymentType] = React.useState<string>(
-    'CREDIT'
-  );
+  const [selectedCustomerType, setSelectedCustomerType] =
+    React.useState<string>('BUSINESS');
+  const [selectedPaymentType, setSelectedPaymentType] =
+    React.useState<string>('CREDIT');
   const [address, setAddress] = React.useState<AddressType>(
-    EMPTY_CUSTOMER_ADDRESS
+    EMPTY_CUSTOMER_ADDRESS,
   );
   const [searchInput, setSearchInput] = React.useState('');
   const didInitRef = React.useRef<number | null>(null);

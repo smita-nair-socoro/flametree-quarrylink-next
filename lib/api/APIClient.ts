@@ -898,7 +898,13 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
+        queryString: {
+          page: '0',
+          size: '1000',
+          sort: 'id',
+        },
+      });
       return response;
     },
     getById: (id: number) => {
@@ -1015,6 +1021,17 @@ export const APIClient = {
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },
+    pause: (
+      id: number,
+      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+    ) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
+        body: { pauseStrategy },
+      }),
+    resume: (id: number) =>
+      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
+        body: { id },
+      }),
   },
 
   drivers: {

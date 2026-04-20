@@ -4,7 +4,7 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { ColumnDef } from '@tanstack/react-table';
 import { CustomerDTO } from '@/lib/types/customer';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
-import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { CustomerTableActions } from './customer-table-actions';
 import {
   Tooltip,
@@ -15,7 +15,13 @@ import {
 export const customerColumns: ColumnDef<CustomerDTO>[] = [
   {
     id: 'customer_name',
-    accessorFn: (row) => row.businessName || row.contactName,
+    accessorFn: (row) => {
+      if (row.customerType === CUSTOMER_TYPE.BUSINESS) {
+        return row.businessName;
+      } else {
+        return row.individualContactName;
+      }
+    },
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Customer Name" />
@@ -23,18 +29,18 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return (<Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div
-            className="truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]"
-          >
-            {value}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{value}</p>
-        </TooltipContent>
-      </Tooltip>)
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Customer Name',
   },
@@ -58,47 +64,47 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
   },
   {
     id: 'contact_name',
-    accessorFn: (row) => row.contactName,
+    accessorFn: (row) => row.individualContactName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Contact Name" />;
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return (<Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div
-            className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]"
-          >
-            {value}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{value}</p>
-        </TooltipContent>
-      </Tooltip>)
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Contact Name',
   },
   {
     id: 'email',
-    accessorFn: (row) => row.email,
+    accessorFn: (row) => row.contactPersonEmail,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Email" />;
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return (<Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div
-            className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]"
-          >
-            {value}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{value}</p>
-        </TooltipContent>
-      </Tooltip>)
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Email',
   },

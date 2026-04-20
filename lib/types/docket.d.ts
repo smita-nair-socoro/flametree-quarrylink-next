@@ -1,6 +1,7 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
 import { Address } from './address';
+import { DriverDTO } from './driver';
 
 export interface Docket {
   id: number;
@@ -72,6 +73,7 @@ export interface DocketDTO {
   docketEmailRecipients: string[];
   notes: string;
   driverId: number;
+  driver?: DriverDTO;
   truckId: number;
   driverChecklistId: number;
   truckChecklistId: number;

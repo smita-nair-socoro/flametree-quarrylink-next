@@ -39,7 +39,12 @@ import {
   CustomerDetailQueryOptions,
 } from '@/lib/api/customer';
 import { CustomerDTO } from '@/lib/types/customer';
-import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import {
+  CUSTOMER_STATUS,
+  CUSTOMER_TYPE,
+  PAYMENT_TERM_TYPE,
+  PAYMENT_TYPE,
+} from '@/lib/types/customer-enums';
 import { toAddressPayload } from '@/lib/utils/address-helper';
 import { useAddressSync } from '@/lib/utils/address-helper';
 import { formatLocalDateShort } from '@/lib/utils/date';
@@ -83,7 +88,7 @@ export default function CustomerForm({
         label: user.name,
         value: user.sub,
       })),
-    [users]
+    [users],
   );
 
   // Mutation hooks
@@ -105,11 +110,7 @@ export default function CustomerForm({
     setAddress,
     searchInput,
     setSearchInput,
-  } = useCustomerFormState(
-    selectedCustomer ?? null,
-    isEditing,
-    customerForm
-  );
+  } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -121,7 +122,7 @@ export default function CustomerForm({
 
   const handleFormFieldChange = (
     field: 'customer_type' | 'payment_type',
-    value: string
+    value: string,
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
@@ -155,20 +156,23 @@ export default function CustomerForm({
     'billing_address',
     address,
     setAddress,
-    setSearchInput
+    setSearchInput,
   );
 
   const paymentTermsOptions = [
-    { label: 'of the following month', value: 'OFFOLLOWINGMONTH' },
+    {
+      label: 'of the following month',
+      value: PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
+    },
     {
       label: 'day(s) after the invoice date',
-      value: 'DAYSAFTERBILLDATE',
+      value: PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE,
     },
     {
       label: 'day(s) after the invoice month',
-      value: 'DAYSAFTERBILLMONTH',
+      value: PAYMENT_TERM_TYPE.DAYSAFTERBILLMONTH,
     },
-    { label: 'of the current month', value: 'OFCURRENTMONTH' },
+    { label: 'of the current month', value: PAYMENT_TERM_TYPE.OFCURRENTMONTH },
   ];
 
   // If older customer records stored the manager name (not sub), map it when users load.
@@ -204,14 +208,14 @@ export default function CustomerForm({
       // Convert address using helper function
       const billingAddressData = toAddressPayload(
         address,
-        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null
+        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null,
       );
 
       // Backend requires billingAddressId (maps to customers.billing_address_id) on update.
       const billingAddressIdFromExisting =
         (isEditing && selectedCustomer
-          ? selectedCustomer.billingAddressId ??
-          selectedCustomer.billingAddress?.id
+          ? (selectedCustomer.billingAddressId ??
+            selectedCustomer.billingAddress?.id)
           : undefined) ?? billingAddressData?.id;
 
       // Build the CustomerDTO payload
@@ -220,17 +224,16 @@ export default function CustomerForm({
           values.customer_type === 'BUSINESS'
             ? CUSTOMER_TYPE.BUSINESS
             : CUSTOMER_TYPE.INDIVIDUAL,
-        phone: values.contact_person_phone || '',
-        email: values.contact_person_email || '',
+        contactPersonPhone: values.contact_person_phone || '',
+        contactPersonEmail: values.contact_person_email || '',
         ...(billingAddressIdFromExisting
           ? { billingAddressId: billingAddressIdFromExisting }
           : {}),
         billingAddress: billingAddressData,
         creditLimit: Math.round(Number(values.credit_limit || 0) * 100), // Convert to cents
         accountManagerSub: values.account_manager,
-        invoiceDueDate: values.payment_terms_day || 0,
+        invoiceDueDateDayCount: values.payment_terms_day || 0,
         customerStatus: CUSTOMER_STATUS.ACTIVE,
-        jobsCount: 0,
         paymentType: values.payment_type,
         version: isEditing && selectedCustomer ? selectedCustomer.version : 0,
       };
@@ -238,7 +241,7 @@ export default function CustomerForm({
       // Only set paymentTermType for CREDIT payment type
       if (values.payment_type === 'CREDIT') {
         customerData.paymentTermType =
-          values.payment_terms || 'DAYSAFTERBILLDATE';
+          values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
       }
 
       // Add id for updates
@@ -246,46 +249,28 @@ export default function CustomerForm({
         customerData.id = id;
       }
 
-      // Add timestamps and metadata
-      const now = new Date().toISOString();
-      if (!isEditing) {
-        // New customer: set all initial fields
-        customerData.createdAt = now;
-        customerData.updatedAt = now;
-        customerData.isDeleted = false;
-        customerData.createdBy = values.created_by;
-        customerData.lastModifiedBy = values.last_modified_by;
-      } else {
-        // Update customer: set update fields
-        customerData.createdAt =
-          selectedCustomer?.createdAt ?? new Date().toISOString();
-        customerData.updatedAt = now;
-        customerData.lastModifiedBy = values.last_modified_by;
-        customerData.createdBy =
-          selectedCustomer?.createdBy ?? values.created_by;
-        customerData.isDeleted = selectedCustomer?.isDeleted ?? false;
-      }
-
       // Handle BUSINESS type specific fields
-      if (values.customer_type === 'BUSINESS') {
-        customerData.contactName = `${values.contact_person_first_name || ''} ${values.contact_person_last_name || ''
-          }`.trim();
+      if (values.customer_type === CUSTOMER_TYPE.BUSINESS) {
         customerData.businessName = values.business_name || '';
         customerData.businessEmail = values.business_email || '';
         customerData.businessPhone = values.business_phone || '';
-        customerData.firstName = values.contact_person_first_name || '';
-        customerData.lastName = values.contact_person_last_name || '';
+        customerData.individualContactName =
+          values.contact_person_first_name +
+          ' ' +
+          values.contact_person_last_name || '';
+        customerData.contactPersonFirstName =
+          values.contact_person_first_name || '';
+        customerData.contactPersonLastName =
+          values.contact_person_last_name || '';
         customerData.abn = values.abn || '';
         // Default fields, actually not needed but is mandatory in backend
-        customerData.legalName = values.business_name || '';
-        customerData.tradingName = values.business_name || '';
         customerData.acn = '997744';
         customerData.vatNumber = '123';
       }
 
       // Handle INDIVIDUAL type specific fields
-      if (values.customer_type === 'INDIVIDUAL') {
-        customerData.contactName = values.contact_person_name || '';
+      if (values.customer_type === CUSTOMER_TYPE.INDIVIDUAL) {
+        customerData.individualContactName = values.contact_person_name || '';
         customerData.abn = 'N/A';
         // Default fields for INDIVIDUAL type
         customerData.dateOfBirth = new Date().toISOString();
@@ -293,9 +278,9 @@ export default function CustomerForm({
       }
 
       // Handle PREPAID payment type
-      if (values.payment_type === 'PREPAID') {
+      if (values.payment_type === PAYMENT_TYPE.PREPAID) {
         customerData.creditLimit = 0;
-        customerData.invoiceDueDate = 0;
+        customerData.invoiceDueDateDayCount = 0;
       }
 
       console.log('Customer Data Payload:', customerData);
@@ -319,7 +304,7 @@ export default function CustomerForm({
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} customer:`,
-        error
+        error,
       );
 
       // Extract normalized error response and message
@@ -379,7 +364,7 @@ export default function CustomerForm({
 
       // Fallback error using extracted message
       notifyError(
-        messageFromErr || 'Failed to save customer. Please try again.'
+        messageFromErr || 'Failed to save customer. Please try again.',
       );
     } finally {
       setIsSubmitting(false);
@@ -393,7 +378,7 @@ export default function CustomerForm({
       isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer',
       {
         description: 'Check required fields',
-      }
+      },
     );
   }
 
@@ -414,7 +399,7 @@ export default function CustomerForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -435,7 +420,7 @@ export default function CustomerForm({
               ? 'grid grid-cols-2 gap-x-8'
               : 'grid grid-cols-1',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
           onSubmit={customerForm.handleSubmit(onSubmit, onError)}
         >
@@ -452,14 +437,14 @@ export default function CustomerForm({
 
               // Common required fields
               if (
-                !selectedCustomer.email ||
-                selectedCustomer.email.trim() === ''
+                !selectedCustomer.contactPersonEmail ||
+                selectedCustomer.contactPersonEmail.trim() === ''
               ) {
                 missingFields.push('email');
               }
               if (
-                !selectedCustomer.phone ||
-                selectedCustomer.phone.trim() === ''
+                !selectedCustomer.contactPersonPhone ||
+                selectedCustomer.contactPersonPhone.trim() === ''
               ) {
                 missingFields.push('phone');
               }
@@ -487,14 +472,14 @@ export default function CustomerForm({
                 }
                 // Check if firstName and lastName exist
                 if (
-                  !selectedCustomer.firstName ||
-                  selectedCustomer.firstName.trim() === ''
+                  !selectedCustomer.contactPersonFirstName ||
+                  selectedCustomer.contactPersonFirstName.trim() === ''
                 ) {
                   missingFields.push('contact person first name');
                 }
                 if (
-                  !selectedCustomer.lastName ||
-                  selectedCustomer.lastName.trim() === ''
+                  !selectedCustomer.contactPersonLastName ||
+                  selectedCustomer.contactPersonLastName.trim() === ''
                 ) {
                   missingFields.push('contact person last name');
                 }
@@ -503,8 +488,8 @@ export default function CustomerForm({
               // Individual-specific required fields
               if (isIndividual) {
                 if (
-                  !selectedCustomer.contactName ||
-                  selectedCustomer.contactName.trim() === ''
+                  !selectedCustomer.individualContactName ||
+                  selectedCustomer.individualContactName.trim() === ''
                 ) {
                   missingFields.push('contact person name');
                 }
@@ -942,7 +927,7 @@ export default function CustomerForm({
                   ? selectedCustomerType === 'BUSINESS'
                     ? 'col-span-1 col-start-2'
                     : 'col-span-1 col-start-1'
-                  : 'col-span-2'
+                  : 'col-span-2',
               )}
             >
               <FormLabel>Invoice Due Date*</FormLabel>
@@ -1042,7 +1027,7 @@ export default function CustomerForm({
           {/* Audit Information */}
           {isEditing && (
             <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
+              <h2 className="text-[18px] font-bold">Audit Information</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">

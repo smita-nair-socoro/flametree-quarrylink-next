@@ -22,6 +22,12 @@ export interface JobDTO {
   estimatedStartDate?: string;
   startTimeWindow?: string;
   endTimeWindow?: string;
+  reason?: string;
+  notes?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
   version?: number;
 }
 
@@ -147,6 +153,10 @@ export interface JobItem {
 
 export interface JobDetails extends JobDTO {
   jobItems?: JobItem[];
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Invoice {
