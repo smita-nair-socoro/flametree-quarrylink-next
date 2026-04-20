@@ -42,19 +42,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Type" />;
     },
     cell: (info) => {
-      const value = (info.getValue() as string) || 'N/A';
-      return (
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">
-              {value}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{value}</p>
-          </TooltipContent>
-        </Tooltip>
-      );
+      const value = info.getValue() as string;
+      return value ? <TableBadges names={[value]} visibleCount={1} /> : null;
     },
     meta: 'Type',
   },
