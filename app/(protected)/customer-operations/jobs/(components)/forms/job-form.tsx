@@ -89,12 +89,15 @@ export default function JobForm({
       const deliveryDate = jobDetails.estimatedStartDate
         ? parseISO(jobDetails.estimatedStartDate)
         : undefined;
-      const startWindow = jobDetails.startTimeWindow
-        ? format(parseISO(jobDetails.startTimeWindow), 'HH:mm')
-        : '';
-      const endWindow = jobDetails.endTimeWindow
-        ? format(parseISO(jobDetails.endTimeWindow), 'HH:mm')
-        : '';
+      const extractTime = (timeStr?: string) => {
+        if (!timeStr) return '';
+        if (timeStr.includes('T')) return timeStr.split('T')[1].substring(0, 5);
+        if (timeStr.includes(' ')) return timeStr.split(' ')[1].substring(0, 5);
+        return timeStr.substring(0, 5);
+      };
+
+      const startWindow = extractTime(jobDetails.startTimeWindow);
+      const endWindow = extractTime(jobDetails.endTimeWindow);
 
       jobForm.reset({
         customerId: jobDetails.customerId,
