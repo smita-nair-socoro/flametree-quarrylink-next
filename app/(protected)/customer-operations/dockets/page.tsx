@@ -107,8 +107,7 @@ export default function DocketsPage() {
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
-
-  ]
+  ];
 
   const docketIdsParam = searchParams.get('docketId');
   const docketIdsSet = React.useMemo(() => {
@@ -131,6 +130,7 @@ export default function DocketsPage() {
     { column: 'status', title: 'Status', icon: Plus },
     { column: 'product', title: 'Product', icon: Plus },
     { column: 'customer', title: 'Customer', icon: Plus },
+    { column: 'docketType', title: 'Type', icon: Plus },
   ];
 
   const handleRowClick = (row: DocketDTO) => {
@@ -163,11 +163,7 @@ export default function DocketsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <StatsCards
-        cards={statsCards}
-        mobileGridCols={1}
-        desktopGridCols={4}
-      />
+      <StatsCards cards={statsCards} mobileGridCols={1} desktopGridCols={4} />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
