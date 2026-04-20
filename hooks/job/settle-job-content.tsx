@@ -1,6 +1,7 @@
 'use client';
 import { CircleAlert, TriangleAlert } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
   return (
@@ -60,11 +61,7 @@ export function SettleJobContent({
               Settlement Blocked
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
-              Outstanding balance of $
-              {unfinalisedDocketsAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}{' '}
+              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)}{' '}
               or dockets not in Invoiced / Cash Sale / Void status.
             </span>
           </div>
@@ -85,11 +82,7 @@ export function SettleJobContent({
           <div className="flex justify-between py-2 text-[14px] font-medium text-[#111827]">
             <span>Outstanding Amount</span>
             <span className="font-semibold text-[#E11D48]">
-              $
-              {unfinalisedDocketsAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {centsToDollars(unfinalisedDocketsAmount)}
             </span>
           </div>
         </div>
