@@ -47,7 +47,6 @@ import {
 } from '@/lib/types/customer-enums';
 import { toAddressPayload } from '@/lib/utils/address-helper';
 import { useAddressSync } from '@/lib/utils/address-helper';
-import { formatLocalDateShort } from '@/lib/utils/date';
 import {
   useCustomerFormState,
   EMPTY_CUSTOMER_FORM_VALUES,
@@ -257,8 +256,8 @@ export default function CustomerForm({
         customerData.businessPhone = values.business_phone || '';
         customerData.individualContactName =
           values.contact_person_first_name +
-            ' ' +
-            values.contact_person_last_name || '';
+          ' ' +
+          values.contact_person_last_name || '';
         customerData.contactPersonFirstName =
           values.contact_person_first_name || '';
         customerData.contactPersonLastName =

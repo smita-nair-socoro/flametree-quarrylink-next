@@ -356,7 +356,7 @@ export default function ProductForm({
         <form
           id="add-new-product-form"
           className={cn(
-            'gap-5 w-full flex flex-col',
+            'gap-3 w-full flex flex-col',
             className,
             isSubmitting && 'pointer-events-none',
           )}
