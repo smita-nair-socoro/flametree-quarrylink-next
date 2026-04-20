@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { TrucksListQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
@@ -12,9 +12,49 @@ import {
 import { truckColumns } from './(components)/(data-tables)/truck/columns';
 import { FormDialog } from '@/components/form-dialog';
 import TruckForm from './(components)/forms/truck-form';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function TrucksPage() {
   const { data: trucks } = useQuery(TrucksListQueryOptions());
+
+  const statsCards: StatsCardData[] = [
+    {
+      title: 'Total Trucks',
+      value: '24',
+      description: 'Registered in fleet',
+      icon: Truck,
+      iconBgColor: 'bg-[#EDE9FE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Active Trucks',
+      value: '18',
+      description: 'Currently on jobs',
+      icon: Activity,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Assigned Drivers',
+      value: '20',
+      description: 'Drivers on duty',
+      icon: CircleUser,
+      iconBgColor: 'bg-[#CBFBF1]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#00A63E]',
+    },
+    {
+      title: 'Attention Required',
+      value: '2',
+      description: 'Need attention',
+      icon: TriangleAlert,
+      iconBgColor: 'bg-[#FEF9C2]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#E7000B]',
+    },
+  ];
 
   const items: TruckDTO[] = React.useMemo(() => {
     return Array.isArray(trucks) ? trucks : [];
@@ -42,6 +82,12 @@ export default function TrucksPage() {
           </FormDialog>
         </div>
       </div>
+
+      <StatsCards
+        cards={statsCards}
+        mobileGridCols={1}
+        desktopGridCols={4}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
