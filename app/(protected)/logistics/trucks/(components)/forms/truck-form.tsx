@@ -587,12 +587,12 @@ export default function TruckForm({
             </div>
           )}
 
-          {isEditing && truckData && (
+          {isEditing && (
             <AuditInformation
-              createdBy={truckData.createdBy}
-              lastModifiedBy={truckData.lastModifiedBy}
-              createdAt={truckData.createdAt}
-              updatedAt={truckData.updatedAt}
+              createdBy={truckData?.createdBy}
+              lastModifiedBy={truckData?.lastModifiedBy}
+              createdAt={truckData?.createdAt}
+              updatedAt={truckData?.updatedAt}
             />
           )}
 

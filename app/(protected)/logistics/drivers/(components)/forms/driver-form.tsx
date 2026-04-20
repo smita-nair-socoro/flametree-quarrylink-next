@@ -559,12 +559,12 @@ export default function DriverForm({
             </div>
           )}
 
-          {isEditing && driverData && (
+          {isEditing && (
             <AuditInformation
-              createdBy={driverData.createdBy}
-              lastModifiedBy={driverData.lastModifiedBy}
-              createdAt={driverData.createdAt}
-              updatedAt={driverData.updatedAt}
+              createdBy={driverData?.createdBy}
+              lastModifiedBy={driverData?.lastModifiedBy}
+              createdAt={driverData?.createdAt}
+              updatedAt={driverData?.updatedAt}
             />
           )}
 
