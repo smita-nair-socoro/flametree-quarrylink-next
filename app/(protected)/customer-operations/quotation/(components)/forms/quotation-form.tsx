@@ -139,7 +139,7 @@ export default function QuotationForm({
           };
         } else {
           return {
-            label: `${customer.contactPersonFirstName} ${customer.contactPersonLastName}`,
+            label: customer.individualContactName ?? '',
             value: customer.id!,
           };
         }
@@ -148,9 +148,10 @@ export default function QuotationForm({
 
   const getCustomerNameById = React.useCallback(
     (customerId: number) => {
-      return (
-        customers.find((c) => c.id === customerId)?.customerType === 'BUSINESS' ? customers.find((c) => c.id === customerId)?.businessName : customers.find((c) => c.id === customerId)?.contactPersonFirstName + ' ' + customers.find((c) => c.id === customerId)?.contactPersonLastName
-      );
+      const customer = customers.find((c) => c.id === customerId);
+      return customer?.customerType === 'BUSINESS'
+        ? customer.businessName
+        : customer?.individualContactName;
     },
     [customers],
   );
@@ -211,9 +212,10 @@ export default function QuotationForm({
           .filter(Boolean)
         : []),
     ].filter(Boolean);
-    const customerName =
-      customers.find((c) => c.id === values.customerId)?.customerType === 'BUSINESS' ? customers.find((c) => c.id === values.customerId)?.businessName :
-        customers.find((c) => c.id === values.customerId)?.contactPersonFirstName + ' ' + customers.find((c) => c.id === values.customerId)?.contactPersonLastName || '';
+    const submitCustomer = customers.find((c) => c.id === values.customerId);
+    const customerName = submitCustomer?.customerType === 'BUSINESS'
+      ? (submitCustomer.businessName ?? '')
+      : (submitCustomer?.individualContactName ?? '');
 
     const accountManagerName =
       users.find((user) => user.sub === values.accountManagerSub)?.name || '';

@@ -22,6 +22,12 @@ export interface JobDTO {
   estimatedStartDate?: string;
   startTimeWindow?: string;
   endTimeWindow?: string;
+  reason?: string;
+  notes?: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
   version?: number;
 }
 
