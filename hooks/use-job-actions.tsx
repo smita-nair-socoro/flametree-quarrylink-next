@@ -90,7 +90,6 @@ export function useJobActions(jobData?: JobDetails | null) {
   const [activeDockets, setActiveDockets] = React.useState<DocketDTO[]>([]);
 
   const ACTIVE_STATUSES = new Set([
-    DOCKET_STATUS.UNASSIGNED,
     DOCKET_STATUS.ASSIGNED,
     DOCKET_STATUS.IN_TRANSIT,
     DOCKET_STATUS.ARRIVED,
@@ -203,7 +202,10 @@ export function useJobActions(jobData?: JobDetails | null) {
         pauseDocketAction === 'stop'
           ? 'STOP_ALL_DOCKETS'
           : 'ALLOW_DRIVERS_TO_COMPLETE';
-      const updated = await pauseJobMutation.mutateAsync({ id: jobId, pauseStrategy });
+      const updated = await pauseJobMutation.mutateAsync({
+        id: jobId,
+        pauseStrategy,
+      });
       notifySuccess('Job paused successfully.');
       setActiveDialog(null);
       useJobStore.getState().setSelectedJob(updated);
