@@ -43,6 +43,7 @@ import InvoicesTab from './tabs/invoices/invoices-tab';
 import DocketsTab from './tabs/dockets/dockets-tab';
 import { addNewRecordId } from '@/lib/utils';
 import { formatLocalDate, formatLocalDateTime } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 import { JobDTO } from '@/lib/types/job';
 import { useJobStore } from '@/app/stores/job-store';
 import {
@@ -161,7 +162,8 @@ export default function JobForm({
           // Update phone and email fields whenever customer changes
           jobForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
+              '',
           );
 
           jobForm.setValue(
@@ -257,9 +259,9 @@ export default function JobForm({
 
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
 
       const customerEmail = selectedCustomer?.contactPersonEmail;
@@ -272,7 +274,10 @@ export default function JobForm({
         customerId: values.customerId,
         projectName: values.projectName,
         poNumber: values.poNumber,
-        contactPersonName: selectedCustomer?.customerType === 'BUSINESS' ? selectedCustomer?.businessName : selectedCustomer?.individualContactName,
+        contactPersonName:
+          selectedCustomer?.customerType === 'BUSINESS'
+            ? selectedCustomer?.businessName
+            : selectedCustomer?.individualContactName,
         contactPersonPhone: values.phone,
         emailRecipients,
         jobStatus:
@@ -306,7 +311,7 @@ export default function JobForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
@@ -657,6 +662,15 @@ export default function JobForm({
                 enableDropdownOnMobile={true}
               />
             </div>
+          )}
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={jobDetails?.createdBy}
+              lastModifiedBy={jobDetails?.lastModifiedBy}
+              createdAt={jobDetails?.createdAt}
+              updatedAt={jobDetails?.updatedAt}
+            />
           )}
         </form>
       </Form>

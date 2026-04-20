@@ -153,6 +153,10 @@ export interface JobItem {
 
 export interface JobDetails extends JobDTO {
   jobItems?: JobItem[];
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Invoice {

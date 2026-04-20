@@ -42,7 +42,7 @@ import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
-import { formatLocalDateShort } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
@@ -231,7 +231,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -284,7 +284,7 @@ export default function DriverForm({
         <form
           id="driver-form"
           className={cn(
-            'w-full flex flex-col gap-4',
+            'w-full flex flex-col gap-6',
             className,
             isPending && 'pointer-events-none',
           )}
@@ -546,47 +546,6 @@ export default function DriverForm({
             </div>
           )}
 
-          {/* Audit Information — edit mode only */}
-          {isEditing && driverData && (
-            <div className="space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {driverData.createdBy || 'N/A'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {driverData.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(driverData.createdAt)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(driverData.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Safety & Compliance — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
@@ -598,6 +557,15 @@ export default function DriverForm({
                 searchPlaceHolder="Search by keyword..."
               />
             </div>
+          )}
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={driverData?.createdBy}
+              lastModifiedBy={driverData?.lastModifiedBy}
+              createdAt={driverData?.createdAt}
+              updatedAt={driverData?.updatedAt}
+            />
           )}
 
           {/* Form Actions */}
