@@ -188,14 +188,6 @@ export default function JobForm({
     }));
   }, [users]);
 
-  const getUserNameBySub = React.useCallback(
-    (subOrName?: string | null) => {
-      if (!subOrName) return '';
-      return users.find((u) => u.sub === subOrName)?.name || subOrName;
-    },
-    [users],
-  );
-
   const getActorName = React.useCallback(
     (actor?: string | null) => {
       if (!actor) return 'Unknown';
@@ -672,8 +664,8 @@ export default function JobForm({
 
           {isEditing && (
             <AuditInformation
-              createdBy={getUserNameBySub(jobDetails?.createdBy)}
-              lastModifiedBy={getUserNameBySub(jobDetails?.lastModifiedBy)}
+              createdBy={jobDetails?.createdBy}
+              lastModifiedBy={jobDetails?.lastModifiedBy}
               createdAt={jobDetails?.createdAt}
               updatedAt={jobDetails?.updatedAt}
             />

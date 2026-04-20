@@ -123,19 +123,6 @@ export default function DocketForm({
     return toUTCDateTimeWithoutZ(combined);
   };
 
-  const getActorName = React.useCallback(
-    (actor?: string | null) => {
-      if (!actor) return 'Unknown';
-
-      const matchedUser = users.find((user) => user.sub === actor)?.name;
-      if (matchedUser) return matchedUser;
-
-      const [, parsedName] = actor.split('-', 2);
-      return parsedName || actor;
-    },
-    [users],
-  );
-
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !selectedDocket) return null;
 
@@ -150,7 +137,7 @@ export default function DocketForm({
     const actionLabel = bannerConfig[selectedDocket.docketStatus];
     if (!actionLabel) return null;
 
-    const actorName = getActorName(selectedDocket.lastModifiedBy);
+    const actorName = selectedDocket.lastModifiedBy;
     const actionDate = formatLocalDateTime(
       actionLabel === 'stopped'
         ? (selectedDocket.stoppedAt ?? selectedDocket.updatedAt)
@@ -179,7 +166,7 @@ export default function DocketForm({
         </div>
       </div>
     );
-  }, [getActorName, isEditing, selectedDocket]);
+  }, [isEditing, selectedDocket]);
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
@@ -950,8 +937,8 @@ export default function DocketForm({
 
           {isEditing && (
             <AuditInformation
-              createdBy={getActorName(selectedDocket?.createdBy)}
-              lastModifiedBy={getActorName(selectedDocket?.lastModifiedBy)}
+              createdBy={selectedDocket?.createdBy}
+              lastModifiedBy={selectedDocket?.lastModifiedBy}
               createdAt={selectedDocket?.createdAt}
               updatedAt={selectedDocket?.updatedAt}
             />

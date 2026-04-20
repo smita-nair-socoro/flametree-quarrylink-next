@@ -960,7 +960,6 @@ export default function QuotationForm({
                     lastModifiedBy={currentQuotation?.lastModifiedBy}
                     createdAt={currentQuotation?.createdAt}
                     updatedAt={currentQuotation?.updatedAt}
-                    className="mt-10"
                   />
                 )}
               </div>
