@@ -23,9 +23,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">
-              {value}
-            </div>
+            <div className="truncate block max-w-[120px]">{value}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{value}</p>
@@ -41,9 +39,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Type" />;
     },
-    cell: (info) => {
-      const value = info.getValue() as string;
-      return value ? <TableBadges names={[value]} visibleCount={1} /> : null;
+    cell: ({ row }) => {
+      return <TableBadges names={[row.original.jobItem?.jobItemType]} visibleCount={1} />;
     },
     meta: 'Type',
   },
@@ -60,9 +57,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">
-              {jobNumber}
-            </div>
+            <div className="truncate block max-w-[120px]">{jobNumber}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{jobNumber}</p>
@@ -98,9 +93,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">
-              {customerName}
-            </div>
+            <div className="truncate block max-w-[120px]">{customerName}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{customerName}</p>
@@ -121,9 +114,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">
-              {productName}
-            </div>
+            <div className="truncate block max-w-[120px]">{productName}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{productName}</p>
