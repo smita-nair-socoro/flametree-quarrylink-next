@@ -1,7 +1,6 @@
 'use client';
 
-import { DispatchDriversView } from './views/drivers-view';
-import { DispatchTrucksView } from './views/trucks-view';
+import { DispatchView } from './views/dispatch-view';
 
 type DispatchTabProps = {
   selectedDate: Date;
@@ -9,9 +8,5 @@ type DispatchTabProps = {
 };
 
 export default function DispatchTab({ selectedDate, resourceView }: DispatchTabProps) {
-  if (resourceView === 'drivers') {
-    return <DispatchDriversView date={selectedDate} />;
-  }
-
-  return <DispatchTrucksView date={selectedDate} />;
+  return <DispatchView date={selectedDate} viewType={resourceView} />;
 }
