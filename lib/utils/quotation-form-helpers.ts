@@ -22,10 +22,6 @@ export function quotationToFormValues(
       expiryDate: undefined,
       phone: '',
       receiptEmail: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: 'Jay Woo Choi',
-      lastModifiedBy: 'Armin Menhaji',
     };
   }
 
@@ -55,15 +51,5 @@ export function quotationToFormValues(
     phone: normalizePhoneNumber(
       quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),
-    createdAt: quotation?.createdAt
-      ? new Date(quotation.createdAt)
-      : new Date(),
-    updatedAt: quotation?.updatedAt
-      ? new Date(quotation.updatedAt)
-      : new Date(),
-    createdBy: isEditing ? quotation?.createdBy || 'Unknown' : 'Jaywoo Choi',
-    lastModifiedBy: isEditing
-      ? quotation?.lastModifiedBy || 'Unknown'
-      : 'Armin Menhaji',
   };
 }

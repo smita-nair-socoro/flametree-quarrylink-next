@@ -1,22 +1,14 @@
 'use client';
-import { TriangleAlert } from 'lucide-react';
+import { CircleAlert, TriangleAlert } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
-
-const DUMMY_OUTSTANDING_AMOUNTS: Record<number, number> = {
-  1: 12500,
-  2: 22500,
-  3: 72500,
-  4: 62500,
-  5: 42500,
-  6: 30500,
-};
+import { centsToDollars } from '@/lib/utils/currency';
 
 export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
-      <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#EFF6FF] rounded-md">
         <span className="flex items-center justify-center">
-          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
+          <CircleAlert className="h-[20px] w-[20px] text-[#155DFC]" />
         </span>
       </div>
       <div className="flex flex-col gap-1">
@@ -24,19 +16,41 @@ export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
           <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-          <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactPersonFirstName + ' ' + job?.customerDto?.contactPersonLastName}</span>
+          <span className="text-sm text-[#6A7282]">
+            {job?.customerDto?.customerType === 'BUSINESS'
+              ? job.customerDto.businessName
+              : job?.customerDto?.individualContactName}
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-export function SettleJobContent({ job }: { job?: JobDTO | null }) {
-  const outstandingAmount = job?.id
-    ? (DUMMY_OUTSTANDING_AMOUNTS[job.id] ?? 0)
-    : 0;
-  const docketsNotFinalised = job?.uninvoicedDockets ?? 0;
+export function SettleJobInitialContent() {
+  return (
+    <div className="flex flex-col gap-3">
+      <span className="text-[14px] font-medium text-[#111827]">
+        Resolve outstanding invoices or payments:
+      </span>
+      <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
+        <li>All dockets must be in Paid, Cash Sale, or Voided status</li>
+        <li>Outstanding balance must be $0</li>
+      </ul>
+    </div>
+  );
+}
 
+interface SettleJobContentProps {
+  job?: JobDTO | null;
+  unfinalisedDocketsCount?: number;
+  unfinalisedDocketsAmount?: number;
+}
+
+export function SettleJobContent({
+  unfinalisedDocketsCount = 0,
+  unfinalisedDocketsAmount = 0,
+}: SettleJobContentProps) {
   return (
     <div className="flex flex-col gap-5">
       <div className="border border-[#FECACA] rounded-md p-4 bg-[#FFF1F2]">
@@ -47,11 +61,7 @@ export function SettleJobContent({ job }: { job?: JobDTO | null }) {
               Settlement Blocked
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
-              Outstanding balance of $
-              {outstandingAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}{' '}
+              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)}{' '}
               or dockets not in Invoiced / Cash Sale / Void status.
             </span>
           </div>
@@ -66,17 +76,13 @@ export function SettleJobContent({ job }: { job?: JobDTO | null }) {
           <div className="flex justify-between py-2 text-[14px] text-[#6B7280]">
             <span>Dockets not finalised</span>
             <span className="font-semibold text-[#E35700]">
-              {docketsNotFinalised}
+              {unfinalisedDocketsCount}
             </span>
           </div>
           <div className="flex justify-between py-2 text-[14px] font-medium text-[#111827]">
             <span>Outstanding Amount</span>
             <span className="font-semibold text-[#E11D48]">
-              $
-              {outstandingAmount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {centsToDollars(unfinalisedDocketsAmount)}
             </span>
           </div>
         </div>

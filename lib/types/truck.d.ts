@@ -22,4 +22,8 @@ interface TruckDTO {
   haulierId?: number;
   haulierName?: string;
   version?: number;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

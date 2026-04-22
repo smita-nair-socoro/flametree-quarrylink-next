@@ -30,7 +30,8 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
 import { useClientStore } from '@/app/stores/client-store';
 import { DriversListQueryOptions } from '@/lib/api/driver';
-import { formatLocalDateShort } from '@/lib/utils/date';
+import { TruckByIdQueryOptions } from '@/lib/api/truck';
+import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
@@ -198,7 +199,7 @@ export default function TruckForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -212,8 +213,10 @@ export default function TruckForm({
     });
   }
 
-  // TODO: replace with real truck data when editing
-  const truckData = isEditing ? null : null;
+  const { data: truckData } = useQuery({
+    ...TruckByIdQueryOptions(id ?? 0),
+    enabled: isEditing && !!id,
+  });
   const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
 
   // TODO: replace with real assigned drivers from API
@@ -250,7 +253,7 @@ export default function TruckForm({
         <form
           id="truck-form"
           className={cn(
-            'w-full flex flex-col gap-4',
+            'w-full flex flex-col gap-6',
             className,
             isSubmitting && 'pointer-events-none',
           )}
@@ -569,53 +572,6 @@ export default function TruckForm({
             </>
           )}
 
-          {/* Audit Information — edit mode only */}
-          {isEditing && (
-            <div className="space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string> | null)?.createdBy ||
-                      'N/A'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {(truckData as Record<string, string> | null)
-                      ?.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(
-                      (truckData as Record<string, string> | null)?.createdAt,
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(
-                      (truckData as Record<string, string> | null)?.updatedAt,
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Truck Inspections — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
@@ -629,6 +585,15 @@ export default function TruckForm({
                 searchPlaceHolder="Search by keyword..."
               />
             </div>
+          )}
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={truckData?.createdBy}
+              lastModifiedBy={truckData?.lastModifiedBy}
+              createdAt={truckData?.createdAt}
+              updatedAt={truckData?.updatedAt}
+            />
           )}
 
           {/* Form Actions */}

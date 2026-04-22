@@ -213,6 +213,40 @@ export function DataTableClient<TData, TValue>({
     [newRecordIds],
   );
 
+  // Read sync error record IDs from sessionStorage
+  const [syncErrorRecordIds, setSyncErrorRecordIds] = useState<string[]>(() => {
+    try {
+      const stored = getSessionStorage<string[]>(
+        getStorageKey('syncErrorRecordIds'),
+        [],
+      );
+      return Array.isArray(stored) ? stored : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      try {
+        const stored = getSessionStorage<string[]>(
+          getStorageKey('syncErrorRecordIds'),
+          [],
+        );
+        setSyncErrorRecordIds(Array.isArray(stored) ? stored : []);
+      } catch {
+        setSyncErrorRecordIds([]);
+      }
+    };
+    window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
+    return () => window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
+  }, [getStorageKey]);
+
+  const syncErrorRecordIdsSet = useMemo(
+    () => new Set<string>(syncErrorRecordIds),
+    [syncErrorRecordIds],
+  );
+
   // Row pinning state (use TanStack Table row pinning instead of reordering data)
   const [rowPinning, setRowPinning] = useState<RowPinningState>(() => {
     const presentIds = new Set(
@@ -1238,6 +1272,7 @@ export function DataTableClient<TData, TValue>({
                     displayRows.map((row) => {
                       // Check if this row is newly added (by checking ID against sessionStorage)
                       const isNewRecord = newRecordIdsSet.has(row.id);
+                      const isSyncError = syncErrorRecordIdsSet.has(row.id);
 
                       return (
                         <TableRow
@@ -1251,7 +1286,10 @@ export function DataTableClient<TData, TValue>({
                             row.getIsSelected() &&
                               '!bg-[#EFF6FF] hover:!bg-blue-100',
                             isNewRecord &&
+                              !isSyncError &&
                               '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                            isSyncError &&
+                              '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
                           )}
                           onClick={(e) => {
                             // Prevent row click if clicking on buttons or interactive elements
