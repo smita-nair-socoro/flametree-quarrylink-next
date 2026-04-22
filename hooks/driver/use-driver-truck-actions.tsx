@@ -132,7 +132,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content: selectedTruck ? (
           <UnassignTruckContent truck={selectedTruck} />
         ) : null,
-        confirmText: 'Unassign Driver',
+        confirmText: 'Unassign Truck',
         confirmCustomColor: '#E7000B',
         cancelText: 'Cancel',
       },

@@ -3,8 +3,9 @@ import { HaulierDTO } from './haulier';
 
 interface DriverTruckAssignment {
   id: number;
-  registration: string;
-  status: string;
+  licensePlate: string;
+  truckType?: string;
+  truckStatus: string;
 }
 
 export interface DriverTruckEntry {

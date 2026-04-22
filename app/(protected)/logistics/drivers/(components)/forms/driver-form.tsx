@@ -268,12 +268,11 @@ export default function DriverForm({
     [haulierTrucks, selectedHaulierInfo, tenantName],
   );
 
-  // TODO: replace with real assigned trucks from API
-  const trucks: { id: number; licensePlate: string; status: string }[] = [
-    { id: 1, licensePlate: 'ABC-123', status: 'ACTIVE' },
-    { id: 2, licensePlate: 'DEF-456', status: 'ACTIVE' },
-    { id: 3, licensePlate: 'GHI-789', status: 'INACTIVE' },
-  ];
+  const trucks = (driverData?.trucks ?? []).map((t) => ({
+    id: t.id,
+    licensePlate: t.licensePlate,
+    status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
+  }));
   const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
 
   return (
