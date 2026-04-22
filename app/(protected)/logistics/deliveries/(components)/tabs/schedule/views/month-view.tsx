@@ -8,25 +8,51 @@ import { DispatchDocket } from '../../dispatch/views/dispatch-view';
 import { DocketDetailsPanel } from '../../dispatch/cards/docket-details-panel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { ScheduleFilter } from './schedule-filter';
 
-const CHIP_COLORS = [
-  'bg-cyan-50 border-cyan-200 text-cyan-800',
-  'bg-purple-50 border-purple-200 text-purple-800',
-  'bg-green-50 border-green-200 text-green-800',
-  'bg-blue-50 border-blue-200 text-blue-800',
-];
-
-function getChipColor(index: number) {
-  return CHIP_COLORS[index % CHIP_COLORS.length];
+function getChipColor(status: DOCKET_STATUS) {
+  switch (status) {
+    case DOCKET_STATUS.UNASSIGNED:
+      return 'bg-gray-50 border-gray-300 text-gray-800';
+    case DOCKET_STATUS.PENDING:
+      return 'bg-yellow-50 border-yellow-300 text-yellow-800';
+    case DOCKET_STATUS.PREPARING:
+      return 'bg-blue-50 border-blue-300 text-blue-800';
+    case DOCKET_STATUS.READY:
+      return 'bg-pink-50 border-pink-300 text-pink-800';
+    case DOCKET_STATUS.COLLECTED:
+      return 'bg-green-50 border-green-300 text-green-800';
+    case DOCKET_STATUS.CANCELLED:
+      return 'bg-red-50 border-red-300 text-red-800';
+    case DOCKET_STATUS.VOIDED:
+      return 'bg-gray-50 border-gray-300 text-gray-800';
+    case DOCKET_STATUS.CASH_SALE:
+      return 'bg-gray-50 border-gray-300 text-gray-800';
+    case DOCKET_STATUS.VOIDED:
+      return 'bg-gray-50 border-gray-300 text-gray-800';
+    case DOCKET_STATUS.ASSIGNED:
+      return 'bg-cyan-50 border-cyan-300 text-cyan-800';
+    case DOCKET_STATUS.IN_TRANSIT:
+      return 'bg-indigo-50 border-indigo-300 text-indigo-800';
+    case DOCKET_STATUS.ARRIVED:
+      return 'bg-yellow-50 border-yellow-300 text-yellow-800';
+    case DOCKET_STATUS.DELIVERED:
+      return 'bg-green-50 border-green-300 text-green-800';
+    case DOCKET_STATUS.INVOICED:
+      return 'bg-purple-50 border-purple-300 text-purple-800';
+    default:
+      return 'bg-gray-50 border-gray-300 text-gray-800';
+  }
 }
 
-function DocketChip({ docket, onClick, index, isSelected = false }: { docket: DispatchDocket; onClick: () => void; index: number; isSelected?: boolean }) {
+function DocketChip({ docket, onClick, isSelected = false }: { docket: DispatchDocket; onClick: () => void; index: number; isSelected?: boolean }) {
   const customerName = docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
     ? docket.job?.customerDto?.businessName
     : docket.job?.contactPersonName;
 
   const location = docket.deliveryAddress?.city || docket.deliveryAddress?.suburb || 'TBD';
-  const colorClass = getChipColor(index);
+  const colorClass = getChipColor(docket.docketStatus);
 
   return (
     <div
@@ -34,7 +60,7 @@ function DocketChip({ docket, onClick, index, isSelected = false }: { docket: Di
       className={`text-[10px] p-2 rounded-lg border cursor-pointer hover:opacity-80 ${colorClass} ${isSelected ? 'ring-2 ring-purple-500 ring-offset-1' : ''}`}
     >
       <div className="font-semibold flex justify-between mb-0.5">
-        <span>{docket.docketNumber || 'No Number'}</span>
+        <span className="truncate w-[60%]">{docket.docketNumber || 'No Number'}</span>
         <span>{docket.loadSize} {docket.jobItem?.productSellUom === 'M3' ? 'm³' : docket.jobItem?.productSellUom === 'KG_20' ? 'x 20kg' : docket.jobItem?.productSellUom}</span>
       </div>
       <div className="truncate text-gray-700">{customerName}</div>
@@ -65,7 +91,10 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
 
   const dockets: DispatchDocket[] = useMemo(() => {
     if (!docketsData) return [];
-    return ('content' in docketsData ? docketsData.content : docketsData) as DispatchDocket[];
+    const allDockets = ('content' in docketsData ? docketsData.content : docketsData) as DispatchDocket[];
+
+    // Filter to only include specific statuses
+    return allDockets;
   }, [docketsData]);
 
   const docketsByDate = useMemo(() => {
@@ -103,6 +132,7 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
+      <ScheduleFilter />
       {/* Fixed top bar */}
       <div className="border-b pl-6 py-2.5 bg-white shrink-0">
         <div className="flex items-center gap-3">
@@ -128,7 +158,7 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
         {/* Scrollable left content */}
-        <div className="flex-1 overflow-y-auto bg-white m-5 rounded-xl border border-gray-300 shadow-md">
+        <div className="flex-1 overflow-y-auto bg-white my-5 mx-3 rounded-xl border border-gray-300 shadow-md">
           <div className="overflow-hidden mb-6">
             <div className="p-5 bg-gray-100">
               <h2 className="text-xl font-bold text-gray-900">{format(date, 'MMMM yyyy')}</h2>
@@ -144,7 +174,7 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
 
           <div className="flex flex-col pb-8">
             {/* Weekday headers */}
-            <div className="grid grid-cols-7 gap-3 px-2 pb-2 shrink-0">
+            <div className="grid grid-cols-7 gap-3 px-5 pb-2 shrink-0">
               {weekDays.map(day => (
                 <div key={day} className="text-center text-sm font-semibold text-gray-700">
                   {day}
@@ -154,12 +184,11 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
 
             {/* Calendar grid */}
             <div className="grid grid-cols-7 gap-3 px-5 pt-4">
-              {days.map((day, dayIdx) => {
+              {days.map((day) => {
                 const dateKey = format(day, 'yyyy-MM-dd');
                 const dayDockets = docketsByDate[dateKey] || [];
                 const isCurrentMonth = isSameMonth(day, monthStart);
                 const isSelectedDate = isSameDay(day, selectedDate);
-
                 return (
                   <div
                     key={day.toString()}

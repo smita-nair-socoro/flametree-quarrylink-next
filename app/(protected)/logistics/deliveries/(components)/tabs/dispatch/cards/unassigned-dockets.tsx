@@ -21,7 +21,6 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: String(docket.id),
   });
-  console.log(docket, 'docket');
 
   return (
     <div
@@ -158,9 +157,6 @@ export default function UnassignedDockets({
   const [activeTab, setActiveTab] = React.useState<'this_day' | 'all_dates'>(
     'this_day',
   );
-
-  console.log(dockets, 'dockets');
-
 
   const unassignedDockets = dockets.filter((d) => {
     const isUnassigned = d.docketStatus === 'UNASSIGNED';
