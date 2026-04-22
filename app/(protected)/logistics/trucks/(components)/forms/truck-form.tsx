@@ -304,10 +304,12 @@ export default function TruckForm({
 
   const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
 
-  const assignedDrivers = (truckData?.driverTrucks ?? []).map((entry) => ({
-    id: entry.driver.id!,
-    driverName: entry.driver.driverName,
-    status: entry.driver.driverStatus ?? 'ACTIVE',
+  const assignedDrivers = (truckData?.drivers ?? []).map((driver) => ({
+    id: driver.id!,
+    driverName: driver.driverName,
+    status: driver.driverStatus ?? 'ACTIVE',
+    driverType: driver.driverType,
+    licenseNumber: driver.licenseNumber,
   }));
 
   const { actions: driverActions, confirmDialogs: driverDialogs } =
@@ -633,8 +635,11 @@ export default function TruckForm({
                       className="flex items-center justify-between rounded-md px-4 py-3 bg-[#F9FAFB]"
                     >
                       <div className="flex flex-col gap-1">
-                        <span className="font-medium">{driver.driverName}</span>
-                        <TableBadges names={[driver.status]} visibleCount={1} />
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">{driver.licenseNumber}</span>
+                          <span className="font-medium">{driver.driverName}</span>
+                        </div>
+                        <TableBadges names={[driver.status, driver.driverType]} visibleCount={2} />
                       </div>
                       <Button
                         type="button"

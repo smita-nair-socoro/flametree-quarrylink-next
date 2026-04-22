@@ -34,6 +34,8 @@ interface TruckDTO {
   haulier?: HaulierDTO;
   /** Driver assignments returned by getByIdWithDrivers */
   driverTrucks?: DriverTruckEntry[];
+  /** Driver objects returned by getById */
+  drivers?: DriverDTO[];
   /** Flat driver IDs used in create/update request bodies */
   driverIds?: number[];
   version?: number;

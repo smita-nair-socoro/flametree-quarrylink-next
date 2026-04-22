@@ -77,7 +77,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
 
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
   const { data: availableDriversData } = useQuery(HaulierDriversQueryOptions(haulierId));
-  const availableDrivers = availableDriversData?.drivers ?? [];
+  const assignedDriverIds = new Set((truckData?.drivers ?? []).map((d) => d.id));
+  const availableDrivers = (availableDriversData?.drivers ?? []).filter(
+    (d) => !assignedDriverIds.has(d.id),
+  );
   const assignDriversToTruck = useAssignDriversToTruck();
   const unassignDriverFromTruck = useUnassignDriverFromTruck();
   const deactivateTruck = useDeactivateTruck();
@@ -85,12 +88,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const deleteTruck = useDeleteTruck();
   const queryClient = useQueryClient();
 
-  // TODO: replace with real assigned drivers from API
-  const assignedDrivers: string[] = [
-    'John Smith',
-    'Armin Menhaji',
-    'Jayden Olivo',
-  ];
+  const assignedDrivers: string[] = (truckData?.drivers ?? []).map(
+    (driver) => driver.driverName,
+  );
 
   // TODO: replace with real completed docket breakdown from API
   const completedDocketBreakdown = {
@@ -162,7 +162,11 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     try {
       // Fetch fresh truck data to get the current driver list before merging
       const freshTruck = await queryClient.fetchQuery(TruckByIdQueryOptions(truckData.id));
-      const merged = [...new Set([...(freshTruck.driverIds ?? []), ...selectedDriverIds])];
+      const currentDriverIds =
+        freshTruck.drivers?.map((d) => d.id!) ??
+        freshTruck.driverIds ??
+        [];
+      const merged = [...new Set([...currentDriverIds, ...selectedDriverIds])];
       await assignDriversToTruck.mutateAsync({
         truckId: truckData.id,
         data: {
