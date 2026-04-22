@@ -129,6 +129,12 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [assignTruck, setAssignTruck] = React.useState<number | undefined>(undefined);
   const [assignDriver, setAssignDriver] = React.useState<number | undefined>(undefined);
 
+  const resetAssignState = React.useCallback(() => {
+    setAssignHauler(undefined);
+    setAssignTruck(undefined);
+    setAssignDriver(undefined);
+  }, []);
+
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
     const [header, data] = dataUrl.split(',');
     const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
@@ -400,9 +406,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       });
       notifySuccess('Docket assigned successfully');
       setActiveDialog(null);
-      setAssignHauler(undefined);
-      setAssignTruck(undefined);
-      setAssignDriver(undefined);
+      resetAssignState();
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -660,7 +664,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         key={key}
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
-          if (!open) setActiveDialog(null);
+          if (!open) {
+            if (key === 'assign') resetAssignState();
+            setActiveDialog(null);
+          }
         }}
         title={config.title}
         description={config.description}

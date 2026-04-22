@@ -130,14 +130,19 @@ export function AssignDocketContent({
   }, [allTrucks, haulerSelection]);
 
   const driverOptions = React.useMemo(() => {
-    if (!haulerSelection) return [];
+    if (!truckSelection) return [];
     return allDrivers
-      .filter((d) => d.haulierId === haulerSelection && d.id != null)
+      .filter(
+        (d) =>
+          d.id != null &&
+          (d.truckIds?.includes(truckSelection) ||
+            d.trucks?.some((t) => t.id === truckSelection)),
+      )
       .map((d) => ({
         label: d.driverName,
         value: d.id as number,
       }));
-  }, [allDrivers, haulerSelection]);
+  }, [allDrivers, truckSelection]);
 
   const conflictingDockets = React.useMemo<ConflictingDocket[]>(() => {
     if (!docket) return [];
@@ -251,7 +256,10 @@ export function AssignDocketContent({
         searchLabel="truck"
         options={truckOptions}
         value={truckSelection}
-        onChange={(v) => onTruckChange(v as number)}
+        onChange={(v) => {
+          onTruckChange(v as number);
+          onDriverChange(undefined as unknown as number);
+        }}
         placeholder="Search trucks..."
         popoverWidthClass="w-full"
         disabled={!haulerSelection}
@@ -265,7 +273,7 @@ export function AssignDocketContent({
         onChange={(v) => onDriverChange(v as number)}
         placeholder="Search drivers..."
         popoverWidthClass="w-full"
-        disabled={!haulerSelection}
+        disabled={!truckSelection}
       />
 
       {hasConflict && (
