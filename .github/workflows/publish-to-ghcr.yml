@@ -1,137 +1,113 @@
+# .github/workflows/publish-to-ghcr.yml
 name: Publish Web Build to GHCR
 
 on:
-  push:
-    branches:
-      - develop
-      - main
-      - 'feature/**'
-      - 'bugfix/**'
-      - 'hotfix/**'
   workflow_dispatch:
-    inputs:
-      publish_target:
-        description: Select qa to force QA-style tags, or auto to derive from branch
-        required: true
-        default: auto
-        type: choice
-        options:
-          - auto
-          - qa
 
 permissions:
-  contents: read
-  packages: write
-
-env:
-  IMAGE_POSTFIX: oras-web
-  GHCR_REGISTRY: ghcr.io
+  contents: read    # to checkout code
+  packages: write   # to push to GitHub Packages/GHCR
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      IMAGE_POSTFIX: oras-web
+      GHCR_REGISTRY: ghcr.io
+
     steps:
-      - name: Block tag refs and prod release refs
-        shell: bash
+      - name: Enforce develop branch only
+        if: github.ref_name != 'develop' && github.ref_name != 'release/essentials'
         run: |
-          set -euo pipefail
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            echo "::error ::This non-prod publish workflow cannot run from a tag ref: ${GITHUB_REF_NAME}"
-            exit 1
-          fi
+          echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
+          exit 1
 
-          if [[ "${GITHUB_REF_NAME}" =~ ^release-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error ::This non-prod publish workflow cannot publish production tags: ${GITHUB_REF_NAME}"
-            exit 1
-          fi
+      # Checkout code from repo
+      - uses: actions/checkout@v4
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      # Setup Node.js
+      - uses: actions/setup-node@v4
         with:
           node-version: '22.19.0'
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+      # Setup Bun (includes cache support)
+      - uses: oven-sh/setup-bun@v1
         with:
           bun-version: '1.2.22'
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      # Install deps via Bun (uses bun.lockb if present)
+      - run: bun install --frozen-lockfile
 
-      - name: Lint
-        run: bun run lint
+      # Validate your web app with Lint check
+      - run: bun run lint
 
-      - name: Build
-        run: bun run build
+      # Build your web app with Bun runtime
+      - run: bun run build
 
+      # Package out/ into a tarball
       - name: Tar static output
-        run: tar -czf site.tar.gz -C out .
+        run: |
+          tar -czf site.tar.gz -C out .
 
+      # Install ORAS (OCI registry client)
       - name: Setup ORAS
         uses: oras-project/setup-oras@v1
 
-      - name: Compute image ref
-        shell: bash
+      # Get current version from package.json
+      - name: Install jq and read current app version
         run: |
           set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          APP_VERSION=$(jq -r .version package.json)
+          echo "CURRENT_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
+          echo "Current application version: $APP_VERSION"
+
+      # Normalize image repo path to lowercase (GHCR prefers lowercase)
+      # allow only [a-z0-9._-] in image postfix and lowercase it
+      - name: Compute image ref
+        run: |
           OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           REPO_LC=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_POSTFIX_LC=$(echo "${IMAGE_POSTFIX}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')
-          if [[ -n "$IMAGE_POSTFIX_LC" ]]; then
-            echo "IMAGE_REF=${GHCR_REGISTRY}/${OWNER_LC}/${REPO_LC}-${IMAGE_POSTFIX_LC}" >> "$GITHUB_ENV"
+          IMAGE_POSTFIX_LC=$(echo "${{ env.IMAGE_POSTFIX }}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')
+          if [ -n "$IMAGE_POSTFIX_LC" ]; then
+            echo "IMAGE_REF=${{ env.GHCR_REGISTRY }}/${OWNER_LC}/${REPO_LC}-${IMAGE_POSTFIX_LC}" >> "$GITHUB_ENV"
           else
-            echo "IMAGE_REF=${GHCR_REGISTRY}/${OWNER_LC}/${REPO_LC}" >> "$GITHUB_ENV"
+            echo "IMAGE_REF=${{ env.GHCR_REGISTRY }}/${OWNER_LC}/${REPO_LC}" >> "$GITHUB_ENV"
           fi
 
-      - name: Derive non-prod tags
+      # Log in to GHCR using the provided GITHUB_TOKEN
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ${{ env.GHCR_REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+      # Guard: prohibit reusing an existing version tag in GHCR
+      # Requires you already ran: Log in to GHCR
+      - name: Guard - version tag must be new
+        if: env.CURRENT_VERSION != ''
         shell: bash
         run: |
-          set -euo pipefail
-          SHORT_SHA="$(git rev-parse --short=12 HEAD)"
-          SAFE_BRANCH="$(echo "${GITHUB_REF_NAME}" | tr '/[:upper:]' '-[:lower:]' | tr -cd 'a-z0-9._-')"
-          PUBLISH_TARGET="${{ inputs.publish_target || 'auto' }}"
-
-          TAGS=()
-
-          if [[ "$PUBLISH_TARGET" == "qa" ]]; then
-            TAGS+=("qa-${SHORT_SHA}")
-            TAGS+=("qa-latest")
-          elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
-            TAGS+=("develop-${SHORT_SHA}")
-            TAGS+=("develop-latest")
-          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            TAGS+=("main-${SHORT_SHA}")
-            TAGS+=("main-latest")
-          elif [[ "${GITHUB_REF_NAME}" =~ ^feature/ ]]; then
-            TAGS+=("feature-${SAFE_BRANCH#feature-}-${SHORT_SHA}")
-          elif [[ "${GITHUB_REF_NAME}" =~ ^bugfix/ ]]; then
-            TAGS+=("bugfix-${SAFE_BRANCH#bugfix-}-${SHORT_SHA}")
-          elif [[ "${GITHUB_REF_NAME}" =~ ^hotfix/ ]]; then
-            TAGS+=("hotfix-${SAFE_BRANCH#hotfix-}-${SHORT_SHA}")
-          else
-            echo "::error ::Unsupported branch for non-prod publishing: ${GITHUB_REF_NAME}"
+          set -e
+          TAG="${IMAGE_REF}:${CURRENT_VERSION}"
+          if docker manifest inspect "$TAG" > /dev/null 2>&1; then
+            echo "::error ::Tag already exists: $TAG. Bump your app version."
             exit 1
           fi
+          echo "✅ Tag not found: $TAG"
 
-          printf 'PUBLISH_TAGS=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_ENV"
-          printf 'Resolved tags: %s\n' "$(IFS=,; echo "${TAGS[*]}")"
-
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login "${GHCR_REGISTRY}" -u "${{ github.actor }}" --password-stdin
-
-      - name: Push OCI artifacts
-        shell: bash
+      # Push tarball as an OCI artifact, tag == app version field from package.json
+      - name: Push OCI artifact
+        env:
+          IMAGE: ${{ env.IMAGE_REF }}
+          TAG: ${{ env.CURRENT_VERSION }}
         run: |
-          set -euo pipefail
-          IFS=',' read -r -a TAGS <<< "${PUBLISH_TAGS}"
-          for TAG in "${TAGS[@]}"; do
-            echo "Publishing ${IMAGE_REF}:${TAG}"
-            oras push "${IMAGE_REF}:${TAG}" \
-              --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
-              --annotation "org.opencontainers.image.revision=${{ github.sha }}" \
-              --artifact-type application/vnd.react.static+tar \
-              site.tar.gz:application/gzip
-          done
+          oras push "$IMAGE:$TAG" \
+            --annotation "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \
+            --artifact-type application/vnd.react.static+tar \
+            site.tar.gz:application/gzip
+
+      # Also push :latest tag for convenience
+      - name: Tag latest
+        env:
+          IMAGE: ${{ env.IMAGE_REF }}
+          TAG: ${{ env.CURRENT_VERSION }}
+        run: |
+          oras copy "$IMAGE:$TAG" "$IMAGE:latest"
