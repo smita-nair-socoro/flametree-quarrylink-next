@@ -4,11 +4,11 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DocketDTO } from '@/lib/types/docket';
 import { DateCell } from '@/components/date-cell';
 import { TableBadges } from '@/components/table-badges';
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipTrigger,
-// } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
@@ -20,9 +20,29 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return <div className="py-2">{value}</div>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{value}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Docket Number',
+  },
+  {
+    id: 'docketType',
+    accessorFn: (row) => row.jobItem?.jobItemType || 'N/A',
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Type" />;
+    },
+    cell: ({ row }) => {
+      return <TableBadges names={[row.original.jobItem?.jobItemType]} visibleCount={1} />;
+    },
+    meta: 'Type',
   },
   {
     id: 'jobReference',
@@ -34,7 +54,16 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const jobNumber = row.original.job.jobNumber;
-      return <div className="py-2">{jobNumber}</div>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{jobNumber}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{jobNumber}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Job Reference',
   },
@@ -61,7 +90,16 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const customerName = row.original.customerContactName;
-      return <div className="py-2">{customerName}</div>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{customerName}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{customerName}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Customer',
   },
@@ -73,7 +111,16 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const productName = row.original.jobItem.product.productName;
-      return <div className="py-2">{productName}</div>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{productName}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{productName}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Product',
   },
@@ -86,7 +133,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       );
     },
     cell: ({ row }) => {
-      const deliveryDate = row.original.deliveredAt || row.original.deliveryCollectionDate;
+      const deliveryDate =
+        row.original.deliveredAt || row.original.deliveryCollectionDate;
       return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
@@ -110,7 +158,18 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
               : productUom === 'BULKA'
                 ? `${loadSize} Bulka`
                 : loadSize;
-      return <div className="py-2">{formattedLoadSize}</div>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">
+              {formattedLoadSize}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formattedLoadSize}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Load Size',
   },

@@ -90,12 +90,15 @@ export default function JobForm({
       const deliveryDate = jobDetails.estimatedStartDate
         ? parseISO(jobDetails.estimatedStartDate)
         : undefined;
-      const startWindow = jobDetails.startTimeWindow
-        ? format(parseISO(jobDetails.startTimeWindow), 'HH:mm')
-        : '';
-      const endWindow = jobDetails.endTimeWindow
-        ? format(parseISO(jobDetails.endTimeWindow), 'HH:mm')
-        : '';
+      const extractTime = (timeStr?: string) => {
+        if (!timeStr) return '';
+        if (timeStr.includes('T')) return timeStr.split('T')[1].substring(0, 5);
+        if (timeStr.includes(' ')) return timeStr.split(' ')[1].substring(0, 5);
+        return timeStr.substring(0, 5);
+      };
+
+      const startWindow = extractTime(jobDetails.startTimeWindow);
+      const endWindow = extractTime(jobDetails.endTimeWindow);
 
       jobForm.reset({
         customerId: jobDetails.customerId,
@@ -106,7 +109,7 @@ export default function JobForm({
         deliveryWindowEnd: endWindow,
         contactPersonName: jobDetails.contactPersonName,
         phone: jobDetails.contactPersonPhone,
-        receiptEmail: (jobDetails.additionalEmailRecipients || []).join(','),
+        receiptEmail: (jobDetails.emailRecipients || []).join(','),
         accountManagerSub: customers.find((c) => c.id === jobDetails.customerId)
           ?.accountManagerSub,
       });
@@ -188,14 +191,6 @@ export default function JobForm({
     }));
   }, [users]);
 
-  const getUserNameBySub = React.useCallback(
-    (subOrName?: string | null) => {
-      if (!subOrName) return '';
-      return users.find((u) => u.sub === subOrName)?.name || subOrName;
-    },
-    [users],
-  );
-
   const getActorName = React.useCallback(
     (actor?: string | null) => {
       if (!actor) return 'Unknown';
@@ -262,8 +257,6 @@ export default function JobForm({
         (c) => c.id === values.customerId,
       );
 
-      // receiptEmail holds the user-added extra emails from MultipleInput (not the fixed customer email)
-      // Filter out the customer email to ensure it only appears in docketEmail, not in additionalEmails
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
             .split(',')
@@ -271,9 +264,11 @@ export default function JobForm({
             .filter(Boolean)
         : [];
 
-      const additionalEmails = receiptEmails.filter(
-        (email) => email !== selectedCustomer?.contactPersonEmail,
-      );
+      const customerEmail = selectedCustomer?.contactPersonEmail;
+      const emailRecipients = [
+        ...(customerEmail ? [customerEmail] : []),
+        ...receiptEmails.filter((email) => email !== customerEmail),
+      ];
 
       const payload = {
         customerId: values.customerId,
@@ -284,8 +279,7 @@ export default function JobForm({
             ? selectedCustomer?.businessName
             : selectedCustomer?.individualContactName,
         contactPersonPhone: values.phone,
-        docketEmail: selectedCustomer?.contactPersonEmail,
-        additionalEmailRecipients: additionalEmails,
+        emailRecipients,
         jobStatus:
           isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
         estimatedStartDate: `${dateStr}T00:00:00`,
@@ -672,8 +666,8 @@ export default function JobForm({
 
           {isEditing && (
             <AuditInformation
-              createdBy={getUserNameBySub(jobDetails?.createdBy)}
-              lastModifiedBy={getUserNameBySub(jobDetails?.lastModifiedBy)}
+              createdBy={jobDetails?.createdBy}
+              lastModifiedBy={jobDetails?.lastModifiedBy}
               createdAt={jobDetails?.createdAt}
               updatedAt={jobDetails?.updatedAt}
             />

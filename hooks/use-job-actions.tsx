@@ -10,6 +10,7 @@ import DocketForm from '@/app/(protected)/customer-operations/dockets/(component
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
+import { useSettleJob } from '@/lib/api/job';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { DocketDTO } from '@/lib/types/docket';
@@ -21,6 +22,7 @@ import {
 import {
   SettleJobDescription,
   SettleJobContent,
+  SettleJobInitialContent,
 } from '@/hooks/job/settle-job-content';
 import {
   PauseJobDescription,
@@ -80,6 +82,12 @@ export function useJobActions(jobData?: JobDetails | null) {
   >('stop');
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
+  const [settleBlockedData, setSettleBlockedData] = React.useState<{
+    unfinalisedDocketsCount: number;
+    unfinalisedDocketsAmount: number;
+  } | null>(null);
+
+  const settleJobMutation = useSettleJob();
   const [cannotCancelBlocker, setCannotCancelBlocker] =
     React.useState<CancelBlockerState | null>(null);
 
@@ -148,12 +156,28 @@ export function useJobActions(jobData?: JobDetails | null) {
         cancelText: 'Close',
       },
       settle: {
+        title: 'Settle Job',
+        description: <SettleJobDescription job={jobData} />,
+        content: <SettleJobInitialContent />,
+        confirmText: 'Settle Job',
+        confirmCustomColor: '#8E51FF',
+        cancelText: 'Cancel',
+      },
+      settle_blocked: {
         title: 'Settlement Blocked',
         description: <SettleJobDescription job={jobData} />,
-        content: <SettleJobContent job={jobData} />,
+        content: (
+          <SettleJobContent
+            unfinalisedDocketsCount={settleBlockedData?.unfinalisedDocketsCount}
+            unfinalisedDocketsAmount={
+              settleBlockedData?.unfinalisedDocketsAmount
+            }
+          />
+        ),
         confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
         cancelText: 'Cancel',
+        confirmActionNeeded: false,
       },
       pause: {
         title: 'Pause Job',
@@ -176,12 +200,45 @@ export function useJobActions(jobData?: JobDetails | null) {
       cancelReason,
       cancelNotes,
       isCancelFormValid,
+      settleBlockedData,
       cannotCancelBlocker,
     ],
   );
 
   const createDialogAction = (actionKey: string) => () =>
     setActiveDialog(actionKey);
+
+  const handleSettleJob = async () => {
+    if (!jobId) return;
+
+    try {
+      const updated = await settleJobMutation.mutateAsync(jobId);
+      notifySuccess('Job settled successfully.');
+      setActiveDialog(null);
+      setSettleBlockedData(null);
+      useJobStore.getState().setSelectedJob(updated);
+    } catch (error: unknown) {
+      const errorData = extractErrorData(error) as {
+        unfinalisedDocketsCount?: number;
+        unfinalisedDocketsAmount?: number;
+      } | null;
+
+      if (
+        errorData &&
+        (errorData.unfinalisedDocketsCount !== undefined ||
+          errorData.unfinalisedDocketsAmount !== undefined)
+      ) {
+        setSettleBlockedData({
+          unfinalisedDocketsCount: errorData.unfinalisedDocketsCount ?? 0,
+          unfinalisedDocketsAmount: errorData.unfinalisedDocketsAmount ?? 0,
+        });
+        setActiveDialog('settle_blocked');
+      } else {
+        notifyError('Failed to settle job. Please try again.');
+        setActiveDialog(null);
+      }
+    }
+  };
 
   const handleResumeJob = async () => {
     if (jobId == null) return;
@@ -269,8 +326,11 @@ export function useJobActions(jobData?: JobDetails | null) {
     resume: () => handleResumeJob(),
     cancel: handleCancelJob,
     settle: async () => {
-      console.log('Settle job:', jobId, jobData);
-      // TODO: implement settle logic
+      handleSettleJob();
+    },
+    settle_blocked: async () => {
+      setActiveDialog(null);
+      setSettleBlockedData(null);
     },
     pause: () => handlePauseJob(),
   };

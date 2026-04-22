@@ -40,8 +40,7 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
-import { useQuery } from '@tanstack/react-query';
-import { UsersListQueryOptions } from '@/lib/api/user';
+
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   Select,
@@ -79,7 +78,6 @@ export default function DocketForm({
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
-  const { data: users = [] } = useQuery(UsersListQueryOptions());
 
   const {
     docketForm,
@@ -123,19 +121,6 @@ export default function DocketForm({
     return toUTCDateTimeWithoutZ(combined);
   };
 
-  const getActorName = React.useCallback(
-    (actor?: string | null) => {
-      if (!actor) return 'Unknown';
-
-      const matchedUser = users.find((user) => user.sub === actor)?.name;
-      if (matchedUser) return matchedUser;
-
-      const [, parsedName] = actor.split('-', 2);
-      return parsedName || actor;
-    },
-    [users],
-  );
-
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !selectedDocket) return null;
 
@@ -150,7 +135,7 @@ export default function DocketForm({
     const actionLabel = bannerConfig[selectedDocket.docketStatus];
     if (!actionLabel) return null;
 
-    const actorName = getActorName(selectedDocket.lastModifiedBy);
+    const actorName = selectedDocket.lastModifiedBy;
     const actionDate = formatLocalDateTime(
       actionLabel === 'stopped'
         ? (selectedDocket.stoppedAt ?? selectedDocket.updatedAt)
@@ -179,7 +164,7 @@ export default function DocketForm({
         </div>
       </div>
     );
-  }, [getActorName, isEditing, selectedDocket]);
+  }, [isEditing, selectedDocket]);
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
@@ -195,9 +180,9 @@ export default function DocketForm({
       const loadSize = values.loadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -300,18 +285,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -377,7 +362,7 @@ export default function DocketForm({
       <Form {...docketForm}>
         <form
           id="add-new-docket-form"
-          className={cn('w-full flex flex-col', className)}
+          className={cn('w-full flex flex-col gap-8', className)}
           onSubmit={docketForm.handleSubmit(onSubmit)}
         >
           {statusBanner}
@@ -950,15 +935,15 @@ export default function DocketForm({
 
           {isEditing && (
             <AuditInformation
-              createdBy={getActorName(selectedDocket?.createdBy)}
-              lastModifiedBy={getActorName(selectedDocket?.lastModifiedBy)}
+              createdBy={selectedDocket?.createdBy}
+              lastModifiedBy={selectedDocket?.lastModifiedBy}
               createdAt={selectedDocket?.createdAt}
               updatedAt={selectedDocket?.updatedAt}
             />
           )}
 
           {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 my-6">
+            <div className="flex justify-end space-x-2 col-span-2 mb-6">
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
               </Button>

@@ -142,6 +142,27 @@ export function removeNewRecordId(tableId: string, recordId: number | string) {
 }
 
 /**
+ * Mark a record as having a sync error so the table can apply distinct highlight styling.
+ * Uses a separate sessionStorage key from newRecordIds.
+ */
+export function addSyncErrorRecordId(tableId: string, recordId: number | string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = `${tableId}_syncErrorRecordIds`;
+    const existing = getSessionStorage<string[]>(key, []);
+    const updated = Array.isArray(existing) ? [...existing] : [];
+    const recordKey = String(recordId);
+    if (!updated.includes(recordKey)) {
+      updated.unshift(recordKey);
+      setSessionStorage(key, updated);
+      window.dispatchEvent(new Event('sessionStorageUpdated'));
+    }
+  } catch (err) {
+    console.log('failed to add sync error record ID to sessionStorage:', err);
+  }
+}
+
+/**
  * Splits a reason string on the first hyphen into a reason and an optional note.
  * e.g. "Bad weather - reschedule to 9-10am" → { reason: "Bad weather", note: "reschedule to 9-10am" }
  */

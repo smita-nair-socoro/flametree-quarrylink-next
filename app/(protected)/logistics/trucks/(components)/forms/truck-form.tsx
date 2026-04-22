@@ -290,7 +290,7 @@ export default function TruckForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
     }
   }
@@ -336,7 +336,7 @@ export default function TruckForm({
         <form
           id="truck-form"
           className={cn(
-            'w-full flex flex-col gap-4',
+            'w-full flex flex-col gap-6',
             className,
             isSubmitting && 'pointer-events-none',
           )}

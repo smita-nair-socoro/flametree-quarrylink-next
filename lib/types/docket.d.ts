@@ -2,6 +2,7 @@ import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
+import { CustomerDTO } from './customer';
 
 export interface Docket {
   id: number;
@@ -98,6 +99,7 @@ export interface DocketDTO {
     jobNumber: string;
     customerId: number;
     customerName?: string;
+    customerDto?: CustomerDTO;
     accountManagerName?: string;
     projectName: string;
     jobStatus: JOB_STATUS;
@@ -107,7 +109,7 @@ export interface DocketDTO {
     docketEmail: string;
     uninvoicedDockets: number;
     quoteId: number;
-    additionalEmails: string[];
+    emailRecipients: string[];
     estimatedStartDate: string;
     startTimeWindow: string;
     endTimeWindow: string;
@@ -132,6 +134,7 @@ export interface DocketDTO {
     };
     quarrySupplierId: number;
     quarrySupplierName?: string;
+    quarrySupplier?: Partial<QuarrySupplier>;
     totalQuantityRequired: number;
     allocatedQuantity: number;
     remainingQuantity: number;

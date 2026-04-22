@@ -231,7 +231,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -299,7 +299,7 @@ export default function DriverForm({
         <form
           id="driver-form"
           className={cn(
-            'w-full flex flex-col gap-4',
+            'w-full flex flex-col gap-6',
             className,
             isPending && 'pointer-events-none',
           )}
