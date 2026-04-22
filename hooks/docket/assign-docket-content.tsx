@@ -1,18 +1,24 @@
 'use client';
 
 import * as React from 'react';
-import { Truck, AlertTriangle, ChevronsUpDown, Check } from 'lucide-react';
+import { UserPlus, AlertTriangle, ChevronsUpDown, Check } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { SelectOptions } from '@/components/ui/select-options';
+import {
+  ColorSelect,
+  type ColorSelectOption,
+} from '@/components/ui/color-select';
 import { useQuery } from '@tanstack/react-query';
 import { HauliersListQueryOptions } from '@/lib/api/haulier';
-import { TrucksListQueryOptions } from '@/lib/api/truck';
-import { DriversListQueryOptions } from '@/lib/api/driver';
 import { useClientStore } from '@/app/stores/client-store';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
 import {
   Command,
   CommandInput,
@@ -30,16 +36,137 @@ export interface AssignDocketFormState {
   driverSelection: number | undefined;
 }
 
-interface ConflictingDocket {
-  id: number;
-  docketNumber: string;
-}
-
 interface AssignDocketContentProps extends AssignDocketFormState {
   docket?: DocketDTO | null;
   onHaulerChange: (value: number) => void;
   onTruckChange: (value: number) => void;
   onDriverChange: (value: number) => void;
+}
+
+type ConflictDocket = { id: number; docketNumber: string };
+
+const TRUCK_TEMPLATES = [
+  { licensePlate: 'QLD 001', model: 'Mack Titan', capacityM3: 10 },
+  { licensePlate: 'QLD 002', model: 'Volvo FH16', capacityM3: 28 },
+  { licensePlate: 'QLD 003', model: 'Isuzu FVZ', capacityM3: 22 },
+];
+
+const DRIVER_NAMES = [
+  ['James Carter', 'Liam Torres'],
+  ['Noah Bennett', 'Ethan Walsh'],
+  ['Oliver Hayes', 'Lucas Grant'],
+];
+
+// Per-truck conflict slots: for each mock truck, two pre-assigned dockets are generated
+// covering these time windows. Conflicts are visible regardless of which haulier is selected.
+const MOCK_CONFLICT_SLOTS = [
+  { slotIndex: 0, docketSuffix: 'A', startTime: '00:00', endTime: '23:59' },
+  { slotIndex: 1, docketSuffix: 'B', startTime: '00:00', endTime: '23:59' },
+];
+
+type TruckStatusConfig = {
+  badge: string;
+  pctColor: string;
+  rowStyle: React.CSSProperties;
+  badgeStyle: React.CSSProperties;
+};
+
+function getTruckStatusConfig(pct: number): TruckStatusConfig {
+  if (pct > 100)
+    return {
+      badge: 'Exceeds limit',
+      pctColor: '#973C00',
+      rowStyle: { backgroundColor: '#FEF3F3', borderColor: '#FECACA' },
+      badgeStyle: {
+        backgroundColor: '#FEE2E2',
+        borderColor: '#FECACA',
+        color: '#86363B',
+      },
+    };
+  if (pct < 80)
+    return {
+      badge: 'Under capacity',
+      pctColor: '#973C00',
+      rowStyle: { backgroundColor: '#FFFBEBE5', borderColor: '#FEF3C6E5' },
+      badgeStyle: {
+        backgroundColor: '#FEF3C6E5',
+        borderColor: '#FEE685CC',
+        color: '#7B3306',
+      },
+    };
+  return {
+    badge: 'Most efficient fit',
+    pctColor: '#007A55',
+    rowStyle: { backgroundColor: '#ECFDF5F2', borderColor: '#D0FAE5' },
+    badgeStyle: {
+      backgroundColor: '#D0FAE5E5',
+      borderColor: '#A4F4CFCC',
+      color: '#006045',
+    },
+  };
+}
+
+function toMinutes(time: string): number {
+  // Handle both "HH:MM" and ISO datetime "YYYY-MM-DDTHH:MM:SS"
+  const timePart = time.includes('T') ? time.split('T')[1] : time;
+  const [h, m] = timePart.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function windowsOverlap(
+  s1: string,
+  e1: string,
+  s2: string,
+  e2: string,
+): boolean {
+  return toMinutes(s1) < toMinutes(e2) && toMinutes(s2) < toMinutes(e1);
+}
+
+function ConflictWarning({
+  label,
+  dockets,
+}: {
+  label: string;
+  dockets: ConflictDocket[];
+}) {
+  if (dockets.length === 0) return null;
+  return (
+    <div className="rounded-md border border-amber-400 bg-amber-50 p-3">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-semibold text-[#461901]">
+            Potential scheduling conflict detected
+          </span>
+          <span className="text-xs text-[#973C00F2]">
+            Another docket is already assigned to this {label} for the same date
+            and time. You can still assign this docket.
+          </span>
+          <div
+            className="rounded-md border px-3 py-2 text-xs"
+            style={{
+              backgroundColor: '#FFF7ED',
+              borderColor: '#FFD6A7',
+              color: '#364153',
+            }}
+          >
+            <span className="font-medium">Conflicting dockets: </span>
+            {dockets.map((cd, i) => (
+              <span key={cd.id}>
+                <span
+                  className="underline cursor-pointer"
+                  style={{ color: '#155DFC' }}
+                >
+                  {cd.docketNumber}
+                </span>
+                {i < dockets.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function AssignDocketDescription({
@@ -49,8 +176,8 @@ export function AssignDocketDescription({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
-        <Truck className="h-6 w-6 text-[#3B82F6]" />
+      <div className="flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
+        <UserPlus className="h-6 w-6 text-[#193CB8]" />
       </div>
       <div className="flex flex-col gap-1">
         <span className="font-medium text-[#101828]">
@@ -82,27 +209,69 @@ export function AssignDocketContent({
   onDriverChange,
 }: AssignDocketContentProps) {
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const { data: allTrucks = [] } = useQuery(TrucksListQueryOptions());
-  const { data: allDrivers = [] } = useQuery(DriversListQueryOptions());
   const { data: docketsData } = useQuery(DocketsListQueryOptions());
+  const tenantName = useClientStore((state) => state.getTenantName());
+  const [haulerOpen, setHaulerOpen] = React.useState(false);
+
   const allDockets: DocketDTO[] = React.useMemo(() => {
     if (!docketsData) return [];
     if (Array.isArray(docketsData)) return docketsData;
     return (docketsData as { content: DocketDTO[] }).content ?? [];
   }, [docketsData]);
-  const tenantName = useClientStore((state) => state.getTenantName());
 
-  const [haulerOpen, setHaulerOpen] = React.useState(false);
-
-  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
-
-  const internalOptions = React.useMemo(
+  const mockTrucks = React.useMemo(
     () =>
-      internalHaulier
-        ? [{ label: `${internalHaulier.haulierName} (Internal)`, value: internalHaulier.id }]
-        : [],
-    [internalHaulier],
+      hauliers.flatMap((h, hi) =>
+        TRUCK_TEMPLATES.map((t, ti) => ({
+          id: h.id * 100 + ti + 1,
+          haulierId: h.id,
+          licensePlate: `${t.licensePlate}-${hi + 1}`,
+          capacityM3: t.capacityM3,
+        })),
+      ),
+    [hauliers],
   );
+
+  const mockDrivers = React.useMemo(
+    () =>
+      mockTrucks.flatMap((truck, ti) =>
+        DRIVER_NAMES[ti % DRIVER_NAMES.length].map((name, di) => ({
+          id: truck.id * 10 + di + 1,
+          driverName: name,
+          truckIds: [truck.id],
+        })),
+      ),
+    [mockTrucks],
+  );
+
+  // Dummy pre-assigned dockets for delivery window conflict demonstration.
+  // One conflict docket is generated per truck (first driver of that truck) so conflicts
+  // are visible no matter which haulier the user selects.
+  const mockAssignedDockets = React.useMemo(() => {
+    if (mockTrucks.length === 0 || mockDrivers.length === 0) return [];
+    const conflictDate = docket?.deliveryCollectionDate
+      ? new Date(docket.deliveryCollectionDate)
+      : new Date();
+    return mockTrucks.flatMap((truck, ti) => {
+      const driver = mockDrivers.find((d) => d.truckIds.includes(truck.id));
+      if (!driver) return [];
+      return MOCK_CONFLICT_SLOTS.map((slot) => ({
+        id: -(ti * 10 + slot.slotIndex + 1),
+        docketNumber: `DO-${2340 + ti * 2 + slot.slotIndex}${slot.docketSuffix}`,
+        truckId: truck.id,
+        driverId: driver.id,
+        deliveryCollectionDate: conflictDate,
+        deliveryCollectionStartTime: slot.startTime,
+        deliveryCollectionEndTime: slot.endTime,
+        docketStatus: DOCKET_STATUS.ASSIGNED,
+      }));
+    });
+  }, [mockTrucks, mockDrivers, docket?.deliveryCollectionDate]);
+
+  const internalOptions = React.useMemo(() => {
+    const h = hauliers.find((h) => h.haulierName === tenantName);
+    return h ? [{ label: `${h.haulierName} (Internal)`, value: h.id }] : [];
+  }, [hauliers, tenantName]);
 
   const externalOptions = React.useMemo(
     () =>
@@ -112,65 +281,132 @@ export function AssignDocketContent({
     [hauliers, tenantName],
   );
 
-  const allHaulerOptions = React.useMemo(
-    () => [...internalOptions, ...externalOptions],
-    [internalOptions, externalOptions],
+  const selectedHaulerLabel = [...internalOptions, ...externalOptions].find(
+    (o) => o.value === haulerSelection,
+  )?.label;
+
+  const loadSize = docket?.loadSize ?? 0;
+
+  const truckColorOptions = React.useMemo((): ColorSelectOption[] => {
+    if (!haulerSelection) return [];
+    return mockTrucks
+      .filter((t) => t.haulierId === haulerSelection)
+      .map((t) => {
+        const pct =
+          t.capacityM3 > 0 ? Math.round((loadSize / t.capacityM3) * 100) : 0;
+        const cfg = getTruckStatusConfig(pct);
+        return {
+          _pct: pct,
+          label: t.licensePlate,
+          value: t.id,
+          sublabel: (
+            <span>
+              · {t.capacityM3}M³{' '}
+              <span style={{ color: cfg.pctColor }}>({pct}%)</span>
+            </span>
+          ),
+          badge: cfg.badge,
+          rowStyle: cfg.rowStyle,
+          badgeStyle: cfg.badgeStyle,
+        };
+      })
+      .sort((a, b) => {
+        const aEx = a._pct > 100,
+          bEx = b._pct > 100;
+        if (aEx && bEx) return a._pct - b._pct;
+        if (aEx) return 1;
+        if (bEx) return -1;
+        return b._pct - a._pct;
+      })
+      .map(({ _pct: _p, ...rest }) => rest);
+  }, [mockTrucks, haulerSelection, loadSize]);
+
+  const driverOptions = React.useMemo(
+    () =>
+      !truckSelection
+        ? []
+        : mockDrivers
+            .filter((d) => d.truckIds.includes(truckSelection))
+            .map((d) => ({ label: d.driverName, value: d.id })),
+    [mockDrivers, truckSelection],
   );
 
-  const selectedHaulerLabel = allHaulerOptions.find((o) => o.value === haulerSelection)?.label;
+  // Combine real API dockets and mock assigned dockets for conflict detection
+  const candidateDockets = React.useMemo(() => {
+    const realFiltered = allDockets.filter(
+      (d) =>
+        d.id !== docket?.id &&
+        d.docketStatus !== DOCKET_STATUS.VOIDED &&
+        d.docketStatus !== DOCKET_STATUS.CANCELLED,
+    );
+    return [...realFiltered, ...mockAssignedDockets] as Array<{
+      id: number;
+      docketNumber: string;
+      truckId: number;
+      driverId: number;
+      deliveryCollectionDate: Date;
+      deliveryCollectionStartTime: string;
+      deliveryCollectionEndTime: string;
+    }>;
+  }, [allDockets, mockAssignedDockets, docket?.id]);
 
-  const truckOptions = React.useMemo(() => {
-    if (!haulerSelection) return [];
-    return allTrucks
-      .filter((t) => t.haulierId === haulerSelection && t.id != null)
-      .map((t) => ({
-        label: `${t.licensePlate}${t.model ? ` / ${t.model}` : ''}`,
-        value: t.id as number,
-      }));
-  }, [allTrucks, haulerSelection]);
+  const { truckConflicts, driverConflicts } = React.useMemo<{
+    truckConflicts: ConflictDocket[];
+    driverConflicts: ConflictDocket[];
+  }>(() => {
+    if (!truckSelection && !driverSelection)
+      return { truckConflicts: [], driverConflicts: [] };
 
-  const driverOptions = React.useMemo(() => {
-    if (!truckSelection) return [];
-    return allDrivers
-      .filter(
-        (d) =>
-          d.id != null &&
-          (d.truckIds?.includes(truckSelection) ||
-            d.trucks?.some((t) => t.id === truckSelection)),
-      )
-      .map((d) => ({
-        label: d.driverName,
-        value: d.id as number,
-      }));
-  }, [allDrivers, truckSelection]);
-
-  const conflictingDockets = React.useMemo<ConflictingDocket[]>(() => {
-    if (!docket) return [];
-    const docketDate = docket.deliveryCollectionDate
+    const docketDate = docket?.deliveryCollectionDate
       ? new Date(docket.deliveryCollectionDate).toDateString()
       : null;
-    if (!docketDate) return [];
+    const docketStart = docket?.deliveryCollectionStartTime;
+    const docketEnd = docket?.deliveryCollectionEndTime;
 
-    return allDockets.filter((d) => {
-      if (d.id === docket.id) return false;
-      if (
-        d.docketStatus === DOCKET_STATUS.VOIDED ||
-        d.docketStatus === DOCKET_STATUS.CANCELLED
-      )
-        return false;
+    const truckConflicts: ConflictDocket[] = [];
+    const driverConflicts: ConflictDocket[] = [];
 
-      const sameDate =
-        d.deliveryCollectionDate &&
-        new Date(d.deliveryCollectionDate).toDateString() === docketDate;
+    for (const d of candidateDockets) {
+      if (docketDate && d.deliveryCollectionDate) {
+        if (new Date(d.deliveryCollectionDate).toDateString() !== docketDate)
+          continue;
+      }
 
-      const truckMatch = truckSelection && d.truckId === truckSelection;
-      const driverMatch = driverSelection && d.driverId === driverSelection;
+      const hasTimeOverlap =
+        docketStart &&
+        docketEnd &&
+        d.deliveryCollectionStartTime &&
+        d.deliveryCollectionEndTime
+          ? windowsOverlap(
+              docketStart,
+              docketEnd,
+              d.deliveryCollectionStartTime,
+              d.deliveryCollectionEndTime,
+            )
+          : true;
 
-      return sameDate && (truckMatch || driverMatch);
-    }) as ConflictingDocket[];
-  }, [allDockets, docket, truckSelection, driverSelection]);
+      if (!hasTimeOverlap) continue;
 
-  const hasConflict = conflictingDockets.length > 0;
+      const entry = { id: d.id, docketNumber: d.docketNumber };
+      if (truckSelection && d.truckId === truckSelection)
+        truckConflicts.push(entry);
+      if (driverSelection && d.driverId === driverSelection)
+        driverConflicts.push(entry);
+    }
+
+    return { truckConflicts, driverConflicts };
+  }, [candidateDockets, docket, truckSelection, driverSelection]);
+
+  function selectHauler(value: number) {
+    onHaulerChange(value);
+    onTruckChange(undefined as unknown as number);
+    onDriverChange(undefined as unknown as number);
+    setHaulerOpen(false);
+  }
+
+  const exceedsLimit =
+    truckColorOptions.find((o) => o.value === truckSelection)?.badge ===
+    'Exceeds limit';
 
   return (
     <div className="flex flex-col gap-4">
@@ -192,58 +428,40 @@ export function AssignDocketContent({
               <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="p-1 w-[var(--radix-popover-trigger-width)]" align="start">
+          <PopoverContent
+            className="p-1 w-[var(--radix-popover-trigger-width)]"
+            align="start"
+          >
             <Command>
               <CommandInput placeholder="Search hauliers..." className="h-9" />
               <CommandList>
                 <CommandEmpty>No hauliers found.</CommandEmpty>
-                {internalOptions.length > 0 && (
-                  <CommandGroup heading="Internal">
-                    {internalOptions.map((opt) => (
-                      <CommandItem
-                        key={opt.value}
-                        onSelect={() => {
-                          onHaulerChange(opt.value);
-                          onTruckChange(undefined as unknown as number);
-                          onDriverChange(undefined as unknown as number);
-                          setHaulerOpen(false);
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <span className="flex-1">{opt.label}</span>
-                        <Check
-                          className={cn(
-                            'ml-auto h-4 w-4',
-                            haulerSelection === opt.value ? 'opacity-100' : 'opacity-0',
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-                {externalOptions.length > 0 && (
-                  <CommandGroup heading="External">
-                    {externalOptions.map((opt) => (
-                      <CommandItem
-                        key={opt.value}
-                        onSelect={() => {
-                          onHaulerChange(opt.value);
-                          onTruckChange(undefined as unknown as number);
-                          onDriverChange(undefined as unknown as number);
-                          setHaulerOpen(false);
-                        }}
-                        className="cursor-pointer"
-                      >
-                        <span className="flex-1">{opt.label}</span>
-                        <Check
-                          className={cn(
-                            'ml-auto h-4 w-4',
-                            haulerSelection === opt.value ? 'opacity-100' : 'opacity-0',
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
+                {[
+                  { heading: 'Internal', opts: internalOptions },
+                  { heading: 'External', opts: externalOptions },
+                ].map(
+                  ({ heading, opts }) =>
+                    opts.length > 0 && (
+                      <CommandGroup key={heading} heading={heading}>
+                        {opts.map((opt) => (
+                          <CommandItem
+                            key={opt.value}
+                            onSelect={() => selectHauler(opt.value)}
+                            className="cursor-pointer"
+                          >
+                            <span className="flex-1">{opt.label}</span>
+                            <Check
+                              className={cn(
+                                'ml-auto h-4 w-4',
+                                haulerSelection === opt.value
+                                  ? 'opacity-100'
+                                  : 'opacity-0',
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ),
                 )}
               </CommandList>
             </Command>
@@ -251,19 +469,37 @@ export function AssignDocketContent({
         </Popover>
       </div>
 
-      <SelectOptions
+      <ColorSelect
         label="Truck"
-        searchLabel="truck"
-        options={truckOptions}
+        searchPlaceholder="Search trucks..."
+        options={truckColorOptions}
         value={truckSelection}
         onChange={(v) => {
           onTruckChange(v as number);
           onDriverChange(undefined as unknown as number);
         }}
         placeholder="Search trucks..."
-        popoverWidthClass="w-full"
         disabled={!haulerSelection}
+        extra={
+          exceedsLimit && (
+            <div className="rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600" />
+              <div>
+                <p className="font-semibold text-yellow-900 text-sm">
+                  Load size exceeds truck limit
+                </p>
+                <p className="text-yellow-800 text-sm mt-0.5">
+                  The load size of the docket exceeds the limit of this truck.
+                  Please go back to the docket form and update the load size in
+                  order to select this truck.
+                </p>
+              </div>
+            </div>
+          )
+        }
       />
+
+      <ConflictWarning label="truck" dockets={truckConflicts} />
 
       <SelectOptions
         label="Driver"
@@ -276,31 +512,7 @@ export function AssignDocketContent({
         disabled={!truckSelection}
       />
 
-      {hasConflict && (
-        <div className="rounded-md border border-amber-400 bg-amber-50 p-3">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-semibold text-amber-800">
-                Potential scheduling conflict detected
-              </span>
-              <span className="text-xs text-amber-700">
-                The selected truck or driver is already assigned to another
-                docket for the same date. You may still assign this docket.
-              </span>
-              <div className="mt-1 flex flex-wrap gap-1 text-xs">
-                <span className="text-amber-700">Conflicting dockets:</span>
-                {conflictingDockets.map((cd, i) => (
-                  <span key={cd.id} className="text-blue-600 underline cursor-pointer">
-                    {cd.docketNumber}
-                    {i < conflictingDockets.length - 1 ? ',' : ''}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConflictWarning label="driver" dockets={driverConflicts} />
     </div>
   );
 }
