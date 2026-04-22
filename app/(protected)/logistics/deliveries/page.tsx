@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import { startOfDay } from 'date-fns';
 
 import { DeliveriesDateNav } from './(components)/deliveries-date-nav';
@@ -16,9 +17,21 @@ import {
 import DispatchTab from './(components)/tabs/dispatch/dispatch-tab';
 import ScheduleTab from './(components)/tabs/schedule/schedule-tab';
 
-export default function DeliveriesPage() {
+function DeliveriesPageContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
   const [activeTab, setActiveTab] =
-    React.useState<DeliveriesOperationsTab>('dispatch');
+    React.useState<DeliveriesOperationsTab>(
+      (tabParam as DeliveriesOperationsTab) || 'dispatch'
+    );
+
+  React.useEffect(() => {
+    if (tabParam === 'schedule' || tabParam === 'dispatch') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
   const [selectedDate, setSelectedDate] = React.useState(() =>
     startOfDay(new Date()),
@@ -79,5 +92,13 @@ export default function DeliveriesPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DeliveriesPage() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <DeliveriesPageContent />
+    </React.Suspense>
   );
 }
