@@ -454,6 +454,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       await deleteDriverMutation.mutateAsync(driverId);
       notifySuccess('Driver deleted successfully.');
       setActiveDialog(null);
+      setViewOpen(false);
     } catch (error) {
       const message = extractErrorMessage(error);
       if (
