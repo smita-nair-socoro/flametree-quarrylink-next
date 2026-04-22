@@ -1,95 +1,75 @@
-name: Deploy Production Static Site from GHCR to S3 + CloudFront
+# .github/workflows/deploy-from-ghcr.yml
+name: Deploy Static Site from GHCR to S3 + CloudFront
 
 on:
-  workflow_run:
-    workflows: ["Publish Production Image to GHCR"]
-    types:
-      - completed
-
-permissions:
-  contents: read
-  packages: read
-  id-token: write
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "GHCR tag to deploy (e.g., 1.2.3 or latest)"
+        required: true
+        default: "latest"
+      suffix:
+        description: "Image name suffix (e.g., oras-web)"
+        required: true
+        default: "oras-web"
+      invalidate_all:
+        description: "Invalidate /* (true) or only critical paths (false)"
+        required: true
+        default: "true"
+      destination_env:
+        description: "Environment (e.g., dev, essentials, qa, stage, prod)"
+        required: true
+        default: "dev"
 
 env:
   AWS_REGION: ap-southeast-2
-  GHCR_REGISTRY: ghcr.io
-  IMAGE_POSTFIX: oras-web
+
+permissions:
+  contents: read # to checkout code
+  packages: read # to pull from GitHub Packages/GHCR
+  id-token: write # for AWS OIDC federation
 
 jobs:
   deploy:
-    name: Deploy production static artifact
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    environment: production
-    concurrency:
-      group: static-site-production
-      cancel-in-progress: false
+    env:
+      TAG: ${{ inputs.tag }}
+      SUFFIX: ${{ inputs.suffix }}
+      INVALIDATE_ALL: ${{ inputs.invalidate_all }}
+
+    # environment tag for GitHub environment variables & secrets
+    environment: ${{ inputs.destination_env }}
 
     steps:
-      - name: Validate source workflow event
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "Triggered from workflow run ID: ${{ github.event.workflow_run.id }}"
-          echo "Head SHA: ${{ github.event.workflow_run.head_sha }}"
-
-      - name: Checkout repository
+      - name: Checkout repo (for template or deploy scripts)
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Resolve release tag from triggering workflow
-        id: release
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          TAG=$(git tag --points-at "${{ github.event.workflow_run.head_sha }}" | grep '^release-v[0-9]\+\.[0-9]\+\.[0-9]\+$' | head -n1 || true)
-
-          if [ -z "$TAG" ]; then
-            echo "::error ::No release-vX.Y.Z tag found on commit ${{ github.event.workflow_run.head_sha }}"
-            exit 1
-          fi
-
-          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          REPO_LC=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_POSTFIX_LC=$(echo "${IMAGE_POSTFIX}" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')
-
-          if [[ -n "$IMAGE_POSTFIX_LC" ]]; then
-            IMAGE_REF="${GHCR_REGISTRY}/${OWNER_LC}/${REPO_LC}-${IMAGE_POSTFIX_LC}"
-          else
-            IMAGE_REF="${GHCR_REGISTRY}/${OWNER_LC}/${REPO_LC}"
-          fi
-
-          echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "image_ref=$IMAGE_REF" >> "$GITHUB_OUTPUT"
 
       - name: Setup ORAS
         uses: oras-project/setup-oras@v1
 
       - name: Login GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login "${GHCR_REGISTRY}" -u "${{ github.actor }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Pull production artifact from GHCR
-        shell: bash
+      # Pull the tarball, that was previously pushed as oras "site.tar.gz" artifact
+      - name: Pull artifact from GHCR
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-${{ env.SUFFIX }}
+          VERSION: ${{ env.TAG }}
         run: |
           set -euo pipefail
           mkdir -p _pkg
           cd _pkg
-          oras pull "${{ steps.release.outputs.image_ref }}:${{ steps.release.outputs.release_tag }}" -o .
+          oras pull "$IMAGE:$VERSION" -o .
           test -f site.tar.gz || (echo "site.tar.gz not found in artifact" && exit 1)
           ls -lah
 
       - name: Extract site build
-        shell: bash
         run: |
           set -euo pipefail
           mkdir -p site
           tar -xzf _pkg/site.tar.gz -C site
 
+      # Build and overwrite config.json directly with jq
       - name: Generate config.json with jq
         env:
           COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
@@ -103,7 +83,6 @@ jobs:
           API_URL: ${{ vars.API_URL }}
           SENTRY_DSN: ${{ vars.SENTRY_DSN }}
           CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}
-        shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
@@ -134,29 +113,37 @@ jobs:
              }' > site/config.json
 
       - name: Configure AWS credentials (OIDC)
+        # Prefer OIDC + role assumption (no long-lived keys).
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }} # arn:aws:iam::<acct>:role/<role>
           aws-region: ${{ env.AWS_REGION }}
-          role-session-name: gh-prod-deploy-${{ github.run_id }}
-          mask-aws-account-id: true
+          role-session-name: gh-actions-${{ github.run_id }} # unique STS session name
+          mask-aws-account-id: true # hide the account ID in logs.
 
+      # Empty S3 bucket
       - name: Empty S3 bucket
-        shell: bash
         run: |
           set -euo pipefail
-          aws s3 rm "s3://${{ secrets.S3_BUCKET_NAME }}" --recursive
+          aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive
 
+      # Sync whole site to S3
       - name: Upload static site files
-        shell: bash
         run: |
           set -euo pipefail
-          aws s3 sync site/ "s3://${{ secrets.S3_BUCKET_NAME }}/" --delete
+          aws s3 sync site/ "s3://${{ secrets.S3_BUCKET_NAME }}/" \
+            --delete \
 
-      - name: Create full CloudFront invalidation
-        shell: bash
+      # Invalidate CloudFront
+      # For "${INVALIDATE_ALL}" = "false" - only invalidate things likely to be cached aggressively but must update immediately. Adjust this list for your app: add /index.html if your SPA uses it, and any critical routes.
+      - name: Create CloudFront invalidation
         run: |
           set -euo pipefail
+          if [ "${INVALIDATE_ALL}" = "true" ]; then
+            PATHS='/*'
+          else
+            PATHS='/config.json /index.html'
+          fi
           aws cloudfront create-invalidation \
             --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths '/*'
+            --paths "${PATHS}"
