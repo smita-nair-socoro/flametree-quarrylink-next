@@ -174,7 +174,7 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
           <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
             <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">Schedule & Contact</h3>
           </div>
-          <div className="p-4 grid grid-cols-2 gap-4">
+          <div className="p-4 grid grid-cols-2 gap-x-0 gap-y-4">
             <div>
               <div className="text-xs text-gray-500 mb-1">Delivery date</div>
               <div className="text-sm font-medium text-gray-900">
@@ -192,7 +192,7 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
             <div>
               <div className="text-xs text-gray-500 mb-1">Site contact</div>
               <div className="text-sm font-medium text-gray-900">{docket.jobItem?.quarrySupplier?.contactPersonName || ''}</div>
-              <div className="text-xs text-blue-600 mt-0.5">{docket.jobItem?.quarrySupplier?.contactPersonEmail || ''}</div>
+              <div className="text-xs text-blue-600 mt-0.5 break-all">{docket.jobItem?.quarrySupplier?.contactPersonEmail || ''}</div>
             </div>
           </div>
         </div>

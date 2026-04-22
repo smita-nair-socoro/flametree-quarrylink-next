@@ -87,6 +87,7 @@ function DeliveriesPageContent() {
               resourceView={resourceView}
               periodView={periodView}
               selectedDate={selectedDate}
+              onDateChange={setSelectedDate}
             />
           )}
         </main>

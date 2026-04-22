@@ -6,17 +6,19 @@ import { ScheduleWeekTrucksView } from './views/week-trucks-view';
 
 type ScheduleTabProps = {
   selectedDate: Date;
+  onDateChange: (date: Date) => void;
   resourceView: 'trucks' | 'drivers';
   periodView: 'week' | 'month';
 };
 
 export default function ScheduleTab({
   selectedDate,
+  onDateChange,
   resourceView,
   periodView,
 }: ScheduleTabProps) {
   if (periodView === 'month') {
-    return <ScheduleMonthView date={selectedDate} />;
+    return <ScheduleMonthView date={selectedDate} onDateChange={onDateChange} />;
   }
 
   if (resourceView === 'drivers') {
