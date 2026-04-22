@@ -19,6 +19,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
 import { FormSelect } from '@/components/ui/form-select';
 import {
+  AlertTriangle,
   Calendar,
   Clock,
   FileText,
@@ -26,6 +27,7 @@ import {
   MapPin,
   Package,
   Truck,
+  UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
@@ -40,6 +42,8 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
+import { format } from 'date-fns';
+import { ActionDialog } from '@/components/action-dialog';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
@@ -49,6 +53,11 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+
+const DUMMY_CONFLICTING_DOCKETS = [
+  { id: -1, docketNumber: 'DO-2342' },
+  { id: -2, docketNumber: 'DO-2343' },
+];
 
 interface FormProps {
   id?: number;
@@ -75,6 +84,8 @@ export default function DocketForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
+  const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<typeof DocketFormSchema> | null>(null);
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
@@ -169,6 +180,17 @@ export default function DocketForm({
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
     if (isReadOnly) return;
 
+    // For ASSIGNED dockets, always show the conflict confirmation dialog first (API check TBD)
+    if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
+      setPendingSubmitValues(values);
+      setTimeConflictOpen(true);
+      return;
+    }
+
+    await doSave(values);
+  }
+
+  async function doSave(values: z.infer<typeof DocketFormSchema>) {
     try {
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
@@ -342,7 +364,77 @@ export default function DocketForm({
     }
   }
 
+  const deliveryDate = selectedDocket?.deliveryCollectionDate
+    ? new Date(selectedDocket.deliveryCollectionDate)
+    : null;
+  const newStart = docketForm.watch('deliveryCollectionStartTime');
+  const newEnd = docketForm.watch('deliveryCollectionEndTime');
+  const timeLabel =
+    newStart && newEnd && deliveryDate
+      ? `${newStart} – ${newEnd} on ${format(deliveryDate, 'd MMM')}`
+      : newStart && newEnd
+        ? `${newStart} – ${newEnd}`
+        : 'the new time';
+
   return (
+    <>
+      <ActionDialog
+        open={timeConflictOpen}
+        onOpenChangeAction={setTimeConflictOpen}
+        title="Confirm Delivery Time Change"
+        description={
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
+              <UserPlus className="h-5 w-5 text-[#193CB8]" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium text-[#101828] text-sm">
+                {selectedDocket?.docketNumber ?? '—'}
+              </span>
+              <span className="text-xs text-[#6A7282]">
+                {selectedDocket?.jobItem?.product?.productName ?? '—'}
+                {selectedDocket?.loadSize != null && (
+                  <> · {selectedDocket.loadSize} {selectedDocket.jobItem?.productSellUom}</>
+                )}
+              </span>
+            </div>
+          </div>
+        }
+        content={
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex flex-col gap-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-semibold text-[#101828]">
+                  New time {timeLabel} conflicts with existing dockets
+                </span>
+                <span className="text-xs" style={{ color: '#973C00' }}>
+                  The following dockets are already scheduled for this truck and driver at this time. You can still save this change.
+                </span>
+              </div>
+            </div>
+            <div
+              className="rounded-md border px-3 py-2 text-xs"
+              style={{ backgroundColor: '#FFF7ED', borderColor: '#FFD6A7', color: '#364153' }}
+            >
+              <span className="font-medium">Conflicting dockets: </span>
+              {DUMMY_CONFLICTING_DOCKETS.map((cd, i) => (
+                <span key={cd.id}>
+                  <span className="underline cursor-pointer" style={{ color: '#155DFC' }}>
+                    {cd.docketNumber}
+                  </span>
+                  {i < DUMMY_CONFLICTING_DOCKETS.length - 1 ? ', ' : ''}
+                </span>
+              ))}
+            </div>
+          </div>
+        }
+        confirmText="Save Changes"
+        onConfirmAction={async () => {
+          if (pendingSubmitValues) await doSave(pendingSubmitValues);
+        }}
+      />
+
     <div className="w-full relative">
       {isSubmitting && (
         <div
@@ -976,5 +1068,6 @@ export default function DocketForm({
         </form>
       </Form>
     </div>
+    </>
   );
 }
