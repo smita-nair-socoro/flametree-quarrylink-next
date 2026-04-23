@@ -232,9 +232,7 @@ export default function CustomerForm({
     setXeroSyncError(null);
     setNotLinkedWarning(false);
     if (!isEditing || !selectedCustomer) return;
-    if (!selectedCustomer.accSoftwareContactId) {
-      handleSyncNote(selectedCustomer.accSoftwareNotes);
-    }
+    handleSyncNote(selectedCustomer.accSoftwareNotes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCustomer?.id, isEditing]);
 
@@ -329,7 +327,7 @@ export default function CustomerForm({
       if (isEditing && !isRetrySyncRef.current) {
         const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
-        if (!result.accSoftwareContactId && handleSyncNote(result.accSoftwareNotes)) return;
+        if (handleSyncNote(result.accSoftwareNotes)) return;
       } else {
         const newCustomer = await createCustomer.mutateAsync(customerData);
         notifySuccess('Customer Added Successfully!');
@@ -342,7 +340,7 @@ export default function CustomerForm({
           }
         }
 
-        if (!newCustomer.accSoftwareContactId && handleSyncNote(newCustomer.accSoftwareNotes)) return;
+        if (handleSyncNote(newCustomer.accSoftwareNotes)) return;
       }
 
       onSuccess?.();
@@ -494,9 +492,11 @@ export default function CustomerForm({
                 disabled={isSubmitting}
                 onClick={() => {
                   isRetrySyncRef.current = true;
-                  customerForm.handleSubmit(onSubmit, onError)().finally(() => {
-                    isRetrySyncRef.current = false;
-                  });
+                  customerForm
+                    .handleSubmit(onSubmit, onError)()
+                    .finally(() => {
+                      isRetrySyncRef.current = false;
+                    });
                 }}
               >
                 <RefreshCw
