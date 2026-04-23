@@ -26,6 +26,8 @@ import {
   MapPin,
   Package,
   Truck,
+  User,
+  X,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
@@ -119,6 +121,12 @@ export default function DocketForm({
     combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
     return toUTCDateTimeWithoutZ(combined);
+  };
+
+  // TODO: replace with real API data when endpoint is ready
+  const DUMMY_ASSIGNMENT = {
+    driver: 'Mike Johnson',
+    truckRego: 'VIC123',
   };
 
   const statusBanner = React.useMemo(() => {
@@ -885,6 +893,43 @@ export default function DocketForm({
                     </FormItem>
                   )}
                 />
+              </div>
+            </div>
+
+            {/* Assignment Section */}
+            <div className="border rounded-md p-4 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[17px] font-bold">Assignment</span>
+                <button
+                  type="button"
+                  className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 transition-colors"
+                  onClick={() => {}}
+                >
+                  <X className="w-4 h-4" />
+                  Unassign
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">Driver</span>
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {DUMMY_ASSIGNMENT.driver}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm text-muted-foreground">
+                    Truck Rego
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {DUMMY_ASSIGNMENT.truckRego}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 

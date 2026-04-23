@@ -1,0 +1,27 @@
+Hi {firstName},
+
+You unarchived {customerName} in Xero. QuarryLink attempted to unarchive the same customer, but we couldn't complete the unarchive in QuarryLink.
+
+To keep both systems in sync, we reverted the change in Xero, and {customerName} has been re-archived in Xero.
+
+WHY THIS CAN HAPPEN
+
+QuarryLink may block unarchiving a customer if it would create a conflict or break data rules, for example:
+
+- Another active customer already exists with the same email address (or other unique identifying details), or
+- The Xero contact is already linked to a different customer in QuarryLink, or
+- There are rules or linked records that prevent changing the customer's status
+
+WHAT YOU CAN DO NEXT
+
+1. In QuarryLink, search for customers with the email {customerEmail} (or matching identifiers) and check for duplicates or conflicts.
+2. Resolve any duplicate or conflicting customer records (e.g. merge or update details so only one active customer uses that email).
+3. After resolving the conflict, unarchive the customer from QuarryLink (recommended), and let QuarryLink update Xero.
+
+If you need help resolving the conflict, contact {supportEmail}.
+
+Thanks,
+The QuarryLink Team
+
+---
+You're receiving this email because a Xero unarchive action could not be applied in QuarryLink, and the Xero contact has been re-archived to maintain consistency.
