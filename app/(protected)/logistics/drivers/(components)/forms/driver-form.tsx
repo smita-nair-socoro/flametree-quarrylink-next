@@ -247,13 +247,10 @@ export default function DriverForm({
     ? (internalHaulier?.id ?? 0)
     : (selectedHaulierId ?? 0);
 
-  const prevHaulierIdRef = React.useRef<number | undefined>(undefined);
   React.useEffect(() => {
-    if (prevHaulierIdRef.current !== undefined && prevHaulierIdRef.current !== effectiveHaulierId) {
-      driverForm.setValue('assignedTrucks', []);
-    }
-    prevHaulierIdRef.current = effectiveHaulierId;
-  }, [effectiveHaulierId, driverForm]);
+    driverForm.setValue('assignedTrucks', []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveHaulierId]);
 
   const { data: haulierTrucksData } = useQuery(HaulierTrucksQueryOptions(effectiveHaulierId));
   const haulierTrucks = haulierTrucksData?.trucks ?? [];
