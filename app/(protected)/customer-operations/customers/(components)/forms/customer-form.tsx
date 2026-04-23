@@ -106,17 +106,8 @@ export default function CustomerForm({
   // When true, onSubmit bypasses the isEditing check and always calls create (retry sync)
   const isRetrySyncRef = React.useRef(false);
 
-  // TODO: replace dummy IDs with real accSoftwareNotes from API response
-  const DUMMY_NOT_SYNCED_ID = 10;
-  const DUMMY_NOT_LINKED_ID = 6;
-  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(
-    id === DUMMY_NOT_SYNCED_ID
-      ? 'Customer is not synced to Xero due to a validation error.'
-      : null,
-  );
-  const [notLinkedWarning, setNotLinkedWarning] = React.useState(
-    id === DUMMY_NOT_LINKED_ID,
-  );
+  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
+  const [notLinkedWarning, setNotLinkedWarning] = React.useState(false);
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -236,6 +227,17 @@ export default function CustomerForm({
     return false;
   };
 
+  // Initialize sync banners from real customer data when editing
+  React.useEffect(() => {
+    setXeroSyncError(null);
+    setNotLinkedWarning(false);
+    if (!isEditing || !selectedCustomer) return;
+    if (!selectedCustomer.accSoftwareContactId) {
+      handleSyncNote(selectedCustomer.accSoftwareNotes);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCustomer?.id, isEditing]);
+
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
     console.log('onSubmit function called!');
     console.log('Customer Form Values:', values);
@@ -327,7 +329,7 @@ export default function CustomerForm({
       if (isEditing && !isRetrySyncRef.current) {
         const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
-        if (handleSyncNote(result.accSoftwareNotes)) return;
+        if (!result.accSoftwareContactId && handleSyncNote(result.accSoftwareNotes)) return;
       } else {
         const newCustomer = await createCustomer.mutateAsync(customerData);
         notifySuccess('Customer Added Successfully!');
@@ -335,12 +337,12 @@ export default function CustomerForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newCustomer && typeof newCustomer.id === 'number') {
           addNewRecordId('customer_main_data_table', newCustomer.id);
-          if (newCustomer.accSoftwareNotes?.toLowerCase().includes('not synced')) {
+          if (!newCustomer.accSoftwareContactId) {
             addSyncErrorRecordId('customer_main_data_table', newCustomer.id);
           }
         }
 
-        if (handleSyncNote(newCustomer.accSoftwareNotes)) return;
+        if (!newCustomer.accSoftwareContactId && handleSyncNote(newCustomer.accSoftwareNotes)) return;
       }
 
       onSuccess?.();
