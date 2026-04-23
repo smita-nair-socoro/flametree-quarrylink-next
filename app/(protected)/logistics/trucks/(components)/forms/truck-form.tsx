@@ -250,36 +250,44 @@ export default function TruckForm({
     }
 
     try {
-      const resolvedHaulierId = isInternal
-        ? internalHaulier?.id
-        : values.haulierId;
-
-      const payload = {
-        haulierId: resolvedHaulierId || undefined,
-        truckBusinessType:
-          truckOwnerType === 'EXTERNAL'
-            ? ('SUBCONTRACTOR' as const)
-            : ('INTERNAL' as const),
-        truckBodyType: 'ALUMINIUM',
-        pbsApproved: false,
-        licensePlate: values.licensePlate,
-        vin: values.vin || undefined,
-        model: values.model,
-        year: values.year ? parseInt(values.year) : undefined,
-        truckType: values.truckType,
-        tankVolumeM3: values.tankVolumeM3,
-        tareWeight: values.tareWeight,
-        combinationGvm: values.combinationGvm,
-        driverIds: values.driverIds?.map(Number) ?? [],
-      };
-
       if (isEditing && id && truckData) {
         await updateTruck.mutateAsync({
           id,
-          data: { ...payload, version: truckData.version ?? 0 },
+          data: {
+            version: truckData.version ?? 0,
+            licensePlate: values.licensePlate,
+            vin: values.vin || undefined,
+            model: values.model,
+            year: values.year ? parseInt(values.year) : undefined,
+            truckType: values.truckType,
+            tankVolumeM3: values.tankVolumeM3,
+            tareWeight: values.tareWeight,
+            combinationGvm: values.combinationGvm,
+          },
         });
       } else {
-        const newTruck = await createTruck.mutateAsync(payload);
+        const resolvedHaulierId = isInternal
+          ? internalHaulier?.id
+          : values.haulierId;
+
+        const newTruck = await createTruck.mutateAsync({
+          haulierId: resolvedHaulierId || undefined,
+          truckBusinessType:
+            truckOwnerType === 'EXTERNAL'
+              ? ('SUBCONTRACTOR' as const)
+              : ('INTERNAL' as const),
+          truckBodyType: 'ALUMINIUM',
+          pbsApproved: false,
+          licensePlate: values.licensePlate,
+          vin: values.vin || undefined,
+          model: values.model,
+          year: values.year ? parseInt(values.year) : undefined,
+          truckType: values.truckType,
+          tankVolumeM3: values.tankVolumeM3,
+          tareWeight: values.tareWeight,
+          combinationGvm: values.combinationGvm,
+          driverIds: values.driverIds?.map(Number) ?? [],
+        });
         if (newTruck && typeof newTruck.id === 'number') {
           addNewRecordId('truck_main_data_table', newTruck.id);
         }

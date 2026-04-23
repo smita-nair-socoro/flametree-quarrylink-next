@@ -187,10 +187,6 @@ export default function DriverForm({
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
-      const selectedHaulierData = isInternal
-        ? internalHaulier
-        : hauliers.find((h) => h.id === values.haulierId);
-
       if (isEditing && id && driverData) {
         await updateDriver.mutateAsync({
           id,
@@ -200,13 +196,16 @@ export default function DriverForm({
             licenseNumber: values.driverLicenseNumber,
             emailAddress: values.email,
             phoneNumber: values.phone,
-            driverType: values.type,
+            driverType: driverData.driverType,
             driverStatus: driverData.driverStatus ?? DRIVER_STATUS.ACTIVE,
             truckIds: driverData.truckIds ?? [],
-            haulierId: selectedHaulierData?.id,
           },
         });
       } else {
+        const selectedHaulierData = isInternal
+          ? internalHaulier
+          : hauliers.find((h) => h.id === values.haulierId);
+
         const newDriver = await createDriver.mutateAsync({
           driverName: values.driverName,
           driverType: values.type,
