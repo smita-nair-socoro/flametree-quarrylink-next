@@ -214,7 +214,7 @@ export default function TruckForm({
       truckForm.reset({
         haulierId: truckData.haulier?.id ?? truckData.haulierId ?? 0,
         licensePlate: truckData.licensePlate ?? '',
-        vin: '',
+        vin: truckData.vin ?? '',
         model: truckData.model ?? '',
         year: truckData.year?.toString() ?? '',
         truckType: truckData.truckType,
@@ -287,7 +287,7 @@ export default function TruckForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
     }
   }
@@ -529,7 +529,7 @@ export default function TruckForm({
               </div>
 
               <div className="flex flex-col gap-3">
-                  <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
+                <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
                 <Separator />
                 <div
                   className={cn(
@@ -624,10 +624,17 @@ export default function TruckForm({
                     >
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">{driver.licenseNumber}</span>
-                          <span className="font-medium">{driver.driverName}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {driver.licenseNumber}
+                          </span>
+                          <span className="font-medium">
+                            {driver.driverName}
+                          </span>
                         </div>
-                        <TableBadges names={[driver.status, driver.driverType]} visibleCount={2} />
+                        <TableBadges
+                          names={[driver.status, driver.driverType]}
+                          visibleCount={2}
+                        />
                       </div>
                       <Button
                         type="button"
