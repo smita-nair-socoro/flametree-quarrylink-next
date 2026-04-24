@@ -59,12 +59,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
-  const [cannotDeactivateCount, setCannotDeactivateCount] = React.useState<
-    number | null
-  >(null);
-  const [cannotDeleteCount, setCannotDeleteCount] = React.useState<
-    number | null
-  >(null);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
   const [selectedDriver, setSelectedDriver] = React.useState<
     (UnassignDriverInfo & { id: number }) | null
   >(null);
@@ -109,13 +105,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       setActiveDialog(null);
     } catch (error: unknown) {
       const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const activeDocketCount =
-        typeof errorData?.activeDocketCount === 'number'
-          ? errorData.activeDocketCount
-          : null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
 
-      if (activeDocketCount !== null && activeDocketCount > 0) {
-        setCannotDeactivateCount(activeDocketCount);
+      if (docketIds.length > 0) {
+        setCannotDeactivateDocketIds(docketIds);
         setActiveDialog('cannot_deactivate');
       } else {
         notifyError(extractErrorMessage(error) || 'Failed to deactivate truck.');
@@ -144,13 +139,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       setViewOpen(false);
     } catch (error: unknown) {
       const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const activeDocketCount =
-        typeof errorData?.activeDocketCount === 'number'
-          ? errorData.activeDocketCount
-          : null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
 
-      if (activeDocketCount !== null && activeDocketCount > 0) {
-        setCannotDeleteCount(activeDocketCount);
+      if (docketIds.length > 0) {
+        setCannotDeleteDocketIds(docketIds);
         setActiveDialog('cannot_delete');
       } else {
         notifyError(extractErrorMessage(error) || 'Failed to delete truck.');
@@ -234,9 +228,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         title: 'Cannot Deactivate Truck',
         description: <CannotDeactivateTruckDescription truck={truckData} />,
         content: (
-          <CannotDeactivateTruckContent
-            activeDocketCount={cannotDeactivateCount ?? 0}
-          />
+          <CannotDeactivateTruckContent activeDocketIds={cannotDeactivateDocketIds} />
         ),
         confirmActionNeeded: false,
         cancelText: 'Cancel',
@@ -264,7 +256,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: (
           <CannotDeleteTruckContent
             truck={truckData}
-            activeDocketCount={cannotDeleteCount ?? 0}
+            activeDocketIds={cannotDeleteDocketIds}
           />
         ),
         confirmActionNeeded: false,
@@ -320,8 +312,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     }),
     [
       truckData,
-      cannotDeactivateCount,
-      cannotDeleteCount,
+      cannotDeactivateDocketIds,
+      cannotDeleteDocketIds,
       assignedDrivers,
       completedDocketBreakdown,
       selectedDriver,

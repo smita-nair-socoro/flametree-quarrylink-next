@@ -31,9 +31,14 @@ export function UnassignTruckDescription({
 
 export function UnassignTruckBlockedContent({
   licensePlate,
+  activeDocketIds = [],
 }: {
   licensePlate: string;
+  activeDocketIds?: number[];
 }) {
+  const docketCount = activeDocketIds.length;
+  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
+
   return (
     <div className="flex flex-col gap-5">
       <span className="text-[14px] font-normal text-gray-700">
@@ -72,6 +77,19 @@ export function UnassignTruckBlockedContent({
           </ul>
         </div>
       </div>
+
+      {docketCount > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold text-gray-900">
+            Active Dockets Found:
+          </span>
+          <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
+            <a href={docketLink} className="text-[14px] text-[#155DFC] underline font-medium">
+              {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

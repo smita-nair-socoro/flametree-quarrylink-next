@@ -39,6 +39,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   const [selectedTruck, setSelectedTruck] =
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
+  const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
   // Prevents ActionDialog's auto-close from resetting activeDialog when
   // transitioning to a follow-up dialog (e.g. unassign → unassignBlocked).
   // Can be removed once ActionDialog is refactored to not auto-close after confirm.
@@ -86,11 +87,12 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       setSelectedTruck(null);
     } catch (error) {
       const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const hasActiveDeliveries =
-        typeof errorData?.activeDeliveryCount === 'number' &&
-        errorData.activeDeliveryCount > 0;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
 
-      if (hasActiveDeliveries) {
+      if (docketIds.length > 0) {
+        setBlockedDocketIds(docketIds);
         transitioningRef.current = true;
         setActiveDialog('unassignBlocked');
       } else {
@@ -147,6 +149,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content: selectedTruck ? (
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
+            activeDocketIds={blockedDocketIds}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -155,7 +158,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         cancelText: 'Cancel',
       },
     }),
-    [driverData, selectedTruck, selectedTruckIds, availableTrucks],
+    [driverData, selectedTruck, selectedTruckIds, availableTrucks, blockedDocketIds],
   );
 
   const actionHandlers: Record<string, () => Promise<void>> = {

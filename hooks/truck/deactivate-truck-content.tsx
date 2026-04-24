@@ -145,19 +145,21 @@ export function CannotDeactivateTruckDescription({
 }
 
 export function CannotDeactivateTruckContent({
-  activeDocketCount = 0,
+  activeDocketIds = [],
 }: {
-  activeDocketCount?: number;
+  activeDocketIds?: number[];
 }) {
+  const docketCount = activeDocketIds.length;
+  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Error box */}
       <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] p-4 flex flex-col gap-1">
         <div className="flex items-start gap-2">
           <TriangleAlert className="h-4 w-4 text-[#E7000B] flex-shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1">
             <span className="text-[14px] font-semibold text-[#991B1B]">
-              Cannot deactivate Truck
+              Cannot Deactivate Truck
             </span>
             <span className="text-[14px] text-[#B91C1C]">
               The following dockets must be completed, cancelled, voided or
@@ -167,18 +169,21 @@ export function CannotDeactivateTruckContent({
         </div>
       </div>
 
-      {/* Active dockets */}
-      <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-semibold text-gray-900">
-          Active Dockets Found:
-        </span>
-        <div className="rounded-md border border-[#FECACA] bg-[#FFF5F5] px-4 py-3">
-          <span className="text-[14px] text-[#1D4ED8] underline cursor-pointer">
-            {activeDocketCount}{' '}
-            {activeDocketCount === 1 ? 'active docket' : 'active dockets'}
+      {docketCount > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold text-gray-900">
+            Active Dockets Found:
           </span>
+          <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
+            <a
+              href={docketLink}
+              className="text-[14px] text-[#155DFC] underline font-medium"
+            >
+              {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+            </a>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
