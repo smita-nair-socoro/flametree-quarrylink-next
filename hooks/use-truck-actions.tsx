@@ -253,7 +253,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
             completedDocketBreakdown={completedDocketBreakdown}
           />
         ),
-        confirmText: 'Mark as Unavailable',
+        confirmText: 'Deactivate Truck',
         confirmVariant: 'destructive',
         confirmCustomColor: '#DC2626',
         cancelText: 'Cancel',
