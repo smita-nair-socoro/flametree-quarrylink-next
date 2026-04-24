@@ -17,9 +17,9 @@ export function UnassignTruckDescription({
 }) {
   return (
     <div className="flex justify-start items-center gap-2">
-      <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md flex-shrink-0">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-md flex-shrink-0">
         <span className="flex items-center justify-center">
-          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
+          <TriangleAlert className="h-[20px] w-[20px] text-[#F97316]" />
         </span>
       </div>
       <span className="font-medium">
@@ -62,7 +62,7 @@ export function UnassignTruckBlockedContent({
 
       <div className="border border-[#BAE6FD] rounded-md p-4 bg-[#F0F9FF]">
         <div className="flex flex-col gap-2">
-          <span className="text-[14px] font-semibold text-[#075985]">
+          <span className="text-[14px] font-semibold text-[#155DFC]">
             Options
           </span>
           <ul className="flex flex-col gap-1 pl-1">
@@ -84,7 +84,10 @@ export function UnassignTruckBlockedContent({
             Active Dockets Found:
           </span>
           <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
-            <a href={docketLink} className="text-[14px] text-[#155DFC] underline font-medium">
+            <a
+              href={docketLink}
+              className="text-[14px] text-[#155DFC] underline font-medium"
+            >
               {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
             </a>
           </div>

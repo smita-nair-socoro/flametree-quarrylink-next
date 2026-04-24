@@ -16,12 +16,12 @@ export function UnassignDriverDescription({
 }) {
   return (
     <div className="flex justify-start items-center gap-2">
-      <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md flex-shrink-0">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-md flex-shrink-0">
         <span className="flex items-center justify-center">
-          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
+          <TriangleAlert className="h-[20px] w-[20px] text-[#F97316]" />
         </span>
       </div>
-      <span className="font-medium">
+      <span className="font-medium bg-[#F9FAFB] border border-[#E5E5E5] rounded-md px-2 py-1">
         {licensePlate} / {driverName}
       </span>
     </div>
@@ -61,7 +61,7 @@ export function UnassignDriverBlockedContent({
 
       <div className="border border-[#BAE6FD] rounded-md p-4 bg-[#F0F9FF]">
         <div className="flex flex-col gap-2">
-          <span className="text-[14px] font-semibold text-[#075985]">
+          <span className="text-[14px] font-semibold text-[#155DFC]">
             Options
           </span>
           <ul className="flex flex-col gap-1 pl-1">
@@ -109,10 +109,7 @@ export function UnassignDriverContent({
 
       <div className="flex items-center justify-between rounded-md border px-4 py-3">
         <span className="text-sm font-medium">{driver.driverName}</span>
-        <TableBadges
-          names={[driver.status]}
-          visibleCount={1}
-        />
+        <TableBadges names={[driver.status]} visibleCount={1} />
       </div>
     </div>
   );
