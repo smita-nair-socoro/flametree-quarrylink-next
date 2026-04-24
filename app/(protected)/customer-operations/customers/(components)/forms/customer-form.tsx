@@ -530,7 +530,7 @@ export default function CustomerForm({
                 type="button"
                 variant="outline"
                 className="flex-shrink-0 gap-2 border-[#D97706] text-[#92400E] hover:text-[#92400E]"
-                onClick={() => router.push('/system/accounting')}
+                onClick={() => router.push('/system/user-management?tab=Integration')}
               >
                 <Settings className="h-4 w-4" />
                 Go to Settings
