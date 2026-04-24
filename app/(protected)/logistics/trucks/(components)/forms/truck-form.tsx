@@ -70,7 +70,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-// TODO: replace with real inspection data from API
 const DUMMY_INSPECTIONS: InspectionRecord[] = [
   {
     id: 1,
@@ -195,13 +194,11 @@ export default function TruckForm({
     truckData?.model === 'GENERIC' &&
     (truckData?.licensePlate?.startsWith('GENERIC') ?? false);
 
-  // Report dirty state to parent
   React.useEffect(() => {
     onDirtyChange?.(truckForm.formState.isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [truckForm.formState.isDirty]);
 
-  // Clear haulier field when switching to internal (create mode only)
   React.useEffect(() => {
     if (isInternal && !isEditing) {
       truckForm.setValue('haulierId', internalHaulier?.id ?? 0, {
@@ -210,7 +207,6 @@ export default function TruckForm({
     }
   }, [isInternal, isEditing, truckForm, internalHaulier?.id]);
 
-  // Populate form when editing and truck data is loaded
   React.useEffect(() => {
     if (isEditing && truckData) {
       const isInternalTruck = truckData.truckBusinessType === 'INTERNAL';
@@ -234,10 +230,6 @@ export default function TruckForm({
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
   async function onSubmit(values: TruckFormValues) {
-    console.log('Form values on submit:', values, {
-      effectiveHaulierId,
-      isInternal,
-    });
     if (!isInternal && !effectiveHaulierId) {
       notifyError('Haulier is required. Please select a haulier.');
       return;
@@ -349,7 +341,6 @@ export default function TruckForm({
           )}
           onSubmit={truckForm.handleSubmit(onSubmit, onError)}
         >
-          {/* Generic truck info banner */}
           {isGenericTruck && (
             <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 text-blue-900 rounded-md px-4 py-3 text-sm">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
@@ -362,12 +353,10 @@ export default function TruckForm({
 
           {!isGenericTruck && (
             <>
-              {/* Basic Information */}
               <div className="flex flex-col gap-3">
                 <h2 className="text-lg font-bold">Basic Information</h2>
                 <Separator />
 
-                {/* Truck Type (ownership) */}
                 <FormItem className="mb-3">
                   <FormLabel>Truck Type*</FormLabel>
                   <RadioGroup
@@ -389,7 +378,6 @@ export default function TruckForm({
                   </RadioGroup>
                 </FormItem>
 
-                {/* Haulier */}
                 {isEditing ? (
                   <>
                     <FormItem>
@@ -458,7 +446,6 @@ export default function TruckForm({
                   />
                 )}
 
-                {/* Truck Registration */}
                 <FormField
                   control={truckForm.control}
                   name="licensePlate"
@@ -473,7 +460,6 @@ export default function TruckForm({
                   )}
                 />
 
-                {/* VIN */}
                 <FormField
                   control={truckForm.control}
                   name="vin"
@@ -488,7 +474,6 @@ export default function TruckForm({
                   )}
                 />
 
-                {/* Make & Model */}
                 <FormField
                   control={truckForm.control}
                   name="model"
@@ -544,8 +529,7 @@ export default function TruckForm({
               </div>
 
               <div className="flex flex-col gap-3">
-                {/* Volume & Weight */}
-                <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
+                  <h2 className="text-lg font-bold">Volume &amp; Weight</h2>
                 <Separator />
                 <div
                   className={cn(
@@ -613,7 +597,6 @@ export default function TruckForm({
               </div>
             </>
           )}
-          {/* Driver Assignment */}
           {isEditing ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -686,7 +669,6 @@ export default function TruckForm({
             </>
           )}
 
-          {/* Truck Inspections — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-4">
@@ -710,7 +692,6 @@ export default function TruckForm({
             />
           )}
 
-          {/* Form Actions */}
           {isDesktop && (
             <div className="flex justify-end gap-3 pt-2 mb-6">
               <Button

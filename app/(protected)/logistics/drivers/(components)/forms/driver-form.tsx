@@ -153,7 +153,6 @@ export default function DriverForm({
     },
   });
 
-  // Populate form when editing
   React.useEffect(() => {
     if (isEditing && driverData) {
       driverForm.reset({
@@ -177,7 +176,6 @@ export default function DriverForm({
     return hauliers.find((h) => h.id === selectedHaulierId);
   }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
-  // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(driverForm.formState.isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -300,7 +298,6 @@ export default function DriverForm({
           )}
           onSubmit={driverForm.handleSubmit(onSubmit, onError)}
         >
-          {/* Driver Type */}
           <FormField
             control={driverForm.control}
             name="type"
@@ -336,7 +333,6 @@ export default function DriverForm({
 
           <Separator className="my-3" />
 
-          {/* Driver Name + Haulier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <FormField
               control={driverForm.control}
@@ -404,7 +400,6 @@ export default function DriverForm({
             )}
           </div>
 
-          {/* Contact Information */}
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">Contact Information</h2>
             <Separator />
@@ -466,7 +461,6 @@ export default function DriverForm({
             </div>
           </div>
 
-          {/* License & Assignment */}
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">License &amp; Assignment</h2>
             <Separator />
@@ -502,7 +496,6 @@ export default function DriverForm({
             </div>
           </div>
 
-          {/* Truck Assignments — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -556,7 +549,6 @@ export default function DriverForm({
             </div>
           )}
 
-          {/* Safety & Compliance — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
               <Separator />
@@ -578,7 +570,6 @@ export default function DriverForm({
             />
           )}
 
-          {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-2 mb-6">
             <Button
               variant="outline"

@@ -62,13 +62,12 @@ export function DriverActionButtons({
     <div className="flex items-start">
       {confirmDialogs}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-
         {/* Assigned Dockets — always shown as primary */}
         <Button
           variant="ghost"
           size="sm"
           onClick={onAssignedDockets}
-          className={`rounded-none bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800 ${hasSecondaryActions ? 'border-r border-gray-200' : ''}`}
+          className={`rounded-none bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800`}
         >
           <FileText className="h-4 w-4 mr-2" />
           Assigned Dockets
@@ -89,7 +88,12 @@ export function DriverActionButtons({
             <DropdownMenuContent align="end" className="w-48">
               {status === DRIVER_STATUS.PENDING_INVITATION && (
                 <>
-                  <DropdownMenuItem onClick={() => { setDropdownOpen(false); onResendInvitation?.(); }}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      onResendInvitation?.();
+                    }}
+                  >
                     <RefreshCw className="h-4 w-4 mr-2 text-purple-700" />
                     <span className="text-purple-700">Resend Invitation</span>
                   </DropdownMenuItem>
@@ -125,7 +129,6 @@ export function DriverActionButtons({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-
       </div>
     </div>
   );
