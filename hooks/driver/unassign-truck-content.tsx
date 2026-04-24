@@ -104,7 +104,7 @@ export function UnassignTruckContent({ truck }: { truck: UnassignTruckInfo }) {
         Are you sure you want to unassign this truck from the driver?
       </span>
 
-      <div className="flex items-center justify-between rounded-md border px-4 py-3">
+      <div className="flex items-center justify-between rounded-md border px-4 py-3 bg-[#F9FAFB] border-[#E5E5E5]">
         <span className="text-sm font-medium">{truck.licensePlate}</span>
         <Badge
           variant="outline"

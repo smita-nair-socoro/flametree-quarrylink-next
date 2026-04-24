@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
@@ -8,7 +9,10 @@ import { TruckDTO } from '@/lib/types/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 import {
   DeactivateTruckDescription,
   DeactivateTruckContent,
@@ -34,7 +38,13 @@ import {
 } from '@/hooks/truck/unassign-driver-content';
 import { useQuery } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
-import { useAssignDriversToTruck, useUnassignDriverFromTruck, useDeactivateTruck, useReactivateTruck, useDeleteTruck } from '@/lib/api/truck';
+import {
+  useAssignDriversToTruck,
+  useUnassignDriverFromTruck,
+  useDeactivateTruck,
+  useReactivateTruck,
+  useDeleteTruck,
+} from '@/lib/api/truck';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 
 interface DialogConfig {
@@ -56,11 +66,15 @@ interface DialogConfig {
 }
 
 export function useTruckActions(truckData?: TruckDTO | null) {
+  const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
-  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
-  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
+    React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<
+    number[]
+  >([]);
   const [selectedDriver, setSelectedDriver] = React.useState<
     (UnassignDriverInfo & { id: number }) | null
   >(null);
@@ -74,8 +88,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const transitioningRef = React.useRef(false);
 
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
-  const { data: availableDriversData } = useQuery(HaulierDriversQueryOptions(haulierId));
-  const assignedDriverIds = new Set((truckData?.drivers ?? []).map((d) => d.id));
+  const { data: availableDriversData } = useQuery(
+    HaulierDriversQueryOptions(haulierId),
+  );
+  const assignedDriverIds = new Set(
+    (truckData?.drivers ?? []).map((d) => d.id),
+  );
   const availableDrivers = (availableDriversData?.drivers ?? []).filter(
     (d) => !assignedDriverIds.has(d.id),
   );
@@ -84,7 +102,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const deactivateTruck = useDeactivateTruck();
   const reactivateTruck = useReactivateTruck();
   const deleteTruck = useDeleteTruck();
-
 
   const assignedDrivers: string[] = (truckData?.drivers ?? []).map(
     (driver) => driver.driverName,
@@ -104,7 +121,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
       const docketIds = Array.isArray(errorData?.activeDocketIds)
         ? (errorData.activeDocketIds as number[])
         : [];
@@ -113,7 +133,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         setCannotDeactivateDocketIds(docketIds);
         setActiveDialog('cannot_deactivate');
       } else {
-        notifyError(extractErrorMessage(error) || 'Failed to deactivate truck.');
+        notifyError(
+          extractErrorMessage(error) || 'Failed to deactivate truck.',
+        );
         setActiveDialog(null);
       }
     }
@@ -138,7 +160,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       setActiveDialog(null);
       setViewOpen(false);
     } catch (error: unknown) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
       const docketIds = Array.isArray(errorData?.activeDocketIds)
         ? (errorData.activeDocketIds as number[])
         : [];
@@ -183,7 +208,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       setActiveDialog(null);
       setSelectedDriver(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
       const hasActiveDeliveries =
         typeof errorData?.activeDeliveryCount === 'number' &&
         errorData.activeDeliveryCount > 0;
@@ -201,11 +229,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     }
   };
 
-  const handleTransferDockets = async () => {
-    // TODO: wire up transfer dockets API call / navigation
-    console.log('Transfer dockets for driver:', selectedDriver);
+  const handleTransferDockets = () => {
+    const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
     setActiveDialog(null);
     setSelectedDriver(null);
+    setBlockedDocketIds([]);
+    router.push(docketLink);
   };
 
   const dialogConfigs = React.useMemo(
@@ -228,7 +257,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         title: 'Cannot Deactivate Truck',
         description: <CannotDeactivateTruckDescription truck={truckData} />,
         content: (
-          <CannotDeactivateTruckContent activeDocketIds={cannotDeactivateDocketIds} />
+          <CannotDeactivateTruckContent
+            activeDocketIds={cannotDeactivateDocketIds}
+          />
         ),
         confirmActionNeeded: false,
         cancelText: 'Cancel',
@@ -331,7 +362,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     unassignDriver: () => {
       if (selectedDriver) void handleUnassignDriver(selectedDriver);
     },
-    unassignDriverBlocked: () => void handleTransferDockets(),
+    unassignDriverBlocked: () => handleTransferDockets(),
   };
 
   const actions = {

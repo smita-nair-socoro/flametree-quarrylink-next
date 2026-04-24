@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
 import { AssignTruckContent } from './assign-truck-content';
@@ -12,9 +13,15 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { useQuery } from '@tanstack/react-query';
 import { HaulierTrucksQueryOptions } from '@/lib/api/haulier';
-import { usePatchDriverTrucks, useUnassignTruckFromDriver } from '@/lib/api/driver';
+import {
+  usePatchDriverTrucks,
+  useUnassignTruckFromDriver,
+} from '@/lib/api/driver';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title: string;
@@ -24,17 +31,18 @@ interface DialogConfig {
   confirmCustomColor?: string;
   confirmIcon?: React.ReactNode;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   confirmActionNeeded?: boolean;
   cancelText?: string;
 }
 
 export function useDriverTruckActions(driverData?: DriverDTO | null) {
+  const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedTruck, setSelectedTruck] =
     React.useState<UnassignTruckInfo | null>(null);
@@ -46,7 +54,9 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   const transitioningRef = React.useRef(false);
 
   const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
-  const { data: availableTrucksData } = useQuery(HaulierTrucksQueryOptions(haulierId));
+  const { data: availableTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(haulierId),
+  );
   const availableTrucks = availableTrucksData?.trucks ?? [];
   const patchDriverTrucks = usePatchDriverTrucks();
   const unassignTruckFromDriver = useUnassignTruckFromDriver();
@@ -54,7 +64,9 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   const handleAssignTrucks = async () => {
     if (!driverData?.id) return;
     try {
-      const merged = [...new Set([...(driverData.truckIds ?? []), ...selectedTruckIds])];
+      const merged = [
+        ...new Set([...(driverData.truckIds ?? []), ...selectedTruckIds]),
+      ];
       await patchDriverTrucks.mutateAsync({
         id: driverData.id,
         data: {
@@ -86,7 +98,10 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       setActiveDialog(null);
       setSelectedTruck(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
       const docketIds = Array.isArray(errorData?.activeDocketIds)
         ? (errorData.activeDocketIds as number[])
         : [];
@@ -101,11 +116,12 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     }
   };
 
-  const handleTransferDockets = async () => {
-    // TODO: wire up transfer dockets API call / navigation
-    console.log('Transfer dockets for truck:', selectedTruck);
+  const handleTransferDockets = () => {
+    const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
     setActiveDialog(null);
     setSelectedTruck(null);
+    setBlockedDocketIds([]);
+    router.push(docketLink);
   };
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
@@ -158,7 +174,13 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         cancelText: 'Cancel',
       },
     }),
-    [driverData, selectedTruck, selectedTruckIds, availableTrucks, blockedDocketIds],
+    [
+      driverData,
+      selectedTruck,
+      selectedTruckIds,
+      availableTrucks,
+      blockedDocketIds,
+    ],
   );
 
   const actionHandlers: Record<string, () => Promise<void>> = {
@@ -171,7 +193,10 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       }
       return Promise.resolve();
     },
-    unassignBlocked: () => handleTransferDockets(),
+    unassignBlocked: () => {
+      handleTransferDockets();
+      return Promise.resolve();
+    },
   };
 
   const actions = {

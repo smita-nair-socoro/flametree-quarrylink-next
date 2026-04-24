@@ -21,7 +21,7 @@ export function UnassignDriverDescription({
           <TriangleAlert className="h-[20px] w-[20px] text-[#F97316]" />
         </span>
       </div>
-      <span className="font-medium bg-[#F9FAFB] border border-[#E5E5E5] rounded-md px-2 py-1">
+      <span className="font-medium">
         {licensePlate} / {driverName}
       </span>
     </div>
@@ -107,8 +107,8 @@ export function UnassignDriverContent({
         Are you sure you want to unassign this driver from the truck?
       </span>
 
-      <div className="flex items-center justify-between rounded-md border px-4 py-3">
-        <span className="text-sm font-medium">{driver.driverName}</span>
+      <div className="flex items-center justify-between rounded-md border px-4 py-3 bg-[#F9FAFB] border-[#E5E5E5] ">
+        <span className="text-sm font-medium ">{driver.driverName}</span>
         <TableBadges names={[driver.status]} visibleCount={1} />
       </div>
     </div>
