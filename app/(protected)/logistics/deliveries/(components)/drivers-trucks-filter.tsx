@@ -48,7 +48,7 @@ const TRUCK_OPTIONS = [
   { name: 'TRUCK5', rego: 'TRUCK5' },
 ];
 
-export function ScheduleFilter({ viewType }: { viewType: 'drivers' | 'trucks' }) {
+export function DriversTrucksFilter({ viewType }: { viewType: 'drivers' | 'trucks' }) {
   const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>(['All (Except Unassigned)']);
   const [selectedDrivers, setSelectedDrivers] = React.useState<string[]>([]);
   const [selectedDriverStatuses, setSelectedDriverStatuses] = React.useState<string[]>([]);

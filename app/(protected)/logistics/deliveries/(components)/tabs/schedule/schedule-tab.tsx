@@ -1,8 +1,7 @@
 'use client';
 
 import { ScheduleMonthView } from './views/month-view';
-import { ScheduleWeekDriversView } from './views/week-drivers-view';
-import { ScheduleWeekTrucksView } from './views/week-trucks-view';
+import { ScheduleWeekView } from './views/week-view';
 
 type ScheduleTabProps = {
   selectedDate: Date;
@@ -20,10 +19,7 @@ export default function ScheduleTab({
   if (periodView === 'month') {
     return <ScheduleMonthView date={selectedDate} onDateChange={onDateChange} />;
   }
-
-  if (resourceView === 'drivers') {
-    return <ScheduleWeekDriversView date={selectedDate} />;
+  if (periodView === 'week') {
+    return <ScheduleWeekView date={selectedDate} viewType={resourceView} onDateChange={onDateChange} />;
   }
-
-  return <ScheduleWeekTrucksView date={selectedDate} />;
 }

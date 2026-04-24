@@ -63,7 +63,11 @@ export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks
     if (docketsData) {
       // Handle both paginated responses (with .content) and direct arrays
       const docketsArray = 'content' in docketsData ? docketsData.content : docketsData;
-      setDockets(docketsArray as DispatchDocket[]);
+      if (docketsArray.length > 0) {
+        setDockets(docketsArray as DispatchDocket[]);
+      } else {
+        setDockets([]);
+      }
     }
   }, [docketsData]);
 

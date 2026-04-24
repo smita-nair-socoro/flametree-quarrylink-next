@@ -9,6 +9,7 @@ import { DocketDetailsPanel } from '../../dispatch/cards/docket-details-panel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { DocketDTO } from '@/lib/types/docket';
 import { ScheduleFilter } from './schedule-filter';
 
 function getChipColor(status: DOCKET_STATUS) {
@@ -89,16 +90,19 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
 
   const { data: docketsData } = useQuery(DocketsListQueryOptions());
 
-  const dockets: DispatchDocket[] = useMemo(() => {
+  const dockets: DocketDTO[] = useMemo(() => {
     if (!docketsData) return [];
-    const allDockets = ('content' in docketsData ? docketsData.content : docketsData) as DispatchDocket[];
+    const allDockets = ('content' in docketsData ? docketsData.content : docketsData) as DocketDTO[];
 
-    // Filter to only include specific statuses
-    return allDockets;
+    if (allDockets.length > 0) {
+      return allDockets;
+    } else {
+      return [];
+    }
   }, [docketsData]);
 
   const docketsByDate = useMemo(() => {
-    const grouped: Record<string, DispatchDocket[]> = {};
+    const grouped: Record<string, DocketDTO[]> = {};
     dockets.forEach(docket => {
       if (!docket.deliveryCollectionDate) return;
       // Format as YYYY-MM-DD for grouping
@@ -132,7 +136,7 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
-      <ScheduleFilter />
+      <ScheduleFilter viewType="trucks" />
       {/* Fixed top bar */}
       <div className="border-b pl-6 py-2.5 bg-white shrink-0">
         <div className="flex items-center gap-3">
@@ -154,12 +158,10 @@ export function ScheduleMonthView({ date, onDateChange }: { date: Date; onDateCh
         </div>
       </div>
 
-      {/* Body row: scrollable calendar + fixed right panel */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
-        {/* Scrollable left content */}
         <div className="flex-1 overflow-y-auto bg-white my-5 mx-3 rounded-xl border border-gray-300 shadow-md">
-          <div className="overflow-hidden mb-6">
+          <div className="mb-6">
             <div className="p-5 bg-gray-100">
               <h2 className="text-xl font-bold text-gray-900">{format(date, 'MMMM yyyy')}</h2>
               <p className="text-sm text-gray-500 mt-1">Fleet load and assignments at a glance</p>
