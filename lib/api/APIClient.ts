@@ -44,6 +44,7 @@ import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
+import { DriverPreStartChecklistsPage } from '../types/driver-compliance';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -1083,6 +1084,14 @@ export const APIClient = {
       ),
     getAssignments: (id: number) =>
       appClient.Get<Record<string, unknown>>(`/socoro/quarrylink/api/driver/${id}/assignments`),
+    getPreStartChecklists: (driverId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+      appClient.Get<DriverPreStartChecklistsPage>(`/socoro/quarrylink/api/driver/${driverId}/pre-start-checklists`, {
+        queryString: {
+          page: params?.page?.toString(),
+          size: params?.size?.toString(),
+          sort: params?.sort?.join(','),
+        },
+      }),
   },
 
   trucks: {

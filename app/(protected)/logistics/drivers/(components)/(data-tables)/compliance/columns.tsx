@@ -4,38 +4,34 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ComplianceTableActions } from './compliance-table-actions';
 import { TableBadges } from '@/components/table-badges';
-// import { DateCell } from '@/components/date-cell';
+import { DriverPreStartChecklist } from '@/lib/types/driver-compliance';
 
-export type ComplianceRecord = {
-  id: number;
-  checklistId: string;
-  date: string;
-  status: string;
-  notes?: string;
-};
-
-export const complianceColumns: ColumnDef<ComplianceRecord>[] = [
+export const complianceColumns: ColumnDef<DriverPreStartChecklist>[] = [
   {
-    id: 'checklistId',
-    accessorFn: (row) => row.checklistId,
+    id: 'submissionNumber',
+    accessorFn: (row) => row.submissionNumber,
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Checklist ID" />
     ),
     cell: ({ row }) => (
-      <span className="font-medium py-2 block">{row.original.checklistId}</span>
+      <span className="font-medium py-2 block">{row.original.submissionNumber}</span>
     ),
   },
   {
-    id: 'date',
-    accessorFn: (row) => row.date,
+    id: 'submittedAt',
+    accessorFn: (row) => row.submittedAt,
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Date" />
     ),
-    cell: ({ getValue }) => {
-      return <span className="font-medium py-2 block">{getValue<string>()}</span>
-      // Change to below once API ready
-      // <DateCell dateString={getValue<string>()} side="top" />
-    },
+    cell: ({ getValue }) => (
+      <span className="font-medium py-2 block">
+        {new Date(getValue<string>()).toLocaleDateString('en-AU', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })}
+      </span>
+    ),
   },
   {
     id: 'status',
@@ -43,20 +39,17 @@ export const complianceColumns: ColumnDef<ComplianceRecord>[] = [
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Status" />
     ),
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return <TableBadges names={[status]} visibleCount={1} />;
-    },
+    cell: ({ row }) => <TableBadges names={[row.original.status]} visibleCount={1} />,
   },
   {
-    id: 'notes',
-    accessorFn: (row) => row.notes,
+    id: 'summaryNotes',
+    accessorFn: (row) => row.summaryNotes,
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Notes" />
     ),
     cell: ({ row }) => (
       <span className="text-muted-foreground py-2 block">
-        {row.original.notes || '—'}
+        {row.original.summaryNotes || '—'}
       </span>
     ),
   },

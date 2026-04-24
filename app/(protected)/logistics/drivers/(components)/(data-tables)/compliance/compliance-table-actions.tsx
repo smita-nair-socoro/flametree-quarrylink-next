@@ -9,20 +9,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ComplianceRecord } from './columns';
+import type { DriverPreStartChecklist } from '@/lib/types/driver-compliance';
 
 interface ComplianceTableActionsProps {
-  record: ComplianceRecord;
+  record: DriverPreStartChecklist;
 }
 
 export function ComplianceTableActions({ record }: ComplianceTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-  const handleViewDetails = () => {
-    setDropdownOpen(false);
-    // TODO: implement view details
-    console.log('View compliance record:', record);
-  };
+  if (!record.viewDetailsAvailable) return null;
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -32,7 +28,7 @@ export function ComplianceTableActions({ record }: ComplianceTableActionsProps) 
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={handleViewDetails}>
+        <DropdownMenuItem onClick={() => setDropdownOpen(false)}>
           <Eye className="h-4 w-4 mr-2" />
           View Details
         </DropdownMenuItem>
