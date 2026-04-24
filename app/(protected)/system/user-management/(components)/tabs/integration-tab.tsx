@@ -23,7 +23,7 @@ export default function IntegrationTab() {
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="flex-shrink-0 w-13 h-13 rounded-xl bg-[#13B5EA] flex items-center justify-center overflow-hidden p-2">
               <Image
-                src="/xero-logo.png"
+                src="/Xero-logo.png"
                 alt="Xero"
                 width={100}
                 height={100}
