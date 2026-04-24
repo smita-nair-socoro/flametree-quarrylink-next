@@ -1,6 +1,5 @@
 import { TRUCK_STATUS, TRUCK_TYPE } from './truck-enums';
 import { HaulierDTO } from './haulier';
-import { DriverTruckEntry } from './driver';
 
 interface TruckDTO {
   id?: number;
@@ -27,9 +26,7 @@ interface TruckDTO {
   haulierId?: number;
   /** Nested haulier object returned by getById */
   haulier?: HaulierDTO;
-  /** Driver assignments returned by getByIdWithDrivers */
-  driverTrucks?: DriverTruckEntry[];
-  /** Driver objects returned by getById */
+/** Driver objects returned by getById */
   drivers?: DriverDTO[];
   /** Flat driver IDs used in create/update request bodies */
   driverIds?: number[];

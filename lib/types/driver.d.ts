@@ -8,12 +8,6 @@ interface DriverTruckAssignment {
   truckStatus: string;
 }
 
-export interface DriverTruckEntry {
-  truckId: number;
-  driverId: number;
-  driver: DriverDTO;
-  version: number;
-}
 
 interface DriverComplianceRecord {
   id: number;
