@@ -25,7 +25,10 @@ interface TruckActionButtonsProps {
   onAssignedDockets?: () => void;
 }
 
-export function TruckActionButtons({ truck, onAssignedDockets }: TruckActionButtonsProps) {
+export function TruckActionButtons({
+  truck,
+  onAssignedDockets,
+}: TruckActionButtonsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs } = useTruckActions(truck);
 
@@ -64,43 +67,45 @@ export function TruckActionButtons({ truck, onAssignedDockets }: TruckActionButt
           Assigned Dockets
         </Button>
 
-        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {status === TRUCK_STATUS.DEACTIVATED && (
-              <>
-                <DropdownMenuItem onClick={handleReactivate}>
-                  <Power className="h-4 w-4 mr-2 text-green-600" />
-                  <span className="text-green-600">Reactivate Truck</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
+        {status !== TRUCK_STATUS.ON_DUTY && (
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {status === TRUCK_STATUS.DEACTIVATED && (
+                <>
+                  <DropdownMenuItem onClick={handleReactivate}>
+                    <Power className="h-4 w-4 mr-2 text-green-600" />
+                    <span className="text-green-600">Reactivate Truck</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
 
-            {status === TRUCK_STATUS.ACTIVE && (
-              <>
-                <DropdownMenuItem onClick={handleDeactivate}>
-                  <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
-                  <span className="text-orange-900">Deactivate Truck</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
+              {status === TRUCK_STATUS.ACTIVE && (
+                <>
+                  <DropdownMenuItem onClick={handleDeactivate}>
+                    <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
+                    <span className="text-orange-900">Deactivate Truck</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
 
-            <DropdownMenuItem onClick={handleDelete}>
-              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-              <span className="text-red-600">Delete Truck</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuItem onClick={handleDelete}>
+                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+                <span className="text-red-600">Delete Truck</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );

@@ -56,13 +56,10 @@ export function DriverActionButtons({
     actions.delete();
   };
 
-  const hasSecondaryActions = status !== DRIVER_STATUS.ON_DUTY;
-
   return (
     <div className="flex items-start">
       {confirmDialogs}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Assigned Dockets — always shown as primary */}
         <Button
           variant="ghost"
           size="sm"
@@ -73,8 +70,7 @@ export function DriverActionButtons({
           Assigned Dockets
         </Button>
 
-        {/* Dropdown — shown for all statuses except ON_DUTY */}
-        {hasSecondaryActions && (
+        {status !== DRIVER_STATUS.ON_DUTY && (
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
