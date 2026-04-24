@@ -22,13 +22,9 @@ interface TruckDTO {
   combinationVolumeM3?: number;
   epaClassification?: string;
   pbsClassification?: string;
-  /** Flat ID used in create/update request bodies */
   haulierId?: number;
-  /** Nested haulier object returned by getById */
   haulier?: HaulierDTO;
-/** Driver objects returned by getById */
   drivers?: DriverDTO[];
-  /** Flat driver IDs used in create/update request bodies */
   driverIds?: number[];
   version?: number;
   createdBy?: string;
