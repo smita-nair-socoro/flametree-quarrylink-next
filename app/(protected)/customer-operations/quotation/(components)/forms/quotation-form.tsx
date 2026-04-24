@@ -805,7 +805,9 @@ export default function QuotationForm({
                 <div className="flex flex-col gap-8">
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
-                      const quoteItemsData = currentQuotation?.quoteItems ?? [];
+                      const quoteItemsData = [...(currentQuotation?.quoteItems ?? [])].sort(
+                        (a, b) => (a.productName ?? '').localeCompare(b.productName ?? ''),
+                      );
                       return (
                         <DataTableClient
                           columns={getQuotationLineItemColumns()}
