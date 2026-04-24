@@ -223,11 +223,8 @@ export default function CustomerForm({
       setNotLinkedWarning(true);
       return true;
     }
-    if (note.toLowerCase().includes('not synced')) {
-      setXeroSyncError(note);
-      return true;
-    }
-    return false;
+    setXeroSyncError(note);
+    return true;
   };
 
   // Initialize sync banners from real customer data when editing
