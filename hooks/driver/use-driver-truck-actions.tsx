@@ -48,10 +48,6 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
   const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
-  // Prevents ActionDialog's auto-close from resetting activeDialog when
-  // transitioning to a follow-up dialog (e.g. unassign → unassignBlocked).
-  // Can be removed once ActionDialog is refactored to not auto-close after confirm.
-  const transitioningRef = React.useRef(false);
 
   const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
   const { data: availableTrucksData } = useQuery(
@@ -108,7 +104,6 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
 
       if (docketIds.length > 0) {
         setBlockedDocketIds(docketIds);
-        transitioningRef.current = true;
         setActiveDialog('unassignBlocked');
       } else {
         notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
@@ -218,15 +213,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         key={key}
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
-          if (!open) {
-            // TODO: need to change to API response check instead of hardcoding transitioning state
-            if (transitioningRef.current) {
-              transitioningRef.current = false;
-              return;
-            }
-            setActiveDialog(null);
-            setSelectedTruck(null);
-          }
+          if (!open) setActiveDialog(null);
         }}
         title={config.title}
         description={config.description}
