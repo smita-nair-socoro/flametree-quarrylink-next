@@ -14,10 +14,12 @@ import {
   CircleAlert,
 } from 'lucide-react';
 import {
+  DriverByIdQueryOptions,
   useDeleteDriver,
   useDeactivateDriver,
   useReactivateDriver,
 } from '@/lib/api/driver';
+import { useQuery } from '@tanstack/react-query';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
@@ -85,31 +87,30 @@ const getDialogConfigs = (
               Are you sure you want to deactivate this driver?
             </span>
 
-            <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-start gap-2 self-stretch">
-                  <TriangleAlert className="h-[20px] w-[20px] text-[#CA8A04] flex-shrink-0 mt-0.5" />
-                  <span className="text-[16px] text-[#854D0E] font-medium">
-                    Truck Assignment
+            {(driverData?.trucks ?? []).length > 0 && (
+              <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-start gap-2 self-stretch">
+                    <TriangleAlert className="h-[20px] w-[20px] text-[#CA8A04] flex-shrink-0 mt-0.5" />
+                    <span className="text-[16px] text-[#854D0E] font-medium">
+                      Truck Assignment
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 text-sm font-normal text-[#A16207]">
+                    {(driverData?.trucks ?? []).map((truck) => (
+                      <span key={truck.id}>
+                        • {truck.truckType ?? 'TRUCK'} - {truck.licensePlate} will remain assigned to this driver.
+                      </span>
+                    ))}
+                    <span>• Driver will be available for docket assignment once the driver is reactivated.</span>
+                  </div>
+                  <span className="text-xs text-yellow-500 font-normal">
+                    Driver will loose access to their Drivers&apos; App until they are
+                    activated again.
                   </span>
                 </div>
-                <div className="flex flex-col gap-1 text-sm font-normal text-[#A16207]">
-                  <span>
-                    • TRUCK -ID Volvo will remain assigned to this driver.
-                  </span>
-                  <span>
-                    • TRUCK -ID Volvo will remain assigned to this driver.
-                  </span>
-                  <span>
-                    • TRUCK -ID Volvo will remain assigned to this driver.
-                  </span>
-                </div>
-                <span className="text-xs text-yellow-500 font-normal">
-                  Driver will loose access to their Drivers' App until they are
-                  activated again.
-                </span>
               </div>
-            </div>
+            )}
 
             <div className="border border-[#BAE6FD] rounded-md p-4 bg-[#F0F9FF]">
               <div className="flex flex-col gap-3">
@@ -388,6 +389,11 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const selectedDriver = useDriverStore((state) => state.selectedDriver);
 
+  const { data: fullDriverData } = useQuery({
+    ...DriverByIdQueryOptions(driverId ?? 0),
+    enabled: !!driverId,
+  });
+
   const deleteDriverMutation = useDeleteDriver();
   const deactivateDriverMutation = useDeactivateDriver();
   const reactivateDriverMutation = useReactivateDriver();
@@ -403,9 +409,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     : [];
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(driverData ?? null, selectedAction || undefined, activeDocketIds),
+    () => getDialogConfigs(fullDriverData ?? driverData ?? null, selectedAction || undefined, activeDocketIds),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [driverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds],
+    [driverData, fullDriverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds],
   );
 
   const createDialogAction = (actionKey: string) => {
