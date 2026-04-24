@@ -97,6 +97,13 @@ export const useDeactivateTruck = () => {
   });
 };
 
+export const TruckInspectionsQueryOptions = (truckId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+  queryOptions({
+    queryKey: TruckKeys.inspections(truckId),
+    queryFn: () => APIClient.trucks.getInspections(truckId, params),
+    enabled: !!truckId,
+  });
+
 export const useReactivateTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({
