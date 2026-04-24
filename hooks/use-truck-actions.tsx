@@ -5,6 +5,7 @@ import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { TruckDTO } from '@/lib/types/truck';
+import { useTruckStore } from '@/app/stores/truck-store';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
@@ -57,6 +58,7 @@ interface DialogConfig {
 export function useTruckActions(truckData?: TruckDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
   const [cannotDeactivateCount, setCannotDeactivateCount] = React.useState<
     number | null
   >(null);
@@ -353,7 +355,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
-    view: () => setViewOpen(true),
+    view: () => {
+      if (truckData != null) setSelectedTruck(truckData);
+      setViewOpen(true);
+    },
     deactivate: () => setActiveDialog('deactivate'),
     reactivate: () => setActiveDialog('reactivate'),
     delete: () => setActiveDialog('delete'),
@@ -407,11 +412,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       hideTrigger
       dialogTitle="View / Edit Truck"
       headerButtons={<TruckActionButtons truck={truckData} />}
-      headerInfo={{
-        customId: truckData?.licensePlate,
-        primaryBadges: truckData?.truckStatus ? [truckData.truckStatus] : [],
-        secondaryBadges: truckData?.truckBusinessType ? [truckData.truckBusinessType] : [],
-      }}
+      headerInfo={{ useSelectedTruck: true }}
     >
       <TruckForm id={truckData?.id} />
     </FormDialog>
