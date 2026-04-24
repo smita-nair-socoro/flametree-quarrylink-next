@@ -32,9 +32,9 @@ import {
   UnassignDriverBlockedContent,
   UnassignDriverInfo,
 } from '@/hooks/truck/unassign-driver-content';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
-import { useAssignDriversToTruck, useUnassignDriverFromTruck, useDeactivateTruck, useReactivateTruck, useDeleteTruck, TruckByIdQueryOptions } from '@/lib/api/truck';
+import { useAssignDriversToTruck, useUnassignDriverFromTruck, useDeactivateTruck, useReactivateTruck, useDeleteTruck } from '@/lib/api/truck';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 
 interface DialogConfig {
@@ -88,7 +88,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const deactivateTruck = useDeactivateTruck();
   const reactivateTruck = useReactivateTruck();
   const deleteTruck = useDeleteTruck();
-  const queryClient = useQueryClient();
+
 
   const assignedDrivers: string[] = (truckData?.drivers ?? []).map(
     (driver) => driver.driverName,
@@ -162,19 +162,11 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleAssignDrivers = async () => {
     if (!truckData?.id) return;
     try {
-      // Fetch fresh truck data to get the current driver list before merging
-      const freshTruck = await queryClient.fetchQuery(TruckByIdQueryOptions(truckData.id));
-      const currentDriverIds =
-        freshTruck.drivers?.map((d) => d.id!) ??
-        freshTruck.driverIds ??
-        [];
+      const currentDriverIds = (truckData.drivers ?? []).map((d) => d.id!);
       const merged = [...new Set([...currentDriverIds, ...selectedDriverIds])];
       await assignDriversToTruck.mutateAsync({
         truckId: truckData.id,
-        data: {
-          version: freshTruck.version ?? 0,
-          driverIds: merged,
-        },
+        data: { version: truckData.version ?? 0, driverIds: merged },
       });
       notifySuccess('Drivers assigned successfully.');
       setActiveDialog(null);
@@ -189,13 +181,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   ) => {
     if (!truckData?.id) return;
     try {
-      const freshTruck = await queryClient.fetchQuery(TruckByIdQueryOptions(truckData.id));
       await unassignDriverFromTruck.mutateAsync({
         truckId: truckData.id,
-        data: {
-          version: freshTruck.version ?? 0,
-          driverId: driver.id,
-        },
+        data: { version: truckData.version ?? 0, driverId: driver.id },
       });
       notifySuccess('Driver unassigned successfully.');
       setActiveDialog(null);

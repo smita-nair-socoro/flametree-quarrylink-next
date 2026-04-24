@@ -1,4 +1,4 @@
-import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { HaulierKeys } from './keys';
 import type { HaulierCreateDTO } from '../types/haulier';
@@ -17,12 +17,7 @@ export const HaulierDetailQueryOptions = (id: number) => ({
 export const HaulierDriversQueryOptions = (haulierId: number) =>
   queryOptions({
     queryKey: HaulierKeys.drivers(haulierId),
-    queryFn: async () => {
-      const res = await APIClient.hauliers.getDrivers(haulierId);
-      console.log('[HaulierDrivers] haulierId:', haulierId, 'response:', res);
-      return res;
-    },
-    placeholderData: keepPreviousData,
+    queryFn: () => APIClient.hauliers.getDrivers(haulierId),
     staleTime: 5_000,
     enabled: !!haulierId,
   });
@@ -31,7 +26,6 @@ export const HaulierTrucksQueryOptions = (haulierId: number) =>
   queryOptions({
     queryKey: HaulierKeys.trucks(haulierId),
     queryFn: () => APIClient.hauliers.getTrucks(haulierId),
-    placeholderData: keepPreviousData,
     staleTime: 5_000,
     enabled: !!haulierId,
   });
