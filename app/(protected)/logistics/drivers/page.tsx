@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions } from '@/lib/api/driver';
 import { DriverDTO } from '@/lib/types/driver';
@@ -13,6 +13,7 @@ import { driverColumns } from './(components)/(data-tables)/driver/columns';
 import { FormDialog } from '@/components/form-dialog';
 import DriverForm from './(components)/forms/driver-form';
 import { useDriverActions } from '@/hooks/use-driver-actions';
+import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function DriversPage() {
   const { data: drivers } = useQuery(DriversListQueryOptions());
@@ -33,6 +34,45 @@ export default function DriversPage() {
     actions.view(driverData);
   };
 
+  const statsCards: StatsCardData[] = [
+    {
+      title: 'Total Drivers',
+      value: '3',
+      description: '2 Internal | 1 External',
+      icon: UsersRound,
+      iconBgColor: 'bg-[#DBEAFE]',
+      iconColor: 'text-[#193CB8]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Available for Dispatch',
+      value: '3',
+      description: '0 out of 3 on duty',
+      icon: UserCheck,
+      iconBgColor: 'bg-[#DCFCE7]',
+      iconColor: 'text-[#016630]',
+      descriptionColor: 'text-[#737373]',
+    },
+    {
+      title: 'Assigned to Trucks',
+      value: '0',
+      description: '3 drivers without a truck',
+      icon: Truck,
+      iconBgColor: 'bg-[#EDE9FE]',
+      iconColor: 'text-[#0A0A0AB2]',
+      descriptionColor: 'text-[#E7000B]',
+    },
+    {
+      title: 'Failed pre-starters',
+      value: '0',
+      description: 'Since last week',
+      icon: TriangleAlert,
+      iconBgColor: 'bg-[#FEF9C2]',
+      iconColor: 'text-[#733E0A]',
+      descriptionColor: 'text-[#737373]',
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
@@ -51,6 +91,12 @@ export default function DriversPage() {
           </FormDialog>
         </div>
       </div>
+
+      <StatsCards
+        cards={statsCards}
+        mobileGridCols={1}
+        desktopGridCols={4}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
