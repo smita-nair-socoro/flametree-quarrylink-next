@@ -20,7 +20,7 @@ import {
 } from '@/lib/api/driver';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -49,8 +49,11 @@ interface SelectedAction {
 const getDialogConfigs = (
   driverData?: DriverDTO | null,
   selectedAction?: SelectedAction,
+  activeDocketIds: number[] = [],
 ): Record<string, DialogConfig> => {
   const driverName = driverData?.driverName;
+  const docketCount = activeDocketIds.length;
+  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
 
   if (selectedAction?.key === 'resume') {
     return {
@@ -194,19 +197,18 @@ const getDialogConfigs = (
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
-                Active Dockets Found:
-              </span>
-              <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3 text-[13.7px] text-[#101828]">
-                <span className="text-[14px] text-[#364153] font-normal">
-                  2 active dockets:{' '}
+            {docketCount > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold text-[14px] text-[#101828]">
+                  Active Dockets Found:
                 </span>
-                <span className="text-[14px] text-[#155DFC] font-medium underline">
-                  DO-2342, DO-2343
-                </span>
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
+                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ),
         cancelText: 'Cancel',
@@ -289,19 +291,18 @@ const getDialogConfigs = (
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
-                Active Dockets Founds:
-              </span>
-              <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3 text-[13.7px] text-[#101828]">
-                <span className="text-[14px] text-[#364153] font-normal">
-                  2 active dockets:{' '}
+            {docketCount > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold text-[14px] text-[#101828]">
+                  Active Dockets Found:
                 </span>
-                <span className="text-[14px] text-[#155DFC] font-medium underline">
-                  DO-2342, DO-2343
-                </span>
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
+                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-col gap-1">
               <span className="font-semibold text-[15px] text-[#101828]">
@@ -393,10 +394,18 @@ export function useDriverActions(driverData?: DriverDTO | null) {
 
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
+
+  const activeDocketIds =
+    selectedAction?.key === 'cannotDeactivate' ? cannotDeactivateDocketIds
+    : selectedAction?.key === 'cannotDelete' ? cannotDeleteDocketIds
+    : [];
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(driverData ?? null, selectedAction || undefined),
-    [driverData, selectedAction],
+    () => getDialogConfigs(driverData ?? null, selectedAction || undefined, activeDocketIds),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [driverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds],
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -420,12 +429,17 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       }
       setActiveDialog(null);
     } catch (error) {
-      const message = extractErrorMessage(error);
-      if (message.includes('currently on a delivery')) {
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
+
+      if (docketIds.length > 0) {
+        setCannotDeactivateDocketIds(docketIds);
         setSelectedAction({ key: 'cannotDeactivate' });
         setActiveDialog('cannotDeactivate');
       } else {
-        notifyError(message);
+        notifyError(extractErrorMessage(error));
       }
     }
   };
@@ -454,17 +468,19 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       await deleteDriverMutation.mutateAsync(driverId);
       notifySuccess('Driver deleted successfully.');
       setActiveDialog(null);
+      setViewOpen(false);
     } catch (error) {
-      const message = extractErrorMessage(error);
-      if (
-        message.includes('active') ||
-        message.includes('delivery') ||
-        message.includes('deliveries')
-      ) {
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
+
+      if (docketIds.length > 0) {
+        setCannotDeleteDocketIds(docketIds);
         setSelectedAction({ key: 'cannotDelete' });
         setActiveDialog('cannotDelete');
       } else {
-        notifyError(message);
+        notifyError(extractErrorMessage(error));
       }
     }
   };
@@ -484,23 +500,14 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       setViewOpen(true);
     },
 
-    deactivate: () => {
-      // TODO: check if the driver has any active dockets from API
-      createDialogAction('deactivate')();
-    },
-    reactivate: () => {
-      createDialogAction('reactivate')();
-    },
-    delete: () => {
-      // TODO: check if the driver has any active dockets from API
-      createDialogAction('delete')();
-    },
+    deactivate: () => createDialogAction('deactivate')(),
+    reactivate: () => createDialogAction('reactivate')(),
+    delete: () => createDialogAction('delete')(),
   };
 
   // Render active dialog
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
     if (activeDialog !== key) return null;
-    console.log('confirmDialogs', key, config);
 
     return (
       <ActionDialog
@@ -542,7 +549,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         setViewOpen(open);
       }}
       hideTrigger
-      headerInfo={{ useSelectedDriver: true }}
+      headerInfo={{
+        useSelectedDriver: true,
+      }}
       headerButtons={
         <DriverActionButtons driver={driverData ?? selectedDriver} />
       }

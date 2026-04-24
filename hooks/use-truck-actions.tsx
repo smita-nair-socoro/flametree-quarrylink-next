@@ -1,13 +1,18 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { TruckDTO } from '@/lib/types/truck';
+import { useTruckStore } from '@/app/stores/truck-store';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 import {
   DeactivateTruckDescription,
   DeactivateTruckContent,
@@ -25,42 +30,22 @@ import {
   CannotDeleteTruckContent,
 } from '@/hooks/truck/delete-truck-content';
 import { AssignDriverContent } from '@/hooks/truck/assign-driver-content';
-import { DriverDTO } from '@/lib/types/driver';
-import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import {
   UnassignDriverContent,
   UnassignDriverDescription,
   UnassignDriverBlockedContent,
   UnassignDriverInfo,
 } from '@/hooks/truck/unassign-driver-content';
-
-// TODO: replace with real driver list from API (filtered by haulier)
-const AVAILABLE_DRIVERS: DriverDTO[] = [
-  {
-    id: 1,
-    driverName: 'John Smith',
-    driverType: DRIVER_TYPE.INTERNAL,
-    emailAddress: '',
-    phoneNumber: '',
-    licenseNumber: '',
-  },
-  {
-    id: 2,
-    driverName: 'Armin Menhaji',
-    driverType: DRIVER_TYPE.INTERNAL,
-    emailAddress: '',
-    phoneNumber: '',
-    licenseNumber: '',
-  },
-  {
-    id: 3,
-    driverName: 'Jayden Olivo',
-    driverType: DRIVER_TYPE.INTERNAL,
-    emailAddress: '',
-    phoneNumber: '',
-    licenseNumber: '',
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
+import {
+  useAssignDriversToTruck,
+  useUnassignDriverFromTruck,
+  useDeactivateTruck,
+  useReactivateTruck,
+  useDeleteTruck,
+} from '@/lib/api/truck';
+import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 
 interface DialogConfig {
   title: string;
@@ -81,17 +66,19 @@ interface DialogConfig {
 }
 
 export function useTruckActions(truckData?: TruckDTO | null) {
+  const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
-  const [cannotDeactivateCount, setCannotDeactivateCount] = React.useState<
-    number | null
-  >(null);
-  const [cannotDeleteCount, setCannotDeleteCount] = React.useState<
-    number | null
-  >(null);
+  const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
+    React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<
+    number[]
+  >([]);
   const [selectedDriver, setSelectedDriver] = React.useState<
     (UnassignDriverInfo & { id: number }) | null
   >(null);
+  const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
   const [selectedDriverIds, setSelectedDriverIds] = React.useState<number[]>(
     [],
   );
@@ -100,12 +87,25 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   // Can be removed once ActionDialog is refactored to not auto-close after confirm.
   const transitioningRef = React.useRef(false);
 
-  // TODO: replace with real assigned drivers from API
-  const assignedDrivers: string[] = [
-    'John Smith',
-    'Armin Menhaji',
-    'Jayden Olivo',
-  ];
+  const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
+  const { data: availableDriversData } = useQuery(
+    HaulierDriversQueryOptions(haulierId),
+  );
+  const assignedDriverIds = new Set(
+    (truckData?.drivers ?? []).map((d) => d.id),
+  );
+  const availableDrivers = (availableDriversData?.drivers ?? []).filter(
+    (d) => !assignedDriverIds.has(d.id),
+  );
+  const assignDriversToTruck = useAssignDriversToTruck();
+  const unassignDriverFromTruck = useUnassignDriverFromTruck();
+  const deactivateTruck = useDeactivateTruck();
+  const reactivateTruck = useReactivateTruck();
+  const deleteTruck = useDeleteTruck();
+
+  const assignedDrivers: string[] = (truckData?.drivers ?? []).map(
+    (driver) => driver.driverName,
+  );
 
   // TODO: replace with real completed docket breakdown from API
   const completedDocketBreakdown = {
@@ -117,16 +117,20 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDeactivate = async () => {
     if (!truckData?.id) return;
     try {
-      // TODO: wire up deactivate truck API call
-      console.log('Deactivate truck:', truckData.id);
+      await deactivateTruck.mutateAsync(truckData.id);
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
-      // TODO: parse activeDocketCount from error response when API is ready
-      const activeDocketCount = 2; // placeholder — replace with parsed error data
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
 
-      if (activeDocketCount > 0) {
-        setCannotDeactivateCount(activeDocketCount);
+      if (docketIds.length > 0) {
+        setCannotDeactivateDocketIds(docketIds);
         setActiveDialog('cannot_deactivate');
       } else {
         notifyError(
@@ -140,8 +144,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleReactivate = async () => {
     if (!truckData?.id) return;
     try {
-      // TODO: wire up reactivate truck API call
-      console.log('Reactivate truck:', truckData.id);
+      await reactivateTruck.mutateAsync(truckData.id);
       notifySuccess('Truck reactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
@@ -152,16 +155,21 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDelete = async () => {
     if (!truckData?.id) return;
     try {
-      // TODO: wire up delete truck API call
-      console.log('Delete truck:', truckData.id);
+      await deleteTruck.mutateAsync(truckData.id);
       notifySuccess('Truck deleted successfully.');
       setActiveDialog(null);
+      setViewOpen(false);
     } catch (error: unknown) {
-      // TODO: parse activeDocketCount from error response when API is ready
-      const activeDocketCount = 2; // placeholder — replace with parsed error data
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
 
-      if (activeDocketCount > 0) {
-        setCannotDeleteCount(activeDocketCount);
+      if (docketIds.length > 0) {
+        setCannotDeleteDocketIds(docketIds);
         setActiveDialog('cannot_delete');
       } else {
         notifyError(extractErrorMessage(error) || 'Failed to delete truck.');
@@ -171,29 +179,62 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const handleAssignDrivers = async () => {
-    // TODO: wire up assign drivers API call
-    console.log('Assign drivers:', truckData?.id, selectedDriverIds);
-    setSelectedDriverIds([]);
+    if (!truckData?.id) return;
+    try {
+      const currentDriverIds = (truckData.drivers ?? []).map((d) => d.id!);
+      const merged = [...new Set([...currentDriverIds, ...selectedDriverIds])];
+      await assignDriversToTruck.mutateAsync({
+        truckId: truckData.id,
+        data: { version: truckData.version ?? 0, driverIds: merged },
+      });
+      notifySuccess('Drivers assigned successfully.');
+      setActiveDialog(null);
+      setSelectedDriverIds([]);
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to assign drivers.');
+    }
   };
 
   const handleUnassignDriver = async (
     driver: UnassignDriverInfo & { id: number },
   ) => {
-    // TODO: wire up unassign driver API call
-    // If API returns active deliveries error, call setActiveDialog('unassignDriverBlocked')
-    console.log('Unassign driver:', truckData?.id, driver.id);
+    if (!truckData?.id) return;
+    try {
+      await unassignDriverFromTruck.mutateAsync({
+        truckId: truckData.id,
+        data: { version: truckData.version ?? 0, driverId: driver.id },
+      });
+      notifySuccess('Driver unassigned successfully.');
+      setActiveDialog(null);
+      setSelectedDriver(null);
+    } catch (error) {
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
+      const hasActiveDeliveries =
+        typeof errorData?.activeDeliveryCount === 'number' &&
+        errorData.activeDeliveryCount > 0;
 
-    // MOCK: simulate backend blocking all drivers due to active deliveries
-    // TODO: replace with real API error parsing — only block when response indicates active deliveries
-    transitioningRef.current = true;
-    setActiveDialog('unassignDriverBlocked');
+      if (hasActiveDeliveries) {
+        const docketIds = Array.isArray(errorData?.activeDocketIds)
+          ? (errorData.activeDocketIds as number[])
+          : [];
+        setBlockedDocketIds(docketIds);
+        transitioningRef.current = true;
+        setActiveDialog('unassignDriverBlocked');
+      } else {
+        notifyError(extractErrorMessage(error) || 'Failed to unassign driver.');
+      }
+    }
   };
 
-  const handleTransferDockets = async () => {
-    // TODO: wire up transfer dockets API call / navigation
-    console.log('Transfer dockets for driver:', selectedDriver);
+  const handleTransferDockets = () => {
+    const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
     setActiveDialog(null);
     setSelectedDriver(null);
+    setBlockedDocketIds([]);
+    router.push(docketLink);
   };
 
   const dialogConfigs = React.useMemo(
@@ -217,7 +258,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         description: <CannotDeactivateTruckDescription truck={truckData} />,
         content: (
           <CannotDeactivateTruckContent
-            activeDocketCount={cannotDeactivateCount ?? 0}
+            activeDocketIds={cannotDeactivateDocketIds}
           />
         ),
         confirmActionNeeded: false,
@@ -246,7 +287,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: (
           <CannotDeleteTruckContent
             truck={truckData}
-            activeDocketCount={cannotDeleteCount ?? 0}
+            activeDocketIds={cannotDeleteDocketIds}
           />
         ),
         confirmActionNeeded: false,
@@ -256,7 +297,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         title: 'Assign Driver',
         content: (
           <AssignDriverContent
-            drivers={AVAILABLE_DRIVERS}
+            drivers={availableDrivers}
             onSelectionChange={setSelectedDriverIds}
           />
         ),
@@ -291,6 +332,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: selectedDriver ? (
           <UnassignDriverBlockedContent
             driverName={selectedDriver.driverName}
+            activeDocketIds={blockedDocketIds}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -301,12 +343,14 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     }),
     [
       truckData,
-      cannotDeactivateCount,
-      cannotDeleteCount,
+      cannotDeactivateDocketIds,
+      cannotDeleteDocketIds,
       assignedDrivers,
       completedDocketBreakdown,
       selectedDriver,
       selectedDriverIds,
+      availableDrivers,
+      blockedDocketIds,
     ],
   );
 
@@ -318,11 +362,14 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     unassignDriver: () => {
       if (selectedDriver) void handleUnassignDriver(selectedDriver);
     },
-    unassignDriverBlocked: () => void handleTransferDockets(),
+    unassignDriverBlocked: () => handleTransferDockets(),
   };
 
   const actions = {
-    view: () => setViewOpen(true),
+    view: () => {
+      if (truckData != null) setSelectedTruck(truckData);
+      setViewOpen(true);
+    },
     deactivate: () => setActiveDialog('deactivate'),
     reactivate: () => setActiveDialog('reactivate'),
     delete: () => setActiveDialog('delete'),
@@ -349,6 +396,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           }
           setActiveDialog(null);
           setSelectedDriver(null);
+          setBlockedDocketIds([]);
         }
       }}
       title={config.title}
@@ -374,13 +422,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       }}
       hideTrigger
       dialogTitle="View / Edit Truck"
-      headerInfo={{
-        customId: truckData?.licensePlate,
-        primaryBadges: truckData?.truckStatus ? [truckData.truckStatus] : [],
-        secondaryBadges: truckData?.haulierName ? [truckData.haulierName] : [],
-      }}
+      headerButtons={<TruckActionButtons truck={truckData} />}
+      headerInfo={{ useSelectedTruck: true }}
     >
-      <TruckForm />
+      <TruckForm id={truckData?.id} />
     </FormDialog>
   ) : null;
 
