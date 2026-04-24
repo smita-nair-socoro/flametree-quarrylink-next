@@ -2,11 +2,6 @@ import { TRUCK_STATUS, TRUCK_TYPE } from './truck-enums';
 import { HaulierDTO } from './haulier';
 import { DriverTruckEntry } from './driver';
 
-export interface AssignDriversToTruckDTO {
-  version: number;
-  driverIds: number[];
-}
-
 interface TruckDTO {
   id?: number;
   licensePlate: string;

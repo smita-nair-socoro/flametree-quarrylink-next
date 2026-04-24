@@ -43,7 +43,7 @@ import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
-import { TruckDTO, AssignDriversToTruckDTO } from '../types/truck';
+import { TruckDTO } from '../types/truck';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -1099,7 +1099,7 @@ export const APIClient = {
       }),
     delete: (id: number) =>
       appClient.Delete<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
-    assignDrivers: (truckId: number, data: AssignDriversToTruckDTO) =>
+    assignDrivers: (truckId: number, data: { version: number; driverIds: number[] }) =>
       appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${truckId}/drivers`, {
         body: data,
       }),

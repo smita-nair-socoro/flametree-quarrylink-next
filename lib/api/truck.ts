@@ -1,7 +1,7 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { TruckKeys } from './keys';
-import type { TruckDTO, AssignDriversToTruckDTO } from '../types/truck';
+import type { TruckDTO } from '../types/truck';
 
 export const TrucksListQueryOptions = () =>
   queryOptions({
@@ -77,7 +77,7 @@ export const useUnassignDriverFromTruck = () => {
 export const useAssignDriversToTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ truckId, data }: { truckId: number; data: AssignDriversToTruckDTO }) =>
+    mutationFn: ({ truckId, data }: { truckId: number; data: { version: number; driverIds: number[] } }) =>
       APIClient.trucks.assignDrivers(truckId, data),
     onSuccess: (_data, { truckId }) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(truckId) });
