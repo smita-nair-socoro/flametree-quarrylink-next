@@ -116,7 +116,7 @@ export default function TruckForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const [truckOwnerType, setTruckOwnerType] = React.useState<
-    'INTERNAL' | 'EXTERNAL'
+    'INTERNAL' | 'SUBCONTRACTOR'
   >('INTERNAL');
 
   const createTruck = useCreateTruck();
@@ -148,7 +148,7 @@ export default function TruckForm({
       licensePlate: '',
       vin: '',
       model: '',
-      year: '',
+      year: 0,
       truckType: undefined,
       tankVolumeM3: 0,
       tareWeight: 0,
@@ -210,13 +210,13 @@ export default function TruckForm({
   React.useEffect(() => {
     if (isEditing && truckData) {
       const isInternalTruck = truckData.truckBusinessType === 'INTERNAL';
-      setTruckOwnerType(isInternalTruck ? 'INTERNAL' : 'EXTERNAL');
+      setTruckOwnerType(isInternalTruck ? 'INTERNAL' : 'SUBCONTRACTOR');
       truckForm.reset({
         haulierId: truckData.haulier?.id ?? truckData.haulierId ?? 0,
         licensePlate: truckData.licensePlate ?? '',
         vin: truckData.vin ?? '',
         model: truckData.model ?? '',
-        year: truckData.year?.toString() ?? '',
+        year: truckData.year ?? 0,
         truckType: truckData.truckType,
         tankVolumeM3: truckData.tankVolumeM3 ?? 0,
         tareWeight: truckData.tareWeight ?? 0,
@@ -244,7 +244,7 @@ export default function TruckForm({
             licensePlate: values.licensePlate,
             vin: values.vin || undefined,
             model: values.model,
-            year: values.year ? parseInt(values.year) : undefined,
+            year: values.year || 0,
             truckType: values.truckType,
             tankVolumeM3: values.tankVolumeM3,
             tareWeight: values.tareWeight,
@@ -258,16 +258,13 @@ export default function TruckForm({
 
         const newTruck = await createTruck.mutateAsync({
           haulierId: resolvedHaulierId || undefined,
-          truckBusinessType:
-            truckOwnerType === 'EXTERNAL'
-              ? ('SUBCONTRACTOR' as const)
-              : ('INTERNAL' as const),
+          truckBusinessType: truckOwnerType,
           truckBodyType: 'ALUMINIUM',
           pbsApproved: false,
           licensePlate: values.licensePlate,
           vin: values.vin || undefined,
           model: values.model,
-          year: values.year ? parseInt(values.year) : undefined,
+          year: values.year || 0,
           truckType: values.truckType,
           tankVolumeM3: values.tankVolumeM3,
           tareWeight: values.tareWeight,
@@ -362,7 +359,7 @@ export default function TruckForm({
                   <RadioGroup
                     value={truckOwnerType}
                     onValueChange={(v) =>
-                      setTruckOwnerType(v as 'INTERNAL' | 'EXTERNAL')
+                      setTruckOwnerType(v as 'INTERNAL' | 'SUBCONTRACTOR')
                     }
                     disabled={isEditing}
                     className="flex gap-6"
@@ -372,7 +369,7 @@ export default function TruckForm({
                       <FormLabel className="font-normal">Internal</FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center gap-2">
-                      <RadioGroupItem value="EXTERNAL" />
+                      <RadioGroupItem value="SUBCONTRACTOR" />
                       <FormLabel className="font-normal">External</FormLabel>
                     </FormItem>
                   </RadioGroup>
@@ -501,12 +498,12 @@ export default function TruckForm({
                         <YearPicker
                           value={
                             field.value
-                              ? new Date(parseInt(field.value), 0, 1)
+                              ? new Date(field.value, 0, 1)
                               : undefined
                           }
                           onChangeAction={(date) => {
                             field.onChange(
-                              date ? date.getFullYear().toString() : undefined,
+                              date ? date.getFullYear() : undefined,
                             );
                           }}
                           placeholder="Select Year"
