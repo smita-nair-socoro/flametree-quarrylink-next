@@ -212,16 +212,19 @@ export default function CustomerForm({
     }
   }, [isEditing, selectedCustomer, users, customerForm]);
 
-  const NOT_LINKED_MSG = 'Customer is not linked to any accounting software';
+  const NOT_LINKED_MSGS = [
+    'Customer is not linked to any accounting software',
+    'Customer creation is supported only for Xero currently',
+  ];
 
   const handleSyncNote = (note?: string): boolean => {
     if (!note) return false;
-    if (note.toLowerCase().includes('not synced')) {
-      setXeroSyncError(note);
+    if (NOT_LINKED_MSGS.includes(note)) {
+      setNotLinkedWarning(true);
       return true;
     }
-    if (note === NOT_LINKED_MSG) {
-      setNotLinkedWarning(true);
+    if (note.toLowerCase().includes('not synced')) {
+      setXeroSyncError(note);
       return true;
     }
     return false;
