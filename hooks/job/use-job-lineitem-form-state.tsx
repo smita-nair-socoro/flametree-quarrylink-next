@@ -602,11 +602,13 @@ export function useJobLineItemFormState({
       | undefined;
     if (!qsp) return;
 
-    // In edit mode, don't overwrite existing price unless UOM actually changed
+    // In edit mode, don't overwrite existing price unless UOM or quarry actually changed
     if (isEditing) {
       const initialUom = jobLineItemData?.productCostUom || '';
       const currentUom = form.getValues('productCostUom') || '';
-      if (currentUom === initialUom) {
+      const initialQuarryId = Number(jobLineItemData?.quarrySupplierId ?? 0);
+      const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
+      if (currentUom === initialUom && currentQuarryId === initialQuarryId) {
         return;
       }
     }
@@ -643,11 +645,13 @@ export function useJobLineItemFormState({
       | undefined;
     if (!qsp) return;
 
-    // In edit mode, don't overwrite existing price unless UOM actually changed
+    // In edit mode, don't overwrite existing price unless UOM or quarry actually changed
     if (isEditing) {
       const initialUom = jobLineItemData?.productSellUom || '';
       const currentUom = form.getValues('productSellUom') || '';
-      if (currentUom === initialUom) {
+      const initialQuarryId = Number(jobLineItemData?.quarrySupplierId ?? 0);
+      const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
+      if (currentUom === initialUom && currentQuarryId === initialQuarryId) {
         return;
       }
     }
@@ -688,11 +692,13 @@ export function useJobLineItemFormState({
       | undefined;
     if (!qsp) return;
 
-    // In edit mode, don't overwrite existing price unless UOM actually changed
+    // In edit mode, don't overwrite existing price unless UOM or quarry actually changed
     if (isEditing) {
       const initialUom = jobLineItemData?.truckCostUom || '';
       const currentUom = form.getValues('truckCostUom') || '';
-      if (currentUom === initialUom) {
+      const initialQuarryId = Number(jobLineItemData?.quarrySupplierId ?? 0);
+      const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
+      if (currentUom === initialUom && currentQuarryId === initialQuarryId) {
         return;
       }
     }
@@ -738,11 +744,13 @@ export function useJobLineItemFormState({
       | undefined;
     if (!qsp) return;
 
-    // In edit mode, don't overwrite existing price unless UOM actually changed
+    // In edit mode, don't overwrite existing price unless UOM or quarry actually changed
     if (isEditing) {
       const initialUom = jobLineItemData?.truckSellUom || '';
       const currentUom = form.getValues('truckSellUom') || '';
-      if (currentUom === initialUom) {
+      const initialQuarryId = Number(jobLineItemData?.quarrySupplierId ?? 0);
+      const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
+      if (currentUom === initialUom && currentQuarryId === initialQuarryId) {
         return;
       }
     }
