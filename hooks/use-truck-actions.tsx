@@ -112,13 +112,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     (driver) => driver.driverName,
   );
 
-  // TODO: replace with real completed docket breakdown from API
-  const completedDocketBreakdown = {
-    delivered: 10,
-    collected: 3,
-    cancelled: 2,
-  };
-
   const handleDeactivate = async () => {
     if (!truckData?.id) return;
     try {
@@ -248,10 +241,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         title: 'Deactivate Truck',
         description: <DeactivateTruckDescription truck={truckData} />,
         content: (
-          <DeactivateTruckContent
-            assignedDrivers={assignedDrivers}
-            completedDocketBreakdown={completedDocketBreakdown}
-          />
+          <DeactivateTruckContent assignedDrivers={assignedDrivers} />
         ),
         confirmText: 'Deactivate Truck',
         confirmVariant: 'destructive',
@@ -352,7 +342,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       cannotDeactivateDocketIds,
       cannotDeleteDocketIds,
       assignedDrivers,
-      completedDocketBreakdown,
       selectedDriver,
       selectedDriverIds,
       availableDrivers,
