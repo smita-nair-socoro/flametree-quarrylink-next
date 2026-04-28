@@ -71,6 +71,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
+  const selectedTruck = useTruckStore((state) => state.selectedTruck);
   const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
     React.useState<number[]>([]);
   const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<
@@ -372,8 +373,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
-    view: () => {
-      if (truckData != null) setSelectedTruck(truckData);
+    view: (truck?: TruckDTO | null) => {
+      const toSelect = truck ?? truckData;
+      if (toSelect != null) setSelectedTruck(toSelect);
       setViewOpen(true);
     },
     deactivate: () => setActiveDialog('deactivate'),
@@ -421,17 +423,19 @@ export function useTruckActions(truckData?: TruckDTO | null) {
 
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={truckData?.id}
+      id={selectedTruck?.id}
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
       }}
       hideTrigger
       dialogTitle="View / Edit Truck"
-      headerButtons={<TruckActionButtons truck={truckData} />}
+      headerButtons={
+        <TruckActionButtons truck={truckData ?? selectedTruck} />
+      }
       headerInfo={{ useSelectedTruck: true }}
     >
-      <TruckForm id={truckData?.id} />
+      <TruckForm id={selectedTruck?.id} />
     </FormDialog>
   ) : null;
 
