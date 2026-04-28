@@ -108,6 +108,9 @@ interface AddProductDrawerDialogProps {
   /** Hides the trigger entirely */
   hideTrigger?: boolean;
 
+  /** Optional notice rendered above the title (e.g. info banner) */
+  headerNotice?: React.ReactNode;
+
   /** Optional header buttons to display inline with the title */
   headerButtons?: React.ReactNode;
 
@@ -191,6 +194,7 @@ export function FormDialog({
   onOpenChangeAction: onOpenChangeProp,
   dialogWidth,
   hideTrigger,
+  headerNotice,
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
@@ -334,14 +338,12 @@ export function FormDialog({
     finalSecondaryBadges = selectedDriver.driverType ? [selectedDriver.driverType] : [];
   }
 
-  let truckHaulierName: string | undefined;
   if (headerInfo?.useSelectedTruck && selectedTruck) {
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [normalizeTruckStatus(selectedTruck.truckStatus) ?? selectedTruck.truckStatus]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType ? [selectedTruck.truckBusinessType] : [];
-    truckHaulierName = selectedTruck.haulier?.haulierName;
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -507,16 +509,12 @@ export function FormDialog({
         )}
       >
         <div>
+          {headerNotice && <div className="mb-3">{headerNotice}</div>}
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
             <DialogDescription className="mt-2 -mb-5">
               {dialogDescription}
             </DialogDescription>
-          )}
-          {truckHaulierName && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {truckHaulierName}
-            </p>
           )}
           {renderBadges()}
         </div>
@@ -599,6 +597,7 @@ export function FormDialog({
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
+            {headerNotice && <div className="mb-3">{headerNotice}</div>}
             <DrawerTitle className="text-start text-2xl">
               {headerTitle}
             </DrawerTitle>
@@ -606,11 +605,6 @@ export function FormDialog({
               <DrawerDescription className="mt-2">
                 {dialogDescription}
               </DrawerDescription>
-            )}
-            {truckHaulierName && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {truckHaulierName}
-              </p>
             )}
             {renderBadges()}
           </div>
