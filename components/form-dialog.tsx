@@ -334,12 +334,14 @@ export function FormDialog({
     finalSecondaryBadges = selectedDriver.driverType ? [selectedDriver.driverType] : [];
   }
 
+  let truckHaulierName: string | undefined;
   if (headerInfo?.useSelectedTruck && selectedTruck) {
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [normalizeTruckStatus(selectedTruck.truckStatus) ?? selectedTruck.truckStatus]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType ? [selectedTruck.truckBusinessType] : [];
+    truckHaulierName = selectedTruck.haulier?.haulierName;
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -511,6 +513,11 @@ export function FormDialog({
               {dialogDescription}
             </DialogDescription>
           )}
+          {truckHaulierName && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {truckHaulierName}
+            </p>
+          )}
           {renderBadges()}
         </div>
         {headerButtons && (
@@ -599,6 +606,11 @@ export function FormDialog({
               <DrawerDescription className="mt-2">
                 {dialogDescription}
               </DrawerDescription>
+            )}
+            {truckHaulierName && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {truckHaulierName}
+              </p>
             )}
             {renderBadges()}
           </div>
