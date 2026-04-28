@@ -264,6 +264,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'CASH SALE': 'bg-yellow-100 text-yellow-900 border-yellow-900',
   INTERNAL: 'bg-blue-100 text-blue-800 border-blue-800',
   SUBCONTRACTOR: 'bg-orange-100 text-orange-800 border-orange-800',
+  EXTERNAL: 'bg-orange-100 text-orange-800 border-orange-800',
   DEACTIVATED: 'bg-[#FFF7ED] text-[#DC2626] border-[#DC2626]',
   ON_DUTY: 'bg-blue-100 text-blue-800 border-blue-800',
   'ON DUTY': 'bg-blue-100 text-blue-800 border-blue-800',

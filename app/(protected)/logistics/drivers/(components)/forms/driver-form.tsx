@@ -211,6 +211,7 @@ export default function DriverForm({
           phoneNumber: values.phone,
           licenseNumber: values.driverLicenseNumber,
           haulierId: selectedHaulierData?.id,
+          truckIds: values.assignedTrucks?.map(Number) ?? [],
         });
 
         if (newDriver && typeof newDriver.id === 'number') {
