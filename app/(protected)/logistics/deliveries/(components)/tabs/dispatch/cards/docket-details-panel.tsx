@@ -2,9 +2,12 @@ import { format } from 'date-fns';
 import { X, User, Check, MapPin, ExternalLink } from 'lucide-react';
 import { DispatchDocket, formatTimeRange } from '../views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Map } from '@/components/ui/map';
+import { TableBadges } from '@/components/table-badges';
+import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 
 interface DocketDetailsPanelProps {
   docket: DispatchDocket;
@@ -13,7 +16,8 @@ interface DocketDetailsPanelProps {
 }
 
 export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetailsPanelProps) {
-  const isAssigned = !!docket.uiAssignedTruckId;
+  const isUnassigned = docket.docketStatus === DOCKET_STATUS.UNASSIGNED;
+  const isAssigned = docket.docketStatus === DOCKET_STATUS.ASSIGNED;
 
   return (
     <div className="flex flex-col bg-[#F8FAFC] overflow-y-auto h-full">
@@ -37,14 +41,7 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
         {/* Docket Number & Badge */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">{docket.docketNumber || 'No Number'}</h2>
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider ${isAssigned
-              ? 'bg-cyan-100 text-cyan-800 border border-cyan-200'
-              : 'bg-gray-100 text-gray-600 border border-gray-200'
-              }`}
-          >
-            {isAssigned ? 'ASSIGNED' : 'UNASSIGNED'}
-          </span>
+          <TableBadges names={[docket.docketStatus === 'READY_FOR_COLLECTION' ? 'READY' : docket.docketStatus]} visibleCount={1} />
         </div>
 
         {/* JOB DETAILS */}
@@ -81,12 +78,14 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
               <div className="text-sm font-medium text-gray-900">{docket.jobItem?.quarrySupplierName || 'HANSON'}</div>
             </div>
 
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Truck type</div>
-              <div className="text-sm font-medium text-gray-900">{docket.truckType || 'Semi Trailer'}</div>
-            </div>
+            {docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY && (
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Truck type</div>
+                <div className="text-sm font-medium text-gray-900">{docket.truckType || 'Semi Trailer'}</div>
+              </div>
+            )}
 
-            {!isAssigned ? (
+            {isUnassigned || (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION && docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
               <div>
                 <div className="text-xs text-gray-500 mb-1">Load quantity</div>
                 <div className="flex justify-between gap-2">
@@ -120,63 +119,67 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
               <div className=" text-gray-500">Pickup</div>
               <div className=" text-gray-900">{docket.pickUpAddress?.formattedAddress || 'TBD'}</div>
             </div>
-            <div className="flex flex-col gap-0 text-sm font-medium">
-              <div className=" text-gray-500">Delivery</div>
-              <div className=" text-gray-900">{docket.deliveryAddress?.formattedAddress || 'TBD'}</div>
-            </div>
+            {docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY && (
+              <div className="flex flex-col gap-0 text-sm font-medium">
+                <div className=" text-gray-500">Delivery</div>
+                <div className=" text-gray-900">{docket.deliveryAddress?.formattedAddress || 'TBD'}</div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* SITE MAP */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-gray-100 bg-gray-50">
-            <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">
-              Site Map
-            </h3>
-          </div>
-          <div className="p-4 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <MapPin className="w-4 h-4 text-green-600" />
-                Drop-off location
+        {docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100 bg-gray-50">
+              <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">
+                Site Map
+              </h3>
+            </div>
+            <div className="p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <MapPin className="w-4 h-4 text-green-600" />
+                  Drop-off location
+                </div>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${docket.deliveryAddress?.formattedAddress || ''}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  Open <ExternalLink className="w-3.5 h-3.5" />
+                </a>
               </div>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${docket.deliveryAddress?.formattedAddress || ''}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1"
-              >
-                Open <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
 
-            <div className="h-[140px] rounded-lg overflow-hidden border border-gray-200">
-              <Map
-                markers={[{
-                  lat: docket.deliveryAddress?.latitude || -37.81400,
-                  lng: docket.deliveryAddress?.longitude || 144.99100,
-                  color: 'green'
-                }]}
-                defaultZoom={14}
-                disableDefaultUI={true}
-                className="h-full w-full [&_.gmnoprint]:scale-[0.8] [&_.gmnoprint]:origin-right"
-              />
-            </div>
+              <div className="h-[140px] rounded-lg overflow-hidden border border-gray-200">
+                <Map
+                  markers={[{
+                    lat: docket.deliveryAddress?.latitude || -37.81400,
+                    lng: docket.deliveryAddress?.longitude || 144.99100,
+                    color: 'green'
+                  }]}
+                  defaultZoom={14}
+                  disableDefaultUI={true}
+                  className="h-full w-full [&_.gmnoprint]:scale-[0.8] [&_.gmnoprint]:origin-right"
+                />
+              </div>
 
-            <div className="text-xs font-mono text-gray-500">
-              {docket.deliveryAddress?.latitude?.toFixed(5) || '-37.81400'}, {docket.deliveryAddress?.longitude?.toFixed(5) || '144.99100'}
+              <div className="text-xs font-mono text-gray-500">
+                {docket.deliveryAddress?.latitude?.toFixed(5) || '-37.81400'}, {docket.deliveryAddress?.longitude?.toFixed(5) || '144.99100'}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* SCHEDULE & CONTACT */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
           <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
             <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">Schedule & Contact</h3>
           </div>
-          <div className="p-4 grid grid-cols-2 gap-4">
+          <div className="p-4 grid grid-cols-2 gap-x-0 gap-y-4">
             <div>
-              <div className="text-xs text-gray-500 mb-1">Delivery date</div>
+              <div className="text-xs text-gray-500 mb-1">{docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY ? 'Delivery date' : 'Collection date'}</div>
               <div className="text-sm font-medium text-gray-900">
                 {docket.deliveryCollectionDate ? format(new Date(docket.deliveryCollectionDate), 'dd/MM/yyyy') : 'TBD'}
               </div>
@@ -192,13 +195,13 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
             <div>
               <div className="text-xs text-gray-500 mb-1">Site contact</div>
               <div className="text-sm font-medium text-gray-900">{docket.jobItem?.quarrySupplier?.contactPersonName || ''}</div>
-              <div className="text-xs text-blue-600 mt-0.5">{docket.jobItem?.quarrySupplier?.contactPersonEmail || ''}</div>
+              <div className="text-xs text-blue-600 mt-0.5 break-all">{docket.jobItem?.quarrySupplier?.contactPersonEmail || ''}</div>
             </div>
           </div>
         </div>
 
         {/* ASSIGNMENT */}
-        {isAssigned && (
+        {docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY && !isUnassigned && (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
               <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">Assignment</h3>
@@ -206,11 +209,11 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
             <div className="p-4 grid grid-cols-2 gap-4">
               <div>
                 <div className="text-xs text-gray-500 mb-1">Driver</div>
-                <div className="text-sm font-medium text-gray-900">{isAssigned ? 'Sarah Wilson' : 'Unassigned'}</div>
+                <div className="text-sm font-medium text-gray-900">{!isUnassigned ? 'Sarah Wilson' : 'Unassigned'}</div>
               </div>
               <div>
                 <div className="text-xs text-gray-500 mb-1">Truck (rego)</div>
-                <div className="text-sm font-medium text-gray-900">{docket.uiAssignedTruckId || 'Unassigned'}</div>
+                <div className="text-sm font-medium text-gray-900">{docket.uiAssignedTruckId || docket.truckType || 'Unassigned'}</div>
               </div>
             </div>
           </div>
@@ -218,7 +221,7 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
 
         {/* COMPLIANCE */}
         {
-          isAssigned && (
+          docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY && !isUnassigned && (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
               <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
                 <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">
@@ -270,7 +273,7 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
       </div >
 
       {/* Footer */}
-      < div className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3" >
+      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
         {isAssigned && (
           <button
             onClick={onUnassign}
@@ -278,12 +281,11 @@ export function DocketDetailsPanel({ docket, onClose, onUnassign }: DocketDetail
           >
             <User className="w-4 h-4" /> Unassign from trip
           </button>
-        )
-        }
+        )}
         <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center">
           Duplicate
         </button>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }

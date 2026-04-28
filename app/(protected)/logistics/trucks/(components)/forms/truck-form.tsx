@@ -135,7 +135,10 @@ export default function TruckForm({
   const { data: haulierDriversData } = useQuery(
     HaulierDriversQueryOptions(effectiveHaulierId),
   );
-  const haulierDrivers = haulierDriversData?.drivers ?? [];
+  const haulierDrivers = React.useMemo(
+    () => haulierDriversData?.drivers ?? [],
+    [haulierDriversData],
+  );
   const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
       haulierDrivers

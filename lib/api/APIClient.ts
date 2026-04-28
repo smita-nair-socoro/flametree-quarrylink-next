@@ -6,7 +6,7 @@ import {
   ProductDetails,
   ProductReporting,
 } from '../types/product';
-import { CustomerDTO, CustomerResponseDTO, CustomerReporting } from '../types/customer';
+import { CustomerDTO, CustomerReporting } from '../types/customer';
 import {
   Quarry,
   QuarryReporting,
@@ -604,11 +604,11 @@ export const APIClient = {
         `/socoro/quarrylink/api/customer/${customerId}`,
       ),
     create: (data: Partial<CustomerDTO>) =>
-      appClient.Post<CustomerResponseDTO>('/socoro/quarrylink/api/customer', {
+      appClient.Post<CustomerDTO>('/socoro/quarrylink/api/customer', {
         body: data,
       }),
     update: (data: Partial<CustomerDTO>) =>
-      appClient.Put<CustomerResponseDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
+      appClient.Put<CustomerDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
         body: data,
       }),
     getDeliveryAddresses: (customerId: number, limit?: number) =>

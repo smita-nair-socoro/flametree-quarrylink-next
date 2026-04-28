@@ -46,10 +46,8 @@ export interface CustomerDTO {
   updatedAt?: string;
   lastModifiedBy?: string;
   isDeleted?: boolean;
-}
 
-/** Response type for create/update — extends CustomerDTO with server-generated fields */
-export interface CustomerResponseDTO extends CustomerDTO {
+  accSoftwareContactId?: string | null;
   accSoftwareNotes?: string;
 }
 
