@@ -290,36 +290,38 @@ export function AssignDocketContent({
 
   const truckColorOptions = React.useMemo((): ColorSelectOption[] => {
     if (!haulerSelection) return [];
-    return availableTrucks
+    const withPct = availableTrucks
       .filter((t) => t.haulierId === haulerSelection)
       .map((t) => {
         const pct =
           t.capacityM3 > 0 ? Math.round((loadSize / t.capacityM3) * 100) : 0;
         const cfg = getTruckStatusConfig(pct);
         return {
-          _pct: pct,
-          label: t.licensePlate,
-          value: t.id,
-          sublabel: (
-            <span>
-              · {t.capacityM3}M³{' '}
-              <span style={{ color: cfg.pctColor }}>({pct}%)</span>
-            </span>
-          ),
-          badge: cfg.badge,
-          rowStyle: cfg.rowStyle,
-          badgeStyle: cfg.badgeStyle,
+          pct,
+          option: {
+            label: t.licensePlate,
+            value: t.id,
+            sublabel: (
+              <span>
+                · {t.capacityM3}M³{' '}
+                <span style={{ color: cfg.pctColor }}>({pct}%)</span>
+              </span>
+            ),
+            badge: cfg.badge,
+            rowStyle: cfg.rowStyle,
+            badgeStyle: cfg.badgeStyle,
+          },
         };
-      })
-      .sort((a, b) => {
-        const aEx = a._pct > 100,
-          bEx = b._pct > 100;
-        if (aEx && bEx) return a._pct - b._pct;
-        if (aEx) return 1;
-        if (bEx) return -1;
-        return b._pct - a._pct;
-      })
-      .map(({ ...rest }) => rest);
+      });
+    withPct.sort((a, b) => {
+      const aEx = a.pct > 100,
+        bEx = b.pct > 100;
+      if (aEx && bEx) return a.pct - b.pct;
+      if (aEx) return 1;
+      if (bEx) return -1;
+      return b.pct - a.pct;
+    });
+    return withPct.map(({ option }) => option);
   }, [availableTrucks, haulerSelection, loadSize]);
 
   const driverOptions = React.useMemo(
