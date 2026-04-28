@@ -106,17 +106,8 @@ export default function CustomerForm({
   // When true, onSubmit bypasses the isEditing check and always calls create (retry sync)
   const isRetrySyncRef = React.useRef(false);
 
-  // TODO: replace dummy IDs with real accSoftwareNotes from API response
-  const DUMMY_NOT_SYNCED_ID = 10;
-  const DUMMY_NOT_LINKED_ID = 6;
-  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(
-    id === DUMMY_NOT_SYNCED_ID
-      ? 'Customer is not synced to Xero due to a validation error.'
-      : null,
-  );
-  const [notLinkedWarning, setNotLinkedWarning] = React.useState(
-    id === DUMMY_NOT_LINKED_ID,
-  );
+  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
+  const [notLinkedWarning, setNotLinkedWarning] = React.useState(false);
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -221,20 +212,29 @@ export default function CustomerForm({
     }
   }, [isEditing, selectedCustomer, users, customerForm]);
 
-  const NOT_LINKED_MSG = 'Customer is not linked to any accounting software';
+  const NOT_LINKED_MSGS = [
+    'Customer is not linked to any accounting software',
+    'Customer creation is supported only for Xero currently',
+  ];
 
   const handleSyncNote = (note?: string): boolean => {
     if (!note) return false;
-    if (note.toLowerCase().includes('not synced')) {
-      setXeroSyncError(note);
-      return true;
-    }
-    if (note === NOT_LINKED_MSG) {
+    if (NOT_LINKED_MSGS.includes(note)) {
       setNotLinkedWarning(true);
       return true;
     }
-    return false;
+    setXeroSyncError(note);
+    return true;
   };
+
+  // Initialize sync banners from real customer data when editing
+  React.useEffect(() => {
+    setXeroSyncError(null);
+    setNotLinkedWarning(false);
+    if (!isEditing || !selectedCustomer) return;
+    handleSyncNote(selectedCustomer.accSoftwareNotes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCustomer?.id, isEditing]);
 
   async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
     console.log('onSubmit function called!');
@@ -335,7 +335,7 @@ export default function CustomerForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newCustomer && typeof newCustomer.id === 'number') {
           addNewRecordId('customer_main_data_table', newCustomer.id);
-          if (newCustomer.accSoftwareNotes?.toLowerCase().includes('not synced')) {
+          if (!newCustomer.accSoftwareContactId) {
             addSyncErrorRecordId('customer_main_data_table', newCustomer.id);
           }
         }
@@ -492,9 +492,11 @@ export default function CustomerForm({
                 disabled={isSubmitting}
                 onClick={() => {
                   isRetrySyncRef.current = true;
-                  customerForm.handleSubmit(onSubmit, onError)().finally(() => {
-                    isRetrySyncRef.current = false;
-                  });
+                  customerForm
+                    .handleSubmit(onSubmit, onError)()
+                    .finally(() => {
+                      isRetrySyncRef.current = false;
+                    });
                 }}
               >
                 <RefreshCw
@@ -525,7 +527,7 @@ export default function CustomerForm({
                 type="button"
                 variant="outline"
                 className="flex-shrink-0 gap-2 border-[#D97706] text-[#92400E] hover:text-[#92400E]"
-                onClick={() => router.push('/system/accounting')}
+                onClick={() => router.push('/system/user-management?tab=Integration')}
               >
                 <Settings className="h-4 w-4" />
                 Go to Settings

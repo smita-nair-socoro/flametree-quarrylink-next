@@ -16,9 +16,9 @@ export function UnassignDriverDescription({
 }) {
   return (
     <div className="flex justify-start items-center gap-2">
-      <div className="flex w-[42px] h-[42px] justify-center bg-[#FEF2F2] rounded-md flex-shrink-0">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-md flex-shrink-0">
         <span className="flex items-center justify-center">
-          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
+          <TriangleAlert className="h-[20px] w-[20px] text-[#F97316]" />
         </span>
       </div>
       <span className="font-medium">
@@ -30,9 +30,14 @@ export function UnassignDriverDescription({
 
 export function UnassignDriverBlockedContent({
   driverName,
+  activeDocketIds = [],
 }: {
   driverName: string;
+  activeDocketIds?: number[];
 }) {
+  const docketCount = activeDocketIds.length;
+  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
+
   return (
     <div className="flex flex-col gap-5">
       <span className="text-[14px] font-normal text-gray-700">
@@ -44,7 +49,7 @@ export function UnassignDriverBlockedContent({
           <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1">
             <span className="text-[16px] text-[#991B1B] font-medium">
-              Cannot Unassign Truck
+              Cannot Unassign Driver
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
               <span className="font-semibold">{driverName}</span> cannot be
@@ -56,7 +61,7 @@ export function UnassignDriverBlockedContent({
 
       <div className="border border-[#BAE6FD] rounded-md p-4 bg-[#F0F9FF]">
         <div className="flex flex-col gap-2">
-          <span className="text-[14px] font-semibold text-[#075985]">
+          <span className="text-[14px] font-semibold text-[#155DFC]">
             Options
           </span>
           <ul className="flex flex-col gap-1 pl-1">
@@ -71,6 +76,22 @@ export function UnassignDriverBlockedContent({
           </ul>
         </div>
       </div>
+
+      {docketCount > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[14px] font-semibold text-gray-900">
+            Active Dockets Found:
+          </span>
+          <div className="border border-[#FFD6A7] rounded-md px-4 py-3 bg-[#FFF3E6]">
+            <a
+              href={docketLink}
+              className="text-[14px] text-[#155DFC] underline font-medium"
+            >
+              {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -86,12 +107,9 @@ export function UnassignDriverContent({
         Are you sure you want to unassign this driver from the truck?
       </span>
 
-      <div className="flex items-center justify-between rounded-md border px-4 py-3">
-        <span className="text-sm font-medium">{driver.driverName}</span>
-        <TableBadges
-          names={[driver.status]}
-          visibleCount={1}
-        />
+      <div className="flex items-center justify-between rounded-md border px-4 py-3 bg-[#F9FAFB] border-[#E5E5E5] ">
+        <span className="text-sm font-medium ">{driver.driverName}</span>
+        <TableBadges names={[driver.status]} visibleCount={1} />
       </div>
     </div>
   );
