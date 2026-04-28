@@ -44,6 +44,7 @@ import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
+import { TruckInspectionsPage } from '../types/truck-inspection';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -1111,6 +1112,14 @@ export const APIClient = {
       appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/deactivate`, {}),
     reactivate: (id: number) =>
       appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/reactivate`, {}),
+    getInspections: (truckId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+      appClient.Get<TruckInspectionsPage>(`/socoro/quarrylink/api/truck/${truckId}/inspections`, {
+        queryString: {
+          page: params?.page?.toString(),
+          size: params?.size?.toString(),
+          sort: params?.sort?.join(','),
+        },
+      }),
   },
 
   hauliers: {
