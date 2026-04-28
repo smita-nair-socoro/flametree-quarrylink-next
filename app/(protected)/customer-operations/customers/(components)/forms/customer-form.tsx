@@ -52,6 +52,10 @@ import {
   PAYMENT_TERM_TYPE,
   PAYMENT_TYPE,
 } from '@/lib/types/customer-enums';
+import {
+  CustomerFormBlockBanner,
+  getCustomerFormBlockState,
+} from './customer-form-blocker';
 import { toAddressPayload } from '@/lib/utils/address-helper';
 import { useAddressSync } from '@/lib/utils/address-helper';
 import {
@@ -105,6 +109,13 @@ export default function CustomerForm({
 
   // When true, onSubmit bypasses the isEditing check and always calls create (retry sync)
   const isRetrySyncRef = React.useRef(false);
+
+  // Derive block state — null means the form is fully editable
+  const blockState = React.useMemo(
+    () => getCustomerFormBlockState(isEditing ? selectedCustomer : null),
+    [isEditing, selectedCustomer],
+  );
+  const isFormBlocked = blockState !== null;
 
   const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
   const [notLinkedWarning, setNotLinkedWarning] = React.useState(false);
@@ -455,6 +466,13 @@ export default function CustomerForm({
         </div>
       )}
 
+      {/* Block banner — rendered outside the inert zone so it stays interactive */}
+      {isEditing && blockState && (
+        <CustomerFormBlockBanner blockState={blockState} customer={selectedCustomer} />
+      )}
+
+      {/* Form — inert when a block state is active; all fields and buttons become non-interactive */}
+      <div inert={isFormBlocked || undefined}>
       <Form {...customerForm}>
         <form
           id="add-new-customer-form"
@@ -1155,7 +1173,7 @@ export default function CustomerForm({
                 form="add-new-customer-form"
                 className="cursor-pointer"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isFormBlocked}
               >
                 {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1178,7 +1196,7 @@ export default function CustomerForm({
                 // form="add-new-customer-form"
                 type="submit"
                 className="cursor-pointer"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isFormBlocked}
               >
                 {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1198,6 +1216,7 @@ export default function CustomerForm({
           )}
         </form>
       </Form>
+      </div>
     </div>
   );
 }
