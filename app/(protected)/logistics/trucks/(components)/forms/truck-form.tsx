@@ -24,7 +24,7 @@ import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import { useCreateTruck, useUpdateTruck } from '@/lib/api/truck';
+import { useCreateTruck, useUpdateTruck, TruckInspectionsQueryOptions } from '@/lib/api/truck';
 import {
   HauliersListQueryOptions,
   HaulierDriversQueryOptions,
@@ -37,7 +37,6 @@ import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
-import type { InspectionRecord } from '@/lib/types/truck-inspection';
 import { YearPicker } from '@/components/year-picker';
 import {
   FormMultiSelect,
@@ -70,40 +69,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-const DUMMY_INSPECTIONS: InspectionRecord[] = [
-  {
-    id: 1,
-    checklistId: 'TI-24-001',
-    date: 'Feb 10, 2024',
-    driver: { driverName: 'John Smith' } as InspectionRecord['driver'],
-    status: 'PASS',
-    notes: 'No defects identified during inspection.',
-  },
-  {
-    id: 2,
-    checklistId: 'TI-24-002',
-    date: 'Feb 11, 2024',
-    driver: { driverName: 'Armin Menhaji' } as InspectionRecord['driver'],
-    status: 'FAIL',
-    notes: 'Failed Engine oil level, Coolant level.',
-  },
-  {
-    id: 3,
-    checklistId: 'TI-24-003',
-    date: 'Feb 12, 2024',
-    driver: { driverName: 'Jaywoo Choi' } as InspectionRecord['driver'],
-    status: 'PASS',
-    notes: 'No defects identified during inspection.',
-  },
-  {
-    id: 4,
-    checklistId: 'TI-24-004',
-    date: 'Feb 13, 2024',
-    driver: { driverName: 'John Smith' } as InspectionRecord['driver'],
-    status: 'CONFIRMED',
-    notes: 'External haulier check confirmed by driver.',
-  },
-] as InspectionRecord[];
 
 export default function TruckForm({
   id,
@@ -299,7 +264,11 @@ export default function TruckForm({
     });
   }
 
-  const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
+  const { data: inspectionsData } = useQuery({
+    ...TruckInspectionsQueryOptions(id ?? 0),
+    enabled: isEditing && !!id,
+  });
+  const inspectionRecords = inspectionsData?.content ?? [];
 
   const assignedDrivers = (truckData?.drivers ?? []).map((driver) => ({
     id: driver.id!,

@@ -28,8 +28,15 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
-import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
-import { HauliersListQueryOptions, HaulierTrucksQueryOptions } from '@/lib/api/haulier';
+import {
+  useCreateDriver,
+  useUpdateDriver,
+  DriverPreStartChecklistsQueryOptions,
+} from '@/lib/api/driver';
+import {
+  HauliersListQueryOptions,
+  HaulierTrucksQueryOptions,
+} from '@/lib/api/haulier';
 import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
@@ -54,58 +61,6 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
 }
-
-const DUMMY_COMPLIANCE = [
-  {
-    id: 1,
-    checklistId: 'CL-25-001',
-    date: 'Jan 15, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-  {
-    id: 2,
-    checklistId: 'CL-25-002',
-    date: 'Jan 16, 2024',
-    status: 'FAIL',
-    notes: 'Failed Health & Wellness.',
-  },
-  {
-    id: 3,
-    checklistId: 'CL-25-003',
-    date: 'Jan 17, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-  {
-    id: 4,
-    checklistId: 'CL-25-004',
-    date: 'Jan 17, 2024',
-    status: 'CONFIRMED',
-    notes: 'External haulier check confirmed by driver.',
-  },
-  {
-    id: 5,
-    checklistId: 'CL-25-005',
-    date: 'Jan 18, 2024',
-    status: 'FAIL',
-    notes: 'Failed Health & Wellness.',
-  },
-  {
-    id: 6,
-    checklistId: 'CL-25-006',
-    date: 'Jan 19, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-  {
-    id: 7,
-    checklistId: 'CL-25-007',
-    date: 'Jan 20, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-];
 
 export default function DriverForm({
   id,
@@ -231,7 +186,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -253,7 +208,9 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveHaulierId]);
 
-  const { data: haulierTrucksData } = useQuery(HaulierTrucksQueryOptions(effectiveHaulierId));
+  const { data: haulierTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(effectiveHaulierId),
+  );
   const haulierTrucks = React.useMemo(
     () => haulierTrucksData?.trucks ?? [],
     [haulierTrucksData],
@@ -263,7 +220,11 @@ export default function DriverForm({
       haulierTrucks.map((t) => ({
         label: t.licensePlate,
         value: String(t.id),
-        group: t.haulier?.haulierName ?? selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks',
+        group:
+          t.haulier?.haulierName ??
+          selectedHaulierInfo?.haulierName ??
+          tenantName ??
+          'Trucks',
       })),
     [haulierTrucks, selectedHaulierInfo, tenantName],
   );
@@ -273,7 +234,11 @@ export default function DriverForm({
     licensePlate: t.licensePlate,
     status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
   }));
-  const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
+  const { data: checklistsData } = useQuery({
+    ...DriverPreStartChecklistsQueryOptions(id ?? 0),
+    enabled: isEditing && !!id,
+  });
+  const complianceRecords = checklistsData?.content ?? [];
 
   return (
     <div className="w-full relative">

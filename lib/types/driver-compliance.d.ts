@@ -1,21 +1,21 @@
-import { TRUCK_INSPECTION_STATUS } from './truck-inspection-enums';
+import { DRIVER_COMPLIANCE_STATUS } from './driver-compliance-enums';
 
-export interface TruckInspection {
+export interface DriverPreStartChecklist {
   submissionId: number;
   submissionNumber: string;
   submittedAt: string;
-  status: TRUCK_INSPECTION_STATUS;
+  status: DRIVER_COMPLIANCE_STATUS;
   summaryNotes: string;
   viewDetailsAvailable: boolean;
 }
 
-export interface TruckInspectionsPage {
+export interface DriverPreStartChecklistsPage {
   totalElements: number;
   totalPages: number;
   first: boolean;
   last: boolean;
   size: number;
-  content: TruckInspection[];
+  content: DriverPreStartChecklist[];
   number: number;
   numberOfElements: number;
   empty: boolean;
