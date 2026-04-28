@@ -23,8 +23,12 @@ import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
 import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import { useCreateTruck, useUpdateTruck, TruckInspectionsQueryOptions } from '@/lib/api/truck';
+import { TRUCK_TYPE, TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
+import {
+  useCreateTruck,
+  useUpdateTruck,
+  TruckInspectionsQueryOptions,
+} from '@/lib/api/truck';
 import {
   HauliersListQueryOptions,
   HaulierDriversQueryOptions,
@@ -69,7 +73,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-
 export default function TruckForm({
   id,
   onCancel,
@@ -80,9 +83,8 @@ export default function TruckForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
-  const [truckOwnerType, setTruckOwnerType] = React.useState<
-    'INTERNAL' | 'SUBCONTRACTOR'
-  >('INTERNAL');
+  const [truckOwnerType, setTruckOwnerType] =
+    React.useState<TRUCK_BUSINESS_TYPE>(TRUCK_BUSINESS_TYPE.INTERNAL);
 
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
@@ -103,7 +105,7 @@ export default function TruckForm({
     [hauliers, tenantName],
   );
 
-  const isInternal = truckOwnerType === 'INTERNAL';
+  const isInternal = truckOwnerType === TRUCK_BUSINESS_TYPE.INTERNAL;
 
   const truckForm = useForm<TruckFormValues>({
     resolver: zodResolver(TruckFormSchema),
@@ -177,8 +179,13 @@ export default function TruckForm({
 
   React.useEffect(() => {
     if (isEditing && truckData) {
-      const isInternalTruck = truckData.truckBusinessType === 'INTERNAL';
-      setTruckOwnerType(isInternalTruck ? 'INTERNAL' : 'SUBCONTRACTOR');
+      const isInternalTruck =
+        truckData.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL;
+      setTruckOwnerType(
+        isInternalTruck
+          ? TRUCK_BUSINESS_TYPE.INTERNAL
+          : TRUCK_BUSINESS_TYPE.EXTERNAL,
+      );
       truckForm.reset({
         haulierId: truckData.haulier?.id ?? truckData.haulierId ?? 0,
         licensePlate: truckData.licensePlate ?? '',
@@ -321,17 +328,17 @@ export default function TruckForm({
                   <RadioGroup
                     value={truckOwnerType}
                     onValueChange={(v) =>
-                      setTruckOwnerType(v as 'INTERNAL' | 'SUBCONTRACTOR')
+                      setTruckOwnerType(v as TRUCK_BUSINESS_TYPE)
                     }
                     disabled={isEditing}
                     className="flex gap-6"
                   >
                     <FormItem className="flex items-center gap-2">
-                      <RadioGroupItem value="INTERNAL" />
+                      <RadioGroupItem value={TRUCK_BUSINESS_TYPE.INTERNAL} />
                       <FormLabel className="font-normal">Internal</FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center gap-2">
-                      <RadioGroupItem value="SUBCONTRACTOR" />
+                      <RadioGroupItem value={TRUCK_BUSINESS_TYPE.EXTERNAL} />
                       <FormLabel className="font-normal">External</FormLabel>
                     </FormItem>
                   </RadioGroup>
