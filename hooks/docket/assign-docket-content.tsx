@@ -205,9 +205,10 @@ export function AssignDocketContent({
   const { data: haulierTrucksData } = useQuery(
     HaulierTrucksQueryOptions(haulerSelection ?? 0),
   );
-  const { data: haulierDriversData } = useQuery(
-    HaulierDriversQueryOptions(haulerSelection ?? 0),
-  );
+  const { data: haulierDriversData } = useQuery({
+    ...HaulierDriversQueryOptions(haulerSelection ?? 0),
+    enabled: !!haulerSelection && !!truckSelection,
+  });
   const tenantName = useClientStore((state) => state.getTenantName());
   const [haulerOpen, setHaulerOpen] = React.useState(false);
 
@@ -237,7 +238,7 @@ export function AssignDocketContent({
         .map((d) => ({
           id: d.id as number,
           driverName: d.driverName,
-          truckIds: d.truckIds ?? [],
+          truckIds: (d.trucks ?? []).map((t) => t.id),
         })),
     [haulierDriversData],
   );
