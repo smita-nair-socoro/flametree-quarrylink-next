@@ -472,7 +472,10 @@ export default function CustomerForm({
       )}
 
       {/* Form — inert when a block state is active; all fields and buttons become non-interactive */}
-      <div inert={isFormBlocked || undefined}>
+      <div inert={isFormBlocked || undefined} className="relative">
+        {isFormBlocked && (
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px] z-10 rounded-md pointer-events-none" />
+        )}
       <Form {...customerForm}>
         <form
           id="add-new-customer-form"
