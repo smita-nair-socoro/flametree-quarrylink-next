@@ -39,6 +39,7 @@ import {
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
+import { XeroConnectRequestDTO } from '../types/xero';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
@@ -124,6 +125,7 @@ export interface HttpConfig {
    * This treats backend datetimes as UTC. Default: true.
    */
   normalizeUtc?: boolean;
+
 }
 
 /**
@@ -1223,6 +1225,13 @@ export const APIClient = {
           },
         },
       ),
+  },
+
+  xero: {
+    connect: (data: XeroConnectRequestDTO) =>
+      appClient.Post<unknown>(`/quarrylink/tenant-fusion/api/xero/connect`, {
+        body: data,
+      }),
   },
 
   invoices: {

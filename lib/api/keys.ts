@@ -120,3 +120,8 @@ export const TruckKeys = {
   drivers: (id: number) => [...TruckKeys.all, 'drivers', id] as const,
   inspections: (id: number) => [...TruckKeys.all, 'inspections', id] as const,
 };
+
+export const XeroKeys = {
+  all: ['xero'] as const,
+  connect: () => [...XeroKeys.all, 'connect'] as const,
+};
