@@ -9,8 +9,6 @@ import { useDriverStore } from '@/app/stores/driver-store';
 import {
   Ban,
   TriangleAlert,
-  CircleCheck,
-  CircleX,
   CircleAlert,
 } from 'lucide-react';
 import {
@@ -111,38 +109,6 @@ const getDialogConfigs = (
                 </div>
               </div>
             )}
-
-            <div className="border border-[#BAE6FD] rounded-md p-4 bg-[#F0F9FF]">
-              <div className="flex flex-col gap-3">
-                <span className="text-[16px] text-[#075985] font-medium">
-                  Data Preservation
-                </span>
-                <div className="flex justify-start gap-1 self-stretch text-[#0C4A6E]">
-                  <span className="font-medium">15 completed dockets</span>
-                  will be preserved
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleCheck className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">10 Delivered Dockets</span>
-                  </div>
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleCheck className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">3 Collected</span>
-                  </div>
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleX className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">2 Cancelled</span>
-                  </div>
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleCheck className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">
-                      All maintenance records
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <div className=" rounded-md p-4 bg-[#F9FAFB]">
               <div className="flex flex-col gap-3">

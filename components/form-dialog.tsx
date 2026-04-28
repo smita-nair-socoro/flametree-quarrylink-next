@@ -108,6 +108,9 @@ interface AddProductDrawerDialogProps {
   /** Hides the trigger entirely */
   hideTrigger?: boolean;
 
+  /** Optional notice rendered above the title (e.g. info banner) */
+  headerNotice?: React.ReactNode;
+
   /** Optional header buttons to display inline with the title */
   headerButtons?: React.ReactNode;
 
@@ -191,6 +194,7 @@ export function FormDialog({
   onOpenChangeAction: onOpenChangeProp,
   dialogWidth,
   hideTrigger,
+  headerNotice,
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
@@ -505,6 +509,7 @@ export function FormDialog({
         )}
       >
         <div>
+          {headerNotice && <div className="mb-3">{headerNotice}</div>}
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
           {dialogDescription && (
             <DialogDescription className="mt-2 -mb-5">
@@ -592,6 +597,7 @@ export function FormDialog({
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
+            {headerNotice && <div className="mb-3">{headerNotice}</div>}
             <DrawerTitle className="text-start text-2xl">
               {headerTitle}
             </DrawerTitle>

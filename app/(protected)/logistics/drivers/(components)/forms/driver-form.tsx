@@ -74,18 +74,20 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const haulierItems = React.useMemo(
-    () =>
-      hauliers.map((h) => ({
-        id: h.id,
-        label: h.haulierName,
-        fields: { email: h.emailAddress, phone: h.phoneNumber },
-      })),
-    [hauliers],
-  );
-
   const tenantName = useClientStore((state) => state.getTenantName());
   const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+
+  const haulierItems = React.useMemo(
+    () =>
+      hauliers
+        .filter((h) => h.haulierName !== tenantName)
+        .map((h) => ({
+          id: h.id,
+          label: h.haulierName,
+          fields: { email: h.emailAddress, phone: h.phoneNumber },
+        })),
+    [hauliers, tenantName],
+  );
 
   const createDriver = useCreateDriver();
   const updateDriver = useUpdateDriver();
@@ -166,6 +168,7 @@ export default function DriverForm({
           phoneNumber: values.phone,
           licenseNumber: values.driverLicenseNumber,
           haulierId: selectedHaulierData?.id,
+          truckIds: values.assignedTrucks?.map(Number) ?? [],
         });
 
         if (newDriver && typeof newDriver.id === 'number') {
