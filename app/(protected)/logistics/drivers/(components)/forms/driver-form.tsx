@@ -251,7 +251,7 @@ export default function DriverForm({
   }, [effectiveHaulierId]);
 
   const { data: haulierTrucksData } = useQuery(HaulierTrucksQueryOptions(effectiveHaulierId));
-  const haulierTrucks = haulierTrucksData?.trucks ?? [];
+  const haulierTrucks = React.useMemo(() => haulierTrucksData?.trucks ?? [], [haulierTrucksData]);
   const truckOptions = React.useMemo(
     () =>
       haulierTrucks.map((t) => ({

@@ -64,6 +64,7 @@ export function ColorSelect({
 }: ColorSelectProps) {
   const [open, setOpen] = React.useState(false);
   const selected = options.find((o) => o.value === value);
+  const listboxId = React.useId();
 
   return (
     <div className="space-y-2">
@@ -75,6 +76,7 @@ export function ColorSelect({
             disabled={disabled}
             role="combobox"
             aria-expanded={open}
+            aria-controls={listboxId}
             style={selected?.rowStyle}
             className={cn(
               'w-full flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors',
@@ -104,7 +106,7 @@ export function ColorSelect({
           className="p-1 w-[var(--radix-popover-trigger-width)]"
           align="start"
         >
-          <Command>
+          <Command id={listboxId}>
             <CommandInput placeholder={searchPlaceholder} className="h-9" />
             <CommandList className="max-h-64">
               <CommandEmpty>No results found.</CommandEmpty>
