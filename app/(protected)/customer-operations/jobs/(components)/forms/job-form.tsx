@@ -1,6 +1,6 @@
 'use client';
 
-import { format, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -163,7 +163,7 @@ export default function JobForm({
           jobForm.setValue(
             'phone',
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
-              '',
+            '',
           );
 
           jobForm.setValue(
@@ -259,9 +259,9 @@ export default function JobForm({
 
       const receiptEmails = values.receiptEmail
         ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
 
       const customerEmail = selectedCustomer?.contactPersonEmail;
@@ -311,7 +311,7 @@ export default function JobForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
       );
     }
   }
