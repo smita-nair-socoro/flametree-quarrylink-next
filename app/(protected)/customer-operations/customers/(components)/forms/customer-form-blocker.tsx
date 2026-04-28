@@ -33,10 +33,10 @@ import { CustomerDTO } from '@/lib/types/customer';
 //   Case 4 — QL_ARCHIVED              : gray  banner, form blocked
 // =============================================================================
 export const DEV_BLOCK_STATE_OVERRIDES: Record<number, CustomerFormBlockState> = {
-  // 1: CustomerFormBlockState.XERO_ARCHIVED_QL_BLOCKED,
-  // 2: CustomerFormBlockState.XERO_ARCHIVE_REVERTED,
-  // 3: CustomerFormBlockState.XERO_UNARCHIVE_DUPLICATE,
-  // 4: CustomerFormBlockState.QL_ARCHIVED,
+  24: CustomerFormBlockState.XERO_ARCHIVED_QL_BLOCKED,
+  20: CustomerFormBlockState.XERO_ARCHIVE_REVERTED,
+  15: CustomerFormBlockState.XERO_UNARCHIVE_DUPLICATE,
+  19: CustomerFormBlockState.QL_ARCHIVED,
 };
 
 /** Returns the block state for a customer, or null if the form should be editable. */
