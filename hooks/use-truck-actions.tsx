@@ -70,7 +70,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
-  const selectedTruck = useTruckStore((state) => state.selectedTruck);
   const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
   const selectedTruck = useTruckStore((state) => state.selectedTruck);
   const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
@@ -340,7 +339,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     }),
     [
       truckData,
-      fullTruckData,
       cannotDeactivateDocketIds,
       cannotDeleteDocketIds,
       assignedDrivers,
