@@ -93,6 +93,9 @@ interface AddProductDrawerDialogProps {
   /** Override the dialog description */
   dialogDescription?: string;
 
+  /** Optional subtitle rendered under the title with normal header spacing */
+  headerSubtitle?: React.ReactNode;
+
   /**
    * Optional custom trigger element; must accept an `onClick`.
    * If omitted, we render our default <Plus> button.
@@ -188,6 +191,7 @@ export function FormDialog({
   dialogTitle,
   customTitle,
   dialogDescription,
+  headerSubtitle,
   buttonTitle,
   trigger,
   open: openProp,
@@ -511,6 +515,11 @@ export function FormDialog({
         <div>
           {headerNotice && <div className="mb-3">{headerNotice}</div>}
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
+          {headerSubtitle && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {headerSubtitle}
+            </div>
+          )}
           {dialogDescription && (
             <DialogDescription className="mt-2 -mb-5">
               {dialogDescription}
@@ -601,6 +610,11 @@ export function FormDialog({
             <DrawerTitle className="text-start text-2xl">
               {headerTitle}
             </DrawerTitle>
+            {headerSubtitle && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                {headerSubtitle}
+              </div>
+            )}
             {dialogDescription && (
               <DrawerDescription className="mt-2">
                 {dialogDescription}

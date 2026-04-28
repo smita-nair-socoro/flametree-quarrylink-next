@@ -420,7 +420,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       }}
       hideTrigger
       dialogTitle="View / Edit Truck"
-      dialogDescription={selectedTruck?.haulier?.haulierName}
+      headerSubtitle={selectedTruck?.haulier?.haulierName}
       customTitle={isGenericTruck ? 'GENERIC TRUCK' : undefined}
       headerNotice={
         isGenericTruck ? (
