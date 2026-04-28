@@ -88,6 +88,8 @@ export const DriverKeys = {
   all: ['drivers'] as const,
   list: () => [...DriverKeys.all, 'list'] as const,
   detail: (id: number) => [...DriverKeys.all, 'detail', id] as const,
+  assignments: (id: number) => [...DriverKeys.all, 'assignments', id] as const,
+  checklists: (id: number) => [...DriverKeys.all, 'checklists', id] as const,
 };
 
 export const DocketKeys = {
@@ -107,10 +109,14 @@ export const HaulierKeys = {
   all: ['hauliers'] as const,
   list: () => [...HaulierKeys.all, 'list'] as const,
   detail: (id: number) => [...HaulierKeys.all, 'detail', id] as const,
+  drivers: (id: number) => [...HaulierKeys.all, 'drivers', id] as const,
+  trucks: (id: number) => [...HaulierKeys.all, 'trucks', id] as const,
 };
 
 export const TruckKeys = {
   all: ['trucks'] as const,
   list: () => [...TruckKeys.all, 'list'] as const,
   detail: (id: number) => [...TruckKeys.all, 'detail', id] as const,
+  drivers: (id: number) => [...TruckKeys.all, 'drivers', id] as const,
+  inspections: (id: number) => [...TruckKeys.all, 'inspections', id] as const,
 };

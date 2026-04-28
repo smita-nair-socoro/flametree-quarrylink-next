@@ -9,22 +9,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { InspectionRecord } from '@/lib/types/truck-inspection';
+import type { TruckInspection } from '@/lib/types/truck-inspection';
 
 interface InspectionTableActionsProps {
-  record: InspectionRecord;
+  record: TruckInspection;
 }
 
-export function InspectionTableActions({
-  record,
-}: InspectionTableActionsProps) {
+export function InspectionTableActions({ record }: InspectionTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-  const handleViewDetails = () => {
-    setDropdownOpen(false);
-    // TODO: implement view details
-    console.log('View inspection record:', record);
-  };
+  if (!record.viewDetailsAvailable) return null;
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -34,7 +28,7 @@ export function InspectionTableActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={handleViewDetails}>
+        <DropdownMenuItem onClick={() => setDropdownOpen(false)}>
           <Eye className="h-4 w-4 mr-2" />
           View Details
         </DropdownMenuItem>

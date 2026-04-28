@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { TruckDTO } from '@/lib/types/truck';
 import { useTruckActions } from '@/hooks/use-truck-actions';
+import { normalizeTruckStatus, TRUCK_STATUS } from '@/lib/types/truck-enums';
 
 interface TruckTableActionsProps {
   truck: TruckDTO;
@@ -41,6 +42,8 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
     actions.delete();
   };
 
+  const status = normalizeTruckStatus(truck.truckStatus);
+
   return (
     <>
       {viewDialog}
@@ -55,7 +58,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {truck.truckStatus === 'INACTIVE' && (
+          {status === TRUCK_STATUS.DEACTIVATED && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivate}>
@@ -64,7 +67,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {(truck.truckStatus === 'ACTIVE' || truck.truckStatus === 'AVAILABLE') && (
+          {status === TRUCK_STATUS.ACTIVE && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeactivate}>
@@ -73,15 +76,13 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          {truck.truckStatus !== 'ON_DUTY' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDelete}>
-                <Delete className="h-4 w-4 mr-2 text-red-600" />
-                <span className="text-red-600">Delete Truck</span>
-              </DropdownMenuItem>
-            </>
-          )}
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleDelete}>
+              <Delete className="h-4 w-4 mr-2 text-red-600" />
+              <span className="text-red-600">Delete Truck</span>
+            </DropdownMenuItem>
+          </>
         </DropdownMenuContent>
       </DropdownMenu>
 

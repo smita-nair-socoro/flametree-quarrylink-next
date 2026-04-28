@@ -28,8 +28,15 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
-import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
-import { HauliersListQueryOptions } from '@/lib/api/haulier';
+import {
+  useCreateDriver,
+  useUpdateDriver,
+  DriverPreStartChecklistsQueryOptions,
+} from '@/lib/api/driver';
+import {
+  HauliersListQueryOptions,
+  HaulierTrucksQueryOptions,
+} from '@/lib/api/haulier';
 import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
@@ -54,58 +61,6 @@ interface FormProps {
   className?: string;
   onCancel?: () => void;
 }
-
-const DUMMY_COMPLIANCE = [
-  {
-    id: 1,
-    checklistId: 'CL-25-001',
-    date: 'Jan 15, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-  {
-    id: 2,
-    checklistId: 'CL-25-002',
-    date: 'Jan 16, 2024',
-    status: 'FAIL',
-    notes: 'Failed Health & Wellness.',
-  },
-  {
-    id: 3,
-    checklistId: 'CL-25-003',
-    date: 'Jan 17, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-  {
-    id: 4,
-    checklistId: 'CL-25-004',
-    date: 'Jan 17, 2024',
-    status: 'CONFIRMED',
-    notes: 'External haulier check confirmed by driver.',
-  },
-  {
-    id: 5,
-    checklistId: 'CL-25-005',
-    date: 'Jan 18, 2024',
-    status: 'FAIL',
-    notes: 'Failed Health & Wellness.',
-  },
-  {
-    id: 6,
-    checklistId: 'CL-25-006',
-    date: 'Jan 19, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-  {
-    id: 7,
-    checklistId: 'CL-25-007',
-    date: 'Jan 20, 2024',
-    status: 'PASS',
-    notes: 'All safety checks cleared.',
-  },
-];
 
 export default function DriverForm({
   id,
@@ -153,7 +108,6 @@ export default function DriverForm({
     },
   });
 
-  // Populate form when editing
   React.useEffect(() => {
     if (isEditing && driverData) {
       driverForm.reset({
@@ -177,7 +131,6 @@ export default function DriverForm({
     return hauliers.find((h) => h.id === selectedHaulierId);
   }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
-  // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(driverForm.formState.isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,10 +140,6 @@ export default function DriverForm({
 
   async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
-      const selectedHaulierData = isInternal
-        ? internalHaulier
-        : hauliers.find((h) => h.id === values.haulierId);
-
       if (isEditing && id && driverData) {
         await updateDriver.mutateAsync({
           id,
@@ -200,13 +149,16 @@ export default function DriverForm({
             licenseNumber: values.driverLicenseNumber,
             emailAddress: values.email,
             phoneNumber: values.phone,
-            driverType: values.type,
+            driverType: driverData.driverType,
             driverStatus: driverData.driverStatus ?? DRIVER_STATUS.ACTIVE,
             truckIds: driverData.truckIds ?? [],
-            haulierId: selectedHaulierData?.id,
           },
         });
       } else {
+        const selectedHaulierData = isInternal
+          ? internalHaulier
+          : hauliers.find((h) => h.id === values.haulierId);
+
         const newDriver = await createDriver.mutateAsync({
           driverName: values.driverName,
           driverType: values.type,
@@ -231,7 +183,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -244,22 +196,46 @@ export default function DriverForm({
     );
   }
 
-  // TODO: replace with real truck list from API (filtered by haulier)
-  const haulierName =
-    selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks';
-  const truckOptions = [
-    { label: 'ABC-123', value: 'ABC-123', group: haulierName },
-    { label: 'DEF-456', value: 'DEF-456', group: haulierName },
-    { label: 'GHI-789', value: 'GHI-789', group: haulierName },
-  ];
+  const effectiveHaulierId = isInternal
+    ? (internalHaulier?.id ?? 0)
+    : (selectedHaulierId ?? 0);
 
-  // TODO: replace with real assigned trucks from API
-  const trucks: { id: number; licensePlate: string; status: string }[] = [
-    { id: 1, licensePlate: 'ABC-123', status: 'ACTIVE' },
-    { id: 2, licensePlate: 'DEF-456', status: 'ACTIVE' },
-    { id: 3, licensePlate: 'GHI-789', status: 'INACTIVE' },
-  ];
-  const complianceRecords = isEditing ? DUMMY_COMPLIANCE : [];
+  React.useEffect(() => {
+    driverForm.setValue('assignedTrucks', []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveHaulierId]);
+
+  const { data: haulierTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(effectiveHaulierId),
+  );
+  const haulierTrucks = React.useMemo(
+    () => haulierTrucksData?.trucks ?? [],
+    [haulierTrucksData],
+  );
+  const truckOptions = React.useMemo(
+    () =>
+      haulierTrucks.map((t) => ({
+        label: t.licensePlate,
+        value: String(t.id),
+        group:
+          t.haulier?.haulierName ??
+          selectedHaulierInfo?.haulierName ??
+          tenantName ??
+          'Trucks',
+      })),
+    [haulierTrucks, selectedHaulierInfo, tenantName],
+  );
+
+  const trucks = (driverData?.trucks ?? []).map((t) => ({
+    id: t.id,
+    licensePlate: t.licensePlate,
+    status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
+  }));
+  const { data: checklistsData } = useQuery({
+    ...DriverPreStartChecklistsQueryOptions(id ?? 0),
+    enabled: isEditing && !!id,
+  });
+  const complianceRecords = checklistsData?.content ?? [];
 
   return (
     <div className="w-full relative">
@@ -290,7 +266,6 @@ export default function DriverForm({
           )}
           onSubmit={driverForm.handleSubmit(onSubmit, onError)}
         >
-          {/* Driver Type */}
           <FormField
             control={driverForm.control}
             name="type"
@@ -326,7 +301,6 @@ export default function DriverForm({
 
           <Separator className="my-3" />
 
-          {/* Driver Name + Haulier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <FormField
               control={driverForm.control}
@@ -394,7 +368,6 @@ export default function DriverForm({
             )}
           </div>
 
-          {/* Contact Information */}
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">Contact Information</h2>
             <Separator />
@@ -456,7 +429,6 @@ export default function DriverForm({
             </div>
           </div>
 
-          {/* License & Assignment */}
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">License &amp; Assignment</h2>
             <Separator />
@@ -492,7 +464,6 @@ export default function DriverForm({
             </div>
           </div>
 
-          {/* Truck Assignments — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
@@ -546,7 +517,6 @@ export default function DriverForm({
             </div>
           )}
 
-          {/* Safety & Compliance — edit mode only */}
           {isEditing && (
             <div className="flex flex-col gap-4">
               <Separator />
@@ -568,7 +538,6 @@ export default function DriverForm({
             />
           )}
 
-          {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-2 mb-6">
             <Button
               variant="outline"

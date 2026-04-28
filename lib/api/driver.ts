@@ -19,6 +19,22 @@ export const DriverByIdQueryOptions = (id: number) =>
     staleTime: 5_000,
   });
 
+export const DriverAssignmentsQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: DriverKeys.assignments(id),
+    queryFn: () => APIClient.drivers.getAssignments(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!id,
+  });
+
+export const DriverPreStartChecklistsQueryOptions = (driverId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+  queryOptions({
+    queryKey: DriverKeys.checklists(driverId),
+    queryFn: () => APIClient.drivers.getPreStartChecklists(driverId, params),
+    enabled: !!driverId,
+  });
+
 export const useCreateDriver = () => {
   const queryClient = useQueryClient();
 
@@ -62,6 +78,18 @@ export const usePatchDriverType = () => {
       APIClient.drivers.patchType(id, data),
     onSuccess: (_data, { id }) => {
       queryClient.invalidateQueries({ queryKey: DriverKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+    },
+  });
+};
+
+export const useUnassignTruckFromDriver = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ driverId, data }: { driverId: number; data: { version: number; truckId: number } }) =>
+      APIClient.drivers.unassignTruck(driverId, data),
+    onSuccess: (_data, { driverId }) => {
+      queryClient.invalidateQueries({ queryKey: DriverKeys.detail(driverId) });
       queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
     },
   });
