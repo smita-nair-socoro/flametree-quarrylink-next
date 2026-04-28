@@ -38,6 +38,8 @@ import { useSelectedJob } from '@/app/stores/job-store';
 import { useSelectedJobLineItem } from '@/app/stores/job-line-item-store';
 import { useSelectedDocket } from '@/app/stores/docket-store';
 import { useSelectedDriver } from '@/app/stores/driver-store';
+import { useSelectedTruck } from '@/app/stores/truck-store';
+import { normalizeTruckStatus } from '@/lib/types/truck-enums';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -71,6 +73,8 @@ interface HeaderInfo {
   useSelectedDocket?: boolean;
   /** Use selected driver data automatically */
   useSelectedDriver?: boolean;
+  /** Use selected truck data automatically */
+  useSelectedTruck?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -257,6 +261,7 @@ export function FormDialog({
   const selectedJobLineItem = useSelectedJobLineItem();
   const selectedDocket = useSelectedDocket();
   const selectedDriver = useSelectedDriver();
+  const selectedTruck = useSelectedTruck();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -327,6 +332,14 @@ export function FormDialog({
     finalCustomId = selectedDriver.driverName;
     finalPrimaryBadges = selectedDriver.driverStatus ? [selectedDriver.driverStatus] : [];
     finalSecondaryBadges = selectedDriver.driverType ? [selectedDriver.driverType] : [];
+  }
+
+  if (headerInfo?.useSelectedTruck && selectedTruck) {
+    finalCustomId = selectedTruck.licensePlate;
+    finalPrimaryBadges = selectedTruck.truckStatus
+      ? [normalizeTruckStatus(selectedTruck.truckStatus) ?? selectedTruck.truckStatus]
+      : [];
+    finalSecondaryBadges = selectedTruck.truckBusinessType ? [selectedTruck.truckBusinessType] : [];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';

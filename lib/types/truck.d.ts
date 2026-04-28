@@ -1,11 +1,14 @@
 import { TRUCK_STATUS, TRUCK_TYPE } from './truck-enums';
+import { HaulierDTO } from './haulier';
 
 interface TruckDTO {
   id?: number;
   licensePlate: string;
   vin?: string;
   model: string;
+  truckBusinessType?: 'INTERNAL' | 'SUBCONTRACTOR';
   truckType: TRUCK_TYPE;
+  truckBodyType?: string;
   tankVolumeM3?: number;
   truckStatus?: TRUCK_STATUS;
   year?: number;
@@ -20,7 +23,9 @@ interface TruckDTO {
   epaClassification?: string;
   pbsClassification?: string;
   haulierId?: number;
-  haulierName?: string;
+  haulier?: HaulierDTO;
+  drivers?: DriverDTO[];
+  driverIds?: number[];
   version?: number;
   createdBy?: string;
   lastModifiedBy?: string;

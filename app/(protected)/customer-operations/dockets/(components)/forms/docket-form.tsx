@@ -27,6 +27,8 @@ import {
   MapPin,
   Package,
   Truck,
+  User,
+  X,
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
@@ -85,7 +87,9 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
-  const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<typeof DocketFormSchema> | null>(null);
+  const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
+    typeof DocketFormSchema
+  > | null>(null);
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
@@ -130,6 +134,12 @@ export default function DocketForm({
     combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
     return toUTCDateTimeWithoutZ(combined);
+  };
+
+  // TODO: replace with real API data when endpoint is ready
+  const DUMMY_ASSIGNMENT = {
+    driver: 'Mike Johnson',
+    truckRego: 'VIC123',
   };
 
   const statusBanner = React.useMemo(() => {
@@ -202,9 +212,9 @@ export default function DocketForm({
       const loadSize = values.loadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -307,18 +317,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -394,7 +404,11 @@ export default function DocketForm({
               <span className="text-xs text-[#6A7282]">
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {selectedDocket?.loadSize != null && (
-                  <> · {selectedDocket.loadSize} {selectedDocket.jobItem?.productSellUom}</>
+                  <>
+                    {' '}
+                    · {selectedDocket.loadSize}{' '}
+                    {selectedDocket.jobItem?.productSellUom}
+                  </>
                 )}
               </span>
             </div>
@@ -409,18 +423,26 @@ export default function DocketForm({
                   New time {timeLabel} conflicts with existing dockets
                 </span>
                 <span className="text-xs" style={{ color: '#973C00' }}>
-                  The following dockets are already scheduled for this truck and driver at this time. You can still save this change.
+                  The following dockets are already scheduled for this truck and
+                  driver at this time. You can still save this change.
                 </span>
               </div>
             </div>
             <div
               className="rounded-md border px-3 py-2 text-xs"
-              style={{ backgroundColor: '#FFF7ED', borderColor: '#FFD6A7', color: '#364153' }}
+              style={{
+                backgroundColor: '#FFF7ED',
+                borderColor: '#FFD6A7',
+                color: '#364153',
+              }}
             >
               <span className="font-medium">Conflicting dockets: </span>
               {DUMMY_CONFLICTING_DOCKETS.map((cd, i) => (
                 <span key={cd.id}>
-                  <span className="underline cursor-pointer" style={{ color: '#155DFC' }}>
+                  <span
+                    className="underline cursor-pointer"
+                    style={{ color: '#155DFC' }}
+                  >
                     {cd.docketNumber}
                   </span>
                   {i < DUMMY_CONFLICTING_DOCKETS.length - 1 ? ', ' : ''}
@@ -435,128 +457,97 @@ export default function DocketForm({
         }}
       />
 
-    <div className="w-full relative">
-      {isSubmitting && (
-        <div
-          className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10',
-          )}
-        >
-          <div className="flex flex-col items-center space-y-4 p-8">
-            <Spinner size="medium" />
-            <p className="text-lg text-muted-foreground font-bold">
-              {isEditing ? 'Updating Docket...' : 'Adding Docket...'}
-            </p>
-          </div>
-        </div>
-      )}
-      <Form {...docketForm}>
-        <form
-          id="add-new-docket-form"
-          className={cn('w-full flex flex-col gap-8', className)}
-          onSubmit={docketForm.handleSubmit(onSubmit)}
-        >
-          {statusBanner}
-          <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
-            <div className="border rounded-md p-4 flex flex-col gap-8">
-              <div className="items-center flex gap-2">
-                <FileText className="w-5 h-5" />
-                <span className="text-[17px] font-medium">Job Reference</span>
-              </div>
-              <FormSelect
-                control={docketForm.control}
-                name="jobId"
-                label="Job Reference*"
-                searchLabel="Job References"
-                options={allJobs}
-                placeholder="Select Job"
-                disabled={isJobLocked || isReadOnly || isEditing}
-                formItemClassName={
-                  isEditing && isDesktop
-                    ? 'col-span-1 col-start-1'
-                    : 'col-span-2'
-                }
-              />
+      <div className="w-full relative">
+        {isSubmitting && (
+          <div
+            className={cn(
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              isDesktop ? '' : 'pt-10',
+            )}
+          >
+            <div className="flex flex-col items-center space-y-4 p-8">
+              <Spinner size="medium" />
+              <p className="text-lg text-muted-foreground font-bold">
+                {isEditing ? 'Updating Docket...' : 'Adding Docket...'}
+              </p>
             </div>
-            <div className="border rounded-md p-4 flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
+          </div>
+        )}
+        <Form {...docketForm}>
+          <form
+            id="add-new-docket-form"
+            className={cn('w-full flex flex-col gap-8', className)}
+            onSubmit={docketForm.handleSubmit(onSubmit)}
+          >
+            {statusBanner}
+            <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
+              <div className="border rounded-md p-4 flex flex-col gap-8">
                 <div className="items-center flex gap-2">
-                  <Package className="w-5 h-5" />
-                  <span className="text-[17px] font-medium">
-                    Product & Vehicle Details
+                  <FileText className="w-5 h-5" />
+                  <span className="text-[17px] font-medium">Job Reference</span>
+                </div>
+                <FormSelect
+                  control={docketForm.control}
+                  name="jobId"
+                  label="Job Reference*"
+                  searchLabel="Job References"
+                  options={allJobs}
+                  placeholder="Select Job"
+                  disabled={isJobLocked || isReadOnly || isEditing}
+                  formItemClassName={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                />
+              </div>
+              <div className="border rounded-md p-4 flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="items-center flex gap-2">
+                    <Package className="w-5 h-5" />
+                    <span className="text-[17px] font-medium">
+                      Product & Vehicle Details
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    Product selection and vehicle configuration
                   </span>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  Product selection and vehicle configuration
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormSelect
-                    control={docketForm.control}
-                    name="jobLineItemId"
-                    label="Product*"
-                    searchLabel="Products"
-                    options={jobLineItemOptions}
-                    placeholder={
-                      !selectedJobId
-                        ? 'Select Job First'
-                        : jobLineItemOptions.length === 0
-                          ? 'No Products Found'
-                          : 'Select Product'
-                    }
-                    disabled={
-                      isReadOnly ||
-                      !selectedJobId ||
-                      jobLineItemOptions.length === 0 ||
-                      isEditing
-                    }
-                  />
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormSelect
+                      control={docketForm.control}
+                      name="jobLineItemId"
+                      label="Product*"
+                      searchLabel="Products"
+                      options={jobLineItemOptions}
+                      placeholder={
+                        !selectedJobId
+                          ? 'Select Job First'
+                          : jobLineItemOptions.length === 0
+                            ? 'No Products Found'
+                            : 'Select Product'
+                      }
+                      disabled={
+                        isReadOnly ||
+                        !selectedJobId ||
+                        jobLineItemOptions.length === 0 ||
+                        isEditing
+                      }
+                    />
 
-                  <FormField
-                    name="quarryName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quarry / Supplier</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            readOnly
-                            value={
-                              field.value ??
-                              selectedJobLineItemDetails().quarryName ??
-                              ''
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div
-                  className={cn(
-                    !docketForm.watch('jobLineItemId') ||
-                      selectedJobLineItemDetails().type === 'COLLECTION'
-                      ? 'grid grid-cols-2 gap-4'
-                      : !selectedJobLineItemDetails().needTruckQty
-                        ? 'grid grid-cols-3 gap-4'
-                        : 'grid grid-cols-4 gap-4',
-                  )}
-                >
-                  {selectedJobLineItemDetails().type === 'DELIVERY' && (
                     <FormField
-                      name="truckType"
-                      render={() => (
+                      name="quarryName"
+                      render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Truck Type</FormLabel>
+                          <FormLabel>Quarry / Supplier</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
                               readOnly
                               value={
-                                selectedJobLineItemDetails().truckTypeLabel ??
+                                field.value ??
+                                selectedJobLineItemDetails().quarryName ??
                                 ''
                               }
                             />
@@ -565,85 +556,30 @@ export default function DocketForm({
                         </FormItem>
                       )}
                     />
-                  )}
-
-                  <FormField
-                    name="productUoM"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product UoM</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            readOnly
-                            value={
-                              field.value ??
-                              selectedJobLineItemDetails().productUom ??
-                              ''
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  </div>
+                  <div
+                    className={cn(
+                      !docketForm.watch('jobLineItemId') ||
+                        selectedJobLineItemDetails().type === 'COLLECTION'
+                        ? 'grid grid-cols-2 gap-4'
+                        : !selectedJobLineItemDetails().needTruckQty
+                          ? 'grid grid-cols-3 gap-4'
+                          : 'grid grid-cols-4 gap-4',
                     )}
-                  />
-
-                  <FormField
-                    name="loadSize"
-                    render={({ field }) => {
-                      const maxLoadSize =
-                        selectedJobLineItemDetails().remainingQty;
-
-                      return (
-                        <FormItem>
-                          <FormLabel>Load Size</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              isNumber
-                              max={maxLoadSize}
-                              disabled={
-                                isReadOnly || !docketForm.watch('jobLineItemId')
-                              }
-                              onChange={(e) => {
-                                const nextValue = e.target.value;
-
-                                if (nextValue === '') {
-                                  field.onChange(e);
-                                  return;
-                                }
-
-                                e.target.value = String(
-                                  Math.min(Number(nextValue), maxLoadSize),
-                                );
-                                field.onChange(e);
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      );
-                    }}
-                  />
-
-                  {selectedJobLineItemDetails().type === 'DELIVERY' &&
-                    selectedJobLineItemDetails().needTruckQty && (
+                  >
+                    {selectedJobLineItemDetails().type === 'DELIVERY' && (
                       <FormField
-                        name="truckQty"
-                        render={({ field }) => (
+                        name="truckType"
+                        render={() => (
                           <FormItem>
-                            <FormLabel>Delivery Distance</FormLabel>
+                            <FormLabel>Truck Type</FormLabel>
                             <FormControl>
                               <Input
                                 className="w-full"
-                                {...field}
-                                isNumber
-                                disabled={isReadOnly}
-                                suffix={
-                                  selectedJobLineItemDetails().truckUom
-                                    ? selectedJobLineItemDetails().truckUom
-                                    : ''
+                                readOnly
+                                value={
+                                  selectedJobLineItemDetails().truckTypeLabel ??
+                                  ''
                                 }
                               />
                             </FormControl>
@@ -652,143 +588,203 @@ export default function DocketForm({
                         )}
                       />
                     )}
-                </div>
 
-                <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
-                  <div className="flex justify-between">
-                    <span className="text-md font-medium">
-                      Product Quantity Available
-                    </span>
-                    <Truck className="w-5 h-5" />
+                    <FormField
+                      name="productUoM"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product UoM</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              readOnly
+                              value={
+                                field.value ??
+                                selectedJobLineItemDetails().productUom ??
+                                ''
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      name="loadSize"
+                      render={({ field }) => {
+                        const maxLoadSize =
+                          selectedJobLineItemDetails().remainingQty;
+
+                        return (
+                          <FormItem>
+                            <FormLabel>Load Size</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                isNumber
+                                max={maxLoadSize}
+                                disabled={
+                                  isReadOnly ||
+                                  !docketForm.watch('jobLineItemId')
+                                }
+                                onChange={(e) => {
+                                  const nextValue = e.target.value;
+
+                                  if (nextValue === '') {
+                                    field.onChange(e);
+                                    return;
+                                  }
+
+                                  e.target.value = String(
+                                    Math.min(Number(nextValue), maxLoadSize),
+                                  );
+                                  field.onChange(e);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+
+                    {selectedJobLineItemDetails().type === 'DELIVERY' &&
+                      selectedJobLineItemDetails().needTruckQty && (
+                        <FormField
+                          name="truckQty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Delivery Distance</FormLabel>
+                              <FormControl>
+                                <Input
+                                  className="w-full"
+                                  {...field}
+                                  isNumber
+                                  disabled={isReadOnly}
+                                  suffix={
+                                    selectedJobLineItemDetails().truckUom
+                                      ? selectedJobLineItemDetails().truckUom
+                                      : ''
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
                   </div>
-                  <div className="flex flex-col gap-2">
+
+                  <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Current docket:
+                      <span className="text-md font-medium">
+                        Product Quantity Available
                       </span>
-                      <span className="text-sm font-medium">
-                        {docketForm.watch('loadSize')}{' '}
-                        {selectedJobLineItemDetails().productUom === '20kg'
-                          ? 'x 20kg'
-                          : selectedJobLineItemDetails().productUom === 'm3'
-                            ? 'm³'
-                            : selectedJobLineItemDetails().productUom}{' '}
-                      </span>
+                      <Truck className="w-5 h-5" />
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        Total Remaining Product Availability in Job
-                      </span>
-                      <span className="text-sm font-medium">
-                        {selectedJobLineItemDetails().remainingQty}{' '}
-                        {selectedJobLineItemDetails().productUom === '20kg'
-                          ? 'x 20kg'
-                          : selectedJobLineItemDetails().productUom === 'm3'
-                            ? 'm³'
-                            : selectedJobLineItemDetails().productUom}{' '}
-                        total
-                      </span>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Current docket:
+                        </span>
+                        <span className="text-sm font-medium">
+                          {docketForm.watch('loadSize')}{' '}
+                          {selectedJobLineItemDetails().productUom === '20kg'
+                            ? 'x 20kg'
+                            : selectedJobLineItemDetails().productUom === 'm3'
+                              ? 'm³'
+                              : selectedJobLineItemDetails().productUom}{' '}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          Total Remaining Product Availability in Job
+                        </span>
+                        <span className="text-sm font-medium">
+                          {selectedJobLineItemDetails().remainingQty}{' '}
+                          {selectedJobLineItemDetails().productUom === '20kg'
+                            ? 'x 20kg'
+                            : selectedJobLineItemDetails().productUom === 'm3'
+                              ? 'm³'
+                              : selectedJobLineItemDetails().productUom}{' '}
+                          total
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="border rounded-md p-4 flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="items-center flex gap-2">
-                  <Calendar className="w-5 h-5" />
-                  <span className="text-[17px] font-medium">
+              <div className="border rounded-md p-4 flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="items-center flex gap-2">
+                    <Calendar className="w-5 h-5" />
+                    <span className="text-[17px] font-medium">
+                      {selectedJobLineItemDetails().type === 'COLLECTION'
+                        ? 'Collection Information'
+                        : 'Delivery Information'}
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
                     {selectedJobLineItemDetails().type === 'COLLECTION'
-                      ? 'Collection Information'
-                      : 'Delivery Information'}
+                      ? 'Collection date, address, and purchase order'
+                      : 'Delivery date, address, and purchase order'}
                   </span>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {selectedJobLineItemDetails().type === 'COLLECTION'
-                    ? 'Collection date, address, and purchase order'
-                    : 'Delivery date, address, and purchase order'}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={docketForm.control}
-                    name="deliveryCollectionDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Delivery Date*</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            value={field.value}
-                            onChangeAction={field.onChange}
-                            placeholder="Pick a date"
-                            disabled={{ before: today }}
-                            readOnly={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="purchaseOrder"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>PO Number (Optional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    name="pickUpAddressId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          <MapPin className="w-4 h-4 text-red-500" />
-                          Pick Up Address
-                        </FormLabel>
-                        <FormControl>
-                          <AddressAutoComplete
-                            address={pickUpAddress}
-                            setAddress={setPickUpAddress}
-                            searchInput={pickUpSearchInput}
-                            setSearchInput={setPickUpSearchInput}
-                            dialogTitle="Pick Up Address"
-                            placeholder="Enter site address..."
-                            onChange={field.onChange}
-                            onBlur={field.onBlur}
-                            readOnly={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+                <div className="flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
-                      name="deliveryAddressId"
+                      control={docketForm.control}
+                      name="deliveryCollectionDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Delivery Date*</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value}
+                              onChangeAction={field.onChange}
+                              placeholder="Pick a date"
+                              disabled={{ before: today }}
+                              readOnly={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      name="purchaseOrder"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>PO Number (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              {...field}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      name="pickUpAddressId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            <MapPin className="w-4 h-4 text-green-500" />
-                            Delivery Address
+                            <MapPin className="w-4 h-4 text-red-500" />
+                            Pick Up Address
                           </FormLabel>
                           <FormControl>
                             <AddressAutoComplete
-                              address={deliveryAddress}
-                              setAddress={setDeliveryAddress}
-                              searchInput={deliverySearchInput}
-                              setSearchInput={setDeliverySearchInput}
-                              dialogTitle="Delivery Address"
+                              address={pickUpAddress}
+                              setAddress={setPickUpAddress}
+                              searchInput={pickUpSearchInput}
+                              setSearchInput={setPickUpSearchInput}
+                              dialogTitle="Pick Up Address"
                               placeholder="Enter site address..."
                               onChange={field.onChange}
                               onBlur={field.onBlur}
@@ -799,275 +795,347 @@ export default function DocketForm({
                         </FormItem>
                       )}
                     />
-                  )}
-                </div>
-                {<Map markers={mapMarkers} className="h-[400px] w-full mt-5" />}
-              </div>
-            </div>
 
-            <div className="border rounded-md p-4 flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="items-center flex gap-2">
-                  <Clock className="w-5 h-5" />
-                  <span className="text-[17px] font-medium">
-                    Time & Contact Details
+                    {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+                      <FormField
+                        name="deliveryAddressId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              <MapPin className="w-4 h-4 text-green-500" />
+                              Delivery Address
+                            </FormLabel>
+                            <FormControl>
+                              <AddressAutoComplete
+                                address={deliveryAddress}
+                                setAddress={setDeliveryAddress}
+                                searchInput={deliverySearchInput}
+                                setSearchInput={setDeliverySearchInput}
+                                dialogTitle="Delivery Address"
+                                placeholder="Enter site address..."
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                readOnly={isReadOnly}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+                  {
+                    <Map
+                      markers={mapMarkers}
+                      className="h-[400px] w-full mt-5"
+                    />
+                  }
+                </div>
+              </div>
+
+              <div className="border rounded-md p-4 flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="items-center flex gap-2">
+                    <Clock className="w-5 h-5" />
+                    <span className="text-[17px] font-medium">
+                      Time & Contact Details
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedJobLineItemDetails().type === 'COLLECTION'
+                      ? 'Collection timing and contact information'
+                      : 'Delivery timing and contact information'}
                   </span>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {selectedJobLineItemDetails().type === 'COLLECTION'
-                    ? 'Collection timing and contact information'
-                    : 'Delivery timing and contact information'}
-                </span>
+                <div className="flex flex-col gap-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField
+                      control={docketForm.control}
+                      name="deliveryCollectionStartTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time Window</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value || undefined}
+                              onValueChange={field.onChange}
+                              disabled={isReadOnly}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select time" />
+                              </SelectTrigger>
+
+                              <SelectContent>
+                                {Array.from({ length: 24 }, (_, i) => {
+                                  const hour = String(i).padStart(2, '0');
+                                  return (
+                                    <SelectItem key={hour} value={`${hour}:00`}>
+                                      {hour}:00
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={docketForm.control}
+                      name="deliveryCollectionEndTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time Window</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value || undefined}
+                              onValueChange={field.onChange}
+                              disabled={isReadOnly}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select time" />
+                              </SelectTrigger>
+
+                              <SelectContent>
+                                {Array.from({ length: 24 }, (_, i) => {
+                                  const hour = String(i).padStart(2, '0');
+                                  return (
+                                    <SelectItem key={hour} value={`${hour}:00`}>
+                                      {hour}:00
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <FormField
+                      name="customerContactName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              className="w-full"
+                              {...field}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={docketForm.control}
+                      name="customerContactPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Phone</FormLabel>
+                          <FormControl>
+                            <PhoneInput
+                              className="w-full"
+                              defaultCountry="AU"
+                              {...field}
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={docketForm.control}
+                    name="docketEmail"
+                    render={({ field }) => {
+                      const fixedValues = selectedJob.customerEmail
+                        ? [selectedJob.customerEmail]
+                        : [];
+                      return (
+                        <FormItem className={'col-span-2 col-start-1'}>
+                          <FormLabel>Docket Email</FormLabel>
+                          <FormControl>
+                            <MultipleInput
+                              className="w-full"
+                              placeholder={
+                                docketForm.watch('jobId') === 0
+                                  ? 'Select Job First'
+                                  : 'Enter Docket Emails'
+                              }
+                              fixedValues={fixedValues}
+                              validate={(s) =>
+                                /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
+                              }
+                              label="Press Enter or comma to add email addresses for docket notifications"
+                              {...field}
+                              disabled={
+                                isReadOnly || docketForm.watch('jobId') === 0
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+
+                  <FormField
+                    control={docketForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem className="col-span-full">
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            className="w-full min-h-[80px]"
+                            placeholder="Enter important FYI notes"
+                            {...field}
+                            disabled={isReadOnly}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <div className="grid grid-cols-2 gap-2">
-                  <FormField
-                    control={docketForm.control}
-                    name="deliveryCollectionStartTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Time Window</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value || undefined}
-                            onValueChange={field.onChange}
-                            disabled={isReadOnly}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select time" />
-                            </SelectTrigger>
 
-                            <SelectContent>
-                              {Array.from({ length: 24 }, (_, i) => {
-                                const hour = String(i).padStart(2, '0');
-                                return (
-                                  <SelectItem key={hour} value={`${hour}:00`}>
-                                    {hour}:00
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={docketForm.control}
-                    name="deliveryCollectionEndTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Time Window</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value || undefined}
-                            onValueChange={field.onChange}
-                            disabled={isReadOnly}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select time" />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                              {Array.from({ length: 24 }, (_, i) => {
-                                const hour = String(i).padStart(2, '0');
-                                return (
-                                  <SelectItem key={hour} value={`${hour}:00`}>
-                                    {hour}:00
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              {/* Assignment Section */}
+              <div className="border rounded-md p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[17px] font-bold">Assignment</span>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 transition-colors"
+                    onClick={() => {}}
+                  >
+                    <X className="w-4 h-4" />
+                    Unassign
+                  </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <FormField
-                    name="customerContactName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Name</FormLabel>
-                        <FormControl>
-                          <Input
-                            className="w-full"
-                            {...field}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={docketForm.control}
-                    name="customerContactPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contact Phone</FormLabel>
-                        <FormControl>
-                          <PhoneInput
-                            className="w-full"
-                            defaultCountry="AU"
-                            {...field}
-                            disabled={isReadOnly}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">
+                      Driver
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {DUMMY_ASSIGNMENT.driver}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">
+                      Truck Rego
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Truck className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {DUMMY_ASSIGNMENT.truckRego}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <FormField
-                  control={docketForm.control}
-                  name="docketEmail"
-                  render={({ field }) => {
-                    const fixedValues = selectedJob.customerEmail
-                      ? [selectedJob.customerEmail]
-                      : [];
-                    return (
-                      <FormItem className={'col-span-2 col-start-1'}>
-                        <FormLabel>Docket Email</FormLabel>
-                        <FormControl>
-                          <MultipleInput
-                            className="w-full"
-                            placeholder={
-                              docketForm.watch('jobId') === 0
-                                ? 'Select Job First'
-                                : 'Enter Docket Emails'
-                            }
-                            fixedValues={fixedValues}
-                            validate={(s) =>
-                              /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-                            }
-                            label="Press Enter or comma to add email addresses for docket notifications"
-                            {...field}
-                            disabled={
-                              isReadOnly || docketForm.watch('jobId') === 0
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-
-                <FormField
-                  control={docketForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem className="col-span-full">
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          className="w-full min-h-[80px]"
-                          placeholder="Enter important FYI notes"
-                          {...field}
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
-            </div>
 
-            <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
-              <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
-              <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
-                <div>
-                  <span>Product Sell</span>
-                  <span>
-                    $
-                    {formatNumberThousandSeparator(
-                      pricingBreakdown.productSell,
-                    )}
-                  </span>
-                </div>
-                {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+              <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
+                <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
+                <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                   <div>
-                    <span>Truck Sell</span>
+                    <span>Product Sell</span>
                     <span>
                       $
                       {formatNumberThousandSeparator(
-                        pricingBreakdown.truckSell,
+                        pricingBreakdown.productSell,
                       )}
                     </span>
                   </div>
-                )}
-                <div className="pt-2 border-t border-dashed border-purple-300">
-                  <span>Subtotal (ex-GST)</span>
-                  <span>
-                    ${formatNumberThousandSeparator(pricingBreakdown.subtotal)}
-                  </span>
-                </div>
-                <div>
-                  <span>GST (10%)</span>
-                  <span>
-                    ${formatNumberThousandSeparator(pricingBreakdown.gst)}
-                  </span>
-                </div>
-                <div className="pt-2 border-t border-dashed border-purple-300">
-                  <span className="font-bold text-lg">Total Invoice</span>
-                  <span className="font-bold text-lg">
-                    ${formatNumberThousandSeparator(pricingBreakdown.total)}
-                  </span>
+                  {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+                    <div>
+                      <span>Truck Sell</span>
+                      <span>
+                        $
+                        {formatNumberThousandSeparator(
+                          pricingBreakdown.truckSell,
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t border-dashed border-purple-300">
+                    <span>Subtotal (ex-GST)</span>
+                    <span>
+                      $
+                      {formatNumberThousandSeparator(pricingBreakdown.subtotal)}
+                    </span>
+                  </div>
+                  <div>
+                    <span>GST (10%)</span>
+                    <span>
+                      ${formatNumberThousandSeparator(pricingBreakdown.gst)}
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-dashed border-purple-300">
+                    <span className="font-bold text-lg">Total Invoice</span>
+                    <span className="font-bold text-lg">
+                      ${formatNumberThousandSeparator(pricingBreakdown.total)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {isEditing && (
-            <AuditInformation
-              createdBy={selectedDocket?.createdBy}
-              lastModifiedBy={selectedDocket?.lastModifiedBy}
-              createdAt={selectedDocket?.createdAt}
-              updatedAt={selectedDocket?.updatedAt}
-            />
-          )}
+            {isEditing && (
+              <AuditInformation
+                createdBy={selectedDocket?.createdBy}
+                lastModifiedBy={selectedDocket?.lastModifiedBy}
+                createdAt={selectedDocket?.createdAt}
+                updatedAt={selectedDocket?.updatedAt}
+              />
+            )}
 
-          {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6">
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
-              </Button>
-              <Button
-                className="cursor-pointer"
-                type="button"
-                onClick={() => docketForm.handleSubmit(onSubmit)()}
-                disabled={isReadOnly || isSubmitting}
-              >
-                {isEditing ? 'Save Changes' : 'Create Docket'}
-              </Button>
-            </div>
-          )}
+            {isDesktop && (
+              <div className="flex justify-end space-x-2 col-span-2 mb-6">
+                <Button variant="outline" type="button" onClick={onCancel}>
+                  {isEditing ? 'Close' : 'Cancel'}
+                </Button>
+                <Button
+                  className="cursor-pointer"
+                  type="button"
+                  onClick={() => docketForm.handleSubmit(onSubmit)()}
+                  disabled={isReadOnly || isSubmitting}
+                >
+                  {isEditing ? 'Save Changes' : 'Create Docket'}
+                </Button>
+              </div>
+            )}
 
-          {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 my-6">
-              <Button
-                type="button"
-                className="cursor-pointer"
-                onClick={() => docketForm.handleSubmit(onSubmit)()}
-                disabled={isReadOnly || isSubmitting}
-              >
-                {isEditing ? 'Save Changes' : 'Create Docket'}
-              </Button>
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
-              </Button>
-            </div>
-          )}
-        </form>
-      </Form>
-    </div>
+            {!isDesktop && (
+              <div className="flex flex-col col-span-2 gap-3 my-6">
+                <Button
+                  type="button"
+                  className="cursor-pointer"
+                  onClick={() => docketForm.handleSubmit(onSubmit)()}
+                  disabled={isReadOnly || isSubmitting}
+                >
+                  {isEditing ? 'Save Changes' : 'Create Docket'}
+                </Button>
+                <Button variant="outline" type="button" onClick={onCancel}>
+                  {isEditing ? 'Close' : 'Cancel'}
+                </Button>
+              </div>
+            )}
+          </form>
+        </Form>
+      </div>
     </>
   );
 }
