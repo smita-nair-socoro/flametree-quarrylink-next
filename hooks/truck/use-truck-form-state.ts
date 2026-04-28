@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { TruckByIdQueryOptions } from '@/lib/api/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
 import { useClientStore } from '@/app/stores/client-store';
+import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
 
 export function useTruckFormState(id: number | undefined, isEditing: boolean) {
   const { data: truckData } = useQuery({
@@ -18,10 +19,10 @@ export function useTruckFormState(id: number | undefined, isEditing: boolean) {
   React.useEffect(() => {
     if (!truckData?.id) return;
     const haulierName = truckData.haulier?.haulierName;
-    const truckBusinessType: 'INTERNAL' | 'EXTERNAL' =
+    const truckBusinessType: TRUCK_BUSINESS_TYPE =
       haulierName && tenantName && haulierName === tenantName
-        ? 'INTERNAL'
-        : 'EXTERNAL';
+        ? TRUCK_BUSINESS_TYPE.INTERNAL
+        : TRUCK_BUSINESS_TYPE.EXTERNAL;
 
     const current = useTruckStore.getState().selectedTruck;
     if (current?.id !== truckData.id) return;
