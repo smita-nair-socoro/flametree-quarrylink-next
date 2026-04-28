@@ -29,7 +29,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { useCreateDriver, useUpdateDriver } from '@/lib/api/driver';
-import { HauliersListQueryOptions, HaulierTrucksQueryOptions } from '@/lib/api/haulier';
+import {
+  HauliersListQueryOptions,
+  HaulierTrucksQueryOptions,
+} from '@/lib/api/haulier';
 import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
@@ -228,7 +231,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -250,7 +253,9 @@ export default function DriverForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveHaulierId]);
 
-  const { data: haulierTrucksData } = useQuery(HaulierTrucksQueryOptions(effectiveHaulierId));
+  const { data: haulierTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(effectiveHaulierId),
+  );
   const haulierTrucks = React.useMemo(
     () => haulierTrucksData?.trucks ?? [],
     [haulierTrucksData],
@@ -260,7 +265,11 @@ export default function DriverForm({
       haulierTrucks.map((t) => ({
         label: t.licensePlate,
         value: String(t.id),
-        group: t.haulier?.haulierName ?? selectedHaulierInfo?.haulierName ?? tenantName ?? 'Trucks',
+        group:
+          t.haulier?.haulierName ??
+          selectedHaulierInfo?.haulierName ??
+          tenantName ??
+          'Trucks',
       })),
     [haulierTrucks, selectedHaulierInfo, tenantName],
   );
