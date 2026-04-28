@@ -99,8 +99,7 @@ export default function DocketsPage() {
     },
     {
       title: 'Quantity Scheduled Today',
-      title2: '(Tonnes)',
-      value: '342.5',
+      value: '342.5 TN',
       description: 'Across 24 dockets',
       icon: Package,
       iconBgColor: 'bg-[#CBFBF1]',

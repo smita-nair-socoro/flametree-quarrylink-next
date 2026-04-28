@@ -5,6 +5,7 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { ComplianceTableActions } from './compliance-table-actions';
 import { TableBadges } from '@/components/table-badges';
 import { DriverPreStartChecklist } from '@/lib/types/driver-compliance';
+import { DateCell } from '@/components/date-cell';
 
 export const complianceColumns: ColumnDef<DriverPreStartChecklist>[] = [
   {
@@ -14,7 +15,9 @@ export const complianceColumns: ColumnDef<DriverPreStartChecklist>[] = [
       <TableClientSortableHeader column={column} title="Checklist ID" />
     ),
     cell: ({ row }) => (
-      <span className="font-medium py-2 block">{row.original.submissionNumber}</span>
+      <span className="font-medium py-2 block">
+        {row.original.submissionNumber}
+      </span>
     ),
   },
   {
@@ -24,13 +27,7 @@ export const complianceColumns: ColumnDef<DriverPreStartChecklist>[] = [
       <TableClientSortableHeader column={column} title="Date" />
     ),
     cell: ({ getValue }) => (
-      <span className="font-medium py-2 block">
-        {new Date(getValue<string>()).toLocaleDateString('en-AU', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })}
-      </span>
+      <DateCell dateString={getValue<string>()} side="top" />
     ),
   },
   {
@@ -39,7 +36,9 @@ export const complianceColumns: ColumnDef<DriverPreStartChecklist>[] = [
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Status" />
     ),
-    cell: ({ row }) => <TableBadges names={[row.original.status]} visibleCount={1} />,
+    cell: ({ row }) => (
+      <TableBadges names={[row.original.status]} visibleCount={1} />
+    ),
   },
   {
     id: 'summaryNotes',

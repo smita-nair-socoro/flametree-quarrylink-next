@@ -6,7 +6,7 @@ import {
   ProductDetails,
   ProductReporting,
 } from '../types/product';
-import { CustomerDTO, CustomerResponseDTO, CustomerReporting } from '../types/customer';
+import { CustomerDTO, CustomerReporting } from '../types/customer';
 import {
   Quarry,
   QuarryReporting,
@@ -45,6 +45,7 @@ import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
 import { DriverPreStartChecklistsPage } from '../types/driver-compliance';
+import { TruckInspectionsPage } from '../types/truck-inspection';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -604,11 +605,11 @@ export const APIClient = {
         `/socoro/quarrylink/api/customer/${customerId}`,
       ),
     create: (data: Partial<CustomerDTO>) =>
-      appClient.Post<CustomerResponseDTO>('/socoro/quarrylink/api/customer', {
+      appClient.Post<CustomerDTO>('/socoro/quarrylink/api/customer', {
         body: data,
       }),
     update: (data: Partial<CustomerDTO>) =>
-      appClient.Put<CustomerResponseDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
+      appClient.Put<CustomerDTO>(`/socoro/quarrylink/api/customer/${data.id}`, {
         body: data,
       }),
     getDeliveryAddresses: (customerId: number, limit?: number) =>
@@ -1061,10 +1062,16 @@ export const APIClient = {
       appClient.Patch<DriverDTO>(`/socoro/quarrylink/api/driver/${id}/trucks`, {
         body: data,
       }),
-    unassignTruck: (driverId: number, data: { version: number; truckId: number }) =>
-      appClient.Delete<DriverDTO>(`/socoro/quarrylink/api/driver/${driverId}/truck`, {
-        body: data,
-      }),
+    unassignTruck: (
+      driverId: number,
+      data: { version: number; truckId: number },
+    ) =>
+      appClient.Delete<DriverDTO>(
+        `/socoro/quarrylink/api/driver/${driverId}/truck`,
+        {
+          body: data,
+        },
+      ),
     patchHaulier: (id: number, data: PatchDriverHaulierDTO) =>
       appClient.Patch<DriverDTO>(
         `/socoro/quarrylink/api/driver/${id}/haulier`,
@@ -1083,15 +1090,23 @@ export const APIClient = {
         {},
       ),
     getAssignments: (id: number) =>
-      appClient.Get<Record<string, unknown>>(`/socoro/quarrylink/api/driver/${id}/assignments`),
-    getPreStartChecklists: (driverId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
-      appClient.Get<DriverPreStartChecklistsPage>(`/socoro/quarrylink/api/driver/${driverId}/pre-start-checklists`, {
-        queryString: {
-          page: params?.page?.toString(),
-          size: params?.size?.toString(),
-          sort: params?.sort?.join(','),
+      appClient.Get<Record<string, unknown>>(
+        `/socoro/quarrylink/api/driver/${id}/assignments`,
+      ),
+    getPreStartChecklists: (
+      driverId: number,
+      params?: { page?: number; size?: number; sort?: string[] },
+    ) =>
+      appClient.Get<DriverPreStartChecklistsPage>(
+        `/socoro/quarrylink/api/driver/${driverId}/pre-start-checklists`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            size: params?.size?.toString(),
+            sort: params?.sort?.join(','),
+          },
         },
-      }),
+      ),
   },
 
   trucks: {
@@ -1108,18 +1123,50 @@ export const APIClient = {
       }),
     delete: (id: number) =>
       appClient.Delete<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
-    assignDrivers: (truckId: number, data: { version: number; driverIds: number[] }) =>
-      appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${truckId}/drivers`, {
-        body: data,
-      }),
-    unassignDriver: (truckId: number, data: { version: number; driverId: number }) =>
-      appClient.Delete<TruckDTO>(`/socoro/quarrylink/api/truck/${truckId}/driver`, {
-        body: data,
-      }),
+    assignDrivers: (
+      truckId: number,
+      data: { version: number; driverIds: number[] },
+    ) =>
+      appClient.Patch<TruckDTO>(
+        `/socoro/quarrylink/api/truck/${truckId}/drivers`,
+        {
+          body: data,
+        },
+      ),
+    unassignDriver: (
+      truckId: number,
+      data: { version: number; driverId: number },
+    ) =>
+      appClient.Delete<TruckDTO>(
+        `/socoro/quarrylink/api/truck/${truckId}/driver`,
+        {
+          body: data,
+        },
+      ),
     deactivate: (id: number) =>
-      appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/deactivate`, {}),
+      appClient.Patch<TruckDTO>(
+        `/socoro/quarrylink/api/truck/${id}/deactivate`,
+        {},
+      ),
     reactivate: (id: number) =>
-      appClient.Patch<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/reactivate`, {}),
+      appClient.Patch<TruckDTO>(
+        `/socoro/quarrylink/api/truck/${id}/reactivate`,
+        {},
+      ),
+    getInspections: (
+      truckId: number,
+      params?: { page?: number; size?: number; sort?: string[] },
+    ) =>
+      appClient.Get<TruckInspectionsPage>(
+        `/socoro/quarrylink/api/truck/${truckId}/inspections`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            size: params?.size?.toString(),
+            sort: params?.sort?.join(','),
+          },
+        },
+      ),
   },
 
   hauliers: {
@@ -1135,9 +1182,13 @@ export const APIClient = {
         body: data,
       }),
     getDrivers: (haulierId: number) =>
-      appClient.Get<{ drivers: DriverDTO[] }>(`/socoro/quarrylink/api/haulier/${haulierId}/drivers`),
+      appClient.Get<{ drivers: DriverDTO[] }>(
+        `/socoro/quarrylink/api/haulier/${haulierId}/drivers`,
+      ),
     getTrucks: (haulierId: number) =>
-      appClient.Get<{ trucks: TruckDTO[] }>(`/socoro/quarrylink/api/haulier/${haulierId}/trucks`),
+      appClient.Get<{ trucks: TruckDTO[] }>(
+        `/socoro/quarrylink/api/haulier/${haulierId}/trucks`,
+      ),
   },
 
   tenants: {

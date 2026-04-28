@@ -21,7 +21,6 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: String(docket.id),
   });
-  console.log(docket, 'docket');
 
   return (
     <div
@@ -73,7 +72,7 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.pickUpAddress?.formattedAddress || ''}
+              {docket.pickUpAddress?.city || ''}, {docket.pickUpAddress?.state || ''}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -81,7 +80,7 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.deliveryAddress?.formattedAddress || ''}
+              {docket.deliveryAddress?.city || ''}, {docket.deliveryAddress?.state || ''}
             </span>
           </div>
         </div>
@@ -159,9 +158,6 @@ export default function UnassignedDockets({
     'this_day',
   );
 
-  console.log(dockets, 'dockets');
-
-
   const unassignedDockets = dockets.filter((d) => {
     const isUnassigned = d.docketStatus === 'UNASSIGNED';
     if (!isUnassigned) return false;
@@ -202,7 +198,7 @@ export default function UnassignedDockets({
         <div className="flex w-full rounded-lg border border-[#FDE68A] bg-[#FEFCE8]/30">
           <button
             onClick={() => setActiveTab('this_day')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md transition-colors ${activeTab === 'this_day'
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
               ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
               : 'text-[#B45309] hover:bg-[#FEFCE8]'
               }`}
@@ -211,7 +207,7 @@ export default function UnassignedDockets({
           </button>
           <button
             onClick={() => setActiveTab('all_dates')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md transition-colors ${activeTab === 'all_dates'
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
               ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
               : 'text-[#B45309] hover:bg-[#FEFCE8]'
               }`}

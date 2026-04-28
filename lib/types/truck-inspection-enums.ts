@@ -1,0 +1,5 @@
+export enum TRUCK_INSPECTION_STATUS {
+  PASS = 'PASS',
+  FAIL = 'FAIL',
+  CONFIRMED = 'CONFIRMED',
+}

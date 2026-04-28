@@ -12,10 +12,16 @@ import {
 import { truckColumns } from './(components)/(data-tables)/truck/columns';
 import { FormDialog } from '@/components/form-dialog';
 import TruckForm from './(components)/forms/truck-form';
+import { useTruckActions } from '@/hooks/use-truck-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function TrucksPage() {
   const { data: trucks } = useQuery(TrucksListQueryOptions());
+  const { actions, confirmDialogs, viewDialog } = useTruckActions();
+
+  const handleRowClick = (truckData: TruckDTO) => {
+    actions.view(truckData);
+  };
 
   const statsCards: StatsCardData[] = [
     {
@@ -68,6 +74,8 @@ export default function TrucksPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {confirmDialogs}
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Trucks</h1>
@@ -97,6 +105,7 @@ export default function TrucksPage() {
           facetDefinition={facetDefs}
           searchPlaceHolder="Search trucks..."
           defaultSorting={[{ id: 'licensePlate', desc: false }]}
+          onRowClick={handleRowClick}
         />
       </div>
     </div>
