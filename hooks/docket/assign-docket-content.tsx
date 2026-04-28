@@ -13,6 +13,8 @@ import { HauliersListQueryOptions } from '@/lib/api/haulier';
 import { useClientStore } from '@/app/stores/client-store';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { TruckDTO } from '@/lib/types/truck';
+import { DriverDTO } from '@/lib/types/driver';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -38,6 +40,8 @@ export interface AssignDocketFormState {
 
 interface AssignDocketContentProps extends AssignDocketFormState {
   docket?: DocketDTO | null;
+  trucks: TruckDTO[];
+  drivers: DriverDTO[];
   onHaulerChange: (value: number) => void;
   onTruckChange: (value: number) => void;
   onDriverChange: (value: number) => void;
@@ -45,19 +49,7 @@ interface AssignDocketContentProps extends AssignDocketFormState {
 
 type ConflictDocket = { id: number; docketNumber: string };
 
-const TRUCK_TEMPLATES = [
-  { licensePlate: 'QLD 001', model: 'Mack Titan', capacityM3: 10 },
-  { licensePlate: 'QLD 002', model: 'Volvo FH16', capacityM3: 28 },
-  { licensePlate: 'QLD 003', model: 'Isuzu FVZ', capacityM3: 22 },
-];
-
-const DRIVER_NAMES = [
-  ['James Carter', 'Liam Torres'],
-  ['Noah Bennett', 'Ethan Walsh'],
-  ['Oliver Hayes', 'Lucas Grant'],
-];
-
-// Per-truck conflict slots: for each mock truck, two pre-assigned dockets are generated
+// Per-truck conflict slots: for each available truck, two pre-assigned dockets are generated
 // covering these time windows. Conflicts are visible regardless of which haulier is selected.
 const MOCK_CONFLICT_SLOTS = [
   { slotIndex: 0, docketSuffix: 'A', startTime: '00:00', endTime: '23:59' },
@@ -201,6 +193,8 @@ export function AssignDocketDescription({
 
 export function AssignDocketContent({
   docket,
+  trucks,
+  drivers,
   haulerSelection,
   truckSelection,
   driverSelection,
@@ -219,41 +213,41 @@ export function AssignDocketContent({
     return (docketsData as { content: DocketDTO[] }).content ?? [];
   }, [docketsData]);
 
-  const mockTrucks = React.useMemo(
+  const availableTrucks = React.useMemo(
     () =>
-      hauliers.flatMap((h, hi) =>
-        TRUCK_TEMPLATES.map((t, ti) => ({
-          id: h.id * 100 + ti + 1,
-          haulierId: h.id,
-          licensePlate: `${t.licensePlate}-${hi + 1}`,
-          capacityM3: t.capacityM3,
+      trucks
+        .filter((t) => t.id !== undefined)
+        .map((t) => ({
+          id: t.id as number,
+          haulierId: t.haulierId,
+          licensePlate: t.licensePlate,
+          capacityM3: t.tankVolumeM3 ?? 0,
         })),
-      ),
-    [hauliers],
+    [trucks],
   );
 
-  const mockDrivers = React.useMemo(
+  const availableDrivers = React.useMemo(
     () =>
-      mockTrucks.flatMap((truck, ti) =>
-        DRIVER_NAMES[ti % DRIVER_NAMES.length].map((name, di) => ({
-          id: truck.id * 10 + di + 1,
-          driverName: name,
-          truckIds: [truck.id],
+      drivers
+        .filter((d) => d.id !== undefined)
+        .map((d) => ({
+          id: d.id as number,
+          driverName: d.driverName,
+          truckIds: d.truckIds ?? [],
         })),
-      ),
-    [mockTrucks],
+    [drivers],
   );
 
   // Dummy pre-assigned dockets for delivery window conflict demonstration.
   // One conflict docket is generated per truck (first driver of that truck) so conflicts
   // are visible no matter which haulier the user selects.
   const mockAssignedDockets = React.useMemo(() => {
-    if (mockTrucks.length === 0 || mockDrivers.length === 0) return [];
+    if (availableTrucks.length === 0 || availableDrivers.length === 0) return [];
     const conflictDate = docket?.deliveryCollectionDate
       ? new Date(docket.deliveryCollectionDate)
       : new Date();
-    return mockTrucks.flatMap((truck, ti) => {
-      const driver = mockDrivers.find((d) => d.truckIds.includes(truck.id));
+    return availableTrucks.flatMap((truck, ti) => {
+      const driver = availableDrivers.find((d) => d.truckIds.includes(truck.id));
       if (!driver) return [];
       return MOCK_CONFLICT_SLOTS.map((slot) => ({
         id: -(ti * 10 + slot.slotIndex + 1),
@@ -266,7 +260,7 @@ export function AssignDocketContent({
         docketStatus: DOCKET_STATUS.ASSIGNED,
       }));
     });
-  }, [mockTrucks, mockDrivers, docket?.deliveryCollectionDate]);
+  }, [availableTrucks, availableDrivers, docket?.deliveryCollectionDate]);
 
   const internalOptions = React.useMemo(() => {
     const h = hauliers.find((h) => h.haulierName === tenantName);
@@ -289,7 +283,7 @@ export function AssignDocketContent({
 
   const truckColorOptions = React.useMemo((): ColorSelectOption[] => {
     if (!haulerSelection) return [];
-    return mockTrucks
+    return availableTrucks
       .filter((t) => t.haulierId === haulerSelection)
       .map((t) => {
         const pct =
@@ -319,16 +313,16 @@ export function AssignDocketContent({
         return b._pct - a._pct;
       })
       .map(({ _pct: _p, ...rest }) => rest);
-  }, [mockTrucks, haulerSelection, loadSize]);
+  }, [availableTrucks, haulerSelection, loadSize]);
 
   const driverOptions = React.useMemo(
     () =>
       !truckSelection
         ? []
-        : mockDrivers
+        : availableDrivers
             .filter((d) => d.truckIds.includes(truckSelection))
             .map((d) => ({ label: d.driverName, value: d.id })),
-    [mockDrivers, truckSelection],
+    [availableDrivers, truckSelection],
   );
 
   // Combine real API dockets and mock assigned dockets for conflict detection
