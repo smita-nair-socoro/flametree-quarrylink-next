@@ -5,19 +5,38 @@ import { useDroppable } from '@dnd-kit/core';
 import { Maximize2, Minimize2, GripVertical } from 'lucide-react';
 import { Truck, DispatchDocket, formatTimeRange } from '../views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import { TableBadges } from '@/components/table-badges';
 
 const TIME_SLOTS = [
-  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
-  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
+  '06:00',
+  '07:00',
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '13:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
+  '19:00',
+  '20:00',
+  '21:00',
+  '22:00',
+  '23:00',
 ];
 
 function calculateLayouts(dockets: DispatchDocket[]) {
-  const intervals = dockets.map(d => {
-    const start = TIME_SLOTS.indexOf(d.uiAssignedTime || '');
-    const duration = d.uiAssignedDuration || 2;
-    const end = start + duration;
-    return { docket: d, start, end, col: 0 };
-  }).filter(d => d.start !== -1);
+  const intervals = dockets
+    .map((d) => {
+      const start = TIME_SLOTS.indexOf(d.uiAssignedTime || '');
+      const duration = d.uiAssignedDuration || 2;
+      const end = start + duration;
+      return { docket: d, start, end, col: 0 };
+    })
+    .filter((d) => d.start !== -1);
 
   // Sort by start time, then by end time descending
   intervals.sort((a, b) => {
@@ -26,7 +45,7 @@ function calculateLayouts(dockets: DispatchDocket[]) {
   });
 
   // Group overlapping intervals
-  const groups: typeof intervals[] = [];
+  const groups: (typeof intervals)[] = [];
   let currentGroup: typeof intervals = [];
   let groupEnd = -1;
 
@@ -72,7 +91,7 @@ function calculateLayouts(dockets: DispatchDocket[]) {
     maxCols = Math.max(maxCols, numCols);
     for (const item of group) {
       layouts.set(String(item.docket.id), {
-        col: item.col
+        col: item.col,
       });
     }
   }
@@ -96,8 +115,9 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[112px] h-full p-1.5 transition-colors ${isOver ? 'bg-blue-50/50' : 'bg-transparent'
-        }`}
+      className={`min-h-[112px] h-full p-1.5 transition-colors ${
+        isOver ? 'bg-blue-50/50' : 'bg-transparent'
+      }`}
     >
       {children}
     </div>
@@ -109,7 +129,7 @@ function DocketCard({
   layout,
   onUpdateDocket,
   isSelected,
-  onSelect
+  onSelect,
 }: {
   docket: DispatchDocket;
   layout: { col: number };
@@ -168,7 +188,9 @@ function DocketCard({
       const validDuration = Math.min(finalDuration, maxDuration);
 
       if (validDuration !== baseDuration && onUpdateDocket) {
-        onUpdateDocket(String(docket.id), { uiAssignedDuration: validDuration });
+        onUpdateDocket(String(docket.id), {
+          uiAssignedDuration: validDuration,
+        });
       }
       setResizeDelta(0);
     };
@@ -178,7 +200,10 @@ function DocketCard({
   };
 
   const activeDuration = isResizing ? snappedDuration : baseDuration;
-  const endTimeIndex = Math.min(timeIndex + activeDuration, TIME_SLOTS.length - 1);
+  const endTimeIndex = Math.min(
+    timeIndex + activeDuration,
+    TIME_SLOTS.length - 1,
+  );
   const endTime = TIME_SLOTS[endTimeIndex];
 
   return (
@@ -198,19 +223,32 @@ function DocketCard({
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <div className="font-bold text-[#0F766E] truncate text-[15px]">
-              {docket.docketNumber} <span className="text-[#0F766E] font-semibold text-[12px] ml-1">{docket.loadSize} {docket.jobItem?.productSellUom === 'M3' ? 'm³' : docket.jobItem?.productSellUom === 'KG_20' ? 'x 20kg' : docket.jobItem?.productSellUom}</span>
+              {docket.docketNumber}{' '}
+              <span className="text-[#0F766E] font-semibold text-[12px] ml-1">
+                {docket.loadSize}{' '}
+                {docket.productSellUom === 'M3'
+                  ? 'm³'
+                  : docket.productSellUom === 'KG_20'
+                    ? 'x 20kg'
+                    : docket.productSellUom || ''}
+              </span>
             </div>
           </div>
           <div className="text-[#0F766E] font-medium text-[13px] truncate mt-1">
-            {docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS ? docket.job?.customerDto?.businessName : docket.job.contactPersonName}
+            {docket.customerName || 'Unknown Customer'}
           </div>
           <div className="text-[#0F766E]/80 text-[12px] truncate">
-            {docket.pickUpAddress?.formattedAddress || ''}
+            {typeof docket.pickUpAddress === 'string'
+              ? docket.pickUpAddress
+              : docket.pickUpAddress?.formattedAddress || ''}
           </div>
 
           <div className="flex items-center justify-between mt-auto pt-2">
             <span className="text-[#0F766E]/70 text-[12px] font-medium">
-              {formatTimeRange(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+              {formatTimeRange(
+                docket.deliveryCollectionStartTime,
+                docket.deliveryCollectionEndTime,
+              )}
             </span>
           </div>
         </div>
@@ -252,23 +290,29 @@ export default function AssignedDockets({
   // onUnassignDocket?: () => void;
   viewType?: 'trucks' | 'drivers';
 }) {
-  const [expandedTruckId, setExpandedTruckId] = React.useState<string | null>(null);
+  const [expandedTruckId, setExpandedTruckId] = React.useState<string | null>(
+    null,
+  );
 
   const renderTruckCard = (truck: Truck) => {
     const isExpanded = expandedTruckId === truck.id;
     if (expandedTruckId && !isExpanded) return null;
 
-    const truckDockets = dockets.filter((d) => d.uiAssignedTruckId === truck.id);
+    const truckDockets = dockets.filter(
+      (d) => d.uiAssignedTruckId === truck.id,
+    );
     const { layouts, maxCols } = calculateLayouts(truckDockets);
 
     const DOCKET_WIDTH = 160;
-    const innerWidthStr = maxCols > 1 ? `calc(max(100%, ${maxCols * DOCKET_WIDTH}px))` : '100%';
+    const innerWidthStr =
+      maxCols > 1 ? `calc(max(100%, ${maxCols * DOCKET_WIDTH}px))` : '100%';
 
     return (
       <div
         key={truck.id}
-        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
-          }`}
+        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${
+          isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
+        }`}
       >
         {/* Header */}
         <div className="p-4 border-b border-[#E2E8F0] bg-white flex flex-col gap-3 shrink-0">
@@ -278,9 +322,7 @@ export default function AssignedDockets({
                 <h3 className="text-[22px] font-bold text-[#0F172A]">
                   {viewType === 'trucks' ? truck.name : truck.drivers}
                 </h3>
-                <span className="px-2 py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] text-[11px] font-bold tracking-wide">
-                  INTERNAL
-                </span>
+                <TableBadges names={[truck.type || 'INTERNAL']} />
               </div>
               <p className="text-[14px] text-[#64748B] mt-0.5">Metro Haulage</p>
             </div>
@@ -288,7 +330,11 @@ export default function AssignedDockets({
               onClick={() => setExpandedTruckId(isExpanded ? null : truck.id)}
               className="p-1.5 border border-[#E2E8F0] rounded-md hover:bg-gray-50 text-[#64748B] transition-colors"
             >
-              {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              {isExpanded ? (
+                <Minimize2 className="w-4 h-4" />
+              ) : (
+                <Maximize2 className="w-4 h-4" />
+              )}
             </button>
           </div>
 
@@ -297,31 +343,55 @@ export default function AssignedDockets({
             {viewType === 'trucks' ? (
               <>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">{truck.capacity}</span>
-                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Capacity</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    {truck.capacity}
+                  </span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
+                    Capacity
+                  </span>
                 </div>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">{truck.trips}</span>
-                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trips today</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    {truck.trips}
+                  </span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
+                    Trips today
+                  </span>
                 </div>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">1</span>
-                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Drivers</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    1
+                  </span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
+                    Drivers
+                  </span>
                 </div>
               </>
             ) : (
               <>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">1</span>
-                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trucks today</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    1
+                  </span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
+                    Trucks today
+                  </span>
                 </div>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">{truck.trips}</span>
-                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">Trips today</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    {truck.trips}
+                  </span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
+                    Trips today
+                  </span>
                 </div>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">11</span>
-                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">This week</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    11
+                  </span>
+                  <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
+                    This week
+                  </span>
                 </div>
               </>
             )}
@@ -332,16 +402,26 @@ export default function AssignedDockets({
         <div className="flex-1 overflow-auto relative bg-white">
           {isLoading && (
             <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-20">
-              <div className="text-sm text-gray-500">Loading assignments...</div>
+              <div className="text-sm text-gray-500">
+                Loading assignments...
+              </div>
             </div>
           )}
-          <div className="flex flex-col relative" style={{ minWidth: innerWidthStr }}>
+          <div
+            className="flex flex-col relative"
+            style={{ minWidth: innerWidthStr }}
+          >
             {/* Background Grid */}
             {TIME_SLOTS.map((time) => (
-              <div key={time} className="flex border-b border-[#E2E8F0] min-h-[112px]">
+              <div
+                key={time}
+                className="flex border-b border-[#E2E8F0] min-h-[112px]"
+              >
                 {/* Time Label */}
                 <div className="w-16 shrink-0 border-r border-[#E2E8F0] bg-[#F8FAFC] flex items-start justify-center pt-2 sticky left-0 z-20">
-                  <span className="text-[13px] font-medium text-[#0F172A]">{time}</span>
+                  <span className="text-[13px] font-medium text-[#0F172A]">
+                    {time}
+                  </span>
                 </div>
                 {/* Droppable Area */}
                 <div className="flex-1 relative">
@@ -373,7 +453,9 @@ export default function AssignedDockets({
   };
 
   return (
-    <div className={`flex gap-4 h-full ${expandedTruckId ? '' : 'overflow-x-auto'}`}>
+    <div
+      className={`flex gap-4 h-full ${expandedTruckId ? '' : 'overflow-x-auto'}`}
+    >
       {trucks.map((truck) => renderTruckCard(truck))}
     </div>
   );

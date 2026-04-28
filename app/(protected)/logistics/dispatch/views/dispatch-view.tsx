@@ -1,21 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import UnassignedDockets from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
-import { DocketDetailsPanel } from '../cards/docket-details-panel';
-import { format } from 'date-fns';
-import { DndContext, DragEndEvent, DragStartEvent, DragOverlay } from '@dnd-kit/core';
+import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
+import { format, startOfDay, endOfDay } from 'date-fns';
+import {
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
 import { useQuery } from '@tanstack/react-query';
-import { DocketsListQueryOptions } from '@/lib/api/docket';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
 import { DocketDTO } from '@/lib/types/docket';
 import { DispatchDriversTrucksFilter } from './drivers-trucks-filter';
+import {
+  SchedulerTrucksQueryOptions,
+  SchedulerDriversQueryOptions,
+} from '@/lib/api/scheduler';
 
 export type DispatchDocket = DocketDTO & {
   uiAssignedTruckId?: string | null;
   uiAssignedTime?: string | null;
   uiAssignedDuration?: number;
+  productName?: string;
+  customerName?: string;
+  productSellUom?: string;
+  pickUpAddress?: any; // Can be string or Partial<Address>
+  deliveryAddress?: any; // Can be string or Partial<Address>
 };
 
 export const formatTime = (timeStr?: string) => {
@@ -32,7 +45,17 @@ export const formatTime = (timeStr?: string) => {
 export const formatTimeRange = (start?: string, end?: string) => {
   const startTime = formatTime(start);
   const endTime = formatTime(end);
-  return (startTime && endTime) ? `${startTime} - ${endTime}` : (startTime || endTime || 'N/A');
+  return startTime && endTime
+    ? `${startTime} - ${endTime}`
+    : startTime || endTime || 'N/A';
+};
+
+export const formatDate = (timeStr?: string) => {
+  if (!timeStr) return '';
+  if (timeStr.includes('T')) {
+    return format(new Date(timeStr), 'EEE dd MMM');
+  }
+  return timeStr;
 };
 
 export type Truck = {
@@ -41,35 +64,93 @@ export type Truck = {
   capacity: string;
   trips: number;
   drivers: string;
+  type?: string;
 };
 
-
-const mockTrucks: Truck[] = [
-  { id: '1', name: 'VIC456', capacity: '32t', trips: 4, drivers: 'John Doe' },
-  { id: '2', name: 'VIC345', capacity: '12t', trips: 2, drivers: 'Sarah Wilson' },
-  { id: '3', name: 'VIC789', capacity: '22t', trips: 3, drivers: 'Mike Johnson' },
-  { id: '4', name: 'VIC789', capacity: '22t', trips: 3, drivers: 'Mike Johnson' },
-
-];
-
-export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks' | 'drivers' }) {
+export function DispatchView({
+  date,
+  viewType,
+}: {
+  date: Date;
+  viewType: 'trucks' | 'drivers';
+}) {
   const [dockets, setDockets] = useState<DispatchDocket[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedDocketId, setSelectedDocketId] = useState<string | null>(null);
 
-  const { data: docketsData, isLoading } = useQuery(DocketsListQueryOptions());
+  const start = useMemo(() => startOfDay(date).toISOString(), [date]);
+  const end = useMemo(() => endOfDay(date).toISOString(), [date]);
+
+  const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
+    ...SchedulerTrucksQueryOptions(start, end),
+    enabled: viewType === 'trucks',
+  });
+
+  const { data: driversData, isLoading: isLoadingDrivers } = useQuery({
+    ...SchedulerDriversQueryOptions(start, end),
+    enabled: viewType === 'drivers',
+  });
+
+  const isLoading = viewType === 'trucks' ? isLoadingTrucks : isLoadingDrivers;
 
   useEffect(() => {
-    if (docketsData) {
-      // Handle both paginated responses (with .content) and direct arrays
-      const docketsArray = 'content' in docketsData ? docketsData.content : docketsData;
-      if (docketsArray.length > 0) {
-        setDockets(docketsArray as DispatchDocket[]);
-      } else {
-        setDockets([]);
-      }
+    let newDockets: DispatchDocket[] = [];
+
+    if (viewType === 'trucks' && trucksData) {
+      const assigned = (trucksData.resources || []).flatMap((r) =>
+        (r.dockets || []).map((d) => ({
+          ...d,
+          uiAssignedTruckId: String(r.id),
+          uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
+        })),
+      );
+      const unassigned = (trucksData.unassignedDockets || []).map((d) => ({
+        ...d,
+        uiAssignedTruckId: null,
+        uiAssignedTime: null,
+      }));
+      newDockets = [...assigned, ...unassigned];
+    } else if (viewType === 'drivers' && driversData) {
+      const assigned = (driversData.resources || []).flatMap((r) =>
+        (r.dockets || []).map((d) => ({
+          ...d,
+          uiAssignedTruckId: String(r.id), // We map driver id to truckId for the UI to reuse the same component
+          uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
+        })),
+      );
+      const unassigned = (driversData.unassignedDockets || []).map((d) => ({
+        ...d,
+        uiAssignedTruckId: null,
+        uiAssignedTime: null,
+      }));
+      newDockets = [...assigned, ...unassigned];
     }
-  }, [docketsData]);
+
+    setDockets(newDockets || []);
+  }, [trucksData, driversData, viewType]);
+
+  const mappedResources: Truck[] = useMemo(() => {
+    if (viewType === 'trucks' && trucksData) {
+      return (trucksData.resources || []).map((r) => ({
+        id: String(r.id),
+        name: r.licensePlate,
+        capacity: 'N/A', // Update if capacity is added to API
+        trips: r.dockets?.length || 0,
+        drivers: r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
+        type: r.drivers?.[0]?.driverType || 'INTERNAL', // Default to INTERNAL if no driver
+      }));
+    } else if (viewType === 'drivers' && driversData) {
+      return (driversData.resources || []).map((r) => ({
+        id: String(r.id),
+        name: r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
+        capacity: 'N/A',
+        trips: r.dockets?.length || 0,
+        drivers: r.driverName,
+        type: r.driverType || 'INTERNAL',
+      }));
+    }
+    return [];
+  }, [trucksData, driversData, viewType]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -90,8 +171,8 @@ export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks
         prev.map((d) =>
           String(d.id) === docketId
             ? { ...d, uiAssignedTruckId: truckId, uiAssignedTime: time }
-            : d
-        )
+            : d,
+        ),
       );
     }
   };
@@ -100,18 +181,28 @@ export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks
     setActiveId(null);
   };
 
-  const handleUpdateDocket = (docketId: string, updates: Partial<DispatchDocket>) => {
+  const handleUpdateDocket = (
+    docketId: string,
+    updates: Partial<DispatchDocket>,
+  ) => {
     setDockets((prev) =>
-      prev.map((d) => (String(d.id) === docketId ? { ...d, ...updates } : d))
+      prev.map((d) => (String(d.id) === docketId ? { ...d, ...updates } : d)),
     );
   };
 
-  const activeDocket = activeId ? dockets.find(d => String(d.id) === activeId) : null;
-  const selectedDocket = selectedDocketId ? dockets.find(d => String(d.id) === selectedDocketId) : null;
+  const activeDocket = activeId
+    ? dockets.find((d) => String(d.id) === activeId)
+    : null;
+  const selectedDocket = selectedDocketId
+    ? dockets.find((d) => String(d.id) === selectedDocketId)
+    : null;
 
   const handleUnassign = () => {
     if (selectedDocketId) {
-      handleUpdateDocket(selectedDocketId, { uiAssignedTruckId: null, uiAssignedTime: null });
+      handleUpdateDocket(selectedDocketId, {
+        uiAssignedTruckId: null,
+        uiAssignedTime: null,
+      });
       setSelectedDocketId(null);
     }
   };
@@ -131,23 +222,19 @@ export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks
           <div className="border bg-green-50 border-green-800 rounded-xl px-3 py-1 items-center flex gap-1">
             <span className="text-[12px] font-semibold tracking-wider">
               13/17
-            </span>{" "}
+            </span>{' '}
             <span className="text-[12px] font-medium text-gray-700 tracking-wider">
               Assigned
             </span>
           </div>
           <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              2
-            </span>{" "}
+            <span className="text-[12px] font-semibold tracking-wider">2</span>{' '}
             <span className="text-[12px] font-medium text-gray-700 tracking-wider">
               Trucks booked today
             </span>
           </div>
           <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              2
-            </span>{" "}
+            <span className="text-[12px] font-semibold tracking-wider">2</span>{' '}
             <span className="text-[12px] font-medium text-gray-700 tracking-wider">
               Drivers on trips
             </span>
@@ -167,7 +254,7 @@ export function DispatchView({ date, viewType }: { date: Date; viewType: 'trucks
         <div className="flex-1 min-w-0">
           <AssignedDockets
             // date={date}
-            trucks={mockTrucks}
+            trucks={mappedResources}
             dockets={dockets}
             isLoading={isLoading}
             onUpdateDocket={handleUpdateDocket}

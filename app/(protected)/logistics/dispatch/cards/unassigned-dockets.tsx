@@ -13,11 +13,24 @@ import {
 import { Separator } from 'react-aria-components';
 import { format } from 'date-fns';
 import { useDraggable } from '@dnd-kit/core';
-import { DispatchDocket, formatTimeRange } from '../views/dispatch-view';
+import {
+  DispatchDocket,
+  formatTimeRange,
+  formatDate,
+} from '../views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 
-
-function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { docket: DispatchDocket; activeTab: string; isSelected?: boolean; onSelect?: () => void }) {
+function DraggableDocketCard({
+  docket,
+  activeTab,
+  isSelected,
+  onSelect,
+}: {
+  docket: DispatchDocket;
+  activeTab: string;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: String(docket.id),
   });
@@ -26,8 +39,11 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
     <div
       ref={setNodeRef}
       onClick={onSelect}
-      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]' : 'border-[#E2E8F0]'
-        } ${isDragging ? 'opacity-50' : ''}`}
+      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${
+        isSelected
+          ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
+          : 'border-[#E2E8F0]'
+      } ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Drag Handle Area */}
       <div
@@ -45,25 +61,35 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {docket.loadSize} {docket.jobItem?.productSellUom === 'M3' ? 'm³' : docket.jobItem?.productSellUom === 'KG_20' ? 'x 20kg' : docket.jobItem?.productSellUom}
+            {docket.loadSize}{' '}
+            {docket.productSellUom === 'M3'
+              ? 'm³'
+              : docket.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket.productSellUom || ''}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#E2E8F0] text-[12px] font-semibold text-[#0F172A] bg-white whitespace-nowrap">
-            {formatTimeRange(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+            {formatTimeRange(
+              docket.deliveryCollectionStartTime,
+              docket.deliveryCollectionEndTime,
+            )}
           </span>
         </div>
         <div className="">
           {activeTab === 'all_dates' && (
             <span className="px-2 py-0.5 rounded-full border border-[#E9D5FF] text-[12px] font-semibold text-[#6D28D9] bg-[#FAF5FF] whitespace-nowrap">
-              {docket.deliveryCollectionDate ? format(new Date(docket.deliveryCollectionDate), 'EEE d MMM') : ''}
+              {formatDate(docket.deliveryCollectionStartTime)}
             </span>
           )}
         </div>
 
         <div>
           <h3 className="text-[16px] font-bold text-[#0F172A] leading-tight truncate">
-            {docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS ? docket.job?.customerDto?.businessName : docket.job.contactPersonName}
+            {docket.customerName || 'Unknown Customer'}
           </h3>
-          <p className="text-[13px] text-[#64748B] truncate">{docket.jobItem?.product?.productName || ''}</p>
+          <p className="text-[13px] text-[#64748B] truncate">
+            {docket.productName || ''}
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -72,7 +98,9 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.pickUpAddress?.city || ''}, {docket.pickUpAddress?.state || ''}
+              {typeof docket.pickUpAddress === 'string'
+                ? docket.pickUpAddress
+                : docket.pickUpAddress?.formattedAddress || ''}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -80,7 +108,9 @@ function DraggableDocketCard({ docket, activeTab, isSelected, onSelect }: { dock
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.deliveryAddress?.city || ''}, {docket.deliveryAddress?.state || ''}
+              {typeof docket.deliveryAddress === 'string'
+                ? docket.deliveryAddress
+                : docket.deliveryAddress?.formattedAddress || ''}
             </span>
           </div>
         </div>
@@ -104,18 +134,28 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {docket.loadSize} {docket.jobItem?.productSellUom === 'M3' ? 'm³' : docket.jobItem?.productSellUom === 'KG_20' ? 'x 20kg' : docket.jobItem?.productSellUom}
+            {docket.loadSize}{' '}
+            {docket.productSellUom === 'M3'
+              ? 'm³'
+              : docket.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket.productSellUom || ''}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#E2E8F0] text-[12px] font-semibold text-[#0F172A] bg-white whitespace-nowrap">
-            {formatTimeRange(docket.deliveryCollectionStartTime, docket.deliveryCollectionEndTime)}
+            {formatTimeRange(
+              docket.deliveryCollectionStartTime,
+              docket.deliveryCollectionEndTime,
+            )}
           </span>
         </div>
 
         <div>
           <h3 className="text-[16px] font-bold text-[#0F172A] leading-tight truncate">
-            {docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS ? docket.job?.customerDto?.businessName : docket.job.contactPersonName}
+            {docket.customerName || 'Unknown Customer'}
           </h3>
-          <p className="text-[13px] text-[#64748B] truncate">{docket.jobItem?.product?.productName || ''}</p>
+          <p className="text-[13px] text-[#64748B] truncate">
+            {docket.productName || ''}
+          </p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -124,7 +164,9 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.pickUpAddress?.formattedAddress || ''}
+              {typeof docket.pickUpAddress === 'string'
+                ? docket.pickUpAddress
+                : docket.pickUpAddress?.formattedAddress || ''}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -132,7 +174,9 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.deliveryAddress?.formattedAddress || ''}
+              {typeof docket.deliveryAddress === 'string'
+                ? docket.deliveryAddress
+                : docket.deliveryAddress?.formattedAddress || ''}
             </span>
           </div>
         </div>
@@ -198,19 +242,21 @@ export default function UnassignedDockets({
         <div className="flex w-full rounded-lg border border-[#FDE68A] bg-[#FEFCE8]/30">
           <button
             onClick={() => setActiveTab('this_day')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
-              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-              : 'text-[#B45309] hover:bg-[#FEFCE8]'
-              }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
+              activeTab === 'this_day'
+                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+                : 'text-[#B45309] hover:bg-[#FEFCE8]'
+            }`}
           >
             This day
           </button>
           <button
             onClick={() => setActiveTab('all_dates')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
-              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-              : 'text-[#B45309] hover:bg-[#FEFCE8]'
-              }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
+              activeTab === 'all_dates'
+                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+                : 'text-[#B45309] hover:bg-[#FEFCE8]'
+            }`}
           >
             All dates
           </button>
@@ -219,7 +265,11 @@ export default function UnassignedDockets({
         {activeTab === 'all_dates' && (
           <p className="text-[13px] text-[#64748B] leading-relaxed">
             Sorted by date, then by your sort option. Dragging onto the board
-            schedules on <span className="font-bold text-[#0F172A]">{format(date, 'EEEE, d MMMM yyyy')}</span>.
+            schedules on{' '}
+            <span className="font-bold text-[#0F172A]">
+              {format(date, 'EEEE, d MMMM yyyy')}
+            </span>
+            .
           </p>
         )}
 

@@ -36,8 +36,9 @@ export default function ProtectedLayout({
   }, [currentUser]);
 
   const isDriversApp = pathname?.startsWith('/drivers-app');
-  const isDeliveries = pathname?.startsWith('/logistics/deliveries');
-
+  const isDeliveries =
+    pathname?.startsWith('/logistics/dispatch') ||
+    pathname?.startsWith('/customer-operations/schedule');
 
   React.useEffect(() => {
     if (!auth.isLoading && !auth.isAuthenticated) {
@@ -68,14 +69,7 @@ export default function ProtectedLayout({
         return;
       }
     }
-
-
-  }, [
-    auth.isLoading,
-    auth.isAuthenticated,
-    currentUser,
-    router,
-  ]);
+  }, [auth.isLoading, auth.isAuthenticated, currentUser, router]);
 
   if (auth.isLoading) {
     return (
@@ -94,7 +88,7 @@ export default function ProtectedLayout({
 
   return (
     <SidebarProvider>
-      {!isDriversApp && !isDeliveries && <AppSidebar />}
+      {!isDriversApp && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
         {!isDriversApp && !isDeliveries && (
           <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">

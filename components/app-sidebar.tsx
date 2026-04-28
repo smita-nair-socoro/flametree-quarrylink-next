@@ -32,7 +32,7 @@ export const navItems = [
       { title: 'Quotations', url: '/customer-operations/quotation' },
       { title: 'Jobs', url: '/customer-operations/jobs' },
       { title: 'Dockets', url: '/customer-operations/dockets' },
-      { title: 'Schedule', url: '/logistics/deliveries?tab=schedule' },
+      { title: 'Schedule', url: '/customer-operations/schedule' },
     ],
   },
   {
@@ -42,7 +42,7 @@ export const navItems = [
     items: [
       { title: 'Drivers', url: '/logistics/drivers' },
       { title: 'Trucks', url: '/logistics/trucks' },
-      { title: 'Dispatch', url: '/logistics/deliveries?tab=dispatch' },
+      { title: 'Dispatch', url: '/logistics/dispatch' },
     ],
   },
   {
@@ -61,18 +61,30 @@ export const navItems = [
     items: [
       { title: 'Reports & Dashboard', url: '/dashboard', isDisabled: true },
       { title: 'Stockpile', url: '/inventory/stockpile', isDisabled: true },
-      { title: 'Weighbridge', url: '/inventory/weigh-bridge', isDisabled: true },
-      { title: 'Production Planning', url: '/inventory/production', isDisabled: true },
-      { title: 'Site & Driver Sign-In', url: '/logistics/sign-in', isDisabled: true },
+      {
+        title: 'Weighbridge',
+        url: '/inventory/weigh-bridge',
+        isDisabled: true,
+      },
+      {
+        title: 'Production Planning',
+        url: '/inventory/production',
+        isDisabled: true,
+      },
+      {
+        title: 'Site & Driver Sign-In',
+        url: '/logistics/sign-in',
+        isDisabled: true,
+      },
     ],
   },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
-  const {
-    data: tenantCompleteDetails,
-  } = useQuery(TenantCompleteDetailsQueryOptions());
+  const { data: tenantCompleteDetails } = useQuery(
+    TenantCompleteDetailsQueryOptions(),
+  );
 
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
