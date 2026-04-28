@@ -9,12 +9,14 @@ import {
   type ColorSelectOption,
 } from '@/components/ui/color-select';
 import { useQuery } from '@tanstack/react-query';
-import { HauliersListQueryOptions } from '@/lib/api/haulier';
+import {
+  HauliersListQueryOptions,
+  HaulierTrucksQueryOptions,
+  HaulierDriversQueryOptions,
+} from '@/lib/api/haulier';
 import { useClientStore } from '@/app/stores/client-store';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
-import { TruckDTO } from '@/lib/types/truck';
-import { DriverDTO } from '@/lib/types/driver';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -40,8 +42,6 @@ export interface AssignDocketFormState {
 
 interface AssignDocketContentProps extends AssignDocketFormState {
   docket?: DocketDTO | null;
-  trucks: TruckDTO[];
-  drivers: DriverDTO[];
   onHaulerChange: (value: number) => void;
   onTruckChange: (value: number) => void;
   onDriverChange: (value: number) => void;
@@ -193,8 +193,6 @@ export function AssignDocketDescription({
 
 export function AssignDocketContent({
   docket,
-  trucks,
-  drivers,
   haulerSelection,
   truckSelection,
   driverSelection,
@@ -204,6 +202,12 @@ export function AssignDocketContent({
 }: AssignDocketContentProps) {
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const { data: docketsData } = useQuery(DocketsListQueryOptions());
+  const { data: haulierTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(haulerSelection ?? 0),
+  );
+  const { data: haulierDriversData } = useQuery(
+    HaulierDriversQueryOptions(haulerSelection ?? 0),
+  );
   const tenantName = useClientStore((state) => state.getTenantName());
   const [haulerOpen, setHaulerOpen] = React.useState(false);
 
@@ -215,7 +219,7 @@ export function AssignDocketContent({
 
   const availableTrucks = React.useMemo(
     () =>
-      trucks
+      (haulierTrucksData?.trucks ?? [])
         .filter((t) => t.id !== undefined)
         .map((t) => ({
           id: t.id as number,
@@ -223,31 +227,34 @@ export function AssignDocketContent({
           licensePlate: t.licensePlate,
           capacityM3: t.tankVolumeM3 ?? 0,
         })),
-    [trucks],
+    [haulierTrucksData],
   );
 
   const availableDrivers = React.useMemo(
     () =>
-      drivers
+      (haulierDriversData?.drivers ?? [])
         .filter((d) => d.id !== undefined)
         .map((d) => ({
           id: d.id as number,
           driverName: d.driverName,
           truckIds: d.truckIds ?? [],
         })),
-    [drivers],
+    [haulierDriversData],
   );
 
   // Dummy pre-assigned dockets for delivery window conflict demonstration.
   // One conflict docket is generated per truck (first driver of that truck) so conflicts
   // are visible no matter which haulier the user selects.
   const mockAssignedDockets = React.useMemo(() => {
-    if (availableTrucks.length === 0 || availableDrivers.length === 0) return [];
+    if (availableTrucks.length === 0 || availableDrivers.length === 0)
+      return [];
     const conflictDate = docket?.deliveryCollectionDate
       ? new Date(docket.deliveryCollectionDate)
       : new Date();
     return availableTrucks.flatMap((truck, ti) => {
-      const driver = availableDrivers.find((d) => d.truckIds.includes(truck.id));
+      const driver = availableDrivers.find((d) =>
+        d.truckIds.includes(truck.id),
+      );
       if (!driver) return [];
       return MOCK_CONFLICT_SLOTS.map((slot) => ({
         id: -(ti * 10 + slot.slotIndex + 1),
@@ -312,7 +319,7 @@ export function AssignDocketContent({
         if (bEx) return -1;
         return b._pct - a._pct;
       })
-      .map(({ _pct: _p, ...rest }) => rest);
+      .map(({ ...rest }) => rest);
   }, [availableTrucks, haulerSelection, loadSize]);
 
   const driverOptions = React.useMemo(

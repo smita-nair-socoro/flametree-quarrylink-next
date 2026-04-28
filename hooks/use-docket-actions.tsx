@@ -52,13 +52,10 @@ import {
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus, useUpdateDocket, DocketByIdQueryOptions } from '@/lib/api/docket';
-import { TrucksListQueryOptions } from '@/lib/api/truck';
-import { DriversListQueryOptions } from '@/lib/api/driver';
+import { useUpdateDocketStatus, useUpdateDocket } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
-import { useQuery } from '@tanstack/react-query';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -120,14 +117,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
-  const [selectedAction, setSelectedAction] =
-    React.useState<SelectedAction | null>(null);
+  const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const updateDocketMutation = useUpdateDocket();
-
-  const { data: trucks = [] } = useQuery(TrucksListQueryOptions());
-  const { data: drivers = [] } = useQuery(DriversListQueryOptions());
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(undefined);
@@ -445,8 +438,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         content: (
           <AssignDocketContent
             docket={docketData}
-            trucks={trucks}
-            drivers={drivers}
             haulerSelection={assignHauler}
             truckSelection={assignTruck}
             driverSelection={assignDriver}
@@ -608,8 +599,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       assignHauler,
       assignTruck,
       assignDriver,
-      trucks,
-      drivers,
     ],
   );
 
