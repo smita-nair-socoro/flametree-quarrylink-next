@@ -51,9 +51,6 @@ export interface CustomerDTO {
   accSoftwareNotes?: string;
 }
 
-/** Response type for create/update — extends CustomerDTO with server-generated fields */
-export interface CustomerResponseDTO extends CustomerDTO {}
-
 export interface CustomerWithAddressResponseDTO {
   id?: number; // Optional for create, required for update
   customerType: CUSTOMER_TYPE;

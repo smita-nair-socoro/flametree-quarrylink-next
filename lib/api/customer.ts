@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { CustomerKeys } from './keys';
-import { CustomerDTO, CustomerResponseDTO } from '../types/customer';
+import { CustomerDTO } from '../types/customer';
 
 export const CustomersListQueryOptions = () =>
   queryOptions({
@@ -89,7 +89,7 @@ export const useCreateCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<CustomerDTO>): Promise<CustomerResponseDTO> =>
+    mutationFn: (data: Partial<CustomerDTO>): Promise<CustomerDTO> =>
       APIClient.customers.create(data),
 
     onSuccess: () => {
@@ -107,7 +107,7 @@ export const useUpdateCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<CustomerDTO>): Promise<CustomerResponseDTO> =>
+    mutationFn: (data: Partial<CustomerDTO>): Promise<CustomerDTO> =>
       APIClient.customers.update(data),
 
     onSuccess: (data) => {
