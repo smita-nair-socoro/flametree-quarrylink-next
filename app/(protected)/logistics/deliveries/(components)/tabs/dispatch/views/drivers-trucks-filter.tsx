@@ -138,7 +138,6 @@ export function DispatchDriversTrucksFilter({ viewType }: { viewType: 'drivers' 
             {viewType === 'drivers' && (
               <>
                 <span className="text-xs font-semibold text-gray-500 tracking-wider">DRIVERS</span>
-
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDriverStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>

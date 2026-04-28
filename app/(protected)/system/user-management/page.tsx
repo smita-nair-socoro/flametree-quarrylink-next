@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Tab } from '@/components/ui/tabs';
 import {
   // CreditCard,
@@ -21,6 +22,8 @@ import { useIsSuperAdmin } from '@/app/stores/user-store';
 
 export default function UserRolesPage() {
   const isSuperAdmin = useIsSuperAdmin();
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get('tab') ?? undefined;
 
   const tabs = [
     {
@@ -75,6 +78,7 @@ export default function UserRolesPage() {
       <div className="w-full flex min-w-0">
         <Tab
           tabs={tabs}
+          defaultTab={defaultTab}
           className="w-full min-w-0"
           tabsClassName="h-12 w-full overflow-x-auto flex-nowrap rounded-lg"
           tabsTriggerClassName="h-10 flex-1 justify-center"
