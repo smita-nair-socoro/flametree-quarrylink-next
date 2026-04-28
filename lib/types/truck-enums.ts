@@ -14,7 +14,9 @@ const TRUCK_STATUS_MAP: Record<string, TRUCK_STATUS> = {
   DEACTIVATED: TRUCK_STATUS.DEACTIVATED,
 };
 
-export function normalizeTruckStatus(status: string | undefined): TRUCK_STATUS | undefined {
+export function normalizeTruckStatus(
+  status: string | undefined,
+): TRUCK_STATUS | undefined {
   if (!status) return undefined;
   return TRUCK_STATUS_MAP[status];
 }
@@ -31,4 +33,9 @@ export enum TRUCK_TYPE {
   TRI_AXLE = 'TRI_AXLE',
   TAUTLINER = 'TAUTLINER',
   CRANE_TRUCK = 'CRANE_TRUCK',
+}
+
+export enum TRUCK_BUSINESS_TYPE {
+  INTERNAL = 'INTERNAL',
+  EXTERNAL = 'EXTERNAL',
 }

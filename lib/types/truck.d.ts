@@ -1,4 +1,4 @@
-import { TRUCK_STATUS, TRUCK_TYPE } from './truck-enums';
+import { TRUCK_STATUS, TRUCK_TYPE, TRUCK_BUSINESS_TYPE } from './truck-enums';
 import { HaulierDTO } from './haulier';
 
 interface TruckDTO {
@@ -6,7 +6,7 @@ interface TruckDTO {
   licensePlate: string;
   vin?: string;
   model: string;
-  truckBusinessType?: 'INTERNAL' | 'SUBCONTRACTOR';
+  truckBusinessType?: TRUCK_BUSINESS_TYPE;
   truckType: TRUCK_TYPE;
   truckBodyType?: string;
   tankVolumeM3?: number;
