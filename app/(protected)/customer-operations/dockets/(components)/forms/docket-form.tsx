@@ -145,15 +145,9 @@ export default function DocketForm({
         ? currentStatus === DOCKET_STATUS.UNASSIGNED || currentStatus === DOCKET_STATUS.ASSIGNED
         : currentStatus === DOCKET_STATUS.PENDING;
 
-  const showActualLoadSize =
+  const canActualLoadSize =
     isEditing &&
     currentStatus !== null &&
-    currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-    currentStatus !== DOCKET_STATUS.ASSIGNED &&
-    currentStatus !== DOCKET_STATUS.PENDING;
-
-  const canEditActualLoadSize =
-    showActualLoadSize &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
         currentStatus === DOCKET_STATUS.ARRIVED ||
@@ -226,7 +220,7 @@ export default function DocketForm({
   }, [isEditing, selectedDocket]);
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
-    if (isReadOnly && !canEditActualLoadSize) return;
+    if (isReadOnly && !canActualLoadSize) return;
 
     // For ASSIGNED dockets, always show the conflict confirmation dialog first (API check TBD)
     if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
@@ -600,15 +594,15 @@ export default function DocketForm({
                     const jobLineItemId = docketForm.watch('jobLineItemId');
                     const details = selectedJobLineItemDetails();
                     const needTruckQty = details.needTruckQty;
-                    const truckQtyOverflows = isDelivery && needTruckQty && showActualLoadSize;
+                    const truckQtyOverflows = isDelivery && needTruckQty && canActualLoadSize;
 
                     const gridCols = !jobLineItemId
                       ? 'grid-cols-2'
                       : !isDelivery
-                        ? showActualLoadSize
+                        ? canActualLoadSize
                           ? 'grid-cols-3'
                           : 'grid-cols-2'
-                        : showActualLoadSize || needTruckQty
+                        : canActualLoadSize || needTruckQty
                           ? 'grid-cols-4'
                           : 'grid-cols-3';
 
@@ -692,7 +686,7 @@ export default function DocketForm({
                             }}
                           />
 
-                          {showActualLoadSize && (
+                          {canActualLoadSize && (
                             <FormField
                               name="actualLoadSize"
                               render={({ field }) => (
@@ -703,7 +697,7 @@ export default function DocketForm({
                                       className="w-full"
                                       {...field}
                                       isNumber
-                                      disabled={!canEditActualLoadSize}
+                                      disabled={!canActualLoadSize}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -1144,7 +1138,7 @@ export default function DocketForm({
                   className="cursor-pointer"
                   type="button"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={(isReadOnly && !canEditActualLoadSize) || isSubmitting}
+                  disabled={(isReadOnly && !canActualLoadSize) || isSubmitting}
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>
@@ -1157,7 +1151,7 @@ export default function DocketForm({
                   type="button"
                   className="cursor-pointer"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={(isReadOnly && !canEditActualLoadSize) || isSubmitting}
+                  disabled={(isReadOnly && !canActualLoadSize) || isSubmitting}
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>
