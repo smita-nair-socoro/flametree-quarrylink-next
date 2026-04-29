@@ -67,10 +67,10 @@ function QuarryLinkArchiveBlockedBanner() {
   const [optionBOpen, setOptionBOpen] = React.useState(false);
 
   return (
-    <div className="border border-[#FECACA] bg-[#FEF2F2] rounded-md p-4 mb-4 flex flex-col gap-3">
+    <div className="border border-[#FECACA] bg-[#E7000B0D] rounded-md p-4 mb-4 flex flex-col gap-3">
       {/* Title row */}
       <div className="flex items-start gap-2.5">
-        <Link2Off className="h-4 w-4 text-[#DC2626] flex-shrink-0 mt-0.5" />
+        <Link2Off className="h-4 w-4 text-[#D42422] flex-shrink-0 mt-0.5" />
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-[#7F1D1D]">
             Archived in Xero — action required in QuarryLink
@@ -89,65 +89,69 @@ function QuarryLinkArchiveBlockedBanner() {
 
       {/* Option A */}
       <Collapsible open={optionAOpen} onOpenChange={setOptionAOpen}>
-        <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold text-[#7F1D1D] hover:text-[#991B1B] w-full text-left border border-[#FECACA] bg-white rounded px-3 py-2 transition-colors">
-          <ChevronRight
-            className={cn(
-              'h-4 w-4 flex-shrink-0 transition-transform duration-150',
-              optionAOpen && 'rotate-90',
-            )}
-          />
-          Option A — Process pending items, then archive here
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="mt-1 border border-[#FECACA] bg-white rounded px-3 py-2.5">
-            <ul className="text-sm text-[#991B1B] list-disc list-outside pl-4 space-y-1.5">
-              <li>
-                Go to <strong>Dockets</strong> for this customer and either{' '}
-                <strong>invoice</strong> them (if work is complete) or{' '}
-                <strong>void / cancel</strong> any that should not proceed.
-              </li>
-              <li>
-                Do the same for any open <strong>Jobs</strong> or linked
-                records.
-              </li>
-              <li>
-                Once no blocking items remain, come back here and{' '}
-                <strong>archive this customer from QuarryLink</strong> — the
-                change will sync to Xero.
-              </li>
-            </ul>
-          </div>
-        </CollapsibleContent>
+        <div className="ml-[26px] border border-[#FECACA] rounded overflow-hidden">
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold text-[#7F1D1D] hover:text-[#991B1B] w-full text-left bg-[#E7000B0D] px-3 pt-2 pb-1.5 transition-colors">
+            <ChevronRight
+              className={cn(
+                'h-4 w-4 flex-shrink-0 transition-transform duration-150',
+                optionAOpen && 'rotate-90',
+              )}
+            />
+            Option A — Process pending items, then archive here
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="bg-[#E7000B0D] px-3 pt-0 pb-2.5">
+              <ul className="text-sm text-[#991B1B] list-disc list-outside pl-4 space-y-1.5">
+                <li>
+                  Go to <strong>Dockets</strong> for this customer and either{' '}
+                  <strong>invoice</strong> them (if work is complete) or{' '}
+                  <strong>void / cancel</strong> any that should not proceed.
+                </li>
+                <li>
+                  Do the same for any open <strong>Jobs</strong> or linked
+                  records.
+                </li>
+                <li>
+                  Once no blocking items remain, come back here and{' '}
+                  <strong>archive this customer from QuarryLink</strong> — the
+                  change will sync to Xero.
+                </li>
+              </ul>
+            </div>
+          </CollapsibleContent>
+        </div>
       </Collapsible>
 
       {/* Option B */}
       <Collapsible open={optionBOpen} onOpenChange={setOptionBOpen}>
-        <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold text-[#7F1D1D] hover:text-[#991B1B] w-full text-left border border-[#FECACA] bg-white rounded px-3 py-2 transition-colors">
-          <ChevronRight
-            className={cn(
-              'h-4 w-4 flex-shrink-0 transition-transform duration-150',
-              optionBOpen && 'rotate-90',
-            )}
-          />
-          Option B — Unarchive the contact in Xero
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="mt-1 border border-[#FECACA] bg-white rounded px-3 py-2.5">
-            <ul className="text-sm text-[#991B1B] list-disc list-outside pl-4 space-y-1.5">
-              <li>
-                Open the contact in Xero ↗ and manually unarchive it there.
-              </li>
-              <li>
-                QuarryLink will receive a notification and automatically clear
-                this warning, restoring normal access.
-              </li>
-            </ul>
-          </div>
-        </CollapsibleContent>
+        <div className="ml-[26px] border border-[#FECACA] rounded overflow-hidden">
+          <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold text-[#7F1D1D] hover:text-[#991B1B] w-full text-left bg-[#E7000B0D] px-3 pt-2 pb-1.5 transition-colors">
+            <ChevronRight
+              className={cn(
+                'h-4 w-4 flex-shrink-0 transition-transform duration-150',
+                optionBOpen && 'rotate-90',
+              )}
+            />
+            Option B — Unarchive the contact in Xero
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="bg-[#E7000B0D] px-3 pt-0 pb-2.5">
+              <ul className="text-sm text-[#991B1B] list-disc list-outside pl-4 space-y-1.5">
+                <li>
+                  Open the contact in Xero ↗ and manually unarchive it there.
+                </li>
+                <li>
+                  QuarryLink will receive a notification and automatically clear
+                  this warning, restoring normal access.
+                </li>
+              </ul>
+            </div>
+          </CollapsibleContent>
+        </div>
       </Collapsible>
 
       {/* Footer */}
-      <p className="text-xs text-[#991B1B] border-t border-[#FECACA] pt-2.5 mt-0.5">
+      <p className="ml-[26px] text-xs text-[#991B1B] border-t border-[#FECACA] pt-2.5 mt-0.5">
         While this notice is active,{' '}
         <strong>editing this customer is disabled</strong> — Xero does not
         accept updates to archived contacts. Need help identifying what&apos;s
@@ -225,7 +229,11 @@ function XeroArchiveFailedBanner() {
 }
 
 /** Case 3 — Xero unarchive reverted because QL detected a duplicate customer */
-function UnarchiveXeroRearchivedBanner({ contactEmail }: { contactEmail?: string | null }) {
+function UnarchiveXeroRearchivedBanner({
+  contactEmail,
+}: {
+  contactEmail?: string | null;
+}) {
   return (
     <div className="border border-[#FDE68A] bg-[#FFFBEB] rounded-md p-4 mb-4 flex flex-col gap-3">
       {/* Title row */}
