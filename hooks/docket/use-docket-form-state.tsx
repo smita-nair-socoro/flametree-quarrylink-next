@@ -438,6 +438,7 @@ export function useDocketFormState({
       jobId: selectedDocket.jobId ?? 0,
       jobLineItemId: selectedDocket.jobItemId ?? 0,
       plannedLoadSize: selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
+      actualLoadSize: selectedDocket.actualLoadSize ?? 0,
       truckQty: selectedDocket.deliveryDistanceQuantity ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
       deliveryAddressId: selectedDocket.deliveryAddress?.id

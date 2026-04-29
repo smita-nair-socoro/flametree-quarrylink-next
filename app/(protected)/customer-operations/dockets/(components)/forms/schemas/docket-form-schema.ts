@@ -8,6 +8,7 @@ export const DocketFormSchema = z.object({
   jobId: z.coerce.number().min(1, { message: 'Required' }),
   jobLineItemId: z.coerce.number().min(1, { message: 'Required' }),
   plannedLoadSize: z.coerce.number().min(0).optional(),
+  actualLoadSize: z.coerce.number().min(0).optional(),
   truckQty: z.coerce.number().min(0).optional(),
   pickUpAddressId: z.coerce.string().nonempty({ message: 'Required' }),
   deliveryAddressId: z.coerce.string().optional(),
