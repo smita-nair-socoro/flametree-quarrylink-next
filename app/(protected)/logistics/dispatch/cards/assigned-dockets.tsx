@@ -1,10 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { Maximize2, Minimize2, GripVertical } from 'lucide-react';
 import { Truck, DispatchDocket, formatTimeRange } from '../views/dispatch-view';
-import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { TableBadges } from '@/components/table-badges';
 
 const TIME_SLOTS = [
@@ -115,9 +114,8 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[112px] h-full p-1.5 transition-colors ${
-        isOver ? 'bg-blue-50/50' : 'bg-transparent'
-      }`}
+      className={`min-h-[112px] h-full p-1.5 transition-colors ${isOver ? 'bg-blue-50/50' : 'bg-transparent'
+        }`}
     >
       {children}
     </div>
@@ -128,17 +126,23 @@ function DocketCard({
   docket,
   layout,
   onUpdateDocket,
+  onResizeDocket,
   isSelected,
   onSelect,
 }: {
   docket: DispatchDocket;
   layout: { col: number };
   onUpdateDocket?: (docketId: string, updates: Partial<DispatchDocket>) => void;
+  onResizeDocket?: (docketId: string, newDuration: number) => void;
   isSelected?: boolean;
   onSelect?: () => void;
 }) {
   const [resizeDelta, setResizeDelta] = React.useState(0);
   const [isResizing, setIsResizing] = React.useState(false);
+
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: String(docket.id),
+  });
 
   const timeIndex = TIME_SLOTS.indexOf(docket.uiAssignedTime || '');
   if (timeIndex === -1) return null;
@@ -187,7 +191,10 @@ function DocketCard({
       const maxDuration = TIME_SLOTS.length - timeIndex - 1;
       const validDuration = Math.min(finalDuration, maxDuration);
 
-      if (validDuration !== baseDuration && onUpdateDocket) {
+      if (validDuration !== baseDuration && onResizeDocket) {
+        onResizeDocket(String(docket.id), validDuration);
+      } else if (validDuration !== baseDuration && onUpdateDocket) {
+        // Fallback to local update if resize handler is not provided
         onUpdateDocket(String(docket.id), {
           uiAssignedDuration: validDuration,
         });
@@ -208,16 +215,21 @@ function DocketCard({
 
   return (
     <div
+      ref={setNodeRef}
       style={style}
       onClick={() => {
         if (!isResizing && onSelect) {
           onSelect();
         }
       }}
-      className={`bg-[#F0FDF4] border ${isResizing ? 'border-dashed border-[#059669]' : isSelected ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]' : 'border-[#A7F3D0]'} rounded-lg shadow-sm flex flex-col group overflow-hidden transition-shadow cursor-pointer`}
+      className={`bg-[#F0FDF4] border ${isResizing ? 'border-dashed border-[#059669]' : isSelected ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]' : 'border-[#A7F3D0]'} rounded-lg shadow-sm flex flex-col group overflow-hidden transition-shadow cursor-pointer ${isDragging ? 'opacity-50' : ''}`}
     >
       <div className="flex flex-1 p-2 gap-2">
-        <div className="flex items-center text-[#94A3B8] cursor-grab active:cursor-grabbing">
+        <div
+          {...listeners}
+          {...attributes}
+          className="flex items-center text-[#94A3B8] cursor-grab active:cursor-grabbing"
+        >
           <GripVertical className="w-4 h-4" />
         </div>
         <div className="flex flex-col flex-1 min-w-0">
@@ -275,6 +287,7 @@ export default function AssignedDockets({
   dockets,
   isLoading,
   onUpdateDocket,
+  onResizeDocket,
   selectedDocketId,
   onSelectDocket,
   // onUnassignDocket,
@@ -285,6 +298,7 @@ export default function AssignedDockets({
   dockets: DispatchDocket[];
   isLoading?: boolean;
   onUpdateDocket?: (docketId: string, updates: Partial<DispatchDocket>) => void;
+  onResizeDocket?: (docketId: string, newDuration: number) => void;
   selectedDocketId?: string | null;
   onSelectDocket?: (id: string | null) => void;
   // onUnassignDocket?: () => void;
@@ -310,9 +324,8 @@ export default function AssignedDockets({
     return (
       <div
         key={truck.id}
-        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${
-          isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
-        }`}
+        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
+          }`}
       >
         {/* Header */}
         <div className="p-4 border-b border-[#E2E8F0] bg-white flex flex-col gap-3 shrink-0">
@@ -440,6 +453,7 @@ export default function AssignedDockets({
                     docket={docket}
                     layout={layouts.get(String(docket.id)) || { col: 0 }}
                     onUpdateDocket={onUpdateDocket}
+                    onResizeDocket={onResizeDocket}
                     isSelected={selectedDocketId === String(docket.id)}
                     onSelect={() => onSelectDocket?.(String(docket.id))}
                   />

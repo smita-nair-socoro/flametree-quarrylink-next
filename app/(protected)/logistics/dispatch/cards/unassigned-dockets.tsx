@@ -12,13 +12,12 @@ import {
 } from '@/components/ui/select';
 import { Separator } from 'react-aria-components';
 import { format } from 'date-fns';
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   DispatchDocket,
   formatTimeRange,
   formatDate,
 } from '../views/dispatch-view';
-import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 
 function DraggableDocketCard({
   docket,
@@ -39,11 +38,10 @@ function DraggableDocketCard({
     <div
       ref={setNodeRef}
       onClick={onSelect}
-      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${
-        isSelected
+      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected
           ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
           : 'border-[#E2E8F0]'
-      } ${isDragging ? 'opacity-50' : ''}`}
+        } ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Drag Handle Area */}
       <div
@@ -218,8 +216,15 @@ export default function UnassignedDockets({
     return true;
   });
 
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: 'unassigned-queue',
+  });
+
   return (
-    <div className="bg-white border border-[#FDE68A] h-full rounded-xl flex flex-col">
+    <div
+      ref={setDroppableRef}
+      className={`bg-white border ${isOver ? 'border-purple-500 ring-2 ring-purple-500/20' : 'border-[#FDE68A]'} h-full rounded-xl flex flex-col transition-colors`}
+    >
       {/* Header Section */}
       <div className="p-4 flex flex-col gap-4">
         <div className="flex items-center justify-between">
@@ -242,21 +247,19 @@ export default function UnassignedDockets({
         <div className="flex w-full rounded-lg border border-[#FDE68A] bg-[#FEFCE8]/30">
           <button
             onClick={() => setActiveTab('this_day')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
-              activeTab === 'this_day'
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
                 ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
                 : 'text-[#B45309] hover:bg-[#FEFCE8]'
-            }`}
+              }`}
           >
             This day
           </button>
           <button
             onClick={() => setActiveTab('all_dates')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
-              activeTab === 'all_dates'
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
                 ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
                 : 'text-[#B45309] hover:bg-[#FEFCE8]'
-            }`}
+              }`}
           >
             All dates
           </button>

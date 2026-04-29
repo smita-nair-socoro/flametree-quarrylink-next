@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { DocketKeys } from './keys';
+import { DocketKeys, SchedulerKeys } from './keys';
 import { DocketDTO } from '../types/docket';
 import type { DOCKET_STATUS } from '../types/docket-enums';
 
@@ -116,6 +116,38 @@ export const useUpdateDocketStatus = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(docketId) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+    },
+  });
+};
+
+export const useAssignDocket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      docketId: number;
+      driverId: number;
+      truckId: number;
+      deliveryStartWindow: string;
+      deliveryEndWindow: string;
+      plannedLoadSize: number;
+    }) => APIClient.dockets.assign(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
+    },
+  });
+};
+
+export const useUnassignDocket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { docketId: number }) =>
+      APIClient.dockets.unassign(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
 };

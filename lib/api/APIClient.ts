@@ -926,6 +926,21 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${docketId}/status`,
         { body: formData },
       ),
+    assign: (data: {
+      docketId: number;
+      driverId: number;
+      truckId: number;
+      deliveryStartWindow: string;
+      deliveryEndWindow: string;
+      plannedLoadSize: number;
+    }) =>
+      appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/assign', {
+        body: data,
+      }),
+    unassign: (data: { docketId: number }) =>
+      appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/unassign', {
+        body: data,
+      }),
   },
 
   users: {

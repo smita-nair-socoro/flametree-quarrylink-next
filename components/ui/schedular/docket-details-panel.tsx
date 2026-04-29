@@ -44,9 +44,9 @@ export function DocketDetailsPanel({
           <div className="text-sm text-gray-500 font-medium">
             {docket.deliveryCollectionDate
               ? format(
-                  new Date(docket.deliveryCollectionDate),
-                  'EEEE, d MMMM yyyy',
-                )
+                new Date(docket.deliveryCollectionDate),
+                'EEEE, d MMMM yyyy',
+              )
               : 'Date TBD'}
           </div>
           <div className="text-base font-semibold text-gray-900 mt-1">
@@ -90,13 +90,13 @@ export function DocketDetailsPanel({
             <div>
               <div className="text-xs text-gray-500 mb-1">Job reference</div>
               <div className="text-sm font-medium text-gray-900">
-                JOB-2024-001
+                {docket.job?.jobNumber || ''}
               </div>
             </div>
             <div>
               <div className="text-xs text-gray-500 mb-1">Project name</div>
               <div className="text-sm font-medium text-gray-900">
-                Main Street Project
+                {docket.job?.projectName || ''}
               </div>
             </div>
           </div>
@@ -123,7 +123,7 @@ export function DocketDetailsPanel({
                 Quarry / supplier
               </div>
               <div className="text-sm font-medium text-gray-900">
-                {docket.jobItem?.quarrySupplierName || 'HANSON'}
+                {docket.jobItem?.quarrySupplier?.name || ''}
               </div>
             </div>
 
@@ -131,14 +131,14 @@ export function DocketDetailsPanel({
               <div>
                 <div className="text-xs text-gray-500 mb-1">Truck type</div>
                 <div className="text-sm font-medium text-gray-900">
-                  {docket.truckType || 'Semi Trailer'}
+                  {docket.truckType || ''}
                 </div>
               </div>
             )}
 
             {isUnassigned ||
-            (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-              docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
               <div>
                 <div className="text-xs text-gray-500 mb-1">Load quantity</div>
                 <div className="flex justify-between gap-2">
@@ -186,14 +186,14 @@ export function DocketDetailsPanel({
             <div className="flex flex-col gap-1 text-sm font-medium">
               <div className=" text-gray-500">Pickup</div>
               <div className=" text-gray-900">
-                {typeof docket.pickUpAddress === 'string' ? docket.pickUpAddress : docket.pickUpAddress?.formattedAddress || 'TBD'}
+                {docket.pickUpAddress?.formattedAddress || '-'}
               </div>
             </div>
             {(!docket.jobItem || docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
               <div className="flex flex-col gap-0 text-sm font-medium">
                 <div className=" text-gray-500">Delivery</div>
                 <div className=" text-gray-900">
-                  {typeof docket.deliveryAddress === 'string' ? docket.deliveryAddress : docket.deliveryAddress?.formattedAddress || 'TBD'}
+                  {docket.deliveryAddress?.formattedAddress || '-'}
                 </div>
               </div>
             )}
@@ -264,9 +264,9 @@ export function DocketDetailsPanel({
               <div className="text-sm font-medium text-gray-900">
                 {docket.deliveryCollectionDate
                   ? format(
-                      new Date(docket.deliveryCollectionDate),
-                      'dd/MM/yyyy',
-                    )
+                    new Date(docket.deliveryCollectionDate),
+                    'dd/MM/yyyy',
+                  )
                   : 'TBD'}
               </div>
             </div>
@@ -310,15 +310,13 @@ export function DocketDetailsPanel({
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Driver</div>
                   <div className="text-sm font-medium text-gray-900">
-                    {!isUnassigned ? 'Sarah Wilson' : 'Unassigned'}
+                    {!isUnassigned ? docket.driver?.driverName || 'Unassigned' : 'Unassigned'}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Truck (rego)</div>
                   <div className="text-sm font-medium text-gray-900">
-                    {docket.uiAssignedTruckId ||
-                      docket.truckType ||
-                      'Unassigned'}
+                    {!isUnassigned ? docket.truck?.licensePlate || 'Unassigned' : 'Unassigned'}
                   </div>
                 </div>
               </div>
@@ -342,11 +340,19 @@ export function DocketDetailsPanel({
                   </h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-800">
-                      <Check className="w-4 h-4 text-green-500" />
+                      {docket.driverChecklist ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-gray-300" />
+                      )}
                       Driver OK
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-800">
-                      <Check className="w-4 h-4 text-green-500" />
+                      {docket.driverChecklist ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-gray-300" />
+                      )}
                       BAC
                     </div>
                   </div>
@@ -359,11 +365,19 @@ export function DocketDetailsPanel({
                   </h4>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-800">
-                      <Check className="w-4 h-4 text-green-500" />
+                      {docket.truckChecklist ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-gray-300" />
+                      )}
                       Truck OK
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-800">
-                      <Check className="w-4 h-4 text-green-500" />
+                      {docket.truckChecklist ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-gray-300" />
+                      )}
                       Trailer OK
                     </div>
                   </div>
