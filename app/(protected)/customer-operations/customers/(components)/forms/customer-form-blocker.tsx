@@ -175,14 +175,14 @@ function XeroArchiveFailedBanner() {
     <div className="border border-[#FDE68A] bg-[#FFFBEB] rounded-md p-4 mb-4 flex flex-col gap-3">
       {/* Title row */}
       <div className="flex items-start gap-2.5">
-        <div className="flex-shrink-0 mt-0.5 bg-[#FED7AA] rounded-full p-1">
-          <RefreshCw className="h-3.5 w-3.5 text-[#EA580C]" />
+        <div className="flex-shrink-0 mt-0.5 bg-[#FFFBEB] rounded-full p-1">
+          <RefreshCw className="h-3.5 w-3.5 text-[#461901]" />
         </div>
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-[#92400E]">
+          <span className="text-sm font-semibold text-[#461901]">
             Archive reverted in QuarryLink (Xero did not accept it)
           </span>
-          <p className="text-sm text-[#92400E]">
+          <p className="text-sm text-[#7B3306E5]">
             You archived this customer in QuarryLink. We could not apply the
             same change in Xero, so the archive was reverted here to keep both
             systems aligned. The customer is active in QuarryLink again.
@@ -192,7 +192,7 @@ function XeroArchiveFailedBanner() {
 
       {/* Why this can happen */}
       <Collapsible open={whyOpen} onOpenChange={setWhyOpen}>
-        <CollapsibleTrigger className="flex items-center gap-1.5 text-sm font-semibold text-[#92400E] hover:text-[#78350F] w-full text-left transition-colors">
+        <CollapsibleTrigger className="flex items-center gap-1.5 text-sm ml-[26px] text-[#7B3306] hover:text-[#78350F] w-full text-left transition-colors">
           <ChevronRight
             className={cn(
               'h-4 w-4 flex-shrink-0 transition-transform duration-150',
@@ -202,7 +202,7 @@ function XeroArchiveFailedBanner() {
           Why this can happen
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="mt-2 pl-5">
+          <div className="mt-2 pl-5 ml-[26px]">
             <ul className="text-sm text-[#92400E] list-disc list-outside pl-2 space-y-1.5">
               <li>Contact locked or restricted in Xero</li>
               <li>Invalid or incomplete Xero contact details</li>
@@ -211,8 +211,9 @@ function XeroArchiveFailedBanner() {
               </li>
             </ul>
             <p className="text-sm text-[#92400E] mt-2">
-              In Xero, confirm the contact can be archived manually, check the
-              Xero connection, then try archiving again from QuarryLink.{' '}
+              In Xero, confirm the contact can be archived manually, check the{' '}
+              <strong>integration tab</strong>, then try archiving again from
+              QuarryLink.{' '}
               <a
                 href="mailto:support@quarrylink.com.au"
                 className="underline hover:no-underline"
@@ -238,12 +239,12 @@ function UnarchiveXeroRearchivedBanner({
     <div className="border border-[#FDE68A] bg-[#FFFBEB] rounded-md p-4 mb-4 flex flex-col gap-3">
       {/* Title row */}
       <div className="flex items-start gap-2.5">
-        <TriangleAlert className="h-4 w-4 text-[#D97706] flex-shrink-0 mt-0.5" />
+        <TriangleAlert className="h-4 w-4 text-[#461901] flex-shrink-0 mt-0.5" />
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold text-[#92400E]">
+          <span className="text-sm text-[#461901]">
             Unarchive not applied in QuarryLink (Xero was reverted)
           </span>
-          <p className="text-sm text-[#92400E]">
+          <p className="text-sm text-[#7B3306E5]">
             You unarchived this contact in Xero. QuarryLink could not mirror the
             unarchive, so the change was reverted in Xero and the contact was
             re-archived there to stay in sync.
@@ -253,13 +254,11 @@ function UnarchiveXeroRearchivedBanner({
 
       {/* Duplicate email hint */}
       {contactEmail && (
-        <div className="flex items-start gap-2">
-          <Mail className="h-4 w-4 text-[#D97706] flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-[#92400E]">
+        <div className="ml-[26px] flex items-start gap-2">
+          <Mail className="h-4 w-4 text-[#7B3306E5] flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-[#7B3306E5]">
             Check for duplicate or conflicting customers (search for{' '}
-            <code className="bg-[#FEF3C7] border border-[#FDE68A] px-1 py-0.5 rounded text-xs font-mono">
-              {contactEmail}
-            </code>
+            <span className="font-medium text-[#7B3306E5]">{contactEmail}</span>
             ). Resolve conflicts, then unarchive from QuarryLink so Xero updates
             correctly.
           </p>
@@ -267,7 +266,7 @@ function UnarchiveXeroRearchivedBanner({
       )}
 
       {/* Support */}
-      <p className="text-sm text-[#92400E]">
+      <p className="text-sm ml-[26px] text-[#7B3306E5]">
         Need help? Contact{' '}
         <a
           href="mailto:support@quarrylink.com.au"
@@ -279,7 +278,7 @@ function UnarchiveXeroRearchivedBanner({
       </p>
 
       {/* Auto-clear footer */}
-      <p className="text-xs text-[#A16207] border-t border-[#FDE68A] pt-2.5 mt-0.5">
+      <p className="text-xs text-[#71717B] border-t border-[#E4E4E799] pt-2.5 mt-0.5 ml-[26px]">
         When the contact is unarchived in Xero, QuarryLink is notified and can
         clear this notice and any restrictions automatically.
       </p>
@@ -292,19 +291,19 @@ function ArchivedInQuarryLinkBanner() {
   return (
     <div className="border border-[#E5E7EB] bg-[#F9FAFB] rounded-md p-4 mb-4 flex flex-col gap-2">
       <div className="flex items-start gap-2.5">
-        <Lock className="h-4 w-4 text-[#6B7280] flex-shrink-0 mt-0.5" />
+        <Lock className="h-4 w-4 text-[#1E2939] flex-shrink-0 mt-0.5" />
         <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-[#374151]">
+          <span className="text-sm text-[#1E2939]">
             This customer is archived
           </span>
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-[#1E2939]">
             Archived customers cannot be edited in QuarryLink. To make changes,
             unarchive the customer directly in Xero — QuarryLink will be
             notified automatically.
           </p>
         </div>
       </div>
-      <p className="text-xs text-[#9CA3AF] pl-7">
+      <p className="text-xs text-[#71717B] ml-[26px]">
         Unarchiving via QuarryLink is not supported because the Xero API does
         not provide an unarchive endpoint.
       </p>
