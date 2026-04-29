@@ -670,7 +670,7 @@ export default function DocketForm({
                               const maxLoadSize = details.remainingQty;
                               return (
                                 <FormItem>
-                                  <FormLabel>Planned Load</FormLabel>
+                                  <FormLabel>Planned Load Size</FormLabel>
                                   <FormControl>
                                     <Input
                                       className="w-full"
@@ -697,7 +697,7 @@ export default function DocketForm({
                               name="actualLoadSize"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Actual Load</FormLabel>
+                                  <FormLabel>Actual Load Size</FormLabel>
                                   <FormControl>
                                     <Input
                                       className="w-full"
