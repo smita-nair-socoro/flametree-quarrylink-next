@@ -45,6 +45,15 @@ export interface Docket {
   isDeleted: boolean;
 }
 
+export interface DocketAssignRequest {
+  docketId: number;
+  truckId: number;
+  driverId: number;
+  deliveryStartWindow?: string;
+  deliveryEndWindow?: string;
+  plannedLoadSize?: number;
+}
+
 export interface DocketDTO {
   id: number;
   docketNumber: string;
@@ -79,17 +88,29 @@ export interface DocketDTO {
   driverChecklistId: number;
   truckChecklistId: number;
   truckType: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   deliveredLoadSize: number;
+  overDelivered?: boolean;
+  deliveryDistance?: number;
   deliveryDistanceQuantity: number;
   deliveryDistanceUom: string;
   grossTruckWeight: number;
   tareTruckWeight: number;
   actualMaterialWeight: number;
+  deliveryStartedAt?: string;
+  arrivedAt?: string;
+  arrivalLatitude?: number;
+  arrivalLongitude?: number;
   deliveredAt: string;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
   signatureImage: string;
   deliveryNotes: string;
   deliveryPhotos: string[];
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
   gpsLocation: string;
   productEstimatedVolume: number;
   purchaseOrder: string;

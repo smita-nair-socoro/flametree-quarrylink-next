@@ -209,7 +209,7 @@ export default function DocketForm({
 
       const density = productDetails?.densityTonnagePerM3 || 1;
       let estimatedVolumeM3 = 0;
-      const loadSize = values.loadSize || 0;
+      const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
             .split(',')
@@ -340,7 +340,7 @@ export default function DocketForm({
         docketEmailRecipients,
         notes: values.notes,
         truckType: isCollection ? undefined : lineItemDetails.truckType,
-        loadSize: values.loadSize,
+        plannedLoadSize: values.plannedLoadSize,
         grossTruckWeight: 100,
         tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
@@ -611,7 +611,7 @@ export default function DocketForm({
                     />
 
                     <FormField
-                      name="loadSize"
+                      name="plannedLoadSize"
                       render={({ field }) => {
                         const maxLoadSize =
                           selectedJobLineItemDetails().remainingQty;
@@ -690,7 +690,7 @@ export default function DocketForm({
                           Current docket:
                         </span>
                         <span className="text-sm font-medium">
-                          {docketForm.watch('loadSize')}{' '}
+                          {docketForm.watch('plannedLoadSize')}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
                             : selectedJobLineItemDetails().productUom === 'm3'
