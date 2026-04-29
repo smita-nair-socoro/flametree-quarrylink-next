@@ -63,19 +63,10 @@ function QuoteReviewContent() {
       })
       .catch((err) => {
         console.error('Failed to fetch public quote link:', err);
-        // Check if the error indicates an expired quote
         const errorMessage = err?.message || '';
-        if (
-          errorMessage.includes('Current status is EXPIRED') ||
-          errorMessage.includes('Quote expired on') ||
-          errorMessage.includes('Current status is ARCHIVED')
-        ) {
-          const emailMatch = errorMessage.match(/Email\s*=\s*(\S+)/);
-          if (emailMatch) setAccountManagerEmail(emailMatch[1]);
-          setIsExpired(true);
-        } else {
-          setError('Link is invalid.');
-        }
+        const emailMatch = errorMessage.match(/Email\s*=\s*(\S+)/);
+        if (emailMatch) setAccountManagerEmail(emailMatch[1]);
+        setIsExpired(true);
       })
       .finally(() => setIsLoading(false));
   }, [token, isPreviewMode, quoteId, inclDeliveryCostParam]);
