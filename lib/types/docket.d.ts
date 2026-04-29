@@ -3,6 +3,7 @@ import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
 import { CustomerDTO } from './customer';
+import { TruckDTO } from './truck';
 
 export interface Docket {
   id: number;
@@ -85,6 +86,8 @@ export interface DocketDTO {
   driverId: number;
   driver?: DriverDTO;
   truckId: number;
+  truck?: TruckDTO;
+  deliveredProductsConfirmed?: boolean;
   driverChecklistId: number;
   truckChecklistId: number;
   truckType: string;
