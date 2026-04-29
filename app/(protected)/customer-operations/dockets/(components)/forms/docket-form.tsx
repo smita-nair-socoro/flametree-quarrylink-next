@@ -28,7 +28,6 @@ import {
   Package,
   Truck,
   User,
-  X,
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
@@ -136,11 +135,23 @@ export default function DocketForm({
     return toUTCDateTimeWithoutZ(combined);
   };
 
-  // TODO: replace with real API data when endpoint is ready
-  const DUMMY_ASSIGNMENT = {
-    driver: 'Mike Johnson',
-    truckRego: 'VIC123',
-  };
+  const ASSIGNED_STATUSES = new Set([
+    DOCKET_STATUS.ASSIGNED,
+    DOCKET_STATUS.IN_TRANSIT,
+    DOCKET_STATUS.STOPPED,
+    DOCKET_STATUS.ARRIVED,
+    DOCKET_STATUS.DELIVERED,
+    DOCKET_STATUS.INVOICED,
+  ]);
+
+  const showAssignment =
+    isEditing &&
+    selectedDocket?.docketStatus != null &&
+    ASSIGNED_STATUSES.has(selectedDocket.docketStatus) &&
+    (selectedDocket.driver != null || selectedDocket.truck != null);
+
+  const assignedDriverName = selectedDocket?.driver?.driverName ?? '—';
+  const assignedLicensePlate = selectedDocket?.truck?.licensePlate ?? '—';
 
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !selectedDocket) return null;
@@ -1009,43 +1020,29 @@ export default function DocketForm({
               </div>
 
               {/* Assignment Section */}
-              <div className="border rounded-md p-4 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[17px] font-bold">Assignment</span>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 transition-colors"
-                    onClick={() => {}}
-                  >
-                    <X className="w-4 h-4" />
-                    Unassign
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
-                      Driver
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {DUMMY_ASSIGNMENT.driver}
-                      </span>
-                    </div>
+              {showAssignment && (
+                <div className="border rounded-md p-4 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[17px] font-bold">Assignment</span>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
-                      Truck Rego
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {DUMMY_ASSIGNMENT.truckRego}
-                      </span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Driver</span>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{assignedDriverName}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Truck Rego</span>
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{assignedLicensePlate}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
                 <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
