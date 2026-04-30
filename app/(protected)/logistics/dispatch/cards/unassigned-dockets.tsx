@@ -39,8 +39,8 @@ function DraggableDocketCard({
       ref={setNodeRef}
       onClick={onSelect}
       className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected
-          ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
-          : 'border-[#E2E8F0]'
+        ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
+        : 'border-[#E2E8F0]'
         } ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Drag Handle Area */}
@@ -205,7 +205,9 @@ export default function UnassignedDockets({
     if (!isUnassigned) return false;
 
     if (activeTab === 'this_day') {
-      const docketDate = new Date(d.deliveryCollectionDate);
+      // chnage to deliveryCollectionDate once we have the data
+      // const docketDate = new Date(d.deliveryCollectionDate);
+      const docketDate = new Date(d.deliveryCollectionStartTime);
       return (
         docketDate.getFullYear() === date.getFullYear() &&
         docketDate.getMonth() === date.getMonth() &&
@@ -248,8 +250,8 @@ export default function UnassignedDockets({
           <button
             onClick={() => setActiveTab('this_day')}
             className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
-                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-                : 'text-[#B45309] hover:bg-[#FEFCE8]'
+              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+              : 'text-[#B45309] hover:bg-[#FEFCE8]'
               }`}
           >
             This day
@@ -257,8 +259,8 @@ export default function UnassignedDockets({
           <button
             onClick={() => setActiveTab('all_dates')}
             className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
-                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-                : 'text-[#B45309] hover:bg-[#FEFCE8]'
+              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+              : 'text-[#B45309] hover:bg-[#FEFCE8]'
               }`}
           >
             All dates

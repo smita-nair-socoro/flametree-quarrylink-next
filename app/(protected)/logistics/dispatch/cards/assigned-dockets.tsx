@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { Maximize2, Minimize2, GripVertical } from 'lucide-react';
+import { Maximize2, Minimize2, GripVertical, Lock } from 'lucide-react';
 import { Truck, DispatchDocket, formatTimeRange } from '../views/dispatch-view';
 import { TableBadges } from '@/components/table-badges';
 
@@ -122,6 +122,40 @@ function DroppableSlot({
   );
 }
 
+const getStatusColors = (status?: string) => {
+  switch (status) {
+    case 'UNASSIGNED':
+      return { bg: 'bg-white', border: 'border-gray-300', text: 'text-gray-900', textMuted: 'text-gray-600', handleBg: 'bg-gray-50' };
+    case 'PENDING':
+      return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', textMuted: 'text-yellow-700', handleBg: 'bg-white/60' };
+    case 'PREPARING':
+      return { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', textMuted: 'text-blue-700', handleBg: 'bg-white/60' };
+    case 'READY':
+      return { bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-900', textMuted: 'text-pink-700', handleBg: 'bg-white/60' };
+    case 'COLLECTED':
+      return { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-900', textMuted: 'text-green-700', handleBg: 'bg-white/60' };
+    case 'ASSIGNED':
+      return { bg: 'bg-cyan-50', border: 'border-cyan-300', text: 'text-cyan-900', textMuted: 'text-cyan-700', handleBg: 'bg-white/60' };
+    case 'IN_TRANSIT':
+      return { bg: 'bg-indigo-50', border: 'border-indigo-300', text: 'text-indigo-900', textMuted: 'text-indigo-700', handleBg: 'bg-white/60' };
+    case 'STOPPED':
+      return { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-900', textMuted: 'text-orange-700', handleBg: 'bg-white/60' };
+    case 'ARRIVED':
+      return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', textMuted: 'text-yellow-700', handleBg: 'bg-white/60' };
+    case 'DELIVERED':
+      return { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-900', textMuted: 'text-green-700', handleBg: 'bg-white/60' };
+    case 'INVOICED':
+      return { bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-900', textMuted: 'text-purple-700', handleBg: 'bg-white/60' };
+    case 'CANCELLED':
+    case 'VOIDED':
+      return { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-900', textMuted: 'text-red-700', handleBg: 'bg-white/60' };
+    case 'CASH_SALE':
+      return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', textMuted: 'text-yellow-700', handleBg: 'bg-white/60' };
+    default:
+      return { bg: 'bg-[#F0FDF4]', border: 'border-[#A7F3D0]', text: 'text-[#0F766E]', textMuted: 'text-[#0F766E]/80', handleBg: 'bg-white/60' };
+  }
+};
+
 function DocketCard({
   docket,
   layout,
@@ -140,8 +174,12 @@ function DocketCard({
   const [resizeDelta, setResizeDelta] = React.useState(0);
   const [isResizing, setIsResizing] = React.useState(false);
 
+  const isLocked = docket.docketStatus !== 'UNASSIGNED' && docket.docketStatus !== 'ASSIGNED';
+  const colors = getStatusColors(docket.docketStatus);
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: String(docket.id),
+    disabled: isLocked,
   });
 
   const timeIndex = TIME_SLOTS.indexOf(docket.uiAssignedTime || '');
@@ -169,6 +207,7 @@ function DocketCard({
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    if (isLocked) return;
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);
@@ -222,21 +261,25 @@ function DocketCard({
           onSelect();
         }
       }}
-      className={`bg-[#F0FDF4] border ${isResizing ? 'border-dashed border-[#059669]' : isSelected ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]' : 'border-[#A7F3D0]'} rounded-lg shadow-sm flex flex-col group overflow-hidden transition-shadow cursor-pointer ${isDragging ? 'opacity-50' : ''}`}
+      className={`${colors.bg} border ${isResizing ? 'border-dashed border-[#059669]' : isSelected ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]' : colors.border} rounded-lg shadow-sm flex flex-col group overflow-hidden transition-shadow cursor-pointer ${isDragging ? 'opacity-50' : ''}`}
     >
-      <div className="flex flex-1 p-2 gap-2">
+      <div className="flex flex-1">
         <div
-          {...listeners}
-          {...attributes}
-          className="flex items-center text-[#94A3B8] cursor-grab active:cursor-grabbing"
+          {...(isLocked ? {} : listeners)}
+          {...(isLocked ? {} : attributes)}
+          className={`flex items-center justify-center w-8 shrink-0 border-r ${colors.border} ${colors.handleBg} ${isLocked ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
         >
-          <GripVertical className="w-4 h-4" />
+          {isLocked ? (
+            <Lock className="w-3.5 h-3.5 text-gray-400" />
+          ) : (
+            <GripVertical className="w-4 h-4 text-gray-400" />
+          )}
         </div>
-        <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex flex-col flex-1 min-w-0 p-2">
           <div className="flex items-center justify-between gap-2">
-            <div className="font-bold text-[#0F766E] truncate text-[15px]">
+            <div className={`font-bold ${colors.text} truncate text-[15px]`}>
               {docket.docketNumber}{' '}
-              <span className="text-[#0F766E] font-semibold text-[12px] ml-1">
+              <span className={`${colors.text} font-semibold text-[12px] ml-1`}>
                 {docket.loadSize}{' '}
                 {docket.productSellUom === 'M3'
                   ? 'm³'
@@ -246,17 +289,17 @@ function DocketCard({
               </span>
             </div>
           </div>
-          <div className="text-[#0F766E] font-medium text-[13px] truncate mt-1">
+          <div className={`${colors.text} font-medium text-[13px] truncate mt-1`}>
             {docket.customerName || 'Unknown Customer'}
           </div>
-          <div className="text-[#0F766E]/80 text-[12px] truncate">
+          <div className={`${colors.textMuted} text-[12px] truncate`}>
             {typeof docket.pickUpAddress === 'string'
               ? docket.pickUpAddress
               : docket.pickUpAddress?.formattedAddress || ''}
           </div>
 
           <div className="flex items-center justify-between mt-auto pt-2">
-            <span className="text-[#0F766E]/70 text-[12px] font-medium">
+            <span className={`${colors.textMuted} text-[12px] font-medium`}>
               {formatTimeRange(
                 docket.deliveryCollectionStartTime,
                 docket.deliveryCollectionEndTime,
@@ -273,10 +316,12 @@ function DocketCard({
       )}
 
       {/* Resize handle */}
-      <div
-        className="h-2.5 bg-[#D1FAE5] hover:bg-[#A7F3D0] cursor-ns-resize transition-colors mt-auto relative z-20 border-t border-[#A7F3D0]/50"
-        onPointerDown={handlePointerDown}
-      />
+      {!isLocked && (
+        <div
+          className={`h-2.5 ${colors.handleBg} hover:bg-gray-200 cursor-ns-resize transition-colors mt-auto relative z-20 border-t ${colors.border}`}
+          onPointerDown={handlePointerDown}
+        />
+      )}
     </div>
   );
 }

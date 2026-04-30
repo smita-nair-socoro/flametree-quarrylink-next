@@ -208,8 +208,8 @@ export function DispatchView({
 
     if (overId === 'unassigned-queue') {
       const docket = dockets.find(d => String(d.id) === docketId);
-      if (docket && docket.docketStatus === DOCKET_STATUS.UNASSIGNED) {
-        return; // Already unassigned
+      if (docket && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+        return; // Only ASSIGNED dockets can be unassigned
       }
 
       // Unassign the docket
@@ -234,6 +234,10 @@ export function DispatchView({
       const [, truckId, time] = match;
 
       const docket = dockets.find(d => String(d.id) === docketId);
+      if (docket && docket.docketStatus !== DOCKET_STATUS.UNASSIGNED && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+        return; // Cannot move locked dockets
+      }
+
       if (docket && docket.uiAssignedTruckId === truckId && docket.uiAssignedTime === time) {
         // Dropped on the same slot, do nothing
         return;
@@ -389,7 +393,7 @@ export function DispatchView({
                   uiAssignedTime: time,
                   deliveryCollectionStartTime: formatLocalISO(startWindow),
                   deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  docketStatus: 'ASSIGNED' as any,
+                  docketStatus: DOCKET_STATUS.ASSIGNED,
                 }
                 : d,
             ),
