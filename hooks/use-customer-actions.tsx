@@ -476,57 +476,63 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
   const handleArchive = async () => {
     if (!customerId) return;
     try {
-      const response = await archiveCustomer.mutateAsync(customerId);
-      if (response.success) {
-        notifySuccess('Customer archived successfully');
-        setActiveDialog(null);
-        setSelectedAction(null);
-      } else {
+      await archiveCustomer.mutateAsync(customerId);
+      notifySuccess('Customer archived successfully');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      const err = error as Error & {
+        response?: { status: number; data: unknown };
+      };
+      if (err.response?.status === 409) {
+        const data = err.response.data as ArchiveCustomerResponseDTO;
         const parts: string[] = [];
-        if (response.blockingQuotes?.length)
+        if (data.blockingQuotes?.length)
           parts.push(
-            `${response.blockingQuotes.length} active ${response.blockingQuotes.length === 1 ? 'quote' : 'quotes'}`,
+            `${data.blockingQuotes.length} active ${data.blockingQuotes.length === 1 ? 'quote' : 'quotes'}`,
           );
-        if (response.blockingDockets?.length)
+        if (data.blockingDockets?.length)
           parts.push(
-            `${response.blockingDockets.length} active ${response.blockingDockets.length === 1 ? 'docket' : 'dockets'}`,
+            `${data.blockingDockets.length} active ${data.blockingDockets.length === 1 ? 'docket' : 'dockets'}`,
           );
-        if (response.blockingJobs?.length)
+        if (data.blockingJobs?.length)
           parts.push(
-            `${response.blockingJobs.length} active ${response.blockingJobs.length === 1 ? 'job' : 'jobs'}`,
+            `${data.blockingJobs.length} active ${data.blockingJobs.length === 1 ? 'job' : 'jobs'}`,
           );
-        notifyError(
-          `Cannot archive customer: has ${parts.join(', ')}`,
-        );
-        setArchiveResponse(response);
+        notifyError(`Cannot archive customer: has ${parts.join(', ')}`);
+        setArchiveResponse(data);
         setSelectedAction({ key: 'cannotArchive' });
         setActiveDialog('cannotArchive');
+      } else {
+        notifyError(extractErrorMessage(error));
       }
-    } catch (error) {
-      notifyError(extractErrorMessage(error));
     }
   };
 
   const handleUnarchive = async () => {
     if (!customerId) return;
     try {
-      const response = await unarchiveCustomer.mutateAsync(customerId);
-      if (response.success) {
-        notifySuccess('Customer unarchived successfully');
-        setActiveDialog(null);
-        setSelectedAction(null);
-      } else {
+      await unarchiveCustomer.mutateAsync(customerId);
+      notifySuccess('Customer unarchived successfully');
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      const err = error as Error & {
+        response?: { status: number; data: unknown };
+      };
+      if (err.response?.status === 409) {
+        const data = err.response.data as UnarchiveCustomerResponseDTO;
         notifyError(
-          response.duplicateCustomerName
-            ? `Cannot unarchive: "${response.duplicateCustomerName}" already exists as an active customer`
+          data.duplicateCustomerName
+            ? `Cannot unarchive: "${data.duplicateCustomerName}" already exists as an active customer`
             : 'Cannot unarchive customer: duplicate name detected',
         );
-        setUnarchiveResponse(response);
+        setUnarchiveResponse(data);
         setSelectedAction({ key: 'cannotUnarchive' });
         setActiveDialog('cannotUnarchive');
+      } else {
+        notifyError(extractErrorMessage(error));
       }
-    } catch (error) {
-      notifyError(extractErrorMessage(error));
     }
   };
 
