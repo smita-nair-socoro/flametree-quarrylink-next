@@ -482,6 +482,22 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         setActiveDialog(null);
         setSelectedAction(null);
       } else {
+        const parts: string[] = [];
+        if (response.blockingQuotes?.length)
+          parts.push(
+            `${response.blockingQuotes.length} active ${response.blockingQuotes.length === 1 ? 'quote' : 'quotes'}`,
+          );
+        if (response.blockingDockets?.length)
+          parts.push(
+            `${response.blockingDockets.length} active ${response.blockingDockets.length === 1 ? 'docket' : 'dockets'}`,
+          );
+        if (response.blockingJobs?.length)
+          parts.push(
+            `${response.blockingJobs.length} active ${response.blockingJobs.length === 1 ? 'job' : 'jobs'}`,
+          );
+        notifyError(
+          `Cannot archive customer: has ${parts.join(', ')}`,
+        );
         setArchiveResponse(response);
         setSelectedAction({ key: 'cannotArchive' });
         setActiveDialog('cannotArchive');
@@ -500,6 +516,11 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         setActiveDialog(null);
         setSelectedAction(null);
       } else {
+        notifyError(
+          response.duplicateCustomerName
+            ? `Cannot unarchive: "${response.duplicateCustomerName}" already exists as an active customer`
+            : 'Cannot unarchive customer: duplicate name detected',
+        );
         setUnarchiveResponse(response);
         setSelectedAction({ key: 'cannotUnarchive' });
         setActiveDialog('cannotUnarchive');
