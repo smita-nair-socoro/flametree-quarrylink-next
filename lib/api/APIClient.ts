@@ -40,7 +40,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
-import { DocketDTO } from '../types/docket';
+import { DocketAssignRequest, DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
@@ -926,14 +926,7 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${docketId}/status`,
         { body: formData },
       ),
-    assign: (data: {
-      docketId: number;
-      driverId: number;
-      truckId: number;
-      deliveryStartWindow: string;
-      deliveryEndWindow: string;
-      plannedLoadSize: number;
-    }) =>
+    assign: (data: DocketAssignRequest) =>
       appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/assign', {
         body: data,
       }),
