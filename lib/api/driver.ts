@@ -28,6 +28,13 @@ export const DriverAssignmentsQueryOptions = (id: number) =>
     enabled: !!id,
   });
 
+export const DriverPreStartChecklistsQueryOptions = (driverId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+  queryOptions({
+    queryKey: DriverKeys.checklists(driverId),
+    queryFn: () => APIClient.drivers.getPreStartChecklists(driverId, params),
+    enabled: !!driverId,
+  });
+
 export const useCreateDriver = () => {
   const queryClient = useQueryClient();
 

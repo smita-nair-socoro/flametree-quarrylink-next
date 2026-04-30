@@ -145,7 +145,10 @@ export function removeNewRecordId(tableId: string, recordId: number | string) {
  * Mark a record as having a sync error so the table can apply distinct highlight styling.
  * Uses a separate sessionStorage key from newRecordIds.
  */
-export function addSyncErrorRecordId(tableId: string, recordId: number | string) {
+export function addSyncErrorRecordId(
+  tableId: string,
+  recordId: number | string,
+) {
   if (typeof window === 'undefined') return;
   try {
     const key = `${tableId}_syncErrorRecordIds`;
@@ -175,7 +178,11 @@ export function splitReasonNote(raw: string | null | undefined): {
   const hyphenIndex = trimmed.indexOf('-');
   if (hyphenIndex === -1) return { reason: trimmed, note: undefined };
   return {
-    reason: trimmed.slice(0, hyphenIndex).trim().replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()),
+    reason: trimmed
+      .slice(0, hyphenIndex)
+      .trim()
+      .replace(/_/g, ' ')
+      .replace(/^\w/, (c) => c.toUpperCase()),
     note: trimmed.slice(hyphenIndex + 1).trim() || undefined,
   };
 }
@@ -264,6 +271,7 @@ export const BADGE_COLORS: Record<string, string> = {
   'CASH SALE': 'bg-yellow-100 text-yellow-900 border-yellow-900',
   INTERNAL: 'bg-blue-100 text-blue-800 border-blue-800',
   SUBCONTRACTOR: 'bg-orange-100 text-orange-800 border-orange-800',
+  EXTERNAL: 'bg-orange-100 text-orange-800 border-orange-800',
   DEACTIVATED: 'bg-[#FFF7ED] text-[#DC2626] border-[#DC2626]',
   ON_DUTY: 'bg-blue-100 text-blue-800 border-blue-800',
   'ON DUTY': 'bg-blue-100 text-blue-800 border-blue-800',
@@ -284,4 +292,5 @@ export const BADGE_COLORS: Record<string, string> = {
   PASS: 'bg-green-100 text-green-800 border-green-900',
   FAIL: 'bg-red-100 text-red-800 border-red-900',
   CONFIRMED: 'bg-yellow-100 text-yellow-800 border-yellow-900',
+  GENERIC: 'bg-pink-600 border-pink-100, text-pink-100',
 };

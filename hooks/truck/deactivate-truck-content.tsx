@@ -1,6 +1,6 @@
 'use client';
 
-import { Ban, TriangleAlert, CheckCircle2, CircleX } from 'lucide-react';
+import { Ban, TriangleAlert } from 'lucide-react';
 import { TruckDTO } from '@/lib/types/truck';
 
 // ─── Deactivate ───────────────────────────────────────────────────────────────
@@ -24,20 +24,9 @@ export function DeactivateTruckDescription({
 
 export function DeactivateTruckContent({
   assignedDrivers = [],
-  completedDocketBreakdown = { delivered: 0, collected: 0, cancelled: 0 },
 }: {
   assignedDrivers?: string[];
-  completedDocketBreakdown?: {
-    delivered: number;
-    collected: number;
-    cancelled: number;
-  };
 }) {
-  const totalCompleted =
-    completedDocketBreakdown.delivered +
-    completedDocketBreakdown.collected +
-    completedDocketBreakdown.cancelled;
-
   return (
     <div className="flex flex-col gap-5">
       <span className="text-[14px] font-normal text-gray-700">
@@ -59,45 +48,6 @@ export function DeactivateTruckContent({
                 {driver} will remain assigned to this truck.
               </span>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Data Preservation */}
-      {totalCompleted > 0 && (
-        <div className="rounded-md border border-[#BAE6FD] bg-[#F0F9FF] p-4 flex flex-col gap-2">
-          <span className="text-[14px] font-medium text-[#075985]">
-            Data Preservation
-          </span>
-          <span className="text-[14px] text-[#0C4A6E]">
-            <span className="font-semibold">
-              {totalCompleted} completed dockets
-            </span>{' '}
-            will be preserved:
-          </span>
-          <div className="flex flex-col gap-1 pl-1">
-            {completedDocketBreakdown.delivered > 0 && (
-              <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
-                {completedDocketBreakdown.delivered} Delivered
-              </div>
-            )}
-            {completedDocketBreakdown.collected > 0 && (
-              <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
-                {completedDocketBreakdown.collected} Collected
-              </div>
-            )}
-            {completedDocketBreakdown.cancelled > 0 && (
-              <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
-                <CircleX className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
-                {completedDocketBreakdown.cancelled} Cancelled
-              </div>
-            )}
-            <div className="flex items-center gap-2 text-[14px] text-[#0369A1]">
-              <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-[#0EA5E9]" />
-              All maintenance records
-            </div>
           </div>
         </div>
       )}

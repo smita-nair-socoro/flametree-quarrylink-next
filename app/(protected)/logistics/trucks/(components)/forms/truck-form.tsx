@@ -20,11 +20,15 @@ import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from '@/app/(protected)/logistics/drivers/(components)/forms/haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
-import { Loader2, Info } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import { useCreateTruck, useUpdateTruck } from '@/lib/api/truck';
+import { TRUCK_TYPE, TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
+import {
+  useCreateTruck,
+  useUpdateTruck,
+  TruckInspectionsQueryOptions,
+} from '@/lib/api/truck';
 import {
   HauliersListQueryOptions,
   HaulierDriversQueryOptions,
@@ -37,7 +41,6 @@ import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
-import type { InspectionRecord } from '@/lib/types/truck-inspection';
 import { YearPicker } from '@/components/year-picker';
 import {
   FormMultiSelect,
@@ -70,41 +73,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-const DUMMY_INSPECTIONS: InspectionRecord[] = [
-  {
-    id: 1,
-    checklistId: 'TI-24-001',
-    date: 'Feb 10, 2024',
-    driver: { driverName: 'John Smith' } as InspectionRecord['driver'],
-    status: 'PASS',
-    notes: 'No defects identified during inspection.',
-  },
-  {
-    id: 2,
-    checklistId: 'TI-24-002',
-    date: 'Feb 11, 2024',
-    driver: { driverName: 'Armin Menhaji' } as InspectionRecord['driver'],
-    status: 'FAIL',
-    notes: 'Failed Engine oil level, Coolant level.',
-  },
-  {
-    id: 3,
-    checklistId: 'TI-24-003',
-    date: 'Feb 12, 2024',
-    driver: { driverName: 'Jaywoo Choi' } as InspectionRecord['driver'],
-    status: 'PASS',
-    notes: 'No defects identified during inspection.',
-  },
-  {
-    id: 4,
-    checklistId: 'TI-24-004',
-    date: 'Feb 13, 2024',
-    driver: { driverName: 'John Smith' } as InspectionRecord['driver'],
-    status: 'CONFIRMED',
-    notes: 'External haulier check confirmed by driver.',
-  },
-] as InspectionRecord[];
-
 export default function TruckForm({
   id,
   onCancel,
@@ -115,9 +83,8 @@ export default function TruckForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
-  const [truckOwnerType, setTruckOwnerType] = React.useState<
-    'INTERNAL' | 'SUBCONTRACTOR'
-  >('INTERNAL');
+  const [truckOwnerType, setTruckOwnerType] =
+    React.useState<TRUCK_BUSINESS_TYPE>(TRUCK_BUSINESS_TYPE.INTERNAL);
 
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
@@ -138,7 +105,7 @@ export default function TruckForm({
     [hauliers, tenantName],
   );
 
-  const isInternal = truckOwnerType === 'INTERNAL';
+  const isInternal = truckOwnerType === TRUCK_BUSINESS_TYPE.INTERNAL;
 
   const truckForm = useForm<TruckFormValues>({
     resolver: zodResolver(TruckFormSchema),
@@ -170,7 +137,10 @@ export default function TruckForm({
   const { data: haulierDriversData } = useQuery(
     HaulierDriversQueryOptions(effectiveHaulierId),
   );
-  const haulierDrivers = haulierDriversData?.drivers ?? [];
+  const haulierDrivers = React.useMemo(
+    () => haulierDriversData?.drivers ?? [],
+    [haulierDriversData],
+  );
   const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
       haulierDrivers
@@ -209,8 +179,13 @@ export default function TruckForm({
 
   React.useEffect(() => {
     if (isEditing && truckData) {
-      const isInternalTruck = truckData.truckBusinessType === 'INTERNAL';
-      setTruckOwnerType(isInternalTruck ? 'INTERNAL' : 'SUBCONTRACTOR');
+      const isInternalTruck =
+        truckData.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL;
+      setTruckOwnerType(
+        isInternalTruck
+          ? TRUCK_BUSINESS_TYPE.INTERNAL
+          : TRUCK_BUSINESS_TYPE.EXTERNAL,
+      );
       truckForm.reset({
         haulierId: truckData.haulier?.id ?? truckData.haulierId ?? 0,
         licensePlate: truckData.licensePlate ?? '',
@@ -296,7 +271,11 @@ export default function TruckForm({
     });
   }
 
-  const inspectionRecords = isEditing ? DUMMY_INSPECTIONS : [];
+  const { data: inspectionsData } = useQuery({
+    ...TruckInspectionsQueryOptions(id ?? 0),
+    enabled: isEditing && !!id,
+  });
+  const inspectionRecords = inspectionsData?.content ?? [];
 
   const assignedDrivers = (truckData?.drivers ?? []).map((driver) => ({
     id: driver.id!,
@@ -338,16 +317,6 @@ export default function TruckForm({
           )}
           onSubmit={truckForm.handleSubmit(onSubmit, onError)}
         >
-          {isGenericTruck && (
-            <div className="flex items-start gap-2 bg-blue-50 border border-blue-200 text-blue-900 rounded-md px-4 py-3 text-sm">
-              <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-blue-500" />
-              <span>
-                This is a generic truck automatically generated by the system
-                for the hauler.
-              </span>
-            </div>
-          )}
-
           {!isGenericTruck && (
             <>
               <div className="flex flex-col gap-3">
@@ -359,17 +328,17 @@ export default function TruckForm({
                   <RadioGroup
                     value={truckOwnerType}
                     onValueChange={(v) =>
-                      setTruckOwnerType(v as 'INTERNAL' | 'SUBCONTRACTOR')
+                      setTruckOwnerType(v as TRUCK_BUSINESS_TYPE)
                     }
                     disabled={isEditing}
                     className="flex gap-6"
                   >
                     <FormItem className="flex items-center gap-2">
-                      <RadioGroupItem value="INTERNAL" />
+                      <RadioGroupItem value={TRUCK_BUSINESS_TYPE.INTERNAL} />
                       <FormLabel className="font-normal">Internal</FormLabel>
                     </FormItem>
                     <FormItem className="flex items-center gap-2">
-                      <RadioGroupItem value="SUBCONTRACTOR" />
+                      <RadioGroupItem value={TRUCK_BUSINESS_TYPE.EXTERNAL} />
                       <FormLabel className="font-normal">External</FormLabel>
                     </FormItem>
                   </RadioGroup>

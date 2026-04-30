@@ -47,12 +47,15 @@ import {
   StartPreparingDescription,
   StartPreparingContent,
 } from '@/hooks/docket/start-preparing-content';
+import {
+  AssignDocketDescription,
+  AssignDocketContent,
+} from '@/hooks/docket/assign-docket-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus, DocketByIdQueryOptions } from '@/lib/api/docket';
+import { useUpdateDocketStatus, useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
-import { useQuery } from '@tanstack/react-query';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -114,10 +117,22 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
-  const [selectedAction, setSelectedAction] =
-    React.useState<SelectedAction | null>(null);
+  const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
+  const assignDocketMutation = useAssignDocket();
+  const unassignDocketMutation = useUnassignDocket();
+
+  // Assign state
+  const [assignHauler, setAssignHauler] = React.useState<number | undefined>(undefined);
+  const [assignTruck, setAssignTruck] = React.useState<number | undefined>(undefined);
+  const [assignDriver, setAssignDriver] = React.useState<number | undefined>(undefined);
+
+  const resetAssignState = React.useCallback(() => {
+    setAssignHauler(undefined);
+    setAssignTruck(undefined);
+    setAssignDriver(undefined);
+  }, []);
 
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
     const [header, data] = dataUrl.split(',');
@@ -371,6 +386,47 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }
   };
 
+  const handleAssignDocket = async () => {
+    if (!docketData?.id || !assignTruck || !assignDriver) return;
+    try {
+      const result = await assignDocketMutation.mutateAsync({
+        docketId: docketData.id,
+        truckId: assignTruck,
+        driverId: assignDriver,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: result.docketStatus,
+        truckId: result.truckId,
+        driverId: result.driverId,
+      });
+      notifySuccess('Docket assigned successfully');
+      setActiveDialog(null);
+      resetAssignState();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleUnassignDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const result = await unassignDocketMutation.mutateAsync({
+        docketId: docketData.id,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: result.docketStatus,
+        truckId: result.truckId,
+        driverId: result.driverId,
+      });
+      notifySuccess('Docket unassigned successfully');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
     if (stopReason === 'other') return Boolean(stopNotes.trim());
@@ -389,8 +445,29 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     receiverSignature,
   ]);
 
+  const isAssignFormValid = Boolean(assignTruck && assignDriver);
+
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
+      assign: {
+        title: 'Assign docket',
+        description: <AssignDocketDescription docket={docketData} />,
+        content: (
+          <AssignDocketContent
+            docket={docketData}
+            haulerSelection={assignHauler}
+            truckSelection={assignTruck}
+            driverSelection={assignDriver}
+            onHaulerChange={setAssignHauler}
+            onTruckChange={setAssignTruck}
+            onDriverChange={setAssignDriver}
+          />
+        ),
+        confirmText: 'Assign docket',
+        confirmCustomColor: '#3B82F6',
+        confirmDisabled: !isAssignFormValid,
+        cancelText: 'Cancel',
+      },
       markArrived: {
         title: 'Mark as Arrived',
         description: <MarkArrivedDescription docket={docketData} />,
@@ -524,6 +601,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       isStopFormValid,
       isVoidFormValid,
       isCancelFormValid,
+      isAssignFormValid,
       receiptPhoto,
       receiverName,
       receiverOnSite,
@@ -535,6 +613,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       voidReason,
       cancelNotes,
       cancelReason,
+      assignHauler,
+      assignTruck,
+      assignDriver,
     ],
   );
 
@@ -564,9 +645,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
     cancel: createDialogAction('cancel'),
-    unassign: () => {
-      console.log('Unassign docket confirmed:', docketData);
-    },
+    unassign: handleUnassignDocket,
     startPreparing: createDialogAction('startPreparing'),
     cashSale: () => {
       console.log('Cash sale confirmed:', docketData);
@@ -580,9 +659,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     viewInvoice: () => {
       console.log('View invoice confirmed:', docketData);
     },
-    assign: () => {
-      console.log('Assign docket confirmed:', docketData);
-    },
+    assign: createDialogAction('assign'),
 
     backToPending: () => {
       console.log('Back to pending confirmed:', docketData);
@@ -600,7 +677,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         key={key}
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
-          if (!open) setActiveDialog(null);
+          if (!open) {
+            if (key === 'assign') resetAssignState();
+            setActiveDialog(null);
+          }
         }}
         title={config.title}
         description={config.description}
@@ -613,6 +693,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         preventOutsideClose={config.preventOutsideClose}
         onConfirmAction={async () => {
           switch (key) {
+            case 'assign':
+              await handleAssignDocket();
+              break;
             case 'startTransit':
               await handleStartTransit();
               break;
@@ -659,7 +742,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               console.log('Assign docket confirmed:', docketData);
               break;
             case 'unassign':
-              console.log('Unassign docket confirmed:', docketData);
+              await handleUnassignDocket();
               break;
             case 'backToPending':
               console.log('Back to pending confirmed:', docketData);
@@ -673,7 +756,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     );
   });
 
-  const canEdit = (docketData ?? selectedDocket)?.docketStatus === 'UNASSIGNED';
+  const canEdit = ['UNASSIGNED', 'ASSIGNED'].includes(
+    (docketData ?? selectedDocket)?.docketStatus ?? '',
+  );
   const viewDialog = viewOpen ? (
     <FormDialog
       id={selectedDocket?.id}
