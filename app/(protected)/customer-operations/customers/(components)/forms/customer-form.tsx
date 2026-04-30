@@ -351,7 +351,7 @@ export default function CustomerForm({
           }
         }
 
-        if (handleSyncNote(newCustomer.accSoftwareNotes)) return;
+        handleSyncNote(newCustomer.accSoftwareNotes);
       }
 
       onSuccess?.();
