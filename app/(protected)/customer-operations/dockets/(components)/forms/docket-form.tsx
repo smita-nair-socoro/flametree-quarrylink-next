@@ -21,6 +21,8 @@ import { FormSelect } from '@/components/ui/form-select';
 import {
   AlertTriangle,
   Calendar,
+  CircleCheck,
+  CircleX,
   Clock,
   FileText,
   Info,
@@ -1046,6 +1048,72 @@ export default function DocketForm({
                   </div>
                 </div>
               </div>
+
+              {/* Checklist Section */}
+              {isEditing &&
+                selectedDocket &&
+                [
+                  DOCKET_STATUS.IN_TRANSIT,
+                  DOCKET_STATUS.STOPPED,
+                  DOCKET_STATUS.ARRIVED,
+                  DOCKET_STATUS.DELIVERED,
+                  DOCKET_STATUS.INVOICED,
+                ].includes(selectedDocket.docketStatus) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {(
+                      [
+                        {
+                          title: 'Pre-Start Checklist',
+                          checklist: selectedDocket.driverChecklist,
+                          items: ['Driver OK', 'BAC'],
+                        },
+                        {
+                          title: 'Truck Inspection',
+                          checklist: selectedDocket.truckChecklist,
+                          items: ['Truck OK', 'Trailer OK'],
+                        },
+                      ] as const
+                    ).map(({ title, checklist, items }) => (
+                      <div
+                        key={title}
+                        className="border-t border-[#8E51FF] p-4 flex flex-col gap-3 bg-[#F9FAFB]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-semibold">
+                              {title}
+                            </span>
+                          </div>
+                          <span className="text-xs text-[#8E51FF] font-semibold underline cursor-pointer">
+                            View Full Report
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {items.map((item) =>
+                            checklist && !checklist.hasIssues ? (
+                              <div
+                                key={item}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <CircleCheck className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <span>{item}</span>
+                              </div>
+                            ) : (
+                              <div
+                                key={item}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <CircleX className="w-4 h-4 text-red-500 flex-shrink-0" />
+                                <span>{item}</span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
               <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
                 <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
