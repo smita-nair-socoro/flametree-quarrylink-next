@@ -5,11 +5,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  // DropdownMenuSeparator,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-// import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
-import { MoreHorizontal, Eye } from 'lucide-react';
+import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -33,9 +32,7 @@ export function CustomerActionButtons({
     attributes?.['custom:role'] || attributes?.role || 'Essentials';
   const isEssentials = userRole === 'Essentials';
 
-  const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    customer
-  );
+  const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
 
   // Early returns for null quotation or new quotation
   if (!customer) {
@@ -79,17 +76,17 @@ export function CustomerActionButtons({
                   <Eye className="h-4 w-4 mr-2" />
                   View Quotations
                 </DropdownMenuItem> */}
-                {/* <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={actions.archive}
                   className="text-destructive focus:text-destructive"
                 >
                   <Archive className="h-4 w-4 mr-2 text-red-600" />
                   Archive
-                </DropdownMenuItem> */}
+                </DropdownMenuItem>
               </>
             )}
-            {/* {isArchived && (
+            {isArchived && (
               <DropdownMenuItem
                 onClick={actions.unarchive}
                 className="text-blue-600 focus:text-blue-600"
@@ -97,7 +94,7 @@ export function CustomerActionButtons({
                 <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
                 Unarchive
               </DropdownMenuItem>
-            )} */}
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -111,8 +108,6 @@ export function CustomerActionButtons({
       {viewDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Primary button - conditional based on role */}
-
         {/* <Button
           variant="ghost"
           size="sm"
@@ -133,41 +128,40 @@ export function CustomerActionButtons({
             View Dockets
           </Button>
         )}
-        {/* {!isArchived && (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {!isEssentials && (
-                  <>
-                    <DropdownMenuItem onClick={actions.viewJobs}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Jobs
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={actions.viewQuotations}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Quotations
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-red-600" />
-                  Archive
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
+        {!isArchived && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {!isEssentials && (
+                <>
+                  <DropdownMenuItem onClick={actions.viewJobs}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Jobs
+                  </DropdownMenuItem>
+                  {/* <DropdownMenuItem onClick={actions.viewQuotations}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Quotations
+                  </DropdownMenuItem> */}
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem
+                onClick={actions.archive}
+                className="text-destructive focus:text-destructive"
+              >
+                <Archive className="h-4 w-4 mr-2 text-red-600" />
+                Archive
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         {isArchived && (
           <DropdownMenu>
@@ -190,7 +184,7 @@ export function CustomerActionButtons({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )} */}
+        )}
       </div>
     </div>
   );
