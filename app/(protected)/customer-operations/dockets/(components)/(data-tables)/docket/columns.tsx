@@ -141,12 +141,12 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'loadSize',
-    accessorFn: (row) => row.loadSize,
+    accessorFn: (row) => row.plannedLoadSize ?? row.loadSize,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quantity" />;
     },
     cell: ({ row }) => {
-      const loadSize = row.original.loadSize;
+      const loadSize = row.original.plannedLoadSize ?? row.original.loadSize;
       const productUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productUom === 'TN'

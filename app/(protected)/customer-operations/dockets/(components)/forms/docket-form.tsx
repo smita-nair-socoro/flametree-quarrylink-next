@@ -30,7 +30,6 @@ import {
   Package,
   Truck,
   User,
-  X,
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
@@ -138,11 +137,44 @@ export default function DocketForm({
     return toUTCDateTimeWithoutZ(combined);
   };
 
-  // TODO: replace with real API data when endpoint is ready
-  const DUMMY_ASSIGNMENT = {
-    driver: 'Mike Johnson',
-    truckRego: 'VIC123',
-  };
+  const currentStatus = selectedDocket?.docketStatus ?? null;
+  const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
+
+  const canEditPlannedLoadSize =
+    !isEditing || !currentStatus
+      ? true
+      : isDelivery
+        ? currentStatus === DOCKET_STATUS.UNASSIGNED || currentStatus === DOCKET_STATUS.ASSIGNED
+        : currentStatus === DOCKET_STATUS.PENDING;
+
+  const canActualLoadSize =
+    isEditing &&
+    currentStatus !== null &&
+    (isDelivery
+      ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+        currentStatus === DOCKET_STATUS.ARRIVED ||
+        currentStatus === DOCKET_STATUS.DELIVERED
+      : currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY ||
+        currentStatus === DOCKET_STATUS.COLLECTED);
+
+  const ASSIGNED_STATUSES = new Set([
+    DOCKET_STATUS.ASSIGNED,
+    DOCKET_STATUS.IN_TRANSIT,
+    DOCKET_STATUS.STOPPED,
+    DOCKET_STATUS.ARRIVED,
+    DOCKET_STATUS.DELIVERED,
+    DOCKET_STATUS.INVOICED,
+  ]);
+
+  const showAssignment =
+    isEditing &&
+    selectedDocket?.docketStatus != null &&
+    ASSIGNED_STATUSES.has(selectedDocket.docketStatus) &&
+    (selectedDocket.driver != null || selectedDocket.truck != null);
+
+  const assignedDriverName = selectedDocket?.driver?.driverName ?? '—';
+  const assignedLicensePlate = selectedDocket?.truck?.licensePlate ?? '—';
 
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !selectedDocket) return null;
@@ -190,7 +222,7 @@ export default function DocketForm({
   }, [isEditing, selectedDocket]);
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
-    if (isReadOnly) return;
+    if (isReadOnly && !canActualLoadSize) return;
 
     // For ASSIGNED dockets, always show the conflict confirmation dialog first (API check TBD)
     if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
@@ -211,7 +243,7 @@ export default function DocketForm({
 
       const density = productDetails?.densityTonnagePerM3 || 1;
       let estimatedVolumeM3 = 0;
-      const loadSize = values.loadSize || 0;
+      const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
             .split(',')
@@ -342,7 +374,8 @@ export default function DocketForm({
         docketEmailRecipients,
         notes: values.notes,
         truckType: isCollection ? undefined : lineItemDetails.truckType,
-        loadSize: values.loadSize,
+        plannedLoadSize: values.plannedLoadSize,
+        actualLoadSize: values.actualLoadSize,
         grossTruckWeight: 100,
         tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
@@ -559,125 +592,133 @@ export default function DocketForm({
                       )}
                     />
                   </div>
-                  <div
-                    className={cn(
-                      !docketForm.watch('jobLineItemId') ||
-                        selectedJobLineItemDetails().type === 'COLLECTION'
-                        ? 'grid grid-cols-2 gap-4'
-                        : !selectedJobLineItemDetails().needTruckQty
-                          ? 'grid grid-cols-3 gap-4'
-                          : 'grid grid-cols-4 gap-4',
-                    )}
-                  >
-                    {selectedJobLineItemDetails().type === 'DELIVERY' && (
+                  {(() => {
+                    const jobLineItemId = docketForm.watch('jobLineItemId');
+                    const details = selectedJobLineItemDetails();
+                    const needTruckQty = details.needTruckQty;
+                    const truckQtyOverflows = isDelivery && needTruckQty && canActualLoadSize;
+
+                    const gridCols = !jobLineItemId
+                      ? 'grid-cols-2'
+                      : !isDelivery
+                        ? canActualLoadSize
+                          ? 'grid-cols-3'
+                          : 'grid-cols-2'
+                        : canActualLoadSize || needTruckQty
+                          ? 'grid-cols-4'
+                          : 'grid-cols-3';
+
+                    const truckQtyField = isDelivery && needTruckQty ? (
                       <FormField
-                        name="truckType"
-                        render={() => (
+                        name="truckQty"
+                        render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Truck Type</FormLabel>
+                            <FormLabel>Delivery Distance</FormLabel>
                             <FormControl>
                               <Input
                                 className="w-full"
-                                readOnly
-                                value={
-                                  selectedJobLineItemDetails().truckTypeLabel ??
-                                  ''
-                                }
+                                {...field}
+                                isNumber
+                                disabled={isReadOnly}
+                                suffix={details.truckUom ?? ''}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    )}
+                    ) : null;
 
-                    <FormField
-                      name="productUoM"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Product UoM</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              readOnly
-                              value={
-                                field.value ??
-                                selectedJobLineItemDetails().productUom ??
-                                ''
-                              }
+                    return (
+                      <>
+                        <div className={cn('grid gap-4', gridCols)}>
+                          {isDelivery && (
+                            <FormField
+                              name="truckType"
+                              render={() => (
+                                <FormItem>
+                                  <FormLabel>Truck Type</FormLabel>
+                                  <FormControl>
+                                    <Input className="w-full" readOnly value={details.truckTypeLabel ?? ''} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      name="loadSize"
-                      render={({ field }) => {
-                        const maxLoadSize =
-                          selectedJobLineItemDetails().remainingQty;
-
-                        return (
-                          <FormItem>
-                            <FormLabel>Load Size</FormLabel>
-                            <FormControl>
-                              <Input
-                                className="w-full"
-                                {...field}
-                                isNumber
-                                max={maxLoadSize}
-                                disabled={
-                                  isReadOnly ||
-                                  !docketForm.watch('jobLineItemId')
-                                }
-                                onChange={(e) => {
-                                  const nextValue = e.target.value;
-
-                                  if (nextValue === '') {
-                                    field.onChange(e);
-                                    return;
-                                  }
-
-                                  e.target.value = String(
-                                    Math.min(Number(nextValue), maxLoadSize),
-                                  );
-                                  field.onChange(e);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        );
-                      }}
-                    />
-
-                    {selectedJobLineItemDetails().type === 'DELIVERY' &&
-                      selectedJobLineItemDetails().needTruckQty && (
-                        <FormField
-                          name="truckQty"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Delivery Distance</FormLabel>
-                              <FormControl>
-                                <Input
-                                  className="w-full"
-                                  {...field}
-                                  isNumber
-                                  disabled={isReadOnly}
-                                  suffix={
-                                    selectedJobLineItemDetails().truckUom
-                                      ? selectedJobLineItemDetails().truckUom
-                                      : ''
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
                           )}
-                        />
-                      )}
-                  </div>
+
+                          <FormField
+                            name="productUoM"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Product UoM</FormLabel>
+                                <FormControl>
+                                  <Input className="w-full" readOnly value={field.value ?? details.productUom ?? ''} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            name="plannedLoadSize"
+                            render={({ field }) => {
+                              const maxLoadSize = details.remainingQty;
+                              return (
+                                <FormItem>
+                                  <FormLabel>Planned Load Size</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      className="w-full"
+                                      {...field}
+                                      isNumber
+                                      max={maxLoadSize}
+                                      disabled={isReadOnly || !jobLineItemId || !canEditPlannedLoadSize}
+                                      onChange={(e) => {
+                                        const nextValue = e.target.value;
+                                        if (nextValue === '') { field.onChange(e); return; }
+                                        e.target.value = String(Math.min(Number(nextValue), maxLoadSize));
+                                        field.onChange(e);
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              );
+                            }}
+                          />
+
+                          {canActualLoadSize && (
+                            <FormField
+                              name="actualLoadSize"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Actual Load Size</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      className="w-full"
+                                      {...field}
+                                      isNumber
+                                      disabled={!canActualLoadSize}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+
+                          {!truckQtyOverflows && truckQtyField}
+                        </div>
+
+                        {truckQtyOverflows && (
+                          <div className="grid grid-cols-4 gap-4">
+                            {truckQtyField}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                     <div className="flex justify-between">
@@ -692,7 +733,7 @@ export default function DocketForm({
                           Current docket:
                         </span>
                         <span className="text-sm font-medium">
-                          {docketForm.watch('loadSize')}{' '}
+                          {docketForm.watch('plannedLoadSize')}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
                             : selectedJobLineItemDetails().productUom === 'm3'
@@ -1011,43 +1052,29 @@ export default function DocketForm({
               </div>
 
               {/* Assignment Section */}
-              <div className="border rounded-md p-4 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[17px] font-bold">Assignment</span>
-                  <button
-                    type="button"
-                    className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 transition-colors"
-                    onClick={() => {}}
-                  >
-                    <X className="w-4 h-4" />
-                    Unassign
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
-                      Driver
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {DUMMY_ASSIGNMENT.driver}
-                      </span>
-                    </div>
+              {showAssignment && (
+                <div className="border rounded-md p-4 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[17px] font-bold">Assignment</span>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">
-                      Truck Rego
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Truck className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {DUMMY_ASSIGNMENT.truckRego}
-                      </span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Driver</span>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{assignedDriverName}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Truck Rego</span>
+                      <div className="flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{assignedLicensePlate}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Checklist Section */}
               {isEditing &&
@@ -1179,7 +1206,7 @@ export default function DocketForm({
                   className="cursor-pointer"
                   type="button"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={isReadOnly || isSubmitting}
+                  disabled={(isReadOnly && !canActualLoadSize) || isSubmitting}
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>
@@ -1192,7 +1219,7 @@ export default function DocketForm({
                   type="button"
                   className="cursor-pointer"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={isReadOnly || isSubmitting}
+                  disabled={(isReadOnly && !canActualLoadSize) || isSubmitting}
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>
