@@ -15,6 +15,7 @@ import { useCustomerStore } from '@/app/stores/customer-store';
 import { useArchiveCustomer, useUnarchiveCustomer } from '@/lib/api/customer';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 
 interface DialogConfig {
   title?: string;
@@ -478,6 +479,12 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
     try {
       await archiveCustomer.mutateAsync(customerId);
       notifySuccess('Customer archived successfully');
+      const current = useCustomerStore.getState().selectedCustomer;
+      if (current) {
+        useCustomerStore
+          .getState()
+          .setSelectedCustomer({ ...current, customerStatus: CUSTOMER_STATUS.ARCHIVED });
+      }
       setActiveDialog(null);
       setSelectedAction(null);
     } catch (error) {
@@ -514,6 +521,12 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
     try {
       await unarchiveCustomer.mutateAsync(customerId);
       notifySuccess('Customer unarchived successfully');
+      const current = useCustomerStore.getState().selectedCustomer;
+      if (current) {
+        useCustomerStore
+          .getState()
+          .setSelectedCustomer({ ...current, customerStatus: CUSTOMER_STATUS.ACTIVE });
+      }
       setActiveDialog(null);
       setSelectedAction(null);
     } catch (error) {
