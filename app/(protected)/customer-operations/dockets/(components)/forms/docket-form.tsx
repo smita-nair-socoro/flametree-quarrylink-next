@@ -47,6 +47,7 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
+import { ChecklistReportModal, CHECKLIST_TYPE } from '@/components/checklist-report-modal';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
@@ -88,6 +89,9 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
+  const [checklistReportOpen, setChecklistReportOpen] = React.useState(false);
+  const [checklistReportType, setChecklistReportType] =
+    React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
   const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
     typeof DocketFormSchema
   > | null>(null);
@@ -491,6 +495,16 @@ export default function DocketForm({
         onConfirmAction={async () => {
           if (pendingSubmitValues) await doSave(pendingSubmitValues);
         }}
+      />
+
+      <ChecklistReportModal
+        open={checklistReportOpen}
+        onOpenChange={setChecklistReportOpen}
+        type={checklistReportType}
+        docketId={id}
+        docketNumber={selectedDocket?.docketNumber}
+        truckModel={selectedDocket?.truck?.model}
+        truckLicensePlate={selectedDocket?.truck?.licensePlate}
       />
 
       <div className="w-full relative">
@@ -1126,14 +1140,16 @@ export default function DocketForm({
                           title: 'Pre-Start Checklist',
                           checklist: selectedDocket.driverChecklist,
                           items: ['Driver OK', 'BAC'],
+                          reportType: CHECKLIST_TYPE.DRIVER,
                         },
                         {
                           title: 'Truck Inspection',
                           checklist: selectedDocket.truckChecklist,
                           items: ['Truck OK', 'Trailer OK'],
+                          reportType: CHECKLIST_TYPE.TRUCK,
                         },
                       ] as const
-                    ).map(({ title, checklist, items }) => (
+                    ).map(({ title, checklist, items, reportType }) => (
                       <div
                         key={title}
                         className="border-t border-[#8E51FF] p-4 flex flex-col gap-3 bg-[#F9FAFB]"
@@ -1145,7 +1161,13 @@ export default function DocketForm({
                               {title}
                             </span>
                           </div>
-                          <span className="text-xs text-[#8E51FF] font-semibold underline cursor-pointer">
+                          <span
+                            className="text-xs text-[#8E51FF] font-semibold underline cursor-pointer"
+                            onClick={() => {
+                              setChecklistReportType(reportType);
+                              setChecklistReportOpen(true);
+                            }}
+                          >
                             View Full Report
                           </span>
                         </div>
