@@ -6,7 +6,11 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { CustomerKeys } from './keys';
-import { CustomerDTO } from '../types/customer';
+import {
+  CustomerDTO,
+  ArchiveCustomerResponseDTO,
+  UnarchiveCustomerResponseDTO,
+} from '../types/customer';
 
 export const CustomersListQueryOptions = () =>
   queryOptions({
@@ -117,6 +121,36 @@ export const useUpdateCustomer = () => {
           queryKey: CustomerKeys.detail(data.id),
         });
       }
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
+    },
+  });
+};
+
+export const useArchiveCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (customerId: number): Promise<ArchiveCustomerResponseDTO> =>
+      APIClient.customers.archive(customerId),
+
+    onSuccess: (_data, customerId) => {
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.detail(customerId) });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
+    },
+  });
+};
+
+export const useUnarchiveCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (customerId: number): Promise<UnarchiveCustomerResponseDTO> =>
+      APIClient.customers.unarchive(customerId),
+
+    onSuccess: (_data, customerId) => {
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.detail(customerId) });
       queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
     },
   });
