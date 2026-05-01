@@ -77,7 +77,6 @@ export function DocketDetailsPanel({
 
   // Detail query can return stale collection date/times after assign; dispatch board state should win on overlap.
   const docket = fullDocket ? { ...fullDocket, ...initialDocket } : initialDocket;
-  console.log(docket)
 
   const isUnassigned = docket.docketStatus === DOCKET_STATUS.UNASSIGNED;
   const isAssigned = docket.docketStatus === DOCKET_STATUS.ASSIGNED;
