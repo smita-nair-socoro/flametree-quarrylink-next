@@ -5,6 +5,9 @@ import {
   PAYMENT_TERM_TYPE,
 } from './customer-enums';
 import { Address } from './address';
+import { DOCKET_STATUS } from './docket-enums';
+import { QUOTE_STATUS } from './quotation-enums';
+import { JobDTO } from './job';
 
 export interface CustomerDTO {
   id?: number;
@@ -108,4 +111,101 @@ export interface CustomerReporting {
   businessCustomerQuotesPercent: number;
   totalActiveIndividualCustomers: number;
   individualCustomerQuotesPercent: number;
+}
+
+export interface ArchiveCustomerBlockingQuote {
+  id: number;
+  quoteNumber: string;
+  customerId: number;
+  customerName: string;
+  email: string;
+  phone: string;
+  projectName: string;
+  quoteStatus: QUOTE_STATUS;
+  declineReason?: string;
+  customerResponseAt?: string;
+  jobId: number;
+  deliveryStartDate?: string;
+  expiryDate?: string;
+  deliveryWindowStart?: string;
+  deliveryWindowEnd?: string;
+  totalCostPrice: number;
+  totalSellPrice: number;
+  convertedAt?: string;
+  accountManagerName: string;
+  accountManagerSub: string;
+  accountManagerEmail: string;
+  emailRecipients: string[];
+  lineItemsCount: number;
+  inclDeliveryCost: boolean;
+  version: number;
+}
+
+export interface ArchiveCustomerBlockingDocket {
+  id: number;
+  docketNumber: string;
+  jobId: number;
+  jobItemId: number;
+  docketStatus: DOCKET_STATUS;
+  stopReason?: string;
+  stoppedAt?: string;
+  resumedAt?: string;
+  deliveryStartedAt?: string;
+  pickUpAddressId: number;
+  deliveryAddressId: number;
+  purchaseOrder: string;
+  deliveryCollectionDate: string;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  customerContactName: string;
+  customerContactPhone: string;
+  docketEmailRecipients: string[];
+  notes: string;
+  driverId: number;
+  truckId: number;
+  driverChecklistId: number;
+  truckChecklistId: number;
+  truckType: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
+  overDelivered?: boolean;
+  deliveryDistance?: number;
+  grossTruckWeight: number;
+  tareTruckWeight: number;
+  deliveryDistanceQuantity: number;
+  deliveryDistanceUom: string;
+  arrivedAt?: string;
+  deliveredAt: string;
+  arrivalLatitude?: number;
+  arrivalLongitude?: number;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
+  signatureImage: string;
+  deliveryNotes: string;
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
+  productEstimatedVolume: number;
+  version: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+}
+
+export interface ArchiveCustomerResponseDTO {
+  blockingQuotes: ArchiveCustomerBlockingQuote[];
+  blockingDockets: ArchiveCustomerBlockingDocket[];
+  blockingJobs: JobDTO[];
+  success: boolean;
+  errorMessage?: string;
+}
+
+export interface UnarchiveCustomerResponseDTO {
+  success: boolean;
+  duplicateExistsInQuarryLink: boolean;
+  duplicateExistsInXero: boolean;
+  duplicateCustomerName: string;
+  duplicateCustomerId: number;
+  reason: string;
 }

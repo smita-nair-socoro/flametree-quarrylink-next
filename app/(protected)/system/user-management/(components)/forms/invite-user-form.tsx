@@ -30,8 +30,6 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -47,10 +45,6 @@ export default function InviteUserForm({
   onDirtyChange,
 }: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-
-  const { data: tenantCompleteDetails } = useQuery(
-    TenantSubscriptionsAndInvoicesQueryOptions(),
-  );
 
   // Use the create user mutation
   const createUserMutation = useCreateUser();
