@@ -242,7 +242,7 @@ const getDialogConfigs = (
                         {blockingQuoteLength} active quotes:{' '}
                       </span>
                     </Link>
-                    <span>{blockingQuoteNumbers.join(', ')}</span>
+                    <span className="underline">{blockingQuoteNumbers.join(', ')}</span>
                   </>
                 ) : (
                   <>
