@@ -9,8 +9,10 @@ import {
   CircleUser,
 } from 'lucide-react';
 import { useConnectXero, useXeroStatus } from '@/lib/api/xero';
+import { useAuth } from '@/hooks/use-auth';
 
 export function useXeroIntegrationActions() {
+  const { attributes } = useAuth();
   const { data: xeroStatus, refetch: refetchStatus } = useXeroStatus();
   const isConnected = xeroStatus?.connected ?? false;
   const [showConnectModal, setShowConnectModal] = React.useState(false);
@@ -24,9 +26,12 @@ export function useXeroIntegrationActions() {
   };
 
   const handleConnect = () => {
-    connectXero.mutate(undefined, {
-      onSuccess: () => {
+    connectXero.mutate(attributes?.email ?? '', {
+      onSuccess: (data) => {
         setShowConnectModal(false);
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        }
         refetchStatus();
       },
     });

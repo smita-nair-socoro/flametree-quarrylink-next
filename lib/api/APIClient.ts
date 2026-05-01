@@ -39,7 +39,7 @@ import {
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
-import { XeroStatusResponseDTO } from '../types/xero';
+import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
@@ -1228,18 +1228,31 @@ export const APIClient = {
   },
 
   xero: {
-    connect: async () => {
+    connect: async (userEmail: string) => {
       const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
-      return appClient.Post<unknown>(`/quarrylink/tenant-fusion/api/xero/connect`, {
-        body: { tenantId, userEmail: authUser?.profile?.email },
+      const response = await fetch(`${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/connect`, {
+        method: 'POST',
+        headers: {
+          Accept: '*/*',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authUser?.access_token}`,
+        },
+        body: JSON.stringify({ tenantId, userEmail }),
       });
+      if (!response.ok) throw new Error(`Xero connect failed: ${response.status}`);
+      return response.json() as Promise<XeroConnectResponseDTO>;
     },
     getStatus: async () => {
       const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
-      return appClient.Get<XeroStatusResponseDTO>(
-        `/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
-        { body: { tenantId, userEmail: authUser?.profile?.email } },
-      );
+      const response = await fetch(`${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`, {
+        method: 'GET',
+        headers: {
+          Accept: '*/*',
+          Authorization: `Bearer ${authUser?.access_token}`,
+        },
+      });
+      if (!response.ok) throw new Error(`Xero status failed: ${response.status}`);
+      return response.json() as Promise<XeroStatusResponseDTO>;
     },
   },
 

@@ -7,3 +7,7 @@ export interface XeroStatusResponseDTO {
   tenantId: string;
   connected: boolean;
 }
+
+export interface XeroConnectResponseDTO {
+  url: string;
+}
