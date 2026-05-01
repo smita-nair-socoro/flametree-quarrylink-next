@@ -6,7 +6,12 @@ import {
   ProductDetails,
   ProductReporting,
 } from '../types/product';
-import { CustomerDTO, CustomerReporting } from '../types/customer';
+import {
+  CustomerDTO,
+  CustomerReporting,
+  ArchiveCustomerResponseDTO,
+  UnarchiveCustomerResponseDTO,
+} from '../types/customer';
 import {
   Quarry,
   QuarryReporting,
@@ -637,6 +642,14 @@ export const APIClient = {
             inUse,
           },
         },
+      ),
+    archive: (id: number) =>
+      appClient.Put<ArchiveCustomerResponseDTO>(
+        `/socoro/quarrylink/api/customer/${id}/archive`,
+      ),
+    unarchive: (id: number) =>
+      appClient.Put<UnarchiveCustomerResponseDTO>(
+        `/socoro/quarrylink/api/customer/${id}/unarchive`,
       ),
   },
 

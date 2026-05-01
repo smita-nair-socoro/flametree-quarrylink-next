@@ -5,10 +5,12 @@ import { useState } from 'react';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
-import { FileText, Calendar, Settings, StopCircleIcon, Info } from 'lucide-react';
+import { FileText, Calendar, LogOut, StopCircleIcon, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/app/stores/user-store';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function DriversAppPage() {
   const [isChecklistComplete, setIsChecklistComplete] = useState(false);
@@ -17,6 +19,17 @@ export default function DriversAppPage() {
   const [activeDocketNumber, setActiveDocketNumber] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
+  const { signOut } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <div className="flex h-screen">
@@ -28,8 +41,14 @@ export default function DriversAppPage() {
                 <span className="text-[20px] font-bold text-[#0F172A]">
                   Deliveries
                 </span>
-                <Button variant="ghost" className="flex items-center justify-center">
-                  <Settings className="h-[16px] w-[16px] text-[#64748B]" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="flex items-center gap-1.5 text-[#64748B] hover:text-[#0F172A] px-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="text-[13px] font-medium">Log out</span>
                 </Button>
               </div>
 

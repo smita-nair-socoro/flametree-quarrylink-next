@@ -10,6 +10,9 @@ export function ScheduleWeekView({ date, viewType, onDateChange }: { date: Date,
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
       <ScheduleFilter viewType={viewType} />
+      {onDateChange && (
+        <span>Implement this week schedule</span>
+      )}
       {/* Fixed top bar */}
       <div className="border-b pl-6 py-2.5 bg-white shrink-0">
         <div className="flex items-center gap-3">

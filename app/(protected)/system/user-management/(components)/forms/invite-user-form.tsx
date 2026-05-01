@@ -13,7 +13,6 @@ import {
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -22,7 +21,7 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
 import { InviteUserFormSchema } from './schemas/invite-user-form-schema';
-import { UserPlus, Loader2, TriangleAlert } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useCreateUser } from '@/lib/api/user';
 import { User, UserCreateDTO } from '@/lib/types/user';
@@ -31,9 +30,6 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { TenantSubscriptionsAndInvoicesQueryOptions } from '@/lib/api/tenant';
-import { Label } from '@/components/ui/label';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -49,32 +45,6 @@ export default function InviteUserForm({
   onDirtyChange,
 }: InviteUserFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [agreedToSubscriptionIncrease, setAgreedToSubscriptionIncrease] =
-    React.useState(false);
-
-  const { data: tenantCompleteDetails } = useQuery(
-    TenantSubscriptionsAndInvoicesQueryOptions()
-  );
-
-
-  // Derive plan limit and additional user cost from subscription items (productName === "USER")
-  const userSubscriptionItem = React.useMemo(() => {
-    const subs = tenantCompleteDetails?.subscriptions?.subscriptions;
-    if (!subs || !Array.isArray(subs)) return null;
-    for (const sub of subs) {
-      if (Array.isArray(sub.items)) {
-        const found = sub.items.find((it) => it && it.productName === 'USER');
-        if (found) return found;
-      }
-    }
-    return null;
-  }, [tenantCompleteDetails]);
-
-  const currentUsersCount = userSubscriptionItem?.quantity ?? 0;
-  const additionalUserCost =
-    typeof userSubscriptionItem?.unitAmountInCents === 'number'
-      ? userSubscriptionItem.unitAmountInCents / 100
-      : null;
 
   // Use the create user mutation
   const createUserMutation = useCreateUser();
@@ -110,7 +80,7 @@ export default function InviteUserForm({
         name: data.full_name,
         phone: data.phone || undefined,
         role: roleToBackend(data.role), // Backend expects: "USER", "ADMIN", "SUPER_ADMIN"
-        confirmed: !agreedToSubscriptionIncrease ? false : true, // New users are unconfirmed/pending until they accept invitation
+        confirmed: true,
       };
 
       console.log('Creating user with data:', userData);
@@ -184,7 +154,7 @@ export default function InviteUserForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -202,7 +172,7 @@ export default function InviteUserForm({
           onSubmit={form.handleSubmit(onSubmit, onError)}
           className={cn(
             'space-y-1 px-2',
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
         >
           <div className="flex items-center gap-3 pb-2">
@@ -290,50 +260,14 @@ export default function InviteUserForm({
                     Invitation Details
                   </h4>
                   <p className="text-sm font-normal text-[#0284C7]">
-                    An email invitation will be sent to the user with instructions
-                    to set up their account and access the workspace.
+                    An email invitation will be sent to the user with
+                    instructions to set up their account and access the
+                    workspace.
                   </p>
                 </div>
               </div>
             </div>
-
-            <div className="rounded-lg border border-orange-500 bg-orange-50 p-4">
-              <div className="flex gap-3">
-                <TriangleAlert className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-orange-500">
-                    Changes in Subscription Plan
-                  </h4>
-                  <div className="flex flex-col gap-2 text-orange-500">
-                    <p className="text-sm font-normal">
-                      Adding a user will increase the number of users on your
-                      subscription and {additionalUserCost != null &&
-                        `additional cost per user: $${additionalUserCost.toFixed(2)}/month`}.
-                    </p>
-                    <p className="text-sm font-semibold">Current users: {currentUsersCount}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="subscription-increase-ack"
-                checked={agreedToSubscriptionIncrease}
-                onCheckedChange={(checked) =>
-                  setAgreedToSubscriptionIncrease(checked === true)
-                }
-              />
-              <Label
-                htmlFor="subscription-increase-ack"
-                className="text-sm text-muted-foreground leading-tight cursor-pointer"
-              >
-                I acknowledge that adding this user will increase my subscription
-                and I will be charged accordingly.
-              </Label>
-            </div>
           </div>
-
-
 
           <div className="flex justify-between gap-2 mb-4 mt-4">
             <Button
@@ -348,7 +282,7 @@ export default function InviteUserForm({
               form="invite-user-form"
               type="submit"
               className="flex-1 bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
-              disabled={isSubmitting || !agreedToSubscriptionIncrease}
+              disabled={isSubmitting}
             >
               {isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -22,6 +22,7 @@ function QuoteReviewContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
+  const [accountManagerEmail, setAccountManagerEmail] = useState<string | undefined>(undefined);
   const [quoteData, setQuoteData] = useState<PublicQuoteLinkResponse | null>(
     null,
   );
@@ -62,16 +63,10 @@ function QuoteReviewContent() {
       })
       .catch((err) => {
         console.error('Failed to fetch public quote link:', err);
-        // Check if the error indicates an expired quote
         const errorMessage = err?.message || '';
-        if (
-          errorMessage.includes('Current status is EXPIRED') ||
-          errorMessage.includes('Quote expired on')
-        ) {
-          setIsExpired(true);
-        } else {
-          setError('Link is invalid.');
-        }
+        const emailMatch = errorMessage.match(/Email\s*=\s*(\S+)/);
+        if (emailMatch) setAccountManagerEmail(emailMatch[1]);
+        setIsExpired(true);
       })
       .finally(() => setIsLoading(false));
   }, [token, isPreviewMode, quoteId, inclDeliveryCostParam]);
@@ -88,7 +83,7 @@ function QuoteReviewContent() {
 
   // Show expired page when quote is expired (detected from API error)
   if (isExpired) {
-    return <QuoteExpired />;
+    return <QuoteExpired accountManagerEmail={accountManagerEmail} />;
   }
 
   return (

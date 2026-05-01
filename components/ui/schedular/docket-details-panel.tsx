@@ -1,7 +1,6 @@
 import { format } from 'date-fns';
 import { X, User, Check, MapPin, ExternalLink } from 'lucide-react';
 import {
-  DispatchDocket,
   formatTimeRange,
 } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
