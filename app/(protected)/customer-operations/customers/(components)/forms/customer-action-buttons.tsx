@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Archive, Eye, ArchiveRestore } from 'lucide-react';
+import { Archive, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';

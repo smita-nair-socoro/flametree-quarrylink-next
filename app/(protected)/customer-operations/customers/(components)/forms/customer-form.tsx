@@ -303,8 +303,8 @@ export default function CustomerForm({
         customerData.businessPhone = values.business_phone || '';
         customerData.individualContactName =
           values.contact_person_first_name +
-            ' ' +
-            values.contact_person_last_name || '';
+          ' ' +
+          values.contact_person_last_name || '';
         customerData.contactPersonFirstName =
           values.contact_person_first_name || '';
         customerData.contactPersonLastName =
@@ -347,7 +347,7 @@ export default function CustomerForm({
           }
         }
 
-        handleSyncNote(newCustomer.accSoftwareNotes);
+        handleSyncNote(result.accSoftwareNotes);
       }
 
       onSuccess?.();
