@@ -52,7 +52,7 @@ import {
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus, useUpdateDocket } from '@/lib/api/docket';
+import { useUpdateDocketStatus, useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
@@ -120,7 +120,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
-  const updateDocketMutation = useUpdateDocket();
+  const assignDocketMutation = useAssignDocket();
+  const unassignDocketMutation = useUnassignDocket();
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(undefined);
@@ -386,25 +387,41 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   };
 
   const handleAssignDocket = async () => {
-    if (!docketData?.id) return;
+    if (!docketData?.id || !assignTruck || !assignDriver) return;
     try {
-      await updateDocketMutation.mutateAsync({
-        id: docketData.id,
-        data: {
-          truckId: assignTruck,
-          driverId: assignDriver,
-          docketStatus: DOCKET_STATUS.ASSIGNED,
-        },
+      const result = await assignDocketMutation.mutateAsync({
+        docketId: docketData.id,
+        truckId: assignTruck,
+        driverId: assignDriver,
       });
       setSelectedDocket({
         ...(selectedDocket as DocketDTO),
-        docketStatus: DOCKET_STATUS.ASSIGNED,
-        truckId: assignTruck ?? docketData.truckId,
-        driverId: assignDriver ?? docketData.driverId,
+        docketStatus: result.docketStatus,
+        truckId: result.truckId,
+        driverId: result.driverId,
       });
       notifySuccess('Docket assigned successfully');
       setActiveDialog(null);
       resetAssignState();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleUnassignDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const result = await unassignDocketMutation.mutateAsync({
+        docketId: docketData.id,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: result.docketStatus,
+        truckId: result.truckId,
+        driverId: result.driverId,
+      });
+      notifySuccess('Docket unassigned successfully');
+      setActiveDialog(null);
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -628,9 +645,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
     cancel: createDialogAction('cancel'),
-    unassign: () => {
-      console.log('Unassign docket confirmed:', docketData);
-    },
+    unassign: handleUnassignDocket,
     startPreparing: createDialogAction('startPreparing'),
     cashSale: () => {
       console.log('Cash sale confirmed:', docketData);
@@ -727,7 +742,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               console.log('Assign docket confirmed:', docketData);
               break;
             case 'unassign':
-              console.log('Unassign docket confirmed:', docketData);
+              await handleUnassignDocket();
               break;
             case 'backToPending':
               console.log('Back to pending confirmed:', docketData);

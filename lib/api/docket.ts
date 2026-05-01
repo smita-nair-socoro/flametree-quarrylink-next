@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DocketKeys } from './keys';
-import { DocketDTO } from '../types/docket';
+import { DocketAssignRequest, DocketDTO } from '../types/docket';
 import type { DOCKET_STATUS } from '../types/docket-enums';
 
 export const DocketsListQueryOptions = () =>
@@ -52,6 +52,31 @@ export const useUpdateDocket = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+    },
+  });
+};
+
+export const useAssignDocket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: DocketAssignRequest) => APIClient.dockets.assign(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+    },
+  });
+};
+
+export const useUnassignDocket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { docketId: number }) =>
+      APIClient.dockets.unassign(data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
     },
   });

@@ -6,7 +6,12 @@ import {
   ProductDetails,
   ProductReporting,
 } from '../types/product';
-import { CustomerDTO, CustomerReporting } from '../types/customer';
+import {
+  CustomerDTO,
+  CustomerReporting,
+  ArchiveCustomerResponseDTO,
+  UnarchiveCustomerResponseDTO,
+} from '../types/customer';
 import {
   Quarry,
   QuarryReporting,
@@ -40,7 +45,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
-import { DocketDTO } from '../types/docket';
+import { DocketAssignRequest, DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
@@ -634,6 +639,14 @@ export const APIClient = {
           },
         },
       ),
+    archive: (id: number) =>
+      appClient.Put<ArchiveCustomerResponseDTO>(
+        `/socoro/quarrylink/api/customer/${id}/archive`,
+      ),
+    unarchive: (id: number) =>
+      appClient.Put<UnarchiveCustomerResponseDTO>(
+        `/socoro/quarrylink/api/customer/${id}/unarchive`,
+      ),
   },
 
   quotations: {
@@ -921,6 +934,14 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${docketId}/status`,
         { body: formData },
       ),
+    assign: (data: DocketAssignRequest) =>
+      appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/assign', {
+        body: data,
+      }),
+    unassign: (data: { docketId: number }) =>
+      appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/unassign', {
+        body: data,
+      }),
   },
 
   users: {

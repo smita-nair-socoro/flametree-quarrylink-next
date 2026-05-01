@@ -74,12 +74,12 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'loadSize',
-    accessorFn: (row) => row.loadSize,
+    accessorFn: (row) => row.plannedLoadSize ?? row.loadSize,
     header: () => {
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      const productSellQty = row.original.loadSize;
+      const productSellQty = row.original.plannedLoadSize ?? row.original.loadSize;
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productSellUom === 'TN'

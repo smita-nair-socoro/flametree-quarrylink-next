@@ -3,6 +3,7 @@ import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
 import { CustomerDTO } from './customer';
+import { TruckDTO } from './truck';
 
 export interface Docket {
   id: number;
@@ -45,6 +46,15 @@ export interface Docket {
   isDeleted: boolean;
 }
 
+export interface DocketAssignRequest {
+  docketId: number;
+  truckId: number;
+  driverId: number;
+  deliveryStartWindow?: string;
+  deliveryEndWindow?: string;
+  plannedLoadSize?: number;
+}
+
 export interface DocketDTO {
   id: number;
   docketNumber: string;
@@ -76,20 +86,34 @@ export interface DocketDTO {
   driverId: number;
   driver?: DriverDTO;
   truckId: number;
+  truck?: TruckDTO;
+  deliveredProductsConfirmed?: boolean;
   driverChecklistId: number;
   truckChecklistId: number;
   truckType: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   deliveredLoadSize: number;
+  overDelivered?: boolean;
+  deliveryDistance?: number;
   deliveryDistanceQuantity: number;
   deliveryDistanceUom: string;
   grossTruckWeight: number;
   tareTruckWeight: number;
   actualMaterialWeight: number;
+  deliveryStartedAt?: string;
+  arrivedAt?: string;
+  arrivalLatitude?: number;
+  arrivalLongitude?: number;
   deliveredAt: string;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
   signatureImage: string;
   deliveryNotes: string;
   deliveryPhotos: string[];
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
   gpsLocation: string;
   productEstimatedVolume: number;
   purchaseOrder: string;
