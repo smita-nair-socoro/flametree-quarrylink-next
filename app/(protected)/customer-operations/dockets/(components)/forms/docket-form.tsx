@@ -142,7 +142,8 @@ export default function DocketForm({
     !isEditing || !currentStatus
       ? true
       : isDelivery
-        ? currentStatus === DOCKET_STATUS.UNASSIGNED || currentStatus === DOCKET_STATUS.ASSIGNED
+        ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
+          currentStatus === DOCKET_STATUS.ASSIGNED
         : currentStatus === DOCKET_STATUS.PENDING;
 
   const canActualLoadSize =
@@ -594,7 +595,8 @@ export default function DocketForm({
                     const jobLineItemId = docketForm.watch('jobLineItemId');
                     const details = selectedJobLineItemDetails();
                     const needTruckQty = details.needTruckQty;
-                    const truckQtyOverflows = isDelivery && needTruckQty && canActualLoadSize;
+                    const truckQtyOverflows =
+                      isDelivery && needTruckQty && canActualLoadSize;
 
                     const gridCols = !jobLineItemId
                       ? 'grid-cols-2'
@@ -606,26 +608,35 @@ export default function DocketForm({
                           ? 'grid-cols-4'
                           : 'grid-cols-3';
 
-                    const truckQtyField = isDelivery && needTruckQty ? (
-                      <FormField
-                        name="truckQty"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Delivery Distance</FormLabel>
-                            <FormControl>
-                              <Input
-                                className="w-full"
-                                {...field}
-                                isNumber
-                                disabled={isReadOnly}
-                                suffix={details.truckUom ?? ''}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : null;
+                    const truckQtyField =
+                      isDelivery && needTruckQty ? (
+                        <FormField
+                          name="truckQty"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                {details.truckUom === 'Hourly'
+                                  ? 'Hours Required'
+                                  : 'Delivery Distance'}
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  className="w-full"
+                                  {...field}
+                                  isNumber
+                                  disabled={isReadOnly}
+                                  suffix={
+                                    details.truckUom === 'Hourly'
+                                      ? 'hrs'
+                                      : details.truckUom
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ) : null;
 
                     return (
                       <>
@@ -637,7 +648,11 @@ export default function DocketForm({
                                 <FormItem>
                                   <FormLabel>Truck Type</FormLabel>
                                   <FormControl>
-                                    <Input className="w-full" readOnly value={details.truckTypeLabel ?? ''} />
+                                    <Input
+                                      className="w-full"
+                                      readOnly
+                                      value={details.truckTypeLabel ?? ''}
+                                    />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -651,7 +666,13 @@ export default function DocketForm({
                               <FormItem>
                                 <FormLabel>Product UoM</FormLabel>
                                 <FormControl>
-                                  <Input className="w-full" readOnly value={field.value ?? details.productUom ?? ''} />
+                                  <Input
+                                    className="w-full"
+                                    readOnly
+                                    value={
+                                      field.value ?? details.productUom ?? ''
+                                    }
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -671,11 +692,23 @@ export default function DocketForm({
                                       {...field}
                                       isNumber
                                       max={maxLoadSize}
-                                      disabled={isReadOnly || !jobLineItemId || !canEditPlannedLoadSize}
+                                      disabled={
+                                        isReadOnly ||
+                                        !jobLineItemId ||
+                                        !canEditPlannedLoadSize
+                                      }
                                       onChange={(e) => {
                                         const nextValue = e.target.value;
-                                        if (nextValue === '') { field.onChange(e); return; }
-                                        e.target.value = String(Math.min(Number(nextValue), maxLoadSize));
+                                        if (nextValue === '') {
+                                          field.onChange(e);
+                                          return;
+                                        }
+                                        e.target.value = String(
+                                          Math.min(
+                                            Number(nextValue),
+                                            maxLoadSize,
+                                          ),
+                                        );
                                         field.onChange(e);
                                       }}
                                     />
@@ -1057,17 +1090,25 @@ export default function DocketForm({
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm text-muted-foreground">Driver</span>
+                      <span className="text-sm text-muted-foreground">
+                        Driver
+                      </span>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{assignedDriverName}</span>
+                        <span className="text-sm font-medium">
+                          {assignedDriverName}
+                        </span>
                       </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm text-muted-foreground">Truck Rego</span>
+                      <span className="text-sm text-muted-foreground">
+                        Truck Rego
+                      </span>
                       <div className="flex items-center gap-2">
                         <Truck className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{assignedLicensePlate}</span>
+                        <span className="text-sm font-medium">
+                          {assignedLicensePlate}
+                        </span>
                       </div>
                     </div>
                   </div>
