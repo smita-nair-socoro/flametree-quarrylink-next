@@ -124,4 +124,5 @@ export const TruckKeys = {
 export const XeroKeys = {
   all: ['xero'] as const,
   connect: () => [...XeroKeys.all, 'connect'] as const,
+  status: () => [...XeroKeys.all, 'status'] as const,
 };

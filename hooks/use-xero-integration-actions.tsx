@@ -8,11 +8,15 @@ import {
   Unplug,
   CircleUser,
 } from 'lucide-react';
+import { useConnectXero, useXeroStatus } from '@/lib/api/xero';
 
 export function useXeroIntegrationActions() {
-  const [isConnected, setIsConnected] = React.useState(true);
+  const { data: xeroStatus, refetch: refetchStatus } = useXeroStatus();
+  const isConnected = xeroStatus?.connected ?? false;
   const [showConnectModal, setShowConnectModal] = React.useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = React.useState(false);
+
+  const connectXero = useConnectXero();
 
   const actions = {
     connect: () => setShowConnectModal(true),
@@ -20,12 +24,15 @@ export function useXeroIntegrationActions() {
   };
 
   const handleConnect = () => {
-    setIsConnected(true);
-    setShowConnectModal(false);
+    connectXero.mutate(undefined, {
+      onSuccess: () => {
+        setShowConnectModal(false);
+        refetchStatus();
+      },
+    });
   };
 
   const handleDisconnect = () => {
-    setIsConnected(false);
     setShowDisconnectModal(false);
   };
 
@@ -71,6 +78,7 @@ export function useXeroIntegrationActions() {
       confirmCustomColor="#13B5EA"
       confirmCustomClass="flex-row-reverse"
       confirmIcon={<ArrowRight className="w-4 h-4" />}
+      confirmDisabled={connectXero.isPending}
       onConfirmAction={handleConnect}
     />
   );

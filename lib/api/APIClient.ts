@@ -39,7 +39,7 @@ import {
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
-import { XeroConnectRequestDTO } from '../types/xero';
+import { XeroStatusResponseDTO } from '../types/xero';
 import { CustomerDeliveryAddress } from '../types/address';
 import { DocketDTO } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
@@ -1228,10 +1228,19 @@ export const APIClient = {
   },
 
   xero: {
-    connect: (data: XeroConnectRequestDTO) =>
-      appClient.Post<unknown>(`/quarrylink/tenant-fusion/api/xero/connect`, {
-        body: data,
-      }),
+    connect: async () => {
+      const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
+      return appClient.Post<unknown>(`/quarrylink/tenant-fusion/api/xero/connect`, {
+        body: { tenantId, userEmail: authUser?.profile?.email },
+      });
+    },
+    getStatus: async () => {
+      const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
+      return appClient.Get<XeroStatusResponseDTO>(
+        `/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
+        { body: { tenantId, userEmail: authUser?.profile?.email } },
+      );
+    },
   },
 
   invoices: {
