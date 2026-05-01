@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { DocketKeys } from './keys';
+import { DocketKeys, SchedulerKeys } from './keys';
 import { DocketAssignRequest, DocketDTO } from '../types/docket';
 import type { DOCKET_STATUS } from '../types/docket-enums';
 
@@ -65,6 +65,7 @@ export const useAssignDocket = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
 };
@@ -78,6 +79,7 @@ export const useUnassignDocket = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
 };

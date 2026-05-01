@@ -1,4 +1,5 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
+import type { DRIVER_STATUS } from './driver-enums';
 import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
@@ -237,3 +238,70 @@ export interface DocketDTO {
   updatedAt: string;
   lastModifiedBy: string;
 }
+
+/** Truck row from GET scheduler/trucks */
+export interface DispatchTruckResource {
+  id: number;
+  licensePlate: string;
+  drivers?: DriverDTO[];
+  dockets?: DispatchAssignedDocket[];
+}
+
+/** Minimal truck refs nested under driver rows (scheduler/drivers payload). */
+export interface DispatchBoardTruckRef {
+  id?: number;
+  licensePlate: string;
+  truckType?: string;
+  truckStatus?: string;
+}
+
+/** Driver row from GET scheduler/drivers */
+export interface DispatchDriverResource {
+  id: number;
+  driverName: string;
+  driverType?: string;
+  /** Present when the scheduler API returns driver roster status. */
+  driverStatus?: DRIVER_STATUS;
+  trucks: DispatchBoardTruckRef[];
+  dockets?: DispatchAssignedDocket[];
+}
+
+export type Resource = DispatchTruckResource | DispatchDriverResource;
+
+export interface DispatchDocketDTO {
+  resources: Resource[];
+  unassignedDockets: DispatchUnassignedDocket[];
+}
+
+export interface DispatchAssignedDocket {
+  id: number;
+  docketNumber: string;
+  docketStatus: DOCKET_STATUS;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  productName: string;
+  loadSize: number;
+  customerName: string;
+  pickUpAddress: string;
+  deliveryAddress: string;
+  productSellUom: string;
+}
+
+export interface DispatchUnassignedDocket {
+  id: number;
+  docketNumber: string;
+  docketStatus: DOCKET_STATUS;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  productName: string;
+  loadSize: number;
+  customerName: string;
+  pickUpAddress: string;
+  deliveryAddress: string;
+  productSellUom: string;
+}
+
+/** Slim board docket (assigned or unassigned list item — same fields). */
+export type DispatchBoardDocketRow =
+  | DispatchAssignedDocket
+  | DispatchUnassignedDocket;

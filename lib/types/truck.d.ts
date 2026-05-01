@@ -8,7 +8,7 @@ export interface DriverTruckDTO {
   version: number;
 }
 
-interface TruckDTO {
+export interface TruckDTO {
   id?: number;
   licensePlate: string;
   vin?: string;
@@ -39,4 +39,13 @@ interface TruckDTO {
   lastModifiedBy?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface TruckResource {
+  id: string;
+  name: string;
+  capacity: string;
+  trips: number;
+  drivers: string;
+  type?: string;
 }

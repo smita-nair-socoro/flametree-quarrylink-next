@@ -1,5 +1,5 @@
 import { baseUrl, getTenantId, getUser } from '../utils';
-import { handleLogout } from '../auth/authManager';
+// import { handleLogout } from '../auth/authManager';
 import {
   LinkedProduct,
   Product,
@@ -45,7 +45,11 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
-import { DocketAssignRequest, DocketDTO } from '../types/docket';
+import {
+  DocketAssignRequest,
+  DocketDTO,
+  DispatchDocketDTO,
+} from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
@@ -343,7 +347,7 @@ export async function HttpClient<T = unknown>(
     switch (response.status) {
       case 403: {
         // DEBUG: temporarily disabled logout to inspect 403 response — re-enable after debugging
-        await handleLogout();
+        // await handleLogout();
         // console.error('[DEBUG][403] Endpoint:', endpoint);
         // console.error('[DEBUG][403] Response headers:', Object.fromEntries(response.headers.entries()));
         // return Promise.reject(new Error('Cookie/Token expired or invalid.'));
@@ -1251,5 +1255,22 @@ export const APIClient = {
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
     getById: (invoiceId: number) =>
       appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
+  },
+
+  scheduler: {
+    getTrucks: (start: string, end: string) =>
+      appClient.Get<DispatchDocketDTO>(
+        `/socoro/quarrylink/api/scheduler/trucks`,
+        {
+          queryString: { start, end },
+        },
+      ),
+    getDrivers: (start: string, end: string) =>
+      appClient.Get<DispatchDocketDTO>(
+        `/socoro/quarrylink/api/scheduler/drivers`,
+        {
+          queryString: { start, end },
+        },
+      ),
   },
 };

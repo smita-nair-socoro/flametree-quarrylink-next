@@ -36,9 +36,12 @@ export default function ProtectedLayout({
     }
   }, [currentUser]);
 
+  const isDriversApp = pathname?.startsWith('/drivers-app');
+  const isDeliveries =
+    pathname?.startsWith('/logistics/dispatch') ||
+    pathname?.startsWith('/customer-operations/schedule');
   const path = pathname ?? '';
-  const isDriversApp = path.startsWith('/drivers-app');
-  const isDeliveries = path.startsWith('/logistics/deliveries');
+
 
   const isDriver =
     !!currentUser && (currentUser.groups?.includes('driver') || false);
@@ -106,7 +109,7 @@ export default function ProtectedLayout({
 
   return (
     <SidebarProvider>
-      {!isDriversApp && !isDeliveries && <AppSidebar />}
+      {!isDriversApp && <AppSidebar />}
       <SidebarInset className="flex flex-col min-w-0">
         {!isDriversApp && !isDeliveries && (
           <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
