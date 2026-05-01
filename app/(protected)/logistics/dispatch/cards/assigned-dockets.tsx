@@ -4,12 +4,12 @@ import * as React from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { Maximize2, Minimize2, GripVertical, Lock } from 'lucide-react';
 import {
-  Truck,
   DispatchDocket,
   formatTime,
   formatTimeRange,
 } from '../views/dispatch-view';
 import { TableBadges } from '@/components/table-badges';
+import { TruckResource } from '@/lib/types/truck';
 
 const TIME_SLOTS = [
   '06:00',
@@ -454,7 +454,7 @@ export default function AssignedDockets({
   viewType = 'drivers',
 }: {
   // date: Date;
-  trucks: Truck[];
+  trucks: TruckResource[];
   dockets: DispatchDocket[];
   isLoading?: boolean;
   onUpdateDocket?: (docketId: string, updates: Partial<DispatchDocket>) => void;
@@ -468,7 +468,7 @@ export default function AssignedDockets({
     null,
   );
 
-  const renderTruckCard = (truck: Truck) => {
+  const renderTruckCard = (truck: TruckResource) => {
     const isExpanded = expandedTruckId === truck.id;
     if (expandedTruckId && !isExpanded) return null;
 

@@ -21,6 +21,7 @@ import type {
   DispatchTruckResource,
   DocketDTO,
 } from '@/lib/types/docket';
+import type { TruckResource } from '@/lib/types/truck';
 
 function isDispatchTruckResource(
   r: DispatchTruckResource | DispatchDriverResource,
@@ -90,15 +91,6 @@ export const formatDate = (timeStr?: string) => {
 export const formatLocalISO = (d: Date) => {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-};
-
-export type Truck = {
-  id: string;
-  name: string;
-  capacity: string;
-  trips: number;
-  drivers: string;
-  type?: string;
 };
 
 /** Same local-day rule as the unassigned “This day” tab — `deliveryCollectionStartTime` vs `date`. */
@@ -248,7 +240,7 @@ export function DispatchView({
     setDockets(newDockets || []);
   }, [trucksData, driversData, viewType]);
 
-  const mappedResources: Truck[] = useMemo(() => {
+  const mappedResources: TruckResource[] = useMemo(() => {
     if (viewType === 'trucks' && trucksData) {
       return (trucksData.resources || []).map((r) =>
         'licensePlate' in r
