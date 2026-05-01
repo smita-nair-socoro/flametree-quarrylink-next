@@ -1,4 +1,5 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
+import type { DRIVER_STATUS } from './driver-enums';
 import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
@@ -259,6 +260,8 @@ export interface DispatchDriverResource {
   id: number;
   driverName: string;
   driverType?: string;
+  /** Present when the scheduler API returns driver roster status. */
+  driverStatus?: DRIVER_STATUS;
   trucks: DispatchBoardTruckRef[];
   dockets?: DispatchAssignedDocket[];
 }

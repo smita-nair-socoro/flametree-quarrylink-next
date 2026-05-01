@@ -14,6 +14,7 @@ import {
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { useQuery } from '@tanstack/react-query';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
+import { ConfirmUnassignDialog } from '../cards/confirm-unassign-dialog';
 import type {
   DispatchBoardDocketRow,
   DispatchDocketDTO,
@@ -22,18 +23,14 @@ import type {
   DocketDTO,
 } from '@/lib/types/docket';
 import type { TruckResource } from '@/lib/types/truck';
-
-function isDispatchTruckResource(
-  r: DispatchTruckResource | DispatchDriverResource,
-): r is DispatchTruckResource {
-  return 'licensePlate' in r;
-}
-
-import { DispatchDriversTrucksFilter } from './drivers-trucks-filter';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
 import {
-  SchedulerTrucksQueryOptions,
-  SchedulerDriversQueryOptions,
-} from '@/lib/api/scheduler';
+  DispatchDriversTrucksFilter,
+  DEFAULT_DISPATCH_BOARD_FILTER,
+  JOB_STATUS_FILTER_ALL,
+  type DispatchBoardFilterState,
+} from './drivers-trucks-filter';
 import { useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
 import {
   Dialog,
@@ -43,6 +40,76 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import {
+  SchedulerTrucksQueryOptions,
+  SchedulerDriversQueryOptions,
+} from '@/lib/api/scheduler';
+
+function isDispatchTruckResource(
+  r: DispatchTruckResource | DispatchDriverResource,
+): r is DispatchTruckResource {
+  return 'licensePlate' in r;
+}
+
+function isDispatchDriverResource(
+  r: DispatchTruckResource | DispatchDriverResource,
+): r is DispatchDriverResource {
+  return 'driverName' in r;
+}
+
+function inferTruckBusinessType(r: DispatchTruckResource): TRUCK_BUSINESS_TYPE {
+  const dt = r.drivers?.[0]?.driverType;
+  if (dt === DRIVER_TYPE.SUBCONTRACTOR) {
+    return TRUCK_BUSINESS_TYPE.EXTERNAL;
+  }
+  return TRUCK_BUSINESS_TYPE.INTERNAL;
+}
+
+function truckMatchesFleetFilters(
+  r: DispatchTruckResource,
+  f: DispatchBoardFilterState,
+): boolean {
+  if (f.truckId && String(r.id) !== f.truckId) return false;
+  if (f.haulierId) {
+    const hid = Number(f.haulierId);
+    if (
+      !(r.drivers || []).some(
+        (d) => d.haulierId === hid || d.haulier?.id === hid,
+      )
+    ) {
+      return false;
+    }
+  }
+  if (f.truckBusinessType) {
+    if (inferTruckBusinessType(r) !== f.truckBusinessType) return false;
+  }
+  if (f.driverStatuses.length > 0) {
+    const want = new Set(f.driverStatuses);
+    const ok = (r.drivers || []).some(
+      (d) => d.driverStatus != null && want.has(d.driverStatus),
+    );
+    if (!ok) return false;
+  }
+  return true;
+}
+
+function driverRowMatchesFilters(
+  r: DispatchDriverResource,
+  f: DispatchBoardFilterState,
+): boolean {
+  if (f.driverIds.length > 0 && !f.driverIds.includes(String(r.id))) {
+    return false;
+  }
+  if (f.driverStatuses.length > 0) {
+    const want = new Set(f.driverStatuses);
+    if (r.driverStatus == null) {
+      // Keep rows visible until the scheduler payload includes `driverStatus`.
+      return true;
+    }
+    if (!want.has(r.driverStatus)) return false;
+  }
+  return true;
+}
 
 type DispatchDocketUiFields = {
   uiAssignedTruckId?: string | null;
@@ -54,6 +121,76 @@ type DispatchDocketUiFields = {
 export type DispatchDocket = DispatchBoardDocketRow &
   DispatchDocketUiFields &
   Partial<Omit<DocketDTO, 'pickUpAddress' | 'deliveryAddress'>>;
+
+function matchesBoardJobFilter(
+  d: DispatchDocket,
+  jobStatus: string,
+): boolean {
+  if (jobStatus === JOB_STATUS_FILTER_ALL) {
+    return d.docketStatus !== DOCKET_STATUS.UNASSIGNED;
+  }
+  return String(d.docketStatus) === jobStatus;
+}
+
+function formatCargoLineForUnassign(d: DispatchDocket): string {
+  const uom =
+    d.productSellUom === 'M3'
+      ? 'm³'
+      : d.productSellUom === 'KG_20'
+        ? 'x 20kg'
+        : d.productSellUom || '';
+  const product = d.productName || 'Product';
+  return `${product} • ${d.loadSize ?? ''} ${uom}`.trim();
+}
+
+function assignmentDateDisplayForUnassign(
+  d: DispatchDocket,
+  fallbackDay: Date,
+): string {
+  const iso = d.deliveryCollectionStartTime;
+  if (iso) {
+    const local = iso.includes('T') ? iso.replace('Z', '') : iso;
+    return format(new Date(local), 'EEE d MMM yyyy');
+  }
+  return format(fallbackDay, 'EEE d MMM yyyy');
+}
+
+function resolveUnassignAssignmentLabels(
+  docket: DispatchDocket,
+  viewType: 'trucks' | 'drivers',
+  trucksData: DispatchDocketDTO | undefined,
+  driversData: DispatchDocketDTO | undefined,
+): { truck: string; driver: string } {
+  let truck = '—';
+  let driver = '—';
+  const uid = docket.uiAssignedTruckId;
+  if (!uid) return { truck, driver };
+
+  if (viewType === 'trucks' && trucksData?.resources) {
+    const t = trucksData.resources.find(
+      (r): r is DispatchTruckResource =>
+        isDispatchTruckResource(r) && String(r.id) === uid,
+    );
+    if (t) {
+      truck = t.licensePlate;
+      driver =
+        docket.driver?.driverName ??
+        t.drivers?.[0]?.driverName ??
+        driver;
+    }
+  }
+  if (viewType === 'drivers' && driversData?.resources) {
+    const row = driversData.resources.find(
+      (r): r is DispatchDriverResource =>
+        isDispatchDriverResource(r) && String(r.id) === uid,
+    );
+    if (row) {
+      driver = row.driverName;
+      truck = row.trucks?.[0]?.licensePlate ?? truck;
+    }
+  }
+  return { truck, driver };
+}
 
 export const formatTime = (timeStr?: string) => {
   if (!timeStr) return '';
@@ -161,6 +298,18 @@ export function DispatchView({
     truckId: string;
     time: string;
   } | null>(null);
+
+  const [pendingUnassignDocketId, setPendingUnassignDocketId] = useState<
+    string | null
+  >(null);
+
+  const [boardFilter, setBoardFilter] = useState<DispatchBoardFilterState>(
+    DEFAULT_DISPATCH_BOARD_FILTER,
+  );
+
+  useEffect(() => {
+    setBoardFilter(DEFAULT_DISPATCH_BOARD_FILTER);
+  }, [viewType]);
 
   const start = useMemo(() => startOfDay(date).toISOString(), [date]);
   const end = useMemo(() => endOfDay(date).toISOString(), [date]);
@@ -288,6 +437,82 @@ export function DispatchView({
     return [];
   }, [trucksData, driversData, viewType]);
 
+  const filterDriverOptions = useMemo(() => {
+    if (viewType !== 'drivers' || !driversData?.resources) return [];
+    return driversData.resources
+      .filter(isDispatchDriverResource)
+      .map((r) => ({
+        id: String(r.id),
+        label: r.driverName,
+        secondary:
+          r.trucks?.map((t) => t.licensePlate).filter(Boolean).join(', ') ||
+          undefined,
+      }));
+  }, [viewType, driversData]);
+
+  const filterTruckOptions = useMemo(() => {
+    if (viewType !== 'trucks' || !trucksData?.resources) return [];
+    return trucksData.resources
+      .filter(isDispatchTruckResource)
+      .map((r) => ({
+        id: String(r.id),
+        label: r.licensePlate,
+        secondary:
+          r.drivers?.map((d) => d.driverName).filter(Boolean).join(', ') ||
+          undefined,
+      }));
+  }, [viewType, trucksData]);
+
+  const filterHaulierOptions = useMemo(() => {
+    if (viewType !== 'trucks' || !trucksData?.resources) return [];
+    const byId = new Map<number, string>();
+    for (const r of trucksData.resources) {
+      if (!isDispatchTruckResource(r)) continue;
+      for (const d of r.drivers || []) {
+        const h = d.haulier;
+        if (h?.id != null && h.haulierName) {
+          byId.set(h.id, h.haulierName);
+        }
+      }
+    }
+    return [...byId.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([id, label]) => ({ id: String(id), label }));
+  }, [viewType, trucksData]);
+
+  const filteredMappedResources = useMemo(() => {
+    if (viewType === 'trucks' && trucksData?.resources) {
+      const allowed = new Set(
+        trucksData.resources
+          .filter(isDispatchTruckResource)
+          .filter((r) => truckMatchesFleetFilters(r, boardFilter))
+          .map((r) => String(r.id)),
+      );
+      return mappedResources.filter((row) => allowed.has(row.id));
+    }
+    if (viewType === 'drivers' && driversData?.resources) {
+      const allowed = new Set(
+        driversData.resources
+          .filter(isDispatchDriverResource)
+          .filter((r) => driverRowMatchesFilters(r, boardFilter))
+          .map((r) => String(r.id)),
+      );
+      return mappedResources.filter((row) => allowed.has(row.id));
+    }
+    return mappedResources;
+  }, [mappedResources, viewType, trucksData, driversData, boardFilter]);
+
+  const docketsForAssignedBoard = useMemo(() => {
+    const visibleIds = new Set(filteredMappedResources.map((r) => r.id));
+    return dockets.filter((d) => {
+      if (d.docketStatus === DOCKET_STATUS.UNASSIGNED) return false;
+      if (!d.uiAssignedTruckId || !visibleIds.has(d.uiAssignedTruckId)) {
+        return false;
+      }
+      return matchesBoardJobFilter(d, boardFilter.jobStatus);
+    });
+  }, [dockets, filteredMappedResources, boardFilter.jobStatus]);
+
   const docketsForSelectedDay = useMemo(
     () => dockets.filter((d) => isDocketOnSelectedLocalDay(d, date)),
     [dockets, date],
@@ -360,25 +585,11 @@ export function DispatchView({
     const overId = over.id as string;
 
     if (overId === 'unassigned-queue') {
-      const docket = dockets.find(d => String(d.id) === docketId);
+      const docket = dockets.find((d) => String(d.id) === docketId);
       if (docket && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
-        return; // Only ASSIGNED dockets can be unassigned
+        return;
       }
-
-      // Unassign the docket
-      unassignMutation.mutate({ docketId: Number(docketId) });
-      setDockets((prev) =>
-        prev.map((d) =>
-          String(d.id) === docketId
-            ? {
-              ...d,
-              uiAssignedTruckId: null,
-              uiAssignedTime: null,
-              docketStatus: DOCKET_STATUS.UNASSIGNED,
-            }
-            : d,
-        ),
-      );
+      setPendingUnassignDocketId(docketId);
       return;
     }
 
@@ -505,14 +716,68 @@ export function DispatchView({
 
   const handleUnassign = () => {
     if (selectedDocketId) {
-      unassignMutation.mutate({ docketId: Number(selectedDocketId) });
-      handleUpdateDocket(selectedDocketId, {
-        uiAssignedTruckId: null,
-        uiAssignedTime: null,
-        docketStatus: DOCKET_STATUS.UNASSIGNED,
-      });
-      setSelectedDocketId(null);
+      setPendingUnassignDocketId(selectedDocketId);
     }
+  };
+
+  const pendingUnassignDocket = useMemo(
+    () =>
+      pendingUnassignDocketId
+        ? dockets.find((d) => String(d.id) === pendingUnassignDocketId)
+        : undefined,
+    [dockets, pendingUnassignDocketId],
+  );
+
+  const unassignDialogSnapshot = useMemo(() => {
+    if (!pendingUnassignDocket) return null;
+    const { truck, driver } = resolveUnassignAssignmentLabels(
+      pendingUnassignDocket,
+      viewType,
+      trucksData,
+      driversData,
+    );
+    return {
+      docketNumber: pendingUnassignDocket.docketNumber,
+      cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
+      destination: pendingUnassignDocket.deliveryAddress || '',
+      customerName: pendingUnassignDocket.customerName || '',
+      truckLabel: truck,
+      driverLabel: driver,
+      assignmentDateLabel: assignmentDateDisplayForUnassign(
+        pendingUnassignDocket,
+        date,
+      ),
+      timeWindowLabel: formatTimeRange(
+        pendingUnassignDocket.deliveryCollectionStartTime,
+        pendingUnassignDocket.deliveryCollectionEndTime,
+      ),
+    };
+  }, [pendingUnassignDocket, viewType, trucksData, driversData, date]);
+
+  const confirmPendingUnassign = () => {
+    if (!pendingUnassignDocketId) return;
+    const id = pendingUnassignDocketId;
+    unassignMutation.mutate(
+      { docketId: Number(id) },
+      {
+        onSuccess: () => {
+          setDockets((prev) =>
+            prev.map((d) =>
+              String(d.id) === id
+                ? {
+                  ...d,
+                  uiAssignedTruckId: null,
+                  uiAssignedTime: null,
+                  docketStatus: DOCKET_STATUS.UNASSIGNED,
+                }
+                : d,
+            ),
+          );
+          setPendingUnassignDocketId(null);
+          if (selectedDocketId === id) setSelectedDocketId(null);
+        },
+      },
+    );
   };
 
   const handleAssignDriver = (driverId: number) => {
@@ -582,7 +847,15 @@ export function DispatchView({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <DispatchDriversTrucksFilter viewType={viewType} />
+      <DispatchDriversTrucksFilter
+        viewType={viewType}
+        driverOptions={filterDriverOptions}
+        truckOptions={filterTruckOptions}
+        haulierOptions={filterHaulierOptions}
+        isLoadingResources={isLoading}
+        filter={boardFilter}
+        onFilterChange={setBoardFilter}
+      />
       <div className="border-b pl-6 py-2.5 bg-white">
         <div className="flex items-center gap-3">
           <span className="text-[12px] font-medium text-[#64748B]">
@@ -627,8 +900,8 @@ export function DispatchView({
         <div className="flex-1 min-w-0">
           <AssignedDockets
             // date={date}
-            trucks={mappedResources}
-            dockets={dockets}
+            trucks={filteredMappedResources}
+            dockets={docketsForAssignedBoard}
             isLoading={isLoading}
             onUpdateDocket={handleUpdateDocket}
             onResizeDocket={handleResizeDocket}
@@ -732,6 +1005,25 @@ export function DispatchView({
           )}
         </DialogContent>
       </Dialog>
+
+      {unassignDialogSnapshot && (
+        <ConfirmUnassignDialog
+          open={!!pendingUnassignDocketId}
+          onOpenChange={(open) => {
+            if (!open) setPendingUnassignDocketId(null);
+          }}
+          docketNumber={unassignDialogSnapshot.docketNumber}
+          cargoSummary={unassignDialogSnapshot.cargoSummary}
+          destination={unassignDialogSnapshot.destination}
+          customerName={unassignDialogSnapshot.customerName}
+          truckLabel={unassignDialogSnapshot.truckLabel}
+          driverLabel={unassignDialogSnapshot.driverLabel}
+          assignmentDateLabel={unassignDialogSnapshot.assignmentDateLabel}
+          timeWindowLabel={unassignDialogSnapshot.timeWindowLabel}
+          onConfirm={confirmPendingUnassign}
+          isConfirming={unassignMutation.isPending}
+        />
+      )}
     </DndContext>
   );
 }
