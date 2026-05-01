@@ -3,7 +3,12 @@
 import * as React from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { Maximize2, Minimize2, GripVertical, Lock } from 'lucide-react';
-import { Truck, DispatchDocket, formatTimeRange } from '../views/dispatch-view';
+import {
+  Truck,
+  DispatchDocket,
+  formatTime,
+  formatTimeRange,
+} from '../views/dispatch-view';
 import { TableBadges } from '@/components/table-badges';
 
 const TIME_SLOTS = [
@@ -27,15 +32,112 @@ const TIME_SLOTS = [
   '23:00',
 ];
 
+/** First column label (must match `TIME_SLOTS[0]`). */
+const GRID_FIRST_HOUR = 6;
+/** Must match row + card geometry (`h-[112px]`). */
+const SLOT_HEIGHT_PX = 112;
+/** Exclusive end of the grid in “hours since `GRID_FIRST_HOUR`” (06:00 … 24:00 → 18h). */
+const GRID_SPAN_HOURS = TIME_SLOTS.length;
+
+function hoursSinceGridStart(iso?: string | null): number | null {
+  if (!iso) return null;
+  const d = new Date(iso.replace('Z', ''));
+  if (Number.isNaN(d.getTime())) return null;
+  const h =
+    d.getHours() +
+    d.getMinutes() / 60 +
+    d.getSeconds() / 3600 +
+    d.getMilliseconds() / 3_600_000;
+  return h - GRID_FIRST_HOUR;
+}
+
+function clampGridHour(h: number): number {
+  return Math.min(Math.max(h, 0), GRID_SPAN_HOURS);
+}
+
+function fallbackSlotInterval(d: DispatchDocket): {
+  start: number;
+  end: number;
+} | null {
+  const slotIdx = TIME_SLOTS.indexOf(d.uiAssignedTime || '');
+  if (slotIdx === -1) return null;
+  const dur = d.uiAssignedDuration || 2;
+  const end = Math.min(slotIdx + dur, GRID_SPAN_HOURS);
+  if (end <= slotIdx) return null;
+  return { start: slotIdx, end };
+}
+
+/** Interval in fractional hours from grid start (06:00 → 0, midnight → GRID_SPAN_HOURS). Never extends past midnight. */
+function getDocketIntervalHours(d: DispatchDocket): {
+  start: number;
+  end: number;
+} | null {
+  if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
+    const s = new Date(d.deliveryCollectionStartTime.replace('Z', ''));
+    const e = new Date(d.deliveryCollectionEndTime.replace('Z', ''));
+    if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) {
+      return fallbackSlotInterval(d);
+    }
+
+    let startH = hoursSinceGridStart(d.deliveryCollectionStartTime);
+    if (startH === null) return fallbackSlotInterval(d);
+    startH = clampGridHour(startH);
+
+    const durationMs = e.getTime() - s.getTime();
+    if (durationMs <= 0) return fallbackSlotInterval(d);
+
+    const durationH = durationMs / 3_600_000;
+    let endH = Math.min(startH + durationH, GRID_SPAN_HOURS);
+    if (endH <= startH) {
+      endH = Math.min(GRID_SPAN_HOURS, startH + 1 / 60);
+    }
+    if (endH <= startH) return null;
+    return { start: startH, end: endH };
+  }
+  return fallbackSlotInterval(d);
+}
+
+/** Footer label; when the real window crosses midnight, show end as 00:00 (end of dispatch day). */
+function formatDocketTimeRangeFooter(d: DispatchDocket): string {
+  if (!d.deliveryCollectionStartTime || !d.deliveryCollectionEndTime) {
+    return formatTimeRange(
+      d.deliveryCollectionStartTime,
+      d.deliveryCollectionEndTime,
+    );
+  }
+  const s = new Date(d.deliveryCollectionStartTime.replace('Z', ''));
+  const e = new Date(d.deliveryCollectionEndTime.replace('Z', ''));
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) {
+    return formatTimeRange(
+      d.deliveryCollectionStartTime,
+      d.deliveryCollectionEndTime,
+    );
+  }
+  const startRaw = hoursSinceGridStart(d.deliveryCollectionStartTime);
+  if (startRaw === null) {
+    return formatTimeRange(
+      d.deliveryCollectionStartTime,
+      d.deliveryCollectionEndTime,
+    );
+  }
+  const endRaw = startRaw + (e.getTime() - s.getTime()) / 3_600_000;
+  if (endRaw > GRID_SPAN_HOURS + 1e-4) {
+    return `${formatTime(d.deliveryCollectionStartTime)} - 00:00`;
+  }
+  return formatTimeRange(
+    d.deliveryCollectionStartTime,
+    d.deliveryCollectionEndTime,
+  );
+}
+
 function calculateLayouts(dockets: DispatchDocket[]) {
   const intervals = dockets
     .map((d) => {
-      const start = TIME_SLOTS.indexOf(d.uiAssignedTime || '');
-      const duration = d.uiAssignedDuration || 2;
-      const end = start + duration;
-      return { docket: d, start, end, col: 0 };
+      const iv = getDocketIntervalHours(d);
+      if (!iv) return null;
+      return { docket: d, start: iv.start, end: iv.end, col: 0 };
     })
-    .filter((d) => d.start !== -1);
+    .filter((x): x is NonNullable<typeof x> => x != null);
 
   // Sort by start time, then by end time descending
   intervals.sort((a, b) => {
@@ -114,7 +216,7 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[112px] h-full p-1.5 transition-colors ${isOver ? 'bg-blue-50/50' : 'bg-transparent'
+      className={`min-h-0 h-full p-1.5 transition-colors ${isOver ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80' : 'bg-transparent'
         }`}
     >
       {children}
@@ -182,16 +284,14 @@ function DocketCard({
     disabled: isLocked,
   });
 
-  const timeIndex = TIME_SLOTS.indexOf(docket.uiAssignedTime || '');
-  if (timeIndex === -1) return null;
+  const interval = getDocketIntervalHours(docket);
+  if (!interval) return null;
 
-  const top = timeIndex * 112;
-  const baseDuration = docket.uiAssignedDuration || 2;
-  const baseHeight = baseDuration * 112;
+  const top = interval.start * SLOT_HEIGHT_PX;
+  const baseDurationHours = interval.end - interval.start;
+  const baseHeight = baseDurationHours * SLOT_HEIGHT_PX;
 
-  const currentHeight = Math.max(112, baseHeight + resizeDelta);
-  const snappedHeight = Math.round(currentHeight / 112) * 112;
-  const snappedDuration = snappedHeight / 112;
+  const currentHeight = Math.max(SLOT_HEIGHT_PX, baseHeight + resizeDelta);
 
   const DOCKET_WIDTH = 160;
   const GAP = 8;
@@ -223,16 +323,29 @@ function DocketCard({
       setIsResizing(false);
 
       const finalDelta = upEvent.clientY - startY;
-      const finalHeight = Math.max(112, baseHeight + finalDelta);
-      const finalSnappedHeight = Math.round(finalHeight / 112) * 112;
-      const finalDuration = finalSnappedHeight / 112;
+      if (Math.abs(finalDelta) < 4) {
+        setResizeDelta(0);
+        return;
+      }
 
-      const maxDuration = TIME_SLOTS.length - timeIndex - 1;
+      const finalHeight = Math.max(SLOT_HEIGHT_PX, baseHeight + finalDelta);
+      const finalSnappedHeight =
+        Math.round(finalHeight / SLOT_HEIGHT_PX) * SLOT_HEIGHT_PX;
+      const finalDuration = Math.max(
+        1,
+        Math.round(finalSnappedHeight / SLOT_HEIGHT_PX),
+      );
+
+      const maxDuration = Math.max(
+        1,
+        Math.floor(GRID_SPAN_HOURS - interval.start + 1e-6),
+      );
       const validDuration = Math.min(finalDuration, maxDuration);
 
-      if (validDuration !== baseDuration && onResizeDocket) {
+      const roundedBaseDuration = Math.round(baseDurationHours);
+      if (validDuration !== roundedBaseDuration && onResizeDocket) {
         onResizeDocket(String(docket.id), validDuration);
-      } else if (validDuration !== baseDuration && onUpdateDocket) {
+      } else if (validDuration !== roundedBaseDuration && onUpdateDocket) {
         // Fallback to local update if resize handler is not provided
         onUpdateDocket(String(docket.id), {
           uiAssignedDuration: validDuration,
@@ -245,12 +358,19 @@ function DocketCard({
     window.addEventListener('pointerup', handlePointerUp);
   };
 
-  const activeDuration = isResizing ? snappedDuration : baseDuration;
-  const endTimeIndex = Math.min(
-    timeIndex + activeDuration,
-    TIME_SLOTS.length - 1,
-  );
-  const endTime = TIME_SLOTS[endTimeIndex];
+  const activeDuration = isResizing
+    ? currentHeight / SLOT_HEIGHT_PX
+    : baseDurationHours;
+  const endBoundaryHour = interval.start + activeDuration;
+  const endTime =
+    endBoundaryHour >= GRID_SPAN_HOURS - 1e-6
+      ? '00:00'
+      : TIME_SLOTS[
+      Math.min(
+        Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
+        TIME_SLOTS.length - 1,
+      )
+      ];
 
   return (
     <div
@@ -293,17 +413,12 @@ function DocketCard({
             {docket.customerName || 'Unknown Customer'}
           </div>
           <div className={`${colors.textMuted} text-[12px] truncate`}>
-            {typeof docket.pickUpAddress === 'string'
-              ? docket.pickUpAddress
-              : docket.pickUpAddress?.formattedAddress || ''}
+            {docket.pickUpAddress}
           </div>
 
           <div className="flex items-center justify-between mt-auto pt-2">
             <span className={`${colors.textMuted} text-[12px] font-medium`}>
-              {formatTimeRange(
-                docket.deliveryCollectionStartTime,
-                docket.deliveryCollectionEndTime,
-              )}
+              {formatDocketTimeRangeFooter(docket)}
             </span>
           </div>
         </div>
@@ -473,7 +588,7 @@ export default function AssignedDockets({
             {TIME_SLOTS.map((time) => (
               <div
                 key={time}
-                className="flex border-b border-[#E2E8F0] min-h-[112px]"
+                className="flex border-b border-[#E2E8F0] h-[112px] shrink-0"
               >
                 {/* Time Label */}
                 <div className="w-16 shrink-0 border-r border-[#E2E8F0] bg-[#F8FAFC] flex items-start justify-center pt-2 sticky left-0 z-20">

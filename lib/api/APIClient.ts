@@ -40,7 +40,11 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { CustomerDeliveryAddress } from '../types/address';
-import { DocketAssignRequest, DocketDTO } from '../types/docket';
+import {
+  DocketAssignRequest,
+  DocketDTO,
+  DispatchDocketDTO,
+} from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
@@ -54,11 +58,6 @@ import {
   PatchDriverHaulierDTO,
   PutDriverDTO,
 } from '../types/driver';
-
-import {
-  SchedulerDriversResponse,
-  SchedulerTrucksResponse,
-} from '../types/scheduler';
 
 type RequestBody =
   | BodyInit
@@ -1247,14 +1246,14 @@ export const APIClient = {
 
   scheduler: {
     getTrucks: (start: string, end: string) =>
-      appClient.Get<SchedulerTrucksResponse>(
+      appClient.Get<DispatchDocketDTO>(
         `/socoro/quarrylink/api/scheduler/trucks`,
         {
           queryString: { start, end },
         },
       ),
     getDrivers: (start: string, end: string) =>
-      appClient.Get<SchedulerDriversResponse>(
+      appClient.Get<DispatchDocketDTO>(
         `/socoro/quarrylink/api/scheduler/drivers`,
         {
           queryString: { start, end },

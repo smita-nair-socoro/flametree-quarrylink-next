@@ -11,13 +11,57 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from 'react-aria-components';
-import { format } from 'date-fns';
+import { format, startOfDay } from 'date-fns';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   DispatchDocket,
   formatTimeRange,
   formatDate,
 } from '../views/dispatch-view';
+
+function parseCollectionStartMs(iso: string | undefined): number {
+  if (!iso) return 0;
+  const local = iso.includes('T') ? iso.replace('Z', '') : iso;
+  const t = new Date(local).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+function dayBucketMs(iso: string | undefined): number {
+  const ms = parseCollectionStartMs(iso);
+  if (!ms) return 0;
+  return startOfDay(new Date(ms)).getTime();
+}
+
+/**
+ * Comparable “volume” in m³ when product density is available (same basis as job line item:
+ * 1 TN → m³ via densityTonnagePerM3). Without density, falls back to raw loadSize.
+ */
+function normalizedLoadM3ForSort(docket: DispatchDocket): number {
+  const density = docket.jobItem?.product?.densityTonnagePerM3;
+  const uom = docket.productSellUom;
+  const qty = Number(docket.loadSize);
+  if (!Number.isFinite(qty)) return 0;
+
+  if (density != null && density > 0) {
+    if (uom === 'TN') return qty / density;
+    if (uom === 'M3') return qty;
+    if (uom === 'KG_20' || uom === 'BULKA') {
+      return (qty * 0.02) / density;
+    }
+  }
+
+  return qty;
+}
+
+type UnassignedSortKey = 'time' | 'size' | 'customer';
+
+function matchesUnassignedSearch(docket: DispatchDocket, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const num = (docket.docketNumber || '').toLowerCase();
+  const customer = (docket.customerName || '').toLowerCase();
+  return num.includes(q) || customer.includes(q);
+}
 
 function DraggableDocketCard({
   docket,
@@ -96,9 +140,7 @@ function DraggableDocketCard({
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {typeof docket.pickUpAddress === 'string'
-                ? docket.pickUpAddress
-                : docket.pickUpAddress?.formattedAddress || ''}
+              {docket.pickUpAddress}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -106,9 +148,7 @@ function DraggableDocketCard({
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {typeof docket.deliveryAddress === 'string'
-                ? docket.deliveryAddress
-                : docket.deliveryAddress?.formattedAddress || ''}
+              {docket.deliveryAddress}
             </span>
           </div>
         </div>
@@ -162,9 +202,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {typeof docket.pickUpAddress === 'string'
-                ? docket.pickUpAddress
-                : docket.pickUpAddress?.formattedAddress || ''}
+              {docket.pickUpAddress}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -172,9 +210,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {typeof docket.deliveryAddress === 'string'
-                ? docket.deliveryAddress
-                : docket.deliveryAddress?.formattedAddress || ''}
+              {docket.deliveryAddress}
             </span>
           </div>
         </div>
@@ -200,6 +236,9 @@ export default function UnassignedDockets({
     'this_day',
   );
 
+  const [sortBy, setSortBy] = React.useState<UnassignedSortKey>('time');
+  const [searchQuery, setSearchQuery] = React.useState('');
+
   const unassignedDockets = dockets.filter((d) => {
     const isUnassigned = d.docketStatus === 'UNASSIGNED';
     if (!isUnassigned) return false;
@@ -217,6 +256,47 @@ export default function UnassignedDockets({
 
     return true;
   });
+
+  const visibleUnassignedDockets = React.useMemo(() => {
+    const filtered = unassignedDockets.filter((d) =>
+      matchesUnassignedSearch(d, searchQuery),
+    );
+    const list = [...filtered];
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (
+        activeTab === 'all_dates' &&
+        sortBy === 'customer'
+      ) {
+        cmp = dayBucketMs(a.deliveryCollectionStartTime) -
+          dayBucketMs(b.deliveryCollectionStartTime);
+        if (cmp !== 0) return cmp;
+      }
+      switch (sortBy) {
+        case 'time':
+          cmp =
+            parseCollectionStartMs(a.deliveryCollectionStartTime) -
+            parseCollectionStartMs(b.deliveryCollectionStartTime);
+          break;
+        case 'size':
+          cmp =
+            normalizedLoadM3ForSort(a) - normalizedLoadM3ForSort(b);
+          break;
+        case 'customer':
+          cmp = (a.customerName || '').localeCompare(
+            b.customerName || '',
+            undefined,
+            { sensitivity: 'base' },
+          );
+          break;
+        default:
+          break;
+      }
+      if (cmp !== 0) return cmp;
+      return String(a.docketNumber).localeCompare(String(b.docketNumber));
+    });
+    return list;
+  }, [unassignedDockets, sortBy, activeTab, searchQuery]);
 
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: 'unassigned-queue',
@@ -242,7 +322,9 @@ export default function UnassignedDockets({
         </div>
 
         <p className="text-[14px] text-[#64748B]">
-          {unassignedDockets.length} dockets waiting for assignment
+          {searchQuery.trim()
+            ? `${visibleUnassignedDockets.length} of ${unassignedDockets.length} dockets match`
+            : `${unassignedDockets.length} dockets waiting for assignment`}
         </p>
 
         {/* Custom Toggle Tabs */}
@@ -269,8 +351,7 @@ export default function UnassignedDockets({
 
         {activeTab === 'all_dates' && (
           <p className="text-[13px] text-[#64748B] leading-relaxed">
-            Sorted by date, then by your sort option. Dragging onto the board
-            schedules on{' '}
+            Sorted by date, then by your sort option. Dragging onto the board schedules on{' '}
             <span className="font-bold text-[#0F172A]">
               {format(date, 'EEEE, d MMMM yyyy')}
             </span>
@@ -283,12 +364,18 @@ export default function UnassignedDockets({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
           <Input
             placeholder="Search dockets..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 border-[#FDE68A] focus-visible:ring-[#FDE68A] rounded-lg h-10 text-[14px]"
+            aria-label="Search dockets by number or customer"
           />
         </div>
 
         {/* Sort Select */}
-        <Select defaultValue="time">
+        <Select
+          value={sortBy}
+          onValueChange={(v) => setSortBy(v as UnassignedSortKey)}
+        >
           <SelectTrigger className="w-full border-[#FDE68A] focus:ring-[#FDE68A] rounded-lg h-10 text-[14px] font-medium">
             <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
@@ -302,6 +389,17 @@ export default function UnassignedDockets({
 
       <Separator className="my-2" />
       {/* Scrollable Dockets List */}
+
+      {isOver && (
+        <div className="shrink-0 px-4 pb-3">
+          <div className="rounded-xl border border-[#E7C37C] bg-[#FFF9E8] px-4 py-3.5 shadow-sm">
+            <p className="text-center text-[14px] font-semibold leading-snug text-[#78350F]">
+              Release to unassign — docket returns here after you confirm
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
         {isLoading ? (
           <div className="flex items-center justify-center h-full text-sm text-gray-500">
@@ -311,8 +409,13 @@ export default function UnassignedDockets({
           <div className="flex items-center justify-center h-full text-sm text-gray-500">
             No unassigned dockets found.
           </div>
+        ) : visibleUnassignedDockets.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-sm text-gray-500 px-2 text-center">
+            No dockets match your search. Try another docket number or customer
+            name.
+          </div>
         ) : (
-          unassignedDockets.map((docket) => (
+          visibleUnassignedDockets.map((docket) => (
             <DraggableDocketCard
               key={docket.id}
               docket={docket}

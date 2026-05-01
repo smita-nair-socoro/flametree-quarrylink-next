@@ -13,7 +13,6 @@ import {
 } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
-import { DispatchDocket } from '../../../logistics/dispatch/views/dispatch-view';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
 import {
   Dialog,
@@ -67,7 +66,7 @@ function DocketChip({
   onClick,
   isSelected = false,
 }: {
-  docket: DispatchDocket;
+  docket: DocketDTO;
   onClick: () => void;
   index: number;
   isSelected?: boolean;
@@ -104,7 +103,7 @@ function DocketChip({
       </div>
       <div className="truncate text-gray-700">{customerName}</div>
       <div className="truncate text-gray-500 mb-1">{location}</div>
-      {(docket.uiAssignedTruckId || docket.driver) && (
+      {(docket.driverId || docket.driver) && (
         <div className="truncate text-gray-500 mt-1">
           Driver:{' '}
           {docket.driver
@@ -112,9 +111,9 @@ function DocketChip({
             : 'Unassigned'}
         </div>
       )}
-      {(docket.uiAssignedTruckId || docket.truckType) && (
+      {(docket.truckId || docket.truckType) && (
         <div className="truncate text-gray-500">
-          Truck: {docket.uiAssignedTruckId || docket.truckType || 'No Truck'}
+          Truck: {docket.truckId || docket.truckType || 'No Truck'}
         </div>
       )}
     </div>
@@ -272,13 +271,12 @@ export function ScheduleMonthView({
                       onDateChange(day);
                     }}
                     className={`p-2 flex flex-col rounded-xl border cursor-pointer transition-colors
-                    ${
-                      isSelectedDate
+                    ${isSelectedDate
                         ? 'ring-1 ring-purple-400 border-purple-400 bg-purple-200/10 z-10'
                         : !isCurrentMonth
                           ? 'bg-gray-50/40 border-gray-100'
                           : 'bg-white border-gray-200 shadow-sm'
-                    }
+                      }
                     ${dayDockets.length > 0 ? 'min-h-[150px]' : 'min-h-[100px]'}`}
                   >
                     <div className="flex flex-col mb-3">

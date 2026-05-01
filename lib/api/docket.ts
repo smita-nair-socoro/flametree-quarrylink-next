@@ -65,6 +65,7 @@ export const useAssignDocket = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
 };
@@ -78,6 +79,7 @@ export const useUnassignDocket = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
 };
