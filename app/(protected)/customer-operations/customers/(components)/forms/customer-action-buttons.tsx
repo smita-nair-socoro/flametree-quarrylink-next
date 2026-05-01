@@ -64,33 +64,6 @@ export function CustomerActionButtons({
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {!isArchived ? (
           <>
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.viewDockets}
-              className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Dockets
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.viewJobs}
-              className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Jobs
-            </Button> */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={actions.viewQuotations}
-              className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Quotations
-            </Button> */}
             <Button
               variant="ghost"
               size="sm"
