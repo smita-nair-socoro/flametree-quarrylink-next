@@ -41,7 +41,6 @@ import {
 } from '@/lib/utils/error-message-helper';
 import {
   useCreateCustomer,
-  useUpdateCustomer,
   CustomerDetailQueryOptions,
 } from '@/lib/api/customer';
 import { useRouter } from 'next/navigation';
@@ -105,7 +104,6 @@ export default function CustomerForm({
 
   // Mutation hooks
   const createCustomer = useCreateCustomer();
-  const updateCustomer = useUpdateCustomer();
 
   // When true, onSubmit bypasses the isEditing check and always calls create (retry sync)
   const isRetrySyncRef = React.useRef(false);
@@ -334,25 +332,23 @@ export default function CustomerForm({
 
       console.log('Customer Data Payload:', customerData);
 
-      // Call the appropriate mutation (retry sync always uses create, never update)
+      const result = await createCustomer.mutateAsync(customerData);
+
       if (isEditing && !isRetrySyncRef.current) {
-        const result = await updateCustomer.mutateAsync(customerData);
         notifySuccess('Customer Updated Successfully!');
-        if (handleSyncNote(result.accSoftwareNotes)) return;
       } else {
-        const newCustomer = await createCustomer.mutateAsync(customerData);
         notifySuccess('Customer Added Successfully!');
 
         // Add the new record ID to sessionStorage for highlighting
-        if (newCustomer && typeof newCustomer.id === 'number') {
-          addNewRecordId('customer_main_data_table', newCustomer.id);
-          if (!newCustomer.accSoftwareContactId) {
-            addSyncErrorRecordId('customer_main_data_table', newCustomer.id);
+        if (result && typeof result.id === 'number') {
+          addNewRecordId('customer_main_data_table', result.id);
+          if (!result.accSoftwareContactId) {
+            addSyncErrorRecordId('customer_main_data_table', result.id);
           }
         }
-
-        if (handleSyncNote(newCustomer.accSoftwareNotes)) return;
       }
+
+      if (handleSyncNote(result.accSoftwareNotes)) return;
 
       onSuccess?.();
       onSaved?.();
