@@ -22,7 +22,21 @@ import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 interface BlockingQuote {
   id?: number;
   quoteNumber?: string;
+  customerId?: number;
+  customerName?: string;
+  phone?: string;
+  projectName?: string;
+  quoteStatus?: string;
+  deliveryStartDate?: string;
+  expiryDate?: string;
+  deliveryWindowStart?: string;
+  deliveryWindowEnd?: string;
+  totalCostPrice?: number;
+  totalSellPrice?: number;
+  emailRecipients?: string[];
   lineItemsCount?: number;
+  inclDeliveryCost?: boolean;
+  version?: number;
 }
 
 interface DialogConfig {
@@ -228,7 +242,7 @@ const getDialogConfigs = (
                         {blockingQuoteLength} active quotes:{' '}
                       </span>
                     </Link>
-                    <span>{blockingQuoteNumbers.join(', ')}</span>
+                    <span className="underline">{blockingQuoteNumbers.join(', ')}</span>
                   </>
                 ) : (
                   <>
@@ -308,10 +322,10 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
   const { mutateAsync: deleteQuarryAfterEligibilityCheck } =
     useDeleteQuarryAfterEligibilityCheck();
 
-  /** View dialog actions use the store only; we always set it in view() before opening (row click or View details). */
-  const quarrySupplierId = selectedQuarrySupplier?.id;
+  const activeQuarrySupplier = quarrySupplierData ?? selectedQuarrySupplier ?? null;
+  const quarrySupplierId = activeQuarrySupplier?.id;
   const dialogConfigs = getDialogConfigs(
-    selectedQuarrySupplier ?? null,
+    activeQuarrySupplier,
     selectedAction || undefined,
     blockingQuotes
   );
@@ -383,13 +397,13 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
     },
 
     delete: () => {
-      if (canDelete(selectedQuarrySupplier)) {
+      if (canDelete(quarrySupplierData ?? selectedQuarrySupplier)) {
         createDialogAction('delete')();
       }
     },
 
     unarchive: () => {
-      if (canUnarchive(selectedQuarrySupplier)) {
+      if (canUnarchive(quarrySupplierData ?? selectedQuarrySupplier)) {
         createDialogAction('unarchive')();
       }
     },
@@ -449,13 +463,13 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
                 const rawBlocked =
                   errorData &&
                     typeof errorData === 'object' &&
-                    'blockingQuoteDtos' in errorData &&
+                    'blockingQuotes' in errorData &&
                     Array.isArray(
-                      (errorData as { blockingQuoteDtos?: unknown })
-                        .blockingQuoteDtos
+                      (errorData as { blockingQuotes?: unknown })
+                        .blockingQuotes
                     )
-                    ? ((errorData as { blockingQuoteDtos: unknown[] })
-                      .blockingQuoteDtos as unknown[])
+                    ? ((errorData as { blockingQuotes: unknown[] })
+                      .blockingQuotes as unknown[])
                     : [];
                 const blocked: BlockingQuote[] = rawBlocked.map((b: any) => ({
                   id: typeof b?.id === 'number' ? b.id : undefined,
@@ -465,10 +479,6 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
                       : b?.id
                         ? String(b.id)
                         : undefined,
-                  lineItemsCount:
-                    typeof b?.lineItemsCount === 'number'
-                      ? b.lineItemsCount
-                      : undefined,
                 }));
 
                 if (blocked.length > 0) {
