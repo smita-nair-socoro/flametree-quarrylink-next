@@ -166,7 +166,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
           ? 'Business name is required'
           : 'At least 2 characters',
       });
-    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.business_name)) {
+    } else if (!/^[a-zA-Z0-9\s,.&'-]+$/.test(data.business_name)) {
       ctx.addIssue({
         path: ['business_name'],
         code: z.ZodIssueCode.custom,
@@ -190,7 +190,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'At least 2 characters',
       });
-    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.contact_person_first_name)) {
+    } else if (!/^[a-zA-Z0-9\s,.&'-]+$/.test(data.contact_person_first_name)) {
       ctx.addIssue({
         path: ['contact_person_first_name'],
         code: z.ZodIssueCode.custom,
@@ -214,7 +214,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'At least 2 characters',
       });
-    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.contact_person_last_name)) {
+    } else if (!/^[a-zA-Z0-9\s,.&'-]+$/.test(data.contact_person_last_name)) {
       ctx.addIssue({
         path: ['contact_person_last_name'],
         code: z.ZodIssueCode.custom,
@@ -307,7 +307,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'At least 2 characters',
       });
-    } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.contact_person_name)) {
+    } else if (!/^[a-zA-Z0-9\s,.&'-]+$/.test(data.contact_person_name)) {
       ctx.addIssue({
         path: ['contact_person_name'],
         code: z.ZodIssueCode.custom,
