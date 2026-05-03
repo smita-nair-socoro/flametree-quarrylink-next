@@ -121,17 +121,15 @@ export const TruckKeys = {
   inspections: (id: number) => [...TruckKeys.all, 'inspections', id] as const,
 };
 
-<<<<<<< HEAD
 export const XeroKeys = {
   all: ['xero'] as const,
   connect: () => [...XeroKeys.all, 'connect'] as const,
   status: () => [...XeroKeys.all, 'status'] as const,
-=======
+};
 export const SchedulerKeys = {
   all: ['scheduler'] as const,
   trucks: (start: string, end: string) =>
     [...SchedulerKeys.all, 'trucks', start, end] as const,
   drivers: (start: string, end: string) =>
     [...SchedulerKeys.all, 'drivers', start, end] as const,
->>>>>>> develop
 };
