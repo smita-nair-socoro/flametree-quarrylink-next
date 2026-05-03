@@ -1,12 +1,17 @@
 import { baseUrl, getTenantId, getUser } from '../utils';
-import { handleLogout } from '../auth/authManager';
+// import { handleLogout } from '../auth/authManager';
 import {
   LinkedProduct,
   Product,
   ProductDetails,
   ProductReporting,
 } from '../types/product';
-import { CustomerDTO, CustomerReporting } from '../types/customer';
+import {
+  CustomerDTO,
+  CustomerReporting,
+  ArchiveCustomerResponseDTO,
+  UnarchiveCustomerResponseDTO,
+} from '../types/customer';
 import {
   Quarry,
   QuarryReporting,
@@ -41,7 +46,11 @@ import {
 } from '../types/client';
 import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
 import { CustomerDeliveryAddress } from '../types/address';
-import { DocketDTO } from '../types/docket';
+import {
+  DocketAssignRequest,
+  DocketDTO,
+  DispatchDocketDTO,
+} from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
@@ -340,7 +349,7 @@ export async function HttpClient<T = unknown>(
     switch (response.status) {
       case 403: {
         // DEBUG: temporarily disabled logout to inspect 403 response — re-enable after debugging
-        await handleLogout();
+        // await handleLogout();
         // console.error('[DEBUG][403] Endpoint:', endpoint);
         // console.error('[DEBUG][403] Response headers:', Object.fromEntries(response.headers.entries()));
         // return Promise.reject(new Error('Cookie/Token expired or invalid.'));
@@ -636,6 +645,14 @@ export const APIClient = {
           },
         },
       ),
+    archive: (id: number) =>
+      appClient.Put<ArchiveCustomerResponseDTO>(
+        `/socoro/quarrylink/api/customer/${id}/archive`,
+      ),
+    unarchive: (id: number) =>
+      appClient.Put<UnarchiveCustomerResponseDTO>(
+        `/socoro/quarrylink/api/customer/${id}/unarchive`,
+      ),
   },
 
   quotations: {
@@ -923,6 +940,14 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${docketId}/status`,
         { body: formData },
       ),
+    assign: (data: DocketAssignRequest) =>
+      appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/assign', {
+        body: data,
+      }),
+    unassign: (data: { docketId: number }) =>
+      appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/unassign', {
+        body: data,
+      }),
   },
 
   users: {
@@ -1261,5 +1286,22 @@ export const APIClient = {
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
     getById: (invoiceId: number) =>
       appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
+  },
+
+  scheduler: {
+    getTrucks: (start: string, end: string) =>
+      appClient.Get<DispatchDocketDTO>(
+        `/socoro/quarrylink/api/scheduler/trucks`,
+        {
+          queryString: { start, end },
+        },
+      ),
+    getDrivers: (start: string, end: string) =>
+      appClient.Get<DispatchDocketDTO>(
+        `/socoro/quarrylink/api/scheduler/drivers`,
+        {
+          queryString: { start, end },
+        },
+      ),
   },
 };

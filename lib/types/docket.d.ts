@@ -1,8 +1,10 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
+import type { DRIVER_STATUS } from './driver-enums';
 import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
 import { CustomerDTO } from './customer';
+import { TruckDTO } from './truck';
 
 export interface Docket {
   id: number;
@@ -45,6 +47,15 @@ export interface Docket {
   isDeleted: boolean;
 }
 
+export interface DocketAssignRequest {
+  docketId: number;
+  truckId: number;
+  driverId: number;
+  deliveryStartWindow?: string;
+  deliveryEndWindow?: string;
+  plannedLoadSize?: number;
+}
+
 export interface DocketDTO {
   id: number;
   docketNumber: string;
@@ -76,20 +87,34 @@ export interface DocketDTO {
   driverId: number;
   driver?: DriverDTO;
   truckId: number;
+  truck?: TruckDTO;
+  deliveredProductsConfirmed?: boolean;
   driverChecklistId: number;
   truckChecklistId: number;
   truckType: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   deliveredLoadSize: number;
+  overDelivered?: boolean;
+  deliveryDistance?: number;
   deliveryDistanceQuantity: number;
   deliveryDistanceUom: string;
   grossTruckWeight: number;
   tareTruckWeight: number;
   actualMaterialWeight: number;
+  deliveryStartedAt?: string;
+  arrivedAt?: string;
+  arrivalLatitude?: number;
+  arrivalLongitude?: number;
   deliveredAt: string;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
   signatureImage: string;
   deliveryNotes: string;
   deliveryPhotos: string[];
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
   gpsLocation: string;
   productEstimatedVolume: number;
   purchaseOrder: string;
@@ -213,3 +238,70 @@ export interface DocketDTO {
   updatedAt: string;
   lastModifiedBy: string;
 }
+
+/** Truck row from GET scheduler/trucks */
+export interface DispatchTruckResource {
+  id: number;
+  licensePlate: string;
+  drivers?: DriverDTO[];
+  dockets?: DispatchAssignedDocket[];
+}
+
+/** Minimal truck refs nested under driver rows (scheduler/drivers payload). */
+export interface DispatchBoardTruckRef {
+  id?: number;
+  licensePlate: string;
+  truckType?: string;
+  truckStatus?: string;
+}
+
+/** Driver row from GET scheduler/drivers */
+export interface DispatchDriverResource {
+  id: number;
+  driverName: string;
+  driverType?: string;
+  /** Present when the scheduler API returns driver roster status. */
+  driverStatus?: DRIVER_STATUS;
+  trucks: DispatchBoardTruckRef[];
+  dockets?: DispatchAssignedDocket[];
+}
+
+export type Resource = DispatchTruckResource | DispatchDriverResource;
+
+export interface DispatchDocketDTO {
+  resources: Resource[];
+  unassignedDockets: DispatchUnassignedDocket[];
+}
+
+export interface DispatchAssignedDocket {
+  id: number;
+  docketNumber: string;
+  docketStatus: DOCKET_STATUS;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  productName: string;
+  loadSize: number;
+  customerName: string;
+  pickUpAddress: string;
+  deliveryAddress: string;
+  productSellUom: string;
+}
+
+export interface DispatchUnassignedDocket {
+  id: number;
+  docketNumber: string;
+  docketStatus: DOCKET_STATUS;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  productName: string;
+  loadSize: number;
+  customerName: string;
+  pickUpAddress: string;
+  deliveryAddress: string;
+  productSellUom: string;
+}
+
+/** Slim board docket (assigned or unassigned list item — same fields). */
+export type DispatchBoardDocketRow =
+  | DispatchAssignedDocket
+  | DispatchUnassignedDocket;

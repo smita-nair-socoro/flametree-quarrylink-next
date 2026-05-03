@@ -12,9 +12,10 @@ export default function HomePage() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { data: currentUser } = useQuery(
+  const { data: currentUser, isPending: isUserDetailPending } = useQuery(
     UserDetailQueryOptions(auth.user?.userId || ''),
   );
+
 
   // Redirect after auth state is known
   useEffect(() => {
@@ -23,7 +24,8 @@ export default function HomePage() {
         // If we're on the root path, redirect to dashboard
         // Otherwise, stay on the current path (this handles SPA fallback)
         if (pathname === '/') {
-          // Wait for currentUser to be loaded before deciding
+          // Wait for profile (avoid sending drivers through staff routes first)
+          if (isUserDetailPending) return;
           if (currentUser) {
             const isDriver = currentUser.groups?.includes('driver') || false;
 
@@ -38,7 +40,14 @@ export default function HomePage() {
         router.replace('/login');
       }
     }
-  }, [auth.isLoading, auth.isAuthenticated, currentUser, router, pathname]);
+  }, [
+    auth.isLoading,
+    auth.isAuthenticated,
+    currentUser,
+    isUserDetailPending,
+    router,
+    pathname,
+  ]);
 
   return <div>Loading...</div>;
 }
