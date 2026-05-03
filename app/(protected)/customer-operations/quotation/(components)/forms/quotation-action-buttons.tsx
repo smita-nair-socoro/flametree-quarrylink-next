@@ -62,7 +62,7 @@ export function QuotationActionButtons({
         {viewDialog}
         {duplicateDialog}
 
-        <DropdownMenu modal={false}>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
               <MoreHorizontal className="h-4 w-4 mr-2" />
@@ -71,7 +71,7 @@ export function QuotationActionButtons({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             {/* Preview Quote - available for all statuses */}
-            <DropdownMenuItem onClick={actions.preview}>
+            <DropdownMenuItem onSelect={actions.preview}>
               <FileSearch className="h-4 w-4 mr-2" />
               Preview Quote
             </DropdownMenuItem>
@@ -79,7 +79,7 @@ export function QuotationActionButtons({
             {/* Status-specific actions */}
             {quotation.quoteStatus === 'DRAFT' && (
               <>
-                <DropdownMenuItem onClick={actions.sendToCustomer}>
+                <DropdownMenuItem onSelect={actions.sendToCustomer}>
                   <Send className="h-4 w-4 mr-2" />
                   Send to Customer
                 </DropdownMenuItem>
@@ -88,22 +88,22 @@ export function QuotationActionButtons({
 
             {quotation.quoteStatus === 'PENDING' && (
               <>
-                <DropdownMenuItem onClick={actions.sendToCustomer}>
+                <DropdownMenuItem onSelect={actions.sendToCustomer}>
                   <Send className="h-4 w-4 mr-2" />
                   Re-Send To Customer
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.approve}>
+                <DropdownMenuItem onSelect={actions.approve}>
                   <BadgeCheck className="h-4 w-4 mr-2" />
                   Approve Quote
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={actions.decline}>
+                <DropdownMenuItem onSelect={actions.decline}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
               </>
             )}
             {quotation.quoteStatus === 'DECLINED' && (
-              <DropdownMenuItem onClick={actions.convertToDraft}>
+              <DropdownMenuItem onSelect={actions.convertToDraft}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Convert to Draft
               </DropdownMenuItem>
@@ -111,12 +111,12 @@ export function QuotationActionButtons({
 
             {quotation.quoteStatus === 'APPROVED' && (
               <>
-                <DropdownMenuItem onClick={actions.decline}>
+                <DropdownMenuItem onSelect={actions.decline}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
                 {canConvertToJob && (
-                  <DropdownMenuItem onClick={actions.convertToJob}>
+                  <DropdownMenuItem onSelect={actions.convertToJob}>
                     <Briefcase className="h-4 w-4 mr-2" />
                     Convert to Job
                   </DropdownMenuItem>
@@ -124,47 +124,21 @@ export function QuotationActionButtons({
               </>
             )}
 
-            {/* {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
-              <DropdownMenuItem onClick={actions.viewJob}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Job
-              </DropdownMenuItem>
-            )} */}
-
             {quotation.quoteStatus === 'EXPIRED' && (
               <>
-                <DropdownMenuItem onClick={actions.extendExpiry}>
+                <DropdownMenuItem onSelect={actions.extendExpiry}>
                   <Calendar className="h-4 w-4 mr-2" />
                   Extend Expiry Date
                 </DropdownMenuItem>
               </>
             )}
 
-            {quotation.quoteStatus === 'DECLINED' && (
-              <DropdownMenuItem
-                onClick={actions.archive}
-                className="text-destructive focus:text-destructive"
-              >
-                <Archive className="h-4 w-4 mr-2 text-destructive" />
-                Archive
-              </DropdownMenuItem>
-            )}
-
-            {/* Secondary actions for non-archived statuses
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={actions.print}>
-                <Printer className="h-4 w-4 mr-2" />
-                Download PDF
-              </DropdownMenuItem>
-            </> */}
-
             {quotation.quoteStatus !== 'ARCHIVED' &&
               quotation.quoteStatus !== 'PENDING' && (
                 <>
                   {/* <DropdownMenuSeparator /> */}
                   <DropdownMenuItem
-                    onClick={actions.archive}
+                    onSelect={actions.archive}
                     className="text-destructive focus:text-destructive"
                   >
                     <Archive className="h-4 w-4 mr-2 text-destructive" />
@@ -329,23 +303,15 @@ export function QuotationActionButtons({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                {/* <DropdownMenuItem onClick={actions.print}>
-              <Printer className="h-4 w-4 mr-2" />
-              Download PDF
-            </DropdownMenuItem> */}
-
-                {/* {quotation.status !== 'ARCHIVED' && ( */}
                 <div>
-                  {/* <DropdownMenuSeparator /> */}
                   <DropdownMenuItem
-                    onClick={actions.archive}
+                    onSelect={actions.archive}
                     className="text-destructive focus:text-destructive"
                   >
                     <Archive className="h-4 w-4 mr-2 text-destructive" />
                     Archive
                   </DropdownMenuItem>
                 </div>
-                {/* )} */}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
