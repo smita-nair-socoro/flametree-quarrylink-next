@@ -393,6 +393,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         truckId: assignTruck,
         driverId: assignDriver,
+        deliveryStartWindow: docketData.deliveryCollectionStartTime,
+        deliveryEndWindow: docketData.deliveryCollectionEndTime,
       });
       setSelectedDocket({
         ...(selectedDocket as DocketDTO),

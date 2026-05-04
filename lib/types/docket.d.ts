@@ -51,8 +51,8 @@ export interface DocketAssignRequest {
   docketId: number;
   truckId: number;
   driverId: number;
-  deliveryStartWindow?: string;
-  deliveryEndWindow?: string;
+  deliveryStartWindow: string;
+  deliveryEndWindow: string;
   plannedLoadSize?: number;
 }
 
