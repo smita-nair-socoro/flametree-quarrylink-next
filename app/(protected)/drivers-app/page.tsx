@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/use-auth';
 export default function DriversAppPage() {
   const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
   const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
+  const [checklistTruckLicensePlate, setChecklistTruckLicensePlate] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
@@ -114,8 +115,9 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
-                onOpenChecklist={(type) => {
+                onOpenChecklist={(type, truckLicensePlate) => {
                   setChecklistType(type);
+                  setChecklistTruckLicensePlate(truckLicensePlate);
                   setIsChecklistPromptOpen(true);
                 }}
               />
@@ -178,6 +180,8 @@ export default function DriversAppPage() {
         open={isChecklistPromptOpen}
         onOpenChange={setIsChecklistPromptOpen}
         type={checklistType}
+        truckLicensePlate={checklistTruckLicensePlate}
+        driverName={dockets[0]?.driver?.driverName}
         onCompleteExternally={() => setIsChecklistPromptOpen(false)}
         onCompleteNow={() => setIsChecklistPromptOpen(false)}
       />

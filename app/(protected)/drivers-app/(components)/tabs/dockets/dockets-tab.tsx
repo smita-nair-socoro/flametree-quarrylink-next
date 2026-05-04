@@ -34,7 +34,7 @@ import { useOperationalUpdateDocket } from '@/lib/api/docket';
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
-  onOpenChecklist?: (type: 'pre-start' | 'vehicle-inspection') => void;
+  onOpenChecklist?: (type: 'pre-start' | 'vehicle-inspection', truckLicensePlate?: string) => void;
 }
 
 type ActionType =
@@ -74,8 +74,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
   };
 
   const checklistsComplete =
-    selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.COMPLETED &&
-    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.COMPLETED;
+    selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.PASS &&
+    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS;
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -407,7 +407,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {selectedDocket.driverChecklist?.checklistStatus !== CHECKLIST_STATUS.COMPLETED && (
+                {selectedDocket.driverChecklist?.checklistStatus !== CHECKLIST_STATUS.PASS && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -421,13 +421,13 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {selectedDocket.truckChecklist?.checklistStatus !== CHECKLIST_STATUS.COMPLETED && (
+                {selectedDocket.truckChecklist?.checklistStatus !== CHECKLIST_STATUS.PASS && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
                     onClick={() => {
                       setIsDrawerOpen(false);
-                      onOpenChecklist?.('vehicle-inspection');
+                      onOpenChecklist?.('vehicle-inspection', selectedDocket.truck?.licensePlate);
                     }}
                   >
                     <span className="flex items-center gap-2">

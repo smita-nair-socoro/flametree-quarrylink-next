@@ -22,6 +22,8 @@ interface ChecklistPromptDrawerProps {
   onCompleteExternally: () => void;
   onCompleteNow: () => void;
   type?: ChecklistType;
+  truckLicensePlate?: string;
+  driverName?: string;
 }
 
 export function ChecklistPromptDrawer({
@@ -30,6 +32,8 @@ export function ChecklistPromptDrawer({
   onCompleteExternally,
   onCompleteNow,
   type = 'pre-start',
+  truckLicensePlate,
+  driverName,
 }: ChecklistPromptDrawerProps) {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false);
 
@@ -65,6 +69,7 @@ export function ChecklistPromptDrawer({
         <div className="flex h-full w-full absolute inset-0 z-50 bg-white">
           {isPreStart ? (
             <DriverPreStartChecklist
+              driverName={driverName}
               onSubmit={() => {
                 onCompleteNow();
                 setIsChecklistOpen(false);
@@ -73,6 +78,7 @@ export function ChecklistPromptDrawer({
             />
           ) : (
             <TruckInspectionChecklist
+              truckLicensePlate={truckLicensePlate}
               onSubmit={() => {
                 onCompleteNow();
                 setIsChecklistOpen(false);

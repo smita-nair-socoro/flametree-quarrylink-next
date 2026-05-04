@@ -1,5 +1,0 @@
-export enum DRIVER_COMPLIANCE_STATUS {
-  PASS = 'PASS',
-  FAIL = 'FAIL',
-  CONFIRMED = 'CONFIRMED',
-}
