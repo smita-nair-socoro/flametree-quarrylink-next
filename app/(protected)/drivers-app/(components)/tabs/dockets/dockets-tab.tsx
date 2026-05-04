@@ -30,7 +30,7 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDocketActions } from '@/hooks/use-docket-actions';
-import { useOperationalUpdateDocket } from '@/lib/api/docket';
+import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
@@ -79,7 +79,7 @@ export default function DocketsTab({
 
   const { actions, confirmDialogs, isDialogOpen } =
     useDocketActions(selectedDocket);
-  const operationalUpdate = useOperationalUpdateDocket();
+  const operationalUpdate = useDriverAppOperationalUpdate();
 
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
@@ -630,10 +630,7 @@ export default function DocketsTab({
                 if (isNaN(numericValue)) return;
                 await operationalUpdate.mutateAsync({
                   id: selectedDocket.id,
-                  data: {
-                    checkWindowTimeConflict: false,
-                    actualLoadSize: numericValue,
-                  },
+                  actualLoadSize: numericValue,
                 });
                 setIsUpdateDrawerOpen(false);
               }}
