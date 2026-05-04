@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { DocketDTO } from '@/lib/types/docket';
+import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { format } from 'date-fns';
 import {
@@ -402,7 +403,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {selectedDocket.preStartRequired && (
+                {selectedDocket.driverChecklist?.checklistStatus !== CHECKLIST_STATUS.COMPLETED && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -419,7 +420,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {selectedDocket.truckInspectionRequired && !selectedDocket.preStartRequired && (
+                {selectedDocket.truckChecklist?.checklistStatus !== CHECKLIST_STATUS.COMPLETED && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -442,7 +443,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     onClick={() => {
                       handleAction('startTransit');
                     }}
-                    disabled={selectedDocket.truckInspectionRequired}
+                    disabled={selectedDocket.truckChecklist?.checklistStatus !== CHECKLIST_STATUS.COMPLETED}
                   >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
