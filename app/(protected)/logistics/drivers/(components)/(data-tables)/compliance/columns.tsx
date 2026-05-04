@@ -4,10 +4,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ComplianceTableActions } from './compliance-table-actions';
 import { TableBadges } from '@/components/table-badges';
-import { DriverPreStartChecklist } from '@/lib/types/driver-compliance';
+import { ChecklistItem } from '@/lib/types/checklist';
 import { DateCell } from '@/components/date-cell';
 
-export const complianceColumns: ColumnDef<DriverPreStartChecklist>[] = [
+export const complianceColumns: ColumnDef<ChecklistItem>[] = [
   {
     id: 'submissionNumber',
     accessorFn: (row) => row.submissionNumber,

@@ -1,68 +1,51 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { BaseChecklist, Question } from './base-checklist';
+import { DriverChecklistTemplateQueryOptions } from '@/lib/api/checklist';
+import { Spinner } from '@/components/ui/spinner';
 
-const DAILY_COMPLIANCE_QUESTIONS: Question[] = [
-  // Health & Wellness
-  {
-    id: 'sleep',
-    category: 'Health & Wellness',
-    text: 'Have you had adequate sleep (7+ hours)?',
-  },
-  {
-    id: 'fit',
-    category: 'Health & Wellness',
-    text: 'Are you feeling physically fit to drive?',
-  },
-  {
-    id: 'alcohol',
-    category: 'Health & Wellness',
-    text: 'Have you consumed alcohol in the last 24 hours?',
-  },
-  {
-    id: 'meds',
-    category: 'Health & Wellness',
-    text: 'Are you taking any medications that may affect driving?',
-  },
+export default function DriverPreStartChecklist({
+  onSubmit,
+  onBack,
+  driverName,
+}: {
+  onSubmit?: () => void;
+  onBack?: () => void;
+  driverName?: string;
+}) {
+  const { data: template, isLoading } = useQuery(DriverChecklistTemplateQueryOptions());
 
-  // Documentation
-  {
-    id: 'license',
-    category: 'Documentation',
-    text: "Do you have a valid driver's license?",
-  },
-  {
-    id: 'registration',
-    category: 'Documentation',
-    text: 'Do you have vehicle registration and insurance documents?',
-  },
+  const questions: Question[] = (template?.sections ?? [])
+    .slice()
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .flatMap((section) =>
+      section.questions
+        .slice()
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .map((q) => ({
+          id: String(q.id),
+          text: q.questionText,
+          category: section.title,
+        })),
+    );
 
-  // Route Planning
-  {
-    id: 'route_schedule',
-    category: 'Route Planning',
-    text: "Have you reviewed today's delivery schedule and route?",
-  },
-  {
-    id: 'traffic_weather',
-    category: 'Route Planning',
-    text: 'Are you aware of any traffic or weather conditions?',
-  },
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-screen gap-3">
+        <Spinner size="medium" />
+        <p className="text-sm text-gray-400">Loading checklist...</p>
+      </div>
+    );
+  }
 
-  // Safety Protocols
-  {
-    id: 'safety_protocols',
-    category: 'Safety Protocols',
-    text: "Do you understand all safety protocols for today's deliveries?",
-  },
-];
-
-export default function DriverPreStartChecklist({ onSubmit, onBack }: { onSubmit?: () => void, onBack?: () => void }) {
   return (
     <BaseChecklist
-      title="Daily Compliance Checklist"
-      questions={DAILY_COMPLIANCE_QUESTIONS}
-      alertMessage="Complete this checklist before starting your deliveries"
+      title={template?.name ?? 'Daily Compliance Checklist'}
+      questions={questions}
+      alertMessage={driverName
+        ? `Complete this checklist before starting your deliveries, ${driverName}`
+        : 'Complete this checklist before starting your deliveries'}
       submitButtonText="Submit Checklist"
       onSubmit={onSubmit}
       showBackButton={!!onBack}

@@ -39,3 +39,22 @@ export enum TRUCK_BUSINESS_TYPE {
   INTERNAL = 'INTERNAL',
   EXTERNAL = 'EXTERNAL',
 }
+
+export const TRUCK_TYPE_LABELS: Record<string, string> = {
+  TRUCK: 'Truck',
+  SEMI_TRAILER: 'Semi-Trailer',
+  TRUCK_AND_TRAILER: 'Truck + Trailer',
+  RIGID_TRUCK: 'Rigid Truck',
+  FLATBED: 'Flatbed',
+  TIPPER: 'Tipper',
+  TANDEM: 'Tandem',
+  QUAD: 'Quad',
+  TRI_AXLE: 'Tri-Axle',
+  TAUTLINER: 'Tautliner',
+  CRANE_TRUCK: 'Crane Truck',
+};
+
+export function formatTruckType(truckType: string | undefined): string {
+  if (!truckType) return '';
+  return TRUCK_TYPE_LABELS[truckType] ?? truckType;
+}
