@@ -6,7 +6,10 @@ import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { DriverTableActions } from './driver-table-actions';
 
-export const driverColumns: ColumnDef<DriverDTO>[] = [
+// TEMP: emailToSubMap resolves userSub by matching driver.emailAddress → User.email.
+// Once backend adds userSub to DriverDTO, replace this factory with a plain array
+// and read userSub directly from the driver row.
+export const driverColumns = (emailToSubMap: Map<string, string>): ColumnDef<DriverDTO>[] => [
   {
     id: 'driverName',
     accessorFn: (row) => row.driverName,
@@ -95,7 +98,8 @@ export const driverColumns: ColumnDef<DriverDTO>[] = [
     },
     cell: ({ row }) => {
       const driver = row.original;
-      return <DriverTableActions driver={driver} />;
+      const userSub = emailToSubMap.get(driver.emailAddress?.toLowerCase() ?? '');
+      return <DriverTableActions driver={driver} userSub={userSub} />;
     },
   },
 ];

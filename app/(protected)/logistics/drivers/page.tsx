@@ -4,6 +4,7 @@ import React from 'react';
 import { Plus, UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions } from '@/lib/api/driver';
+import { UsersListQueryOptions } from '@/lib/api/user';
 import { DriverDTO } from '@/lib/types/driver';
 import {
   DataTableClient,
@@ -17,6 +18,23 @@ import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function DriversPage() {
   const { data: drivers } = useQuery(DriversListQueryOptions());
+
+  // TEMP: Fetch users to resolve driver app invitation sub by email match.
+  // Once the backend adds userSub to DriverDTO, remove this query and the
+  // emailToSubMap memo, and read userSub directly from the driver row.
+  const { data: users } = useQuery(UsersListQueryOptions());
+
+  const emailToSubMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    if (!users) return map;
+    users.forEach((u) => {
+      if (u.groups?.includes('driver') && u.email && u.sub) {
+        map.set(u.email.toLowerCase(), u.sub);
+      }
+    });
+    return map;
+  }, [users]);
+  // END TEMP
 
   const items: DriverDTO[] = React.useMemo(() => {
     return Array.isArray(drivers) ? drivers : [];
@@ -102,7 +120,7 @@ export default function DriversPage() {
         <DataTableClient
           tableId="driver_main_data_table"
           data={items}
-          columns={driverColumns}
+          columns={driverColumns(emailToSubMap)}
           facetDefinition={facetDefs}
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'driverName', desc: false }]}
