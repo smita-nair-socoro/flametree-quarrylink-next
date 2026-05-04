@@ -14,7 +14,8 @@ import {
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { useQuery } from '@tanstack/react-query';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
-import { ConfirmUnassignDialog } from '../cards/confirm-unassign-dialog';
+import { ConfirmUnassignDialog } from '@/components/ui/schedular/unassign-modal';
+import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-drier-modal';
 import type {
   DispatchBoardDocketRow,
   DispatchDocketDTO,
@@ -171,9 +172,7 @@ function resolveUnassignAssignmentLabels(
     if (t) {
       truck = t.licensePlate;
       driver =
-        docket.driver?.driverName ??
-        t.drivers?.[0]?.driverName ??
-        driver;
+        docket.driver?.driverName ?? t.drivers?.[0]?.driverName ?? driver;
     }
   }
   if (viewType === 'drivers' && driversData?.resources) {
@@ -292,7 +291,7 @@ export function DispatchView({
   const [selectedDocketId, setSelectedDocketId] = useState<string | null>(null);
   const [assignModalData, setAssignModalData] = useState<{
     docketId: string;
-    truckId: string;
+    targetId: string;
     time: string;
   } | null>(null);
 
@@ -340,9 +339,16 @@ export function DispatchView({
         (r.dockets || []).map((d) => {
           let duration = 2;
           if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(d.deliveryCollectionStartTime.replace('Z', '')).getTime();
-            const end = new Date(d.deliveryCollectionEndTime.replace('Z', '')).getTime();
-            duration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+            const start = new Date(
+              d.deliveryCollectionStartTime.replace('Z', ''),
+            ).getTime();
+            const end = new Date(
+              d.deliveryCollectionEndTime.replace('Z', ''),
+            ).getTime();
+            duration = Math.max(
+              1,
+              Math.round((end - start) / (1000 * 60 * 60)),
+            );
           }
           return {
             ...d,
@@ -363,9 +369,16 @@ export function DispatchView({
         (r.dockets || []).map((d) => {
           let duration = 2;
           if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(d.deliveryCollectionStartTime.replace('Z', '')).getTime();
-            const end = new Date(d.deliveryCollectionEndTime.replace('Z', '')).getTime();
-            duration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+            const start = new Date(
+              d.deliveryCollectionStartTime.replace('Z', ''),
+            ).getTime();
+            const end = new Date(
+              d.deliveryCollectionEndTime.replace('Z', ''),
+            ).getTime();
+            duration = Math.max(
+              1,
+              Math.round((end - start) / (1000 * 60 * 60)),
+            );
           }
           return {
             ...d,
@@ -396,7 +409,8 @@ export function DispatchView({
             name: r.licensePlate,
             capacity: 'N/A',
             trips: r.dockets?.length || 0,
-            drivers: r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
+            drivers:
+              r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
             type: firstDriver?.driverType || 'INTERNAL',
             haulierName: firstDriver?.haulier?.haulierName,
           };
@@ -416,7 +430,8 @@ export function DispatchView({
         if ('driverName' in r) {
           return {
             id: String(r.id),
-            name: r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
+            name:
+              r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
             capacity: 'N/A',
             trips: r.dockets?.length || 0,
             drivers: r.driverName,
@@ -438,28 +453,28 @@ export function DispatchView({
 
   const filterDriverOptions = useMemo(() => {
     if (viewType !== 'drivers' || !driversData?.resources) return [];
-    return driversData.resources
-      .filter(isDispatchDriverResource)
-      .map((r) => ({
-        id: String(r.id),
-        label: r.driverName,
-        secondary:
-          r.trucks?.map((t) => t.licensePlate).filter(Boolean).join(', ') ||
-          undefined,
-      }));
+    return driversData.resources.filter(isDispatchDriverResource).map((r) => ({
+      id: String(r.id),
+      label: r.driverName,
+      secondary:
+        r.trucks
+          ?.map((t) => t.licensePlate)
+          .filter(Boolean)
+          .join(', ') || undefined,
+    }));
   }, [viewType, driversData]);
 
   const filterTruckOptions = useMemo(() => {
     if (viewType !== 'trucks' || !trucksData?.resources) return [];
-    return trucksData.resources
-      .filter(isDispatchTruckResource)
-      .map((r) => ({
-        id: String(r.id),
-        label: r.licensePlate,
-        secondary:
-          r.drivers?.map((d) => d.driverName).filter(Boolean).join(', ') ||
-          undefined,
-      }));
+    return trucksData.resources.filter(isDispatchTruckResource).map((r) => ({
+      id: String(r.id),
+      label: r.licensePlate,
+      secondary:
+        r.drivers
+          ?.map((d) => d.driverName)
+          .filter(Boolean)
+          .join(', ') || undefined,
+    }));
   }, [viewType, trucksData]);
 
   const filterHaulierOptions = useMemo(() => {
@@ -511,13 +526,20 @@ export function DispatchView({
         dockets
           .filter((d) => matchesBoardJobFilter(d, boardFilter.jobStatuses))
           .map((d) => d.uiAssignedTruckId)
-          .filter(Boolean)
+          .filter(Boolean),
       );
       result = result.filter((row) => rowsWithDockets.has(row.id));
     }
 
     return result;
-  }, [mappedResources, viewType, trucksData, driversData, boardFilter, dockets]);
+  }, [
+    mappedResources,
+    viewType,
+    trucksData,
+    driversData,
+    boardFilter,
+    dockets,
+  ]);
 
   const docketsForAssignedBoard = useMemo(() => {
     const visibleIds = new Set(filteredMappedResources.map((r) => r.id));
@@ -542,14 +564,14 @@ export function DispatchView({
     const trucksBooked =
       viewType === 'trucks'
         ? new Set(
-          assignedOnSelectedDay
-            .map((d) => d.uiAssignedTruckId)
-            .filter((id): id is string => Boolean(id)),
-        ).size
+            assignedOnSelectedDay
+              .map((d) => d.uiAssignedTruckId)
+              .filter((id): id is string => Boolean(id)),
+          ).size
         : countTrucksWithAssignedBookingsOnSelectedDay(
-          trucksDataForStats,
-          date,
-        );
+            trucksDataForStats,
+            date,
+          );
 
     const trucksForDriverResolve =
       viewType === 'trucks' ? trucksData : trucksDataForStats;
@@ -574,13 +596,7 @@ export function DispatchView({
       trucksBooked,
       driversOnTrips: onTripDriverIds.size,
     };
-  }, [
-    docketsForSelectedDay,
-    viewType,
-    trucksData,
-    trucksDataForStats,
-    date,
-  ]);
+  }, [docketsForSelectedDay, viewType, trucksData, trucksDataForStats, date]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -605,31 +621,27 @@ export function DispatchView({
 
     const match = overId.match(/^truck-(.+)-time-(.+)$/);
     if (match) {
-      const [, truckId, time] = match;
+      const [, targetId, time] = match;
 
-      const docket = dockets.find(d => String(d.id) === docketId);
-      if (docket && docket.docketStatus !== DOCKET_STATUS.UNASSIGNED && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+      const docket = dockets.find((d) => String(d.id) === docketId);
+      if (
+        docket &&
+        docket.docketStatus !== DOCKET_STATUS.UNASSIGNED &&
+        docket.docketStatus !== DOCKET_STATUS.ASSIGNED
+      ) {
         return; // Cannot move locked dockets
       }
 
-      if (docket && docket.uiAssignedTruckId === truckId && docket.uiAssignedTime === time) {
+      if (
+        docket &&
+        docket.uiAssignedTruckId === targetId &&
+        docket.uiAssignedTime === time
+      ) {
         // Dropped on the same slot, do nothing
         return;
       }
 
-      if (viewType === 'trucks') {
-        setAssignModalData({ docketId, truckId, time });
-      } else {
-        // If in drivers view, we might not need the modal or it might be different.
-        // The user said "do only from the trucks view", so we'll just update local state for now in drivers view.
-        setDockets((prev) =>
-          prev.map((d) =>
-            String(d.id) === docketId
-              ? { ...d, uiAssignedTruckId: truckId, uiAssignedTime: time }
-              : d,
-          ),
-        );
-      }
+      setAssignModalData({ docketId, targetId, time });
     }
   };
 
@@ -705,15 +717,15 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedDuration: newDuration,
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                }
+                    ...d,
+                    uiAssignedDuration: newDuration,
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                  }
                 : d,
             ),
           );
         },
-      }
+      },
     );
   };
 
@@ -775,11 +787,11 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === id
                 ? {
-                  ...d,
-                  uiAssignedTruckId: null,
-                  uiAssignedTime: null,
-                  docketStatus: DOCKET_STATUS.UNASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: null,
+                    uiAssignedTime: null,
+                    docketStatus: DOCKET_STATUS.UNASSIGNED,
+                  }
                 : d,
             ),
           );
@@ -790,10 +802,10 @@ export function DispatchView({
     );
   };
 
-  const handleAssignDriver = (driverId: number) => {
+  const handleAssignResource = (selectedId: number) => {
     if (!assignModalData) return;
 
-    const { docketId, truckId, time } = assignModalData;
+    const { docketId, targetId, time } = assignModalData;
     const docket = dockets.find((d) => String(d.id) === docketId);
 
     // Parse time to ISO strings for start and end windows
@@ -807,11 +819,14 @@ export function DispatchView({
     const endWindow = new Date(startWindow);
     endWindow.setHours(startWindow.getHours() + duration);
 
+    const truckId = viewType === 'trucks' ? Number(targetId) : selectedId;
+    const driverId = viewType === 'trucks' ? selectedId : Number(targetId);
+
     assignMutation.mutate(
       {
         docketId: Number(docketId),
         driverId,
-        truckId: Number(truckId),
+        truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
         plannedLoadSize: docket?.loadSize || 0,
@@ -822,33 +837,43 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedTruckId: truckId,
-                  uiAssignedTime: time,
-                  deliveryCollectionDate: startOfDay(startWindow),
-                  deliveryCollectionStartTime: formatLocalISO(startWindow),
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  docketStatus: DOCKET_STATUS.ASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: targetId,
+                    uiAssignedTime: time,
+                    deliveryCollectionDate: startOfDay(startWindow),
+                    deliveryCollectionStartTime: formatLocalISO(startWindow),
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                    docketStatus: DOCKET_STATUS.ASSIGNED,
+                  }
                 : d,
             ),
           );
           setAssignModalData(null);
         },
-      }
+      },
     );
   };
 
   const assignModalDocket = assignModalData
     ? dockets.find((d) => String(d.id) === assignModalData.docketId)
     : null;
+
   const assignModalTruck: DispatchTruckResource | null =
-    assignModalData && trucksData
-      ? trucksData.resources.find(
-        (r): r is DispatchTruckResource =>
-          isDispatchTruckResource(r) &&
-          String(r.id) === assignModalData.truckId,
-      ) ?? null
+    assignModalData && viewType === 'trucks' && trucksData
+      ? (trucksData.resources.find(
+          (r): r is DispatchTruckResource =>
+            isDispatchTruckResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
+      : null;
+
+  const assignModalDriver: DispatchDriverResource | null =
+    assignModalData && viewType === 'drivers' && driversData
+      ? (driversData.resources.find(
+          (r): r is DispatchDriverResource =>
+            isDispatchDriverResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
       : null;
 
   return (
@@ -928,86 +953,16 @@ export function DispatchView({
         {activeDocket ? <DocketCardOverlay docket={activeDocket} /> : null}
       </DragOverlay>
 
-      <Dialog
+      <AssignTruckDriverModal
         open={!!assignModalData}
         onOpenChange={(open) => !open && setAssignModalData(null)}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              Select Driver
-            </DialogTitle>
-            {assignModalDocket && assignModalTruck && (
-              <p className="text-gray-500 text-sm mt-1">
-                {assignModalDocket.docketNumber} &rarr;{' '}
-                {assignModalTruck.licensePlate}
-              </p>
-            )}
-          </DialogHeader>
-
-          {assignModalDocket && assignModalTruck && (
-            <div className="flex flex-col gap-4 mt-2">
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-500 text-sm">Load</span>
-                  <span className="font-bold text-gray-900">
-                    {assignModalDocket.loadSize}{' '}
-                    {assignModalDocket.productSellUom === 'M3'
-                      ? 'm³'
-                      : assignModalDocket.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : assignModalDocket.productSellUom || 'TN'}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-500 text-sm">Truck limits</span>
-                  <span className="font-bold text-gray-900">
-                    22 m³ / 30 TN
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-500 text-sm">Trip fill</span>
-                  <span className="font-bold text-gray-900">50%</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {assignModalTruck.drivers?.map((driver) => (
-                  <div
-                    key={driver.id ?? driver.driverName}
-                    onClick={() => {
-                      if (driver.id != null) handleAssignDriver(driver.id);
-                    }}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50/30 transition-colors"
-                  >
-                    <span className="font-semibold text-gray-900">
-                      {driver.driverName}
-                    </span>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">
-                      AVAILABLE
-                    </span>
-                  </div>
-                ))}
-                {(!assignModalTruck.drivers || assignModalTruck.drivers.length === 0) && (
-                  <div className="text-center text-gray-500 text-sm py-4">
-                    No drivers found for this truck.
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end mt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setAssignModalData(null)}
-                  className="px-6"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        viewType={viewType}
+        docket={assignModalDocket as DispatchDocket | null}
+        truck={assignModalTruck}
+        driver={assignModalDriver}
+        onAssign={handleAssignResource}
+        onCancel={() => setAssignModalData(null)}
+      />
 
       {unassignDialogSnapshot && (
         <ConfirmUnassignDialog
