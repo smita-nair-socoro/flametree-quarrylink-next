@@ -51,9 +51,26 @@ export interface DocketAssignRequest {
   docketId: number;
   truckId: number;
   driverId: number;
-  deliveryStartWindow?: string;
-  deliveryEndWindow?: string;
+  deliveryStartWindow: string;
+  deliveryEndWindow: string;
   plannedLoadSize?: number;
+}
+
+export interface DocketOperationalUpdateRequest {
+  checkWindowTimeConflict: boolean;
+  docketEmailRecipients?: string[];
+  actualLoadSize?: number;
+  plannedLoadSize?: number;
+  driverId?: number;
+  truckId?: number;
+  deliveryCollectionDate?: string;
+  deliveryCollectionStartTime?: string;
+  deliveryCollectionEndTime?: string;
+}
+
+export interface DocketOperationalUpdateResponse {
+  docket: DocketDTO;
+  conflictingDocketIds: number[];
 }
 
 export interface DocketDTO {

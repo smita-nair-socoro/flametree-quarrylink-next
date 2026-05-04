@@ -4,10 +4,10 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { InspectionTableActions } from './inspection-table-actions';
 import { TableBadges } from '@/components/table-badges';
-import { TruckInspection } from '@/lib/types/truck-inspection';
+import { ChecklistItem } from '@/lib/types/checklist';
 import { DateCell } from '@/components/date-cell';
 
-export const inspectionColumns: ColumnDef<TruckInspection>[] = [
+export const inspectionColumns: ColumnDef<ChecklistItem>[] = [
   {
     id: 'submissionNumber',
     accessorFn: (row) => row.submissionNumber,

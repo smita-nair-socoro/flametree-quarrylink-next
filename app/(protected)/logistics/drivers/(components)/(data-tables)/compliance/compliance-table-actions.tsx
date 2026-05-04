@@ -9,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { DriverPreStartChecklist } from '@/lib/types/driver-compliance';
+import type { ChecklistItem } from '@/lib/types/checklist';
 
 interface ComplianceTableActionsProps {
-  record: DriverPreStartChecklist;
+  record: ChecklistItem;
 }
 
 export function ComplianceTableActions({ record }: ComplianceTableActionsProps) {
