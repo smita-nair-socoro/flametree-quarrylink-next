@@ -3,7 +3,8 @@
 import * as React from 'react';
 
 import { DocketDTO } from '@/lib/types/docket';
-import { useDriverAppAssignedDockets } from '@/lib/api/driver-app';
+import { useQuery } from '@tanstack/react-query';
+import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
 import { format } from 'date-fns';
 import {
   MapPin,
@@ -62,7 +63,7 @@ type ActionType =
   | 'backToPreparing';
 
 export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
-  const { data: dockets = [], isLoading, isError } = useDriverAppAssignedDockets();
+  const { data: dockets = [], isLoading, isError } = useQuery(DriverAppAssignedDocketsQueryOptions());
 
   const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
     null,
