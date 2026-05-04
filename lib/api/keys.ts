@@ -97,6 +97,10 @@ export const DocketKeys = {
   list: () => [...DocketKeys.all, 'list'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
+  truckInspection: (docketId: number) =>
+    [...DocketKeys.all, docketId, 'truck-inspection'] as const,
+  preStartChecklist: (docketId: number) =>
+    [...DocketKeys.all, docketId, 'pre-start-checklist'] as const,
 };
 
 export const InvoicesKeys = {
@@ -134,4 +138,14 @@ export const DriverAppKeys = {
   assignedDockets: () => [...DriverAppKeys.all, 'assigned'] as const,
   assignedDocketDetail: (docketId: number) =>
     [...DriverAppKeys.all, 'assigned', docketId] as const,
+};
+
+export const ChecklistKeys = {
+  all: ['checklists'] as const,
+  truckTemplate: () => [...ChecklistKeys.all, 'truck', 'template'] as const,
+  driverTemplate: () => [...ChecklistKeys.all, 'driver', 'template'] as const,
+  truckSubmission: (submissionId: number) =>
+    [...ChecklistKeys.all, 'truck-submissions', submissionId] as const,
+  driverSubmission: (submissionId: number) =>
+    [...ChecklistKeys.all, 'driver-submissions', submissionId] as const,
 };

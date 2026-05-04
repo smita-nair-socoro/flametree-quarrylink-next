@@ -21,6 +21,8 @@ import { FormSelect } from '@/components/ui/form-select';
 import {
   AlertTriangle,
   Calendar,
+  CircleCheck,
+  CircleX,
   Clock,
   FileText,
   Info,
@@ -45,6 +47,10 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
+import {
+  ChecklistReportModal,
+  CHECKLIST_TYPE,
+} from '@/components/checklist-report-modal';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
@@ -86,6 +92,9 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
+  const [checklistReportOpen, setChecklistReportOpen] = React.useState(false);
+  const [checklistReportType, setChecklistReportType] =
+    React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
   const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
     typeof DocketFormSchema
   > | null>(null);
@@ -489,6 +498,16 @@ export default function DocketForm({
         onConfirmAction={async () => {
           if (pendingSubmitValues) await doSave(pendingSubmitValues);
         }}
+      />
+
+      <ChecklistReportModal
+        open={checklistReportOpen}
+        onOpenChange={setChecklistReportOpen}
+        type={checklistReportType}
+        docketId={id}
+        docketNumber={selectedDocket?.docketNumber}
+        truckModel={selectedDocket?.truck?.model}
+        truckLicensePlate={selectedDocket?.truck?.licensePlate}
       />
 
       <div className="w-full relative">
@@ -1114,6 +1133,80 @@ export default function DocketForm({
                   </div>
                 </div>
               )}
+
+              {/* Checklist Section */}
+              {isEditing &&
+                selectedDocket &&
+                [
+                  DOCKET_STATUS.IN_TRANSIT,
+                  DOCKET_STATUS.STOPPED,
+                  DOCKET_STATUS.ARRIVED,
+                  DOCKET_STATUS.DELIVERED,
+                  DOCKET_STATUS.INVOICED,
+                ].includes(selectedDocket.docketStatus) && (
+                  <div className="grid grid-cols-2 gap-4">
+                    {(
+                      [
+                        {
+                          title: 'Pre-Start Checklist',
+                          checklist: selectedDocket.driverChecklist,
+                          items: ['Driver OK', 'BAC'],
+                          reportType: CHECKLIST_TYPE.DRIVER,
+                        },
+                        {
+                          title: 'Truck Inspection',
+                          checklist: selectedDocket.truckChecklist,
+                          items: ['Truck OK', 'Trailer OK'],
+                          reportType: CHECKLIST_TYPE.TRUCK,
+                        },
+                      ] as const
+                    ).map(({ title, checklist, items, reportType }) => (
+                      <div
+                        key={title}
+                        className="border-t border-[#8E51FF] p-4 flex flex-col gap-3 bg-[#F9FAFB]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-semibold">
+                              {title}
+                            </span>
+                          </div>
+                          <span
+                            className="text-xs text-[#8E51FF] font-semibold underline cursor-pointer"
+                            onClick={() => {
+                              setChecklistReportType(reportType);
+                              setChecklistReportOpen(true);
+                            }}
+                          >
+                            View Full Report
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {items.map((item) =>
+                            checklist && !checklist.hasIssues ? (
+                              <div
+                                key={item}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <CircleCheck className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <span>{item}</span>
+                              </div>
+                            ) : (
+                              <div
+                                key={item}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <CircleX className="w-4 h-4 text-red-500 flex-shrink-0" />
+                                <span>{item}</span>
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
               <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
                 <h3 className="text-lg font-bold mb-3">Sale Summary</h3>

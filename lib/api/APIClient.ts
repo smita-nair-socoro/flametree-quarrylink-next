@@ -55,6 +55,8 @@ import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO } from '../types/truck';
 import { DriverPreStartChecklistsPage } from '../types/driver-compliance';
 import { TruckInspectionsPage } from '../types/truck-inspection';
+import { ChecklistTemplate } from '../types/checklist-template';
+import { ChecklistSubmission } from '../types/checklist-submission';
 import {
   DriverDTO,
   PatchDriverInfoDTO,
@@ -946,6 +948,14 @@ export const APIClient = {
       appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/unassign', {
         body: data,
       }),
+    getTruckInspection: (docketId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/dockets/${docketId}/truck-inspection`,
+      ),
+    getPreStartChecklist: (docketId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/dockets/${docketId}/pre-start-checklist`,
+      ),
   },
 
   users: {
@@ -1259,13 +1269,9 @@ export const APIClient = {
 
   driverApp: {
     getAssignedDockets: () =>
-      appClient.Get<DocketDTO[]>(
-        `/socoro/quarrylink/api/driver-app/assigned`,
-      ),
+      appClient.Get<DocketDTO[]>(`/socoro/quarrylink/api/driver-app/assigned`),
     getAssignedDocketById: (docketId: number) =>
-      appClient.Get<DocketDTO>(
-        `/socoro/quarrylink/api/driver-app/${docketId}`,
-      ),
+      appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
   },
 
   scheduler: {
@@ -1282,6 +1288,25 @@ export const APIClient = {
         {
           queryString: { start, end },
         },
+      ),
+  },
+
+  checklists: {
+    getTruckTemplate: () =>
+      appClient.Get<ChecklistTemplate>(
+        `/socoro/quarrylink/api/checklists/truck/template`,
+      ),
+    getDriverTemplate: () =>
+      appClient.Get<ChecklistTemplate>(
+        `/socoro/quarrylink/api/checklists/driver/template`,
+      ),
+    getTruckSubmission: (submissionId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/checklists/truck-submissions/${submissionId}`,
+      ),
+    getDriverSubmission: (submissionId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/checklists/driver-submissions/${submissionId}`,
       ),
   },
 };
