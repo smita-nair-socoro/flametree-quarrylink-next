@@ -16,6 +16,7 @@ import {
 } from '@/lib/api/haulier';
 import { useClientStore } from '@/app/stores/client-store';
 import { DocketsListQueryOptions } from '@/lib/api/docket';
+import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
 import {
@@ -287,7 +288,12 @@ export function AssignDocketContent({
     (o) => o.value === haulerSelection,
   )?.label;
 
-  const loadSize = docket?.loadSize ?? 0;
+  const loadSize = docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
+  const loadSizeM3 = React.useMemo(() => {
+    const density = docket?.jobItem?.product?.densityTonnagePerM3 || 1;
+    const uom = docket?.jobItem?.productSellUom ?? 'M3';
+    return calculateConvertedQty(loadSize, uom, 'M3', density);
+  }, [loadSize, docket?.jobItem?.product?.densityTonnagePerM3, docket?.jobItem?.productSellUom]);
 
   const truckColorOptions = React.useMemo((): ColorSelectOption[] => {
     if (!haulerSelection) return [];
@@ -295,7 +301,7 @@ export function AssignDocketContent({
       .filter((t) => t.haulierId === haulerSelection)
       .map((t) => {
         const pct =
-          t.capacityM3 > 0 ? Math.round((loadSize / t.capacityM3) * 100) : 0;
+          t.capacityM3 > 0 ? Math.round((loadSizeM3 / t.capacityM3) * 100) : 0;
         const cfg = getTruckStatusConfig(pct);
         return {
           pct,
@@ -323,7 +329,7 @@ export function AssignDocketContent({
       return b.pct - a.pct;
     });
     return withPct.map(({ option }) => option);
-  }, [availableTrucks, haulerSelection, loadSize]);
+  }, [availableTrucks, haulerSelection, loadSizeM3]);
 
   const driverOptions = React.useMemo(
     () =>
