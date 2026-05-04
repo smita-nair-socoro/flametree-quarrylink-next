@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { DocketDTO } from '@/lib/types/docket';
+import { formatTruckType } from '@/lib/types/truck-enums';
 import { format } from 'date-fns';
 import {
   MapPin,
@@ -153,8 +154,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
             </div>
             <div className="flex items-center gap-2.5">
               <Truck className="w-4 h-4 text-gray-400 shrink-0" />
-              <span className="text-[14px] text-[#45556C] font-mono">
-                {docket.truckType}
+              <span className="text-[14px] text-[#45556C]">
+                {formatTruckType(docket.truckType)}
               </span>
             </div>
             <div className="flex items-center gap-2.5">
@@ -257,7 +258,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                         Account Manager
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.job?.accountManagerName || 'N/A'}
+                        {selectedDocket.job?.customerDto?.accountManagerName || 'N/A'}
                       </span>
                     </div>
                   </div>
@@ -314,7 +315,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                         Assigned Truck
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.truckType}
+                        {selectedDocket.truck?.licensePlate ?? selectedDocket.truckType}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
