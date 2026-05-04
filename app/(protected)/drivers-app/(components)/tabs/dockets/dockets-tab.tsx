@@ -506,6 +506,9 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
 
       <Drawer open={isUpdateDrawerOpen} onOpenChange={setIsUpdateDrawerOpen}>
         <DrawerContent className="bg-[#E2E8F0] flex flex-col rounded-t-3xl pb-safe">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Update Actual Load Size</DrawerTitle>
+          </DrawerHeader>
           <div className="flex flex-col items-center pt-8 pb-6">
             <div className="flex items-baseline gap-1">
               <span className="text-[56px] font-medium text-[#0F172A] leading-none tracking-tight">
