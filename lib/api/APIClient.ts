@@ -1257,6 +1257,17 @@ export const APIClient = {
       appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
   },
 
+  driverApp: {
+    getAssignedDockets: () =>
+      appClient.Get<DocketDTO[]>(
+        `/socoro/quarrylink/api/driver-app/assigned`,
+      ),
+    getAssignedDocketById: (docketId: number) =>
+      appClient.Get<DocketDTO>(
+        `/socoro/quarrylink/api/driver-app/assigned/${docketId}`,
+      ),
+  },
+
   scheduler: {
     getTrucks: (start: string, end: string) =>
       appClient.Get<DispatchDocketDTO>(
