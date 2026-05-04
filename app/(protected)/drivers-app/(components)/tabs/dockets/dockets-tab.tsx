@@ -74,6 +74,10 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
     actions[actionType]();
   };
 
+  const checklistsComplete =
+    selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.COMPLETED &&
+    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.COMPLETED;
+
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
 
@@ -395,6 +399,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                 {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                   <Button
                     onClick={() => handleAction('markArrived')}
+                    disabled={!checklistsComplete}
                     className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
                   >
                     <span className="flex items-center gap-2">
@@ -443,7 +448,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     onClick={() => {
                       handleAction('startTransit');
                     }}
-                    disabled={selectedDocket.truckChecklist?.checklistStatus !== CHECKLIST_STATUS.COMPLETED}
+                    disabled={!checklistsComplete}
                   >
                     <span className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
@@ -451,7 +456,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {(selectedDocket.docketStatus !== 'STOPPED' && selectedDocket.docketStatus !== 'ARRIVED') && (
+                {(selectedDocket.docketStatus !== 'STOPPED' && selectedDocket.docketStatus !== 'ARRIVED' && selectedDocket.docketStatus !== 'ASSIGNED') && (
                   <Button
                     variant="outline"
                     onClick={() => handleAction('stop')}
@@ -474,6 +479,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                 {selectedDocket.docketStatus === 'ARRIVED' && (
                   <>
                     <Button
+                      disabled={!checklistsComplete}
                       className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
                       onClick={() => handleAction('markDelivered')}
                     >
