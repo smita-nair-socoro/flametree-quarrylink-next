@@ -65,6 +65,8 @@ import {
   PatchDriverHaulierDTO,
   PutDriverDTO,
 } from '../types/driver';
+import { ChecklistTemplate } from '../types/checklist-template';
+import { ChecklistSubmission } from '../types/checklist-submission';
 
 type RequestBody =
   | BodyInit
@@ -952,6 +954,33 @@ export const APIClient = {
       appClient.Put<DocketOperationalUpdateResponse>(
         `/socoro/quarrylink/api/dockets/${id}/operational-update`,
         { body: data },
+      ),
+    getTruckInspection: (docketId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/dockets/${docketId}/truck-inspection`,
+      ),
+    getPreStartChecklist: (docketId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/dockets/${docketId}/pre-start-checklist`,
+      ),
+  },
+
+  checklists: {
+    getTruckTemplate: () =>
+      appClient.Get<ChecklistTemplate>(
+        `/socoro/quarrylink/api/checklists/template/truck`,
+      ),
+    getDriverTemplate: () =>
+      appClient.Get<ChecklistTemplate>(
+        `/socoro/quarrylink/api/checklists/template/driver`,
+      ),
+    getTruckSubmission: (submissionId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/checklists/submissions/truck/${submissionId}`,
+      ),
+    getDriverSubmission: (submissionId: number) =>
+      appClient.Get<ChecklistSubmission>(
+        `/socoro/quarrylink/api/checklists/submissions/driver/${submissionId}`,
       ),
   },
 

@@ -22,7 +22,6 @@ interface ChecklistPromptDrawerProps {
   onCompleteExternally: () => void;
   onCompleteNow: () => void;
   type?: ChecklistType;
-  docketNumber?: string;
 }
 
 export function ChecklistPromptDrawer({
@@ -31,7 +30,6 @@ export function ChecklistPromptDrawer({
   onCompleteExternally,
   onCompleteNow,
   type = 'pre-start',
-  docketNumber,
 }: ChecklistPromptDrawerProps) {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false);
 

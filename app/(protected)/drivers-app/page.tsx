@@ -17,13 +17,12 @@ import { useAuth } from '@/hooks/use-auth';
 export default function DriversAppPage() {
   const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
   const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
-  const [activeDocketNumber, setActiveDocketNumber] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
   const router = useRouter();
 
-  const { data: dockets = [], isLoading: isDocketsLoading } = useQuery(DriverAppAssignedDocketsQueryOptions());
+  const { data: dockets = [] } = useQuery(DriverAppAssignedDocketsQueryOptions());
 
   const isDailyChecklistRequired = React.useMemo(() => {
     const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
@@ -104,7 +103,6 @@ export default function DriversAppPage() {
                   size="xs"
                   onClick={() => {
                     setChecklistType('pre-start');
-                    setActiveDocketNumber(undefined);
                     setIsChecklistPromptOpen(true);
                   }}
                 >
@@ -116,9 +114,8 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
-                onOpenChecklist={(type, docketNumber) => {
+                onOpenChecklist={(type) => {
                   setChecklistType(type);
-                  setActiveDocketNumber(docketNumber);
                   setIsChecklistPromptOpen(true);
                 }}
               />
@@ -181,7 +178,6 @@ export default function DriversAppPage() {
         open={isChecklistPromptOpen}
         onOpenChange={setIsChecklistPromptOpen}
         type={checklistType}
-        docketNumber={activeDocketNumber}
         onCompleteExternally={() => setIsChecklistPromptOpen(false)}
         onCompleteNow={() => setIsChecklistPromptOpen(false)}
       />

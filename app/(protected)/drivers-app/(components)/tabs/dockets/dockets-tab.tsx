@@ -34,10 +34,7 @@ import { useOperationalUpdateDocket } from '@/lib/api/docket';
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
-  onOpenChecklist?: (
-    type: 'pre-start' | 'vehicle-inspection',
-    docketNumber?: string,
-  ) => void;
+  onOpenChecklist?: (type: 'pre-start' | 'vehicle-inspection') => void;
 }
 
 type ActionType =
@@ -416,10 +413,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
                     onClick={() => {
                       setIsDrawerOpen(false);
-                      onOpenChecklist?.(
-                        'pre-start',
-                        selectedDocket.docketNumber,
-                      );
+                      onOpenChecklist?.('pre-start');
                     }}
                   >
                     <span className="flex items-center gap-2">
@@ -433,10 +427,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
                     onClick={() => {
                       setIsDrawerOpen(false);
-                      onOpenChecklist?.(
-                        'vehicle-inspection',
-                        selectedDocket.docketNumber,
-                      );
+                      onOpenChecklist?.('vehicle-inspection');
                     }}
                   >
                     <span className="flex items-center gap-2">
