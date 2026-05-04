@@ -291,9 +291,13 @@ export default function CustomerForm({
           values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
       }
 
-      // Add id for updates
+      // Add id and existing Xero contact ID for updates
       if (isEditing && id) {
         customerData.id = id;
+        if (selectedCustomer?.accSoftwareContactId) {
+          customerData.accSoftwareContactId =
+            selectedCustomer.accSoftwareContactId;
+        }
       }
 
       // Handle BUSINESS type specific fields

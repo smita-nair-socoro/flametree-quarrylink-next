@@ -30,11 +30,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -46,7 +46,7 @@ export function useTeamMemberActions(
   teamMemberId: string | undefined, // Changed from number to string (sub is UUID)
   teamMemberData?: User | null,
   roles?: readonly FormSelectOption[],
-  currentUserId?: number | string
+  currentUserId?: number | string,
 ) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -87,7 +87,7 @@ export function useTeamMemberActions(
   // TODO: Fetch real team members from API for reassignment dropdowns
   const { data: teamMembers } = useQuery(UsersListQueryOptions());
   const filteredTeamMembers = teamMembers?.filter(
-    (member) => member.enabled === true
+    (member) => member.enabled === true,
   );
   const teamMemberOptions: { label: string; value: string }[] =
     filteredTeamMembers?.map((member) => ({
@@ -279,21 +279,6 @@ export function useTeamMemberActions(
             <li>Historical records remain for audit purposes</li>
           </ul>
         </div>
-
-        <div className="rounded-lg border border-orange-500 bg-orange-50 p-3">
-          <div className="flex gap-3">
-            <TriangleAlert className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-orange-500">
-                Changes in Subscription Plan
-              </h4>
-              <p className="text-sm font-normal text-orange-500">
-                Removing a user will reduce the total number of users on your
-                subscription
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     ),
     confirmText: hasDependencies ? 'Delete & Reassign' : 'Delete User',
@@ -384,17 +369,17 @@ export function useTeamMemberActions(
     const customerReassignments =
       hasDependencies && customerCount > 0
         ? (userDependencies?.dependencies?.customers || []).map((c) => ({
-          customerId: c.id,
-          newAccountManagerSub: String(accountManagerReassignTo),
-        }))
+            customerId: c.id,
+            newAccountManagerSub: String(accountManagerReassignTo),
+          }))
         : [];
 
     const quoteReassignments =
       hasDependencies && quotesCount > 0
         ? (userDependencies?.dependencies?.quotations || []).map((q) => ({
-          quoteId: q.id,
-          newOwnerSub: String(accountManagerReassignTo),
-        }))
+            quoteId: q.id,
+            newOwnerSub: String(accountManagerReassignTo),
+          }))
         : [];
 
     const payload: UserDelete = {
