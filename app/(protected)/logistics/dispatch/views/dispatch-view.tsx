@@ -69,19 +69,16 @@ function truckMatchesFleetFilters(
   r: DispatchTruckResource,
   f: DispatchBoardFilterState,
 ): boolean {
-  if (f.truckId && String(r.id) !== f.truckId) return false;
-  if (f.haulierId) {
-    const hid = Number(f.haulierId);
-    if (
-      !(r.drivers || []).some(
-        (d) => d.haulierId === hid || d.haulier?.id === hid,
-      )
-    ) {
-      return false;
-    }
+  if (f.truckIds.length > 0 && !f.truckIds.includes(String(r.id))) return false;
+  if (f.haulierIds.length > 0) {
+    const hasHaulier = (r.drivers || []).some((d) => {
+      const hid = String(d.haulierId || d.haulier?.id);
+      return f.haulierIds.includes(hid);
+    });
+    if (!hasHaulier) return false;
   }
-  if (f.truckBusinessType) {
-    if (inferTruckBusinessType(r) !== f.truckBusinessType) return false;
+  if (f.truckBusinessTypes.length > 0) {
+    if (!f.truckBusinessTypes.includes(inferTruckBusinessType(r))) return false;
   }
   if (f.driverStatuses.length > 0) {
     const want = new Set(f.driverStatuses);
@@ -124,12 +121,12 @@ export type DispatchDocket = DispatchBoardDocketRow &
 
 function matchesBoardJobFilter(
   d: DispatchDocket,
-  jobStatus: string,
+  jobStatuses: string[],
 ): boolean {
-  if (jobStatus === JOB_STATUS_FILTER_ALL) {
+  if (jobStatuses.length === 0) {
     return d.docketStatus !== DOCKET_STATUS.UNASSIGNED;
   }
-  return String(d.docketStatus) === jobStatus;
+  return jobStatuses.includes(String(d.docketStatus));
 }
 
 function formatCargoLineForUnassign(d: DispatchDocket): string {
@@ -391,48 +388,50 @@ export function DispatchView({
 
   const mappedResources: TruckResource[] = useMemo(() => {
     if (viewType === 'trucks' && trucksData) {
-      return (trucksData.resources || []).map((r) =>
-        'licensePlate' in r
-          ? {
+      return (trucksData.resources || []).map((r) => {
+        if ('licensePlate' in r) {
+          const firstDriver = r.drivers?.[0];
+          return {
             id: String(r.id),
             name: r.licensePlate,
             capacity: 'N/A',
             trips: r.dockets?.length || 0,
-            drivers:
-              r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
-            type: r.drivers?.[0]?.driverType || 'INTERNAL',
-          }
-          : {
-            id: String(r.id),
-            name: 'Unknown',
-            capacity: 'N/A',
-            trips: 0,
-            drivers: 'Unassigned',
-            type: 'INTERNAL',
-          },
-      );
+            drivers: r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
+            type: firstDriver?.driverType || 'INTERNAL',
+            haulierName: firstDriver?.haulier?.haulierName,
+          };
+        }
+        return {
+          id: String(r.id),
+          name: 'Unknown',
+          capacity: 'N/A',
+          trips: 0,
+          drivers: 'Unassigned',
+          type: 'INTERNAL',
+        };
+      });
     }
     if (viewType === 'drivers' && driversData) {
-      return (driversData.resources || []).map((r) =>
-        'driverName' in r
-          ? {
+      return (driversData.resources || []).map((r) => {
+        if ('driverName' in r) {
+          return {
             id: String(r.id),
-            name:
-              r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
+            name: r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
             capacity: 'N/A',
             trips: r.dockets?.length || 0,
             drivers: r.driverName,
             type: r.driverType || 'INTERNAL',
-          }
-          : {
-            id: String(r.id),
-            name: 'Unknown',
-            capacity: 'N/A',
-            trips: 0,
-            drivers: 'Unassigned',
-            type: 'INTERNAL',
-          },
-      );
+          };
+        }
+        return {
+          id: String(r.id),
+          name: 'Unknown',
+          capacity: 'N/A',
+          trips: 0,
+          drivers: 'Unassigned',
+          type: 'INTERNAL',
+        };
+      });
     }
     return [];
   }, [trucksData, driversData, viewType]);
@@ -481,26 +480,44 @@ export function DispatchView({
   }, [viewType, trucksData]);
 
   const filteredMappedResources = useMemo(() => {
+    let allowedTruckIds = new Set<string>();
+    let allowedDriverIds = new Set<string>();
+
     if (viewType === 'trucks' && trucksData?.resources) {
-      const allowed = new Set(
+      allowedTruckIds = new Set(
         trucksData.resources
           .filter(isDispatchTruckResource)
           .filter((r) => truckMatchesFleetFilters(r, boardFilter))
           .map((r) => String(r.id)),
       );
-      return mappedResources.filter((row) => allowed.has(row.id));
-    }
-    if (viewType === 'drivers' && driversData?.resources) {
-      const allowed = new Set(
+    } else if (viewType === 'drivers' && driversData?.resources) {
+      allowedDriverIds = new Set(
         driversData.resources
           .filter(isDispatchDriverResource)
           .filter((r) => driverRowMatchesFilters(r, boardFilter))
           .map((r) => String(r.id)),
       );
-      return mappedResources.filter((row) => allowed.has(row.id));
     }
-    return mappedResources;
-  }, [mappedResources, viewType, trucksData, driversData, boardFilter]);
+
+    let result = mappedResources.filter((row) => {
+      if (viewType === 'trucks') return allowedTruckIds.has(row.id);
+      if (viewType === 'drivers') return allowedDriverIds.has(row.id);
+      return true;
+    });
+
+    // If jobStatus filter is active, hide rows that have NO matching dockets
+    if (boardFilter.jobStatuses.length > 0) {
+      const rowsWithDockets = new Set(
+        dockets
+          .filter((d) => matchesBoardJobFilter(d, boardFilter.jobStatuses))
+          .map((d) => d.uiAssignedTruckId)
+          .filter(Boolean)
+      );
+      result = result.filter((row) => rowsWithDockets.has(row.id));
+    }
+
+    return result;
+  }, [mappedResources, viewType, trucksData, driversData, boardFilter, dockets]);
 
   const docketsForAssignedBoard = useMemo(() => {
     const visibleIds = new Set(filteredMappedResources.map((r) => r.id));
@@ -509,9 +526,9 @@ export function DispatchView({
       if (!d.uiAssignedTruckId || !visibleIds.has(d.uiAssignedTruckId)) {
         return false;
       }
-      return matchesBoardJobFilter(d, boardFilter.jobStatus);
+      return matchesBoardJobFilter(d, boardFilter.jobStatuses);
     });
-  }, [dockets, filteredMappedResources, boardFilter.jobStatus]);
+  }, [dockets, filteredMappedResources, boardFilter.jobStatuses]);
 
   const docketsForSelectedDay = useMemo(
     () => dockets.filter((d) => isDocketOnSelectedLocalDay(d, date)),
@@ -519,11 +536,6 @@ export function DispatchView({
   );
 
   const headerStats = useMemo(() => {
-    const total = docketsForSelectedDay.length;
-    const assignedCount = docketsForSelectedDay.filter(
-      (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
-    ).length;
-
     const assignedOnSelectedDay = docketsForSelectedDay.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
     );
@@ -559,8 +571,6 @@ export function DispatchView({
     }
 
     return {
-      assignedCount,
-      total,
       trucksBooked,
       driversOnTrips: onTripDriverIds.size,
     };
@@ -861,14 +871,7 @@ export function DispatchView({
           <span className="text-[12px] font-medium text-[#64748B]">
             {format(date, 'EEE dd MMM').toUpperCase()}
           </span>
-          <div className="border bg-green-50 border-green-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              {headerStats.assignedCount}/{headerStats.total}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Assigned
-            </span>
-          </div>
+
           <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
             <span className="text-[12px] font-semibold tracking-wider">
               {headerStats.trucksBooked}

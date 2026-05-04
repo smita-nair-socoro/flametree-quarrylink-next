@@ -497,7 +497,9 @@ export default function AssignedDockets({
                 </h3>
                 <TableBadges names={[truck.type || 'INTERNAL']} />
               </div>
-              <p className="text-[14px] text-[#64748B] mt-0.5">Metro Haulage</p>
+              <p className="text-[14px] text-[#64748B] mt-0.5">
+                {truck.haulierName || ''}
+              </p>
             </div>
             <button
               onClick={() => setExpandedTruckId(isExpanded ? null : truck.id)}

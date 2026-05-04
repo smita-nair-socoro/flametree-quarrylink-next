@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   format,
   startOfWeek,
@@ -29,6 +29,9 @@ import {
   DispatchDriverResource,
 } from '@/lib/types/docket';
 import { ScheduleFilter } from './schedule-filter';
+import { Button } from '@/components/ui/button';
+import { TableBadges } from '@/components/table-badges';
+
 
 type ViewType = 'trucks' | 'drivers';
 
@@ -40,10 +43,13 @@ type WeekViewDocket = DispatchBoardDocketRow & {
 type ResourceRow = {
   id: string;
   name: string;
-  subtitle?: string;
-  type?: string;
+  companyLine?: string;
+  weekSummaryLine: string;
+  typeLabel: 'INTERNAL' | 'EXTERNAL';
   dockets: WeekViewDocket[];
 };
+
+const GRID_TEMPLATE = 'minmax(200px,1fr) repeat(7,minmax(0,1fr))';
 
 function getChipColor(status: DOCKET_STATUS) {
   switch (status) {
@@ -78,60 +84,91 @@ function getChipColor(status: DOCKET_STATUS) {
   }
 }
 
+function formatSellUomLabel(uom: string | undefined): string {
+  if (uom === 'M3') return 'm³';
+  if (uom === 'KG_20') return '× 20kg';
+  return uom || '';
+}
+
+function formatLoadLine(d: WeekViewDocket): string {
+  const u = formatSellUomLabel(d.productSellUom);
+  return `${d.loadSize ?? ''} ${u}`.trim();
+}
+
+function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
+  if (driverType === 'SUBCONTRACTOR') return 'EXTERNAL';
+  return 'INTERNAL';
+}
+
+function buildWeekSummaryLine(dockets: WeekViewDocket[]): string {
+  const n = dockets.length;
+  if (n === 0) return '0 this week – 0';
+  return `${n} this week`;
+}
+
 function DocketChip({
   docket,
   onClick,
   isSelected = false,
+  viewType,
 }: {
   docket: WeekViewDocket;
   onClick: () => void;
   isSelected?: boolean;
+  viewType: ViewType;
 }) {
   const customerName = docket.customerName || 'Unknown Customer';
   const location = docket.deliveryAddress || 'TBD';
   const colorClass = getChipColor(docket.docketStatus);
 
   return (
-    <div
+    <button
+      type="button"
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className={`text-[10px] p-2 rounded-lg border cursor-pointer hover:opacity-80 ${colorClass} ${
-        isSelected ? 'ring-2 ring-purple-500 ring-offset-1' : ''
-      }`}
+      className={`w-full text-left cursor-pointer rounded-lg border px-2.5 py-2 shadow-sm transition hover:brightness-[0.98] ${colorClass} ${isSelected ? 'ring-2 ring-[#8B5CF6] ring-offset-1' : ''
+        }`}
     >
-      <div className="font-semibold flex justify-between mb-0.5">
-        <span className="truncate w-[60%]">
-          {docket.docketNumber || 'No Number'}
+      <div
+        className={`flex items-start justify-between gap-2 text-[11px] leading-tight font-bold`}
+      >
+        <span className="truncate min-w-0">
+          {docket.docketNumber || '—'}
         </span>
-        <span>
-          {docket.loadSize}{' '}
-          {docket.productSellUom === 'M3'
-            ? 'm³'
-            : docket.productSellUom === 'KG_20'
-              ? 'x 20kg'
-              : docket.productSellUom}
+        <span className="shrink-0 tabular-nums">
+          {formatLoadLine(docket)}
         </span>
       </div>
-      <div className="truncate text-gray-700">{customerName}</div>
-      <div className="truncate text-gray-500 mb-1">{location}</div>
-      {docket.driverName && (
-        <div className="truncate text-gray-500 mt-1">
+      <div
+        className={`mt-1 text-[11px] font-semibold leading-snug truncate opacity-90`}
+      >
+        {customerName}
+      </div>
+      <div className={`text-[11px] leading-snug truncate opacity-75`}>
+        {location}
+      </div>
+      {viewType === 'trucks' && docket.driverName ? (
+        <div className={`mt-1.5 text-[11px] truncate opacity-75`}>
           Driver: {docket.driverName}
         </div>
-      )}
-      {docket.truckName && (
-        <div className="truncate text-gray-500">Truck: {docket.truckName}</div>
-      )}
-    </div>
+      ) : null}
+      {viewType === 'drivers' && docket.truckName ? (
+        <div className={`mt-1.5 text-[11px] truncate opacity-75`}>
+          Truck: {docket.truckName}
+        </div>
+      ) : null}
+    </button>
   );
 }
+
+const VISIBLE_DOCKETS_PER_CELL = 3;
 
 export function ScheduleWeekView({
   date,
   viewType,
-  onDateChange,
+  onDateChange: _onDateChange,
 }: {
   date: Date;
   viewType: ViewType;
@@ -141,7 +178,7 @@ export function ScheduleWeekView({
     undefined,
   );
 
-  const startDate = startOfWeek(date, { weekStartsOn: 1 }); // 1 = Monday
+  const startDate = startOfWeek(date, { weekStartsOn: 1 });
   const endDate = endOfWeek(date, { weekStartsOn: 1 });
 
   const startIso = startDate.toISOString();
@@ -166,16 +203,17 @@ export function ScheduleWeekView({
           truckName: truck.licensePlate,
           driverName: truck.drivers?.[0]?.driverName,
         }));
-        
-        // Calculate total volume for the week
-        const totalVolume = dockets.reduce((sum, d) => sum + (d.loadSize || 0), 0);
-        const uom = dockets[0]?.productSellUom === 'M3' ? 'm³' : 'TN'; // Simplified
+        const firstDriver = truck.drivers?.[0];
+        const companyLine =
+          firstDriver?.haulier?.haulierName?.trim() || undefined;
+        const typeLabel = driverTypeToFleetLabel(firstDriver?.driverType);
 
         return {
           id: String(truck.id),
           name: truck.licensePlate,
-          subtitle: `${dockets.length} this week • ${totalVolume} ${uom}`,
-          type: truck.drivers?.[0]?.driverType || 'INTERNAL',
+          companyLine,
+          weekSummaryLine: buildWeekSummaryLine(dockets),
+          typeLabel,
           dockets,
         };
       });
@@ -189,11 +227,14 @@ export function ScheduleWeekView({
           driverName: driver.driverName,
           truckName: driver.trucks?.[0]?.licensePlate,
         }));
+        const typeLabel = driverTypeToFleetLabel(driver.driverType);
 
         return {
           id: String(driver.id),
           name: driver.driverName,
-          subtitle: `${dockets.length} this week`,
+          companyLine: undefined,
+          weekSummaryLine: buildWeekSummaryLine(dockets),
+          typeLabel,
           dockets,
         };
       });
@@ -207,11 +248,6 @@ export function ScheduleWeekView({
   }, [resources]);
 
   const headerStats = useMemo(() => {
-    const total = allDockets.length;
-    const assignedCount = allDockets.filter(
-      (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
-    ).length;
-
     const assignedDockets = allDockets.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
     );
@@ -232,8 +268,6 @@ export function ScheduleWeekView({
     }
 
     return {
-      assignedCount,
-      total,
       trucksBooked,
       driversOnTrips: onTripDriverNames.size,
     };
@@ -255,33 +289,25 @@ export function ScheduleWeekView({
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
       <ScheduleFilter viewType={viewType} />
-      {/* Fixed top bar */}
-      <div className="border-b pl-6 py-2.5 bg-white shrink-0">
-        <div className="flex items-center gap-3">
+      <div className="border-b border-[#E2E8F0] pl-6 py-2.5 bg-white shrink-0">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="text-[12px] font-medium text-[#64748B]">
             THIS WEEK
           </span>
-          <div className="border bg-green-50 border-green-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              {headerStats.assignedCount}/{headerStats.total}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Assigned
-            </span>
-          </div>
-          <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
+
+          <div className="border border-blue-200 bg-blue-50/80 rounded-xl px-3 py-1 flex gap-1 items-center">
+            <span className="text-[12px] font-semibold text-blue-900 tabular-nums">
               {headerStats.trucksBooked}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
+            </span>
+            <span className="text-[12px] font-medium text-blue-900/80">
               Trucks booked this week
             </span>
           </div>
-          <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
+          <div className="border border-purple-200 bg-purple-50/80 rounded-xl px-3 py-1 flex gap-1 items-center">
+            <span className="text-[12px] font-semibold text-purple-900 tabular-nums">
               {headerStats.driversOnTrips}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
+            </span>
+            <span className="text-[12px] font-medium text-purple-900/80">
               Drivers on trips
             </span>
           </div>
@@ -289,139 +315,156 @@ export function ScheduleWeekView({
       </div>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto bg-white my-5 mx-3 rounded-xl border border-gray-300 shadow-md flex flex-col relative">
-          <div className="bg-[#FAF5FF] border-b border-[#EDE9FE] px-5 py-4 shrink-0">
-            <h3 className="text-sm font-semibold text-[#4C1D95]">
-              View only
-            </h3>
-            <p className="text-xs text-[#6D28D9] mt-0.5">
-              Assign and move dockets on Dispatch. Click a docket here to inspect details.
-            </p>
-          </div>
-          
-          {/* Table Header */}
-          <div className="grid grid-cols-[200px_repeat(7,1fr)] border-b border-gray-200 bg-white sticky top-0 z-10 shrink-0">
-            <div className="p-4 font-semibold text-sm text-gray-700 border-r border-gray-200 flex items-center">
-              {viewType === 'trucks' ? 'Truck' : 'Driver'}
+        <div className="flex-1 min-h-0 overflow-auto bg-[#F8FAFC] px-3 py-4">
+          <div className="mx-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm overflow-hidden flex flex-col min-h-0">
+            <div className="border-b border-[#EDE9FE] bg-[#FAF5FF] px-4 py-2.5 shrink-0">
+              <p className="text-[12px] font-semibold text-[#5B21B6]">View only</p>
+              <p className="text-[11px] text-[#6D28D9]/90 mt-0.5 leading-snug">
+                Assign and move dockets on Dispatch. Click a docket to open
+                details.
+              </p>
             </div>
-            {days.map((day) => {
-              const isToday = isSameDay(day, new Date());
-              return (
-                <div
-                  key={day.toString()}
-                  className={`p-3 text-center border-r border-gray-200 last:border-r-0 flex flex-col items-center justify-center ${
-                    isToday ? 'bg-purple-50/50' : ''
-                  }`}
-                >
-                  <span className={`text-xs font-medium ${isToday ? 'text-purple-600' : 'text-gray-500'}`}>
-                    {format(day, 'EEE')}
-                  </span>
-                  <span className={`text-lg font-bold ${isToday ? 'text-purple-700' : 'text-gray-900'}`}>
-                    {format(day, 'd')}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
 
-          {/* Table Body */}
-          <div className="flex flex-col">
-            {resources.map((resource) => (
-              <div key={resource.id} className="grid grid-cols-[200px_repeat(7,1fr)] border-b border-gray-200 last:border-b-0">
-                {/* Resource Info Cell */}
-                <div className="p-4 border-r border-gray-200 bg-white">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-gray-900">{resource.name}</span>
-                    {resource.type && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                        resource.type === 'INTERNAL' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {resource.type}
-                      </span>
-                    )}
-                  </div>
-                  {resource.subtitle && (
-                    <div className="text-xs text-gray-500">{resource.subtitle}</div>
-                  )}
-                </div>
-
-                {/* Days Cells */}
-                {days.map((day) => {
-                  const isToday = isSameDay(day, new Date());
-                  
-                  // Filter dockets for this specific day
-                  const dayDockets = resource.dockets.filter((d) => {
-                    if (!d.deliveryCollectionStartTime) return false;
-                    const localTimeStr = d.deliveryCollectionStartTime.includes('T')
-                      ? d.deliveryCollectionStartTime.replace('Z', '')
-                      : d.deliveryCollectionStartTime;
-                    return isSameDay(new Date(localTimeStr), day);
-                  });
-
-                  return (
-                    <div
-                      key={day.toString()}
-                      className={`p-2 border-r border-gray-200 last:border-r-0 flex flex-col gap-2 ${
-                        isToday ? 'bg-purple-50/20' : ''
+            <div
+              className="grid min-w-0 border-b border-[#E2E8F0] bg-white sticky top-0 z-10 shrink-0"
+              style={{ gridTemplateColumns: GRID_TEMPLATE }}
+            >
+              <div className="px-4 py-3 font-semibold text-[13px] text-[#0F172A] border-r border-[#E2E8F0] flex items-end">
+                {viewType === 'trucks' ? 'Truck' : 'Driver'}
+              </div>
+              {days.map((day) => {
+                const isSelectedDate = isSameDay(day, date);
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={`px-2 py-3 text-center border-r border-[#E2E8F0] last:border-r-0 flex flex-col items-center justify-center gap-0.5 ${isSelectedDate ? 'bg-violet-50/70' : 'bg-white'
                       }`}
+                  >
+                    <span
+                      className={`text-[11px] font-semibold uppercase tracking-wide ${isSelectedDate ? 'text-violet-700' : 'text-[#64748B]'
+                        }`}
                     >
-                      {dayDockets.slice(0, 4).map((docket) => (
-                        <DocketChip
-                          key={docket.id}
-                          docket={docket}
-                          isSelected={selectedDocketId === docket.id}
-                          onClick={() => setSelectedDocketId(docket.id)}
-                        />
-                      ))}
-                      
-                      {dayDockets.length > 4 && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button className="text-[10px] cursor-pointer font-bold text-blue-800 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 py-1.5 px-2 w-full rounded-md transition-colors mt-auto text-center border border-blue-200">
-                              +{dayDockets.length - 4} more dockets
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className="overflow-y-auto max-h-[80vh]">
-                            <DialogHeader>
-                              <DialogTitle>
-                                All Dockets ({dayDockets.length})
-                              </DialogTitle>
-                              <p className="text-sm text-gray-500">
-                                Select a docket to view its details.
-                              </p>
-                            </DialogHeader>
-                            <div className="flex flex-col gap-3 mt-4">
-                              {dayDockets.map((docket) => (
-                                <DocketChip
-                                  key={docket.id}
-                                  docket={docket}
-                                  isSelected={selectedDocketId === docket.id}
-                                  onClick={() => setSelectedDocketId(docket.id)}
-                                />
-                              ))}
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      )}
+                      {format(day, 'EEE')}
+                    </span>
+                    <span
+                      className={`text-[18px] font-bold leading-none ${isSelectedDate ? 'text-violet-700' : 'text-[#0F172A]'
+                        }`}
+                    >
+                      {format(day, 'd')}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col min-w-0">
+              {resources.map((resource) => (
+                <div
+                  key={resource.id}
+                  className="grid border-b border-[#E2E8F0] last:border-b-0 bg-white"
+                  style={{ gridTemplateColumns: GRID_TEMPLATE }}
+                >
+                  <div className="px-4 py-3 border-r border-[#E2E8F0] flex flex-col justify-between gap-2 bg-[#FAFBFC]">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight">
+                          {resource.name}
+                        </span>
+                        <TableBadges names={[resource.typeLabel]} visibleCount={1} />
+                      </div>
+                      {resource.companyLine ? (
+                        <p className="text-[12px] text-[#64748B] mt-1 leading-snug">
+                          {resource.companyLine}
+                        </p>
+                      ) : null}
                     </div>
-                  );
-                })}
-              </div>
-            ))}
-            
-            {resources.length === 0 && (
-              <div className="p-8 text-center text-gray-500">
-                No {viewType} found for this week.
-              </div>
-            )}
+                    <p className="text-[11px] text-[#64748B] font-medium leading-tight">
+                      {resource.weekSummaryLine}
+                    </p>
+                  </div>
+
+                  {days.map((day) => {
+                    const isSelectedDate = isSameDay(day, date);
+                    const dayDockets = resource.dockets.filter((d) => {
+                      if (!d.deliveryCollectionStartTime) return false;
+                      const localTimeStr =
+                        d.deliveryCollectionStartTime.includes('T')
+                          ? d.deliveryCollectionStartTime.replace('Z', '')
+                          : d.deliveryCollectionStartTime;
+                      return isSameDay(new Date(localTimeStr), day);
+                    });
+                    const visible = dayDockets.slice(0, VISIBLE_DOCKETS_PER_CELL);
+                    const overflow =
+                      dayDockets.length - VISIBLE_DOCKETS_PER_CELL;
+
+                    return (
+                      <div
+                        key={`${resource.id}-${day.toISOString()}`}
+                        className={`p-2 border-r border-[#E2E8F0] last:border-r-0 flex flex-col gap-2 min-h-[112px] min-w-0 ${isSelectedDate ? 'bg-violet-50/25' : 'bg-white'
+                          }`}
+                      >
+                        <div className="flex flex-col gap-2 flex-1 min-h-0">
+                          {visible.map((docket) => (
+                            <DocketChip
+                              key={docket.id}
+                              docket={docket}
+                              viewType={viewType}
+                              isSelected={selectedDocketId === docket.id}
+                              onClick={() => setSelectedDocketId(docket.id)}
+                            />
+                          ))}
+                        </div>
+                        {overflow > 0 ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="link"
+                                className="text-left text-[12px] font-semibold text-blue-600 bg-blue-50 hover:text-blue-700 rounded-lg border border-blue-600 py-1 cursor-pointer"
+                              >
+                                +{overflow} more dockets
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="overflow-y-auto max-h-[60vh] max-w-lg">
+                              <DialogHeader>
+                                <DialogTitle>
+                                  All dockets ({dayDockets.length})
+                                </DialogTitle>
+                                <p className="text-sm text-[#64748B]">
+                                  {format(day, 'EEEE, d MMMM yyyy')} ·{' '}
+                                  {resource.name}
+                                </p>
+                              </DialogHeader>
+                              <div className="flex flex-col gap-2.5 mt-4 pr-1">
+                                {dayDockets.map((docket) => (
+                                  <DocketChip
+                                    key={docket.id}
+                                    docket={docket}
+                                    viewType={viewType}
+                                    isSelected={selectedDocketId === docket.id}
+                                    onClick={() => setSelectedDocketId(docket.id)}
+                                  />
+                                ))}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+
+              {resources.length === 0 && (
+                <div className="p-10 text-center text-[#64748B] text-sm border-t border-[#E2E8F0]">
+                  No {viewType} found for this week.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Fixed right panel — sticks to viewport height, scrolls internally */}
         {selectedDocket && (
-          <div className="w-[23vw] shrink-0 border-l border-[#E2E8F0] bg-white shadow-sm overflow-y-auto flex flex-col">
+          <div className="w-[min(400px,28vw)] shrink-0 border-l border-[#E2E8F0] bg-white shadow-sm overflow-y-auto flex flex-col">
             <DocketDetailsPanel
               docket={selectedDocket as unknown as DocketDTO}
               onClose={() => setSelectedDocketId(undefined)}

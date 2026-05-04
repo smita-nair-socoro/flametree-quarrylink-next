@@ -48,4 +48,5 @@ export interface TruckResource {
   trips: number;
   drivers: string;
   type?: string;
+  haulierName?: string;
 }

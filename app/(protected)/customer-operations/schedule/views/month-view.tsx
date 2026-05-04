@@ -181,10 +181,7 @@ export function ScheduleMonthView({
   }, [dockets]);
 
   const headerStats = useMemo(() => {
-    const total = dockets.length;
-    const assignedCount = dockets.filter(
-      (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
-    ).length;
+
 
     const assignedDockets = dockets.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
@@ -206,8 +203,6 @@ export function ScheduleMonthView({
     }
 
     return {
-      assignedCount,
-      total,
       trucksBooked,
       driversOnTrips: onTripDriverNames.size,
     };
@@ -240,14 +235,7 @@ export function ScheduleMonthView({
           <span className="text-[12px] font-medium text-[#64748B]">
             {format(date, 'EEE dd MMM').toUpperCase()}
           </span>
-          <div className="border bg-green-50 border-green-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              {headerStats.assignedCount}/{headerStats.total}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Assigned
-            </span>
-          </div>
+
           <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
             <span className="text-[12px] font-semibold tracking-wider">
               {headerStats.trucksBooked}
@@ -317,13 +305,12 @@ export function ScheduleMonthView({
                       onDateChange(day);
                     }}
                     className={`p-2 flex flex-col rounded-xl border cursor-pointer transition-colors
-                    ${
-                      isSelectedDate
+                    ${isSelectedDate
                         ? 'ring-1 ring-purple-400 border-purple-400 bg-purple-200/10 z-10'
                         : !isCurrentMonth
                           ? 'bg-gray-50/40 border-gray-100'
                           : 'bg-white border-gray-200 shadow-sm'
-                    }
+                      }
                     ${dayDockets.length > 0 ? 'min-h-[150px]' : 'min-h-[100px]'}`}
                   >
                     <div className="flex flex-col mb-3">
@@ -341,7 +328,18 @@ export function ScheduleMonthView({
                             {dayDockets.length !== 1 ? 's' : ''}
                           </div>
                           <div>
-                            {Math.floor(Math.random() * 3) + 1} drivers on trips
+                            {
+                              new Set(
+                                dayDockets
+                                  .filter(
+                                    (d) =>
+                                      d.docketStatus === DOCKET_STATUS.IN_TRANSIT ||
+                                      d.docketStatus === DOCKET_STATUS.ARRIVED
+                                  )
+                                  .map((d) => d.driverName)
+                                  .filter(Boolean)
+                              ).size
+                            } drivers on trips
                           </div>
                         </div>
                       )}
@@ -364,7 +362,7 @@ export function ScheduleMonthView({
                               +{dayDockets.length - 2} more
                             </button>
                           </DialogTrigger>
-                          <DialogContent className="overflow-y-auto">
+                          <DialogContent className="overflow-y-auto max-h-[60vh] max-w-lg">
                             <DialogHeader>
                               <DialogTitle>
                                 All Dockets ({dayDockets.length})
