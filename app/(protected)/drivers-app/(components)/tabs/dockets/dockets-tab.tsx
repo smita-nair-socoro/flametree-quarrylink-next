@@ -31,6 +31,9 @@ import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { useOperationalUpdateDocket } from '@/lib/api/docket';
+import { Map } from '@/components/ui/map';
+import type { MapMarker } from '@/components/ui/map';
+import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
@@ -81,6 +84,29 @@ export default function DocketsTab({
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
   };
+
+  const [resolvedPickup, setResolvedPickup] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [resolvedDelivery, setResolvedDelivery] = React.useState<{ lat: number; lng: number } | null>(null);
+
+  React.useEffect(() => {
+    setResolvedPickup(null);
+    setResolvedDelivery(null);
+    if (!selectedDocket) return;
+
+    const pickup = selectedDocket.pickUpAddress;
+    if (pickup?.latitude && pickup?.longitude) {
+      setResolvedPickup({ lat: pickup.latitude, lng: pickup.longitude });
+    } else if (pickup) {
+      resolveAddressCoords(pickup).then(setResolvedPickup);
+    }
+
+    const delivery = selectedDocket.deliveryAddress;
+    if (delivery?.latitude && delivery?.longitude) {
+      setResolvedDelivery({ lat: delivery.latitude, lng: delivery.longitude });
+    } else if (delivery) {
+      resolveAddressCoords(delivery).then(setResolvedDelivery);
+    }
+  }, [selectedDocket?.id]);
 
   const checklistsComplete =
     selectedDocket?.driverChecklist?.checklistStatus ===
@@ -211,7 +237,7 @@ export default function DocketsTab({
           setIsDrawerOpen(open);
         }}
       >
-        <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl">
+        <DrawerContent className="bg-[#F8FAFC] flex flex-col rounded-t-2xl max-h-[90vh]">
           {selectedDocket && (
             <>
               <DrawerHeader className="border-b border-gray-100 pb-4 pt-6 px-6 shrink-0 rounded-t-2xl">
@@ -356,19 +382,11 @@ export default function DocketsTab({
 
                 {/* Addresses */}
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-[14px] font-bold text-gray-900">
-                      Addresses
-                    </h3>
-                    <Button
-                      variant="ghost"
-                      className="h-6 px-2 text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
-                    >
-                      View Map
-                    </Button>
-                  </div>
+                  <h3 className="text-[14px] font-bold text-gray-900 mb-3">
+                    Addresses
+                  </h3>
 
-                  <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1">
                       <span className="text-[12px] text-gray-400 mb-1">
                         Collection
@@ -380,7 +398,7 @@ export default function DocketsTab({
                         {selectedDocket.pickUpAddress?.formattedAddress}
                       </span>
                     </div>
-                    <Separator className="bg-gray-100 -my-1" />
+                    <Separator className="bg-gray-100" />
 
                     <div className="flex flex-col gap-1">
                       <span className="text-[12px] text-gray-400 mb-1">
@@ -393,12 +411,21 @@ export default function DocketsTab({
                         {selectedDocket.deliveryAddress?.formattedAddress}
                       </span>
                     </div>
+
+                    {(() => {
+                      const markers: MapMarker[] = [];
+                      if (resolvedPickup) markers.push({ ...resolvedPickup, color: 'red' });
+                      if (resolvedDelivery) markers.push({ ...resolvedDelivery, color: 'green' });
+                      return markers.length > 0 ? (
+                        <Map markers={markers} className="h-[280px] w-full rounded-xl overflow-hidden" disableDefaultUI />
+                      ) : null;
+                    })()}
                   </div>
                 </div>
 
                 {/* Notes */}
                 {selectedDocket.notes && (
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-2">
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <h3 className="text-[14px] font-bold text-gray-900 mb-2">
                       Notes
                     </h3>
@@ -407,22 +434,9 @@ export default function DocketsTab({
                     </span>
                   </div>
                 )}
-              </div>
 
-              {/* Action Buttons */}
-              <div className="bg-white p-4 border-t border-gray-100 shrink-0 flex flex-col gap-3 pb-8">
-                {selectedDocket.docketStatus === 'IN_TRANSIT' && (
-                  <Button
-                    onClick={() => handleAction('markArrived')}
-                    disabled={!checklistsComplete}
-                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Mark Arrived
-                    </span>
-                  </Button>
-                )}
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-3 pb-2">
                 {selectedDocket.driverChecklist?.checklistStatus !==
                   CHECKLIST_STATUS.PASS && (
                   <Button
@@ -453,6 +467,18 @@ export default function DocketsTab({
                   >
                     <span className="flex items-center gap-2">
                       Truck Inspection Required
+                    </span>
+                  </Button>
+                )}
+                {selectedDocket.docketStatus === 'IN_TRANSIT' && (
+                  <Button
+                    onClick={() => handleAction('markArrived')}
+                    disabled={!checklistsComplete}
+                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Mark Arrived
                     </span>
                   </Button>
                 )}
@@ -512,6 +538,7 @@ export default function DocketsTab({
                     </Button>
                   </>
                 )}
+                </div>
               </div>
             </>
           )}

@@ -89,7 +89,7 @@ export function ChecklistPromptDrawer({
         </div>
       )}
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="bg-white flex flex-col rounded-t-3xl pb-safe">
+        <DrawerContent className="bg-white flex flex-col rounded-t-3xl pb-safe max-h-[90vh]">
           <DrawerHeader className="pb-4 pt-6 px-6 shrink-0 rounded-t-3xl">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export function ChecklistPromptDrawer({
             </div>
           </DrawerHeader>
 
-          <div className="p-6 pt-2 flex flex-col gap-6">
+          <div className="p-6 pt-2 flex flex-col gap-6 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <p className="text-[15px] text-[#475569] leading-relaxed">
               {content.description}
             </p>
