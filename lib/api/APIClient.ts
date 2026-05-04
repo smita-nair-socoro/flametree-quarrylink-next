@@ -48,6 +48,8 @@ import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
   DocketDTO,
+  DocketOperationalUpdateRequest,
+  DocketOperationalUpdateResponse,
   DispatchDocketDTO,
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
@@ -946,6 +948,11 @@ export const APIClient = {
       appClient.Put<DocketDTO>('/socoro/quarrylink/api/dockets/unassign', {
         body: data,
       }),
+    operationalUpdate: (id: number, data: DocketOperationalUpdateRequest) =>
+      appClient.Put<DocketOperationalUpdateResponse>(
+        `/socoro/quarrylink/api/dockets/${id}/operational-update`,
+        { body: data },
+      ),
   },
 
   users: {
