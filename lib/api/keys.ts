@@ -128,3 +128,10 @@ export const SchedulerKeys = {
   drivers: (start: string, end: string) =>
     [...SchedulerKeys.all, 'drivers', start, end] as const,
 };
+
+export const DriverAppKeys = {
+  all: ['driver-app'] as const,
+  assignedDockets: () => [...DriverAppKeys.all, 'assigned'] as const,
+  assignedDocketDetail: (docketId: number) =>
+    [...DriverAppKeys.all, 'assigned', docketId] as const,
+};
