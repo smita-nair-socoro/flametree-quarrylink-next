@@ -10,13 +10,8 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import { DriverDTO } from '@/lib/types/driver';
+import { TruckDTO } from '@/lib/types/truck';
 import { cn } from '@/lib/utils';
-
-export type TruckOption = {
-  id: number;
-  licensePlate: string;
-  haulierName?: string;
-};
 
 export function AssignTruckDescription({ driver }: { driver?: DriverDTO | null }) {
   return (
@@ -30,7 +25,7 @@ export function AssignTruckContent({
   trucks,
   onSelectionChange,
 }: {
-  trucks: TruckOption[];
+  trucks: TruckDTO[];
   onSelectionChange?: (ids: number[]) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -41,9 +36,9 @@ export function AssignTruckContent({
     const filtered = trucks.filter((t) =>
       t.licensePlate.toLowerCase().includes(search.toLowerCase()),
     );
-    const map = new Map<string, TruckOption[]>();
+    const map = new Map<string, TruckDTO[]>();
     for (const truck of filtered) {
-      const group = truck.haulierName ?? 'Trucks';
+      const group = truck.haulier?.haulierName ?? 'Trucks';
       if (!map.has(group)) map.set(group, []);
       map.get(group)!.push(truck);
     }
@@ -117,8 +112,8 @@ export function AssignTruckContent({
                       className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
                     >
                       <Checkbox
-                        checked={selectedIds.includes(truck.id)}
-                        onCheckedChange={() => toggle(truck.id)}
+                        checked={selectedIds.includes(truck.id ?? 0)}
+                        onCheckedChange={() => toggle(truck.id ?? 0)}
                       />
                       <span className="text-sm font-medium">{truck.licensePlate}</span>
                     </label>

@@ -30,8 +30,4 @@ export const NewQuotationFormSchema = z.object({
       message: 'Invalid phone number',
     }),
   receiptEmail: z.string().optional(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  createdBy: z.string(),
-  lastModifiedBy: z.string(),
 });

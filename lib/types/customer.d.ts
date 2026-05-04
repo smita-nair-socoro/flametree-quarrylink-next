@@ -1,78 +1,57 @@
-import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
+import {
+  CUSTOMER_STATUS,
+  CUSTOMER_TYPE,
+  PAYMENT_TYPE,
+  PAYMENT_TERM_TYPE,
+} from './customer-enums';
 import { Address } from './address';
-
-export interface Customer {
-  id: number;
-  customer_type: CUSTOMER_TYPE;
-  business_name: string;
-  business_email: string;
-  business_phone: string;
-  abn: string;
-  acn: string;
-  contact_name: string;
-  phone: string;
-  email: string;
-  billing_address_id: number;
-  credit_limit: number;
-  remaining_credit: number;
-  payment_type: string;
-  payment_terms_day: number;
-  payment_term_type: string;
-  invoice_due_date: number;
-  payment_terms: string;
-  account_manager: string;
-  customer_status: CUSTOMER_STATUS;
-  jobs_count: number;
-  version: number;
-  is_deleted: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  last_modified_by: string;
-}
+import { DOCKET_STATUS } from './docket-enums';
+import { QUOTE_STATUS } from './quotation-enums';
+import { JobDTO } from './job';
 
 export interface CustomerDTO {
-  id?: number; // Optional for create, required for update
+  id?: number;
   customerType: CUSTOMER_TYPE;
-  contactName: string;
-  phone: string;
-  email: string;
-  billingAddressId?: number;
-  billingAddress: Address;
-  creditLimit: number;
-  accountManagerSub: string;
-  invoiceDueDate: number;
-  paymentTermType: string;
-  customerStatus: CUSTOMER_STATUS;
-  jobsCount: number;
-  paymentType: string;
-  version: number;
-  isDeleted: boolean;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  lastModifiedBy: string;
 
-  // Optional metadata fields
-  accountManagerName?: string;
-  accountManagerEmail?: string;
-  remainingCredit?: number;
-
-  // BUSINESS type specific fields
   businessName?: string;
-  businessEmail?: string;
+  individualContactName?: string;
+
   businessPhone?: string;
-  legalName?: string;
-  tradingName?: string;
+  businessEmail?: string;
+
+  billingAddressId?: number;
+  billingAddress?: AddressDTO;
+
+  creditLimit: number;
+  accountManagerName?: string;
+  accountManagerSub: string;
+  invoiceDueDateDayCount?: number;
+  paymentTermType?: PAYMENT_TERM_TYPE;
+  customerStatus?: CUSTOMER_STATUS;
+  paymentType: PAYMENT_TYPE;
+
+  contactPersonFirstName?: string;
+  contactPersonLastName?: string;
+  contactPersonEmail?: string;
+  contactPersonPhone?: string;
+
   abn?: string;
   acn?: string;
   vatNumber?: string;
 
-  // INDIVIDUAL type specific fields
-  firstName?: string;
-  lastName?: string;
   dateOfBirth?: string;
   govId?: string;
+
+  version: number;
+
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  lastModifiedBy?: string;
+  isDeleted?: boolean;
+
+  accSoftwareContactId?: string | null;
+  accSoftwareNotes?: string;
 }
 
 export interface CustomerWithAddressResponseDTO {
@@ -132,4 +111,101 @@ export interface CustomerReporting {
   businessCustomerQuotesPercent: number;
   totalActiveIndividualCustomers: number;
   individualCustomerQuotesPercent: number;
+}
+
+export interface ArchiveCustomerBlockingQuote {
+  id: number;
+  quoteNumber: string;
+  customerId: number;
+  customerName: string;
+  email: string;
+  phone: string;
+  projectName: string;
+  quoteStatus: QUOTE_STATUS;
+  declineReason?: string;
+  customerResponseAt?: string;
+  jobId: number;
+  deliveryStartDate?: string;
+  expiryDate?: string;
+  deliveryWindowStart?: string;
+  deliveryWindowEnd?: string;
+  totalCostPrice: number;
+  totalSellPrice: number;
+  convertedAt?: string;
+  accountManagerName: string;
+  accountManagerSub: string;
+  accountManagerEmail: string;
+  emailRecipients: string[];
+  lineItemsCount: number;
+  inclDeliveryCost: boolean;
+  version: number;
+}
+
+export interface ArchiveCustomerBlockingDocket {
+  id: number;
+  docketNumber: string;
+  jobId: number;
+  jobItemId: number;
+  docketStatus: DOCKET_STATUS;
+  stopReason?: string;
+  stoppedAt?: string;
+  resumedAt?: string;
+  deliveryStartedAt?: string;
+  pickUpAddressId: number;
+  deliveryAddressId: number;
+  purchaseOrder: string;
+  deliveryCollectionDate: string;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  customerContactName: string;
+  customerContactPhone: string;
+  docketEmailRecipients: string[];
+  notes: string;
+  driverId: number;
+  truckId: number;
+  driverChecklistId: number;
+  truckChecklistId: number;
+  truckType: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
+  overDelivered?: boolean;
+  deliveryDistance?: number;
+  grossTruckWeight: number;
+  tareTruckWeight: number;
+  deliveryDistanceQuantity: number;
+  deliveryDistanceUom: string;
+  arrivedAt?: string;
+  deliveredAt: string;
+  arrivalLatitude?: number;
+  arrivalLongitude?: number;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
+  signatureImage: string;
+  deliveryNotes: string;
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
+  productEstimatedVolume: number;
+  version: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+}
+
+export interface ArchiveCustomerResponseDTO {
+  blockingQuotes: ArchiveCustomerBlockingQuote[];
+  blockingDockets: ArchiveCustomerBlockingDocket[];
+  blockingJobs: JobDTO[];
+  success: boolean;
+  errorMessage?: string;
+}
+
+export interface UnarchiveCustomerResponseDTO {
+  success: boolean;
+  duplicateExistsInQuarryLink: boolean;
+  duplicateExistsInXero: boolean;
+  duplicateCustomerName: string;
+  duplicateCustomerId: number;
+  reason: string;
 }

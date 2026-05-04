@@ -38,6 +38,8 @@ import { useSelectedJob } from '@/app/stores/job-store';
 import { useSelectedJobLineItem } from '@/app/stores/job-line-item-store';
 import { useSelectedDocket } from '@/app/stores/docket-store';
 import { useSelectedDriver } from '@/app/stores/driver-store';
+import { useSelectedTruck } from '@/app/stores/truck-store';
+import { normalizeTruckStatus } from '@/lib/types/truck-enums';
 
 interface HeaderInfo {
   /** Custom ID to display as title (replaces dialogTitle when provided) */
@@ -71,6 +73,8 @@ interface HeaderInfo {
   useSelectedDocket?: boolean;
   /** Use selected driver data automatically */
   useSelectedDriver?: boolean;
+  /** Use selected truck data automatically */
+  useSelectedTruck?: boolean;
 }
 
 interface AddProductDrawerDialogProps {
@@ -89,6 +93,9 @@ interface AddProductDrawerDialogProps {
   /** Override the dialog description */
   dialogDescription?: string;
 
+  /** Optional subtitle rendered under the title with normal header spacing */
+  headerSubtitle?: React.ReactNode;
+
   /**
    * Optional custom trigger element; must accept an `onClick`.
    * If omitted, we render our default <Plus> button.
@@ -103,6 +110,9 @@ interface AddProductDrawerDialogProps {
 
   /** Hides the trigger entirely */
   hideTrigger?: boolean;
+
+  /** Optional notice rendered above the title (e.g. info banner) */
+  headerNotice?: React.ReactNode;
 
   /** Optional header buttons to display inline with the title */
   headerButtons?: React.ReactNode;
@@ -181,12 +191,14 @@ export function FormDialog({
   dialogTitle,
   customTitle,
   dialogDescription,
+  headerSubtitle,
   buttonTitle,
   trigger,
   open: openProp,
   onOpenChangeAction: onOpenChangeProp,
   dialogWidth,
   hideTrigger,
+  headerNotice,
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
@@ -257,6 +269,7 @@ export function FormDialog({
   const selectedJobLineItem = useSelectedJobLineItem();
   const selectedDocket = useSelectedDocket();
   const selectedDriver = useSelectedDriver();
+  const selectedTruck = useSelectedTruck();
 
   let finalCustomId = headerInfo?.customId;
   let finalPrimaryBadges = headerInfo?.primaryBadges;
@@ -327,6 +340,14 @@ export function FormDialog({
     finalCustomId = selectedDriver.driverName;
     finalPrimaryBadges = selectedDriver.driverStatus ? [selectedDriver.driverStatus] : [];
     finalSecondaryBadges = selectedDriver.driverType ? [selectedDriver.driverType] : [];
+  }
+
+  if (headerInfo?.useSelectedTruck && selectedTruck) {
+    finalCustomId = selectedTruck.licensePlate;
+    finalPrimaryBadges = selectedTruck.truckStatus
+      ? [normalizeTruckStatus(selectedTruck.truckStatus) ?? selectedTruck.truckStatus]
+      : [];
+    finalSecondaryBadges = selectedTruck.truckBusinessType ? [selectedTruck.truckBusinessType] : [];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -492,7 +513,13 @@ export function FormDialog({
         )}
       >
         <div>
+          {headerNotice && <div className="mb-3">{headerNotice}</div>}
           <DialogTitle className="text-2xl">{headerTitle}</DialogTitle>
+          {headerSubtitle && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              {headerSubtitle}
+            </div>
+          )}
           {dialogDescription && (
             <DialogDescription className="mt-2 -mb-5">
               {dialogDescription}
@@ -579,9 +606,15 @@ export function FormDialog({
       >
         <DrawerHeader className="flex flex-row items-center justify-between flex-shrink-0 px-4">
           <div>
+            {headerNotice && <div className="mb-3">{headerNotice}</div>}
             <DrawerTitle className="text-start text-2xl">
               {headerTitle}
             </DrawerTitle>
+            {headerSubtitle && (
+              <div className="mt-2 text-sm text-muted-foreground">
+                {headerSubtitle}
+              </div>
+            )}
             {dialogDescription && (
               <DrawerDescription className="mt-2">
                 {dialogDescription}

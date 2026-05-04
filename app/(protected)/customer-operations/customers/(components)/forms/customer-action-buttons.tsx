@@ -1,19 +1,10 @@
 'use client';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  // DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-// import { MoreHorizontal, Archive, Eye, ArchiveRestore } from 'lucide-react';
-import { MoreHorizontal, Eye } from 'lucide-react';
+import { Archive, ArchiveRestore } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
-import { useAuth } from '@/hooks/use-auth';
 
 interface CustomerActionButtonsProps {
   customer: CustomerDTO | null | undefined;
@@ -25,172 +16,75 @@ export function CustomerActionButtons({
   layout = 'expanded',
 }: CustomerActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isArchived = customer?.customerStatus === 'ARCHIVED' ? true : false;
+  const isArchived = customer?.customerStatus === 'ARCHIVED';
 
-  // Role-based feature detection
-  const { attributes } = useAuth();
-  const userRole =
-    attributes?.['custom:role'] || attributes?.role || 'Essentials';
-  const isEssentials = userRole === 'Essentials';
+  const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
 
-  const { actions, confirmDialogs, viewDialog } = useCustomerActions(
-    customer
-  );
+  if (!customer) return null;
+  if (!customer.id || customer.id === 0) return null;
 
-  // Early returns for null quotation or new quotation
-  if (!customer) {
-    return null;
-  }
-
-  // Don't render anything if customerId is invalid
-  if (!customer.id || customer.id === 0) {
-    return null;
-  }
-
-  // Mobile or compact version - everything in dropdown
+  // Mobile / compact — single action per state, direct button
   if (!isDesktop || layout === 'compact') {
     return (
       <div>
         {confirmDialogs}
         {viewDialog}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {!isArchived && (
-              <>
-                {!isEssentials && (
-                  <>
-                    <DropdownMenuItem onClick={actions.viewJobs}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Jobs
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={actions.viewDockets}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Dockets
-                    </DropdownMenuItem>
-                  </>
-                )}
-                {/* <DropdownMenuItem onClick={actions.viewQuotations}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Quotations
-                </DropdownMenuItem> */}
-                {/* <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-red-600" />
-                  Archive
-                </DropdownMenuItem> */}
-              </>
-            )}
-            {/* {isArchived && (
-              <DropdownMenuItem
-                onClick={actions.unarchive}
-                className="text-blue-600 focus:text-blue-600"
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                Unarchive
-              </DropdownMenuItem>
-            )} */}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {!isArchived ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={actions.archive}
+            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            <Archive className="h-4 w-4 mr-2" />
+            Archive
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={actions.unarchive}
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+          >
+            <ArchiveRestore className="h-4 w-4 mr-2" />
+            Unarchive
+          </Button>
+        )}
       </div>
     );
   }
 
-  // Desktop expanded version - toggle group layout
+  // Desktop expanded — direct buttons in a grouped button bar
   return (
     <div>
       {confirmDialogs}
       {viewDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Primary button - conditional based on role */}
-
-        {/* <Button
-          variant="ghost"
-          size="sm"
-          onClick={actions.viewQuotations}
-          className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          View Quotations
-        </Button> */}
-        {!isEssentials && (
+        {!isArchived ? (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={actions.archive}
+              className="rounded-none bg-white hover:bg-gray-50 text-red-600 hover:text-red-700"
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Archive
+            </Button>
+          </>
+        ) : (
           <Button
             variant="ghost"
             size="sm"
-            onClick={actions.viewDockets}
-            className="rounded-none border-r bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-200"
+            onClick={actions.unarchive}
+            className="rounded-none bg-white hover:bg-gray-50 text-blue-600 hover:text-blue-700"
           >
-            <Eye className="h-4 w-4 mr-2" />
-            View Dockets
+            <ArchiveRestore className="h-4 w-4 mr-2" />
+            Unarchive
           </Button>
         )}
-        {/* {!isArchived && (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {!isEssentials && (
-                  <>
-                    <DropdownMenuItem onClick={actions.viewJobs}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Jobs
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={actions.viewQuotations}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Quotations
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuItem
-                  onClick={actions.archive}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-red-600" />
-                  Archive
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        )}
-        {isArchived && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={actions.unarchive}
-                className="text-blue-600 focus:text-blue-600"
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-                Unarchive
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )} */}
       </div>
     </div>
   );

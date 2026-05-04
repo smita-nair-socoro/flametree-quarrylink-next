@@ -2,7 +2,6 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Invoice } from '@/lib/types/job';
-// import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
   Tooltip,
   TooltipContent,

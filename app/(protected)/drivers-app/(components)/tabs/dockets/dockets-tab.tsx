@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { DocketDTO } from '@/lib/types/docket';
-import rawJson from '@/lib/tests/driverDocketsResponseData.json';
+import { useDriverAppAssignedDockets } from '@/lib/api/driver-app';
 import { format } from 'date-fns';
 import {
   MapPin,
@@ -18,6 +18,7 @@ import {
   Delete,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -61,9 +62,7 @@ type ActionType =
   | 'backToPreparing';
 
 export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
-  const { items } = rawJson as unknown as {
-    items: DocketDTO[];
-  };
+  const { data: dockets = [], isLoading, isError } = useDriverAppAssignedDockets();
 
   const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
     null,
@@ -80,8 +79,8 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
 
-  const activeDocket = items.find((d) => d.docketStatus === 'IN_TRANSIT');
-  const otherDockets = items.filter((d) => d.docketStatus !== 'IN_TRANSIT');
+  const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
+  const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
 
   const formatTimeWindow = (start: string, end: string) => {
     try {
@@ -188,6 +187,33 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
       </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+        <Spinner size="medium" />
+        <p className="text-sm text-gray-400">Loading dockets...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-2 p-6 text-center">
+        <p className="text-sm font-medium text-gray-700">Failed to load dockets</p>
+        <p className="text-xs text-gray-400">Please try again later.</p>
+      </div>
+    );
+  }
+
+  if (dockets.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[300px] gap-2 p-6 text-center">
+        <p className="text-sm font-medium text-gray-700">No assigned dockets</p>
+        <p className="text-xs text-gray-400">You have no dockets assigned at the moment.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">

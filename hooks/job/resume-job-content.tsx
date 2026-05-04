@@ -14,10 +14,14 @@ export function ResumeJobDescription({ job }: { job?: JobDTO | null }) {
         <span className="font-medium">{job?.projectName}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-          {job?.customerDto?.businessName || job?.customerDto?.contactName && (
+          {job?.customerDto && (
             <>
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">{job?.customerDto?.businessName || job?.customerDto?.contactName}</span>
+              <span className="text-sm text-[#6A7282]">
+                {job.customerDto.customerType === 'BUSINESS'
+                  ? job.customerDto.businessName
+                  : job.customerDto.individualContactName}
+              </span>
             </>
           )}
         </div>

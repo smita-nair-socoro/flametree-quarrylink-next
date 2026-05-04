@@ -58,6 +58,7 @@ interface MapProps {
   markers: MapMarker[];
   className?: string;
   defaultZoom?: number;
+  disableDefaultUI?: boolean;
 }
 
 const CURRENT_LOCATION_ZOOM = 14;
@@ -66,10 +67,12 @@ function MapContent({
   markers,
   defaultZoom = 10,
   initialCenter,
+  disableDefaultUI = false,
 }: {
   markers: MapMarker[];
   defaultZoom?: number;
   initialCenter?: { lat: number; lng: number };
+  disableDefaultUI?: boolean;
 }) {
   const map = useMap();
 
@@ -104,7 +107,7 @@ function MapContent({
       defaultCenter={defaultCenter}
       defaultZoom={defaultZoom}
       gestureHandling="cooperative"
-      disableDefaultUI={false}
+      disableDefaultUI={disableDefaultUI}
       zoomControl={true}
       className="w-full h-full"
       styles={MAP_STYLES}
@@ -125,7 +128,7 @@ function MapContent({
   );
 }
 
-export function Map({ markers, className, defaultZoom }: MapProps) {
+export function Map({ markers, className, defaultZoom, disableDefaultUI }: MapProps) {
   const [apiKey, setApiKey] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{
@@ -208,12 +211,13 @@ export function Map({ markers, className, defaultZoom }: MapProps) {
 
   return (
     <div className={mapContainerClass}>
-      <div className="w-full h-full min-h-[200px]">
+      <div className="absolute inset-0">
         <APIProvider apiKey={apiKey}>
           <MapContent
             markers={markers}
             defaultZoom={defaultZoom}
             initialCenter={initialCenter}
+            disableDefaultUI={disableDefaultUI}
           />
         </APIProvider>
       </div>

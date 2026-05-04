@@ -4,10 +4,15 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TeamMemberTableActions } from './team-member-table-actions';
 import { User } from '@/lib/types/user';
 import { FormSelectOption } from '@/components/ui/form-select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export const createTeamMemberColumns = (
   rolesOptions: readonly FormSelectOption[],
-  currentUserId?: number | string
+  currentUserId?: number | string,
 ): ColumnDef<User>[] => [
   {
     id: 'name',
@@ -15,7 +20,21 @@ export const createTeamMemberColumns = (
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Full Name" />;
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: (info) => {
+      const value = info.getValue() as string;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
     meta: 'Full Name',
     size: 180,
   },
@@ -25,32 +44,75 @@ export const createTeamMemberColumns = (
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Email" />;
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: (info) => {
+      const value = info.getValue() as string;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
     meta: 'Email',
     size: 300,
   },
   {
     id: 'role',
-    accessorFn: (row) => row.groups,
+    accessorFn: (row) => {
+      const groups = row.groups;
+      if (!groups || !Array.isArray(groups) || groups.length === 0) return 3;
+      const g = groups.join(',').toLowerCase();
+      if (g.includes('super_admin') || g.includes('superadmin')) return 2;
+      if (g.includes('driver')) return 1;
+      if (g.includes('admin')) return 0;
+      return 3;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Role" />;
     },
     cell: ({ row }) => {
       const groups = row.original.groups;
-      // Handle cases where groups might be null, undefined, or not an array
       if (!groups || !Array.isArray(groups) || groups.length === 0) {
-        return <div className="py-2">User</div>;
+        return (
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <div className="py-2 text-left truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+                User
+              </div>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>User</p>
+            </TooltipContent>
+          </Tooltip>
+        );
       }
-
-      // Join groups and check for role types
-      const groupsStr = groups.join(',').toUpperCase();
+      const g = groups.join(',').toLowerCase();
       const formattedRole =
-        groupsStr.includes('SUPER_ADMIN') || groupsStr.includes('SUPERADMIN')
+        g.includes('super_admin') || g.includes('superadmin')
           ? 'Super Admin'
-          : groupsStr.includes('ADMIN')
+          : g.includes('driver')
+          ? 'Driver'
+          : g.includes('admin')
           ? 'Admin'
           : 'User';
-      return <div className="py-2">{formattedRole}</div>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 text-left truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+              {formattedRole}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formattedRole}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Role',
     size: 120,
@@ -71,19 +133,14 @@ export const createTeamMemberColumns = (
   // },
   {
     id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const teamMember = row.original;
-      return (
-        <TeamMemberTableActions
-          teamMember={teamMember}
-          roles={rolesOptions}
-          currentUserId={currentUserId}
-        />
-      );
-    },
+    header: () => <div></div>,
+    cell: ({ row }) => (
+      <TeamMemberTableActions
+        teamMember={row.original}
+        roles={rolesOptions}
+        currentUserId={currentUserId}
+      />
+    ),
   },
 ];
 

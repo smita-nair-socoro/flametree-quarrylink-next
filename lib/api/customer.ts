@@ -6,7 +6,11 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { CustomerKeys } from './keys';
-import { CustomerDTO } from '../types/customer';
+import {
+  CustomerDTO,
+  ArchiveCustomerResponseDTO,
+  UnarchiveCustomerResponseDTO,
+} from '../types/customer';
 
 export const CustomersListQueryOptions = () =>
   queryOptions({
@@ -35,7 +39,7 @@ export const CustomerReportingQueryOptions = () =>
 
 export const CustomerDeliveryAddressesQueryOptions = (
   customerId: number,
-  limit?: number
+  limit?: number,
 ) =>
   queryOptions({
     queryKey: CustomerKeys.deliveryAddresses(customerId, limit),
@@ -65,13 +69,17 @@ export const useUpdateDeliveryAddressUsage = () => {
       APIClient.customers.updateDeliveryAddressUsage(
         customerId,
         customerDeliveryAddressId,
-        inUse
+        inUse,
       ),
 
     onSuccess: (_data, variables) => {
       // Invalidate all delivery addresses queries for this customer (partial match)
       queryClient.invalidateQueries({
-        queryKey: [...CustomerKeys.all, 'delivery-addresses', variables.customerId],
+        queryKey: [
+          ...CustomerKeys.all,
+          'delivery-addresses',
+          variables.customerId,
+        ],
       });
     },
   });
@@ -85,7 +93,7 @@ export const useCreateCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<CustomerDTO>) =>
+    mutationFn: (data: Partial<CustomerDTO>): Promise<CustomerDTO> =>
       APIClient.customers.create(data),
 
     onSuccess: () => {
@@ -103,7 +111,7 @@ export const useUpdateCustomer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<CustomerDTO>) =>
+    mutationFn: (data: Partial<CustomerDTO>): Promise<CustomerDTO> =>
       APIClient.customers.update(data),
 
     onSuccess: (data) => {
@@ -113,6 +121,36 @@ export const useUpdateCustomer = () => {
           queryKey: CustomerKeys.detail(data.id),
         });
       }
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
+    },
+  });
+};
+
+export const useArchiveCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (customerId: number): Promise<ArchiveCustomerResponseDTO> =>
+      APIClient.customers.archive(customerId),
+
+    onSuccess: (_data, customerId) => {
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.detail(customerId) });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
+    },
+  });
+};
+
+export const useUnarchiveCustomer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (customerId: number): Promise<UnarchiveCustomerResponseDTO> =>
+      APIClient.customers.unarchive(customerId),
+
+    onSuccess: (_data, customerId) => {
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.detail(customerId) });
       queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
     },
   });

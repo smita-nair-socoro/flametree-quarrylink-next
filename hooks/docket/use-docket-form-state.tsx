@@ -226,7 +226,7 @@ export function useDocketFormState({
       contactName: job?.contactPersonName ?? '',
       contactPhone: job?.contactPersonPhone ?? '',
       customerEmail: job?.customerWithAddressResponse?.email ?? '',
-      additionalDocketEmails: job?.additionalEmailRecipients?.join(', ') ?? '',
+      additionalDocketEmails: job?.emailRecipients?.join(', ') ?? '',
       createdBy: '',
       lastModifiedBy: '',
       createdAt: '',
@@ -437,7 +437,8 @@ export function useDocketFormState({
     docketForm.reset({
       jobId: selectedDocket.jobId ?? 0,
       jobLineItemId: selectedDocket.jobItemId ?? 0,
-      loadSize: selectedDocket.loadSize ?? 0,
+      plannedLoadSize: selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
+      actualLoadSize: selectedDocket.actualLoadSize ?? 0,
       truckQty: selectedDocket.deliveryDistanceQuantity ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
       deliveryAddressId: selectedDocket.deliveryAddress?.id
@@ -511,7 +512,7 @@ export function useDocketFormState({
     enabled: !!selectedJobLineItemDetails().productId,
   });
 
-  const loadSize = docketForm.watch('loadSize');
+  const loadSize = docketForm.watch('plannedLoadSize');
   const truckQty = docketForm.watch('truckQty');
   const jobLineItemId = docketForm.watch('jobLineItemId');
 

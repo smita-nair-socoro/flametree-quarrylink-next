@@ -2,25 +2,34 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
-import { CustomerDTO } from '@/lib/types/customer';
+import {
+  CustomerDTO,
+  ArchiveCustomerResponseDTO,
+  UnarchiveCustomerResponseDTO,
+} from '@/lib/types/customer';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
 import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { useCustomerStore } from '@/app/stores/customer-store';
+import { useArchiveCustomer, useUnarchiveCustomer } from '@/lib/api/customer';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 
 interface DialogConfig {
   title?: string;
   titleIcon?: React.ReactNode;
   description?: React.ReactNode;
   content?: React.ReactNode;
+  cancelText?: string;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -31,43 +40,28 @@ interface SelectedAction {
   key: string;
 }
 
-// Placeholder data for demonstration
-const PLACEHOLDER_CUSTOMER_DATA = {
-  name: 'Sydney Quarry Supplies',
-  accNumber: 'ACC-2024-045',
-  email: 'contact@sydneyquarry.com.au',
-};
+const getCustomerDisplayName = (customerData?: CustomerDTO | null) =>
+  customerData?.businessName ||
+  [customerData?.contactPersonFirstName, customerData?.contactPersonLastName]
+    .filter(Boolean)
+    .join(' ') ||
+  'Unknown Customer';
 
-const PLACEHOLDER_PENDING_QUOTES = [
-  {
-    id: 1,
-    quote_number: 'QT-2024-456',
-    project_name: 'Sydney Harbor Bridge Repair',
-    status: 'PENDING',
-  },
-  {
-    id: 2,
-    quote_number: 'QT-2024-923',
-    project_name: 'Barangaroo Tower Construction',
-    status: 'PENDING',
-  },
-];
-
-// Placeholder for duplicate customer scenario
-const PLACEHOLDER_DUPLICATE_CUSTOMER = {
-  name: 'Melbourne Constructions',
-  accNumber: 'ACC-2024-089',
-};
+const getCustomerEmail = (customerData?: CustomerDTO | null) =>
+  customerData?.businessEmail || customerData?.contactPersonEmail || '';
 
 const getDialogConfigs = (
   customerData?: CustomerDTO | null,
-  selectedAction?: SelectedAction
+  selectedAction?: SelectedAction,
+  archiveResponse?: ArchiveCustomerResponseDTO | null,
+  unarchiveResponse?: UnarchiveCustomerResponseDTO | null,
 ): Record<string, DialogConfig> => {
-  // TODO: Replace with actual customer data from API
-  // Currently using hardcoded placeholder data for demonstration
-  const customerName = PLACEHOLDER_CUSTOMER_DATA.name;
-  const accountNumber = PLACEHOLDER_CUSTOMER_DATA.accNumber;
-  const customerEmail = PLACEHOLDER_CUSTOMER_DATA.email;
+  const customerName = getCustomerDisplayName(customerData);
+  const customerEmail = getCustomerEmail(customerData);
+  const customerId = customerData?.id;
+  const customerSubInfo = [customerId ? `#${customerId}` : '', customerEmail]
+    .filter(Boolean)
+    .join(' • ');
 
   if (selectedAction?.key === 'archive') {
     return {
@@ -85,7 +79,7 @@ const getDialogConfigs = (
                   {customerName}
                 </span>
                 <span className="text-base text-[#6A7282]">
-                  {accountNumber} • {customerEmail}
+                  {customerSubInfo}
                 </span>
               </div>
             </div>
@@ -161,7 +155,11 @@ const getDialogConfigs = (
               <div className="flex flex-col">
                 <span className="font-medium text-base">{customerName}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-base text-[#6A7282]">ACC-2024-001</span>
+                  {customerId && (
+                    <span className="text-base text-[#6A7282]">
+                      #{customerId}
+                    </span>
+                  )}
                   <TableBadges names="ARCHIVED" visibleCount={1} />
                 </div>
               </div>
@@ -220,6 +218,12 @@ const getDialogConfigs = (
       },
     };
   } else if (selectedAction?.key === 'cannotArchive') {
+    const blockingQuotes = archiveResponse?.blockingQuotes ?? [];
+    const blockingDockets = archiveResponse?.blockingDockets ?? [];
+    const blockingJobs = archiveResponse?.blockingJobs ?? [];
+    const totalBlocking =
+      blockingQuotes.length + blockingDockets.length + blockingJobs.length;
+
     return {
       cannotArchive: {
         title: 'Cannot Archive Customer',
@@ -234,77 +238,137 @@ const getDialogConfigs = (
                   {customerName}
                 </span>
                 <span className="text-base text-[#6B7280]">
-                  {PLACEHOLDER_CUSTOMER_DATA.accNumber} •{' '}
-                  {PLACEHOLDER_CUSTOMER_DATA.email}
+                  {customerSubInfo}
                 </span>
               </div>
             </div>
-
             <span className="text-[16px] text-[#364153] mt-3">
-              This customer cannot be archived due to active quotes:
+              This customer cannot be archived due to active records:
             </span>
           </div>
         ),
         content: (
           <div className="flex flex-col gap-4">
-            {/* Active Quotes Found section */}
             <div className="flex items-start gap-2 p-4 bg-[#FFF7ED] border border-[#FFD6A7] rounded-md">
               <TriangleAlert className="h-[18px] w-[18px] text-[#F54900] mt-0.5 flex-shrink-0" />
               <div className="flex flex-col gap-1">
                 <span className="font-medium text-base text-[#F54900]">
-                  Active Quotes Found
+                  Active Records Found
                 </span>
                 <span className="text-sm text-[#CA3500]">
-                  This customer has {PLACEHOLDER_PENDING_QUOTES.length} active
-                  quotes in Pending status that must be resolved before
-                  archiving.
+                  This customer has {totalBlocking} active record(s) that must
+                  be resolved before archiving.
                 </span>
               </div>
             </div>
-            <span>
-              <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
-              <span className="font-medium text-base text-[#101828]">
-                Pending Quotes ({PLACEHOLDER_PENDING_QUOTES.length}):
-              </span>
-            </span>
-            {/* Each quote in its own orange box */}
-            <div className="flex flex-col gap-3">
-              {PLACEHOLDER_PENDING_QUOTES.map((quote) => (
-                <div
-                  key={quote.id}
-                  className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                >
-                  <div className="flex flex-col gap-1">
-                    <span className="font-medium text-[14px] text-yellow-900">
-                      {quote.project_name}
-                    </span>
-                    <span className="text-xs text-yellow-600">
-                      {quote.quote_number}
-                    </span>
-                  </div>
-                  <TableBadges names={quote.status} visibleCount={1} />
-                </div>
-              ))}
-            </div>
 
-            {/* Instructions Section */}
+            {blockingQuotes.length > 0 && (
+              <>
+                <span>
+                  <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
+                  <span className="font-medium text-base text-[#101828]">
+                    Pending Quotes ({blockingQuotes.length}):
+                  </span>
+                </span>
+                <div className="flex flex-col gap-3">
+                  {blockingQuotes.map((quote) => (
+                    <div
+                      key={quote.id}
+                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-[14px] text-yellow-900">
+                          {quote.projectName}
+                        </span>
+                        <span className="text-xs text-yellow-600">
+                          {quote.quoteNumber}
+                        </span>
+                      </div>
+                      <TableBadges names={quote.quoteStatus} visibleCount={1} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {blockingDockets.length > 0 && (
+              <>
+                <span>
+                  <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
+                  <span className="font-medium text-base text-[#101828]">
+                    Active Dockets ({blockingDockets.length}):
+                  </span>
+                </span>
+                <div className="flex flex-col gap-3">
+                  {blockingDockets.map((docket) => (
+                    <div
+                      key={docket.id}
+                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-[14px] text-yellow-900">
+                          {docket.docketNumber}
+                        </span>
+                      </div>
+                      <TableBadges
+                        names={docket.docketStatus}
+                        visibleCount={1}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {blockingJobs.length > 0 && (
+              <>
+                <span>
+                  <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
+                  <span className="font-medium text-base text-[#101828]">
+                    Active Jobs ({blockingJobs.length}):
+                  </span>
+                </span>
+                <div className="flex flex-col gap-3">
+                  {blockingJobs.map((job) => (
+                    <div
+                      key={job.id}
+                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-[14px] text-yellow-900">
+                          {job.projectName}
+                        </span>
+                        <span className="text-xs text-yellow-600">
+                          {job.jobNumber}
+                        </span>
+                      </div>
+                      <TableBadges names={job.jobStatus} visibleCount={1} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             <div className="flex flex-col gap-2">
               <span className="font-medium text-base text-[#101828]">
                 To archive this customer:
               </span>
               <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
                 <li>Decline or archive all pending quotes</li>
+                <li>Complete or cancel all active dockets and jobs</li>
                 <li>Then customer can be archived</li>
               </ul>
             </div>
           </div>
         ),
-        confirmText: 'Close',
-        confirmVariant: 'outline',
+        cancelText: 'Close',
         confirmActionNeeded: false,
       },
     };
   } else if (selectedAction?.key === 'cannotUnarchive') {
+    const duplicateName = unarchiveResponse?.duplicateCustomerName ?? '';
+    const duplicateId = unarchiveResponse?.duplicateCustomerId;
+
     return {
       cannotUnarchive: {
         title: 'Cannot Unarchive Customer',
@@ -317,13 +381,15 @@ const getDialogConfigs = (
               <div className="flex flex-col">
                 <span className="font-medium text-base">{customerName}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-base text-[#6A7282]">ACC-2024-001</span>
+                  {customerId && (
+                    <span className="text-base text-[#6A7282]">
+                      #{customerId}
+                    </span>
+                  )}
                   <TableBadges names="ARCHIVED" visibleCount={1} />
                 </div>
               </div>
             </div>
-
-            {/* Main message */}
             <span className="text-base text-[#364153]">
               This customer cannot be unarchived because another active customer
               with the same name already exists.
@@ -332,37 +398,35 @@ const getDialogConfigs = (
         ),
         content: (
           <div className="flex flex-col gap-4">
-            {/* Orange warning box */}
             <div className="bg-[#FFF7ED] border border-[#FFD6A7] rounded-md p-4 flex items-start gap-3">
               <TriangleAlert className="h-[18px] w-[18px] text-[#F54900] flex-shrink-0 mt-0.5" />
               <div className="flex flex-col gap-3">
                 <span className="font-medium text-base text-[#F54900]">
                   Duplicate Customer Name Detected
                 </span>
-
                 <p className="text-sm text-[#CA3500]">
-                  An active customer with the name &quot;
-                  {PLACEHOLDER_DUPLICATE_CUSTOMER.name}&quot; already exists in
-                  the system. To maintain data integrity and prevent conflicts
-                  with Xero sync, duplicate active customer names are not
-                  allowed.
+                  An active customer with the name &quot;{duplicateName}&quot;
+                  already exists in the system. To maintain data integrity and
+                  prevent conflicts with Xero sync, duplicate active customer
+                  names are not allowed.
                 </p>
-
-                <div className="bg-white border border-[#FDE68A] rounded p-3">
-                  <div className="text-xs text-[#6A7282] mb-1">
-                    Existing Active Customer:
+                {duplicateName && (
+                  <div className="bg-white border border-[#FDE68A] rounded p-3">
+                    <div className="text-xs text-[#6A7282] mb-1">
+                      Existing Active Customer:
+                    </div>
+                    <div className="font-medium text-base text-[#CA3500]">
+                      {duplicateName}
+                    </div>
+                    {duplicateId && (
+                      <div className="text-sm text-[#6A7282]">
+                        Account: #{duplicateId}
+                      </div>
+                    )}
                   </div>
-                  <div className="font-medium text-base text-[#CA3500]">
-                    {PLACEHOLDER_DUPLICATE_CUSTOMER.name}
-                  </div>
-                  <div className="text-sm text-[#6A7282]">
-                    Account: {PLACEHOLDER_DUPLICATE_CUSTOMER.accNumber}
-                  </div>
-                </div>
+                )}
               </div>
             </div>
-
-            {/* Resolution options */}
             <div className="flex flex-col gap-2">
               <span className="font-medium text-base text-[#101828]">
                 Resolution options:
@@ -375,8 +439,7 @@ const getDialogConfigs = (
             </div>
           </div>
         ),
-        confirmText: 'Close',
-        confirmVariant: 'outline',
+        cancelText: 'Close',
         confirmActionNeeded: false,
       },
     };
@@ -392,11 +455,109 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [archiveResponse, setArchiveResponse] =
+    React.useState<ArchiveCustomerResponseDTO | null>(null);
+  const [unarchiveResponse, setUnarchiveResponse] =
+    React.useState<UnarchiveCustomerResponseDTO | null>(null);
+
+  const archiveCustomer = useArchiveCustomer();
+  const unarchiveCustomer = useUnarchiveCustomer();
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(customerData ?? null, selectedAction || undefined),
-    [customerData, selectedAction]
+    () =>
+      getDialogConfigs(
+        customerData ?? null,
+        selectedAction || undefined,
+        archiveResponse,
+        unarchiveResponse,
+      ),
+    [customerData, selectedAction, archiveResponse, unarchiveResponse],
   );
+
+  const handleArchive = async () => {
+    if (!customerId) return;
+    try {
+      await archiveCustomer.mutateAsync(customerId);
+      notifySuccess('Customer archived successfully');
+      const current = useCustomerStore.getState().selectedCustomer;
+      if (current) {
+        useCustomerStore
+          .getState()
+          .setSelectedCustomer({ ...current, customerStatus: CUSTOMER_STATUS.ARCHIVED });
+      }
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      const err = error as Error & {
+        response?: { status: number; data: unknown };
+      };
+      if (err.response?.status === 409) {
+        const data = err.response.data as ArchiveCustomerResponseDTO;
+        const parts: string[] = [];
+        if (data.blockingQuotes?.length)
+          parts.push(
+            `${data.blockingQuotes.length} active ${data.blockingQuotes.length === 1 ? 'quote' : 'quotes'}`,
+          );
+        if (data.blockingDockets?.length)
+          parts.push(
+            `${data.blockingDockets.length} active ${data.blockingDockets.length === 1 ? 'docket' : 'dockets'}`,
+          );
+        if (data.blockingJobs?.length)
+          parts.push(
+            `${data.blockingJobs.length} active ${data.blockingJobs.length === 1 ? 'job' : 'jobs'}`,
+          );
+        notifyError(`Cannot archive customer: has ${parts.join(', ')}`);
+        setArchiveResponse(data);
+        setSelectedAction({ key: 'cannotArchive' });
+        setActiveDialog('cannotArchive');
+      } else {
+        notifyError(extractErrorMessage(error));
+      }
+    }
+  };
+
+  const handleUnarchive = async () => {
+    if (!customerId) return;
+    try {
+      await unarchiveCustomer.mutateAsync(customerId);
+      notifySuccess('Customer unarchived successfully');
+      const current = useCustomerStore.getState().selectedCustomer;
+      if (current) {
+        useCustomerStore
+          .getState()
+          .setSelectedCustomer({ ...current, customerStatus: CUSTOMER_STATUS.ACTIVE });
+      }
+      setActiveDialog(null);
+      setSelectedAction(null);
+    } catch (error) {
+      const err = error as Error & {
+        response?: { status: number; data: unknown };
+      };
+      if (err.response?.status === 409) {
+        const data = err.response.data as UnarchiveCustomerResponseDTO;
+        notifyError(
+          data.duplicateCustomerName
+            ? `Cannot unarchive: "${data.duplicateCustomerName}" already exists as an active customer`
+            : 'Cannot unarchive customer: duplicate name detected',
+        );
+        setUnarchiveResponse(data);
+        setSelectedAction({ key: 'cannotUnarchive' });
+        setActiveDialog('cannotUnarchive');
+      } else {
+        notifyError(extractErrorMessage(error));
+      }
+    }
+  };
+
+  const actionHandlers: Record<string, () => Promise<void>> = {
+    archive: handleArchive,
+    unarchive: handleUnarchive,
+  };
+
+  const createDialogAction = (actionKey: string) => () => {
+    setSelectedAction({ key: actionKey });
+    setActiveDialog(actionKey);
+  };
 
   const actions = {
     /** Pass customer when opening from row click so the store updates before the dialog opens */
@@ -421,44 +582,8 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
       // TODO: implement view quotations logic
     },
 
-    archive: () => {
-      // Hardcoded: For demo, show cannot archive modal (active quotes error)
-      // In the future, add logic here to check for active quotes
-      // if (hasActiveQuotes(customerData)) {
-      //   setSelectedAction({ key: 'cannotArchive' });
-      //   setActiveDialog('cannotArchive');
-      // } else {
-      //   setSelectedAction({ key: 'archive' });
-      //   setActiveDialog('archive');
-      // }
-      setSelectedAction({ key: 'archive' });
-      setActiveDialog('archive');
-    },
-
-    unarchive: () => {
-      // Hardcoded: For demo, show cannot unarchive modal (duplicate name error)
-      // In the future, add logic here to check for duplicate names
-      // if (hasDuplicateActiveName(customerData)) {
-      //   setSelectedAction({ key: 'cannotUnarchive' });
-      //   setActiveDialog('cannotUnarchive');
-      // } else {
-      //   setSelectedAction({ key: 'unarchive' });
-      //   setActiveDialog('unarchive');
-      // }
-      setSelectedAction({ key: 'unarchive' });
-      setActiveDialog('unarchive');
-    },
-
-    // Test actions for UI/UX testing
-    cannotArchive: () => {
-      setSelectedAction({ key: 'cannotArchive' });
-      setActiveDialog('cannotArchive');
-    },
-
-    cannotUnarchive: () => {
-      setSelectedAction({ key: 'cannotUnarchive' });
-      setActiveDialog('cannotUnarchive');
-    },
+    archive: createDialogAction('archive'),
+    unarchive: createDialogAction('unarchive'),
   };
 
   // Render active dialog
@@ -473,34 +598,25 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
+            setArchiveResponse(null);
+            setUnarchiveResponse(null);
           }
         }}
         title={config.title ?? ''}
         titleIcon={config.titleIcon}
         description={config.description}
         content={config.content}
+        cancelText={config.cancelText}
         confirmText={config.confirmText ?? ''}
         confirmVariant={config.confirmVariant}
         confirmCustomColor={config.confirmCustomColor}
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
-        onConfirmAction={() => {
-          switch (key) {
-            case 'archive':
-              console.log('Archive customer:', customerId, customerData);
-              // TODO: implement archive logic
-              break;
-            case 'unarchive':
-              console.log('Unarchive customer:', customerId, customerData);
-              // TODO: implement unarchive logic
-              break;
-            case 'cannotArchive':
-              // No action needed, just close the dialog
-              break;
-            case 'cannotUnarchive':
-              // No action needed, just close the dialog
-              break;
+        onConfirmAction={async () => {
+          const handler = actionHandlers[key];
+          if (handler) {
+            await handler();
           }
         }}
       />

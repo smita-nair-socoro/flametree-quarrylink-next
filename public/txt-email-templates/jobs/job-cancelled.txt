@@ -12,6 +12,6 @@ Cancellation Notes: {CancellationNotes}
 Cancelled By: {UserName}
 Cancelled At: {Timestamp}
 
-View Job: https://app.{environment}.quarrylink/customer-operations/jobs/?jobIds={JobIds}
+View Job: {JobUrl}
 
 You're receiving this notification because you're associated with this job on QuarryLink.

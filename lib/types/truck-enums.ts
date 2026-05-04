@@ -1,8 +1,24 @@
 export enum TRUCK_STATUS {
-  AVAILABLE = 'AVAILABLE',
   ACTIVE = 'ACTIVE',
   ON_DUTY = 'ON_DUTY',
   DEACTIVATED = 'DEACTIVATED',
+}
+
+/** Maps raw backend status values to frontend display enum */
+const TRUCK_STATUS_MAP: Record<string, TRUCK_STATUS> = {
+  AVAILABLE: TRUCK_STATUS.ACTIVE,
+  UNAVAILABLE: TRUCK_STATUS.DEACTIVATED,
+  UNDER_MAINTENANCE: TRUCK_STATUS.DEACTIVATED,
+  ON_DUTY: TRUCK_STATUS.ON_DUTY,
+  ACTIVE: TRUCK_STATUS.ACTIVE,
+  DEACTIVATED: TRUCK_STATUS.DEACTIVATED,
+};
+
+export function normalizeTruckStatus(
+  status: string | undefined,
+): TRUCK_STATUS | undefined {
+  if (!status) return undefined;
+  return TRUCK_STATUS_MAP[status];
 }
 
 export enum TRUCK_TYPE {
@@ -17,4 +33,9 @@ export enum TRUCK_TYPE {
   TRI_AXLE = 'TRI_AXLE',
   TAUTLINER = 'TAUTLINER',
   CRANE_TRUCK = 'CRANE_TRUCK',
+}
+
+export enum TRUCK_BUSINESS_TYPE {
+  INTERNAL = 'INTERNAL',
+  EXTERNAL = 'EXTERNAL',
 }

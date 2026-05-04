@@ -7,12 +7,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { User } from '@/lib/types/user';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { FormSelectOption } from '@/components/ui/form-select';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface TeamMemberTableActionsProps {
   teamMember: User;
@@ -25,7 +25,6 @@ export function TeamMemberTableActions({
   roles,
   currentUserId,
 }: TeamMemberTableActionsProps) {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
     teamMember.sub,
@@ -37,66 +36,42 @@ export function TeamMemberTableActions({
     (state) => state.setSelectedTeamMember
   );
 
-  const createHandler =
-    (actionFn: () => void, additionalSetup?: () => void) => () => {
-      additionalSetup?.();
-      setDropdownOpen(false);
-      actionFn();
-    };
-
-  const handleViewEdit = createHandler(() => {
-    // Set the selected member in the store FIRST, then open dialog
+  const handleViewEdit = () => {
+    setDropdownOpen(false);
     setSelectedTeamMember(teamMember);
     actions.viewEdit();
-  });
-  // const handleResetPassword = createHandler(actions.resetPassword);
-  const handleDelete = createHandler(actions.delete);
+  };
+
+  const handleDelete = () => {
+    setDropdownOpen(false);
+    actions.delete();
+  };
 
   return (
     <div>
       {deleteDialog}
       {viewDialog}
-      {isDesktop ? (
-        <div className="inline-flex overflow-hidden rounded-md border bg-white text-[14px] font-medium text-[#09090B]">
-          <Button
-            variant="outline"
-            className="rounded-none px-4 h-auto py-2 gap-2 bg-white border-0 border-r"
-            onClick={handleViewEdit}
-          >
-            <Eye className="h-4 w-4" />
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={handleViewEdit}>
+            <Eye className="h-4 w-4 mr-2" />
             View/Edit User
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-none px-4 h-auto py-2 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
             onClick={handleDelete}
+            className="text-destructive focus:text-destructive"
           >
+            <Trash2 className="h-4 w-4 mr-2 text-red-600" />
             Delete User
-          </Button>
-        </div>
-      ) : (
-        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleViewEdit}>
-              <Eye className="h-4 w-4 mr-2" />
-              View/Edit User
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-              Delete User
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

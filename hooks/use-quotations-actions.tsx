@@ -57,11 +57,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -871,7 +871,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const { data: customers = [] } = useQuery(CustomersListQueryOptions());
   const sendDialogCustomerEmail = React.useMemo(() => {
     const customer = customers.find((c) => c.id === quotationData?.customerId);
-    return customer?.email || '';
+    return customer?.contactPersonEmail || '';
   }, [customers, quotationData]);
 
   const user = useClientStore((state) => state.user);
@@ -919,9 +919,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       const existing = quotationData?.emailRecipients ?? [];
       const emails = sendDialogCustomerEmail
         ? [
-            sendDialogCustomerEmail,
-            ...existing.filter((e) => e !== sendDialogCustomerEmail),
-          ]
+          sendDialogCustomerEmail,
+          ...existing.filter((e) => e !== sendDialogCustomerEmail),
+        ]
         : existing;
       setAdditionalRecipientEmails(emails);
     }

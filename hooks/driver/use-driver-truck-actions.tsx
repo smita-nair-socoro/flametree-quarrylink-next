@@ -1,8 +1,9 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
-import { AssignTruckContent, TruckOption } from './assign-truck-content';
+import { AssignTruckContent } from './assign-truck-content';
 import {
   UnassignTruckContent,
   UnassignTruckDescription,
@@ -10,22 +11,17 @@ import {
   UnassignTruckInfo,
 } from './unassign-truck-content';
 import { DriverDTO } from '@/lib/types/driver';
-
-// TODO: replace with real truck list from API (filtered by haulier)
-const AVAILABLE_TRUCKS: TruckOption[] = [
-  { id: 3, licensePlate: 'ABC-123', haulierName: 'Acme Hauliers' },
-  { id: 4, licensePlate: 'DEF-456', haulierName: 'Acme Hauliers' },
-  { id: 5, licensePlate: 'GHI-789', haulierName: 'Acme Hauliers' },
-  { id: 6, licensePlate: 'ABC-124', haulierName: 'Acme Hauliers' },
-  { id: 7, licensePlate: 'DEF-22456', haulierName: 'Acme Hauliers' },
-  { id: 8, licensePlate: 'GHI-11789', haulierName: 'Acme Hauliers' },
-  { id: 9, licensePlate: 'ABC-125', haulierName: 'Acme Hauliers' },
-  { id: 10, licensePlate: 'DEF-2456', haulierName: 'Acme Hauliers' },
-  { id: 11, licensePlate: 'GHI-1789', haulierName: 'Acme Hauliers' },
-  { id: 12, licensePlate: 'ABC-1233', haulierName: 'Acme Hauliers' },
-  { id: 13, licensePlate: 'DEF-4526', haulierName: 'Acme Hauliers' },
-  { id: 14, licensePlate: 'GHI-7819', haulierName: 'Acme Hauliers' },
-];
+import { useQuery } from '@tanstack/react-query';
+import { HaulierTrucksQueryOptions } from '@/lib/api/haulier';
+import {
+  usePatchDriverTrucks,
+  useUnassignTruckFromDriver,
+} from '@/lib/api/driver';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title: string;
@@ -35,50 +31,92 @@ interface DialogConfig {
   confirmCustomColor?: string;
   confirmIcon?: React.ReactNode;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   confirmActionNeeded?: boolean;
   cancelText?: string;
 }
 
 export function useDriverTruckActions(driverData?: DriverDTO | null) {
+  const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedTruck, setSelectedTruck] =
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
-  // Prevents ActionDialog's auto-close from resetting activeDialog when
-  // transitioning to a follow-up dialog (e.g. unassign → unassignBlocked).
-  // Can be removed once ActionDialog is refactored to not auto-close after confirm.
-  const transitioningRef = React.useRef(false);
+  const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
+
+  const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
+  const { data: availableTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(haulierId),
+  );
+  const availableTrucks = availableTrucksData?.trucks ?? [];
+  const patchDriverTrucks = usePatchDriverTrucks();
+  const unassignTruckFromDriver = useUnassignTruckFromDriver();
 
   const handleAssignTrucks = async () => {
-    // TODO: wire up assign trucks API call
-    console.log('Assign trucks:', driverData?.id, selectedTruckIds);
-    setSelectedTruckIds([]);
+    if (!driverData?.id) return;
+    try {
+      const merged = [
+        ...new Set([...(driverData.truckIds ?? []), ...selectedTruckIds]),
+      ];
+      await patchDriverTrucks.mutateAsync({
+        id: driverData.id,
+        data: {
+          version: driverData.version ?? 0,
+          truckIds: merged,
+        },
+      });
+      notifySuccess('Trucks assigned successfully.');
+      setActiveDialog(null);
+      setSelectedTruckIds([]);
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to assign trucks.');
+    }
   };
 
   const handleUnassignTruck = async (
     truck: UnassignTruckInfo & { id: number },
   ) => {
-    // TODO: wire up unassign truck API call
-    // If API returns active deliveries error, call setActiveDialog('unassignBlocked')
-    console.log('Unassign truck:', driverData?.id, truck.id);
+    if (!driverData?.id) return;
+    try {
+      await unassignTruckFromDriver.mutateAsync({
+        driverId: driverData.id,
+        data: {
+          version: driverData.version ?? 0,
+          truckId: truck.id,
+        },
+      });
+      notifySuccess('Truck unassigned successfully.');
+      setActiveDialog(null);
+      setSelectedTruck(null);
+    } catch (error) {
+      const errorData = extractErrorData(error) as Record<
+        string,
+        unknown
+      > | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
 
-    // MOCK: simulate backend blocking all trucks due to active deliveries
-    // TODO: replace with real API error parsing — only block when response indicates active deliveries
-    transitioningRef.current = true;
-    setActiveDialog('unassignBlocked');
+      if (docketIds.length > 0) {
+        setBlockedDocketIds(docketIds);
+        setActiveDialog('unassignBlocked');
+      } else {
+        notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
+      }
+    }
   };
 
-  const handleTransferDockets = async () => {
-    // TODO: wire up transfer dockets API call / navigation
-    console.log('Transfer dockets for truck:', selectedTruck);
+  const handleTransferDockets = () => {
+    const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
     setActiveDialog(null);
     setSelectedTruck(null);
+    setBlockedDocketIds([]);
+    router.push(docketLink);
   };
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
@@ -87,7 +125,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         title: 'Assign Truck',
         content: (
           <AssignTruckContent
-            trucks={AVAILABLE_TRUCKS}
+            trucks={availableTrucks}
             onSelectionChange={setSelectedTruckIds}
           />
         ),
@@ -107,7 +145,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content: selectedTruck ? (
           <UnassignTruckContent truck={selectedTruck} />
         ) : null,
-        confirmText: 'Unassign Driver',
+        confirmText: 'Unassign Truck',
         confirmCustomColor: '#E7000B',
         cancelText: 'Cancel',
       },
@@ -122,6 +160,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content: selectedTruck ? (
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
+            activeDocketIds={blockedDocketIds}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -130,7 +169,13 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         cancelText: 'Cancel',
       },
     }),
-    [driverData, selectedTruck, selectedTruckIds],
+    [
+      driverData,
+      selectedTruck,
+      selectedTruckIds,
+      availableTrucks,
+      blockedDocketIds,
+    ],
   );
 
   const actionHandlers: Record<string, () => Promise<void>> = {
@@ -143,7 +188,10 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       }
       return Promise.resolve();
     },
-    unassignBlocked: () => handleTransferDockets(),
+    unassignBlocked: () => {
+      handleTransferDockets();
+      return Promise.resolve();
+    },
   };
 
   const actions = {
@@ -165,15 +213,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         key={key}
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
-          if (!open) {
-            // TODO: need to change to API response check instead of hardcoding transitioning state
-            if (transitioningRef.current) {
-              transitioningRef.current = false;
-              return;
-            }
-            setActiveDialog(null);
-            setSelectedTruck(null);
-          }
+          if (!open) setActiveDialog(null);
         }}
         title={config.title}
         description={config.description}
