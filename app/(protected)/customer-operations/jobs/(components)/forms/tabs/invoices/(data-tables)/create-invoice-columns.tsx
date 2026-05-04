@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
-import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
+// import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
 
 // import {
 //   Tooltip,
@@ -66,12 +66,12 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
 
   {
     id: 'loadSize',
-    accessorFn: (row) => row.loadSize,
+    accessorFn: (row) => row.actualLoadSize,
     header: () => {
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      const productSellQty = row.original.loadSize;
+      const productSellQty = row.original.actualLoadSize;
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productSellUom === 'TN'
@@ -82,7 +82,7 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
               ? `${productSellQty} x 20kg`
               : productSellUom === 'BULKA'
                 ? `${productSellQty} Bulka`
-                : productSellQty;
+                : productSellQty || 'N/A';
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>
@@ -100,36 +100,32 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     meta: 'Product Sell QTY',
   },
 
-  // {
-  //   id: 'totalInvoice',
-  //   accessorFn: (row) => row.totalInvoice,
-  //   header: ({ column }) => {
-  //     return (
-  //       <TableClientSortableHeader column={column} title="Total Invoice" />
-  //     );
-  //   },
-  //   cell: ({ row }) => {
-  //     const cents = parseFloat(row.original.totalInvoice.toString());
-  //     const dollars = cents / 100;
-  //     const formatted = new Intl.NumberFormat('en-US', {
-  //       style: 'currency',
-  //       currency: 'USD',
-  //     }).format(dollars);
-  //     return (
-  //       <Tooltip delayDuration={300}>
-  //         <TooltipTrigger asChild>
-  //           <div className="py-2 font-medium w-36 max-w-36 truncate">
-  //             {formatted}
-  //           </div>
-  //         </TooltipTrigger>
-  //         <TooltipContent variant="white">
-  //           <p>{formatted}</p>
-  //         </TooltipContent>
-  //       </Tooltip>
-  //     );
-  //   },
-  //   meta: 'Total Invoice',
-  // },
+  {
+    id: 'totalInvoice',
+    accessorFn: (row) => row.totalInvoice,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Total Invoice Price" />
+      );
+    },
+    cell: () => {
+      // Hardcoded $1000 for now as requested
+      const formatted = '$1,000.00';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Total Invoice Price',
+  },
   {
     id: 'actions',
     header: () => {

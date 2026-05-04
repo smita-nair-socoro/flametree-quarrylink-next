@@ -19,6 +19,9 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { APIClient } from '@/lib/api/APIClient';
+import { toast } from 'sonner';
 
 interface InvoicesBulkActionsProps {
   selectedDockets: DocketDTO[];
@@ -28,39 +31,64 @@ interface InvoicesBulkActionsProps {
 /** Placeholder totals until invoice preview is wired to the API */
 const PLACEHOLDER_PRODUCT_TOTAL = centsToDollars(2400000);
 const PLACEHOLDER_DELIVERY_TOTAL = centsToDollars(400000);
+const PLACEHOLDER_TOTAL = centsToDollars(2400000 + 400000);
 
-export function InvoicesBulkActions({
+export function InvoiceActions({
   selectedDockets,
   onClearSelection,
 }: InvoicesBulkActionsProps) {
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogType, setDialogType] = React.useState<'bulk' | 'individual' | null>(null);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [includeDeliveryPrices, setIncludeDeliveryPrices] =
     React.useState(false);
-  // const bulkCreateInvoiceMutation = useBulkCreateInvoice();
+  const queryClient = useQueryClient();
 
-  const handleBulkCreateInvoiceClick = () => {
+  const createInvoiceMutation = useMutation({
+    mutationFn: (data: { mode: 'INDIVIDUAL' | 'BULK'; docketIds: number[] }) =>
+      APIClient.invoices.create(data),
+    onSuccess: () => {
+      toast.success('Invoices created successfully');
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      setDialogType(null);
+      onClearSelection();
+    },
+    onError: (error) => {
+      toast.error('Failed to create invoices');
+      console.error('Failed to create invoices:', error);
+    },
+  });
+
+  const handleActionClick = (type: 'bulk' | 'individual') => {
     if (selectedDockets.length > 0) {
       setDropdownOpen(false);
-      setDialogOpen(true);
+      setDialogType(type);
     }
   };
 
+  if (selectedDockets.length === 0) return null;
+
+  const isIndividual = dialogType === 'individual';
+
   return (
     <>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogType !== null} onOpenChange={(open) => !open && setDialogType(null)}>
         <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-md">
           <div className="px-6 pt-5 pb-1 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center">
-              <FileText className="h-10 w-10 text-[#8E51FF] font-extrabold" />
+              {isIndividual ? (
+                <ShoppingCart className="h-10 w-10 text-[#8E51FF] font-extrabold" />
+              ) : (
+                <FileText className="h-10 w-10 text-[#8E51FF] font-extrabold" />
+              )}
             </div>
-            <DialogHeader className="items-center space-y-2 text-center -mt-2">
+            <DialogHeader className="items-center space-y-2 text-center">
               <DialogTitle className="text-xl font-bold text-gray-900">
-                Create Bulk Invoice
+                {isIndividual ? 'Create Individual Invoices' : 'Create Bulk Invoice'}
               </DialogTitle>
               <DialogDescription className="text-[15px] text-slate-600 mb-4">
-                Create a single invoice with {selectedDockets.length} docket
-                {selectedDockets.length === 1 ? '' : 's'} as line items?
+                {isIndividual
+                  ? `Create ${selectedDockets.length} separate invoice(s), one for each docket?`
+                  : `Create a single invoice with ${selectedDockets.length} docket${selectedDockets.length === 1 ? '' : 's'} as line items?`}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -88,7 +116,7 @@ export function InvoicesBulkActions({
                 <div className="flex items-center justify-between gap-4 text-sm">
                   <span className="text-gray-700">Total Amount:</span>
                   <span className="font-bold text-[#101828] text-lg">
-                    ${PLACEHOLDER_PRODUCT_TOTAL + PLACEHOLDER_DELIVERY_TOTAL}
+                    ${PLACEHOLDER_TOTAL}
                   </span>
                 </div>
               )}
@@ -130,30 +158,41 @@ export function InvoicesBulkActions({
               type="button"
               variant="outline"
               className="h-11 flex-1 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
-              onClick={() => setDialogOpen(false)}
+              onClick={() => setDialogType(null)}
             >
               Cancel
             </Button>
             <Button
               type="button"
               className="h-11 flex-1 rounded-lg bg-[#8E51FF] font-semibold text-white hover:bg-[#7c46e0]"
+              disabled={createInvoiceMutation.isPending}
+              onClick={() => {
+                createInvoiceMutation.mutate({
+                  mode: isIndividual ? 'INDIVIDUAL' : 'BULK',
+                  docketIds: selectedDockets.map((d) => d.id),
+                });
+              }}
             >
-              Create Invoice
+              {createInvoiceMutation.isPending
+                ? 'Creating...'
+                : isIndividual
+                  ? 'Create Invoices'
+                  : 'Create Invoice'}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-center justify-between gap-4 rounded-md border p-3 bg-[#EFF6FF] border-[#BEDBFF]">
-        <div className="flex items-center gap-1">
-          <p className="text-sm font-medium">
+      <div className="flex items-center justify-between gap-4 rounded-xl border p-3 bg-[#F8FAFC] border-[#E2E8F0] shadow-sm mb-4">
+        <div className="flex items-center gap-3">
+          <p className="text-[15px] font-bold text-[#0F172A] pl-2">
             {selectedDockets.length}{' '}
             {selectedDockets.length === 1 ? 'item' : 'items'} selected
           </p>
           <Button
             variant="link"
             onClick={onClearSelection}
-            className="text-sm text-[#155DFC] underline cursor-pointer"
+            className="text-sm font-semibold text-[#3B82F6] hover:text-[#2563EB] px-2"
           >
             Clear Selection
           </Button>
@@ -164,46 +203,46 @@ export function InvoicesBulkActions({
               <Button
                 size="sm"
                 disabled={selectedDockets.length === 0}
-                className="bg-[#8E51FF] text-white text-sm p-4"
+                className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-sm font-semibold h-9 px-4 rounded-lg shadow-sm transition-colors"
               >
-                Actions ({selectedDockets.length} selected)
-                <ChevronDown className="h-4 w-4 ml-1" />
+                Invoice ({selectedDockets.length} selected)
+                <ChevronDown className="h-4 w-4 ml-1.5 opacity-80" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="min-w-[250px] rounded-xl border border-gray-200 bg-white shadow-md"
+              className="min-w-[250px] rounded-xl border border-gray-200 bg-white shadow-lg p-1.5"
             >
               <DropdownMenuItem
-                onClick={handleBulkCreateInvoiceClick}
-                className="cursor-pointer gap-3 rounded-lg p-2 focus:bg-gray-50 focus:text-gray-900"
+                onClick={() => handleActionClick('bulk')}
+                className="cursor-pointer gap-3 rounded-lg p-2.5 focus:bg-gray-50 focus:text-gray-900 transition-colors"
               >
                 <FileText
-                  className="size-[18px] shrink-0 text-gray-500 stroke-[1.5]"
+                  className="size-[18px] shrink-0 text-[#8B5CF6] stroke-[2]"
                   aria-hidden
                 />
                 <div className="flex min-w-0 flex-col gap-0.5 text-left">
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-[13px] font-medium">
                     Bulk Invoice
                   </span>
-                  <span className="text-xs font-normal leading-snug text-slate-500">
+                  <span className="text-[11px] font-medium leading-snug text-slate-500">
                     All dockets as line items in one invoice
                   </span>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={handleBulkCreateInvoiceClick}
-                className="cursor-pointer gap-3 rounded-lg p-2 focus:bg-gray-50 focus:text-gray-900"
+                onClick={() => handleActionClick('individual')}
+                className="cursor-pointer gap-3 rounded-lg p-2.5 focus:bg-gray-50 focus:text-gray-900 transition-colors"
               >
                 <ShoppingCart
-                  className="size-[18px] shrink-0 text-gray-500 stroke-[1.5]"
+                  className="size-[18px] shrink-0 text-[#8B5CF6] stroke-[2]"
                   aria-hidden
                 />
                 <div className="flex min-w-0 flex-col gap-0.5 text-left">
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-[13px] font-medium">
                     Individual Invoices
                   </span>
-                  <span className="text-xs font-normal leading-snug text-slate-500">
+                  <span className="text-[11px] font-medium leading-snug text-slate-500">
                     Separate invoice for each docket
                   </span>
                 </div>
