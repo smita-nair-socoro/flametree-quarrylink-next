@@ -4,6 +4,11 @@ import * as React from 'react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
+import {
+  DriverChecklistTemplateQueryOptions,
+  TruckChecklistTemplateQueryOptions,
+} from '@/lib/api/checklist';
+import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
@@ -18,12 +23,28 @@ export default function DriversAppPage() {
   const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
   const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
   const [checklistTruckLicensePlate, setChecklistTruckLicensePlate] = useState<string | undefined>();
+  const [checklistDocketId, setChecklistDocketId] = useState<number | undefined>();
+  const [checklistTruckId, setChecklistTruckId] = useState<number | undefined>();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
   const router = useRouter();
 
   const { data: dockets = [] } = useQuery(DriverAppAssignedDocketsQueryOptions());
+
+  const setDriverTemplate = useChecklistTemplateStore((s) => s.setDriverTemplate);
+  const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
+
+  const { data: driverTemplate } = useQuery(DriverChecklistTemplateQueryOptions());
+  const { data: truckTemplate } = useQuery(TruckChecklistTemplateQueryOptions());
+
+  React.useEffect(() => {
+    if (driverTemplate) setDriverTemplate(driverTemplate);
+  }, [driverTemplate, setDriverTemplate]);
+
+  React.useEffect(() => {
+    if (truckTemplate) setTruckTemplate(truckTemplate);
+  }, [truckTemplate, setTruckTemplate]);
 
   const isDailyChecklistRequired = React.useMemo(() => {
     const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
@@ -104,6 +125,9 @@ export default function DriversAppPage() {
                   size="xs"
                   onClick={() => {
                     setChecklistType('pre-start');
+                    setChecklistTruckLicensePlate(undefined);
+                    setChecklistDocketId(undefined);
+                    setChecklistTruckId(undefined);
                     setIsChecklistPromptOpen(true);
                   }}
                 >
@@ -115,9 +139,11 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
-                onOpenChecklist={(type, truckLicensePlate) => {
+                onOpenChecklist={(type, truckLicensePlate, docketId, truckId) => {
                   setChecklistType(type);
                   setChecklistTruckLicensePlate(truckLicensePlate);
+                  setChecklistDocketId(docketId);
+                  setChecklistTruckId(truckId);
                   setIsChecklistPromptOpen(true);
                 }}
               />
@@ -182,6 +208,9 @@ export default function DriversAppPage() {
         type={checklistType}
         truckLicensePlate={checklistTruckLicensePlate}
         driverName={dockets[0]?.driver?.driverName}
+        driverId={dockets[0]?.driverId}
+        truckId={checklistTruckId}
+        docketId={checklistDocketId}
         onCompleteExternally={() => setIsChecklistPromptOpen(false)}
         onCompleteNow={() => setIsChecklistPromptOpen(false)}
       />

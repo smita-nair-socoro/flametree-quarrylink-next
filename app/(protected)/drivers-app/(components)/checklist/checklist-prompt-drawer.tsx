@@ -10,6 +10,9 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { useSubmitChecklist } from '@/lib/api/checklist';
+import { CHECKLIST_TYPE } from '@/lib/types/checklist-template-enums';
+import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 
 import DriverPreStartChecklist from './driver-pre-start-checklist';
 import TruckInspectionChecklist from './truck-inspection-checklist';
@@ -24,6 +27,9 @@ interface ChecklistPromptDrawerProps {
   type?: ChecklistType;
   truckLicensePlate?: string;
   driverName?: string;
+  driverId?: number;
+  truckId?: number;
+  docketId?: number;
 }
 
 export function ChecklistPromptDrawer({
@@ -34,15 +40,47 @@ export function ChecklistPromptDrawer({
   type = 'pre-start',
   truckLicensePlate,
   driverName,
+  driverId,
+  truckId,
+  docketId,
 }: ChecklistPromptDrawerProps) {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false);
+  const isPreStart = type === 'pre-start';
+
+  const driverTemplate = useChecklistTemplateStore((s) => s.driverTemplate);
+  const truckTemplate = useChecklistTemplateStore((s) => s.truckTemplate);
+  const template = isPreStart ? driverTemplate : truckTemplate;
+  const submitChecklist = useSubmitChecklist();
+
+  const handleCompleteExternally = async () => {
+    if (!template) return;
+    if (isPreStart) {
+      await submitChecklist.mutateAsync({
+        templateId: template.id,
+        checklistType: CHECKLIST_TYPE.DRIVER,
+        driverId: driverId ?? 0,
+        confirmed: true,
+        answers: [],
+      });
+    } else {
+      await submitChecklist.mutateAsync({
+        templateId: template.id,
+        checklistType: CHECKLIST_TYPE.TRUCK,
+        truckId: truckId ?? 0,
+        driverId,
+        docketId,
+        confirmed: true,
+        answers: [],
+      });
+    }
+    onCompleteExternally();
+    onOpenChange(false);
+  };
 
   const handleCompleteNow = () => {
     onOpenChange(false);
     setTimeout(() => setIsChecklistOpen(true), 300);
   };
-
-  const isPreStart = type === 'pre-start';
 
   const content = {
     title: isPreStart ? 'Daily Pre-Start Checklist' : 'Vehicle Inspection',
@@ -70,18 +108,22 @@ export function ChecklistPromptDrawer({
           {isPreStart ? (
             <DriverPreStartChecklist
               driverName={driverName}
+              driverId={driverId ?? 0}
               onSubmit={() => {
-                onCompleteNow();
                 setIsChecklistOpen(false);
+                onCompleteNow();
               }}
               onBack={() => setIsChecklistOpen(false)}
             />
           ) : (
             <TruckInspectionChecklist
               truckLicensePlate={truckLicensePlate}
+              truckId={truckId ?? 0}
+              driverId={driverId}
+              docketId={docketId}
               onSubmit={() => {
-                onCompleteNow();
                 setIsChecklistOpen(false);
+                onCompleteNow();
               }}
               onBack={() => setIsChecklistOpen(false)}
             />
@@ -130,8 +172,9 @@ export function ChecklistPromptDrawer({
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={onCompleteExternally}
-                className="w-full bg-[#00A63E] hover:bg-[#009036] text-white rounded-2xl p-4 flex items-center justify-between transition-colors active:scale-[0.98]"
+                onClick={handleCompleteExternally}
+                disabled={!template || submitChecklist.isPending}
+                className="w-full bg-[#00A63E] hover:bg-[#009036] text-white rounded-2xl p-4 flex items-center justify-between transition-colors active:scale-[0.98] disabled:opacity-50"
               >
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-1.5 rounded-lg">

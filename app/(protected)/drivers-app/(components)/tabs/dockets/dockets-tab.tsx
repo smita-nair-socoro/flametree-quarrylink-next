@@ -40,6 +40,8 @@ interface DocketsTabProps {
   onOpenChecklist?: (
     type: 'pre-start' | 'vehicle-inspection',
     truckLicensePlate?: string,
+    docketId?: number,
+    truckId?: number,
   ) => void;
 }
 
@@ -462,6 +464,8 @@ export default function DocketsTab({
                       onOpenChecklist?.(
                         'vehicle-inspection',
                         selectedDocket.truck?.licensePlate,
+                        selectedDocket.id,
+                        selectedDocket.truckId,
                       );
                     }}
                   >
