@@ -29,15 +29,5 @@ export const NewQuotationFormSchema = z.object({
     .refine((v) => !v || isValidPhoneNumber(v), {
       message: 'Invalid phone number',
     }),
-  email: z
-    .string()
-    .trim()
-    .nonempty({ message: 'Contact has no email. Add an email in the Customer profile for it to appear on the quote.' })
-    .refine((v) => !v || z.string().email().safeParse(v).success, {
-      message: 'Invalid email format',
-    }),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  createdBy: z.string(),
-  lastModifiedBy: z.string(),
+  receiptEmail: z.string().optional(),
 });

@@ -21,11 +21,7 @@ export function quotationToFormValues(
       deliveryWindowEnd: '',
       expiryDate: undefined,
       phone: '',
-      email: '',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: 'Jay Woo Choi',
-      lastModifiedBy: 'Armin Menhaji',
+      receiptEmail: '',
     };
   }
 
@@ -51,19 +47,9 @@ export function quotationToFormValues(
     expiryDate: quotation?.expiryDate
       ? parseAsUTC(quotation.expiryDate)
       : undefined,
-    email: quotation?.email || quotation?.customerWithAddressResponseDto?.email || '',
+    receiptEmail: (quotation?.emailRecipients || []).join(','),
     phone: normalizePhoneNumber(
       quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),
-    createdAt: quotation?.createdAt
-      ? new Date(quotation.createdAt)
-      : new Date(),
-    updatedAt: quotation?.updatedAt
-      ? new Date(quotation.updatedAt)
-      : new Date(),
-    createdBy: isEditing ? quotation?.createdBy || 'Unknown' : 'Jaywoo Choi',
-    lastModifiedBy: isEditing
-      ? quotation?.lastModifiedBy || 'Unknown'
-      : 'Armin Menhaji',
   };
 }

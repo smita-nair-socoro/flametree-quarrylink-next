@@ -1,18 +1,26 @@
 'use client';
 import * as React from 'react';
-// import { FormDialog } from '@/components/form-dialog';
+import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
-import { Driver } from '@/lib/types/driver';
-// import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
-// import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
+import { DriverDTO } from '@/lib/types/driver';
+import { DRIVER_STATUS } from '@/lib/types/driver-enums';
+import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
+import { useDriverStore } from '@/app/stores/driver-store';
 import {
   Ban,
   TriangleAlert,
-  CircleCheck,
-  CircleX,
   CircleAlert,
 } from 'lucide-react';
-import { useDriverStore } from '@/app/stores/driver-store';
+import {
+  DriverByIdQueryOptions,
+  useDeleteDriver,
+  useDeactivateDriver,
+  useReactivateDriver,
+} from '@/lib/api/driver';
+import { useQuery } from '@tanstack/react-query';
+import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -39,10 +47,13 @@ interface SelectedAction {
 }
 
 const getDialogConfigs = (
-  driverData?: Driver | null,
+  driverData?: DriverDTO | null,
   selectedAction?: SelectedAction,
+  activeDocketIds: number[] = [],
 ): Record<string, DialogConfig> => {
-  const driverName = driverData?.name;
+  const driverName = driverData?.driverName;
+  const docketCount = activeDocketIds.length;
+  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
 
   if (selectedAction?.key === 'resume') {
     return {
@@ -74,63 +85,30 @@ const getDialogConfigs = (
               Are you sure you want to deactivate this driver?
             </span>
 
-            <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-start gap-2 self-stretch">
-                  <TriangleAlert className="h-[20px] w-[20px] text-[#CA8A04] flex-shrink-0 mt-0.5" />
-                  <span className="text-[16px] text-[#854D0E] font-medium">
-                    Truck Assignment
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1 text-sm font-normal text-[#A16207]">
-                  <span>
-                    • TRUCK -ID Volvo will remain assigned to this driver.
-                  </span>
-                  <span>
-                    • TRUCK -ID Volvo will remain assigned to this driver.
-                  </span>
-                  <span>
-                    • TRUCK -ID Volvo will remain assigned to this driver.
-                  </span>
-                </div>
-                <span className="text-xs text-yellow-500 font-normal">
-                  Driver will loose access to their Drivers' App until they are
-                  activated again.
-                </span>
-              </div>
-            </div>
-
-            <div className="border border-[#BAE6FD] rounded-md p-4 bg-[#F0F9FF]">
-              <div className="flex flex-col gap-3">
-                <span className="text-[16px] text-[#075985] font-medium">
-                  Data Preservation
-                </span>
-                <div className="flex justify-start gap-1 self-stretch text-[#0C4A6E]">
-                  <span className="font-medium">15 completed dockets</span>
-                  will be preserved
-                </div>
-                <div className="flex flex-col gap-1">
+            {(driverData?.trucks ?? []).length > 0 && (
+              <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
+                <div className="flex flex-col gap-3">
                   <div className="flex justify-start gap-2 self-stretch">
-                    <CircleCheck className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">10 Delivered Dockets</span>
-                  </div>
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleCheck className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">3 Collected</span>
-                  </div>
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleX className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">2 Cancelled</span>
-                  </div>
-                  <div className="flex justify-start gap-2 self-stretch">
-                    <CircleCheck className="text-[#0EA5E9]" />
-                    <span className="text-[#0369A1]">
-                      All maintenance records
+                    <TriangleAlert className="h-[20px] w-[20px] text-[#CA8A04] flex-shrink-0 mt-0.5" />
+                    <span className="text-[16px] text-[#854D0E] font-medium">
+                      Truck Assignment
                     </span>
                   </div>
+                  <div className="flex flex-col gap-1 text-sm font-normal text-[#A16207]">
+                    {(driverData?.trucks ?? []).map((truck) => (
+                      <span key={truck.id}>
+                        • {truck.truckType ?? 'TRUCK'} - {truck.licensePlate} will remain assigned to this driver.
+                      </span>
+                    ))}
+                    <span>• Driver will be available for docket assignment once the driver is reactivated.</span>
+                  </div>
+                  <span className="text-xs text-yellow-500 font-normal">
+                    Driver will loose access to their Drivers&apos; App until they are
+                    activated again.
+                  </span>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className=" rounded-md p-4 bg-[#F9FAFB]">
               <div className="flex flex-col gap-3">
@@ -186,19 +164,18 @@ const getDialogConfigs = (
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
-                Active Dockets Found:
-              </span>
-              <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3 text-[13.7px] text-[#101828]">
-                <span className="text-[14px] text-[#364153] font-normal">
-                  2 active dockets:{' '}
+            {docketCount > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold text-[14px] text-[#101828]">
+                  Active Dockets Found:
                 </span>
-                <span className="text-[14px] text-[#155DFC] font-medium underline">
-                  DO-2342, DO-2343
-                </span>
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
+                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         ),
         cancelText: 'Cancel',
@@ -281,19 +258,18 @@ const getDialogConfigs = (
               </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
-                Active Dockets Founds:
-              </span>
-              <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3 text-[13.7px] text-[#101828]">
-                <span className="text-[14px] text-[#364153] font-normal">
-                  2 active dockets:{' '}
+            {docketCount > 0 && (
+              <div className="flex flex-col gap-2">
+                <span className="font-semibold text-[14px] text-[#101828]">
+                  Active Dockets Found:
                 </span>
-                <span className="text-[14px] text-[#155DFC] font-medium underline">
-                  DO-2342, DO-2343
-                </span>
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
+                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  </a>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-col gap-1">
               <span className="font-semibold text-[15px] text-[#101828]">
@@ -373,17 +349,35 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useDriverActions(driverData?: Driver | null) {
+export function useDriverActions(driverData?: DriverDTO | null) {
   const driverId = driverData?.id;
-  const selectedDriver = useDriverStore((s) => s.selectedDriver);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const selectedDriver = useDriverStore((state) => state.selectedDriver);
+
+  const { data: fullDriverData } = useQuery({
+    ...DriverByIdQueryOptions(driverId ?? 0),
+    enabled: !!driverId,
+  });
+
+  const deleteDriverMutation = useDeleteDriver();
+  const deactivateDriverMutation = useDeactivateDriver();
+  const reactivateDriverMutation = useReactivateDriver();
+
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
+
+  const activeDocketIds =
+    selectedAction?.key === 'cannotDeactivate' ? cannotDeactivateDocketIds
+    : selectedAction?.key === 'cannotDelete' ? cannotDeleteDocketIds
+    : [];
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(driverData ?? null, selectedAction || undefined),
-    [driverData, selectedAction],
+    () => getDialogConfigs(fullDriverData ?? driverData ?? null, selectedAction || undefined, activeDocketIds),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [driverData, fullDriverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds],
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -393,36 +387,84 @@ export function useDriverActions(driverData?: Driver | null) {
     };
   };
 
-  const handleDeactivate = () => {
-    console.log('Deactivate driver:', driverId, driverData);
-    // TODO: implement deactivate logic
+  const handleDeactivate = async () => {
+    if (driverId == null) return;
+    try {
+      await deactivateDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver deactivated successfully.');
+      const current = useDriverStore.getState().selectedDriver;
+      if (current) {
+        useDriverStore.getState().setSelectedDriver({
+          ...current,
+          driverStatus: DRIVER_STATUS.INACTIVE,
+        });
+      }
+      setActiveDialog(null);
+    } catch (error) {
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
+
+      if (docketIds.length > 0) {
+        setCannotDeactivateDocketIds(docketIds);
+        setSelectedAction({ key: 'cannotDeactivate' });
+        setActiveDialog('cannotDeactivate');
+      } else {
+        notifyError(extractErrorMessage(error));
+      }
+    }
   };
 
-  const handleCannotDeactivate = () => {
-    console.log('Cannot deactivate driver:', driverId, driverData);
-    // TODO: implement cannot deactivate logic
+  const handleReactivate = async () => {
+    if (driverId == null) return;
+    try {
+      await reactivateDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver reactivated successfully.');
+      const current = useDriverStore.getState().selectedDriver;
+      if (current) {
+        useDriverStore.getState().setSelectedDriver({
+          ...current,
+          driverStatus: DRIVER_STATUS.ACTIVE,
+        });
+      }
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
   };
 
-  const handleReactivate = () => {
-    console.log('Reactivate driver:', driverId, driverData);
-    // TODO: implement reactivate logic
+  const handleDelete = async () => {
+    if (driverId == null) return;
+    try {
+      await deleteDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver deleted successfully.');
+      setActiveDialog(null);
+      setViewOpen(false);
+    } catch (error) {
+      const errorData = extractErrorData(error) as Record<string, unknown> | null;
+      const docketIds = Array.isArray(errorData?.activeDocketIds)
+        ? (errorData.activeDocketIds as number[])
+        : [];
+
+      if (docketIds.length > 0) {
+        setCannotDeleteDocketIds(docketIds);
+        setSelectedAction({ key: 'cannotDelete' });
+        setActiveDialog('cannotDelete');
+      } else {
+        notifyError(extractErrorMessage(error));
+      }
+    }
   };
 
-  const handleDelete = () => {
-    console.log('Delete driver:', driverId, driverData);
-    // TODO: implement delete logic
-  };
-
-  const actionHandlers: Record<string, () => void> = {
+  const actionHandlers: Record<string, () => Promise<void>> = {
     deactivate: handleDeactivate,
-    cannotDeactivate: handleCannotDeactivate,
     reactivate: handleReactivate,
-    cannotDelete: handleDelete,
+    delete: handleDelete,
   };
 
   const actions = {
-    /** Pass customer when opening from row click so the store updates before the dialog opens */
-    view: (driver?: Driver | null) => {
+    view: (driver?: DriverDTO | null) => {
       const toSelect = driver ?? driverData;
       if (toSelect != null) {
         useDriverStore.getState().setSelectedDriver(toSelect);
@@ -430,36 +472,14 @@ export function useDriverActions(driverData?: Driver | null) {
       setViewOpen(true);
     },
 
-    deactivate: () => {
-      // This logic will be updated to check if the driver has any active dockets
-      if (
-        driverData?.assignedTrucks?.length &&
-        driverData.assignedTrucks.length > 0
-      ) {
-        createDialogAction('cannotDeactivate')();
-      } else {
-        createDialogAction('deactivate')();
-      }
-    },
-    reactivate: () => {
-      createDialogAction('reactivate')();
-    },
-    delete: () => {
-      if (
-        driverData?.assignedTrucks?.length &&
-        driverData.assignedTrucks.length > 0
-      ) {
-        createDialogAction('cannotDelete')();
-      } else {
-        createDialogAction('delete')();
-      }
-    },
+    deactivate: () => createDialogAction('deactivate')(),
+    reactivate: () => createDialogAction('reactivate')(),
+    delete: () => createDialogAction('delete')(),
   };
 
   // Render active dialog
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
     if (activeDialog !== key) return null;
-    console.log('confirmDialogs', key, config);
 
     return (
       <ActionDialog
@@ -483,37 +503,38 @@ export function useDriverActions(driverData?: Driver | null) {
         confirmActionNeeded={config.confirmActionNeeded}
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           const handler = actionHandlers[key];
           if (handler) {
-            handler();
+            await handler();
           }
         }}
       />
     );
   });
 
-  // const viewDialog = viewOpen ? (
-  //   <FormDialog
-  //     id={selectedDriver?.id}
-  //     dialogTitle="View / Edit Driver"
-  //     open={viewOpen}
-  //     onOpenChangeAction={(open) => {
-  //       setViewOpen(open);
-  //     }}
-  //     headerButtons={<DriverActionButtons driver={selectedDriver ?? undefined} />}
-  //     hideTrigger
-  //     headerInfo={{
-  //       useSelectedDriver: true,
-  //     }}
-  //   >
-  //     <DriverForm />
-  //   </FormDialog>
-  // ) : null;
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={selectedDriver?.id}
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+      }}
+      hideTrigger
+      headerInfo={{
+        useSelectedDriver: true,
+      }}
+      headerButtons={
+        <DriverActionButtons driver={driverData ?? selectedDriver} />
+      }
+    >
+      <DriverForm />
+    </FormDialog>
+  ) : null;
 
   return {
     actions,
     confirmDialogs,
-    // viewDialog,
+    viewDialog,
   };
 }

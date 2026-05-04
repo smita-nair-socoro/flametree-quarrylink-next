@@ -17,21 +17,20 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Driver } from '@/lib/types/driver';
+import { DriverDTO } from '@/lib/types/driver';
 import { useDriverActions } from '@/hooks/use-driver-actions';
 
 interface DriverTableActionsProps {
-  driver: Driver;
+  driver: DriverDTO;
 }
 
 export function DriverTableActions({ driver }: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  // const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
-  const { actions, confirmDialogs } = useDriverActions(driver);
+  const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
 
   const handleView = () => {
     setDropdownOpen(false);
-    // actions.view();
+    actions.view();
   };
 
   const handleResendAppInvitation = () => {
@@ -57,7 +56,7 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
   return (
     <div>
       {confirmDialogs}
-      {/* {viewDialog} */}
+      {viewDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
@@ -69,34 +68,42 @@ export function DriverTableActions({ driver }: DriverTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleResendAppInvitation}>
-            <SendToBack className="h-4 w-4 mr-2" />
-            Resend App Invitation
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {driver.status === 'DEACTIVATED' && (
+          {driver.driverStatus === 'INACTIVE' && (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivateDriver}>
                 <Power className="h-4 w-4 mr-2 text-green-600" />
                 <span className="text-green-600">Reactivate Driver</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
             </>
           )}
-          {driver.status === 'ACTIVE' && (
+          {driver.driverStatus === 'ACTIVE' && (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleDeactivate}>
                 <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
                 <span className="text-orange-900">Deactivate</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
             </>
           )}
-          <DropdownMenuItem onClick={handleDeleteDriver}>
-            <Delete className="h-4 w-4 mr-2 text-red-600" />
-            <span className="text-red-600">Delete Driver</span>
-          </DropdownMenuItem>
+          {driver.driverStatus === 'PENDING_INVITATION' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleResendAppInvitation}>
+                <SendToBack className="h-4 w-4 mr-2" />
+                <span>Resend App Invitation</span>
+              </DropdownMenuItem>
+            </>
+          )}
+          {driver.driverStatus !== 'ON_DUTY' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDeleteDriver}>
+                <Delete className="h-4 w-4 mr-2 text-red-600" />
+                <span className="text-red-600">Delete Driver</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

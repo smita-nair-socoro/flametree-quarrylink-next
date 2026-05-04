@@ -14,10 +14,39 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
+
+export function MarkDeliveredDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#E8F5EC]">
+        <Package className="h-5 w-5 text-[#16A34A]" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-[#111827]">
+          {docket?.docketNumber ?? '—'}
+        </span>
+        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
+          {docket?.loadSize != null && (
+            <>
+              <span className="font-bold">•</span>
+              <span>
+                {docket.loadSize} {docket.jobItem?.productSellUom}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface MarkDeliveredContentProps {
-  docket?: Docket | null;
   deliveredProductsConfirmed: boolean;
   onDeliveredProductsConfirmedChange: (checked: boolean) => void;
   unloadedPhoto: File | null;
@@ -34,7 +63,6 @@ interface MarkDeliveredContentProps {
 }
 
 export function MarkDeliveredContent({
-  docket,
   deliveredProductsConfirmed,
   onDeliveredProductsConfirmedChange,
   unloadedPhoto,
@@ -67,12 +95,8 @@ export function MarkDeliveredContent({
 
   React.useEffect(() => {
     return () => {
-      if (unloadedPhotoPreviewUrl) {
-        URL.revokeObjectURL(unloadedPhotoPreviewUrl);
-      }
-      if (receiptPhotoPreviewUrl) {
-        URL.revokeObjectURL(receiptPhotoPreviewUrl);
-      }
+      if (unloadedPhotoPreviewUrl) URL.revokeObjectURL(unloadedPhotoPreviewUrl);
+      if (receiptPhotoPreviewUrl) URL.revokeObjectURL(receiptPhotoPreviewUrl);
     };
   }, [receiptPhotoPreviewUrl, unloadedPhotoPreviewUrl]);
 
@@ -90,28 +114,6 @@ export function MarkDeliveredContent({
         title={previewImage?.title ?? 'Photo Preview'}
       />
       <div className="flex flex-col gap-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#E8F5EC]">
-            <Package className="h-5 w-5 text-[#16A34A]" />
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="font-medium text-[#111827]">
-              {docket?.docketNumber ?? '—'}
-            </span>
-            <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-              <span>{docket?.productName ?? '—'}</span>
-              {docket?.loadSize != null && (
-                <>
-                  <span className="font-bold">•</span>
-                  <span>
-                    {docket.loadSize} {docket.productUoM}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className="rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-4">
           <div className="flex items-start gap-3">
             <Clock3 className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#2563EB]" />
@@ -192,10 +194,10 @@ export function MarkDeliveredContent({
                 <button
                   type="button"
                   onClick={() => onUnloadedPhotoChange(null)}
-                  className="absolute right-2 top-2 z-20 rounded-full bg-white/90 p-1 text-[#374151] shadow"
+                  className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-3 text-[#374151] shadow"
                   aria-label="Remove unloaded photo"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             ) : (
@@ -251,10 +253,10 @@ export function MarkDeliveredContent({
                 <button
                   type="button"
                   onClick={() => onReceiptPhotoChange(null)}
-                  className="absolute right-2 top-2 z-20 rounded-full bg-white/90 p-1 text-[#374151] shadow"
+                  className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-3 text-[#374151] shadow"
                   aria-label="Remove receipt photo"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
             ) : (

@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
+import { cn, splitReasonNote } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -20,11 +20,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
-import {
-  GetTodaysDate,
-  formatLocalDateShort,
-  formatLocalDateTime,
-} from '@/lib/utils/date';
+import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
@@ -51,11 +47,20 @@ import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { MultipleInput } from '@/components/ui/multiple-input';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import { AuditInformation } from '@/components/audit-information';
 
 interface FormProps {
   id?: number;
@@ -123,19 +128,27 @@ export default function QuotationForm({
     if (!customers) return [];
     return customers
       .filter((customer) => customer.id !== undefined)
-      .map((customer) => ({
-        label: customer.businessName || customer.contactName,
-        value: customer.id!,
-      }));
+      .map((customer) => {
+        if (customer.customerType === 'BUSINESS') {
+          return {
+            label: customer.businessName as string,
+            value: customer.id!,
+          };
+        } else {
+          return {
+            label: customer.individualContactName ?? '',
+            value: customer.id!,
+          };
+        }
+      });
   }, [customers]);
 
   const getCustomerNameById = React.useCallback(
     (customerId: number) => {
-      return (
-        customers.find((c) => c.id === customerId)?.businessName ||
-        customers.find((c) => c.id === customerId)?.contactName ||
-        ''
-      );
+      const customer = customers.find((c) => c.id === customerId);
+      return customer?.customerType === 'BUSINESS'
+        ? customer.businessName
+        : customer?.individualContactName;
     },
     [customers],
   );
@@ -149,14 +162,6 @@ export default function QuotationForm({
     }));
   }, [users]);
 
-  const getUserNameBySub = React.useCallback(
-    (subOrName?: string | null) => {
-      if (!subOrName) return '';
-      return users.find((u) => u.sub === subOrName)?.name || subOrName;
-    },
-    [users],
-  );
-
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
     const subscription = quotationForm.watch((value, { name }) => {
@@ -169,9 +174,10 @@ export default function QuotationForm({
           // Update phone and email fields whenever customer changes
           quotationForm.setValue(
             'phone',
-            normalizePhoneNumber(selectedCustomer.phone || '') || '',
+            normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
+              '',
           );
-          quotationForm.setValue('email', selectedCustomer.email || '');
+          quotationForm.setValue('receiptEmail', '');
 
           quotationForm.setValue(
             'accountManagerSub',
@@ -185,33 +191,40 @@ export default function QuotationForm({
   }, [customers, quotationForm, isEditing]);
 
   async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
-    console.log(values);
-
-    // Check for missing email when creating a quotation
-    if (!isEditing && !values.email?.trim()) {
-      notifyError(
-        'Contact has no email. Add an email in the Customer profile for it to appear on the quote.',
-      );
-      return;
-    }
-
+    const selectedCustomer = customers.find((c) => c.id === values.customerId);
+    const customerEmail = selectedCustomer?.contactPersonEmail || '';
+    const receiptEmails = [
+      customerEmail,
+      ...(values.receiptEmail
+        ? values.receiptEmail
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
+        : []),
+    ].filter(Boolean);
+    const submitCustomer = customers.find((c) => c.id === values.customerId);
     const customerName =
-      customers.find((c) => c.id === values.customerId)?.businessName ||
-      customers.find((c) => c.id === values.customerId)?.contactName ||
-      '';
+      submitCustomer?.customerType === 'BUSINESS'
+        ? (submitCustomer.businessName ?? '')
+        : (submitCustomer?.individualContactName ?? '');
 
     const accountManagerName =
       users.find((user) => user.sub === values.accountManagerSub)?.name || '';
 
     if (isDuplicate) {
       try {
-        const transformed = transformFormDataToQuoteDto(values, {
-          customerName,
-          accountManagerName,
-          accountManagerSub:
-            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-          lineItemsCount: 0,
-        });
+        const transformed = {
+          ...transformFormDataToQuoteDto(values, {
+            customerName: customerName || '',
+            accountManagerName,
+            accountManagerSub:
+              values.accountManagerSub ||
+              'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+            lineItemsCount: currentQuotation?.lineItemsCount ?? 0,
+          }),
+          email: customerEmail,
+          emailRecipients: receiptEmails,
+        };
 
         // For duplicate, we pass the original ID and the new form data
         const newQuotation = await duplicateQuotation.mutateAsync({
@@ -240,13 +253,18 @@ export default function QuotationForm({
       }
     } else if (!isEditing) {
       try {
-        const transformed = transformFormDataToQuoteDto(values, {
-          customerName,
-          accountManagerName,
-          accountManagerSub:
-            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-          lineItemsCount: 0,
-        });
+        const transformed = {
+          ...transformFormDataToQuoteDto(values, {
+            customerName: customerName || '',
+            accountManagerName,
+            accountManagerSub:
+              values.accountManagerSub ||
+              'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+            lineItemsCount: 0,
+          }),
+          email: customerEmail,
+          emailRecipients: receiptEmails,
+        };
 
         const newQuotation = await createQuotation.mutateAsync(transformed);
 
@@ -272,14 +290,18 @@ export default function QuotationForm({
       }
     } else {
       // Update existing quotation - keep the original quote number
-      const transformed = transformFormDataToQuoteDto(values, {
-        customerName,
-        accountManagerName,
-        accountManagerSub:
-          values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
-        quoteNumber: currentQuotation?.quoteNumber || '',
-        lineItemsCount: 0,
-      });
+      const transformed = {
+        ...transformFormDataToQuoteDto(values, {
+          customerName: customerName || '',
+          accountManagerName,
+          accountManagerSub:
+            values.accountManagerSub || 'f92e0468-1091-70a9-fe7e-f7ad687c6252',
+          quoteNumber: currentQuotation?.quoteNumber || '',
+          lineItemsCount: currentQuotation?.lineItemsCount ?? 0,
+        }),
+        email: customerEmail,
+        emailRecipients: receiptEmails,
+      };
 
       try {
         await updateQuotation.mutateAsync({
@@ -351,35 +373,35 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-          <div
-            className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-              isDesktop ? '' : 'pt-10',
-            )}
-          >
-            <div className="flex flex-col items-center space-y-4 p-8">
-              <Spinner size="medium" />
-              <p className="text-lg text-muted-foreground font-bold">
-                {isDuplicate
-                  ? 'Creating Duplicate Quote...'
-                  : createQuotation.isPending
-                    ? 'Adding Quote...'
-                    : 'Updating Quote...'}
-              </p>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isDuplicate
+                ? 'Creating Duplicate Quote...'
+                : createQuotation.isPending
+                  ? 'Adding Quote...'
+                  : 'Updating Quote...'}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <Form {...quotationForm}>
         <form
           id="add-new-quote-form"
           className={cn(
-            'p-1 w-full flex flex-col',
+            'w-full flex flex-col',
             className,
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-            'pointer-events-none',
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit)}
         >
@@ -400,10 +422,9 @@ export default function QuotationForm({
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
               const decisionMakerName = decisionMaker.split('-')[1];
-              const reasonLabel =
-                currentQuotation?.declineReason?.split('-')[0] || '';
-              const reasonNote =
-                currentQuotation?.declineReason?.split('-')[1] || '';
+              const { reason: reasonLabel, note: reasonNote } = splitReasonNote(
+                currentQuotation?.declineReason,
+              );
               const decisionDate = currentQuotation?.customerResponseAt
                 ? formatLocalDateTime(currentQuotation.customerResponseAt)
                 : '';
@@ -456,7 +477,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -529,44 +550,40 @@ export default function QuotationForm({
             {isEditing && (
               <FormField
                 control={quotationForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-1'
-                    }
-                  >
-                    <div className="flex items-center gap-2">
-                      <FormLabel>Customer Email*</FormLabel>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-                        </TooltipTrigger>
-                        <TooltipContent
-                          side="right"
-                          className="max-w-[250px]"
-                          backgroundClassName="bg-gray-900 text-white"
-                          arrowClassName="bg-gray-900 fill-gray-900"
-                        >
-                          <p className="text-xs">
-                            Recipient email address for this quote only.
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Email"
-                        {...field}
-                        disabled={isEditing && !canEdit}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name="receiptEmail"
+                render={({ field }) => {
+                  const selectedCustomer = customers.find(
+                    (c) => c.id === quotationForm.watch('customerId'),
+                  );
+                  const customerEmail = selectedCustomer?.contactPersonEmail;
+                  const fixedValues = customerEmail ? [customerEmail] : [];
+
+                  return (
+                    <FormItem
+                      className={
+                        isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>Recipient Email *</FormLabel>
+                      <FormControl>
+                        <MultipleInput
+                          className="w-full"
+                          placeholder={
+                            quotationForm.watch('customerId') === 0
+                              ? 'Select Customer First'
+                              : 'Enter Recipient Emails'
+                          }
+                          fixedValues={fixedValues}
+                          validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                          label="Press Enter or comma to add email addresses"
+                          {...field}
+                          disabled={!canEdit}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             )}
 
@@ -621,7 +638,7 @@ export default function QuotationForm({
                 'col-span-2',
                 isEditing && isDesktop
                   ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-1 gap-2',
+                  : 'grid grid-cols-2 gap-2',
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
@@ -631,9 +648,7 @@ export default function QuotationForm({
                 control={quotationForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
-                  <FormItem
-                    className={isEditing && isDesktop ? 'col-span-2' : ''}
-                  >
+                  <FormItem className="col-span-2">
                     <FormLabel>{dateLabel}*</FormLabel>
                     <FormControl>
                       <DatePicker
@@ -654,16 +669,28 @@ export default function QuotationForm({
                 name="deliveryWindowStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window</FormLabel>
+                    <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-start"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
-                      />
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -675,16 +702,28 @@ export default function QuotationForm({
                 name="deliveryWindowEnd"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time Window</FormLabel>
+                    <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="time"
-                        id="time-picker-end"
-                        className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none w-full"
-                        value={field.value}
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
-                      />
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select time" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {Array.from({ length: 24 }, (_, i) => {
+                            const hour = String(i).padStart(2, '0');
+                            return (
+                              <SelectItem key={hour} value={`${hour}:00`}>
+                                {hour}:00
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -705,7 +744,7 @@ export default function QuotationForm({
                 name="expiryDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Expiry Date</FormLabel>
+                    <FormLabel>Expiry Date*</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
@@ -766,7 +805,9 @@ export default function QuotationForm({
                 <div className="flex flex-col gap-8">
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
-                      const quoteItemsData = currentQuotation?.quoteItems ?? [];
+                      const quoteItemsData = [...(currentQuotation?.quoteItems ?? [])].sort(
+                        (a, b) => (a.productName ?? '').localeCompare(b.productName ?? ''),
+                      );
                       return (
                         <DataTableClient
                           columns={getQuotationLineItemColumns()}
@@ -916,54 +957,12 @@ export default function QuotationForm({
                 </div>
 
                 {!isDuplicate && (
-                  <div className="space-y-6 mt-10 mb-4">
-                    <h2 className="text-2xl font-bold">Audit Information</h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">
-                          Created By:
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {getUserNameBySub(quotationForm.watch('createdBy')) ||
-                            'Jaywoo Choi'}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">
-                          Last Modified By:
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {getUserNameBySub(
-                            quotationForm.watch('lastModifiedBy'),
-                          ) || 'Jaywoo Choi'}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">
-                          Created Date:
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatLocalDateShort(
-                            quotationForm.watch('createdAt'),
-                          ) || '—'}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-foreground">
-                          Modified Date:
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatLocalDateShort(
-                            quotationForm.watch('updatedAt'),
-                          ) || '—'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <AuditInformation
+                    createdBy={currentQuotation?.createdBy}
+                    lastModifiedBy={currentQuotation?.lastModifiedBy}
+                    createdAt={currentQuotation?.createdAt}
+                    updatedAt={currentQuotation?.updatedAt}
+                  />
                 )}
               </div>
             )}

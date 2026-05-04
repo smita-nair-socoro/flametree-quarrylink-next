@@ -40,7 +40,7 @@ import {
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
 import { toAddressPayload } from '@/lib/utils/address-helper';
-import { formatLocalDateShort } from '@/lib/utils/date';
+import { AuditInformation } from '@/components/audit-information';
 import { useAddressSync } from '@/lib/utils/address-helper';
 import {
   useQuarrySupplierFormState,
@@ -221,7 +221,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -252,7 +252,7 @@ export default function QuarrySupplierForm({
         <form
           id="add-quarry-supplier-form"
           className={cn(
-            'p-1 gap-1 w-full',
+            'py-1 gap-1 w-full',
             isDesktop ? 'grid grid-cols-2 gap-x-8' : 'grid grid-cols-1',
             className,
             isSubmitting && 'pointer-events-none',
@@ -565,49 +565,13 @@ export default function QuarrySupplierForm({
             )}
           />
           <Separator className="col-span-full my-2 mb-5" />
-          {/* Audit Information */}
           {isEditing && (
-            <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.createdBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Last Modified By:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedQuarrySupplier?.lastModifiedBy || 'N/A'}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Created Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedQuarrySupplier?.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-foreground">
-                    Modified Date:
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatLocalDateShort(selectedQuarrySupplier?.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <AuditInformation
+              createdBy={selectedQuarrySupplier?.createdBy}
+              lastModifiedBy={selectedQuarrySupplier?.lastModifiedBy}
+              createdAt={selectedQuarrySupplier?.createdAt}
+              updatedAt={selectedQuarrySupplier?.updatedAt}
+            />
           )}
 
           {/* Form Actions */}
@@ -624,9 +588,8 @@ export default function QuarrySupplierForm({
               >
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${
-                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                    }`}
+                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                  }`}
               </Button>
             </div>
           )}
@@ -636,9 +599,8 @@ export default function QuarrySupplierForm({
               <Button type="submit" className="cursor-pointer">
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${
-                      selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                    }`}
+                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
+                  }`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}

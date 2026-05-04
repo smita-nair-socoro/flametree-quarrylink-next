@@ -4,18 +4,25 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { ColumnDef } from '@tanstack/react-table';
 import { CustomerDTO } from '@/lib/types/customer';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
-import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { CustomerTableActions } from './customer-table-actions';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const customerColumns: ColumnDef<CustomerDTO>[] = [
   {
     id: 'customer_name',
-    accessorFn: (row) => row.businessName || row.contactName,
+    accessorFn: (row) => {
+      if (row.customerType === CUSTOMER_TYPE.BUSINESS) {
+        return row.businessName;
+      } else {
+        return row.individualContactName;
+      }
+    },
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Customer Name" />
@@ -23,18 +30,18 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return (<Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div
-            className="truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]"
-          >
-            {value}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{value}</p>
-        </TooltipContent>
-      </Tooltip>)
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Customer Name',
   },
@@ -58,47 +65,47 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
   },
   {
     id: 'contact_name',
-    accessorFn: (row) => row.contactName,
+    accessorFn: (row) => row.individualContactName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Contact Name" />;
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return (<Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div
-            className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]"
-          >
-            {value}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{value}</p>
-        </TooltipContent>
-      </Tooltip>)
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Contact Name',
   },
   {
     id: 'email',
-    accessorFn: (row) => row.email,
+    accessorFn: (row) => row.contactPersonEmail,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Email" />;
     },
     cell: (info) => {
       const value = (info.getValue() as string) || 'N/A';
-      return (<Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div
-            className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]"
-          >
-            {value}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{value}</p>
-        </TooltipContent>
-      </Tooltip>)
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[100px] sm:w-[120px] md:w-[140px] lg:w-[160px] xl:w-[180px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Email',
   },
@@ -110,25 +117,22 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
       return <TableClientSortableHeader column={column} title="Credit Limit" />;
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.original.creditLimit.toString());
-      const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(dollars);
-      return row.original.paymentType === 'CREDIT' ? (
-        <Tooltip delayDuration={300}>
+      if (row.original.paymentType === 'CREDIT') {
+        const cents = parseFloat(row.original.creditLimit.toString());
+        const formatted = centsToDollars(cents);
+        return <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div className="py-2 font-medium w-36 max-w-36 truncate">
-              {formatted}
+              ${formatted}
             </div>
           </TooltipTrigger>
           <TooltipContent variant="white">
-            <p>{formatted}</p>
+            <p>${formatted}</p>
           </TooltipContent>
         </Tooltip>
-      ) : (
-        <Tooltip delayDuration={300}>
+      }
+      else {
+        return <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
           </TooltipTrigger>
@@ -136,7 +140,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
             <p>N/A</p>
           </TooltipContent>
         </Tooltip>
-      );
+      }
     },
     meta: 'Credit Limit',
   },

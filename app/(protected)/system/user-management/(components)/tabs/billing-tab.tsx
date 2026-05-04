@@ -2,10 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, CardHeader, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { ExternalLink, Download, Users, Mountain } from 'lucide-react';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import {
+  TenantCompleteDetailsQueryOptions,
+  useGetStripeProfileLink,
+} from '@/lib/api/tenant';
+import { notifyError } from '@/lib/toast';
 import { centsToDollars } from '@/lib/utils/currency';
 import { TableBadges } from '@/components/table-badges';
 import {
@@ -15,8 +20,18 @@ import {
 
 export default function BillingTab() {
   const { data: tenantCompleteDetails } = useQuery(
-    TenantCompleteDetailsQueryOptions()
+    TenantCompleteDetailsQueryOptions(),
   );
+  const getStripeProfileLink = useGetStripeProfileLink();
+
+  const handleManageBilling = async () => {
+    try {
+      const { stripeProfileLink } = await getStripeProfileLink.mutateAsync();
+      window.open(stripeProfileLink, '_blank', 'noopener,noreferrer');
+    } catch {
+      notifyError('Failed to open billing portal. Please try again.');
+    }
+  };
 
   const currencySymbol = (currency?: string): string => {
     const c = (currency || '').toUpperCase();
@@ -46,7 +61,7 @@ export default function BillingTab() {
 
   const getItemQty = (productName: string): number => {
     const item = subscriptionItems.find(
-      (i) => (i.productName || '').toUpperCase() === productName.toUpperCase()
+      (i) => (i.productName || '').toUpperCase() === productName.toUpperCase(),
     );
     return item?.quantity ?? 0;
   };
@@ -59,20 +74,20 @@ export default function BillingTab() {
       invoice.status === 'open'
         ? 'Pending'
         : invoice.status === 'paid'
-        ? 'Paid'
-        : invoice.status
-        ? `${invoice.status.charAt(0).toUpperCase()}${invoice.status.slice(1)}`
-        : '-';
+          ? 'Paid'
+          : invoice.status
+            ? `${invoice.status.charAt(0).toUpperCase()}${invoice.status.slice(1)}`
+            : '-';
 
     const dateEpochSeconds =
       invoice.status === 'paid'
         ? invoice.dueDateEpochSeconds
-        : invoice.dueDateEpochSeconds ?? invoice.createdAtEpochSeconds;
+        : (invoice.dueDateEpochSeconds ?? invoice.createdAtEpochSeconds);
 
     const amountCents =
       invoice.status === 'paid'
-        ? invoice.amountPaidInCents ?? invoice.amountDueInCents
-        : invoice.amountDueInCents ?? invoice.amountRemainingInCents ?? 0;
+        ? (invoice.amountPaidInCents ?? invoice.amountDueInCents)
+        : (invoice.amountDueInCents ?? invoice.amountRemainingInCents ?? 0);
 
     const symbol = currencySymbol(invoice.currency);
 
@@ -92,12 +107,17 @@ export default function BillingTab() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-[24px] font-medium">
+            <CardTitle className="text-[20px] sm:text-[24px] font-medium">
               Current Plan
             </CardTitle>
-            <Button variant="outline" className="cursor-pointer">
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={handleManageBilling}
+              disabled={getStripeProfileLink.isPending}
+            >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Manage Billing
+              {getStripeProfileLink.isPending ? 'Loading...' : 'Manage Billing'}
             </Button>
           </div>
         </CardHeader>
@@ -127,35 +147,43 @@ export default function BillingTab() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="text-[24px] font-medium">
+      <Card className="!pb-0 sm:!py-6">
+        <CardHeader className="text-[20px] sm:text-[24px] font-medium">
           Usage & Limits
         </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg px-6">
-            <div className="flex items-center justify-between py-5">
+        <CardContent className="px-0 sm:px-6">
+          <div className="sm:border sm:rounded-lg sm:px-6 first:border-t">
+            <div className="flex items-center justify-between py-4 px-4 sm:px-0 sm:py-5">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-[#111827]" />
-                <span className="text-xl font-semibold">Users:</span>
+                <span className="text-base sm:text-xl sm:font-semibold">
+                  Users:
+                </span>
               </div>
-              <span className="text-xl font-semibold">{usersCount}</span>
+              <span className="text-base sm:text-xl font-semibold">
+                {usersCount}
+              </span>
             </div>
-            <div className="border-t" />
-            <div className="flex items-center justify-between py-5">
+            <Separator />
+            <div className="flex items-center justify-between py-4 px-4 sm:px-0 sm:py-5">
               <div className="flex items-center gap-2">
                 <Mountain className="h-5 w-5 text-[#111827]" />
-                <span className="text-xl font-semibold">Quarries:</span>
+                <span className="text-base sm:text-xl sm:font-semibold">
+                  Quarries:
+                </span>
               </div>
-              <span className="text-xl font-semibold">{quarriesCount}</span>
+              <span className="text-base sm:text-xl font-semibold">
+                {quarriesCount}
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="!pb-0 sm:!py-6">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="text-[24px] font-medium">
+            <CardTitle className="text-[20px] sm:text-[24px] font-medium">
               Recent Invoices
             </CardTitle>
             <Button variant="ghost" className="text-sm">
@@ -163,12 +191,12 @@ export default function BillingTab() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-3">
+        <CardContent className="px-0 sm:px-6">
+          <div className="flex flex-col">
             {recentInvoices.map((invoice, index) => (
               <div
                 key={invoice.invoiceId ?? index}
-                className="flex justify-between items-center p-4 border rounded-lg"
+                className="flex justify-between space-x-2 items-center px-4 py-4 sm:p-4 sm:border sm:rounded-lg sm:mb-3 border-b first:border-t"
               >
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium">{invoice.date}</span>
@@ -184,7 +212,7 @@ export default function BillingTab() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
+                  className="gap-2 rounded-lg sm:rounded-md"
                   disabled={!invoice.pdfUrl && !invoice.hostedUrl}
                   onClick={() => {
                     const url = invoice.pdfUrl || invoice.hostedUrl;
@@ -192,7 +220,7 @@ export default function BillingTab() {
                   }}
                 >
                   <Download className="w-4 h-4" />
-                  Download PDF
+                  <span className="hidden sm:inline">Download </span>PDF
                 </Button>
               </div>
             ))}

@@ -60,6 +60,7 @@ import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
 import { InputIcon } from './input-icon';
+import { Input } from './input';
 import { Separator } from './separator';
 import { cn, getSessionStorage, setSessionStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -86,7 +87,7 @@ import { Filter, X, Check } from 'lucide-react';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  facetDefination?: FacetDefinition[];
+  facetDefinition?: FacetDefinition[];
   searchPlaceHolder?: string;
   simpleTable?: boolean;
   tableId?: string; // Unique identifier for sessionStorage
@@ -103,6 +104,7 @@ interface DataTableProps<TData, TValue> {
     row: TData,
     onViewDetails?: () => void,
   ) => React.ReactNode; // Render function for mobile cards
+  mobileUseTablePagination?: boolean; // Use TanStack pagination instead of mobile load-more cards
 }
 
 export type FacetDefinition = {
@@ -130,10 +132,22 @@ const defaultColumnVisibility: VisibilityState = {};
 const defaultPaginationSize = '10';
 const defaultRowSelection: RowSelectionState = {};
 
+function areColumnFiltersEqual(
+  left: ColumnFiltersState,
+  right: ColumnFiltersState,
+) {
+  if (left.length !== right.length) return false;
+
+  return left.every((filter, index) => {
+    const other = right[index];
+    return JSON.stringify(filter) === JSON.stringify(other);
+  });
+}
+
 export function DataTableClient<TData, TValue>({
   columns,
   data = [],
-  facetDefination = [],
+  facetDefinition = [],
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
   tableId = 'default-table', // Default tableId if not provided
@@ -147,6 +161,7 @@ export function DataTableClient<TData, TValue>({
   bulkActionsSlot,
   defaultSorting, // Default sorting configuration (optional)
   mobileCardRenderer, // Render function for mobile cards
+  mobileUseTablePagination = false,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -196,6 +211,40 @@ export function DataTableClient<TData, TValue>({
   const newRecordIdsSet = useMemo(
     () => new Set<string>(newRecordIds),
     [newRecordIds],
+  );
+
+  // Read sync error record IDs from sessionStorage
+  const [syncErrorRecordIds, setSyncErrorRecordIds] = useState<string[]>(() => {
+    try {
+      const stored = getSessionStorage<string[]>(
+        getStorageKey('syncErrorRecordIds'),
+        [],
+      );
+      return Array.isArray(stored) ? stored : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const handleStorageUpdate = () => {
+      try {
+        const stored = getSessionStorage<string[]>(
+          getStorageKey('syncErrorRecordIds'),
+          [],
+        );
+        setSyncErrorRecordIds(Array.isArray(stored) ? stored : []);
+      } catch {
+        setSyncErrorRecordIds([]);
+      }
+    };
+    window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
+    return () => window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
+  }, [getStorageKey]);
+
+  const syncErrorRecordIdsSet = useMemo(
+    () => new Set<string>(syncErrorRecordIds),
+    [syncErrorRecordIds],
   );
 
   // Row pinning state (use TanStack Table row pinning instead of reordering data)
@@ -304,6 +353,7 @@ export function DataTableClient<TData, TValue>({
 
   // Mobile "Load More" state
   const [mobileVisibleCount, setMobileVisibleCount] = useState(10);
+  const [mobilePageInput, setMobilePageInput] = useState('1');
   const MOBILE_PAGE_SIZE = 10;
 
   // Sync temp filters when drawer opens
@@ -315,20 +365,32 @@ export function DataTableClient<TData, TValue>({
 
   // Update globalFilter when debounced search query changes
   useEffect(() => {
-    setGlobalFilter(debouncedSearchQuery);
+    setGlobalFilter((current) =>
+      current === debouncedSearchQuery ? current : debouncedSearchQuery,
+    );
   }, [debouncedSearchQuery]);
 
   // Update columnFilters when debounced filters change
   useEffect(() => {
-    setColumnFilters(debouncedColumnFilters);
+    setColumnFilters((current) =>
+      areColumnFiltersEqual(current, debouncedColumnFilters)
+        ? current
+        : debouncedColumnFilters,
+    );
   }, [debouncedColumnFilters]);
 
   // Reset mobile visible count when filters or search change
   useEffect(() => {
-    if (isMobile) {
+    if (isMobile && !mobileUseTablePagination) {
       setMobileVisibleCount(MOBILE_PAGE_SIZE);
     }
-  }, [globalFilter, columnFilters, isMobile]);
+  }, [globalFilter, columnFilters, isMobile, mobileUseTablePagination]);
+
+  useEffect(() => {
+    if (isMobile && mobileUseTablePagination) {
+      setMobilePageInput(String(pagination.pageIndex + 1));
+    }
+  }, [isMobile, mobileUseTablePagination, pagination.pageIndex]);
   // Notify parent of selection changes
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
@@ -444,6 +506,18 @@ export function DataTableClient<TData, TValue>({
     return found?.label ?? 'Select page size';
   }, [paginationSize]);
 
+  const handleMobilePageInputCommit = () => {
+    const pageCount = Math.max(1, table.getPageCount());
+    const nextPage = Number.parseInt(mobilePageInput, 10);
+
+    if (Number.isFinite(nextPage) && nextPage >= 1 && nextPage <= pageCount) {
+      table.setPageIndex(nextPage - 1);
+      return;
+    }
+
+    setMobilePageInput(String(pagination.pageIndex + 1));
+  };
+
   // Create columns with checkbox column if row selection is enabled
   const tableColumns = useMemo(() => {
     if (!enableRowSelection) return columns;
@@ -549,7 +623,7 @@ export function DataTableClient<TData, TValue>({
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
       const selectedRowIds = Object.keys(rowSelection).filter(
-        (key) => rowSelection[key]
+        (key) => rowSelection[key],
       );
       const selectedRows = selectedRowIds
         .map((id) => {
@@ -579,7 +653,7 @@ export function DataTableClient<TData, TValue>({
     };
   }, [getStorageKey]);
 
-  const facetedWithCounts = useFacets(table, facetDefination);
+  const facetedWithCounts = useFacets(table, facetDefinition);
 
   // Use toolbar compact hook for dynamic desktop/mobile filter switching
   const {
@@ -989,8 +1063,13 @@ export function DataTableClient<TData, TValue>({
           {/* Card list */}
           {(() => {
             const filteredRows = table.getFilteredRowModel().rows;
-            const visibleRows = filteredRows.slice(0, mobileVisibleCount);
-            const hasMore = filteredRows.length > mobileVisibleCount;
+            const paginatedRows = table.getPaginationRowModel().rows;
+            const visibleRows = mobileUseTablePagination
+              ? paginatedRows
+              : filteredRows.slice(0, mobileVisibleCount);
+            const hasMore =
+              !mobileUseTablePagination &&
+              filteredRows.length > mobileVisibleCount;
 
             if (visibleRows.length === 0) {
               return (
@@ -1018,7 +1097,7 @@ export function DataTableClient<TData, TValue>({
                     ? () => onRowClick(row.original)
                     : undefined;
                   return (
-                    <div key={row.id}>
+                    <div key={row.id} className="p-0 gap-0">
                       {mobileCardRenderer(row.original, handleViewDetails)}
                     </div>
                   );
@@ -1040,10 +1119,83 @@ export function DataTableClient<TData, TValue>({
                   </div>
                 )}
 
-                {/* Total count */}
-                <div className="text-center text-sm text-muted-foreground pt-2">
-                  Showing {visibleRows.length} of {filteredRows.length} items
-                </div>
+                {mobileUseTablePagination ? (
+                  <div className="border-t border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">
+                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                        <div className="whitespace-nowrap">
+                          {filteredRows.length} records
+                        </div>
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                          <Input
+                            className="h-6 w-10 px-1 text-center text-xs"
+                            inputMode="numeric"
+                            value={mobilePageInput}
+                            onChange={(event) =>
+                              setMobilePageInput(event.target.value)
+                            }
+                            onBlur={handleMobilePageInputCommit}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter') {
+                                handleMobilePageInputCommit();
+                              }
+                            }}
+                          />
+                          <span>
+                            Page {pagination.pageIndex + 1} of{' '}
+                            {table.getPageCount()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex justify-center">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => table.setPageIndex(0)}
+                            disabled={!table.getCanPreviousPage()}
+                          >
+                            <ChevronsLeft className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => table.previousPage()}
+                            disabled={!table.getCanPreviousPage()}
+                          >
+                            <ChevronLeft className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                          >
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() =>
+                              table.setPageIndex(table.getPageCount() - 1)
+                            }
+                            disabled={!table.getCanNextPage()}
+                          >
+                            <ChevronsRight className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-sm text-muted-foreground pt-2">
+                    Showing {visibleRows.length} of {filteredRows.length} items
+                  </div>
+                )}
               </>
             );
           })()}
@@ -1120,6 +1272,7 @@ export function DataTableClient<TData, TValue>({
                     displayRows.map((row) => {
                       // Check if this row is newly added (by checking ID against sessionStorage)
                       const isNewRecord = newRecordIdsSet.has(row.id);
+                      const isSyncError = syncErrorRecordIdsSet.has(row.id);
 
                       return (
                         <TableRow
@@ -1133,7 +1286,10 @@ export function DataTableClient<TData, TValue>({
                             row.getIsSelected() &&
                               '!bg-[#EFF6FF] hover:!bg-blue-100',
                             isNewRecord &&
+                              !isSyncError &&
                               '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                            isSyncError &&
+                              '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
                           )}
                           onClick={(e) => {
                             // Prevent row click if clicking on buttons or interactive elements

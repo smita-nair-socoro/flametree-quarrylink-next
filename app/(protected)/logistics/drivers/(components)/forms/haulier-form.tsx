@@ -15,11 +15,17 @@ import {
 } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
-import {
-  HaulierFormSchema,
-  HaulierFormValues,
-} from './schemas/haulier-form-schema';
+import { HaulierFormSchema } from './schemas/haulier-form-schema';
+import z from 'zod';
 import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
+import { useQuery } from '@tanstack/react-query';
+import {
+  useCreateHaulier,
+  HaulierDetailQueryOptions,
+  useUpdateHaulier,
+} from '@/lib/api/haulier';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface HaulierFormProps {
   editingItem?: SelectCreateEditItem | null;
@@ -34,40 +40,89 @@ export default function HaulierForm({
   onSave,
   onCancel,
 }: HaulierFormProps) {
-  const form = useForm<HaulierFormValues>({
+  const createHaulier = useCreateHaulier();
+  const updateHaulier = useUpdateHaulier();
+  const editingId = isEditing && editingItem?.id ? Number(editingItem.id) : 0;
+
+  const { data: haulierData } = useQuery(HaulierDetailQueryOptions(editingId));
+
+  const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),
     mode: 'onChange',
     defaultValues: {
-      name: editingItem?.label ?? '',
-      email: editingItem?.fields?.email ?? '',
-      phone: editingItem?.fields?.phone ?? '',
+      name: '',
+      email: '',
+      phone: '',
     },
   });
 
-  // Reset form when switching between add/edit
+  // Populate form with fetched data when editing (mirrors docket form pattern)
   React.useEffect(() => {
-    form.reset({
-      name: editingItem?.label ?? '',
-      email: editingItem?.fields?.email ?? '',
-      phone: editingItem?.fields?.phone ?? '',
-    });
-  }, [editingItem, form]);
+    if (!isEditing || !haulierData) return;
 
-  function onSubmit(values: HaulierFormValues) {
-    onSave({
-      id: editingItem?.id ?? String(Date.now()),
-      label: values.name,
-      fields: { email: values.email, phone: values.phone },
+    form.reset({
+      name: haulierData.haulierName,
+      email: haulierData.emailAddress,
+      phone: haulierData.phoneNumber,
     });
+  }, [isEditing, haulierData, form]);
+
+  // Clear form when switching to add mode
+  React.useEffect(() => {
+    if (!isEditing) {
+      form.reset({ name: '', email: '', phone: '' });
+    }
+  }, [isEditing, form]);
+
+  async function onSubmit(values: z.infer<typeof HaulierFormSchema>) {
+    if (isEditing) {
+      try {
+        const result = await updateHaulier.mutateAsync({
+          id: editingId,
+          data: {
+            haulierName: values.name,
+            haulierEmailAddress: values.email,
+            haulierPhoneNumber: values.phone,
+          },
+        });
+        notifySuccess('Haulier updated successfully.');
+        onSave({
+          id: result.id,
+          label: result.haulierName,
+          fields: { email: result.emailAddress, phone: result.phoneNumber },
+        });
+      } catch (error: unknown) {
+        notifyError(extractErrorMessage(error));
+      }
+    } else {
+      try {
+        const result = await createHaulier.mutateAsync({
+          haulierName: values.name,
+          haulierEmailAddress: values.email,
+          haulierPhoneNumber: values.phone,
+        });
+        notifySuccess('Haulier created successfully.');
+        onSave({
+          id: String(result.id),
+          label: result.haulierName,
+          fields: { email: result.emailAddress, phone: result.phoneNumber },
+        });
+      } catch (error: unknown) {
+        notifyError(extractErrorMessage(error));
+      }
+    }
   }
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        onSubmit={(e) => {
+          e.stopPropagation();
+          void form.handleSubmit(onSubmit)(e);
+        }}
+        className="flex flex-col gap-2"
       >
-        <Separator />
+        <Separator className="mb-3" />
 
         <FormField
           control={form.control}
@@ -115,13 +170,18 @@ export default function HaulierForm({
           )}
         />
 
-        <div className="flex justify-center gap-3 pt-2 pb-4">
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+        <div className="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
-            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+            variant="default"
+            disabled={createHaulier.isPending || updateHaulier.isPending}
           >
             {isEditing ? 'Update Haulier' : 'Add Haulier'}
           </Button>

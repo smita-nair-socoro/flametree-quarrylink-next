@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { User } from '@/lib/types/user';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
@@ -35,26 +36,22 @@ export function TeamMemberTableActions({
     (state) => state.setSelectedTeamMember
   );
 
-  const createHandler =
-    (actionFn: () => void, additionalSetup?: () => void) => () => {
-      additionalSetup?.();
-      setDropdownOpen(false);
-      actionFn();
-    };
-
-  const handleViewEdit = createHandler(() => {
-    // Set the selected member in the store FIRST, then open dialog
+  const handleViewEdit = () => {
+    setDropdownOpen(false);
     setSelectedTeamMember(teamMember);
     actions.viewEdit();
-  });
-  // const handleResetPassword = createHandler(actions.resetPassword);
-  const handleDelete = createHandler(actions.delete);
+  };
+
+  const handleDelete = () => {
+    setDropdownOpen(false);
+    actions.delete();
+  };
 
   return (
     <div>
       {deleteDialog}
       {viewDialog}
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
@@ -65,7 +62,7 @@ export function TeamMemberTableActions({
             <Eye className="h-4 w-4 mr-2" />
             View/Edit User
           </DropdownMenuItem>
-
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleDelete}
             className="text-destructive focus:text-destructive"

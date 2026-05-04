@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Enforce develop branch only
-        if: github.ref_name != 'develop'
+        if: github.ref_name != 'develop' && github.ref_name != 'release/essentials'
         run: |
           echo "This workflow can only be manually run from the 'develop' branch. You used: ${GITHUB_REF_NAME}"
           exit 1

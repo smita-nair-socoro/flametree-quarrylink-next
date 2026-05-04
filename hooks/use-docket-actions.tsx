@@ -1,22 +1,61 @@
 'use client';
 
 import * as React from 'react';
-import { type LucideIcon } from 'lucide-react';
 
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { DocketActionButtons } from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-action-buttons';
-import { MarkArrivedContent } from '@/hooks/docket/mark-arrived-content';
-import { MarkDeliveredContent } from '@/hooks/docket/mark-delivered-content';
-import { MarkCollectedContent } from '@/hooks/docket/mark-collected-content';
-import { MarkReadyContent } from '@/hooks/docket/mark-ready-content';
-import { ResumeTransitContent } from '@/hooks/docket/resume-transit-content';
-import { StopTransitContent } from '@/hooks/docket/stop-transit-content';
-import { StartTransitContent } from '@/hooks/docket/start-transit-content';
-import { VoidDocketContent } from '@/hooks/docket/void-docket-content';
+import {
+  MarkArrivedDescription,
+  MarkArrivedContent,
+} from '@/hooks/docket/mark-arrived-content';
+import {
+  MarkDeliveredDescription,
+  MarkDeliveredContent,
+} from '@/hooks/docket/mark-delivered-content';
+import {
+  MarkCollectedDescription,
+  MarkCollectedContent,
+} from '@/hooks/docket/mark-collected-content';
+import {
+  MarkReadyDescription,
+  MarkReadyContent,
+} from '@/hooks/docket/mark-ready-content';
+import {
+  ResumeTransitDescription,
+  ResumeTransitContent,
+} from '@/hooks/docket/resume-transit-content';
+import {
+  StopTransitDescription,
+  StopTransitContent,
+} from '@/hooks/docket/stop-transit-content';
+import {
+  StartTransitDescription,
+  StartTransitContent,
+} from '@/hooks/docket/start-transit-content';
+import {
+  VoidDocketDescription,
+  VoidDocketContent,
+} from '@/hooks/docket/void-docket-content';
+import {
+  CancelDocketDescription,
+  CancelDocketContent,
+} from '@/hooks/docket/cancel-docket-content';
+import {
+  StartPreparingDescription,
+  StartPreparingContent,
+} from '@/hooks/docket/start-preparing-content';
+import {
+  AssignDocketDescription,
+  AssignDocketContent,
+} from '@/hooks/docket/assign-docket-content';
 import { useDocketStore } from '@/app/stores/docket-store';
+import { useUpdateDocketStatus, useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -39,14 +78,9 @@ export type DocketActionKey =
   | 'cashSale'
   | 'cashReceipts';
 
-interface ActionDefinition {
-  label: string;
-  icon: LucideIcon;
-  destructive?: boolean;
-}
-
 interface DialogConfig {
   title: string;
+  description?: React.ReactNode;
   content: React.ReactNode;
   confirmText: string;
   confirmCustomColor?: string;
@@ -65,8 +99,7 @@ interface SelectedAction {
   key: string;
 }
 
-
-export function useDocketActions(docketData?: Docket | null) {
+export function useDocketActions(docketData?: DocketDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
@@ -80,14 +113,319 @@ export function useDocketActions(docketData?: Docket | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
-  const [selectedAction, setSelectedAction] = React.useState<SelectedAction | null>(null);
+  const selectedDocket = useDocketStore((s) => s.selectedDocket);
+  const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
+  const [cancelReason, setCancelReason] = React.useState('');
+  const [cancelNotes, setCancelNotes] = React.useState('');
+  const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
+  const updateDocketStatusMutation = useUpdateDocketStatus();
+  const assignDocketMutation = useAssignDocket();
+  const unassignDocketMutation = useUnassignDocket();
+
+  // Assign state
+  const [assignHauler, setAssignHauler] = React.useState<number | undefined>(undefined);
+  const [assignTruck, setAssignTruck] = React.useState<number | undefined>(undefined);
+  const [assignDriver, setAssignDriver] = React.useState<number | undefined>(undefined);
+
+  const resetAssignState = React.useCallback(() => {
+    setAssignHauler(undefined);
+    setAssignTruck(undefined);
+    setAssignDriver(undefined);
+  }, []);
+
+  const dataURLtoFile = (dataUrl: string, filename: string): File => {
+    const [header, data] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
+    const binary = atob(data);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i);
+    }
+    return new File([array], filename, { type: mime });
+  };
+
+  const handleMarkDelivered = async () => {
+    if (!docketData?.id) return;
+    try {
+      const signatureFile = receiverSignature
+        ? dataURLtoFile(receiverSignature, 'signature.png')
+        : null;
+
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.DELIVERED,
+        deliveredProductsConfirmed,
+        receiverOnSite,
+        receiverName: receiverName.trim() || undefined,
+        signatureImage: signatureFile,
+        unloadedPhoto,
+        receiptPhoto,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.DELIVERED,
+      });
+      notifySuccess('Docket marked as Delivered');
+      setActiveDialog(null);
+      setDeliveredProductsConfirmed(false);
+      setUnloadedPhoto(null);
+      setReceiptPhoto(null);
+      setReceiverOnSite(false);
+      setReceiverName('');
+      setReceiverSignature('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleStartTransit = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      notifySuccess('Docket status updated to In Transit');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleMarkArrived = async () => {
+    if (!docketData?.id) return;
+    try {
+      let latitude: string | undefined;
+      let longitude: string | undefined;
+
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        await new Promise<void>((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              latitude = pos.coords.latitude.toFixed(7);
+              longitude = pos.coords.longitude.toFixed(7);
+              resolve();
+            },
+            () => resolve(), // proceed without coords if denied/unavailable
+          );
+        });
+      }
+
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.ARRIVED,
+        latitude,
+        longitude,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.ARRIVED,
+      });
+      notifySuccess('Docket marked as Arrived');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleResumeTransit = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.IN_TRANSIT,
+      });
+      notifySuccess('Docket transit resumed');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleMarkCollected = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.COLLECTED,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.COLLECTED,
+      });
+      notifySuccess('Docket marked as Collected');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleMarkReady = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.READY,
+      });
+      notifySuccess('Docket marked as Ready for Collection');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleStartPreparing = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.PREPARING,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.PREPARING,
+      });
+      notifySuccess('Docket status updated to Preparing');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleStopTransit = async () => {
+    if (!docketData?.id) return;
+    try {
+      const composedReason = stopNotes.trim()
+        ? `${stopReason}-${stopNotes.trim()}`
+        : stopReason;
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.STOPPED,
+        reason: composedReason,
+        notes: stopNotes.trim() || undefined,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.STOPPED,
+      });
+      notifySuccess('Docket transit stopped');
+      setActiveDialog(null);
+      setStopReason('');
+      setStopNotes('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
 
   const isVoidFormValid = React.useMemo(() => {
     if (!voidReason) return false;
     if (voidReason === 'other') return Boolean(voidNotes.trim());
     return true;
   }, [voidNotes, voidReason]);
+
+  const isCancelFormValid = React.useMemo(() => {
+    if (!cancelReason) return false;
+    if (cancelReason === 'other') return Boolean(cancelNotes.trim());
+    return true;
+  }, [cancelNotes, cancelReason]);
+
+  const handleVoidDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const composedReason = voidNotes.trim()
+        ? `${voidReason}-${voidNotes.trim()}`
+        : voidReason;
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.VOIDED,
+        reason: composedReason,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.VOIDED,
+      });
+      notifySuccess('Docket voided');
+      setActiveDialog(null);
+      setVoidReason('');
+      setVoidNotes('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleCancelDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const composedReason = cancelNotes.trim()
+        ? `${cancelReason}-${cancelNotes.trim()}`
+        : cancelReason;
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.CANCELLED,
+        reason: composedReason,
+      });
+      setSelectedDocket({
+        ...selectedDocket as DocketDTO,
+        docketStatus: DOCKET_STATUS.CANCELLED,
+      });
+      notifySuccess('Docket cancelled');
+      setActiveDialog(null);
+      setCancelReason('');
+      setCancelNotes('');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleAssignDocket = async () => {
+    if (!docketData?.id || !assignTruck || !assignDriver) return;
+    try {
+      const result = await assignDocketMutation.mutateAsync({
+        docketId: docketData.id,
+        truckId: assignTruck,
+        driverId: assignDriver,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: result.docketStatus,
+        truckId: result.truckId,
+        driverId: result.driverId,
+      });
+      notifySuccess('Docket assigned successfully');
+      setActiveDialog(null);
+      resetAssignState();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const handleUnassignDocket = async () => {
+    if (!docketData?.id) return;
+    try {
+      const result = await unassignDocketMutation.mutateAsync({
+        docketId: docketData.id,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: result.docketStatus,
+        truckId: result.truckId,
+        driverId: result.driverId,
+      });
+      notifySuccess('Docket unassigned successfully');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
 
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
@@ -107,10 +445,32 @@ export function useDocketActions(docketData?: Docket | null) {
     receiverSignature,
   ]);
 
+  const isAssignFormValid = Boolean(assignTruck && assignDriver);
+
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
+      assign: {
+        title: 'Assign docket',
+        description: <AssignDocketDescription docket={docketData} />,
+        content: (
+          <AssignDocketContent
+            docket={docketData}
+            haulerSelection={assignHauler}
+            truckSelection={assignTruck}
+            driverSelection={assignDriver}
+            onHaulerChange={setAssignHauler}
+            onTruckChange={setAssignTruck}
+            onDriverChange={setAssignDriver}
+          />
+        ),
+        confirmText: 'Assign docket',
+        confirmCustomColor: '#3B82F6',
+        confirmDisabled: !isAssignFormValid,
+        cancelText: 'Cancel',
+      },
       markArrived: {
         title: 'Mark as Arrived',
+        description: <MarkArrivedDescription docket={docketData} />,
         content: <MarkArrivedContent docket={docketData} />,
         confirmText: 'Confirm Arrival',
         confirmCustomColor: '#3B82F6',
@@ -118,9 +478,9 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       markDelivered: {
         title: 'Mark as Delivered',
+        description: <MarkDeliveredDescription docket={docketData} />,
         content: (
           <MarkDeliveredContent
-            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
@@ -144,6 +504,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       startTransit: {
         title: 'Start Transit',
+        description: <StartTransitDescription docket={docketData} />,
         content: <StartTransitContent docket={docketData} />,
         confirmText: 'Start Transit',
         confirmCustomColor: '#3B82F6',
@@ -151,6 +512,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       resumeTransit: {
         title: 'Resume Transit',
+        description: <ResumeTransitDescription docket={docketData} />,
         content: <ResumeTransitContent docket={docketData} />,
         confirmText: 'Resume Transit',
         confirmCustomColor: '#008236',
@@ -158,6 +520,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       markReady: {
         title: 'Mark as Ready',
+        description: <MarkReadyDescription docket={docketData} />,
         content: <MarkReadyContent docket={docketData} />,
         confirmText: 'Mark as Ready',
         confirmCustomColor: '#10B981',
@@ -165,6 +528,7 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       markCollected: {
         title: 'Mark as Collected',
+        description: <MarkCollectedDescription docket={docketData} />,
         content: <MarkCollectedContent docket={docketData} />,
         confirmText: 'Mark as Collected',
         confirmCustomColor: '#008236',
@@ -172,9 +536,9 @@ export function useDocketActions(docketData?: Docket | null) {
       },
       stop: {
         title: 'Stop Transit',
+        description: <StopTransitDescription docket={docketData} />,
         content: (
           <StopTransitContent
-            docket={docketData}
             stopReason={stopReason}
             onStopReasonChange={setStopReason}
             stopNotes={stopNotes}
@@ -187,11 +551,19 @@ export function useDocketActions(docketData?: Docket | null) {
         confirmDisabled: !isStopFormValid,
         cancelText: 'Cancel',
       },
+      startPreparing: {
+        title: 'Start Preparing',
+        description: <StartPreparingDescription docket={docketData} />,
+        content: <StartPreparingContent docket={docketData} />,
+        confirmText: 'Start Preparing',
+        confirmCustomColor: '#F97316',
+        cancelText: 'Cancel',
+      },
       void: {
         title: 'Void Docket',
+        description: <VoidDocketDescription docket={docketData} />,
         content: (
           <VoidDocketContent
-            docket={docketData}
             voidReason={voidReason}
             onVoidReasonChange={setVoidReason}
             voidNotes={voidNotes}
@@ -204,6 +576,23 @@ export function useDocketActions(docketData?: Docket | null) {
         confirmDisabled: !isVoidFormValid,
         cancelText: 'Cancel',
       },
+      cancel: {
+        title: 'Cancel Docket',
+        description: <CancelDocketDescription docket={docketData} />,
+        content: (
+          <CancelDocketContent
+            cancelReason={cancelReason}
+            onCancelReasonChange={setCancelReason}
+            cancelNotes={cancelNotes}
+            onCancelNotesChange={setCancelNotes}
+          />
+        ),
+        confirmText: 'Cancel Docket',
+        confirmCustomColor: '#E7000B',
+        confirmVariant: 'destructive',
+        confirmDisabled: !isCancelFormValid,
+        cancelText: 'Keep Docket',
+      },
     }),
     [
       docketData,
@@ -211,6 +600,8 @@ export function useDocketActions(docketData?: Docket | null) {
       isMarkDeliveredFormValid,
       isStopFormValid,
       isVoidFormValid,
+      isCancelFormValid,
+      isAssignFormValid,
       receiptPhoto,
       receiverName,
       receiverOnSite,
@@ -220,6 +611,11 @@ export function useDocketActions(docketData?: Docket | null) {
       unloadedPhoto,
       voidNotes,
       voidReason,
+      cancelNotes,
+      cancelReason,
+      assignHauler,
+      assignTruck,
+      assignDriver,
     ],
   );
 
@@ -230,12 +626,11 @@ export function useDocketActions(docketData?: Docket | null) {
     };
   };
 
-
   const actions = {
-    view: (docket?: Docket | null) => {
+    view: (docket?: DocketDTO | null) => {
       const toSelect = docket ?? docketData;
       if (toSelect != null) {
-        useDocketStore.getState().setSelectedDocket(toSelect);
+        setSelectedDocket(toSelect);
       }
       setViewOpen(true);
     },
@@ -249,15 +644,9 @@ export function useDocketActions(docketData?: Docket | null) {
     void: createDialogAction('void'),
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
-    cancel: () => {
-      console.log('Cancel docket confirmed:', docketData);
-    },
-    unassign: () => {
-      console.log('Unassign docket confirmed:', docketData);
-    },
-    startPreparing: () => {
-      console.log('Start preparing confirmed:', docketData);
-    },
+    cancel: createDialogAction('cancel'),
+    unassign: handleUnassignDocket,
+    startPreparing: createDialogAction('startPreparing'),
     cashSale: () => {
       console.log('Cash sale confirmed:', docketData);
     },
@@ -270,9 +659,7 @@ export function useDocketActions(docketData?: Docket | null) {
     viewInvoice: () => {
       console.log('View invoice confirmed:', docketData);
     },
-    assign: () => {
-      console.log('Assign docket confirmed:', docketData);
-    },
+    assign: createDialogAction('assign'),
 
     backToPending: () => {
       console.log('Back to pending confirmed:', docketData);
@@ -282,8 +669,6 @@ export function useDocketActions(docketData?: Docket | null) {
     },
   };
 
-
-
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
     if (activeDialog !== key) return null;
 
@@ -292,9 +677,13 @@ export function useDocketActions(docketData?: Docket | null) {
         key={key}
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
-          if (!open) setActiveDialog(null);
+          if (!open) {
+            if (key === 'assign') resetAssignState();
+            setActiveDialog(null);
+          }
         }}
         title={config.title}
+        description={config.description}
         content={config.content}
         confirmText={config.confirmText}
         confirmCustomColor={config.confirmCustomColor}
@@ -302,50 +691,40 @@ export function useDocketActions(docketData?: Docket | null) {
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
         preventOutsideClose={config.preventOutsideClose}
-        onConfirmAction={() => {
+        onConfirmAction={async () => {
           switch (key) {
+            case 'assign':
+              await handleAssignDocket();
+              break;
             case 'startTransit':
-              console.log('Start transit confirmed:', docketData);
+              await handleStartTransit();
               break;
             case 'resumeTransit':
-              console.log('Resume transit confirmed:', docketData);
+              await handleResumeTransit();
               break;
             case 'markArrived':
-              console.log('Mark arrived confirmed:', docketData);
+              await handleMarkArrived();
               break;
             case 'markDelivered':
-              console.log('Mark delivered confirmed:', docketData, {
-                deliveredProductsConfirmed,
-                hasUnloadedPhoto: Boolean(unloadedPhoto),
-                hasReceiptPhoto: Boolean(receiptPhoto),
-                receiverOnSite,
-                receiverName,
-                receiverSignature,
-              });
+              await handleMarkDelivered();
               break;
             case 'stop':
-              console.log('Stop transit confirmed:', docketData, {
-                stopReason,
-                stopNotes,
-              });
+              await handleStopTransit();
               break;
             case 'markReady':
-              console.log('Mark ready confirmed:', docketData);
+              await handleMarkReady();
               break;
             case 'markCollected':
-              console.log('Mark collected confirmed:', docketData);
+              await handleMarkCollected();
               break;
             case 'cancel':
-              console.log('Cancel docket confirmed:', docketData);
+              await handleCancelDocket();
               break;
             case 'void':
-              console.log('Void docket confirmed:', docketData, {
-                voidReason,
-                voidNotes,
-              });
+              await handleVoidDocket();
               break;
             case 'startPreparing':
-              console.log('Start preparing confirmed:', docketData);
+              await handleStartPreparing();
               break;
             case 'cashSale':
               console.log('Cash sale confirmed:', docketData);
@@ -363,7 +742,7 @@ export function useDocketActions(docketData?: Docket | null) {
               console.log('Assign docket confirmed:', docketData);
               break;
             case 'unassign':
-              console.log('Unassign docket confirmed:', docketData);
+              await handleUnassignDocket();
               break;
             case 'backToPending':
               console.log('Back to pending confirmed:', docketData);
@@ -377,29 +756,38 @@ export function useDocketActions(docketData?: Docket | null) {
     );
   });
 
-  const canEdit = docketData?.status === 'UNASSIGNED';
-  const viewDialog =
-    viewOpen && docketData?.id ? (
-      <FormDialog
-        id={docketData.id}
-        dialogTitle="View / Edit Docket"
-        open={viewOpen}
-        onOpenChangeAction={(open) => {
-          setViewOpen(open);
-        }}
-        hideTrigger
-        headerButtons={<DocketActionButtons docket={docketData} />}
-        headerInfo={{
-          useSelectedDocket: true,
-        }}
-      >
-        <DocketForm canEdit={canEdit} />
-      </FormDialog>
-    ) : null;
+  const canEdit = ['UNASSIGNED', 'ASSIGNED'].includes(
+    (docketData ?? selectedDocket)?.docketStatus ?? '',
+  );
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={selectedDocket?.id}
+      dialogTitle="View / Edit Docket"
+      open={viewOpen}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setViewOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+      headerButtons={
+        <DocketActionButtons docket={docketData ?? selectedDocket} />
+      }
+      headerInfo={{
+        useSelectedDocket: true,
+      }}
+    >
+      <DocketForm canEdit={canEdit} />
+    </FormDialog>
+  ) : null;
 
   return {
     actions,
     confirmDialogs,
     viewDialog,
+    isDialogOpen: activeDialog !== null,
   };
 }

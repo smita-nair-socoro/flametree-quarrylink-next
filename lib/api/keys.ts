@@ -69,9 +69,69 @@ export const QuarrySupplierProductKeys = {
     ] as const,
 };
 
+export const JobKeys = {
+  all: ['jobs'] as const,
+  list: () => [...JobKeys.all, 'list'] as const,
+  detail: (id: number) => [...JobKeys.all, 'detail', id] as const,
+  items: (jobId: number) => [...JobKeys.all, 'items', jobId] as const,
+  item: (jobItemId: number) => [...JobKeys.all, 'item', jobItemId] as const,
+};
+
 export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
+};
+
+export const DriverKeys = {
+  all: ['drivers'] as const,
+  list: () => [...DriverKeys.all, 'list'] as const,
+  detail: (id: number) => [...DriverKeys.all, 'detail', id] as const,
+  assignments: (id: number) => [...DriverKeys.all, 'assignments', id] as const,
+  checklists: (id: number) => [...DriverKeys.all, 'checklists', id] as const,
+};
+
+export const DocketKeys = {
+  all: ['dockets'] as const,
+  list: () => [...DocketKeys.all, 'list'] as const,
+  detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
+  byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
+};
+
+export const InvoicesKeys = {
+  all: ['invoices'] as const,
+  list: (jobId: number) => [...InvoicesKeys.all, 'list', jobId] as const,
+  detail: (id: number) => [...InvoicesKeys.all, 'detail', id] as const,
+};
+
+export const HaulierKeys = {
+  all: ['hauliers'] as const,
+  list: () => [...HaulierKeys.all, 'list'] as const,
+  detail: (id: number) => [...HaulierKeys.all, 'detail', id] as const,
+  drivers: (id: number) => [...HaulierKeys.all, 'drivers', id] as const,
+  trucks: (id: number) => [...HaulierKeys.all, 'trucks', id] as const,
+};
+
+export const TruckKeys = {
+  all: ['trucks'] as const,
+  list: () => [...TruckKeys.all, 'list'] as const,
+  detail: (id: number) => [...TruckKeys.all, 'detail', id] as const,
+  drivers: (id: number) => [...TruckKeys.all, 'drivers', id] as const,
+  inspections: (id: number) => [...TruckKeys.all, 'inspections', id] as const,
+};
+
+export const SchedulerKeys = {
+  all: ['scheduler'] as const,
+  trucks: (start: string, end: string) =>
+    [...SchedulerKeys.all, 'trucks', start, end] as const,
+  drivers: (start: string, end: string) =>
+    [...SchedulerKeys.all, 'drivers', start, end] as const,
+};
+
+export const DriverAppKeys = {
+  all: ['driver-app'] as const,
+  assignedDockets: () => [...DriverAppKeys.all, 'assigned'] as const,
+  assignedDocketDetail: (docketId: number) =>
+    [...DriverAppKeys.all, 'assigned', docketId] as const,
 };

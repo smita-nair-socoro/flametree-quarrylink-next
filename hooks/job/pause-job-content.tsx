@@ -6,65 +6,70 @@ import {
   CirclePlay,
   CircleStop,
 } from 'lucide-react';
-import { JobDetails } from '@/lib/types/job';
-import { Docket } from '@/lib/types/docket';
-import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JobDTO } from '@/lib/types/job';
+import { DocketDTO } from '@/lib/types/docket';
 import { cn } from '@/lib/utils';
+import { TableBadges } from '@/components/table-badges';
 
-function getDocketStatusStyle(status: DOCKET_STATUS): {
-  label: string;
-  className: string;
-} {
-  switch (status) {
-    case DOCKET_STATUS.IN_TRANSIT:
-      return { label: 'IN TRANSIT', className: 'bg-blue-100 text-[#1E40AF]' };
-    case DOCKET_STATUS.ASSIGNED:
-      return { label: 'ASSIGNED', className: 'bg-blue-100 text-[#1E40AF]' };
-    case DOCKET_STATUS.ARRIVED:
-      return { label: 'ARRIVED', className: 'bg-blue-100 text-[#1E40AF]' };
-    default:
-      return { label: status, className: 'bg-gray-100 text-gray-600' };
-  }
+export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
+  return (
+    <div className="flex justify-start items-center gap-2">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
+        <span className="flex items-center justify-center">
+          <Pause className="h-[20px] w-[20px] text-[#CA3500]" />
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium">{job?.projectName}</span>
+        <div className="flex justify-start gap-2">
+          <span className="text-sm text-gray-500">{job?.jobNumber}</span>
+          {job?.customerDto && (
+            <>
+              <span className="text-sm text-gray-500 font-extrabold">·</span>
+              <span className="text-sm text-gray-500">
+                {job.customerDto.customerType === 'BUSINESS'
+                  ? job.customerDto.businessName
+                  : job.customerDto.individualContactName}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function PauseJobContent({
-  job,
   activeDockets,
   docketAction,
   onDocketActionChange,
 }: {
-  job?: JobDetails | null;
-  activeDockets: Docket[];
+  activeDockets: DocketDTO[];
   docketAction: 'stop' | 'allow';
   onDocketActionChange: (action: 'stop' | 'allow') => void;
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex justify-start items-center gap-2">
-        <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF7ED] rounded-full">
-          <span className="flex items-center justify-center">
-            <Pause className="h-[20px] w-[20px] text-[#CA3500]" />
-          </span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">{job?.projectName}</span>
-          <div className="flex justify-start gap-2">
-            <span className="text-sm text-gray-500">{job?.jobNumber}</span>
-            {job?.customerName && (
-              <>
-                <span className="text-sm text-gray-500 font-extrabold">·</span>
-                <span className="text-sm text-gray-500">
-                  {job.customerName}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       <span className="text-[14px] font-normal text-gray-700">
         Are you sure you want to pause this job?
       </span>
+
+      {activeDockets.length === 0 && (
+        <div className="border border-[#FFD6A7] rounded-md p-4 bg-[#FFF3E6]">
+          <div className="flex justify-start gap-2 self-stretch">
+            <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[16px] text-[#CA3500] font-medium">
+                Business Impact
+              </span>
+              <span className="text-[14px] font-normal text-[#9F2D00]">
+                Pausing this job will prevent new docket creation, and
+                automatically cancel any unassigned dockets.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeDockets.length > 0 && (
         <>
@@ -86,7 +91,6 @@ export function PauseJobContent({
 
           <div className="rounded-md bg-[#F9FAFB] py-2 px-4 border border-[#E5E5E5]">
             {activeDockets.map((docket) => {
-              const statusStyle = getDocketStatusStyle(docket.status);
               return (
                 <div
                   key={docket.id}
@@ -95,20 +99,11 @@ export function PauseJobContent({
                   <div className="flex items-center gap-2 text-[14px]">
                     <Truck className="h-[20px] w-[20px] text-[#6A7282]" />
                     <span className="font-medium">{docket.docketNumber}</span>
-                    {docket.contactName && (
-                      <span className="text-[#6A7282]">
-                        - {docket.contactName}
-                      </span>
-                    )}
+                    <span className="text-[#6A7282]">
+                      - {docket.driver?.driverName ?? 'John Smith'}
+                    </span>
                   </div>
-                  <span
-                    className={cn(
-                      'text-xs font-normal px-2 py-0.5 rounded-full',
-                      statusStyle.className,
-                    )}
-                  >
-                    {statusStyle.label}
-                  </span>
+                  <TableBadges names={docket.docketStatus} />
                 </div>
               );
             })}
@@ -201,7 +196,7 @@ export function PauseJobContent({
         <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
           {[
             'Job status changes to "Paused"',
-            ...(docketAction === 'stop'
+            ...(activeDockets.length > 0 && docketAction === 'stop'
               ? [
                   'All Assigned dockets will be Unassigned',
                   'All In Transit dockets will be Stopped',

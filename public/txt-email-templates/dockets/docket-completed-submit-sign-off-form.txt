@@ -1,0 +1,14 @@
+Hi {RecipientName},
+
+A docket has been successfully COMPLETED.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+Product: {ProductName}
+Driver: {DriverName}
+
+Completed At: {Timestamp}
+
+Delivery photos and signature (if captured) are attached to this email.
+
+You're receiving this notification because you're associated with this docket on QuarryLink.

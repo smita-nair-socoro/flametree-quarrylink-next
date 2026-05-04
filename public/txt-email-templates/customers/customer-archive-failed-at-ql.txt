@@ -1,0 +1,27 @@
+Hi {firstName},
+
+You archived {customerName} in QuarryLink. We tried to apply the same change in Xero, but Xero did not accept the archive request.
+
+To keep both systems consistent, we reverted the archive in QuarryLink, and {customerName} is currently active in QuarryLink.
+
+WHY THIS CAN HAPPEN
+
+Xero may reject an archive request for reasons such as:
+
+- The contact is locked or restricted by Xero settings or permissions
+- The Xero contact is in an invalid state (e.g. missing required fields)
+- A connection or configuration issue between QuarryLink and Xero
+
+WHAT YOU CAN DO NEXT
+
+1. In Xero, open the contact for {customerName} and confirm it can be archived manually.
+2. Confirm that QuarryLink still has an active, authorised connection to the Xero organisation.
+3. Once resolved, try archiving {customerName} again from QuarryLink.
+
+If you'd like us to investigate, contact {supportEmail}.
+
+Thanks,
+The QuarryLink Team
+
+---
+You're receiving this email because a QuarryLink archive action could not be synced to Xero and has been reverted.

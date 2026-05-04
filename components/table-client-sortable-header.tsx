@@ -5,7 +5,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 export interface SortableHeaderProps<TData> {
   column: Column<TData>;
-  title: string;
+  title: string | React.ReactNode;
 }
 
 export function TableClientSortableHeader<TData>({
@@ -33,6 +33,7 @@ export function TableClientSortableHeader<TData>({
 
   return (
     <Button
+      type="button"
       variant="ghost"
       onClick={handleClick}
       className="

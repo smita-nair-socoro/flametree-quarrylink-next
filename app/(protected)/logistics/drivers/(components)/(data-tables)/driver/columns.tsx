@@ -2,28 +2,27 @@
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
-import { Driver } from '@/lib/types/driver';
+import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { DriverTableActions } from './driver-table-actions';
 
-export const driverColumns: ColumnDef<Driver>[] = [
+export const driverColumns: ColumnDef<DriverDTO>[] = [
   {
-    id: 'name',
-    accessorFn: (row) => row.name,
+    id: 'driverName',
+    accessorFn: (row) => row.driverName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Driver Name" />;
     },
     cell: ({ row }) => {
-      const name = row.original.name;
-      return <div className="py-2">{name}</div>;
+      return <div className="py-2">{row.original.driverName}</div>;
     },
     meta: 'Name',
   },
   {
-    id: 'type',
-    accessorFn: (row) => row.type,
+    id: 'driverType',
+    accessorFn: (row) => row.driverType,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Type" />;
+      return <TableClientSortableHeader column={column} title="Driver Type" />;
     },
     cell: ({ getValue }) => {
       const type = getValue<string>() as DRIVER_TYPE;
@@ -35,15 +34,14 @@ export const driverColumns: ColumnDef<Driver>[] = [
     },
     meta: 'Type',
   },
-
   {
     id: 'haulier',
-    accessorFn: (row) => row.haulierName,
+    accessorFn: (row) => row.haulier?.haulierName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Haulier" />;
     },
     cell: ({ getValue }) => {
-      const haulier = getValue<string>() as string;
+      const haulier = getValue<string>();
       return (
         <div className="py-2">
           <TableBadges names={[haulier]} visibleCount={1} />
@@ -53,32 +51,30 @@ export const driverColumns: ColumnDef<Driver>[] = [
     meta: 'Haulier',
   },
   {
-    id: 'email',
-    accessorFn: (row) => row.email,
+    id: 'emailAddress',
+    accessorFn: (row) => row.emailAddress,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Email" />;
+      return <TableClientSortableHeader column={column} title="Email Address" />;
     },
     cell: ({ row }) => {
-      const email = row.original.email;
-      return <div className="py-2">{email}</div>;
+      return <div className="py-2">{row.original.emailAddress}</div>;
     },
     meta: 'Email',
   },
   {
-    id: 'phone',
-    accessorFn: (row) => row.phone,
+    id: 'phoneNumber',
+    accessorFn: (row) => row.phoneNumber,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Phone" />;
+      return <TableClientSortableHeader column={column} title="Phone Number" />;
     },
     cell: ({ row }) => {
-      const phone = row.original.phone;
-      return <div className="py-2">{phone}</div>;
+      return <div className="py-2">{row.original.phoneNumber}</div>;
     },
     meta: 'Phone',
   },
   {
-    id: 'status',
-    accessorFn: (row) => row.status,
+    id: 'driverStatus',
+    accessorFn: (row) => row.driverStatus,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Status" />;
     },
@@ -92,7 +88,6 @@ export const driverColumns: ColumnDef<Driver>[] = [
     },
     meta: 'Status',
   },
-
   {
     id: 'actions',
     header: () => {
@@ -103,5 +98,4 @@ export const driverColumns: ColumnDef<Driver>[] = [
       return <DriverTableActions driver={driver} />;
     },
   },
-
 ];

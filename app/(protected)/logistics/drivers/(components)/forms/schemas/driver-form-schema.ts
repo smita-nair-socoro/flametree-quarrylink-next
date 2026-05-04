@@ -1,6 +1,6 @@
 import z from 'zod';
 import { isValidPhoneNumber } from 'react-phone-number-input';
-import { DRIVER_STATUS, DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 
 const PhoneRequired = z
   .string()
@@ -28,9 +28,8 @@ export const NewDriverFormSchema = z
       .max(256, 'Maximum 256 characters'),
     email: EmailRequired,
     phone: PhoneRequired,
-    status: z.nativeEnum(DRIVER_STATUS),
     type: z.nativeEnum(DRIVER_TYPE),
-    haulier: z.string().trim().max(256, 'Maximum 256 characters').optional(),
+    haulierId: z.coerce.number().min(0, { message: 'Cannot be less than 0' }),
     driverLicenseNumber: z
       .string()
       .trim()
@@ -40,7 +39,7 @@ export const NewDriverFormSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.type === DRIVER_TYPE.SUBCONTRACTOR) {
-      if (!data.haulier || data.haulier.trim().length === 0) {
+      if (!data.haulierId) {
         ctx.addIssue({
           path: ['haulier'],
           code: z.ZodIssueCode.custom,
@@ -49,5 +48,3 @@ export const NewDriverFormSchema = z
       }
     }
   });
-
-export type NewDriverFormValues = z.infer<typeof NewDriverFormSchema>;

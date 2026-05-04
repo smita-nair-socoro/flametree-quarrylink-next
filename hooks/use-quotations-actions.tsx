@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from '@/app/(protected)/customer-operations/quotation/(components)/forms/quotation-form';
@@ -16,7 +17,6 @@ import {
   // Quote,
   Send,
   Eye,
-  X,
   Briefcase,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
+  useConvertToJob,
   useExtendExpiryDate,
   useUpdateQuotation,
   useSendToCustomer,
@@ -44,12 +45,11 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import {
-  QUOTE_ITEM_TYPE as QuoteItemType,
-  QUOTE_STATUS as QuoteStatus,
-} from '@/lib/types/quotation-enums';
-import { Input } from '@/components/ui/input';
+import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { useClientStore } from '@/app/stores/client-store';
+import { MultipleInput } from '@/components/ui/multiple-input';
+import { useQuery } from '@tanstack/react-query';
+import { CustomersListQueryOptions } from '@/lib/api/customer';
 
 interface DialogConfig {
   title?: string;
@@ -57,11 +57,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -72,14 +72,6 @@ interface DialogConfig {
 interface SelectedAction {
   key: string;
 }
-
-// Rainbow chip colours for recipient email tags (used by index)
-const RECIPIENT_CHIP_COLORS = [
-  { bgColour: '#DBEAFE', textColour: '#193CB8' },
-  { bgColour: '#FEF9C2', textColour: '#894B00' },
-  { bgColour: '#CEFAFE', textColour: '#005F78' },
-  { bgColour: '#FCE7F3', textColour: '#A3004C' },
-];
 
 const getDialogConfigs = (
   quotationData?: Quotation | null,
@@ -98,17 +90,15 @@ const getDialogConfigs = (
   isDeclineFormValid?: boolean,
   additionalRecipientEmails?: string[],
   setAdditionalRecipientEmails?: (emails: string[]) => void,
-  recipientEmailInputValue?: string,
-  setRecipientEmailInputValue?: (value: string) => void,
+  fixedCustomerEmail?: string,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
   const customerName = quotationData?.customerName;
   const customerEmail =
+    fixedCustomerEmail ||
     quotationData?.email ||
     quotationData?.customerWithAddressResponseDto?.email;
-  const additionalEmailRecipients =
-    quotationData?.additionalEmailRecipients ?? [];
   const totalSellPriceExGST = quotationData?.totalSellPrice || 0;
   const gst = totalSellPriceExGST * 0.1;
   const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
@@ -227,85 +217,20 @@ const getDialogConfigs = (
               <span className="font-semibold text-[14px] text-[#101828]">
                 Recipient Emails*
               </span>
-              <div className="flex flex-wrap gap-2 rounded-md border border-input bg-background px-3 py-1 min-h-[42px]">
-                {customerEmail && (
-                  <span
-                    className={
-                      'inline-flex items-center rounded-xl px-2.5 text-[14px] border-0 bg-[#E5E7EB] text-[#1E2939] font-semibold'
-                    }
-                  >
-                    {customerEmail}
-                  </span>
-                )}
-                {additionalRecipientEmails?.map((email, idx) => (
-                  <span
-                    key={`${email}-${idx}`}
-                    className="inline-flex items-center gap-1 rounded-xl pl-2.5 text-[14px] border-0 text-[#1F2937] font-semibold"
-                    style={{
-                      backgroundColor:
-                        RECIPIENT_CHIP_COLORS[
-                          (idx % (RECIPIENT_CHIP_COLORS.length - 1)) + 1
-                        ].bgColour,
-                      color:
-                        RECIPIENT_CHIP_COLORS[
-                          (idx % (RECIPIENT_CHIP_COLORS.length - 1)) + 1
-                        ].textColour,
-                    }}
-                  >
-                    {email}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        const next = additionalRecipientEmails.filter(
-                          (_, i) => i !== idx,
-                        );
-                        setAdditionalRecipientEmails?.(next);
-                      }}
-                      className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 hover:bg-transparent focus:outline-none focus-visible:ring-0"
-                      aria-label={`Remove ${email}`}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </span>
-                ))}
-                <Input
-                  type="email"
-                  placeholder="Add email..."
-                  value={recipientEmailInputValue ?? ''}
-                  onChange={(e) =>
-                    setRecipientEmailInputValue?.(e.target.value)
-                  }
-                  onBlur={() => setRecipientEmailInputValue?.('')}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ',') {
-                      e.preventDefault();
-                      const raw = (recipientEmailInputValue ?? '')
-                        .replace(e.key === ',' ? /,\s*$/ : /^\s+|\s+$/g, '')
-                        .trim();
-                      const toAdd = raw.split(/[\s,]+/).filter(Boolean);
-                      const valid = toAdd.filter(
-                        (s) =>
-                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) &&
-                          !additionalRecipientEmails?.includes(s) &&
-                          s !== customerEmail,
-                      );
-                      if (valid.length) {
-                        setAdditionalRecipientEmails?.([
-                          ...(additionalRecipientEmails ?? []),
-                          ...valid,
-                        ]);
-                        setRecipientEmailInputValue?.('');
-                      }
-                    }
-                  }}
-                  className="flex-1 min-w-[120px] text-[14px] bg-transparent border-0 outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-              <span className="text-[12px] text-[#6B7280]">
-                Press Enter or comma to add email addresses for delivery
-                receipts.
-              </span>
+              <MultipleInput
+                value={additionalRecipientEmails?.join(', ')}
+                onChange={(val) => {
+                  const emails = val
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  setAdditionalRecipientEmails?.(emails);
+                }}
+                fixedValues={customerEmail ? [customerEmail] : []}
+                validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                label="Press Enter or comma to add email addresses for delivery receipts."
+                placeholder="Add email..."
+              />
             </div>
           </div>
         ),
@@ -916,17 +841,6 @@ const getDialogConfigs = (
 };
 
 export function useQuotationActions(quotationData?: Quotation | null) {
-  const fallbackQuotation = useQuotationStore((state) =>
-    state.selectedQuotation?.id
-      ? state.getQuotationById(state.selectedQuotation.id)
-      : null,
-  );
-
-  // Prefer provided prop, then store fallback
-  const resolvedQuotation = quotationData ?? fallbackQuotation ?? null;
-
-  // Use detailed data if available, otherwise fall back to list/store data
-  const quotationToUse = resolvedQuotation;
   const selectedQuotation = useQuotationStore(
     (state) => state.selectedQuotation,
   );
@@ -953,9 +867,15 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState(false);
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
-  const [recipientEmailInputValue, setRecipientEmailInputValue] =
-    React.useState('');
+
+  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
+  const sendDialogCustomerEmail = React.useMemo(() => {
+    const customer = customers.find((c) => c.id === quotationData?.customerId);
+    return customer?.contactPersonEmail || '';
+  }, [customers, quotationData]);
+
   const user = useClientStore((state) => state.user);
+  const router = useRouter();
 
   // Decline form validation
   const isDeclineFormValid = React.useMemo(() => {
@@ -971,6 +891,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const updateQuotationMutation = useUpdateQuotation();
   const sendToCustomerMutation = useSendToCustomer();
   const convertToDraftMutation = useConvertToDraft();
+  const convertToJobMutation = useConvertToJob();
   const updateQuoteDecisionMutation = useUpdateQuoteDecision();
 
   // Reset the new expiry date to 7 days from now when the extend expiry dialog opens
@@ -995,30 +916,30 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   // Reset recipient emails when send-to-customer dialog opens
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
-      setAdditionalRecipientEmails(
-        quotationToUse?.additionalEmailRecipients ?? [],
-      );
-      setRecipientEmailInputValue('');
+      const existing = quotationData?.emailRecipients ?? [];
+      const emails = sendDialogCustomerEmail
+        ? [
+          sendDialogCustomerEmail,
+          ...existing.filter((e) => e !== sendDialogCustomerEmail),
+        ]
+        : existing;
+      setAdditionalRecipientEmails(emails);
     }
   }, [selectedAction?.key]);
 
-  // Fetch detailed quotation data with line items from backend - REMOVED
-
-  // Update store with detailed quotation that includes line items - REMOVED
-
   // Sync includeDeliveryPrices with backend value when quotation data changes
   React.useEffect(() => {
-    if (resolvedQuotation?.inclDeliveryCost !== undefined) {
-      setIncludeDeliveryPrices(resolvedQuotation.inclDeliveryCost);
+    if (quotationData?.inclDeliveryCost !== undefined) {
+      setIncludeDeliveryPrices(quotationData.inclDeliveryCost);
     }
-  }, [resolvedQuotation?.inclDeliveryCost]);
+  }, [quotationData?.inclDeliveryCost]);
 
-  // Sync resolvedQuotation to store when view is open, to ensure FormDialog (which reads from store) has fresh data
+  // Sync quotationData to store when view is open, to ensure FormDialog (which reads from store) has fresh data
   React.useEffect(() => {
-    if (viewOpen && resolvedQuotation) {
-      setSelectedQuotation(resolvedQuotation);
+    if (viewOpen && quotationData) {
+      setSelectedQuotation(quotationData);
     }
-  }, [viewOpen, resolvedQuotation, setSelectedQuotation]);
+  }, [viewOpen, quotationData, setSelectedQuotation]);
 
   const handlePreviewFromDialog = () => {
     if (!quotationId) {
@@ -1033,7 +954,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const dialogConfigs = getDialogConfigs(
-    quotationToUse,
+    quotationData,
     selectedAction || undefined,
     newExpiryDate,
     setNewExpiryDate,
@@ -1049,8 +970,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     isDeclineFormValid,
     additionalRecipientEmails,
     setAdditionalRecipientEmails,
-    recipientEmailInputValue,
-    setRecipientEmailInputValue,
+    sendDialogCustomerEmail,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1062,8 +982,8 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   const handleSendToCustomerClick = () => {
     // Guard: don't open the dialog if the quote is already expired
-    if (quotationToUse?.expiryDate) {
-      const expiry = new Date(quotationToUse.expiryDate);
+    if (quotationData?.expiryDate) {
+      const expiry = new Date(quotationData.expiryDate);
       if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
         notifyError(
           `Quote expired on ${expiry.toLocaleDateString(
@@ -1082,11 +1002,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const buildUpdatePayload = (
     overrides: Partial<QuotationDTO>,
   ): Partial<QuotationDTO> | null => {
-    if (!resolvedQuotation) return null;
+    if (!quotationData) return null;
 
-    const { quoteStatus, ...quotationData } = resolvedQuotation;
+    const { quoteStatus, ...rest } = quotationData;
     return {
-      ...quotationData,
+      ...rest,
       quoteStatus: overrides.quoteStatus ?? quoteStatus,
       ...overrides,
     };
@@ -1103,7 +1023,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       await sendToCustomerMutation.mutateAsync({
         id: quotationId,
         inclDeliveryCost: includeDeliveryPrices,
-        additionalEmailRecipients: additionalRecipientEmails,
+        emailRecipients: additionalRecipientEmails,
       });
 
       notifySuccess('Quotation sent to customer');
@@ -1126,7 +1046,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleApprove = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId || !quotationData) {
       notifyError(extractErrorMessage('Unable to approve quotation'));
       return;
     }
@@ -1197,9 +1117,21 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleConvertToJob = async () => {
-    const { subscriptionPlan } = useClientStore.getState();
-    setActiveDialog(null);
-    setSelectedAction(null);
+    if (!quotationId) {
+      notifyError(extractErrorMessage('Unable to convert quotation to job'));
+      return;
+    }
+
+    try {
+      const job = await convertToJobMutation.mutateAsync(quotationId);
+      notifySuccess('Quotation converted to job');
+      setActiveDialog(null);
+      setSelectedAction(null);
+      router.push(`/customer-operations/jobs?openJobId=${job.id}`);
+    } catch (error) {
+      console.error('Failed to convert quotation to job:', error);
+      notifyError(extractErrorMessage(error));
+    }
   };
 
   const handleConvertToDraft = async () => {
@@ -1237,7 +1169,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   };
 
   const handleArchive = async () => {
-    if (!quotationId || !resolvedQuotation) {
+    if (!quotationId || !quotationData) {
       notifyError(extractErrorMessage('Unable to archive quotation'));
       return;
     }
@@ -1377,7 +1309,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     );
   });
 
-  const canEdit = resolvedQuotation?.quoteStatus === 'DRAFT';
+  const canEdit = quotationData?.quoteStatus === 'DRAFT';
   const viewDialog = viewOpen ? (
     <FormDialog
       id={quotationId}
@@ -1393,7 +1325,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
           }, 100);
         }
       }}
-      headerButtons={<QuotationActionButtons quotation={resolvedQuotation} />}
+      headerButtons={<QuotationActionButtons quotation={quotationData} />}
       hideTrigger
       headerInfo={{
         useSelectedQuotation: true,
@@ -1410,7 +1342,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         <span>
           Duplicating Quote{' '}
           <span className="text-purple-600">
-            {resolvedQuotation?.quoteNumber || ''}
+            {quotationData?.quoteNumber || ''}
           </span>
         </span>
       }

@@ -1,44 +1,50 @@
 'use client';
 import { MapPin, Shield, User, Clock } from 'lucide-react';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { formatTimeOnly, formatWeekdayDate } from '@/lib/utils/date';
 
-export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
+export function MarkArrivedDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
+  return (
+    <div className="flex justify-start items-center gap-2">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#DBEAFE] rounded-full flex-shrink-0">
+        <span className="flex items-center justify-center">
+          <MapPin className="h-[20px] w-[20px] text-[#1E40AF]" />
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium">{docket?.docketNumber ?? '—'}</span>
+        <div className="flex justify-start gap-2">
+          <span className="text-sm text-[#6A7282]">
+            {docket?.jobItem?.product?.productName}
+          </span>
+          {docket?.loadSize != null && (
+            <>
+              <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+              <span className="text-sm text-[#6A7282]">
+                {docket.loadSize} {docket.jobItem?.productSellUom}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function MarkArrivedContent({ docket }: { docket?: DocketDTO | null }) {
   const now = new Date();
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
 
-  const destination = docket?.deliveryAddress?.address?.formattedAddress ?? '—';
-  const customerName = docket?.job?.customerName ?? '—';
+  const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
+  const customerName = docket?.customerContactName ?? '—';
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Docket header */}
-      <div className="flex justify-start items-center gap-2">
-        <div className="flex w-[42px] h-[42px] justify-center bg-[#DBEAFE] rounded-full flex-shrink-0">
-          <span className="flex items-center justify-center">
-            <MapPin className="h-[20px] w-[20px] text-[#1E40AF]" />
-          </span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">{docket?.docketNumber ?? '—'}</span>
-          <div className="flex justify-start gap-2">
-            <span className="text-sm text-[#6A7282]">
-              {docket?.productName}
-            </span>
-            {docket?.loadSize != null && (
-              <>
-                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-                <span className="text-sm text-[#6A7282]">
-                  {docket.loadSize} {docket.productUoM}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Admin Override warning */}
       <div className="border border-[#FED7AA] rounded-md p-4 bg-[#FFF7ED]">
         <div className="flex justify-start gap-2 self-stretch">
           <Shield className="h-[20px] w-[20px] text-[#C2410C] flex-shrink-0 mt-0.5" />
@@ -54,7 +60,6 @@ export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
         </div>
       </div>
 
-      {/* Destination & Customer */}
       <div className="flex flex-col gap-3 rounded-md bg-[#F9FAFB] px-4 py-3">
         <div className="flex flex-col gap-1">
           <span className="text-[12px] font-normal text-[#6A7282] uppercase tracking-wide">
@@ -74,7 +79,6 @@ export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
         </div>
       </div>
 
-      {/* Driver info */}
       <div className="border border-[#BBF7D0] rounded-md p-3 bg-[#F0FDF4]">
         <div className="flex items-center gap-3">
           <div className="flex w-[36px] h-[36px] justify-center bg-[#F0FDF4] flex-shrink-0">
@@ -84,18 +88,17 @@ export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
           </div>
           <div className="flex flex-col">
             <span className="text-[14px] font-medium text-[#166534]">
-              {docket?.contactName ?? '—'}
+              {docket?.customerContactName ?? '—'}
             </span>
             {docket?.truckType && (
               <span className="text-[12px] font-normal text-[#15803D]">
-                {docket.truckType}
+                {docket.jobItem.truckType}
               </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* Arrival Time */}
       <div className="border border-[#BFDBFE] rounded-md p-4 bg-[#EFF6FF]">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -111,7 +114,6 @@ export function MarkArrivedContent({ docket }: { docket?: Docket | null }) {
         </div>
       </div>
 
-      {/* What happens */}
       <div className="flex flex-col gap-2">
         <span className="text-[14px] font-medium text-[#101828]">
           What happens when marked as arrived:

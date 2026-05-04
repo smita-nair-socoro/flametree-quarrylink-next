@@ -34,69 +34,31 @@ import { setLocalStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Link from 'next/link';
 
-/** Default open state for nav sections by subscription plan */
-function getDefaultOpenStatesForPlan(plan: string | undefined): Record<string, boolean> {
-  if (!plan) return {};
-  const planUpper = plan.toUpperCase();
-  // ESSENTIAL: only Customer Operations and Inventory & Production open
-  if (planUpper === 'ESSENTIALS') {
-    return {
-      '/customer-operations': true,
-      '/inventory': true,
-      '/logistics': false,
-    };
-  }
-  // PLUS or PRO: open all sections with subitems
-  if (planUpper === 'PLUS' || planUpper === 'PRO') {
-    return {
-      '/customer-operations': true,
-      '/inventory': true,
-      '/logistics': true,
-    };
-  }
-  return {};
-}
-
 export function NavMain({
   items,
-  subscriptionPlan,
 }: {
   items: {
     title: string;
     url: string;
     icon?: LucideIcon;
     isActive?: boolean;
-    plan?: string;
+    isDisabled?: boolean;
     items?: {
       title: string;
       url: string;
-      plan?: string;
+      isDisabled?: boolean;
     }[];
   }[];
-  subscriptionPlan?: string;
 }) {
   const pathname = usePathname();
   const { state, open, openMobile, isMobile } = useSidebar();
   const isMobileDevice = useIsMobile();
-  const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>({
+    '/customer-operations': true,
+    '/logistics': true,
+    '/inventory': true,
+  });
   const [forceUpdate, setForceUpdate] = useState(0);
-  const isDisabled = (plan?: string) => {
-    const p = plan?.toUpperCase();
-    const s = subscriptionPlan?.toUpperCase();
-    if (p === 'PRO') return s !== 'PRO';
-    if (p === 'PLUS') return s !== 'PRO' && s !== 'PLUS';
-    return false;
-  };
-  const getPlanLabel = (plan?: string) => (plan ? plan.toUpperCase() : '');
-
-  // When subscription plan is available, set open states to plan-based defaults (no persistence)
-  useEffect(() => {
-    if (!subscriptionPlan) return;
-    const defaults = getDefaultOpenStatesForPlan(subscriptionPlan);
-    if (Object.keys(defaults).length > 0) {
-      setOpenStates(defaults);
-    }
-  }, [subscriptionPlan]);
 
   useEffect(() => {
     if (pathname) {
@@ -129,8 +91,6 @@ export function NavMain({
 
           // If item has no subitems
           if (!item.items || item.items.length === 0) {
-            const itemIsDisabled = isDisabled(item.plan);
-
             // If collapsed, show hover card
             if (isCollapsed) {
               return (
@@ -144,8 +104,7 @@ export function NavMain({
                       <SidebarMenuButton
                         asChild
                         isActive={isActive}
-                        aria-disabled={itemIsDisabled}
-                        className="hover:bg-[#7138f533]"
+                        className={`hover:bg-[#7138f533] ${item.isDisabled ? 'opacity-50 pointer-events-none' : ''}`}
                       >
                         <Link href={item.url}>
                           {item.icon && <item.icon className="text-white" />}
@@ -164,26 +123,15 @@ export function NavMain({
                   >
                     <Link
                       href={item.url}
-                      aria-disabled={itemIsDisabled}
                       className={`flex items-center justify-between gap-2 min-w-0 px-3 py-2 text-sm font-semibold rounded-lg transition-all duration-200
-                        ${
-                          isActive
-                            ? 'bg-[#7138F5] text-white'
-                            : 'text-white hover:bg-[#7138F533]'
-                        } ${
-                          itemIsDisabled
-                            ? 'pointer-events-none opacity-40 text-[#94a3b8]'
-                            : ''
+                        ${isActive
+                          ? 'bg-[#7138F5] text-white'
+                          : 'text-white hover:bg-[#7138F533]'
                         }`}
                     >
                       <span className="truncate whitespace-nowrap overflow-hidden">
                         {item.title}
                       </span>
-                      {itemIsDisabled && (
-                        <span className="shrink-0 text-[#94a3b8] border border-[#475569] rounded-sm px-1.5 py-0.5 text-xs font-medium">
-                          {getPlanLabel(item.plan)}
-                        </span>
-                      )}
                     </Link>
                   </HoverCardContent>
                 </HoverCard>
@@ -196,7 +144,7 @@ export function NavMain({
                 <SidebarMenuButton
                   asChild
                   isActive={isActive}
-                  aria-disabled={itemIsDisabled}
+                  className={item.isDisabled ? 'opacity-50 pointer-events-none' : ''}
                 >
                   <Link
                     href={item.url}
@@ -215,11 +163,6 @@ export function NavMain({
                         </TooltipContent>
                       </Tooltip>
                     </span>
-                    {itemIsDisabled && (
-                      <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                        {getPlanLabel(item.plan)}
-                      </span>
-                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -228,7 +171,6 @@ export function NavMain({
 
           // If collapsed and has subitems, show hover card
           if (isCollapsed && item.items && item.items.length > 0) {
-            const itemIsDisabled = isDisabled(item.plan);
             return (
               <HoverCard
                 key={`${item.url}-${forceUpdate}`}
@@ -239,9 +181,7 @@ export function NavMain({
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       isActive={isActive}
-                      className={`hover:bg-[#7138f533] ${
-                        itemIsDisabled ? 'opacity-40' : ''
-                      }`}
+                      className={`hover:bg-[#7138f533] ${item.isDisabled ? 'opacity-50 pointer-events-none' : ''}`}
                     >
                       {item.icon && <item.icon className="text-white" />}
                       <Tooltip delayDuration={300} mobileClickable={false}>
@@ -271,22 +211,15 @@ export function NavMain({
                       {item.items.map((sub) => {
                         const subActive =
                           pathname === sub.url || pathname === `${sub.url}/`;
-                        const subDisabled = isDisabled(sub.plan);
                         return (
                           <Link
                             key={sub.url}
                             href={sub.url}
-                            aria-disabled={subDisabled}
                             className={`flex items-center justify-between gap-2 min-w-0 px-2 py-2 text-sm rounded-lg transition-all duration-200 mb-1
-                              ${
-                                subActive
-                                  ? 'bg-[#7138F5] text-white font-medium'
-                                  : 'text-white hover:bg-[#7138F533]'
-                              } ${
-                                subDisabled
-                                  ? 'pointer-events-none opacity-40 text-[#94a3b8]'
-                                  : ''
-                              }`}
+                                ${subActive
+                                ? 'bg-[#7138F5] text-white font-medium'
+                                : 'text-white hover:bg-[#7138F533]'
+                              } ${sub.isDisabled ? 'opacity-50 pointer-events-none' : ''}`}
                           >
                             <Tooltip delayDuration={300} mobileClickable={false}>
                               <TooltipTrigger asChild>
@@ -298,11 +231,6 @@ export function NavMain({
                                 <p>{sub.title}</p>
                               </TooltipContent>
                             </Tooltip>
-                            {subDisabled && (
-                              <span className="shrink-0 text-[#94a3b8] border border-[#475569] rounded-sm px-1.5 py-0.5 text-xs font-medium">
-                                {getPlanLabel(sub.plan)}
-                              </span>
-                            )}
                           </Link>
                         );
                       })}
@@ -314,7 +242,6 @@ export function NavMain({
           }
 
           // If expanded and has subitems, show collapsible menu
-          const itemIsDisabled = isDisabled(item.plan);
           return (
             <Collapsible
               key={item.url}
@@ -332,7 +259,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     isActive={isActive}
-                    className={itemIsDisabled ? 'opacity-40' : ''}
+                    className={item.isDisabled ? 'opacity-50 pointer-events-none' : ''}
                   >
                     <span className="flex items-center gap-2 min-w-0">
                       {item.icon && <item.icon className="text-white" />}
@@ -348,11 +275,6 @@ export function NavMain({
                       </Tooltip>
                     </span>
                     <div className="flex items-center gap-2 ml-auto">
-                      {itemIsDisabled && (
-                        <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                          {getPlanLabel(item.plan)}
-                        </span>
-                      )}
                       <ChevronRight className="transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
                     </div>
                   </SidebarMenuButton>
@@ -362,14 +284,12 @@ export function NavMain({
                     {item.items?.map((sub) => {
                       const subActive =
                         pathname === sub.url || pathname === `${sub.url}/`;
-                      const subDisabled = isDisabled(sub.plan);
                       return (
                         <SidebarMenuSubItem key={sub.url}>
                           <SidebarMenuSubButton
                             asChild
                             isActive={subActive}
-                            aria-disabled={subDisabled}
-                            className="hover:bg-[#7138F533] data-[active=true]:!bg-[#7138F5]"
+                            className={`hover:bg-[#7138F533] data-[active=true]:!bg-[#7138F5] ${sub.isDisabled ? 'opacity-50 pointer-events-none' : ''}`}
                           >
                             <Link
                               href={sub.url}
@@ -385,11 +305,6 @@ export function NavMain({
                                   <p>{sub.title}</p>
                                 </TooltipContent>
                               </Tooltip>
-                              {subDisabled && (
-                                <span className="shrink-0 text-[#6A7282] border border-[#6A7282] rounded-sm px-[5px]">
-                                  {getPlanLabel(sub.plan)}
-                                </span>
-                              )}
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>

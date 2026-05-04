@@ -1,0 +1,14 @@
+Hi {RecipientName},
+
+This is to notify you that a job has been RESUMED.
+
+Job Number: {JobNumber}
+Customer: {CustomerName}
+Project: {ProjectName}
+
+Resumed By: {UserName}
+Resumed At: {Timestamp}
+
+View Job: {JobUrl}
+
+You're receiving this notification because you're associated with this job on QuarryLink.

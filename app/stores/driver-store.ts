@@ -1,20 +1,20 @@
 import { useMemo } from 'react';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { Driver } from '@/lib/types/driver';
+import { DriverDTO } from '@/lib/types/driver';
 
 interface DriverStore {
-  drivers: Driver[];
-  selectedDriver: Driver | null;
+  drivers: DriverDTO[];
+  selectedDriver: DriverDTO | null;
   isLoading: boolean;
 
   // Actions
-  setDrivers: (drivers: Driver[]) => void;
-  setSelectedDriver: (Driver: Driver | null) => void;
+  setDrivers: (drivers: DriverDTO[]) => void;
+  setSelectedDriver: (driver: DriverDTO | null) => void;
   setLoading: (loading: boolean) => void;
 
-  getDriverById: (id: number) => Driver | undefined;
-  getDriversByStatus: (status: string) => Driver[];
+  getDriverById: (id: number) => DriverDTO | undefined;
+  getDriversByStatus: (status: string) => DriverDTO[];
 
   getDriverStats: () => {
     total: number;
@@ -33,7 +33,7 @@ export const useDriverStore = create<DriverStore>()(
       // Actions
       setDrivers: (drivers) => set({ drivers }),
 
-      setSelectedDriver: (Driver) => set({ selectedDriver: Driver }),
+      setSelectedDriver: (driver) => set({ selectedDriver: driver }),
       setLoading: (loading) => set({ isLoading: loading }),
 
       // Selectors
@@ -44,7 +44,7 @@ export const useDriverStore = create<DriverStore>()(
 
       getDriversByStatus: (status) => {
         const state = get();
-        return state.drivers.filter((d) => d.status === status);
+        return state.drivers.filter((d) => d.driverStatus === status);
       },
     }),
     { name: 'Driver-store' },
@@ -65,7 +65,7 @@ export const useDriverById = (id: number) => {
 
 export const useDriversByStatus = (status: string) => {
   return useDriverStore((state) =>
-    state.drivers.filter((d) => d.status === status),
+    state.drivers.filter((d) => d.driverStatus === status),
   );
 };
 

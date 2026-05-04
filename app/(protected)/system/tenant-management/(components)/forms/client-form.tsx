@@ -53,7 +53,7 @@ export default function ClientForm({
     React.useState<string>(isEditing ? selectedClient?.subscription || '' : '');
   const [numberOfUsers, setNumberOfUsers] = React.useState(10);
   const [paymentTerm, setPaymentTerm] = React.useState<'Monthly' | 'Yearly'>(
-    'Monthly'
+    'Monthly',
   );
   const [customPrice, setCustomPrice] = React.useState('');
   const [step, setStep] = React.useState(1);
@@ -188,7 +188,7 @@ export default function ClientForm({
         clientForm.trigger('billing_address');
       }
     },
-    [clientForm]
+    [clientForm],
   );
 
   // Watch the subscription field for changes
@@ -241,7 +241,7 @@ export default function ClientForm({
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} client:`,
-        error
+        error,
       );
       // Extract normalized error response and message
       const err = extractErrorResponse(error);
@@ -280,7 +280,7 @@ export default function ClientForm({
         messageFromErr ||
           `Failed to ${
             isEditing ? 'update' : 'create'
-          } client. Please try again.`
+          } client. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -296,7 +296,7 @@ export default function ClientForm({
         };
       // Find the client matching the selected ID
       const detailedClient = detailedItems.find(
-        (client) => client.id === selectedClient.id
+        (client) => client.id === selectedClient.id,
       );
       const users = (detailedClient?.user || []) as User[];
       return users as User[];
@@ -328,7 +328,7 @@ export default function ClientForm({
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -346,7 +346,7 @@ export default function ClientForm({
           className={cn(
             'p-1 gap-1 w-full grid grid-cols-1',
             className,
-            isSubmitting && 'pointer-events-none'
+            isSubmitting && 'pointer-events-none',
           )}
           onSubmit={clientForm.handleSubmit(onSubmit)}
         >
@@ -447,7 +447,7 @@ export default function ClientForm({
                     <span className="text-sm font-normal">
                       $
                       {(Number(currentUnitPrice) * numberOfUsers * 0.1).toFixed(
-                        2
+                        2,
                       )}
                     </span>
                   </div>
@@ -459,7 +459,7 @@ export default function ClientForm({
                       $
                       {formatCurrency(
                         Number(currentUnitPrice) * numberOfUsers +
-                          Number(currentUnitPrice) * numberOfUsers * 0.1
+                          Number(currentUnitPrice) * numberOfUsers * 0.1,
                       )}
                     </span>
                   </div>
@@ -482,7 +482,7 @@ export default function ClientForm({
           {/* Audit Information */}
           {isEditing && (
             <div className="col-span-full space-y-6 mt-10 mb-4">
-              <h2 className="text-2xl font-bold">Audit Information</h2>
+              <h2 className="text-[18px] font-bold">Audit Information</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
                 <div className="flex items-center gap-2">

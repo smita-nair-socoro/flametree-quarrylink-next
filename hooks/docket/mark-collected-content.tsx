@@ -1,38 +1,50 @@
 'use client';
 
 import { Truck, CircleCheckBig } from 'lucide-react';
-import { Docket } from '@/lib/types/docket';
+import { DocketDTO } from '@/lib/types/docket';
 
-export function MarkCollectedContent({ docket }: { docket?: Docket | null }) {
+export function MarkCollectedDescription({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
-          <Truck className="h-6 w-6 text-[#008236]" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium text-[#101828]">
-            {docket?.docketNumber ?? '—'}
-          </span>
-          <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-            <span>{docket?.productName ?? '—'}</span>
-            {docket?.loadSize != null && (
-              <>
-                <span className="font-bold">•</span>
-                <span>
-                  {docket.loadSize} {docket.productUoM}
-                </span>
-              </>
-            )}
-          </div>
+    <div className="flex items-center gap-3">
+      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#F0FDF4]">
+        <Truck className="h-6 w-6 text-[#008236]" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium text-[#101828]">
+          {docket?.docketNumber ?? '—'}
+        </span>
+        <div className="flex items-center gap-2 text-sm text-[#6A7282]">
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
+          {docket?.loadSize != null && (
+            <>
+              <span className="font-bold">•</span>
+              <span>
+                {docket.loadSize} {docket.jobItem?.productSellUom}
+              </span>
+            </>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
 
+export function MarkCollectedContent({
+  docket,
+}: {
+  docket?: DocketDTO | null;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
       <div className="rounded-md bg-[#F9FAFB] px-4 py-3">
         <div className="text-sm text-[#6A7282]">
           <div>
             <span className="font-medium text-[#364153]">Customer:</span>{' '}
-            {docket?.contactName ?? '—'}
+            {docket?.customerContactName ?? '—'}
           </div>
         </div>
       </div>

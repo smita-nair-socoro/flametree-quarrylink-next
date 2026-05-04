@@ -1,32 +1,38 @@
 'use client';
 import { Play } from 'lucide-react';
-import { JobDetails } from '@/lib/types/job';
+import { JobDTO } from '@/lib/types/job';
 
-export function ResumeJobContent({ job }: { job?: JobDetails | null }) {
+export function ResumeJobDescription({ job }: { job?: JobDTO | null }) {
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex justify-start items-center gap-2">
-        <div className="flex w-[42px] h-[42px] justify-center bg-[#F0FDF4] rounded-full">
-          <span className="flex items-center justify-center">
-            <Play className="h-[20px] w-[20px] text-[#008236]" />
-          </span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-medium">{job?.projectName}</span>
-          <div className="flex justify-start gap-2">
-            <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
-            {job?.customerName && (
-              <>
-                <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-                <span className="text-sm text-[#6A7282]">
-                  {job.customerName}
-                </span>
-              </>
-            )}
-          </div>
+    <div className="flex justify-start items-center gap-2">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#F0FDF4] rounded-full">
+        <span className="flex items-center justify-center">
+          <Play className="h-[20px] w-[20px] text-[#008236]" />
+        </span>
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-medium">{job?.projectName}</span>
+        <div className="flex justify-start gap-2">
+          <span className="text-sm text-[#6A7282]">{job?.jobNumber}</span>
+          {job?.customerDto && (
+            <>
+              <span className="text-sm text-[#6A7282] font-extrabold">·</span>
+              <span className="text-sm text-[#6A7282]">
+                {job.customerDto.customerType === 'BUSINESS'
+                  ? job.customerDto.businessName
+                  : job.customerDto.individualContactName}
+              </span>
+            </>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
 
+export function ResumeJobContent() {
+  return (
+    <div className="flex flex-col gap-5">
       <span className="text-[14px] font-normal text-gray-700">
         Are you sure you want to resume this job?
       </span>

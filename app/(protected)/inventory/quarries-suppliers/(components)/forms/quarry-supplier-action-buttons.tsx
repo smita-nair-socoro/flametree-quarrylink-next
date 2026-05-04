@@ -69,7 +69,7 @@ export function QuarrySupplierActionButtons({
             variant="outline"
             size="sm"
             onClick={actions.delete}
-            className="h-9 gap-2 rounded-r-none border-r-0"
+            className="h-9 gap-2 rounded-r-none border-r-0 text-destructive hover:text-destructive"
           >
             <Archive className="h-4 w-4" />
             Delete

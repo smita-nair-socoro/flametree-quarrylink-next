@@ -12,24 +12,46 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from './haulier-form';
-import { FormMultiSelect } from '@/components/ui/form-multi-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import {
-  NewDriverFormSchema,
-  NewDriverFormValues,
-} from './schemas/driver-form-schema';
-import { Loader2 } from 'lucide-react';
+import { NewDriverFormSchema } from './schemas/driver-form-schema';
+import z from 'zod';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { complianceColumns } from '../(data-tables)/compliance/columns';
+import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import {
+  useCreateDriver,
+  useUpdateDriver,
+  DriverPreStartChecklistsQueryOptions,
+} from '@/lib/api/driver';
+import {
+  HauliersListQueryOptions,
+  HaulierTrucksQueryOptions,
+} from '@/lib/api/haulier';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useClientStore } from '@/app/stores/client-store';
+import { addNewRecordId } from '@/lib/utils';
+import { TableBadges } from '@/components/table-badges';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
+import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
+import { AuditInformation } from '@/components/audit-information';
+import { FormMultiSelect } from '@/components/ui/form-multi-select';
+import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -40,38 +62,6 @@ interface FormProps {
   onCancel?: () => void;
 }
 
-const haulierItems = [
-  {
-    id: '1',
-    label: 'ABC Transport',
-    fields: { email: 'abc@transport.com.au', phone: '+61400123456' },
-  },
-  {
-    id: '2',
-    label: 'XYZ Logistics',
-    fields: { email: 'xyz@logistics.com.au', phone: '+61400234567' },
-  },
-  {
-    id: '3',
-    label: 'Quick Haul',
-    fields: { email: 'info@quickhaul.com.au', phone: '+61400345678' },
-  },
-];
-
-const truckTypeOptions = [
-  { label: 'Truck', value: 'Truck' },
-  { label: 'Semi-Trailer', value: 'Semi-Trailer' },
-  { label: 'Truck + Trailer', value: 'Truck + Trailer' },
-  { label: 'Rigid truck', value: 'Rigid truck' },
-  { label: 'B-Double', value: 'B-Double' },
-  { label: 'Road train', value: 'Road train' },
-  { label: 'Dog Truck', value: 'Dog Truck' },
-  { label: 'Flatbed', value: 'Flatbed' },
-  { label: 'Tipper', value: 'Tipper' },
-  { label: 'Semi-Tipper', value: 'Semi-Tipper' },
-  { label: 'Side-Tipper', value: 'Side-Tipper' },
-  { label: 'Truck and Dog', value: 'Truck and Dog' },
-];
 export default function DriverForm({
   id,
   onCancel,
@@ -83,9 +73,30 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
+  const tenantName = useClientStore((state) => state.getTenantName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
 
-  const driverForm = useForm<NewDriverFormValues>({
+  const haulierItems = React.useMemo(
+    () =>
+      hauliers
+        .filter((h) => h.haulierName !== tenantName)
+        .map((h) => ({
+          id: h.id,
+          label: h.haulierName,
+          fields: { email: h.emailAddress, phone: h.phoneNumber },
+        })),
+    [hauliers, tenantName],
+  );
+
+  const createDriver = useCreateDriver();
+  const updateDriver = useUpdateDriver();
+
+  const { driverData } = useDriverFormState(id, isEditing);
+  const { actions: truckActions, truckDialogs } =
+    useDriverTruckActions(driverData);
+
+  const driverForm = useForm<z.infer<typeof NewDriverFormSchema>>({
     resolver: zodResolver(NewDriverFormSchema),
     mode: 'onChange',
     defaultValues: {
@@ -93,35 +104,78 @@ export default function DriverForm({
       email: '',
       phone: '',
       type: DRIVER_TYPE.INTERNAL,
-      haulier: '',
+      haulierId: 0,
       driverLicenseNumber: '',
       assignedTrucks: [],
     },
   });
 
+  React.useEffect(() => {
+    if (isEditing && driverData) {
+      driverForm.reset({
+        driverName: driverData.driverName || '',
+        email: driverData.emailAddress || '',
+        phone: driverData.phoneNumber || '',
+        type: driverData.driverType || DRIVER_TYPE.INTERNAL,
+        haulierId: driverData.haulier?.id || 0,
+        driverLicenseNumber: driverData.licenseNumber || '',
+        assignedTrucks: [],
+      });
+    }
+  }, [isEditing, driverData, driverForm]);
+
   const selectedType = driverForm.watch('type');
-  const selectedHaulier = driverForm.watch('haulier');
+  const selectedHaulierId = driverForm.watch('haulierId');
   const isInternal = selectedType === DRIVER_TYPE.INTERNAL;
-  const hasHaulier = Boolean(selectedHaulier);
+
+  const selectedHaulierInfo = React.useMemo(() => {
+    if (isInternal) return internalHaulier;
+    return hauliers.find((h) => h.id === selectedHaulierId);
+  }, [isInternal, selectedHaulierId, hauliers, internalHaulier]);
 
   React.useEffect(() => {
     onDirtyChange?.(driverForm.formState.isDirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverForm.formState.isDirty]);
 
-  // Clear haulier and assigned trucks when switching to internal
-  React.useEffect(() => {
-    if (isInternal) {
-      driverForm.setValue('haulier', '');
-      driverForm.setValue('assignedTrucks', []);
-    }
-  }, [isInternal, driverForm]);
+  const isPending = createDriver.isPending || updateDriver.isPending;
 
-  async function onSubmit(values: NewDriverFormValues) {
+  async function onSubmit(values: z.infer<typeof NewDriverFormSchema>) {
     try {
-      setIsSubmitting(true);
-      console.log('Driver Form Values:', values);
-      // TODO: wire up create/update driver API calls
+      if (isEditing && id && driverData) {
+        await updateDriver.mutateAsync({
+          id,
+          data: {
+            version: driverData.version ?? 0,
+            driverName: values.driverName,
+            licenseNumber: values.driverLicenseNumber,
+            emailAddress: values.email,
+            phoneNumber: values.phone,
+            driverType: driverData.driverType,
+            driverStatus: driverData.driverStatus ?? DRIVER_STATUS.ACTIVE,
+            truckIds: driverData.truckIds ?? [],
+          },
+        });
+      } else {
+        const selectedHaulierData = isInternal
+          ? internalHaulier
+          : hauliers.find((h) => h.id === values.haulierId);
+
+        const newDriver = await createDriver.mutateAsync({
+          driverName: values.driverName,
+          driverType: values.type,
+          emailAddress: values.email,
+          phoneNumber: values.phone,
+          licenseNumber: values.driverLicenseNumber,
+          haulierId: selectedHaulierData?.id,
+          truckIds: values.assignedTrucks?.map(Number) ?? [],
+        });
+
+        if (newDriver && typeof newDriver.id === 'number') {
+          addNewRecordId('driver_main_data_table', newDriver.id);
+        }
+      }
+
       notifySuccess(
         isEditing
           ? 'Driver Updated Successfully!'
@@ -130,13 +184,10 @@ export default function DriverForm({
       onSuccess?.();
       onSaved?.();
     } catch (error) {
-      console.error(
-        `Error ${isEditing ? 'updating' : 'creating'} driver:`,
-        error,
+      notifyError(
+        extractErrorMessage(error) ||
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
-      notifyError('Failed to save driver. Please try again.');
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
@@ -148,9 +199,51 @@ export default function DriverForm({
     );
   }
 
+  const effectiveHaulierId = isInternal
+    ? (internalHaulier?.id ?? 0)
+    : (selectedHaulierId ?? 0);
+
+  React.useEffect(() => {
+    driverForm.setValue('assignedTrucks', []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveHaulierId]);
+
+  const { data: haulierTrucksData } = useQuery(
+    HaulierTrucksQueryOptions(effectiveHaulierId),
+  );
+  const haulierTrucks = React.useMemo(
+    () => haulierTrucksData?.trucks ?? [],
+    [haulierTrucksData],
+  );
+  const truckOptions = React.useMemo(
+    () =>
+      haulierTrucks.map((t) => ({
+        label: t.licensePlate,
+        value: String(t.id),
+        group:
+          t.haulier?.haulierName ??
+          selectedHaulierInfo?.haulierName ??
+          tenantName ??
+          'Trucks',
+      })),
+    [haulierTrucks, selectedHaulierInfo, tenantName],
+  );
+
+  const trucks = (driverData?.trucks ?? []).map((t) => ({
+    id: t.id,
+    licensePlate: t.licensePlate,
+    status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
+  }));
+  const { data: checklistsData } = useQuery({
+    ...DriverPreStartChecklistsQueryOptions(id ?? 0),
+    enabled: isEditing && !!id,
+  });
+  const complianceRecords = checklistsData?.content ?? [];
+
   return (
     <div className="w-full relative">
-      {isSubmitting && (
+      {truckDialogs}
+      {isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -168,15 +261,14 @@ export default function DriverForm({
 
       <Form {...driverForm}>
         <form
-          id="add-new-driver-form"
+          id="driver-form"
           className={cn(
-            'w-full flex flex-col gap-4',
+            'w-full flex flex-col gap-6',
             className,
-            isSubmitting && 'pointer-events-none',
+            isPending && 'pointer-events-none',
           )}
           onSubmit={driverForm.handleSubmit(onSubmit, onError)}
         >
-          {/* Driver Type */}
           <FormField
             control={driverForm.control}
             name="type"
@@ -187,7 +279,8 @@ export default function DriverForm({
                   <RadioGroup
                     value={field.value}
                     onValueChange={field.onChange}
-                    className="flex gap-6"
+                    className="flex gap-6 mt-2"
+                    disabled={isEditing}
                   >
                     <FormItem className="flex items-center gap-2">
                       <FormControl>
@@ -209,16 +302,30 @@ export default function DriverForm({
             )}
           />
 
-          <Separator className="mt-0 pt-0" />
+          <Separator className="my-3" />
 
-          {/* Driver Name + Haulier */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
             <FormField
               control={driverForm.control}
               name="driverName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Driver Name*</FormLabel>
+                  <FormLabel className="flex items-center gap-1">
+                    Driver Name*
+                    {!isEditing && !isInternal && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Enter the driver&apos;s name. If unknown, use a
+                            generic name (e.g., &apos;Driver 1&apos;).
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Enter generic name" {...field} />
                   </FormControl>
@@ -230,28 +337,40 @@ export default function DriverForm({
             {isInternal ? (
               <FormItem>
                 <FormLabel>Haulier</FormLabel>
-                <Input value="My Company Haulier" disabled />
+                <Input
+                  value={
+                    internalHaulier?.haulierName ??
+                    tenantName ??
+                    'My Company Haulier'
+                  }
+                  disabled
+                />
               </FormItem>
             ) : (
               <SelectCreateEdit
                 control={driverForm.control}
-                name="haulier"
+                name="haulierId"
                 label="Haulier*"
                 entityName="Haulier"
+                disabled={isEditing}
                 items={haulierItems}
-                renderForm={(editingItem, isEditing, onSave, onCancel) => (
+                renderForm={(
+                  editingItem,
+                  isEditingItem,
+                  onSave,
+                  onCancelItem,
+                ) => (
                   <HaulierForm
                     editingItem={editingItem}
-                    isEditing={isEditing}
+                    isEditing={isEditingItem}
                     onSave={onSave}
-                    onCancel={onCancel}
+                    onCancel={onCancelItem}
                   />
                 )}
               />
             )}
           </div>
 
-          {/* Contact Information */}
           <div className="flex flex-col gap-4">
             <h2 className="text-lg font-bold">Contact Information</h2>
             <Separator />
@@ -287,12 +406,34 @@ export default function DriverForm({
                   </FormItem>
                 )}
               />
+
+              {isEditing && (
+                <>
+                  <FormItem>
+                    <FormLabel>Haulier Email Address</FormLabel>
+                    <Input
+                      value={selectedHaulierInfo?.emailAddress ?? ''}
+                      disabled
+                      placeholder="Auto-filled from selected haulier"
+                    />
+                  </FormItem>
+
+                  <FormItem>
+                    <FormLabel>Haulier Phone Number</FormLabel>
+                    <PhoneInput
+                      defaultCountry="AU"
+                      value={selectedHaulierInfo?.phoneNumber ?? ''}
+                      disabled
+                      placeholder="Auto-filled from selected haulier"
+                    />
+                  </FormItem>
+                </>
+              )}
             </div>
           </div>
 
-          {/* License & Assignment */}
           <div className="flex flex-col gap-4">
-            <h2 className="text-lg font-bold">License & Assignment</h2>
+            <h2 className="text-lg font-bold">License &amp; Assignment</h2>
             <Separator />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               <FormField
@@ -300,7 +441,7 @@ export default function DriverForm({
                 name="driverLicenseNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Driver's License Number*</FormLabel>
+                    <FormLabel>License Number*</FormLabel>
                     <FormControl>
                       <Input placeholder="ABC123456" {...field} />
                     </FormControl>
@@ -308,43 +449,120 @@ export default function DriverForm({
                   </FormItem>
                 )}
               />
-
-              <FormMultiSelect
-                control={driverForm.control}
-                name="assignedTrucks"
-                label="Assigned Trucks (Optional)"
-                options={hasHaulier || isInternal ? truckTypeOptions : []}
-                placeholder={
-                  !hasHaulier && !isInternal
-                    ? 'Select Haulier first...'
-                    : 'Select trucks...'
-                }
-                disabled={!hasHaulier && !isInternal}
-                searchPlaceholder="Search trucks..."
-              />
+              {!isEditing && (
+                <FormMultiSelect
+                  control={driverForm.control}
+                  name="assignedTrucks"
+                  label="Assigned Trucks (Optional)"
+                  options={selectedHaulierId || isInternal ? truckOptions : []}
+                  placeholder={
+                    !selectedHaulierId && !isInternal
+                      ? 'Select Haulier first...'
+                      : 'Select trucks...'
+                  }
+                  disabled={!selectedHaulierId && !isInternal}
+                  searchPlaceholder="Search trucks..."
+                />
+              )}
             </div>
           </div>
 
-          {/* Form Actions */}
+          {isEditing && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold">Truck Assignments</h2>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => truckActions.assign()}
+                >
+                  Assign Trucks
+                </Button>
+              </div>
+              <Separator />
+              {trucks.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">
+                  No trucks assigned.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {trucks.map((truck) => (
+                    <div
+                      key={truck.id}
+                      className="flex items-center justify-between rounded-md px-4 py-3 bg-[#F9FAFB]"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">
+                          {truck.licensePlate}
+                        </span>
+                        <TableBadges names={[truck.status]} visibleCount={1} />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() =>
+                          truckActions.unassign({
+                            id: truck.id,
+                            licensePlate: truck.licensePlate,
+                            status: truck.status,
+                          })
+                        }
+                      >
+                        Unassign
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {isEditing && (
+            <div className="flex flex-col gap-4">
+              <Separator />
+              <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
+              <DataTableClient
+                columns={complianceColumns}
+                data={complianceRecords}
+                searchPlaceHolder="Search by keyword..."
+              />
+            </div>
+          )}
+
+          {isEditing && (
+            <AuditInformation
+              createdBy={driverData?.createdBy}
+              lastModifiedBy={driverData?.lastModifiedBy}
+              createdAt={driverData?.createdAt}
+              updatedAt={driverData?.updatedAt}
+            />
+          )}
+
           <div className="flex justify-end gap-3 pt-2 mb-6">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button
+              variant="outline"
+              type="button"
+              className="cursor-pointer"
+              onClick={onCancel}
+            >
               Cancel
             </Button>
             <Button
-              form="add-new-driver-form"
+              form="driver-form"
               type="submit"
-              disabled={isSubmitting}
+              disabled={isPending}
               className="cursor-pointer"
             >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isPending
                 ? isEditing
                   ? 'Saving Changes...'
                   : 'Adding Driver...'
                 : isEditing
-                  ? 'Save Changes'
+                  ? 'Update Driver'
                   : 'Add Driver'}
             </Button>
           </div>
