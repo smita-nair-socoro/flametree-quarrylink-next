@@ -5,6 +5,7 @@ import * as React from 'react';
 import { DocketDTO } from '@/lib/types/docket';
 import { useQuery } from '@tanstack/react-query';
 import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
+import { DriverByIdQueryOptions } from '@/lib/api/driver';
 import { format } from 'date-fns';
 import {
   MapPin,
@@ -65,20 +66,34 @@ type ActionType =
 export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
   const { data: dockets = [], isLoading, isError } = useQuery(DriverAppAssignedDocketsQueryOptions());
 
-  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
-    null,
-  );
+  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
+  const [updateValue, setUpdateValue] = React.useState('');
 
-  const { actions, confirmDialogs, isDialogOpen } =
-    useDocketActions(selectedDocket);
+  const { actions, confirmDialogs, isDialogOpen } = useDocketActions(selectedDocket);
 
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
   };
 
-  const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
-  const [updateValue, setUpdateValue] = React.useState('');
+  // Fetch current driver to check daily checklist completion
+  const driverId = dockets[0]?.driverId ?? 0;
+  const { data: driverData } = useQuery({
+    ...DriverByIdQueryOptions(driverId),
+    enabled: driverId > 0,
+  });
+
+  const isDailyChecklistRequired = React.useMemo(() => {
+    if (!driverData?.lastChecklistCompleted) return true;
+    const lastCompleted = new Date(driverData.lastChecklistCompleted);
+    const todayUTC = new Date();
+    return (
+      lastCompleted.getUTCFullYear() !== todayUTC.getUTCFullYear() ||
+      lastCompleted.getUTCMonth() !== todayUTC.getUTCMonth() ||
+      lastCompleted.getUTCDate() !== todayUTC.getUTCDate()
+    );
+  }, [driverData?.lastChecklistCompleted]);
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -218,6 +233,24 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
+      {isDailyChecklistRequired && (
+        <div className="border border-[#16A34A] bg-[#F0FDF4] rounded-xl p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Info className="w-4 h-4 text-[#16A34A] shrink-0" />
+            <span className="text-[14px] font-medium text-[#15803D]">
+              Daily Checklist Required
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            className="h-8 px-4 text-[13px] font-semibold border-[#16A34A] text-[#15803D] hover:bg-green-50 hover:text-[#15803D] rounded-lg shrink-0"
+            onClick={() => onOpenChecklist?.('pre-start')}
+          >
+            Start
+          </Button>
+        </div>
+      )}
+
       {activeDocket && renderDocketCard(activeDocket, true)}
       {otherDockets.map((docket) => renderDocketCard(docket, false))}
 
@@ -310,20 +343,23 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
                       </span>
                       <div className="grid grid-cols-2 items-center">
                         <span className="text-[14px] font-bold text-gray-900">
-                          {selectedDocket.loadSize}
+                          {selectedDocket.docketStatus === 'ASSIGNED'
+                            ? selectedDocket.plannedLoadSize
+                            : (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize)}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
                               ? 'm³'
-                              : selectedDocket.jobItem.productSellUom}
+                              : selectedDocket.jobItem?.productSellUom}
                         </span>
                         <Button
                           variant="ghost"
                           className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                           onClick={() => {
-                            setUpdateValue(
-                              selectedDocket.loadSize?.toString() || '',
-                            );
+                            const displayLoad = selectedDocket.docketStatus === 'ASSIGNED'
+                              ? selectedDocket.plannedLoadSize
+                              : (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize);
+                            setUpdateValue(displayLoad?.toString() || '');
                             setIsUpdateDrawerOpen(true);
                           }}
                         >
@@ -538,13 +574,15 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
                   ? 'T'
                   : selectedDocket?.jobItem?.productSellUom === 'M3'
                     ? 'm³'
-                    : selectedDocket?.jobItem?.productSellUom}
+                    : (selectedDocket?.jobItem?.productSellUom ?? '')}
               </span>
             </div>
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
               Current:{' '}
               <span className="font-bold">
-                {selectedDocket?.loadSize}
+                {selectedDocket?.docketStatus === 'ASSIGNED'
+                  ? selectedDocket?.plannedLoadSize
+                  : (selectedDocket?.actualLoadSize || selectedDocket?.plannedLoadSize)}
                 {selectedDocket?.jobItem?.productSellUom === 'TN'
                   ? 'T'
                   : selectedDocket?.jobItem?.productSellUom === 'M3'

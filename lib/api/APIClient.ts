@@ -1264,7 +1264,7 @@ export const APIClient = {
       ),
     getAssignedDocketById: (docketId: number) =>
       appClient.Get<DocketDTO>(
-        `/socoro/quarrylink/api/driver-app/assigned/${docketId}`,
+        `/socoro/quarrylink/api/driver-app/${docketId}`,
       ),
   },
 
