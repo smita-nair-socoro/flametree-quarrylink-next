@@ -11,6 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const customerColumns: ColumnDef<CustomerDTO>[] = [
   {
@@ -116,25 +117,22 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
       return <TableClientSortableHeader column={column} title="Credit Limit" />;
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.original.creditLimit.toString());
-      const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(dollars);
-      return row.original.paymentType === 'CREDIT' ? (
-        <Tooltip delayDuration={300}>
+      if (row.original.paymentType === 'CREDIT') {
+        const cents = parseFloat(row.original.creditLimit.toString());
+        const formatted = centsToDollars(cents);
+        return <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div className="py-2 font-medium w-36 max-w-36 truncate">
-              {formatted}
+              ${formatted}
             </div>
           </TooltipTrigger>
           <TooltipContent variant="white">
-            <p>{formatted}</p>
+            <p>${formatted}</p>
           </TooltipContent>
         </Tooltip>
-      ) : (
-        <Tooltip delayDuration={300}>
+      }
+      else {
+        return <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
           </TooltipTrigger>
@@ -142,7 +140,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
             <p>N/A</p>
           </TooltipContent>
         </Tooltip>
-      );
+      }
     },
     meta: 'Credit Limit',
   },
