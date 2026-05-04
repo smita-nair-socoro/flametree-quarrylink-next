@@ -1,5 +1,5 @@
 import { CHECKLIST_TYPE, ANSWER_VALUE } from './checklist-template-enums';
-import { DRIVER_COMPLIANCE_STATUS } from './driver-compliance-enums';
+import { CHECKLIST_STATUS } from './checklist-enums';
 
 export interface ChecklistSubmissionAnswer {
   questionId: number;
@@ -22,7 +22,7 @@ export interface ChecklistSubmission {
   submissionId: number;
   submissionNumber: string;
   checklistType: CHECKLIST_TYPE;
-  status: DRIVER_COMPLIANCE_STATUS;
+  status: CHECKLIST_STATUS;
   driverName: string;
   truckIdentifier: string;
   submittedAt: string;
