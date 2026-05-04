@@ -3,6 +3,8 @@
 import * as React from 'react';
 
 import { DocketDTO } from '@/lib/types/docket';
+import { CustomerDTO } from '@/lib/types/customer';
+import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { format } from 'date-fns';
@@ -34,6 +36,14 @@ import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
+
+const getCustomerName = (customerDto?: CustomerDTO): string => {
+  if (!customerDto) return 'Unknown Customer';
+  if (customerDto.customerType === CUSTOMER_TYPE.BUSINESS) {
+    return customerDto.businessName || 'Unknown Customer';
+  }
+  return customerDto.individualContactName || 'Unknown Customer';
+};
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
@@ -165,7 +175,7 @@ export default function DocketsTab({
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-[18px] font-bold text-[#0F172A] leading-tight mb-0.5">
-                {docket.job?.projectName || 'Unknown Customer'}
+                {getCustomerName(docket.job?.customerDto)}
               </h3>
               <p className="text-[14px] text-gray-500">
                 {docket.jobItem?.product?.productName}
@@ -274,7 +284,7 @@ export default function DocketsTab({
                         Customer
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.job?.customerName}
+                        {getCustomerName(selectedDocket.job?.customerDto)}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -352,7 +362,7 @@ export default function DocketsTab({
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Product</span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.jobItem?.product?.productName}
+                        {selectedDocket.jobItem?.product?.productName ?? '--'}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -394,7 +404,7 @@ export default function DocketsTab({
                         Collection
                       </span>
                       <span className="text-[14px] font-bold text-gray-900">
-                        {selectedDocket.jobItem?.quarrySupplierName}
+                        {selectedDocket.jobItem?.product?.productName ?? '--'}
                       </span>
                       <span className="text-[13px] text-gray-500 leading-snug">
                         {selectedDocket.pickUpAddress?.formattedAddress}

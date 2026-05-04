@@ -148,7 +148,7 @@ export default function DriversAppPage() {
                 }}
               />
             )}
-            {activeTab === 'calendar' && <CalendarTab />}
+            {activeTab === 'calendar' && <CalendarTab dockets={dockets} />}
           </div>
         </div>
 

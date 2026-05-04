@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import { DocketDTO } from '@/lib/types/docket';
-import rawJson from '@/lib/tests/driverDocketsResponseData.json';
+import { CustomerDTO } from '@/lib/types/customer';
+import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import {
   format,
   addMonths,
@@ -28,12 +29,19 @@ import { cn } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
-export default function CalendarTab() {
-  const { items } = rawJson as unknown as {
-    items: DocketDTO[];
-  };
+const getCustomerName = (customerDto?: CustomerDTO): string => {
+  if (!customerDto) return 'Unknown Customer';
+  if (customerDto.customerType === CUSTOMER_TYPE.BUSINESS) {
+    return customerDto.businessName || 'Unknown Customer';
+  }
+  return customerDto.individualContactName || 'Unknown Customer';
+};
 
+interface CalendarTabProps {
+  dockets: DocketDTO[];
+}
 
+export default function CalendarTab({ dockets }: CalendarTabProps) {
   const today = new Date();
 
   // State for the calendar
@@ -54,8 +62,9 @@ export default function CalendarTab() {
     end: endDate,
   });
 
-  // Filter out dockets that are not assigned, delivered, in transit, arrived, or stopped
-  const filteredItems = items.filter((docket) => [DOCKET_STATUS.ASSIGNED, DOCKET_STATUS.DELIVERED, DOCKET_STATUS.IN_TRANSIT, DOCKET_STATUS.ARRIVED, DOCKET_STATUS.STOPPED].includes(docket.docketStatus));
+  const filteredItems = dockets.filter((docket) =>
+    [DOCKET_STATUS.ASSIGNED, DOCKET_STATUS.DELIVERED, DOCKET_STATUS.IN_TRANSIT, DOCKET_STATUS.ARRIVED, DOCKET_STATUS.STOPPED].includes(docket.docketStatus),
+  );
 
   // Get dockets for a specific date
   const getDocketsForDate = (date: Date) => {
@@ -95,7 +104,7 @@ export default function CalendarTab() {
 
         <div className="mb-4">
           <h3 className="text-[15px] font-medium text-[#45556C] leading-tight mb-0.5">
-            {docket.job?.customerName || 'Unknown Customer'}
+            {getCustomerName(docket.job?.customerDto)}
           </h3>
           <p className="text-[14px] text-[#94A3B8]">
             {docket.jobItem?.product?.productName}
@@ -112,7 +121,7 @@ export default function CalendarTab() {
           <div className="flex items-center gap-2.5">
             <Package className="w-4 h-4 text-[#94A3B8] shrink-0" />
             <span className="text-[13px] text-[#64748B]">
-              {docket.jobItem?.quarrySupplierName}
+              {docket.jobItem?.product?.productName ?? '--'}
             </span>
           </div>
           <div className="flex items-center gap-2.5">
