@@ -30,6 +30,7 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDocketActions } from '@/hooks/use-docket-actions';
+import { useOperationalUpdateDocket } from '@/lib/api/docket';
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
@@ -69,6 +70,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
   const [updateValue, setUpdateValue] = React.useState('');
 
   const { actions, confirmDialogs, isDialogOpen } = useDocketActions(selectedDocket);
+  const operationalUpdate = useOperationalUpdateDocket();
 
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
@@ -576,7 +578,18 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
             </Button>
             <Button
               className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-[#8E51FF] hover:bg-[#7c46e0] text-white shadow-sm"
-              onClick={() => {
+              disabled={operationalUpdate.isPending}
+              onClick={async () => {
+                if (!selectedDocket?.id || !updateValue) return;
+                const numericValue = parseFloat(updateValue);
+                if (isNaN(numericValue)) return;
+                await operationalUpdate.mutateAsync({
+                  id: selectedDocket.id,
+                  data: {
+                    checkWindowTimeConflict: false,
+                    actualLoadSize: numericValue,
+                  },
+                });
                 setIsUpdateDrawerOpen(false);
               }}
             >
