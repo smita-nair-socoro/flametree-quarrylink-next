@@ -34,7 +34,10 @@ import { useOperationalUpdateDocket } from '@/lib/api/docket';
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
-  onOpenChecklist?: (type: 'pre-start' | 'vehicle-inspection', truckLicensePlate?: string) => void;
+  onOpenChecklist?: (
+    type: 'pre-start' | 'vehicle-inspection',
+    truckLicensePlate?: string,
+  ) => void;
 }
 
 type ActionType =
@@ -60,13 +63,19 @@ type ActionType =
   | 'backToPending'
   | 'backToPreparing';
 
-export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps) {
-  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(null);
+export default function DocketsTab({
+  dockets,
+  onOpenChecklist,
+}: DocketsTabProps) {
+  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
+    null,
+  );
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
 
-  const { actions, confirmDialogs, isDialogOpen } = useDocketActions(selectedDocket);
+  const { actions, confirmDialogs, isDialogOpen } =
+    useDocketActions(selectedDocket);
   const operationalUpdate = useOperationalUpdateDocket();
 
   const handleAction = (actionType: ActionType) => {
@@ -74,7 +83,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
   };
 
   const checklistsComplete =
-    selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.PASS &&
+    selectedDocket?.driverChecklist?.checklistStatus ===
+      CHECKLIST_STATUS.PASS &&
     selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS;
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
@@ -159,7 +169,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
             <div className="flex items-center gap-2.5">
               <Truck className="w-4 h-4 text-gray-400 shrink-0" />
               <span className="text-[14px] text-[#45556C]">
-                {formatTruckType(docket.truckType)}
+                {docket.truck?.licensePlate ||
+                  formatTruckType(docket.truckType)}
               </span>
             </div>
             <div className="flex items-center gap-2.5">
@@ -262,7 +273,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                         Account Manager
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.job?.customerDto?.accountManagerName || '—'}
+                        {selectedDocket.job?.customerDto?.accountManagerName ||
+                          '—'}
                       </span>
                     </div>
                   </div>
@@ -282,7 +294,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                         <span className="text-[14px] font-bold text-gray-900">
                           {selectedDocket.docketStatus === 'ASSIGNED'
                             ? selectedDocket.plannedLoadSize
-                            : (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize)}
+                            : selectedDocket.actualLoadSize ||
+                              selectedDocket.plannedLoadSize}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
@@ -293,9 +306,11 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                           variant="ghost"
                           className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                           onClick={() => {
-                            const displayLoad = selectedDocket.docketStatus === 'ASSIGNED'
-                              ? selectedDocket.plannedLoadSize
-                              : (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize);
+                            const displayLoad =
+                              selectedDocket.docketStatus === 'ASSIGNED'
+                                ? selectedDocket.plannedLoadSize
+                                : selectedDocket.actualLoadSize ||
+                                  selectedDocket.plannedLoadSize;
                             setUpdateValue(displayLoad?.toString() || '');
                             setIsUpdateDrawerOpen(true);
                           }}
@@ -319,7 +334,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                         Assigned Truck
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.truck?.licensePlate ?? selectedDocket.truckType}
+                        {selectedDocket.truck?.licensePlate ??
+                          selectedDocket.truckType}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -407,7 +423,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {selectedDocket.driverChecklist?.checklistStatus !== CHECKLIST_STATUS.PASS && (
+                {selectedDocket.driverChecklist?.checklistStatus !==
+                  CHECKLIST_STATUS.PASS && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -421,13 +438,17 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {selectedDocket.truckChecklist?.checklistStatus !== CHECKLIST_STATUS.PASS && (
+                {selectedDocket.truckChecklist?.checklistStatus !==
+                  CHECKLIST_STATUS.PASS && (
                   <Button
                     variant="outline"
                     className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
                     onClick={() => {
                       setIsDrawerOpen(false);
-                      onOpenChecklist?.('vehicle-inspection', selectedDocket.truck?.licensePlate);
+                      onOpenChecklist?.(
+                        'vehicle-inspection',
+                        selectedDocket.truck?.licensePlate,
+                      );
                     }}
                   >
                     <span className="flex items-center gap-2">
@@ -449,18 +470,20 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                     </span>
                   </Button>
                 )}
-                {(selectedDocket.docketStatus !== 'STOPPED' && selectedDocket.docketStatus !== 'ARRIVED' && selectedDocket.docketStatus !== 'ASSIGNED') && (
-                  <Button
-                    variant="outline"
-                    onClick={() => handleAction('stop')}
-                    className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Pause className="h-4 w-4" />
-                      Stop
-                    </span>
-                  </Button>
-                )}
+                {selectedDocket.docketStatus !== 'STOPPED' &&
+                  selectedDocket.docketStatus !== 'ARRIVED' &&
+                  selectedDocket.docketStatus !== 'ASSIGNED' && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleAction('stop')}
+                      className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Pause className="h-4 w-4" />
+                        Stop
+                      </span>
+                    </Button>
+                  )}
                 {selectedDocket.docketStatus === 'STOPPED' && (
                   <Button
                     className="w-full bg-[#008236] text-white h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
@@ -518,7 +541,8 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
               <span className="font-bold">
                 {selectedDocket?.docketStatus === 'ASSIGNED'
                   ? selectedDocket?.plannedLoadSize
-                  : (selectedDocket?.actualLoadSize || selectedDocket?.plannedLoadSize)}
+                  : selectedDocket?.actualLoadSize ||
+                    selectedDocket?.plannedLoadSize}
                 {selectedDocket?.jobItem?.productSellUom === 'TN'
                   ? 'T'
                   : selectedDocket?.jobItem?.productSellUom === 'M3'
