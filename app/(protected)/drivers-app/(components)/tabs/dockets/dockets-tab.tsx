@@ -263,7 +263,7 @@ export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps
                         Account Manager
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.job?.customerDto?.accountManagerName || 'N/A'}
+                        {selectedDocket.job?.customerDto?.accountManagerName || '—'}
                       </span>
                     </div>
                   </div>
