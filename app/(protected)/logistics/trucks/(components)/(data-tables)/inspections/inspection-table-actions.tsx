@@ -9,10 +9,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { TruckInspection } from '@/lib/types/truck-inspection';
+import type { ChecklistItem } from '@/lib/types/checklist';
 
 interface InspectionTableActionsProps {
-  record: TruckInspection;
+  record: ChecklistItem;
 }
 
 export function InspectionTableActions({ record }: InspectionTableActionsProps) {

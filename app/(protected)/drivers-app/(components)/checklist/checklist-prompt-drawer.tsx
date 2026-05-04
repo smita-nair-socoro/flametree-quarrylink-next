@@ -22,7 +22,8 @@ interface ChecklistPromptDrawerProps {
   onCompleteExternally: () => void;
   onCompleteNow: () => void;
   type?: ChecklistType;
-  docketNumber?: string;
+  truckLicensePlate?: string;
+  driverName?: string;
 }
 
 export function ChecklistPromptDrawer({
@@ -31,7 +32,8 @@ export function ChecklistPromptDrawer({
   onCompleteExternally,
   onCompleteNow,
   type = 'pre-start',
-  docketNumber,
+  truckLicensePlate,
+  driverName,
 }: ChecklistPromptDrawerProps) {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false);
 
@@ -44,7 +46,6 @@ export function ChecklistPromptDrawer({
 
   const content = {
     title: isPreStart ? 'Daily Pre-Start Checklist' : 'Vehicle Inspection',
-    subtitle: isPreStart ? 'General' : `Docket ${docketNumber || ''}`,
     description: isPreStart
       ? 'Before starting this delivery, your daily compliance checklist must be on file.'
       : 'A vehicle inspection must also be completed before the delivery can begin.',
@@ -68,6 +69,7 @@ export function ChecklistPromptDrawer({
         <div className="flex h-full w-full absolute inset-0 z-50 bg-white">
           {isPreStart ? (
             <DriverPreStartChecklist
+              driverName={driverName}
               onSubmit={() => {
                 onCompleteNow();
                 setIsChecklistOpen(false);
@@ -76,6 +78,7 @@ export function ChecklistPromptDrawer({
             />
           ) : (
             <TruckInspectionChecklist
+              truckLicensePlate={truckLicensePlate}
               onSubmit={() => {
                 onCompleteNow();
                 setIsChecklistOpen(false);
@@ -101,7 +104,6 @@ export function ChecklistPromptDrawer({
                   <DrawerTitle className="text-[18px] font-bold text-[#0F172A]">
                     {content.title}
                   </DrawerTitle>
-                  <span className="text-[14px] text-gray-400">{content.subtitle}</span>
                 </div>
               </div>
               <DrawerClose asChild>
