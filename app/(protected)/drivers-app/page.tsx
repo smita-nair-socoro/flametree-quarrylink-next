@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
@@ -13,7 +15,6 @@ import { useUserStore } from '@/app/stores/user-store';
 import { useAuth } from '@/hooks/use-auth';
 
 export default function DriversAppPage() {
-  const [isChecklistComplete, setIsChecklistComplete] = useState(false);
   const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
   const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
   const [activeDocketNumber, setActiveDocketNumber] = useState<string | undefined>();
@@ -21,6 +22,16 @@ export default function DriversAppPage() {
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
   const router = useRouter();
+
+  const { data: dockets = [], isLoading: isDocketsLoading } = useQuery(DriverAppAssignedDocketsQueryOptions());
+
+  const isDailyChecklistRequired = React.useMemo(() => {
+    const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
+    if (!lastCompleted) return true;
+    const todayUTCDateStr = new Date().toISOString().split('T')[0];
+    const lastCompletedDateStr = new Date(lastCompleted).toISOString().split('T')[0];
+    return todayUTCDateStr !== lastCompletedDateStr;
+  }, [dockets]);
 
   const handleLogout = async () => {
     try {
@@ -81,7 +92,7 @@ export default function DriversAppPage() {
 
           {/* Scrollable content area */}
           <div className="flex-1 flex flex-col w-full bg-[#F8FAFC]">
-            {!isChecklistComplete && (
+            {isDailyChecklistRequired && (
               <div className="mx-4 mt-4 p-4 rounded-xl border border-[#B9F8CF] bg-[#F0FDF4] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Info className="h-5 w-5 text-green-600" />
@@ -104,6 +115,7 @@ export default function DriversAppPage() {
 
             {activeTab === 'dockets' && (
               <DocketsTab
+                dockets={dockets}
                 onOpenChecklist={(type, docketNumber) => {
                   setChecklistType(type);
                   setActiveDocketNumber(docketNumber);
@@ -170,18 +182,8 @@ export default function DriversAppPage() {
         onOpenChange={setIsChecklistPromptOpen}
         type={checklistType}
         docketNumber={activeDocketNumber}
-        onCompleteExternally={() => {
-          if (checklistType === 'pre-start') {
-            setIsChecklistComplete(true);
-          }
-          setIsChecklistPromptOpen(false);
-        }}
-        onCompleteNow={() => {
-          if (checklistType === 'pre-start') {
-            setIsChecklistComplete(true);
-          }
-          setIsChecklistPromptOpen(false);
-        }}
+        onCompleteExternally={() => setIsChecklistPromptOpen(false)}
+        onCompleteNow={() => setIsChecklistPromptOpen(false)}
       />
     </div>
   );

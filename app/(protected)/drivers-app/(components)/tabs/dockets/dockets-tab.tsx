@@ -3,9 +3,6 @@
 import * as React from 'react';
 
 import { DocketDTO } from '@/lib/types/docket';
-import { useQuery } from '@tanstack/react-query';
-import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
-import { DriverByIdQueryOptions } from '@/lib/api/driver';
 import { format } from 'date-fns';
 import {
   MapPin,
@@ -20,7 +17,6 @@ import {
   Delete,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -34,6 +30,7 @@ import { Separator } from '@/components/ui/separator';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 
 interface DocketsTabProps {
+  dockets: DocketDTO[];
   onOpenChecklist?: (
     type: 'pre-start' | 'vehicle-inspection',
     docketNumber?: string,
@@ -63,9 +60,7 @@ type ActionType =
   | 'backToPending'
   | 'backToPreparing';
 
-export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
-  const { data: dockets = [], isLoading, isError } = useQuery(DriverAppAssignedDocketsQueryOptions());
-
+export default function DocketsTab({ dockets, onOpenChecklist }: DocketsTabProps) {
   const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
@@ -76,24 +71,6 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
   };
-
-  // Fetch current driver to check daily checklist completion
-  const driverId = dockets[0]?.driverId ?? 0;
-  const { data: driverData } = useQuery({
-    ...DriverByIdQueryOptions(driverId),
-    enabled: driverId > 0,
-  });
-
-  const isDailyChecklistRequired = React.useMemo(() => {
-    if (!driverData?.lastChecklistCompleted) return true;
-    const lastCompleted = new Date(driverData.lastChecklistCompleted);
-    const todayUTC = new Date();
-    return (
-      lastCompleted.getUTCFullYear() !== todayUTC.getUTCFullYear() ||
-      lastCompleted.getUTCMonth() !== todayUTC.getUTCMonth() ||
-      lastCompleted.getUTCDate() !== todayUTC.getUTCDate()
-    );
-  }, [driverData?.lastChecklistCompleted]);
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -204,53 +181,8 @@ export default function DocketsTab({ onOpenChecklist }: DocketsTabProps) {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
-        <Spinner size="medium" />
-        <p className="text-sm text-gray-400">Loading dockets...</p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-2 p-6 text-center">
-        <p className="text-sm font-medium text-gray-700">Failed to load dockets</p>
-        <p className="text-xs text-gray-400">Please try again later.</p>
-      </div>
-    );
-  }
-
-  if (dockets.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[300px] gap-2 p-6 text-center">
-        <p className="text-sm font-medium text-gray-700">No assigned dockets</p>
-        <p className="text-xs text-gray-400">You have no dockets assigned at the moment.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
-      {isDailyChecklistRequired && (
-        <div className="border border-[#16A34A] bg-[#F0FDF4] rounded-xl p-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Info className="w-4 h-4 text-[#16A34A] shrink-0" />
-            <span className="text-[14px] font-medium text-[#15803D]">
-              Daily Checklist Required
-            </span>
-          </div>
-          <Button
-            variant="outline"
-            className="h-8 px-4 text-[13px] font-semibold border-[#16A34A] text-[#15803D] hover:bg-green-50 hover:text-[#15803D] rounded-lg shrink-0"
-            onClick={() => onOpenChecklist?.('pre-start')}
-          >
-            Start
-          </Button>
-        </div>
-      )}
-
       {activeDocket && renderDocketCard(activeDocket, true)}
       {otherDockets.map((docket) => renderDocketCard(docket, false))}
 
