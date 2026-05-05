@@ -40,9 +40,7 @@ import { useClientStore } from '@/app/stores/client-store';
 import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { createInspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
-import { ChecklistReportModal, CHECKLIST_TYPE } from '@/components/checklist-report-modal';
-import { ChecklistItem } from '@/lib/types/checklist';
+import { inspectionColumns } from '@/app/(protected)/logistics/trucks/(components)/(data-tables)/inspections/columns';
 import { YearPicker } from '@/components/year-picker';
 import {
   FormMultiSelect,
@@ -87,18 +85,6 @@ export default function TruckForm({
   const isEditing = Boolean(id);
   const [truckOwnerType, setTruckOwnerType] =
     React.useState<TRUCK_BUSINESS_TYPE>(TRUCK_BUSINESS_TYPE.INTERNAL);
-  const [inspectionModalOpen, setInspectionModalOpen] = React.useState(false);
-  const [selectedInspection, setSelectedInspection] = React.useState<ChecklistItem | null>(null);
-
-  const handleViewInspection = React.useCallback((record: ChecklistItem) => {
-    setSelectedInspection(record);
-    setInspectionModalOpen(true);
-  }, []);
-
-  const inspectionColumns = React.useMemo(
-    () => createInspectionColumns(handleViewInspection),
-    [handleViewInspection],
-  );
 
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
@@ -668,17 +654,8 @@ export default function TruckForm({
                   columns={inspectionColumns}
                   data={inspectionRecords}
                   searchPlaceHolder="Search by keyword..."
-                  onRowClick={handleViewInspection}
                 />
               </div>
-              {selectedInspection && (
-                <ChecklistReportModal
-                  open={inspectionModalOpen}
-                  onOpenChange={setInspectionModalOpen}
-                  type={CHECKLIST_TYPE.TRUCK}
-                  submissionId={selectedInspection.submissionId}
-                />
-              )}
             </div>
           )}
 
