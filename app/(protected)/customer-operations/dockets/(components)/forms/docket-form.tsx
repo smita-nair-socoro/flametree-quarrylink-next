@@ -429,11 +429,16 @@ export default function DocketForm({
   return (
     <>
       <ChecklistReportModal
-        open={checklistModalOpen}
+        open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.DRIVER}
         onOpenChange={setChecklistModalOpen}
-        type={checklistModalType}
-        docketId={id}
-        docketNumber={selectedDocket?.docketNumber}
+        type={CHECKLIST_TYPE.DRIVER}
+        submissionId={selectedDocket?.driverChecklist?.id ?? 0}
+      />
+      <ChecklistReportModal
+        open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.TRUCK}
+        onOpenChange={setChecklistModalOpen}
+        type={CHECKLIST_TYPE.TRUCK}
+        submissionId={selectedDocket?.truckChecklist?.id ?? 0}
         truckLicensePlate={selectedDocket?.truck?.licensePlate}
       />
 

@@ -18,8 +18,6 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { format } from 'date-fns';
 import {
-  DocketTruckInspectionQueryOptions,
-  DocketPreStartChecklistQueryOptions,
   TruckSubmissionQueryOptions,
   DriverSubmissionQueryOptions,
 } from '@/lib/api/checklist';
@@ -35,11 +33,7 @@ interface ChecklistReportModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: CHECKLIST_TYPE;
-  /** Pass when opening from a docket form */
-  docketId?: number;
-  /** Pass when opening from a standalone submission list */
-  submissionId?: number;
-  docketNumber?: string;
+  submissionId: number;
   truckLicensePlate?: string;
   truckModel?: string;
 }
@@ -48,47 +42,21 @@ export function ChecklistReportModal({
   open,
   onOpenChange,
   type,
-  docketId,
   submissionId,
-  docketNumber = '—',
   truckLicensePlate,
   truckModel,
 }: ChecklistReportModalProps) {
-  const effectiveDocketId = docketId ?? 0;
-  const effectiveSubmissionId = submissionId ?? 0;
-  const useSubmission = effectiveSubmissionId > 0;
-
-  // Docket-based queries
-  const docketTruckQuery = useQuery({
-    ...DocketTruckInspectionQueryOptions(effectiveDocketId),
-    enabled:
-      open && !useSubmission && type === CHECKLIST_TYPE.TRUCK && effectiveDocketId > 0,
-  });
-  const docketDriverQuery = useQuery({
-    ...DocketPreStartChecklistQueryOptions(effectiveDocketId),
-    enabled:
-      open && !useSubmission && type === CHECKLIST_TYPE.DRIVER && effectiveDocketId > 0,
-  });
-
-  // Submission-based queries
   const truckSubmissionQuery = useQuery({
-    ...TruckSubmissionQueryOptions(effectiveSubmissionId),
-    enabled:
-      open && useSubmission && type === CHECKLIST_TYPE.TRUCK && effectiveSubmissionId > 0,
+    ...TruckSubmissionQueryOptions(submissionId),
+    enabled: open && type === CHECKLIST_TYPE.TRUCK && submissionId > 0,
   });
   const driverSubmissionQuery = useQuery({
-    ...DriverSubmissionQueryOptions(effectiveSubmissionId),
-    enabled:
-      open && useSubmission && type === CHECKLIST_TYPE.DRIVER && effectiveSubmissionId > 0,
+    ...DriverSubmissionQueryOptions(submissionId),
+    enabled: open && type === CHECKLIST_TYPE.DRIVER && submissionId > 0,
   });
 
-  const { data, isLoading } = useSubmission
-    ? type === CHECKLIST_TYPE.TRUCK
-      ? truckSubmissionQuery
-      : driverSubmissionQuery
-    : type === CHECKLIST_TYPE.TRUCK
-      ? docketTruckQuery
-      : docketDriverQuery;
+  const { data, isLoading } =
+    type === CHECKLIST_TYPE.TRUCK ? truckSubmissionQuery : driverSubmissionQuery;
 
   const allAnswers = data?.sections.flatMap((s) => s.answers) ?? [];
   const totalQuestions =
@@ -139,10 +107,8 @@ export function ChecklistReportModal({
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
             {type === CHECKLIST_TYPE.DRIVER
-              ? `Daily Compliance${docketNumber && docketNumber !== '—' ? ` · ${docketNumber}` : ''}`
-              : [docketNumber !== '—' ? docketNumber : null, truckLicensePlate]
-                  .filter(Boolean)
-                  .join(' · ')}
+              ? 'Daily Compliance'
+              : truckLicensePlate ?? '—'}
           </p>
         </div>
 
