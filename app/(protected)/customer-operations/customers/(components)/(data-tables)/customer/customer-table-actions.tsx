@@ -47,7 +47,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {!isArchived && <DropdownMenuSeparator />}
           {!isArchived && (
             <DropdownMenuItem
               onClick={handleArchive}
