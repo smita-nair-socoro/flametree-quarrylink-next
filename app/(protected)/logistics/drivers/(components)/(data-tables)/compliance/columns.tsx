@@ -6,6 +6,11 @@ import { ComplianceTableActions } from './compliance-table-actions';
 import { TableBadges } from '@/components/table-badges';
 import { ChecklistItem } from '@/lib/types/checklist';
 import { DateCell } from '@/components/date-cell';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 export const complianceColumns: ColumnDef<ChecklistItem>[] = [
   {
@@ -46,11 +51,21 @@ export const complianceColumns: ColumnDef<ChecklistItem>[] = [
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Notes" />
     ),
-    cell: ({ row }) => (
-      <span className="text-muted-foreground py-2 block">
-        {row.original.summaryNotes || '—'}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const value = row.original.summaryNotes || '—';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <span className="text-muted-foreground py-2 truncate block w-[160px] lg:w-[220px] xl:w-[280px] cursor-default">
+              {value}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p className="max-w-[320px] whitespace-normal">{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
   },
   {
     id: 'actions',

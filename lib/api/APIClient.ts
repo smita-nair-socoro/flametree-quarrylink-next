@@ -980,11 +980,11 @@ export const APIClient = {
       ),
     getTruckSubmission: (submissionId: number) =>
       appClient.Get<ChecklistSubmission>(
-        `/socoro/quarrylink/api/checklists/submissions/truck/${submissionId}`,
+        `/socoro/quarrylink/api/checklists/truck-submissions/${submissionId}`,
       ),
     getDriverSubmission: (submissionId: number) =>
       appClient.Get<ChecklistSubmission>(
-        `/socoro/quarrylink/api/checklists/submissions/driver/${submissionId}`,
+        `/socoro/quarrylink/api/checklists/driver-submissions/${submissionId}`,
       ),
     submit: (data: ChecklistSubmitRequest) =>
       appClient.Post<ChecklistSubmission>(`/socoro/quarrylink/api/checklists`, {
