@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/dialog';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
-  DocketDTO,
   DispatchBoardDocketRow,
   DispatchTruckResource,
 } from '@/lib/types/docket';
@@ -80,7 +79,7 @@ function DocketChip({
   isSelected?: boolean;
 }) {
   const customerName = docket.customerName || 'Unknown Customer';
-  const location = docket.deliveryAddress || 'TBD';
+  const location = docket.deliverySuburb + ', ' + docket.deliveryState || 'TBD';
   const colorClass = getChipColor(docket.docketStatus);
 
   return (
@@ -168,11 +167,11 @@ export function ScheduleMonthView({
   const docketsByDate = useMemo(() => {
     const grouped: Record<string, MonthViewDocket[]> = {};
     dockets.forEach((docket) => {
-      if (!docket.deliveryCollectionStartTime) return;
+      if (!docket.deliveryCollectionDate) return;
       // Format as YYYY-MM-DD for grouping
-      const localTimeStr = docket.deliveryCollectionStartTime.includes('T')
-        ? docket.deliveryCollectionStartTime.replace('Z', '')
-        : docket.deliveryCollectionStartTime;
+      const localTimeStr = docket.deliveryCollectionDate.includes('T')
+        ? docket.deliveryCollectionDate.replace('Z', '')
+        : docket.deliveryCollectionDate;
       const dateKey = format(new Date(localTimeStr), 'yyyy-MM-dd');
       if (!grouped[dateKey]) grouped[dateKey] = [];
       grouped[dateKey].push(docket);
@@ -181,8 +180,6 @@ export function ScheduleMonthView({
   }, [dockets]);
 
   const headerStats = useMemo(() => {
-
-
     const assignedDockets = dockets.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
     );
@@ -305,12 +302,13 @@ export function ScheduleMonthView({
                       onDateChange(day);
                     }}
                     className={`p-2 flex flex-col rounded-xl border cursor-pointer transition-colors
-                    ${isSelectedDate
+                    ${
+                      isSelectedDate
                         ? 'ring-1 ring-purple-400 border-purple-400 bg-purple-200/10 z-10'
                         : !isCurrentMonth
                           ? 'bg-gray-50/40 border-gray-100'
                           : 'bg-white border-gray-200 shadow-sm'
-                      }
+                    }
                     ${dayDockets.length > 0 ? 'min-h-[150px]' : 'min-h-[100px]'}`}
                   >
                     <div className="flex flex-col mb-3">
@@ -333,13 +331,15 @@ export function ScheduleMonthView({
                                 dayDockets
                                   .filter(
                                     (d) =>
-                                      d.docketStatus === DOCKET_STATUS.IN_TRANSIT ||
-                                      d.docketStatus === DOCKET_STATUS.ARRIVED
+                                      d.docketStatus ===
+                                        DOCKET_STATUS.IN_TRANSIT ||
+                                      d.docketStatus === DOCKET_STATUS.ARRIVED,
                                   )
                                   .map((d) => d.driverName)
-                                  .filter(Boolean)
+                                  .filter(Boolean),
                               ).size
-                            } drivers on trips
+                            }{' '}
+                            drivers on trips
                           </div>
                         </div>
                       )}
@@ -397,7 +397,7 @@ export function ScheduleMonthView({
         {selectedDocket && (
           <div className="w-[23vw] shrink-0 border-l border-[#E2E8F0] bg-white shadow-sm overflow-y-auto flex flex-col">
             <DocketDetailsPanel
-              docket={selectedDocket as unknown as DocketDTO}
+              docketId={selectedDocket.id}
               onClose={() => setSelectedDocketId(undefined)}
               onUnassign={handleUnassign}
             />

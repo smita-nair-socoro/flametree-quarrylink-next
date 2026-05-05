@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/dialog';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
-  DocketDTO,
   DispatchBoardDocketRow,
   DispatchTruckResource,
   DispatchDriverResource,
@@ -117,7 +116,7 @@ function DocketChip({
   viewType: ViewType;
 }) {
   const customerName = docket.customerName || 'Unknown Customer';
-  const location = docket.deliveryAddress || 'TBD';
+  const location = docket.deliverySuburb + ', ' + docket.deliveryState || 'TBD';
   const colorClass = getChipColor(docket.docketStatus);
 
   return (
@@ -388,11 +387,12 @@ export function ScheduleWeekView({
                   {days.map((day) => {
                     const isSelectedDate = isSameDay(day, date);
                     const dayDockets = resource.dockets.filter((d) => {
-                      if (!d.deliveryCollectionStartTime) return false;
-                      const localTimeStr =
-                        d.deliveryCollectionStartTime.includes('T')
-                          ? d.deliveryCollectionStartTime.replace('Z', '')
-                          : d.deliveryCollectionStartTime;
+                      if (!d.deliveryCollectionDate) return false;
+                      const localTimeStr = d.deliveryCollectionDate.includes(
+                        'T',
+                      )
+                        ? d.deliveryCollectionDate.replace('Z', '')
+                        : d.deliveryCollectionDate;
                       return isSameDay(new Date(localTimeStr), day);
                     });
                     const visible = dayDockets.slice(
@@ -474,7 +474,7 @@ export function ScheduleWeekView({
         {selectedDocket && (
           <div className="w-[min(400px,28vw)] shrink-0 border-l border-[#E2E8F0] bg-white shadow-sm overflow-y-auto flex flex-col">
             <DocketDetailsPanel
-              docket={selectedDocket as unknown as DocketDTO}
+              docketId={selectedDocket.id}
               onClose={() => setSelectedDocketId(undefined)}
               onUnassign={handleUnassign}
             />

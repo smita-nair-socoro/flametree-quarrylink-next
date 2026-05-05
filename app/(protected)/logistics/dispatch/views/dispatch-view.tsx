@@ -31,7 +31,11 @@ import {
   DEFAULT_DISPATCH_BOARD_FILTER,
   type DispatchBoardFilterState,
 } from './drivers-trucks-filter';
-import { useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
+import {
+  useAssignDocket,
+  useUnassignDocket,
+  DocketsListQueryOptions,
+} from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   SchedulerTrucksQueryOptions,
@@ -137,7 +141,7 @@ function assignmentDateDisplayForUnassign(
   d: DispatchDocket,
   fallbackDay: Date,
 ): string {
-  const iso = d.deliveryCollectionStartTime;
+  const iso = d.deliveryCollectionDate;
   if (iso) {
     const local = iso.includes('T') ? iso.replace('Z', '') : iso;
     return format(new Date(local), 'EEE d MMM yyyy');
@@ -218,12 +222,12 @@ export const formatLocalISO = (d: Date) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
-/** Same local-day rule as the unassigned “This day” tab — `deliveryCollectionStartTime` vs `date`. */
+/** Same local-day rule as the unassigned “This day” tab — `deliveryCollectionDate` vs `date`. */
 export function isDocketOnSelectedLocalDay(
-  d: Pick<DispatchDocket, 'deliveryCollectionStartTime'>,
+  d: Pick<DispatchDocket, 'deliveryCollectionDate'>,
   day: Date,
 ): boolean {
-  const iso = d.deliveryCollectionStartTime;
+  const iso = d.deliveryCollectionDate;
   if (!iso) return false;
   const docketDate = new Date(iso.includes('T') ? iso.replace('Z', '') : iso);
   return (
@@ -245,7 +249,7 @@ function countTrucksWithAssignedBookingsOnSelectedDay(
         (d) =>
           d.docketStatus === DOCKET_STATUS.ASSIGNED &&
           isDocketOnSelectedLocalDay(
-            { deliveryCollectionStartTime: d.deliveryCollectionStartTime },
+            { deliveryCollectionDate: d.deliveryCollectionDate },
             day,
           ),
       ),
@@ -299,6 +303,10 @@ export function DispatchView({
     setBoardFilter(DEFAULT_DISPATCH_BOARD_FILTER);
   }, [viewType]);
 
+  useEffect(() => {
+    setSelectedDocketId(null);
+  }, [date]);
+
   const start = useMemo(() => startOfDay(date).toISOString(), [date]);
   const end = useMemo(() => endOfDay(date).toISOString(), [date]);
 
@@ -310,6 +318,10 @@ export function DispatchView({
   const { data: driversData, isLoading: isLoadingDrivers } = useQuery({
     ...SchedulerDriversQueryOptions(start, end),
     enabled: viewType === 'drivers',
+  });
+
+  const { data: allDocketsData, isLoading: isLoadingAllDockets } = useQuery({
+    ...DocketsListQueryOptions(),
   });
 
   /** Trucks endpoint used for “Trucks booked” when the board is in drivers view. */
@@ -325,6 +337,34 @@ export function DispatchView({
 
   useEffect(() => {
     let newDockets: DispatchDocket[] = [];
+
+    const allUnassignedList = Array.isArray(allDocketsData)
+      ? allDocketsData
+      : allDocketsData && 'content' in allDocketsData
+        ? allDocketsData.content
+        : [];
+
+    const globalUnassigned = allUnassignedList
+      .filter((d) => d.docketStatus === DOCKET_STATUS.UNASSIGNED)
+      .map((d) => ({
+        id: d.id,
+        docketNumber: d.docketNumber,
+        docketStatus: d.docketStatus,
+        deliveryCollectionDate: d.deliveryCollectionDate,
+        deliveryCollectionStartTime: d.deliveryCollectionStartTime,
+        deliveryCollectionEndTime: d.deliveryCollectionEndTime,
+        productName: d.jobItem?.product?.productName || '',
+        loadSize: d.actualLoadSize || d.loadSize || 0,
+        customerName:
+          d.job?.customerDto?.businessName || d.job?.contactPersonName || '',
+        pickUpSuburb: d.pickUpAddress?.city || '',
+        pickUpState: d.pickUpAddress?.state || '',
+        deliverySuburb: d.deliveryAddress?.city || '',
+        deliveryState: d.deliveryAddress?.state || '',
+        productSellUom: d.jobItem?.productSellUom || '',
+        uiAssignedTruckId: null,
+        uiAssignedTime: null,
+      }));
 
     if (viewType === 'trucks' && trucksData) {
       const assigned = (trucksData.resources || []).flatMap((r) =>
@@ -350,12 +390,7 @@ export function DispatchView({
           };
         }),
       );
-      const unassigned = (trucksData.unassignedDockets || []).map((d) => ({
-        ...d,
-        uiAssignedTruckId: null,
-        uiAssignedTime: null,
-      }));
-      newDockets = [...assigned, ...unassigned];
+      newDockets = [...assigned, ...globalUnassigned];
     } else if (viewType === 'drivers' && driversData) {
       const assigned = (driversData.resources || []).flatMap((r) =>
         (r.dockets || []).map((d) => {
@@ -380,16 +415,11 @@ export function DispatchView({
           };
         }),
       );
-      const unassigned = (driversData.unassignedDockets || []).map((d) => ({
-        ...d,
-        uiAssignedTruckId: null,
-        uiAssignedTime: null,
-      }));
-      newDockets = [...assigned, ...unassigned];
+      newDockets = [...assigned, ...globalUnassigned];
     }
 
     setDockets(newDockets || []);
-  }, [trucksData, driversData, viewType]);
+  }, [trucksData, driversData, allDocketsData, viewType]);
 
   const mappedResources: TruckResource[] = useMemo(() => {
     if (viewType === 'trucks' && trucksData) {
@@ -759,7 +789,10 @@ export function DispatchView({
     return {
       docketNumber: pendingUnassignDocket.docketNumber,
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
-      destination: pendingUnassignDocket.deliveryAddress || '',
+      destination:
+        pendingUnassignDocket.deliverySuburb +
+          ', ' +
+          pendingUnassignDocket.deliveryState || '',
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -838,7 +871,9 @@ export function DispatchView({
                     ...d,
                     uiAssignedTruckId: targetId,
                     uiAssignedTime: time,
-                    deliveryCollectionDate: startOfDay(startWindow),
+                    deliveryCollectionDate:
+                      formatLocalISO(startWindow).split('T')[0] +
+                      'T00:00:00.000',
                     deliveryCollectionStartTime: formatLocalISO(startWindow),
                     deliveryCollectionEndTime: formatLocalISO(endWindow),
                     docketStatus: DOCKET_STATUS.ASSIGNED,
@@ -937,10 +972,10 @@ export function DispatchView({
             viewType={viewType}
           />
         </div>
-        {selectedDocket && (
+        {selectedDocketId && (
           <div className="w-[400px] shrink-0 border border-[#E2E8F0] rounded-xl bg-white shadow-sm overflow-hidden flex flex-col h-full">
             <DocketDetailsPanel
-              docket={selectedDocket as DocketDTO}
+              docketId={Number(selectedDocketId)}
               onClose={() => setSelectedDocketId(null)}
               onUnassign={handleUnassign}
             />

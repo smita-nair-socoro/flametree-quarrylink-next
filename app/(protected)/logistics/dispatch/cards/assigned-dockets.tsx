@@ -503,7 +503,7 @@ function DocketCard({
             {docket.customerName || 'Unknown Customer'}
           </div>
           <div className={`${colors.textMuted} text-[12px] truncate`}>
-            {docket.pickUpAddress}
+            {docket.pickUpSuburb}, {docket.pickUpState}
           </div>
 
           <div className="flex items-center justify-between mt-auto pt-2">
