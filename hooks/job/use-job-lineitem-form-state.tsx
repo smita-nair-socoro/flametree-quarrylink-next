@@ -466,7 +466,7 @@ export function useJobLineItemFormState({
       { label: 'Flatbed', value: 'FLATBED' },
       { label: 'Tipper', value: 'TIPPER' },
       { label: 'Tandem', value: 'TANDEM' },
-      { label: 'QUAD', value: 'QUAD' },
+      { label: 'Quad', value: 'QUAD' },
       { label: 'Tri-Axle', value: 'TRI_AXLE' },
       { label: 'Tautliner', value: 'TAUTLINER' },
       { label: 'Crane Truck', value: 'CRANE_TRUCK' },
