@@ -972,11 +972,11 @@ export const APIClient = {
   checklists: {
     getTruckTemplate: () =>
       appClient.Get<ChecklistTemplate>(
-        `/socoro/quarrylink/api/checklists/template/truck`,
+        `/socoro/quarrylink/api/checklists/truck/template`,
       ),
     getDriverTemplate: () =>
       appClient.Get<ChecklistTemplate>(
-        `/socoro/quarrylink/api/checklists/template/driver`,
+        `/socoro/quarrylink/api/checklists/driver/template`,
       ),
     getTruckSubmission: (submissionId: number) =>
       appClient.Get<ChecklistSubmission>(

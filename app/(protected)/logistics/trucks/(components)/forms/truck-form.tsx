@@ -90,19 +90,19 @@ export default function TruckForm({
   const updateTruck = useUpdateTruck();
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const tenantName = useClientStore((state) => state.getTenantName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+  const businessName = useClientStore((state) => state.getBusinessName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== tenantName)
+        .filter((h) => h.haulierName !== businessName)
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, tenantName],
+    [hauliers, businessName],
   );
 
   const isInternal = truckOwnerType === TRUCK_BUSINESS_TYPE.INTERNAL;
@@ -180,7 +180,8 @@ export default function TruckForm({
   React.useEffect(() => {
     if (isEditing && truckData) {
       const isInternalTruck =
-        truckData.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL;
+        !!truckData.haulier?.haulierName &&
+        truckData.haulier.haulierName === businessName;
       setTruckOwnerType(
         isInternalTruck
           ? TRUCK_BUSINESS_TYPE.INTERNAL
@@ -200,7 +201,7 @@ export default function TruckForm({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, truckData]);
+  }, [isEditing, truckData, businessName]);
 
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
@@ -351,7 +352,7 @@ export default function TruckForm({
                       <Input
                         value={
                           selectedHaulierInfo?.haulierName ??
-                          tenantName ??
+                          businessName ??
                           'My Company Haulier'
                         }
                         disabled
@@ -383,7 +384,7 @@ export default function TruckForm({
                     <Input
                       value={
                         internalHaulier?.haulierName ??
-                        tenantName ??
+                        businessName ??
                         'My Company Haulier'
                       }
                       disabled

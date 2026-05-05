@@ -37,12 +37,12 @@ import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
 
-const getCustomerName = (customerDto?: CustomerDTO): string => {
-  if (!customerDto) return 'Unknown Customer';
+const getCustomerName = (customerDto?: CustomerDTO, contactPersonName?: string): string => {
+  if (!customerDto) return contactPersonName || 'Unknown Customer';
   if (customerDto.customerType === CUSTOMER_TYPE.BUSINESS) {
-    return customerDto.businessName || 'Unknown Customer';
+    return customerDto.businessName || contactPersonName || 'Unknown Customer';
   }
-  return customerDto.individualContactName || 'Unknown Customer';
+  return customerDto.individualContactName || contactPersonName || 'Unknown Customer';
 };
 
 interface DocketsTabProps {
@@ -181,7 +181,7 @@ export default function DocketsTab({
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-[18px] font-bold text-[#0F172A] leading-tight mb-0.5">
-                {getCustomerName(docket.job?.customerDto)}
+                {getCustomerName(docket.job?.customerDto, docket.job?.contactPersonName)}
               </h3>
               <p className="text-[14px] text-gray-500">
                 {docket.jobItem?.product?.productName}
@@ -290,7 +290,7 @@ export default function DocketsTab({
                         Customer
                       </span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {getCustomerName(selectedDocket.job?.customerDto)}
+                        {getCustomerName(selectedDocket.job?.customerDto, selectedDocket.job?.contactPersonName)}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />

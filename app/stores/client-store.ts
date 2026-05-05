@@ -9,6 +9,7 @@ interface ClientStore {
   user: string;
   subscriptionPlan: string | null;
   tenantName: string | null;
+  businessName: string | null;
 
   // Actions
   setClients: (clients: Client[]) => void;
@@ -17,11 +18,13 @@ interface ClientStore {
   setUser: (userName: string) => void;
   setSubscriptionPlan: (plan: string | null) => void;
   setTenantName: (name: string | null) => void;
+  setBusinessName: (name: string | null) => void;
 
   getClientById: (id: number) => Client | undefined;
   getClientsByStatus: (status: string) => Client[];
   getUser: () => string;
   getTenantName: () => string | null;
+  getBusinessName: () => string | null;
 }
 
 export const useClientStore = create<ClientStore>()(
@@ -33,6 +36,7 @@ export const useClientStore = create<ClientStore>()(
       user: '',
       subscriptionPlan: null,
       tenantName: null,
+      businessName: null,
 
       // Actions
       setClients: (clients) => set({ clients }),
@@ -44,6 +48,8 @@ export const useClientStore = create<ClientStore>()(
       setSelectedClient: (client) => set({ selectedClient: client }),
 
       setTenantName: (name) => set({ tenantName: name }),
+
+      setBusinessName: (name) => set({ businessName: name }),
 
       setLoading: (loading) => set({ isLoading: loading }),
 
@@ -66,6 +72,11 @@ export const useClientStore = create<ClientStore>()(
       getTenantName: () => {
         const state = get();
         return state.tenantName;
+      },
+
+      getBusinessName: () => {
+        const state = get();
+        return state.businessName;
       },
     }),
     { name: 'client-store' },

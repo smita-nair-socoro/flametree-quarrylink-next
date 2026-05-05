@@ -141,7 +141,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
     useClientStore.getState().setUser(displayName);
     useClientStore.getState().setTenantName(tenantName ?? 'Unknown Tenant');
-  }, [subscriptionPlan, displayName, tenantName]);
+    useClientStore
+      .getState()
+      .setBusinessName(
+        tenantCompleteDetails?.tenantDetails?.businessName ?? null,
+      );
+  }, [subscriptionPlan, displayName, tenantName, tenantCompleteDetails]);
 
   React.useEffect(() => {
     claritySafe((c) => {
