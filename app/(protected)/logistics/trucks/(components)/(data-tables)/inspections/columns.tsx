@@ -7,7 +7,9 @@ import { TableBadges } from '@/components/table-badges';
 import { ChecklistItem } from '@/lib/types/checklist';
 import { DateCell } from '@/components/date-cell';
 
-export const inspectionColumns: ColumnDef<ChecklistItem>[] = [
+export const createInspectionColumns = (
+  onView: (record: ChecklistItem) => void,
+): ColumnDef<ChecklistItem>[] => [
   {
     id: 'submissionNumber',
     accessorFn: (row) => row.submissionNumber,
@@ -26,9 +28,9 @@ export const inspectionColumns: ColumnDef<ChecklistItem>[] = [
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Date" />
     ),
-    cell: ({ getValue }) => {
-      return <DateCell dateString={getValue<string>()} side="top" />;
-    },
+    cell: ({ getValue }) => (
+      <DateCell dateString={getValue<string>()} side="top" />
+    ),
   },
   {
     id: 'status',
@@ -55,6 +57,8 @@ export const inspectionColumns: ColumnDef<ChecklistItem>[] = [
   {
     id: 'actions',
     header: () => null,
-    cell: ({ row }) => <InspectionTableActions record={row.original} />,
+    cell: ({ row }) => (
+      <InspectionTableActions record={row.original} onView={onView} />
+    ),
   },
 ];

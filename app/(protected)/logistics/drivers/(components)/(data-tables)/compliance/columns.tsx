@@ -7,7 +7,9 @@ import { TableBadges } from '@/components/table-badges';
 import { ChecklistItem } from '@/lib/types/checklist';
 import { DateCell } from '@/components/date-cell';
 
-export const complianceColumns: ColumnDef<ChecklistItem>[] = [
+export const createComplianceColumns = (
+  onView: (record: ChecklistItem) => void,
+): ColumnDef<ChecklistItem>[] => [
   {
     id: 'submissionNumber',
     accessorFn: (row) => row.submissionNumber,
@@ -55,6 +57,8 @@ export const complianceColumns: ColumnDef<ChecklistItem>[] = [
   {
     id: 'actions',
     header: () => null,
-    cell: ({ row }) => <ComplianceTableActions record={row.original} />,
+    cell: ({ row }) => (
+      <ComplianceTableActions record={row.original} onView={onView} />
+    ),
   },
 ];

@@ -10,48 +10,35 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { ChecklistItem } from '@/lib/types/checklist';
-import {
-  ChecklistReportModal,
-  CHECKLIST_TYPE,
-} from '@/components/checklist-report-modal';
 
 interface ComplianceTableActionsProps {
   record: ChecklistItem;
+  onView: (record: ChecklistItem) => void;
 }
 
-export function ComplianceTableActions({ record }: ComplianceTableActionsProps) {
+export function ComplianceTableActions({ record, onView }: ComplianceTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [reportOpen, setReportOpen] = React.useState(false);
 
   if (!record.viewDetailsAvailable) return null;
 
   return (
-    <>
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button type="button" variant="ghost" size="icon" className="h-7 w-7">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem
-            onClick={() => {
-              setDropdownOpen(false);
-              setReportOpen(true);
-            }}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            View Details
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <ChecklistReportModal
-        open={reportOpen}
-        onOpenChange={setReportOpen}
-        type={CHECKLIST_TYPE.DRIVER}
-        submissionId={record.submissionId}
-      />
-    </>
+    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="ghost" size="icon" className="h-7 w-7">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuItem
+          onClick={() => {
+            setDropdownOpen(false);
+            onView(record);
+          }}
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          View Details
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

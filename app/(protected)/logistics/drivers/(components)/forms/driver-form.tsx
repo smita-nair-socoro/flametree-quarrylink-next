@@ -22,7 +22,9 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewDriverFormSchema } from './schemas/driver-form-schema';
 import z from 'zod';
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { complianceColumns } from '../(data-tables)/compliance/columns';
+import { createComplianceColumns } from '../(data-tables)/compliance/columns';
+import { ChecklistReportModal, CHECKLIST_TYPE } from '@/components/checklist-report-modal';
+import { ChecklistItem } from '@/lib/types/checklist';
 import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
@@ -72,6 +74,18 @@ export default function DriverForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
+  const [complianceModalOpen, setComplianceModalOpen] = React.useState(false);
+  const [selectedCompliance, setSelectedCompliance] = React.useState<ChecklistItem | null>(null);
+
+  const handleViewCompliance = React.useCallback((record: ChecklistItem) => {
+    setSelectedCompliance(record);
+    setComplianceModalOpen(true);
+  }, []);
+
+  const complianceColumns = React.useMemo(
+    () => createComplianceColumns(handleViewCompliance),
+    [handleViewCompliance],
+  );
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const businessName = useClientStore((state) => state.getBusinessName());
@@ -528,7 +542,16 @@ export default function DriverForm({
                 columns={complianceColumns}
                 data={complianceRecords}
                 searchPlaceHolder="Search by keyword..."
+                onRowClick={handleViewCompliance}
               />
+              {selectedCompliance && (
+                <ChecklistReportModal
+                  open={complianceModalOpen}
+                  onOpenChange={setComplianceModalOpen}
+                  type={CHECKLIST_TYPE.DRIVER}
+                  submissionId={selectedCompliance.submissionId}
+                />
+              )}
             </div>
           )}
 
