@@ -221,14 +221,23 @@ export default function CustomerForm({
     }
   }, [isEditing, selectedCustomer, users, customerForm]);
 
-  const NOT_LINKED_MSGS = [
+  const NOT_LINKED_SUBSTRINGS = [
     'Customer is not linked to any accounting software',
     'Customer creation is supported only for Xero currently',
   ];
 
+  const ARCHIVE_UNARCHIVE_PREFIXES = [
+    'Archive customer failed!',
+    'Unarchive customer failed!',
+  ];
+
   const handleSyncNote = (note?: string): boolean => {
     if (!note) return false;
-    if (NOT_LINKED_MSGS.includes(note)) {
+    // Archive/unarchive failures are handled by the block banner — skip here
+    if (ARCHIVE_UNARCHIVE_PREFIXES.some((prefix) => note.startsWith(prefix))) {
+      return false;
+    }
+    if (NOT_LINKED_SUBSTRINGS.some((msg) => note.includes(msg))) {
       setNotLinkedWarning(true);
       return true;
     }

@@ -44,6 +44,7 @@ import {
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
+import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
 import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
@@ -139,6 +140,7 @@ export interface HttpConfig {
    * This treats backend datetimes as UTC. Default: true.
    */
   normalizeUtc?: boolean;
+
 }
 
 /**
@@ -1292,6 +1294,35 @@ export const APIClient = {
           },
         },
       ),
+  },
+
+  xero: {
+    connect: async (userEmail: string) => {
+      const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
+      const response = await fetch(`${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/connect`, {
+        method: 'POST',
+        headers: {
+          Accept: '*/*',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authUser?.access_token}`,
+        },
+        body: JSON.stringify({ tenantId, userEmail }),
+      });
+      if (!response.ok) throw new Error(`Xero connect failed: ${response.status}`);
+      return response.json() as Promise<XeroConnectResponseDTO>;
+    },
+    getStatus: async () => {
+      const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
+      const response = await fetch(`${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`, {
+        method: 'GET',
+        headers: {
+          Accept: '*/*',
+          Authorization: `Bearer ${authUser?.access_token}`,
+        },
+      });
+      if (!response.ok) throw new Error(`Xero status failed: ${response.status}`);
+      return response.json() as Promise<XeroStatusResponseDTO>;
+    },
   },
 
   invoices: {

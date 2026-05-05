@@ -3,12 +3,12 @@
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle, Unplug } from 'lucide-react';
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
 
 export default function IntegrationTab() {
-  const { isConnected, actions, connectDialog, disconnectDialog } =
+  const { isConnected, actions, connectDialog } =
     useXeroIntegrationActions();
 
   return (
@@ -52,17 +52,7 @@ export default function IntegrationTab() {
             </div>
           </div>
 
-          {isConnected ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive max-w-40 w-full sm:w-auto"
-              onClick={actions.disconnect}
-            >
-              <Unplug className="w-3.5 h-3.5" />
-              Disconnect
-            </Button>
-          ) : (
+          {!isConnected && (
             <Button
               size="sm"
               className="bg-[#13B5EA] hover:bg-[#0FA3D4] rounded-lg w-full max-w-40 sm:w-auto"
@@ -76,7 +66,6 @@ export default function IntegrationTab() {
       </Card>
 
       {connectDialog}
-      {disconnectDialog}
     </div>
   );
 }
