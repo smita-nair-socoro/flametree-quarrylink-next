@@ -854,7 +854,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const quotationId = selectedQuotation?.id;
+  const quotationId = selectedQuotation?.id ?? quotationData?.id;
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
     const weekFromToday = new Date();
     weekFromToday.setDate(weekFromToday.getDate() + 7);
