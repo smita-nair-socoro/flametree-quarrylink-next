@@ -483,12 +483,12 @@ export default function DriverForm({
 
           {isEditing && (
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between w-full gap-2">
                 <h2 className="text-lg font-bold">Truck Assignments</h2>
                 <Button
                   type="button"
                   size="sm"
-                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
                   onClick={() => truckActions.assign()}
                 >
                   Assign Trucks
@@ -504,10 +504,10 @@ export default function DriverForm({
                   {trucks.map((truck) => (
                     <div
                       key={truck.id}
-                      className="flex items-center justify-between rounded-md px-4 py-3 bg-[#F9FAFB]"
+                      className="flex items-center justify-between gap-3 rounded-md px-4 py-3 bg-[#F9FAFB]"
                     >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
+                        <span className="font-medium truncate">
                           {truck.licensePlate}
                         </span>
                         <TableBadges names={[truck.status]} visibleCount={1} />
@@ -516,7 +516,7 @@ export default function DriverForm({
                         type="button"
                         variant="destructive"
                         size="sm"
-                        className="cursor-pointer"
+                        className="cursor-pointer shrink-0"
                         onClick={() =>
                           truckActions.unassign({
                             id: truck.id,
@@ -538,12 +538,14 @@ export default function DriverForm({
             <div className="flex flex-col gap-4">
               <Separator />
               <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
-              <DataTableClient
-                columns={complianceColumns}
-                data={complianceRecords}
-                searchPlaceHolder="Search by keyword..."
-                onRowClick={handleViewCompliance}
-              />
+              <div className="w-full overflow-x-auto">
+                <DataTableClient
+                  columns={complianceColumns}
+                  data={complianceRecords}
+                  searchPlaceHolder="Search by keyword..."
+                  onRowClick={handleViewCompliance}
+                />
+              </div>
               {selectedCompliance && (
                 <ChecklistReportModal
                   open={complianceModalOpen}
@@ -564,11 +566,11 @@ export default function DriverForm({
             />
           )}
 
-          <div className="flex justify-end gap-3 pt-2 mb-6">
+          <div className="flex flex-wrap justify-end gap-3 pt-2 mb-6">
             <Button
               variant="outline"
               type="button"
-              className="cursor-pointer"
+              className="cursor-pointer flex-1 sm:flex-none"
               onClick={onCancel}
             >
               Cancel
@@ -577,7 +579,7 @@ export default function DriverForm({
               form="driver-form"
               type="submit"
               disabled={isPending}
-              className="cursor-pointer"
+              className="cursor-pointer flex-1 sm:flex-none"
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isPending
