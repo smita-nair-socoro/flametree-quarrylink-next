@@ -40,6 +40,7 @@ import {
   useSendToCustomer,
   useUpdateQuoteDecision,
 } from '@/lib/api/quotation';
+import { APIClient } from '@/lib/api/APIClient';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   extractErrorMessage,
@@ -853,7 +854,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const quotationId = selectedQuotation?.id;
+  const quotationId = selectedQuotation?.id ?? quotationData?.id;
   const [newExpiryDate, setNewExpiryDate] = React.useState<Date>(() => {
     const weekFromToday = new Date();
     weekFromToday.setDate(weekFromToday.getDate() + 7);
@@ -1175,8 +1176,13 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     }
 
     try {
+      const accountManagerSub =
+        quotationData.accountManagerSub ||
+        (await APIClient.quotations.getWithQuoteItems(quotationId)).accountManagerSub;
+
       const quotationDTO = buildUpdatePayload({
         quoteStatus: QuoteStatus.ARCHIVED,
+        accountManagerSub,
       });
 
       if (!quotationDTO) {
