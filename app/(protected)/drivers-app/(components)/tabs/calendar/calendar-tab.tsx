@@ -29,12 +29,12 @@ import { cn } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
-const getCustomerName = (customerDto?: CustomerDTO): string => {
-  if (!customerDto) return 'Unknown Customer';
+const getCustomerName = (customerDto?: CustomerDTO, contactPersonName?: string): string => {
+  if (!customerDto) return contactPersonName || 'Unknown Customer';
   if (customerDto.customerType === CUSTOMER_TYPE.BUSINESS) {
-    return customerDto.businessName || 'Unknown Customer';
+    return customerDto.businessName || contactPersonName || 'Unknown Customer';
   }
-  return customerDto.individualContactName || 'Unknown Customer';
+  return customerDto.individualContactName || contactPersonName || 'Unknown Customer';
 };
 
 interface CalendarTabProps {
@@ -104,7 +104,7 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
 
         <div className="mb-4">
           <h3 className="text-[15px] font-medium text-[#45556C] leading-tight mb-0.5">
-            {getCustomerName(docket.job?.customerDto)}
+            {getCustomerName(docket.job?.customerDto, docket.job?.contactPersonName)}
           </h3>
           <p className="text-[14px] text-[#94A3B8]">
             {docket.jobItem?.product?.productName}
