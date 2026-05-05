@@ -44,11 +44,7 @@ export default function DeliveriesPage() {
               onDateChange={setSelectedDate}
             />
           ) : (
-            <ScheduleWeekView
-              date={selectedDate}
-              viewType={resourceView}
-              onDateChange={setSelectedDate}
-            />
+            <ScheduleWeekView date={selectedDate} viewType={resourceView} />
           )}
         </main>
       </div>
