@@ -19,7 +19,7 @@ export const calculateConvertedQty = (
   quantity: number,
   fromUom: string,
   toUom: string,
-  density: number = 1
+  density: number = 1,
 ) => {
   if (fromUom === toUom) return quantity;
 
@@ -113,7 +113,7 @@ const TRUCK_TYPE_MAP: Record<string, string> = {
   FLATBED: 'Flatbed',
   TIPPER: 'Tipper',
   TANDEM: 'Tandem',
-  QUAD: 'QUAD',
+  QUAD: 'Quad',
   TRI_AXLE: 'Tri-Axle',
   TAUTLINER: 'Tautliner',
   CRANE_TRUCK: 'Crane Truck',
@@ -416,12 +416,9 @@ export function useDocketFormState({
         setPickUpSearchInput(pickUpAddress.formattedAddress || '');
         docketForm.setValue(
           'pickUpAddressId',
-          details.pickUpAddress.id
-            ? String(details.pickUpAddress.id)
-            : '',
+          details.pickUpAddress.id ? String(details.pickUpAddress.id) : '',
         );
       }
-
     }
   }, [
     docketForm.watch('jobLineItemId'),
@@ -437,7 +434,8 @@ export function useDocketFormState({
     docketForm.reset({
       jobId: selectedDocket.jobId ?? 0,
       jobLineItemId: selectedDocket.jobItemId ?? 0,
-      plannedLoadSize: selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
+      plannedLoadSize:
+        selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
       actualLoadSize: selectedDocket.actualLoadSize ?? 0,
       truckQty: selectedDocket.deliveryDistanceQuantity ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
@@ -502,7 +500,6 @@ export function useDocketFormState({
     setIsDirtyTrackingReady(true);
   }, [isEditing, selectedDocket, docketForm, selectedJob.customerEmail]);
 
-
   const productDetailsQuery = useQuery({
     queryKey: ['product', selectedJobLineItemDetails().productId],
     queryFn: () =>
@@ -521,7 +518,8 @@ export function useDocketFormState({
     const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
 
     // details.productSell is already converted to dollars in selectedJobLineItemDetails
-    const productSell = centsToDollarsNum(details.productSell) * (loadSize || 0);
+    const productSell =
+      centsToDollarsNum(details.productSell) * (loadSize || 0);
 
     let calculatedTruckQty = 0;
     if (details.type !== 'COLLECTION') {
@@ -532,7 +530,7 @@ export function useDocketFormState({
           loadSize || 0,
           details.productUom,
           details.truckUom,
-          density
+          density,
         );
       }
     }
@@ -562,7 +560,6 @@ export function useDocketFormState({
   );
 
   const today = React.useMemo(() => GetTodaysDate(), []);
-
 
   return {
     docketForm,
