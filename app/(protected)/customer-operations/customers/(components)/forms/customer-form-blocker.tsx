@@ -23,24 +23,31 @@ import {
 } from '@/lib/types/customer-enums';
 import { CustomerDTO } from '@/lib/types/customer';
 
+const ARCHIVE_FAILED_PREFIX = 'Archive customer failed!';
+const UNARCHIVE_FAILED_PREFIX = 'Unarchive customer failed!';
+
 /** Returns the block state for a customer, or null if the form should be editable. */
 export function getCustomerFormBlockState(
   customer: CustomerDTO | null | undefined,
 ): CustomerFormBlockState | null {
   if (!customer) return null;
 
-  const { customerStatus, lastAccSoftwareSyncDirection, lastAccSoftwareSyncStatus } = customer;
+  const { customerStatus, lastAccSoftwareSyncDirection, lastAccSoftwareSyncStatus, accSoftwareNotes } = customer;
   const syncFailed = lastAccSoftwareSyncStatus === ACC_SOFTWARE_SYNC_STATUS.FAILED;
 
   if (customerStatus === CUSTOMER_STATUS.ARCHIVED) {
     // Xero unarchived the contact but QL couldn't follow; Xero was re-archived to stay in sync
-    if (syncFailed && lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL) {
+    if (
+      syncFailed &&
+      lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL &&
+      accSoftwareNotes?.startsWith(UNARCHIVE_FAILED_PREFIX)
+    ) {
       return CustomerFormBlockState.UNARCHIVE_XERO_REARCHIVED;
     }
     return CustomerFormBlockState.ARCHIVED_IN_QUARRYLINK;
   }
 
-  if (syncFailed) {
+  if (syncFailed && accSoftwareNotes?.startsWith(ARCHIVE_FAILED_PREFIX)) {
     if (lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL) {
       // Xero archived the contact but QL couldn't mirror it due to blocking dockets/jobs
       return CustomerFormBlockState.QUARRYLINK_ARCHIVE_BLOCKED;
