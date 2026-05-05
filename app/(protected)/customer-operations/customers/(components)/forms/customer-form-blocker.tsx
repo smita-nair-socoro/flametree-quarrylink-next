@@ -263,8 +263,8 @@ function UnarchiveXeroRearchivedBanner({
           <p className="text-sm text-[#7B3306E5]">
             Check for duplicate or conflicting customers (search for{' '}
             <span className="font-medium text-[#7B3306E5]">{contactEmail}</span>
-            ). Resolve conflicts, then unarchive from QuarryLink so Xero updates
-            correctly.
+            ). Resolve the conflict first, then unarchive the contact directly in
+            Xero — QuarryLink will be notified automatically.
           </p>
         </div>
       )}
