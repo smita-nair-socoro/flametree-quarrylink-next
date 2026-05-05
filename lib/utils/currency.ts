@@ -8,8 +8,13 @@ export function dollarsToCents(value: string | number): number {
   if (isNaN(n)) {
     throw new Error(`Invalid dollar amount: ${value}`);
   }
-  // Multiply by 100 and round to avoid fp imprecision
-  return Math.round(n * 100);
+  // Truncate to 2 decimal places to match the requirement (e.g., 0.325 -> 32 cents)
+  return Math.trunc(Number(n + 'e2'));
+}
+
+export function roundToTwoDecimals(num: number): number {
+  // Truncate to 2 decimal places as requested (e.g., 0.325 -> 0.32)
+  return Number(Math.trunc(Number(num + 'e2')) + 'e-2');
 }
 
 export function centsToDollars(cents: number): string {
@@ -25,5 +30,5 @@ export function centsToDollarsNum(value: string | number): number {
   if (isNaN(cents)) {
     throw new Error(`Invalid cents amount: ${value}`);
   }
-  return cents / 100;
+  return roundToTwoDecimals(cents / 100);
 }

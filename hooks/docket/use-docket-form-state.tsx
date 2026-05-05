@@ -13,7 +13,7 @@ import { APIClient } from '@/lib/api/APIClient';
 import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { toAddressType } from '@/lib/utils/address-helper';
-import { centsToDollarsNum } from '@/lib/utils/currency';
+import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 
 export const calculateConvertedQty = (
   quantity: number,
@@ -522,8 +522,9 @@ export function useDocketFormState({
     const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
 
     // details.productSell is already converted to dollars in selectedJobLineItemDetails
-    const productSell =
-      centsToDollarsNum(details.productSell) * (loadSize || 0);
+    const productSell = roundToTwoDecimals(
+      centsToDollarsNum(details.productSell) * (loadSize || 0)
+    );
 
     let calculatedTruckQty = 0;
     if (details.type !== 'COLLECTION') {
@@ -540,11 +541,13 @@ export function useDocketFormState({
     }
 
     // details.truckSell is in cents, so we need to convert it to dollars
-    const truckSell = centsToDollarsNum(details.truckSell) * calculatedTruckQty;
+    const truckSell = roundToTwoDecimals(
+      centsToDollarsNum(details.truckSell) * calculatedTruckQty
+    );
 
-    const subtotal = productSell + truckSell;
-    const gst = subtotal * 0.1;
-    const total = subtotal + gst;
+    const subtotal = roundToTwoDecimals(productSell + truckSell);
+    const gst = roundToTwoDecimals(subtotal * 0.1);
+    const total = roundToTwoDecimals(subtotal + gst);
 
     return {
       productSell,
