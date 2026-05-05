@@ -304,6 +304,8 @@ export interface DispatchAssignedDocket {
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   customerName: string;
   pickUpSuburb: string;
@@ -322,6 +324,8 @@ export interface DispatchUnassignedDocket {
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   customerName: string;
   pickUpSuburb: string;

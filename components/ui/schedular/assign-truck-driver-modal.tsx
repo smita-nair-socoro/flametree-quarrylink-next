@@ -65,7 +65,7 @@ export function AssignTruckDriverModal({
     if (!driver?.trucks || !docket) return [];
 
     const docketVol = calculateVolumeM3(
-      docket.loadSize,
+      docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize || 0,
       docket.productSellUom || 'TN',
       docket.productDensity || 1,
     );

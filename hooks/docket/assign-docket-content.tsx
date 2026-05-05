@@ -178,14 +178,12 @@ export function AssignDocketDescription({
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          {docket?.loadSize != null && (
-            <>
-              <span className="font-bold">•</span>
-              <span>
-                {docket.loadSize} {docket.jobItem?.productSellUom}
-              </span>
-            </>
-          )}
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
+          <span className="font-bold">•</span>
+          <span>
+            {docket?.actualLoadSize || docket?.plannedLoadSize}
+            {docket?.jobItem?.productSellUom}
+          </span>
         </div>
       </div>
     </div>
@@ -293,7 +291,11 @@ export function AssignDocketContent({
     const density = docket?.jobItem?.product?.densityTonnagePerM3 || 1;
     const uom = docket?.jobItem?.productSellUom ?? 'M3';
     return calculateConvertedQty(loadSize, uom, 'M3', density);
-  }, [loadSize, docket?.jobItem?.product?.densityTonnagePerM3, docket?.jobItem?.productSellUom]);
+  }, [
+    loadSize,
+    docket?.jobItem?.product?.densityTonnagePerM3,
+    docket?.jobItem?.productSellUom,
+  ]);
 
   const truckColorOptions = React.useMemo((): ColorSelectOption[] => {
     if (!haulerSelection) return [];

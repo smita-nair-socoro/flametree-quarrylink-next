@@ -90,7 +90,8 @@ function formatSellUomLabel(uom: string | undefined): string {
 
 function formatLoadLine(d: WeekViewDocket): string {
   const u = formatSellUomLabel(d.productSellUom);
-  return `${d.loadSize ?? ''} ${u}`.trim();
+  const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
+  return `${loadSize} ${u}`.trim();
 }
 
 function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {

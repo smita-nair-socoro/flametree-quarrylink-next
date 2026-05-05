@@ -36,14 +36,12 @@ export function CancelDocketDescription({
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          {docket?.loadSize != null && (
-            <>
-              <span className="font-bold">•</span>
-              <span>
-                {docket.loadSize} {docket.jobItem?.productSellUom}
-              </span>
-            </>
-          )}
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
+          <span className="font-bold">•</span>
+          <span>
+            {docket?.actualLoadSize || docket?.plannedLoadSize}
+            {docket?.jobItem?.productSellUom}
+          </span>
         </div>
       </div>
     </div>

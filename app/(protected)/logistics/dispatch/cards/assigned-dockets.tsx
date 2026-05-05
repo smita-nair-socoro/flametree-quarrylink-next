@@ -488,7 +488,9 @@ function DocketCard({
             <div className={`font-bold ${colors.text} truncate text-[15px]`}>
               {docket.docketNumber}{' '}
               <span className={`${colors.text} font-semibold text-[12px] ml-1`}>
-                {docket.loadSize}{' '}
+                {docket.actualLoadSize ||
+                  docket.plannedLoadSize ||
+                  docket.loadSize}{' '}
                 {docket.productSellUom === 'M3'
                   ? 'm³'
                   : docket.productSellUom === 'KG_20'

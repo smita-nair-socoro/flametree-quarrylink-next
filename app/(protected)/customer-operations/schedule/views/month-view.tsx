@@ -95,7 +95,7 @@ function DocketChip({
           {docket.docketNumber || 'No Number'}
         </span>
         <span>
-          {docket.loadSize}{' '}
+          {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
           {docket.productSellUom === 'M3'
             ? 'm³'
             : docket.productSellUom === 'KG_20'

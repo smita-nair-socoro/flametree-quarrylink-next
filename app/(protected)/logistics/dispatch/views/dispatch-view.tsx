@@ -134,7 +134,8 @@ function formatCargoLineForUnassign(d: DispatchDocket): string {
         ? 'x 20kg'
         : d.productSellUom || '';
   const product = d.productName || 'Product';
-  return `${product} • ${d.loadSize ?? ''} ${uom}`.trim();
+  const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
+  return `${product} • ${loadSize} ${uom}`.trim();
 }
 
 function assignmentDateDisplayForUnassign(
@@ -354,7 +355,7 @@ export function DispatchView({
         deliveryCollectionStartTime: d.deliveryCollectionStartTime,
         deliveryCollectionEndTime: d.deliveryCollectionEndTime,
         productName: d.jobItem?.product?.productName || '',
-        loadSize: d.actualLoadSize || d.loadSize || 0,
+        loadSize: d.actualLoadSize || d.plannedLoadSize || d.loadSize || 0,
         customerName:
           d.job?.customerDto?.businessName || d.job?.contactPersonName || '',
         pickUpSuburb: d.pickUpAddress?.city || '',
@@ -742,7 +743,11 @@ export function DispatchView({
         truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
-        plannedLoadSize: docket.loadSize || 0,
+        plannedLoadSize:
+          docket.actualLoadSize ||
+          docket.plannedLoadSize ||
+          docket.loadSize ||
+          0,
       },
       {
         onSuccess: () => {
