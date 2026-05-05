@@ -32,6 +32,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     accessorFn: (row) =>
       row.customerDto?.businessName ||
       row.customerDto?.individualContactName ||
+      row.contactPersonName ||
       'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
@@ -40,6 +41,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
       const customerName =
         row.original.customerDto?.businessName ||
         row.original.customerDto?.individualContactName ||
+        row.original.contactPersonName ||
         'N/A';
       return <div className="py-2">{customerName}</div>;
     },
