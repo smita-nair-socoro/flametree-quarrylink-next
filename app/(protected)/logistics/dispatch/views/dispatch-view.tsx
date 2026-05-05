@@ -15,7 +15,7 @@ import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { useQuery } from '@tanstack/react-query';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
 import { ConfirmUnassignDialog } from '@/components/ui/schedular/unassign-modal';
-import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-drier-modal';
+import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-driver-modal';
 import type {
   DispatchBoardDocketRow,
   DispatchDocketDTO,
@@ -25,21 +25,13 @@ import type {
 } from '@/lib/types/docket';
 import type { TruckResource } from '@/lib/types/truck';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
-import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
+import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
 import {
   DispatchDriversTrucksFilter,
   DEFAULT_DISPATCH_BOARD_FILTER,
-  JOB_STATUS_FILTER_ALL,
   type DispatchBoardFilterState,
 } from './drivers-trucks-filter';
 import { useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   SchedulerTrucksQueryOptions,
@@ -407,21 +399,23 @@ export function DispatchView({
           return {
             id: String(r.id),
             name: r.licensePlate,
-            capacity: 'N/A',
+            capacity: r.tankVolumeM3,
+            status: r.truckStatus,
             trips: r.dockets?.length || 0,
+            businessType: r.truckBusinessType,
             drivers:
               r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
-            type: firstDriver?.driverType || 'INTERNAL',
             haulierName: firstDriver?.haulier?.haulierName,
           };
         }
         return {
           id: String(r.id),
           name: 'Unknown',
-          capacity: 'N/A',
+          capacity: 0,
+          status: TRUCK_STATUS.ACTIVE,
           trips: 0,
           drivers: 'Unassigned',
-          type: 'INTERNAL',
+          businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
         };
       });
     }
@@ -432,19 +426,23 @@ export function DispatchView({
             id: String(r.id),
             name:
               r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
-            capacity: 'N/A',
+            capacity: 0,
+            status: TRUCK_STATUS.ACTIVE,
             trips: r.dockets?.length || 0,
             drivers: r.driverName,
-            type: r.driverType || 'INTERNAL',
+            businessType:
+              (r.driverType as TRUCK_BUSINESS_TYPE) ||
+              TRUCK_BUSINESS_TYPE.INTERNAL,
           };
         }
         return {
           id: String(r.id),
           name: 'Unknown',
-          capacity: 'N/A',
+          capacity: 0,
+          status: TRUCK_STATUS.ACTIVE,
           trips: 0,
           drivers: 'Unassigned',
-          type: 'INTERNAL',
+          businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
         };
       });
     }

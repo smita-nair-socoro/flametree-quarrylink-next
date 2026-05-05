@@ -44,9 +44,10 @@ export interface TruckDTO {
 export interface TruckResource {
   id: string;
   name: string;
-  capacity: string;
+  capacity: number;
+  status: TRUCK_STATUS;
+  businessType: TRUCK_BUSINESS_TYPE;
   trips: number;
   drivers: string;
-  type?: string;
   haulierName?: string;
 }

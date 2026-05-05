@@ -1294,13 +1294,9 @@ export const APIClient = {
 
   driverApp: {
     getAssignedDockets: () =>
-      appClient.Get<DocketDTO[]>(
-        `/socoro/quarrylink/api/driver-app/assigned`,
-      ),
+      appClient.Get<DocketDTO[]>(`/socoro/quarrylink/api/driver-app/assigned`),
     getAssignedDocketById: (docketId: number) =>
-      appClient.Get<DocketDTO>(
-        `/socoro/quarrylink/api/driver-app/${docketId}`,
-      ),
+      appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
   },
 
   scheduler: {

@@ -32,7 +32,6 @@ import { ScheduleFilter } from './schedule-filter';
 import { Button } from '@/components/ui/button';
 import { TableBadges } from '@/components/table-badges';
 
-
 type ViewType = 'trucks' | 'drivers';
 
 type WeekViewDocket = DispatchBoardDocketRow & {
@@ -102,7 +101,7 @@ function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
 
 function buildWeekSummaryLine(dockets: WeekViewDocket[]): string {
   const n = dockets.length;
-  if (n === 0) return '0 this week – 0';
+  if (n === 0) return '0 this week';
   return `${n} this week`;
 }
 
@@ -128,18 +127,15 @@ function DocketChip({
         e.stopPropagation();
         onClick();
       }}
-      className={`w-full text-left cursor-pointer rounded-lg border px-2.5 py-2 shadow-sm transition hover:brightness-[0.98] ${colorClass} ${isSelected ? 'ring-2 ring-[#8B5CF6] ring-offset-1' : ''
-        }`}
+      className={`w-full text-left cursor-pointer rounded-lg border px-2.5 py-2 shadow-sm transition hover:brightness-[0.98] ${colorClass} ${
+        isSelected ? 'ring-2 ring-[#8B5CF6] ring-offset-1' : ''
+      }`}
     >
       <div
         className={`flex items-start justify-between gap-2 text-[11px] leading-tight font-bold`}
       >
-        <span className="truncate min-w-0">
-          {docket.docketNumber || '—'}
-        </span>
-        <span className="shrink-0 tabular-nums">
-          {formatLoadLine(docket)}
-        </span>
+        <span className="truncate min-w-0">{docket.docketNumber || '—'}</span>
+        <span className="shrink-0 tabular-nums">{formatLoadLine(docket)}</span>
       </div>
       <div
         className={`mt-1 text-[11px] font-semibold leading-snug truncate opacity-90`}
@@ -168,11 +164,9 @@ const VISIBLE_DOCKETS_PER_CELL = 3;
 export function ScheduleWeekView({
   date,
   viewType,
-  onDateChange: _onDateChange,
 }: {
   date: Date;
   viewType: ViewType;
-  onDateChange?: (date: Date) => void;
 }) {
   const [selectedDocketId, setSelectedDocketId] = useState<number | undefined>(
     undefined,
@@ -318,7 +312,9 @@ export function ScheduleWeekView({
         <div className="flex-1 min-h-0 overflow-auto bg-[#F8FAFC] px-3 py-4">
           <div className="mx-auto rounded-xl border border-[#E2E8F0] bg-white shadow-sm overflow-hidden flex flex-col min-h-0">
             <div className="border-b border-[#EDE9FE] bg-[#FAF5FF] px-4 py-2.5 shrink-0">
-              <p className="text-[12px] font-semibold text-[#5B21B6]">View only</p>
+              <p className="text-[12px] font-semibold text-[#5B21B6]">
+                View only
+              </p>
               <p className="text-[11px] text-[#6D28D9]/90 mt-0.5 leading-snug">
                 Assign and move dockets on Dispatch. Click a docket to open
                 details.
@@ -337,18 +333,21 @@ export function ScheduleWeekView({
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`px-2 py-3 text-center border-r border-[#E2E8F0] last:border-r-0 flex flex-col items-center justify-center gap-0.5 ${isSelectedDate ? 'bg-violet-50/70' : 'bg-white'
-                      }`}
+                    className={`px-2 py-3 text-center border-r border-[#E2E8F0] last:border-r-0 flex flex-col items-center justify-center gap-0.5 ${
+                      isSelectedDate ? 'bg-violet-50/70' : 'bg-white'
+                    }`}
                   >
                     <span
-                      className={`text-[11px] font-semibold uppercase tracking-wide ${isSelectedDate ? 'text-violet-700' : 'text-[#64748B]'
-                        }`}
+                      className={`text-[11px] font-semibold uppercase tracking-wide ${
+                        isSelectedDate ? 'text-violet-700' : 'text-[#64748B]'
+                      }`}
                     >
                       {format(day, 'EEE')}
                     </span>
                     <span
-                      className={`text-[18px] font-bold leading-none ${isSelectedDate ? 'text-violet-700' : 'text-[#0F172A]'
-                        }`}
+                      className={`text-[18px] font-bold leading-none ${
+                        isSelectedDate ? 'text-violet-700' : 'text-[#0F172A]'
+                      }`}
                     >
                       {format(day, 'd')}
                     </span>
@@ -370,7 +369,10 @@ export function ScheduleWeekView({
                         <span className="text-[15px] font-bold text-[#0F172A] tracking-tight">
                           {resource.name}
                         </span>
-                        <TableBadges names={[resource.typeLabel]} visibleCount={1} />
+                        <TableBadges
+                          names={[resource.typeLabel]}
+                          visibleCount={1}
+                        />
                       </div>
                       {resource.companyLine ? (
                         <p className="text-[12px] text-[#64748B] mt-1 leading-snug">
@@ -393,15 +395,19 @@ export function ScheduleWeekView({
                           : d.deliveryCollectionStartTime;
                       return isSameDay(new Date(localTimeStr), day);
                     });
-                    const visible = dayDockets.slice(0, VISIBLE_DOCKETS_PER_CELL);
+                    const visible = dayDockets.slice(
+                      0,
+                      VISIBLE_DOCKETS_PER_CELL,
+                    );
                     const overflow =
                       dayDockets.length - VISIBLE_DOCKETS_PER_CELL;
 
                     return (
                       <div
                         key={`${resource.id}-${day.toISOString()}`}
-                        className={`p-2 border-r border-[#E2E8F0] last:border-r-0 flex flex-col gap-2 min-h-[112px] min-w-0 ${isSelectedDate ? 'bg-violet-50/25' : 'bg-white'
-                          }`}
+                        className={`p-2 border-r border-[#E2E8F0] last:border-r-0 flex flex-col gap-2 min-h-[112px] min-w-0 ${
+                          isSelectedDate ? 'bg-violet-50/25' : 'bg-white'
+                        }`}
                       >
                         <div className="flex flex-col gap-2 flex-1 min-h-0">
                           {visible.map((docket) => (
@@ -441,7 +447,9 @@ export function ScheduleWeekView({
                                     docket={docket}
                                     viewType={viewType}
                                     isSelected={selectedDocketId === docket.id}
-                                    onClick={() => setSelectedDocketId(docket.id)}
+                                    onClick={() =>
+                                      setSelectedDocketId(docket.id)
+                                    }
                                   />
                                 ))}
                               </div>

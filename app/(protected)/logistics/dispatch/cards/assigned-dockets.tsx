@@ -586,7 +586,7 @@ export default function AssignedDockets({
                 <h3 className="text-[22px] font-bold text-[#0F172A]">
                   {viewType === 'trucks' ? truck.name : truck.drivers}
                 </h3>
-                <TableBadges names={[truck.type || 'INTERNAL']} />
+                <TableBadges names={[truck.businessType || 'INTERNAL']} />
               </div>
               <p className="text-[14px] text-[#64748B] mt-0.5">
                 {truck.haulierName || ''}
@@ -610,7 +610,7 @@ export default function AssignedDockets({
               <>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
                   <span className="text-[18px] font-bold text-[#0F172A]">
-                    {truck.capacity}
+                    {truck.capacity} m³
                   </span>
                   <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
                     Capacity
