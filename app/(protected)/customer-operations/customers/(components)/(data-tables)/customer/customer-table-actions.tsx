@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Archive, ArchiveRestore } from 'lucide-react';
+import { MoreHorizontal, Eye, Archive } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,11 +32,6 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
     actions.archive();
   };
 
-  const handleUnarchive = () => {
-    setDropdownOpen(false);
-    actions.unarchive();
-  };
-
   return (
     <div>
       {confirmDialogs}
@@ -53,21 +48,13 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
             View Details
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {!isArchived ? (
+          {!isArchived && (
             <DropdownMenuItem
               onClick={handleArchive}
               className="text-destructive focus:text-destructive"
             >
               <Archive className="h-4 w-4 mr-2 text-red-600" />
               Archive
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem
-              onClick={handleUnarchive}
-              className="text-blue-600 focus:text-blue-600"
-            >
-              <ArchiveRestore className="h-4 w-4 mr-2 text-blue-600" />
-              Unarchive
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
