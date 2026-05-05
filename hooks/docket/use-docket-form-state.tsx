@@ -239,9 +239,11 @@ export function useDocketFormState({
     if (isEditing) return;
 
     if (selectedJob.deliveryStartDate) {
+      const jobDate = new Date(selectedJob.deliveryStartDate);
+      const todayDate = GetTodaysDate();
       docketForm.setValue(
         'deliveryCollectionDate',
-        new Date(selectedJob.deliveryStartDate),
+        jobDate < todayDate ? todayDate : jobDate,
       );
     }
     if (selectedJob.contactName) {
@@ -296,7 +298,9 @@ export function useDocketFormState({
       ...docketForm.getValues(),
       jobId,
       deliveryCollectionDate: selectedJob.deliveryStartDate
-        ? new Date(selectedJob.deliveryStartDate)
+        ? new Date(selectedJob.deliveryStartDate) < GetTodaysDate()
+          ? GetTodaysDate()
+          : new Date(selectedJob.deliveryStartDate)
         : docketForm.getValues('deliveryCollectionDate'),
       purchaseOrder:
         selectedJob.poNumber || docketForm.getValues('purchaseOrder'),
