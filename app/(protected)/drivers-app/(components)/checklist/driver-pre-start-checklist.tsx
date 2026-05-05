@@ -1,20 +1,25 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { BaseChecklist, Question } from './base-checklist';
-import { DriverChecklistTemplateQueryOptions } from '@/lib/api/checklist';
+import { BaseChecklist, Question, BaseChecklistAnswer } from './base-checklist';
+import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
+import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
+import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 
 export default function DriverPreStartChecklist({
   onSubmit,
   onBack,
   driverName,
+  driverId,
 }: {
   onSubmit?: () => void;
   onBack?: () => void;
   driverName?: string;
+  driverId: number;
 }) {
-  const { data: template, isLoading } = useQuery(DriverChecklistTemplateQueryOptions());
+  const template = useChecklistTemplateStore((s) => s.driverTemplate);
+  const submitChecklist = useSubmitChecklist();
+  const isLoading = !template;
 
   const questions: Question[] = (template?.sections ?? [])
     .slice()
@@ -39,6 +44,23 @@ export default function DriverPreStartChecklist({
     );
   }
 
+  const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
+    if (!template) return;
+    await submitChecklist.mutateAsync({
+      templateId: template.id,
+      checklistType: CHECKLIST_TYPE.DRIVER,
+      driverId,
+      confirmed: false,
+      answers: answers.map((a) => ({
+        questionId: a.questionId,
+        answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
+        failed: a.answer === 'no',
+        comment: a.notes,
+      })),
+    });
+    onSubmit?.();
+  };
+
   return (
     <BaseChecklist
       title={template?.name ?? 'Daily Compliance Checklist'}
@@ -47,7 +69,7 @@ export default function DriverPreStartChecklist({
         ? `Complete this checklist before starting your deliveries, ${driverName}`
         : 'Complete this checklist before starting your deliveries'}
       submitButtonText="Submit Checklist"
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       showBackButton={!!onBack}
       onBack={onBack}
       needPhotoAndDetails={false}

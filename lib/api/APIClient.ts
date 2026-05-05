@@ -65,7 +65,10 @@ import {
   PutDriverDTO,
 } from '../types/driver';
 import { ChecklistTemplate } from '../types/checklist-template';
-import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  ChecklistSubmission,
+  ChecklistSubmitRequest,
+} from '../types/checklist-submission';
 
 type RequestBody =
   | BodyInit
@@ -981,6 +984,10 @@ export const APIClient = {
       appClient.Get<ChecklistSubmission>(
         `/socoro/quarrylink/api/checklists/submissions/driver/${submissionId}`,
       ),
+    submit: (data: ChecklistSubmitRequest) =>
+      appClient.Post<ChecklistSubmission>(`/socoro/quarrylink/api/checklists`, {
+        body: data,
+      }),
   },
 
   users: {
@@ -1294,12 +1301,13 @@ export const APIClient = {
 
   driverApp: {
     getAssignedDockets: () =>
-      appClient.Get<DocketDTO[]>(
-        `/socoro/quarrylink/api/driver-app/assigned`,
-      ),
+      appClient.Get<DocketDTO[]>(`/socoro/quarrylink/api/driver-app/assigned`),
     getAssignedDocketById: (docketId: number) =>
-      appClient.Get<DocketDTO>(
-        `/socoro/quarrylink/api/driver-app/${docketId}`,
+      appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
+    operationalUpdate: (id: number, actualLoadSize: number) =>
+      appClient.Put<DocketOperationalUpdateResponse>(
+        `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
+        { body: { actualLoadSize } },
       ),
   },
 
