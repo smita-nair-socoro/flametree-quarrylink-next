@@ -68,9 +68,10 @@ export function ChecklistReportModal({
     (a) => a.answerValue === ANSWER_VALUE.NO,
   ).length;
   const unansweredCount = totalQuestions - allAnswers.length;
-  const passPercent =
-    totalQuestions > 0 ? Math.round((yesCount / totalQuestions) * 100) : 0;
   const isPass = data?.status === CHECKLIST_STATUS.PASS;
+  const passPercent = isPass
+    ? totalQuestions > 0 ? Math.round((yesCount / totalQuestions) * 100) : 0
+    : 0;
 
   const [collapsedSections, setCollapsedSections] = React.useState<Set<string>>(
     new Set(),
@@ -101,15 +102,10 @@ export function ChecklistReportModal({
         style={{ maxWidth: 'min(95vw, 1100px)' }}
       >
         {/* Title */}
-        <div className="flex flex-col gap-0.5 pb-4 -mx-6 px-6 border-b">
+        <div className="pb-4 -mx-6 px-6 border-b">
           <DialogTitle className="text-base font-bold">
             {type === CHECKLIST_TYPE.DRIVER ? 'Checklist Report' : 'Inspection Report'}
           </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {type === CHECKLIST_TYPE.DRIVER
-              ? 'Daily Compliance'
-              : truckLicensePlate ?? '—'}
-          </p>
         </div>
 
         {isLoading ? (
@@ -160,23 +156,19 @@ export function ChecklistReportModal({
                     {data.driverName || '—'}
                   </span>
                 </div>
-                <div className="bg-[#F9FAFB] rounded-md p-3 flex flex-col gap-1">
-                  <span className="text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
-                    Vehicle
-                  </span>
-                  <span className="text-sm font-semibold">{vehicleLabel}</span>
-                </div>
+                {type === CHECKLIST_TYPE.TRUCK && (
+                  <div className="bg-[#F9FAFB] rounded-md p-3 flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
+                      Vehicle
+                    </span>
+                    <span className="text-sm font-semibold">{vehicleLabel}</span>
+                  </div>
+                )}
                 <div className="bg-[#F9FAFB] rounded-md p-3 flex flex-col gap-1">
                   <span className="text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
                     Submitted
                   </span>
                   <span className="text-sm font-semibold">{submittedAt}</span>
-                </div>
-                <div className="bg-[#F9FAFB] rounded-md p-3 flex flex-col gap-1">
-                  <span className="text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">
-                    Overrides
-                  </span>
-                  <span className="text-sm font-semibold">0 admin edits</span>
                 </div>
               </div>
 
