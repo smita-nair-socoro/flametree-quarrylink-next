@@ -1306,7 +1306,7 @@ export const APIClient = {
       appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
     operationalUpdate: (id: number, actualLoadSize: number) =>
       appClient.Put<DocketOperationalUpdateResponse>(
-        `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
+        `/socoro/quarrylink/${id}/operational-update`,
         { body: { actualLoadSize } },
       ),
   },
