@@ -180,7 +180,8 @@ export default function TruckForm({
   React.useEffect(() => {
     if (isEditing && truckData) {
       const isInternalTruck =
-        truckData.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL;
+        !!truckData.haulier?.haulierName &&
+        truckData.haulier.haulierName === businessName;
       setTruckOwnerType(
         isInternalTruck
           ? TRUCK_BUSINESS_TYPE.INTERNAL
@@ -200,7 +201,7 @@ export default function TruckForm({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, truckData]);
+  }, [isEditing, truckData, businessName]);
 
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 

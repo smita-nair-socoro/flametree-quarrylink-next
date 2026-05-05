@@ -66,7 +66,7 @@ export default function DriversAppPage() {
   return (
     <div className="flex h-screen">
       <div className="w-full shadow-xl bg-white h-full flex flex-col relative">
-        <div className="`overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex-1 overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {activeTab !== 'calendar' && (
             <div className="flex flex-col px-6 pt-6 pb-4 shadow-sm  border-b border-gray-100 gap-1 bg-white">
               <div className="flex items-center justify-between">
