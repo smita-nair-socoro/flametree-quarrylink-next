@@ -29,7 +29,7 @@ export default function TruckInspectionChecklist({
     .slice()
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .flatMap((section) =>
-      section.questions
+      (section.questions ?? [])
         .slice()
         .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((q) => ({
