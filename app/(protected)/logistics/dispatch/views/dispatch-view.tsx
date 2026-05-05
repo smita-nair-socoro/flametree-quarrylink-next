@@ -14,7 +14,8 @@ import {
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { useQuery } from '@tanstack/react-query';
 import { DocketCardOverlay } from '../cards/unassigned-dockets';
-import { ConfirmUnassignDialog } from '../cards/confirm-unassign-dialog';
+import { ConfirmUnassignDialog } from '@/components/ui/schedular/unassign-modal';
+import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-driver-modal';
 import type {
   DispatchBoardDocketRow,
   DispatchDocketDTO,
@@ -24,21 +25,13 @@ import type {
 } from '@/lib/types/docket';
 import type { TruckResource } from '@/lib/types/truck';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
-import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
+import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
 import {
   DispatchDriversTrucksFilter,
   DEFAULT_DISPATCH_BOARD_FILTER,
-  JOB_STATUS_FILTER_ALL,
   type DispatchBoardFilterState,
 } from './drivers-trucks-filter';
 import { useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   SchedulerTrucksQueryOptions,
@@ -69,19 +62,16 @@ function truckMatchesFleetFilters(
   r: DispatchTruckResource,
   f: DispatchBoardFilterState,
 ): boolean {
-  if (f.truckId && String(r.id) !== f.truckId) return false;
-  if (f.haulierId) {
-    const hid = Number(f.haulierId);
-    if (
-      !(r.drivers || []).some(
-        (d) => d.haulierId === hid || d.haulier?.id === hid,
-      )
-    ) {
-      return false;
-    }
+  if (f.truckIds.length > 0 && !f.truckIds.includes(String(r.id))) return false;
+  if (f.haulierIds.length > 0) {
+    const hasHaulier = (r.drivers || []).some((d) => {
+      const hid = String(d.haulierId || d.haulier?.id);
+      return f.haulierIds.includes(hid);
+    });
+    if (!hasHaulier) return false;
   }
-  if (f.truckBusinessType) {
-    if (inferTruckBusinessType(r) !== f.truckBusinessType) return false;
+  if (f.truckBusinessTypes.length > 0) {
+    if (!f.truckBusinessTypes.includes(inferTruckBusinessType(r))) return false;
   }
   if (f.driverStatuses.length > 0) {
     const want = new Set(f.driverStatuses);
@@ -124,12 +114,12 @@ export type DispatchDocket = DispatchBoardDocketRow &
 
 function matchesBoardJobFilter(
   d: DispatchDocket,
-  jobStatus: string,
+  jobStatuses: string[],
 ): boolean {
-  if (jobStatus === JOB_STATUS_FILTER_ALL) {
+  if (jobStatuses.length === 0) {
     return d.docketStatus !== DOCKET_STATUS.UNASSIGNED;
   }
-  return String(d.docketStatus) === jobStatus;
+  return jobStatuses.includes(String(d.docketStatus));
 }
 
 function formatCargoLineForUnassign(d: DispatchDocket): string {
@@ -174,9 +164,7 @@ function resolveUnassignAssignmentLabels(
     if (t) {
       truck = t.licensePlate;
       driver =
-        docket.driver?.driverName ??
-        t.drivers?.[0]?.driverName ??
-        driver;
+        docket.driver?.driverName ?? t.drivers?.[0]?.driverName ?? driver;
     }
   }
   if (viewType === 'drivers' && driversData?.resources) {
@@ -295,7 +283,7 @@ export function DispatchView({
   const [selectedDocketId, setSelectedDocketId] = useState<string | null>(null);
   const [assignModalData, setAssignModalData] = useState<{
     docketId: string;
-    truckId: string;
+    targetId: string;
     time: string;
   } | null>(null);
 
@@ -343,9 +331,16 @@ export function DispatchView({
         (r.dockets || []).map((d) => {
           let duration = 2;
           if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(d.deliveryCollectionStartTime.replace('Z', '')).getTime();
-            const end = new Date(d.deliveryCollectionEndTime.replace('Z', '')).getTime();
-            duration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+            const start = new Date(
+              d.deliveryCollectionStartTime.replace('Z', ''),
+            ).getTime();
+            const end = new Date(
+              d.deliveryCollectionEndTime.replace('Z', ''),
+            ).getTime();
+            duration = Math.max(
+              1,
+              Math.round((end - start) / (1000 * 60 * 60)),
+            );
           }
           return {
             ...d,
@@ -366,9 +361,16 @@ export function DispatchView({
         (r.dockets || []).map((d) => {
           let duration = 2;
           if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(d.deliveryCollectionStartTime.replace('Z', '')).getTime();
-            const end = new Date(d.deliveryCollectionEndTime.replace('Z', '')).getTime();
-            duration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+            const start = new Date(
+              d.deliveryCollectionStartTime.replace('Z', ''),
+            ).getTime();
+            const end = new Date(
+              d.deliveryCollectionEndTime.replace('Z', ''),
+            ).getTime();
+            duration = Math.max(
+              1,
+              Math.round((end - start) / (1000 * 60 * 60)),
+            );
           }
           return {
             ...d,
@@ -391,76 +393,86 @@ export function DispatchView({
 
   const mappedResources: TruckResource[] = useMemo(() => {
     if (viewType === 'trucks' && trucksData) {
-      return (trucksData.resources || []).map((r) =>
-        'licensePlate' in r
-          ? {
+      return (trucksData.resources || []).map((r) => {
+        if ('licensePlate' in r) {
+          const firstDriver = r.drivers?.[0];
+          return {
             id: String(r.id),
             name: r.licensePlate,
-            capacity: 'N/A',
+            capacity: r.tankVolumeM3,
+            status: r.truckStatus,
             trips: r.dockets?.length || 0,
+            businessType: r.truckBusinessType,
             drivers:
               r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
-            type: r.drivers?.[0]?.driverType || 'INTERNAL',
-          }
-          : {
-            id: String(r.id),
-            name: 'Unknown',
-            capacity: 'N/A',
-            trips: 0,
-            drivers: 'Unassigned',
-            type: 'INTERNAL',
-          },
-      );
+            haulierName: firstDriver?.haulier?.haulierName,
+          };
+        }
+        return {
+          id: String(r.id),
+          name: 'Unknown',
+          capacity: 0,
+          status: TRUCK_STATUS.ACTIVE,
+          trips: 0,
+          drivers: 'Unassigned',
+          businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
+        };
+      });
     }
     if (viewType === 'drivers' && driversData) {
-      return (driversData.resources || []).map((r) =>
-        'driverName' in r
-          ? {
+      return (driversData.resources || []).map((r) => {
+        if ('driverName' in r) {
+          return {
             id: String(r.id),
             name:
               r.trucks?.map((t) => t.licensePlate).join(', ') || 'Unassigned',
-            capacity: 'N/A',
+            capacity: 0,
+            status: TRUCK_STATUS.ACTIVE,
             trips: r.dockets?.length || 0,
             drivers: r.driverName,
-            type: r.driverType || 'INTERNAL',
-          }
-          : {
-            id: String(r.id),
-            name: 'Unknown',
-            capacity: 'N/A',
-            trips: 0,
-            drivers: 'Unassigned',
-            type: 'INTERNAL',
-          },
-      );
+            businessType:
+              (r.driverType as TRUCK_BUSINESS_TYPE) ||
+              TRUCK_BUSINESS_TYPE.INTERNAL,
+          };
+        }
+        return {
+          id: String(r.id),
+          name: 'Unknown',
+          capacity: 0,
+          status: TRUCK_STATUS.ACTIVE,
+          trips: 0,
+          drivers: 'Unassigned',
+          businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
+        };
+      });
     }
     return [];
   }, [trucksData, driversData, viewType]);
 
   const filterDriverOptions = useMemo(() => {
     if (viewType !== 'drivers' || !driversData?.resources) return [];
-    return driversData.resources
-      .filter(isDispatchDriverResource)
-      .map((r) => ({
-        id: String(r.id),
-        label: r.driverName,
-        secondary:
-          r.trucks?.map((t) => t.licensePlate).filter(Boolean).join(', ') ||
-          undefined,
-      }));
+    return driversData.resources.filter(isDispatchDriverResource).map((r) => ({
+      id: String(r.id),
+      label: r.driverName,
+      secondary:
+        r.trucks
+          ?.map((t) => t.licensePlate)
+          .filter(Boolean)
+          .join(', ') || undefined,
+    }));
   }, [viewType, driversData]);
 
   const filterTruckOptions = useMemo(() => {
     if (viewType !== 'trucks' || !trucksData?.resources) return [];
-    return trucksData.resources
-      .filter(isDispatchTruckResource)
-      .map((r) => ({
-        id: String(r.id),
-        label: r.licensePlate,
-        secondary:
-          r.drivers?.map((d) => d.driverName).filter(Boolean).join(', ') ||
-          undefined,
-      }));
+    return trucksData.resources.filter(isDispatchTruckResource).map((r) => ({
+      id: String(r.id),
+      label: r.licensePlate,
+      secondary:
+        r.drivers
+          ?.map((d) => d.driverName)
+          .filter(Boolean)
+          .join(', ') || undefined,
+    }));
   }, [viewType, trucksData]);
 
   const filterHaulierOptions = useMemo(() => {
@@ -481,26 +493,51 @@ export function DispatchView({
   }, [viewType, trucksData]);
 
   const filteredMappedResources = useMemo(() => {
+    let allowedTruckIds = new Set<string>();
+    let allowedDriverIds = new Set<string>();
+
     if (viewType === 'trucks' && trucksData?.resources) {
-      const allowed = new Set(
+      allowedTruckIds = new Set(
         trucksData.resources
           .filter(isDispatchTruckResource)
           .filter((r) => truckMatchesFleetFilters(r, boardFilter))
           .map((r) => String(r.id)),
       );
-      return mappedResources.filter((row) => allowed.has(row.id));
-    }
-    if (viewType === 'drivers' && driversData?.resources) {
-      const allowed = new Set(
+    } else if (viewType === 'drivers' && driversData?.resources) {
+      allowedDriverIds = new Set(
         driversData.resources
           .filter(isDispatchDriverResource)
           .filter((r) => driverRowMatchesFilters(r, boardFilter))
           .map((r) => String(r.id)),
       );
-      return mappedResources.filter((row) => allowed.has(row.id));
     }
-    return mappedResources;
-  }, [mappedResources, viewType, trucksData, driversData, boardFilter]);
+
+    let result = mappedResources.filter((row) => {
+      if (viewType === 'trucks') return allowedTruckIds.has(row.id);
+      if (viewType === 'drivers') return allowedDriverIds.has(row.id);
+      return true;
+    });
+
+    // If jobStatus filter is active, hide rows that have NO matching dockets
+    if (boardFilter.jobStatuses.length > 0) {
+      const rowsWithDockets = new Set(
+        dockets
+          .filter((d) => matchesBoardJobFilter(d, boardFilter.jobStatuses))
+          .map((d) => d.uiAssignedTruckId)
+          .filter(Boolean),
+      );
+      result = result.filter((row) => rowsWithDockets.has(row.id));
+    }
+
+    return result;
+  }, [
+    mappedResources,
+    viewType,
+    trucksData,
+    driversData,
+    boardFilter,
+    dockets,
+  ]);
 
   const docketsForAssignedBoard = useMemo(() => {
     const visibleIds = new Set(filteredMappedResources.map((r) => r.id));
@@ -509,9 +546,9 @@ export function DispatchView({
       if (!d.uiAssignedTruckId || !visibleIds.has(d.uiAssignedTruckId)) {
         return false;
       }
-      return matchesBoardJobFilter(d, boardFilter.jobStatus);
+      return matchesBoardJobFilter(d, boardFilter.jobStatuses);
     });
-  }, [dockets, filteredMappedResources, boardFilter.jobStatus]);
+  }, [dockets, filteredMappedResources, boardFilter.jobStatuses]);
 
   const docketsForSelectedDay = useMemo(
     () => dockets.filter((d) => isDocketOnSelectedLocalDay(d, date)),
@@ -519,25 +556,20 @@ export function DispatchView({
   );
 
   const headerStats = useMemo(() => {
-    const total = docketsForSelectedDay.length;
-    const assignedCount = docketsForSelectedDay.filter(
-      (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
-    ).length;
-
     const assignedOnSelectedDay = docketsForSelectedDay.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
     );
     const trucksBooked =
       viewType === 'trucks'
         ? new Set(
-          assignedOnSelectedDay
-            .map((d) => d.uiAssignedTruckId)
-            .filter((id): id is string => Boolean(id)),
-        ).size
+            assignedOnSelectedDay
+              .map((d) => d.uiAssignedTruckId)
+              .filter((id): id is string => Boolean(id)),
+          ).size
         : countTrucksWithAssignedBookingsOnSelectedDay(
-          trucksDataForStats,
-          date,
-        );
+            trucksDataForStats,
+            date,
+          );
 
     const trucksForDriverResolve =
       viewType === 'trucks' ? trucksData : trucksDataForStats;
@@ -559,18 +591,10 @@ export function DispatchView({
     }
 
     return {
-      assignedCount,
-      total,
       trucksBooked,
       driversOnTrips: onTripDriverIds.size,
     };
-  }, [
-    docketsForSelectedDay,
-    viewType,
-    trucksData,
-    trucksDataForStats,
-    date,
-  ]);
+  }, [docketsForSelectedDay, viewType, trucksData, trucksDataForStats, date]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -595,31 +619,27 @@ export function DispatchView({
 
     const match = overId.match(/^truck-(.+)-time-(.+)$/);
     if (match) {
-      const [, truckId, time] = match;
+      const [, targetId, time] = match;
 
-      const docket = dockets.find(d => String(d.id) === docketId);
-      if (docket && docket.docketStatus !== DOCKET_STATUS.UNASSIGNED && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+      const docket = dockets.find((d) => String(d.id) === docketId);
+      if (
+        docket &&
+        docket.docketStatus !== DOCKET_STATUS.UNASSIGNED &&
+        docket.docketStatus !== DOCKET_STATUS.ASSIGNED
+      ) {
         return; // Cannot move locked dockets
       }
 
-      if (docket && docket.uiAssignedTruckId === truckId && docket.uiAssignedTime === time) {
+      if (
+        docket &&
+        docket.uiAssignedTruckId === targetId &&
+        docket.uiAssignedTime === time
+      ) {
         // Dropped on the same slot, do nothing
         return;
       }
 
-      if (viewType === 'trucks') {
-        setAssignModalData({ docketId, truckId, time });
-      } else {
-        // If in drivers view, we might not need the modal or it might be different.
-        // The user said "do only from the trucks view", so we'll just update local state for now in drivers view.
-        setDockets((prev) =>
-          prev.map((d) =>
-            String(d.id) === docketId
-              ? { ...d, uiAssignedTruckId: truckId, uiAssignedTime: time }
-              : d,
-          ),
-        );
-      }
+      setAssignModalData({ docketId, targetId, time });
     }
   };
 
@@ -695,15 +715,15 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedDuration: newDuration,
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                }
+                    ...d,
+                    uiAssignedDuration: newDuration,
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                  }
                 : d,
             ),
           );
         },
-      }
+      },
     );
   };
 
@@ -765,11 +785,11 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === id
                 ? {
-                  ...d,
-                  uiAssignedTruckId: null,
-                  uiAssignedTime: null,
-                  docketStatus: DOCKET_STATUS.UNASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: null,
+                    uiAssignedTime: null,
+                    docketStatus: DOCKET_STATUS.UNASSIGNED,
+                  }
                 : d,
             ),
           );
@@ -780,10 +800,10 @@ export function DispatchView({
     );
   };
 
-  const handleAssignDriver = (driverId: number) => {
+  const handleAssignResource = (selectedId: number) => {
     if (!assignModalData) return;
 
-    const { docketId, truckId, time } = assignModalData;
+    const { docketId, targetId, time } = assignModalData;
     const docket = dockets.find((d) => String(d.id) === docketId);
 
     // Parse time to ISO strings for start and end windows
@@ -797,11 +817,14 @@ export function DispatchView({
     const endWindow = new Date(startWindow);
     endWindow.setHours(startWindow.getHours() + duration);
 
+    const truckId = viewType === 'trucks' ? Number(targetId) : selectedId;
+    const driverId = viewType === 'trucks' ? selectedId : Number(targetId);
+
     assignMutation.mutate(
       {
         docketId: Number(docketId),
         driverId,
-        truckId: Number(truckId),
+        truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
         plannedLoadSize: docket?.loadSize || 0,
@@ -812,33 +835,43 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedTruckId: truckId,
-                  uiAssignedTime: time,
-                  deliveryCollectionDate: startOfDay(startWindow),
-                  deliveryCollectionStartTime: formatLocalISO(startWindow),
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  docketStatus: DOCKET_STATUS.ASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: targetId,
+                    uiAssignedTime: time,
+                    deliveryCollectionDate: startOfDay(startWindow),
+                    deliveryCollectionStartTime: formatLocalISO(startWindow),
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                    docketStatus: DOCKET_STATUS.ASSIGNED,
+                  }
                 : d,
             ),
           );
           setAssignModalData(null);
         },
-      }
+      },
     );
   };
 
   const assignModalDocket = assignModalData
     ? dockets.find((d) => String(d.id) === assignModalData.docketId)
     : null;
+
   const assignModalTruck: DispatchTruckResource | null =
-    assignModalData && trucksData
-      ? trucksData.resources.find(
-        (r): r is DispatchTruckResource =>
-          isDispatchTruckResource(r) &&
-          String(r.id) === assignModalData.truckId,
-      ) ?? null
+    assignModalData && viewType === 'trucks' && trucksData
+      ? (trucksData.resources.find(
+          (r): r is DispatchTruckResource =>
+            isDispatchTruckResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
+      : null;
+
+  const assignModalDriver: DispatchDriverResource | null =
+    assignModalData && viewType === 'drivers' && driversData
+      ? (driversData.resources.find(
+          (r): r is DispatchDriverResource =>
+            isDispatchDriverResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
       : null;
 
   return (
@@ -861,14 +894,7 @@ export function DispatchView({
           <span className="text-[12px] font-medium text-[#64748B]">
             {format(date, 'EEE dd MMM').toUpperCase()}
           </span>
-          <div className="border bg-green-50 border-green-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              {headerStats.assignedCount}/{headerStats.total}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Assigned
-            </span>
-          </div>
+
           <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
             <span className="text-[12px] font-semibold tracking-wider">
               {headerStats.trucksBooked}
@@ -925,86 +951,16 @@ export function DispatchView({
         {activeDocket ? <DocketCardOverlay docket={activeDocket} /> : null}
       </DragOverlay>
 
-      <Dialog
+      <AssignTruckDriverModal
         open={!!assignModalData}
         onOpenChange={(open) => !open && setAssignModalData(null)}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              Select Driver
-            </DialogTitle>
-            {assignModalDocket && assignModalTruck && (
-              <p className="text-gray-500 text-sm mt-1">
-                {assignModalDocket.docketNumber} &rarr;{' '}
-                {assignModalTruck.licensePlate}
-              </p>
-            )}
-          </DialogHeader>
-
-          {assignModalDocket && assignModalTruck && (
-            <div className="flex flex-col gap-4 mt-2">
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex justify-between">
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-500 text-sm">Load</span>
-                  <span className="font-bold text-gray-900">
-                    {assignModalDocket.loadSize}{' '}
-                    {assignModalDocket.productSellUom === 'M3'
-                      ? 'm³'
-                      : assignModalDocket.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : assignModalDocket.productSellUom || 'TN'}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-500 text-sm">Truck limits</span>
-                  <span className="font-bold text-gray-900">
-                    22 m³ / 30 TN
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="text-gray-500 text-sm">Trip fill</span>
-                  <span className="font-bold text-gray-900">50%</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {assignModalTruck.drivers?.map((driver) => (
-                  <div
-                    key={driver.id ?? driver.driverName}
-                    onClick={() => {
-                      if (driver.id != null) handleAssignDriver(driver.id);
-                    }}
-                    className="flex items-center justify-between p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50/30 transition-colors"
-                  >
-                    <span className="font-semibold text-gray-900">
-                      {driver.driverName}
-                    </span>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded">
-                      AVAILABLE
-                    </span>
-                  </div>
-                ))}
-                {(!assignModalTruck.drivers || assignModalTruck.drivers.length === 0) && (
-                  <div className="text-center text-gray-500 text-sm py-4">
-                    No drivers found for this truck.
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end mt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setAssignModalData(null)}
-                  className="px-6"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        viewType={viewType}
+        docket={assignModalDocket as DispatchDocket | null}
+        truck={assignModalTruck}
+        driver={assignModalDriver}
+        onAssign={handleAssignResource}
+        onCancel={() => setAssignModalData(null)}
+      />
 
       {unassignDialogSnapshot && (
         <ConfirmUnassignDialog

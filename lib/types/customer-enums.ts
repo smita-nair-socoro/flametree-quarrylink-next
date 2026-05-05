@@ -20,6 +20,16 @@ export enum PAYMENT_TERM_TYPE {
   DAYSAFTERBILLDATE = 'DAYSAFTERBILLDATE'
 }
 
+export enum ACC_SOFTWARE_SYNC_DIRECTION {
+  QL_TO_ACC_SOFTWARE = 'QL_TO_ACC_SOFTWARE',
+  ACC_SOFTWARE_TO_QL = 'ACC_SOFTWARE_TO_QL',
+}
+
+export enum ACC_SOFTWARE_SYNC_STATUS {
+  FAILED = 'FAILED',
+  SUCCEEDED = 'SUCCEEDED',
+}
+
 export enum CustomerFormBlockState {
   /** Case 1: Customer archived in Xero; QL cannot archive because active dockets/jobs exist */
   QUARRYLINK_ARCHIVE_BLOCKED = 'QUARRYLINK_ARCHIVE_BLOCKED',

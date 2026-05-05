@@ -81,8 +81,14 @@ export default function DocketsTab({
     actions[actionType]();
   };
 
-  const [resolvedPickup, setResolvedPickup] = React.useState<{ lat: number; lng: number } | null>(null);
-  const [resolvedDelivery, setResolvedDelivery] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [resolvedPickup, setResolvedPickup] = React.useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [resolvedDelivery, setResolvedDelivery] = React.useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   React.useEffect(() => {
     setResolvedPickup(null);
@@ -102,7 +108,7 @@ export default function DocketsTab({
     } else if (delivery) {
       resolveAddressCoords(delivery).then(setResolvedDelivery);
     }
-  }, [selectedDocket?.id]);
+  }, [selectedDocket]);
 
   const checklistsComplete =
     selectedDocket?.driverChecklist?.checklistStatus ===
@@ -410,10 +416,16 @@ export default function DocketsTab({
 
                     {(() => {
                       const markers: MapMarker[] = [];
-                      if (resolvedPickup) markers.push({ ...resolvedPickup, color: 'red' });
-                      if (resolvedDelivery) markers.push({ ...resolvedDelivery, color: 'green' });
+                      if (resolvedPickup)
+                        markers.push({ ...resolvedPickup, color: 'red' });
+                      if (resolvedDelivery)
+                        markers.push({ ...resolvedDelivery, color: 'green' });
                       return markers.length > 0 ? (
-                        <Map markers={markers} className="h-[280px] w-full rounded-xl overflow-hidden" disableDefaultUI />
+                        <Map
+                          markers={markers}
+                          className="h-[280px] w-full rounded-xl overflow-hidden"
+                          disableDefaultUI
+                        />
                       ) : null;
                     })()}
                   </div>
@@ -433,109 +445,109 @@ export default function DocketsTab({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
-                {selectedDocket.driverChecklist?.checklistStatus !==
-                  CHECKLIST_STATUS.PASS && (
-                  <Button
-                    variant="outline"
-                    className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
-                    onClick={() => {
-                      setIsDrawerOpen(false);
-                      onOpenChecklist?.('pre-start');
-                    }}
-                  >
-                    <span className="flex items-center gap-2">
-                      Pre-Start Checklist Required
-                    </span>
-                  </Button>
-                )}
-                {selectedDocket.truckChecklist?.checklistStatus !==
-                  CHECKLIST_STATUS.PASS && (
-                  <Button
-                    variant="outline"
-                    className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
-                    onClick={() => {
-                      setIsDrawerOpen(false);
-                      onOpenChecklist?.(
-                        'vehicle-inspection',
-                        selectedDocket.truck?.licensePlate,
-                        selectedDocket.id,
-                        selectedDocket.truckId,
-                      );
-                    }}
-                  >
-                    <span className="flex items-center gap-2">
-                      Truck Inspection Required
-                    </span>
-                  </Button>
-                )}
-                {selectedDocket.docketStatus === 'IN_TRANSIT' && (
-                  <Button
-                    onClick={() => handleAction('markArrived')}
-                    disabled={!checklistsComplete}
-                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Mark Arrived
-                    </span>
-                  </Button>
-                )}
-                {selectedDocket.docketStatus === 'ASSIGNED' && (
-                  <Button
-                    className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
-                    onClick={() => {
-                      handleAction('startTransit');
-                    }}
-                    disabled={!checklistsComplete}
-                  >
-                    <span className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4" />
-                      Start Delivery
-                    </span>
-                  </Button>
-                )}
-                {selectedDocket.docketStatus !== 'STOPPED' &&
-                  selectedDocket.docketStatus !== 'ARRIVED' &&
-                  selectedDocket.docketStatus !== 'ASSIGNED' && (
+                  {selectedDocket.driverChecklist?.checklistStatus !==
+                    CHECKLIST_STATUS.PASS && (
                     <Button
                       variant="outline"
-                      onClick={() => handleAction('stop')}
-                      className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
+                      onClick={() => {
+                        setIsDrawerOpen(false);
+                        onOpenChecklist?.('pre-start');
+                      }}
                     >
                       <span className="flex items-center gap-2">
-                        <Pause className="h-4 w-4" />
-                        Stop
+                        Pre-Start Checklist Required
                       </span>
                     </Button>
                   )}
-                {selectedDocket.docketStatus === 'STOPPED' && (
-                  <Button
-                    className="w-full bg-[#008236] text-white h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
-                    onClick={() => handleAction('resumeTransit')}
-                  >
-                    Resume Transit
-                  </Button>
-                )}
-                {selectedDocket.docketStatus === 'ARRIVED' && (
-                  <>
+                  {selectedDocket.truckChecklist?.checklistStatus !==
+                    CHECKLIST_STATUS.PASS && (
                     <Button
+                      variant="outline"
+                      className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
+                      onClick={() => {
+                        setIsDrawerOpen(false);
+                        onOpenChecklist?.(
+                          'vehicle-inspection',
+                          selectedDocket.truck?.licensePlate,
+                          selectedDocket.id,
+                          selectedDocket.truckId,
+                        );
+                      }}
+                    >
+                      <span className="flex items-center gap-2">
+                        Truck Inspection Required
+                      </span>
+                    </Button>
+                  )}
+                  {selectedDocket.docketStatus === 'IN_TRANSIT' && (
+                    <Button
+                      onClick={() => handleAction('markArrived')}
                       disabled={!checklistsComplete}
                       className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
-                      onClick={() => handleAction('markDelivered')}
                     >
                       <span className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4" />
-                        Mark Delivered
+                        Mark Arrived
                       </span>
                     </Button>
+                  )}
+                  {selectedDocket.docketStatus === 'ASSIGNED' && (
                     <Button
-                      variant="outline"
-                      className="w-full border-[#6366F1] text-[#6366F1] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
+                      onClick={() => {
+                        handleAction('startTransit');
+                      }}
+                      disabled={!checklistsComplete}
                     >
-                      Back to In Transit
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Start Delivery
+                      </span>
                     </Button>
-                  </>
-                )}
+                  )}
+                  {selectedDocket.docketStatus !== 'STOPPED' &&
+                    selectedDocket.docketStatus !== 'ARRIVED' &&
+                    selectedDocket.docketStatus !== 'ASSIGNED' && (
+                      <Button
+                        variant="outline"
+                        onClick={() => handleAction('stop')}
+                        className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Pause className="h-4 w-4" />
+                          Stop
+                        </span>
+                      </Button>
+                    )}
+                  {selectedDocket.docketStatus === 'STOPPED' && (
+                    <Button
+                      className="w-full bg-[#008236] text-white h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      onClick={() => handleAction('resumeTransit')}
+                    >
+                      Resume Transit
+                    </Button>
+                  )}
+                  {selectedDocket.docketStatus === 'ARRIVED' && (
+                    <>
+                      <Button
+                        disabled={!checklistsComplete}
+                        className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
+                        onClick={() => handleAction('markDelivered')}
+                      >
+                        <span className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Mark Delivered
+                        </span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full border-[#6366F1] text-[#6366F1] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      >
+                        Back to In Transit
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </>

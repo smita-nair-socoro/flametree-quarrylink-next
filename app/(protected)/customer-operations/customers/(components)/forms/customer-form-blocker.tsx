@@ -18,25 +18,13 @@ import { cn } from '@/lib/utils';
 import {
   CustomerFormBlockState,
   CUSTOMER_STATUS,
+  ACC_SOFTWARE_SYNC_DIRECTION,
+  ACC_SOFTWARE_SYNC_STATUS,
 } from '@/lib/types/customer-enums';
 import { CustomerDTO } from '@/lib/types/customer';
 
-// =============================================================================
-// DUMMY DEV OVERRIDES FOR TESTING BLOCK STATES IN THE UI
-// These are ID-based shortcuts to simulate different block states without needing real backend conditions. Adjust IDs and states as needed for testing.
-// Should be replaced with real logic based on backend-provided flags or conditions when available.
-//   Case 1 — QUARRYLINK_ARCHIVE_BLOCKED  : Archive in Xero → QL archive blocked (active dockets/jobs)
-//   Case 2 — XERO_ARCHIVE_FAILED         : Archive in QL → Xero archive fails → reverted to ACTIVE in QL
-//   Case 3 — UNARCHIVE_XERO_REARCHIVED   : Unarchive in Xero → QL detects duplicate → Xero re-archived
-//   Case 4 — ARCHIVED_IN_QUARRYLINK      : Archived customer in QL — editing blocked, no Unarchive action
-// =============================================================================
-export const DEV_BLOCK_STATE_OVERRIDES: Record<number, CustomerFormBlockState> =
-  {
-    24: CustomerFormBlockState.QUARRYLINK_ARCHIVE_BLOCKED,
-    20: CustomerFormBlockState.XERO_ARCHIVE_FAILED,
-    15: CustomerFormBlockState.UNARCHIVE_XERO_REARCHIVED,
-    19: CustomerFormBlockState.ARCHIVED_IN_QUARRYLINK,
-  };
+const ARCHIVE_FAILED_PREFIX = 'Archive customer failed!';
+const UNARCHIVE_FAILED_PREFIX = 'Unarchive customer failed!';
 
 /** Returns the block state for a customer, or null if the form should be editable. */
 export function getCustomerFormBlockState(
@@ -44,14 +32,30 @@ export function getCustomerFormBlockState(
 ): CustomerFormBlockState | null {
   if (!customer) return null;
 
-  // DEV override — ID-based shortcut for local UI testing
-  if (customer.id != null && DEV_BLOCK_STATE_OVERRIDES[customer.id]) {
-    return DEV_BLOCK_STATE_OVERRIDES[customer.id];
+  const { customerStatus, lastAccSoftwareSyncDirection, lastAccSoftwareSyncStatus, accSoftwareNotes } = customer;
+  const syncFailed = lastAccSoftwareSyncStatus === ACC_SOFTWARE_SYNC_STATUS.FAILED;
+
+  if (customerStatus === CUSTOMER_STATUS.ARCHIVED) {
+    // Xero unarchived the contact but QL couldn't follow; Xero was re-archived to stay in sync
+    if (
+      syncFailed &&
+      lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL &&
+      accSoftwareNotes?.startsWith(UNARCHIVE_FAILED_PREFIX)
+    ) {
+      return CustomerFormBlockState.UNARCHIVE_XERO_REARCHIVED;
+    }
+    return CustomerFormBlockState.ARCHIVED_IN_QUARRYLINK;
   }
 
-  // Real derivation — extend here when backend provides dedicated sync-state flags
-  if (customer.customerStatus === CUSTOMER_STATUS.ARCHIVED) {
-    return CustomerFormBlockState.ARCHIVED_IN_QUARRYLINK;
+  if (syncFailed && accSoftwareNotes?.startsWith(ARCHIVE_FAILED_PREFIX)) {
+    if (lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL) {
+      // Xero archived the contact but QL couldn't mirror it due to blocking dockets/jobs
+      return CustomerFormBlockState.QUARRYLINK_ARCHIVE_BLOCKED;
+    }
+    if (lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.QL_TO_ACC_SOFTWARE) {
+      // QL tried to archive; Xero rejected it; QL reverted customer back to ACTIVE
+      return CustomerFormBlockState.XERO_ARCHIVE_FAILED;
+    }
   }
 
   return null;
@@ -259,8 +263,8 @@ function UnarchiveXeroRearchivedBanner({
           <p className="text-sm text-[#7B3306E5]">
             Check for duplicate or conflicting customers (search for{' '}
             <span className="font-medium text-[#7B3306E5]">{contactEmail}</span>
-            ). Resolve conflicts, then unarchive from QuarryLink so Xero updates
-            correctly.
+            ). Resolve the conflict first, then unarchive the contact directly in
+            Xero — QuarryLink will be notified automatically.
           </p>
         </div>
       )}

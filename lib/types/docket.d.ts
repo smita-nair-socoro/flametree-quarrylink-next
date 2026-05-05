@@ -5,6 +5,7 @@ import { Address } from './address';
 import { DriverDTO } from './driver';
 import { CustomerDTO } from './customer';
 import { TruckDTO } from './truck';
+import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from './truck-enums';
 
 export interface Docket {
   id: number;
@@ -260,6 +261,9 @@ export interface DocketDTO {
 export interface DispatchTruckResource {
   id: number;
   licensePlate: string;
+  tankVolumeM3: number;
+  truckStatus: TRUCK_STATUS;
+  truckBusinessType: TRUCK_BUSINESS_TYPE;
   drivers?: DriverDTO[];
   dockets?: DispatchAssignedDocket[];
 }
@@ -270,6 +274,8 @@ export interface DispatchBoardTruckRef {
   licensePlate: string;
   truckType?: string;
   truckStatus?: string;
+  businessType?: string;
+  tankVolumeM3?: number;
 }
 
 /** Driver row from GET scheduler/drivers */
