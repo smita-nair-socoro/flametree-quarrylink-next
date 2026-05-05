@@ -30,6 +30,13 @@ export interface Question {
   category: string;
 }
 
+export interface BaseChecklistAnswer {
+  questionId: number;
+  answer: 'yes' | 'no';
+  notes?: string;
+  image?: string | null;
+}
+
 interface QuestionCardProps {
   question: Question;
   answer: Answer;
@@ -204,7 +211,7 @@ interface BaseChecklistProps {
   alertMessage: string;
   needPhotoAndDetails?: boolean;
   submitButtonText: string;
-  onSubmit?: () => void;
+  onSubmit?: (answers: BaseChecklistAnswer[]) => void;
 }
 
 export function BaseChecklist({
@@ -380,7 +387,17 @@ export function BaseChecklist({
         ) : (
           <Button
             className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-lg font-semibold shadow-lg shadow-purple-200 active:scale-[0.98] transition-all"
-            onClick={onSubmit}
+            onClick={() => {
+              const formatted: BaseChecklistAnswer[] = questions
+                .filter((q) => answers[q.id] != null)
+                .map((q) => ({
+                  questionId: Number(q.id),
+                  answer: answers[q.id] as 'yes' | 'no',
+                  notes: notes[q.id] || undefined,
+                  image: images[q.id] ?? null,
+                }));
+              onSubmit?.(formatted);
+            }}
           >
             {submitButtonText}
           </Button>
