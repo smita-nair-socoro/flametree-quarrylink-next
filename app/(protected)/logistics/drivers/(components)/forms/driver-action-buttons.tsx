@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,20 +21,50 @@ import {
 import { useDriverActions } from '@/hooks/use-driver-actions';
 import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
+import { UsersListQueryOptions, useResendUserInvitation } from '@/lib/api/user';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DriverActionButtonsProps {
   driver: DriverDTO | null | undefined;
   onAssignedDockets?: () => void;
-  onResendInvitation?: () => void;
 }
 
 export function DriverActionButtons({
   driver,
   onAssignedDockets,
-  onResendInvitation,
 }: DriverActionButtonsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs } = useDriverActions(driver);
+
+  // TEMP: Resolve userSub by matching driver.emailAddress → User.email.
+  // Users list is already cached from the drivers page query (React Query dedup).
+  // Once backend adds userSub to DriverDTO, remove this query + userSub lookup
+  // and read userSub directly from the driver object.
+  const { data: users } = useQuery(UsersListQueryOptions());
+  const userSub = React.useMemo(() => {
+    if (!users || !driver?.emailAddress) return undefined;
+    return users.find(
+      (u) =>
+        u.groups?.includes('driver') &&
+        u.email?.toLowerCase() === driver.emailAddress.toLowerCase(),
+    )?.sub;
+  }, [users, driver?.emailAddress]);
+  const resendInvitationMutation = useResendUserInvitation();
+  // END TEMP
+
+  const handleResendInvitation = async () => {
+    setDropdownOpen(false);
+    if (!userSub) {
+      notifyError('Could not find user account for this driver.');
+      return;
+    }
+    try {
+      await resendInvitationMutation.mutateAsync(userSub);
+      notifySuccess('Invitation resent successfully.');
+    } catch {
+      notifyError('Failed to resend invitation.');
+    }
+  };
 
   if (!driver || !driver.id) {
     return null;
@@ -84,12 +115,7 @@ export function DriverActionButtons({
             <DropdownMenuContent align="end" className="w-48">
               {status === DRIVER_STATUS.PENDING_INVITATION && (
                 <>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      onResendInvitation?.();
-                    }}
-                  >
+                  <DropdownMenuItem onClick={handleResendInvitation}>
                     <RefreshCw className="h-4 w-4 mr-2 text-purple-700" />
                     <span className="text-purple-700">Resend Invitation</span>
                   </DropdownMenuItem>

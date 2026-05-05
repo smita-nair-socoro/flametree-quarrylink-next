@@ -19,23 +19,42 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DriverDTO } from '@/lib/types/driver';
 import { useDriverActions } from '@/hooks/use-driver-actions';
+import { useResendUserInvitation } from '@/lib/api/user';
+import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DriverTableActionsProps {
   driver: DriverDTO;
+  // TEMP: userSub is resolved via email match (users API) until backend adds
+  // userSub directly to DriverDTO. Remove this prop and the lookup in columns.tsx
+  // once DriverDTO includes userSub.
+  userSub?: string;
 }
 
-export function DriverTableActions({ driver }: DriverTableActionsProps) {
+export function DriverTableActions({
+  driver,
+  userSub,
+}: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
+  const resendInvitationMutation = useResendUserInvitation();
 
   const handleView = () => {
     setDropdownOpen(false);
     actions.view();
   };
 
-  const handleResendAppInvitation = () => {
+  const handleResendAppInvitation = async () => {
     setDropdownOpen(false);
-    // actions.resendAppInvitation();
+    if (!userSub) {
+      notifyError('Could not find user account for this driver.');
+      return;
+    }
+    try {
+      await resendInvitationMutation.mutateAsync(userSub);
+      notifySuccess('Invitation resent successfully.');
+    } catch {
+      notifyError('Failed to resend invitation.');
+    }
   };
 
   const handleDeactivate = () => {

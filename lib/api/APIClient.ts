@@ -1023,6 +1023,8 @@ export const APIClient = {
       appClient.Post<PasswordResetResponse>(
         `/socoro/quarrylink/api/users/${id}/reset-password`,
       ),
+    resendInvitation: (sub: string) =>
+      appClient.Post(`/socoro/quarrylink/api/users/${sub}/resend-invitation`),
   },
 
   jobs: {
