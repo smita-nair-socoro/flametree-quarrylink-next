@@ -320,7 +320,7 @@ export function DispatchView({
     enabled: viewType === 'drivers',
   });
 
-  const { data: allDocketsData, isLoading: isLoadingAllDockets } = useQuery({
+  const { data: allDocketsData } = useQuery({
     ...DocketsListQueryOptions(),
   });
 
@@ -361,6 +361,7 @@ export function DispatchView({
         pickUpState: d.pickUpAddress?.state || '',
         deliverySuburb: d.deliveryAddress?.city || '',
         deliveryState: d.deliveryAddress?.state || '',
+        productDensity: d.jobItem?.product?.densityTonnagePerM3 || 0,
         productSellUom: d.jobItem?.productSellUom || '',
         uiAssignedTruckId: null,
         uiAssignedTime: null,
@@ -390,7 +391,9 @@ export function DispatchView({
           };
         }),
       );
-      newDockets = [...assigned, ...globalUnassigned];
+      const assignedIds = new Set(assigned.map((a) => a.id));
+      const unassigned = globalUnassigned.filter((u) => !assignedIds.has(u.id));
+      newDockets = [...assigned, ...unassigned];
     } else if (viewType === 'drivers' && driversData) {
       const assigned = (driversData.resources || []).flatMap((r) =>
         (r.dockets || []).map((d) => {
@@ -415,7 +418,9 @@ export function DispatchView({
           };
         }),
       );
-      newDockets = [...assigned, ...globalUnassigned];
+      const assignedIds = new Set(assigned.map((a) => a.id));
+      const unassigned = globalUnassigned.filter((u) => !assignedIds.has(u.id));
+      newDockets = [...assigned, ...unassigned];
     }
 
     setDockets(newDockets || []);
@@ -759,9 +764,6 @@ export function DispatchView({
 
   const activeDocket = activeId
     ? dockets.find((d) => String(d.id) === activeId)
-    : null;
-  const selectedDocket = selectedDocketId
-    ? dockets.find((d) => String(d.id) === selectedDocketId)
     : null;
 
   const handleUnassign = () => {
