@@ -8,7 +8,6 @@ interface DriverTruckAssignment {
   truckStatus: string;
 }
 
-
 interface DriverComplianceRecord {
   id: number;
   checklistId: string;
@@ -65,7 +64,7 @@ export interface DriverHaulierDetail {
   deleted: boolean;
 }
 
-interface DriverDTO {
+export interface DriverDTO {
   id?: number;
   driverName: string;
   driverType: DRIVER_TYPE;
@@ -76,6 +75,7 @@ interface DriverDTO {
   haulier?: HaulierDTO;
   truckIds?: number[];
   trucks?: DriverTruckAssignment[];
+  dockets?: DocketDTO[];
   complianceRecords?: DriverComplianceRecord[];
   driverStatus?: DRIVER_STATUS;
   appInvitationSent?: boolean;

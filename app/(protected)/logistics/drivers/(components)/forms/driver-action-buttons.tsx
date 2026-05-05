@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,15 +27,11 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DriverActionButtonsProps {
   driver: DriverDTO | null | undefined;
-  onAssignedDockets?: () => void;
 }
 
-export function DriverActionButtons({
-  driver,
-  onAssignedDockets,
-}: DriverActionButtonsProps) {
+export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs } = useDriverActions(driver);
+  const { actions, confirmDialogs, fullDriverData } = useDriverActions(driver);
 
   // TEMP: Resolve userSub by matching driver.emailAddress → User.email.
   // Users list is already cached from the drivers page query (React Query dedup).
@@ -66,6 +63,17 @@ export function DriverActionButtons({
     }
   };
 
+  const router = useRouter();
+  const handleAssignedDockets = () => {
+    const targetDriver = fullDriverData || driver;
+    if (!targetDriver?.dockets || targetDriver.dockets.length === 0) {
+      notifyError('No dockets assigned to this driver.');
+      return;
+    }
+    const docketIds = targetDriver.dockets.map((d) => d.id).join(',');
+    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+  };
+
   if (!driver || !driver.id) {
     return null;
   }
@@ -94,7 +102,7 @@ export function DriverActionButtons({
         <Button
           variant="ghost"
           size="sm"
-          onClick={onAssignedDockets}
+          onClick={handleAssignedDockets}
           className={`rounded-none bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800`}
         >
           <FileText className="h-4 w-4 mr-2" />

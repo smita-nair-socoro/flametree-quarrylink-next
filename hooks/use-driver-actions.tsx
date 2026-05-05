@@ -536,5 +536,6 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     actions,
     confirmDialogs,
     viewDialog,
+    fullDriverData,
   };
 }
