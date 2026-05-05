@@ -1,21 +1,21 @@
-import { DRIVER_COMPLIANCE_STATUS } from './driver-compliance-enums';
+import { CHECKLIST_STATUS } from './checklist-enums';
 
-export interface DriverPreStartChecklist {
+export interface ChecklistItem {
   submissionId: number;
   submissionNumber: string;
   submittedAt: string;
-  status: DRIVER_COMPLIANCE_STATUS;
+  status: CHECKLIST_STATUS;
   summaryNotes: string;
   viewDetailsAvailable: boolean;
 }
 
-export interface DriverPreStartChecklistsPage {
+export interface ChecklistItemsPage {
   totalElements: number;
   totalPages: number;
   first: boolean;
   last: boolean;
   size: number;
-  content: DriverPreStartChecklist[];
+  content: ChecklistItem[];
   number: number;
   numberOfElements: number;
   empty: boolean;

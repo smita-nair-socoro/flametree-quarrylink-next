@@ -1,4 +1,4 @@
-export enum DRIVER_COMPLIANCE_STATUS {
+export enum CHECKLIST_STATUS {
   PASS = 'PASS',
   FAIL = 'FAIL',
   CONFIRMED = 'CONFIRMED',
