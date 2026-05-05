@@ -28,6 +28,7 @@ export interface Question {
   id: string;
   text: string;
   category: string;
+  failOnAnswer: string;
 }
 
 export interface BaseChecklistAnswer {
