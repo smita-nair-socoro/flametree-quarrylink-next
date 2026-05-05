@@ -26,9 +26,9 @@ export interface ChecklistSubmitPhotoRequest {
 export interface ChecklistSubmitAnswerRequest {
   questionId: number;
   answerValue: ANSWER_VALUE;
-  comment?: string;
+  comment: string | null;
   failed: boolean;
-  photos?: ChecklistSubmitPhotoRequest[];
+  photos: ChecklistSubmitPhotoRequest[];
 }
 
 export interface ChecklistSubmitRequest {

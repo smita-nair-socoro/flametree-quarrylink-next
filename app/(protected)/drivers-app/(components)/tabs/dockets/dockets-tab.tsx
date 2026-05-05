@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/drawer';
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
-import { useDocketActions } from '@/hooks/use-docket-actions';
+import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions';
 import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
@@ -56,27 +56,11 @@ interface DocketsTabProps {
 }
 
 type ActionType =
-  | 'view'
-  | 'cancel'
   | 'markArrived'
   | 'markDelivered'
-  | 'markReady'
-  | 'markCollected'
   | 'stop'
-  | 'void'
-  | 'remove'
-  | 'duplicate'
   | 'startTransit'
-  | 'resumeTransit'
-  | 'unassign'
-  | 'startPreparing'
-  | 'cashSale'
-  | 'invoice'
-  | 'cashReceipts'
-  | 'viewInvoice'
-  | 'assign'
-  | 'backToPending'
-  | 'backToPreparing';
+  | 'resumeTransit';
 
 export default function DocketsTab({
   dockets,
@@ -90,7 +74,7 @@ export default function DocketsTab({
   const [updateValue, setUpdateValue] = React.useState('');
 
   const { actions, confirmDialogs, isDialogOpen } =
-    useDocketActions(selectedDocket);
+    useDriverAppDocketActions(selectedDocket);
   const operationalUpdate = useDriverAppOperationalUpdate();
 
   const handleAction = (actionType: ActionType) => {

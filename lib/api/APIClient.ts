@@ -1342,6 +1342,11 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
         { body: { actualLoadSize } },
       ),
+    updateDocketStatus: (id: number, body: object) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/driver-app/${id}/status`,
+        { body },
+      ),
   },
 
   scheduler: {
