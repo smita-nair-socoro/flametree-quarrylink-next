@@ -110,3 +110,9 @@ export const useResetPasswordBySuperAdmin = () => {
       APIClient.users.resetPasswordBySuperAdmin(userSub),
   });
 };
+
+export const useResendUserInvitation = () => {
+  return useMutation({
+    mutationFn: (sub: string) => APIClient.users.resendInvitation(sub),
+  });
+};

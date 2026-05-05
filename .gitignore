@@ -64,3 +64,5 @@ nbdist/
 nbactions.xml
 nb-configuration.xml
 docs/*
+CLAUDE.md
+.claude/*
