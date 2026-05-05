@@ -28,8 +28,8 @@ export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
               <span className="text-sm text-gray-500 font-extrabold">·</span>
               <span className="text-sm text-gray-500">
                 {job.customerDto.customerType === 'BUSINESS'
-                  ? job.customerDto.businessName
-                  : job.customerDto.individualContactName}
+                  ? (job.customerDto.businessName || job?.contactPersonName)
+                  : (job.customerDto.individualContactName || job?.contactPersonName)}
               </span>
             </>
           )}
