@@ -210,7 +210,7 @@ export function AssignDocketContent({
     ...HaulierDriversQueryOptions(haulerSelection ?? 0),
     enabled: !!haulerSelection && !!truckSelection,
   });
-  const tenantName = useClientStore((state) => state.getTenantName());
+  const businessName = useClientStore((state) => state.getBusinessName());
   const [haulerOpen, setHaulerOpen] = React.useState(false);
 
   const allDockets: DocketDTO[] = React.useMemo(() => {
@@ -272,16 +272,16 @@ export function AssignDocketContent({
   }, [availableTrucks, availableDrivers, docket?.deliveryCollectionDate]);
 
   const internalOptions = React.useMemo(() => {
-    const h = hauliers.find((h) => h.haulierName === tenantName);
+    const h = hauliers.find((h) => h.haulierName === businessName);
     return h ? [{ label: `${h.haulierName} (Internal)`, value: h.id }] : [];
-  }, [hauliers, tenantName]);
+  }, [hauliers, businessName]);
 
   const externalOptions = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== tenantName)
+        .filter((h) => h.haulierName !== businessName)
         .map((h) => ({ label: h.haulierName, value: h.id })),
-    [hauliers, tenantName],
+    [hauliers, businessName],
   );
 
   const selectedHaulerLabel = [...internalOptions, ...externalOptions].find(

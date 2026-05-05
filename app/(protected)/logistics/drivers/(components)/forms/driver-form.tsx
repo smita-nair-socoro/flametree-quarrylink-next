@@ -74,19 +74,19 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const tenantName = useClientStore((state) => state.getTenantName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+  const businessName = useClientStore((state) => state.getBusinessName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== tenantName)
+        .filter((h) => h.haulierName !== businessName)
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, tenantName],
+    [hauliers, businessName],
   );
 
   const createDriver = useCreateDriver();
@@ -223,10 +223,10 @@ export default function DriverForm({
         group:
           t.haulier?.haulierName ??
           selectedHaulierInfo?.haulierName ??
-          tenantName ??
+          businessName ??
           'Trucks',
       })),
-    [haulierTrucks, selectedHaulierInfo, tenantName],
+    [haulierTrucks, selectedHaulierInfo, businessName],
   );
 
   const trucks = (driverData?.trucks ?? []).map((t) => ({
@@ -340,7 +340,7 @@ export default function DriverForm({
                 <Input
                   value={
                     internalHaulier?.haulierName ??
-                    tenantName ??
+                    businessName ??
                     'My Company Haulier'
                   }
                   disabled
