@@ -63,7 +63,13 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
   });
 
   const filteredItems = dockets.filter((docket) =>
-    [DOCKET_STATUS.ASSIGNED, DOCKET_STATUS.DELIVERED, DOCKET_STATUS.IN_TRANSIT, DOCKET_STATUS.ARRIVED, DOCKET_STATUS.STOPPED].includes(docket.docketStatus),
+    [
+      DOCKET_STATUS.ASSIGNED,
+      DOCKET_STATUS.DELIVERED,
+      DOCKET_STATUS.IN_TRANSIT,
+      DOCKET_STATUS.ARRIVED,
+      DOCKET_STATUS.STOPPED,
+    ].includes(docket.docketStatus),
   );
 
   // Get dockets for a specific date
@@ -134,7 +140,7 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
 
         <div className="flex justify-between items-center mt-2 pt-2">
           <span className="text-[16px] font-bold text-[#0F172A]">
-            {docket.loadSize}
+            {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}
             {docket.jobItem?.productSellUom === 'TN'
               ? 'T'
               : docket.jobItem?.productSellUom === 'M3'

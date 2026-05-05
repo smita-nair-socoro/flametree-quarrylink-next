@@ -1,8 +1,6 @@
 import { format } from 'date-fns';
 import { X, User, Check, MapPin, ExternalLink } from 'lucide-react';
-import {
-  formatTimeRange,
-} from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
+import { formatTimeRange } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Input } from '@/components/ui/input';
@@ -13,7 +11,6 @@ import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { useQuery } from '@tanstack/react-query';
 import type { Address } from '@/lib/types/address';
-import { DocketDTO } from '@/lib/types/docket';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -44,38 +41,41 @@ function coordsFromDeliveryAddress(
 
 /** Prefer wall-clock from collection window so dispatch assignment matches the board date (detail refetch can lag). */
 function getCollectionDayForDisplay(docket: {
-  deliveryCollectionStartTime?: string | null;
-  // deliveryCollectionDate?: Date | string | null;
+  deliveryCollectionDate?: string | null;
 }) {
-  const start = docket.deliveryCollectionStartTime;
-  if (start) {
-    const local = start.includes('T') ? start.replace('Z', '') : start;
+  const dateStr = docket.deliveryCollectionDate;
+  if (dateStr) {
+    const local = dateStr.includes('T') ? dateStr.replace('Z', '') : dateStr;
     return new Date(local);
-  }
-  if (docket.deliveryCollectionStartTime) {
-    return new Date(docket.deliveryCollectionStartTime as string);
   }
   return null;
 }
 
 interface DocketDetailsPanelProps {
-  docket: DocketDTO;
+  docketId: number;
   onClose: () => void;
   onUnassign: () => void;
 }
 
 export function DocketDetailsPanel({
-  docket: initialDocket,
+  docketId,
   onClose,
   onUnassign,
 }: DocketDetailsPanelProps) {
-  const { data: fullDocket } = useQuery({
-    ...DocketByIdQueryOptions(initialDocket.id),
-    enabled: !!initialDocket.id,
+  const { data: fullDocket, isLoading } = useQuery({
+    ...DocketByIdQueryOptions(docketId),
+    enabled: !!docketId,
   });
 
-  // Detail query can return stale collection date/times after assign; dispatch board state should win on overlap.
-  const docket = fullDocket ? { ...fullDocket, ...initialDocket } : initialDocket;
+  const docket = fullDocket;
+
+  if (isLoading || !docket) {
+    return (
+      <div className="flex flex-col bg-[#F8FAFC] overflow-y-auto h-full p-4 items-center justify-center">
+        <div className="text-gray-500">Loading docket details...</div>
+      </div>
+    );
+  }
 
   const isUnassigned = docket.docketStatus === DOCKET_STATUS.UNASSIGNED;
   const isAssigned = docket.docketStatus === DOCKET_STATUS.ASSIGNED;
@@ -163,7 +163,7 @@ export function DocketDetailsPanel({
 
             <div>
               <div className="text-xs text-gray-500 mb-1">
-                Quarry / supplier
+                Quarry / Supplier
               </div>
               <div className="text-sm font-medium text-gray-900">
                 {docket.jobItem?.quarrySupplier?.name || ''}
@@ -180,21 +180,24 @@ export function DocketDetailsPanel({
             )}
 
             {isUnassigned ||
-              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+            (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+              docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
               <div>
                 <div className="text-xs text-gray-500 mb-1">Load quantity</div>
                 <div className="flex justify-between gap-2">
                   <Input
                     type="text"
+                    key={docket.id}
                     suffix={
-                      (docket.jobItem?.productSellUom) === 'M3'
+                      docket.jobItem?.productSellUom === 'M3'
                         ? 'm³'
-                        : (docket.jobItem?.productSellUom) === 'KG_20'
+                        : docket.jobItem?.productSellUom === 'KG_20'
                           ? 'x 20kg'
-                          : (docket.jobItem?.productSellUom)
+                          : docket.jobItem?.productSellUom
                     }
-                    defaultValue={docket.loadSize || '10'}
+                    defaultValue={
+                      docket.actualLoadSize || docket.plannedLoadSize || '0'
+                    }
                     className=""
                   />
                   <Button variant="default" className="cursor-pointer">
@@ -206,12 +209,12 @@ export function DocketDetailsPanel({
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                 <span className="text-sm text-gray-500">Quantity</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {docket.loadSize}{' '}
-                  {(docket.jobItem?.productSellUom) === 'M3'
+                  {docket.actualLoadSize}{' '}
+                  {docket.jobItem?.productSellUom === 'M3'
                     ? 'm³'
-                    : (docket.jobItem?.productSellUom) === 'KG_20'
+                    : docket.jobItem?.productSellUom === 'KG_20'
                       ? 'x 20kg'
-                      : (docket.jobItem?.productSellUom)}
+                      : docket.jobItem?.productSellUom}
                 </span>
               </div>
             )}
@@ -232,7 +235,8 @@ export function DocketDetailsPanel({
                 {dispatchAddressLabel(docket.pickUpAddress)}
               </div>
             </div>
-            {(!docket.jobItem || docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
+            {(!docket.jobItem ||
+              docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
               <div className="flex flex-col gap-0 text-sm font-medium">
                 <div className=" text-gray-500">Delivery</div>
                 <div className=" text-gray-900">
@@ -283,8 +287,9 @@ export function DocketDetailsPanel({
 
               <div className="text-xs font-mono text-gray-500">
                 {(() => {
-                  const { lat, lng } =
-                    coordsFromDeliveryAddress(docket.deliveryAddress);
+                  const { lat, lng } = coordsFromDeliveryAddress(
+                    docket.deliveryAddress,
+                  );
                   const addr = docket.deliveryAddress;
                   if (addr == null || typeof addr === 'string') return '—';
                   return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
@@ -352,13 +357,17 @@ export function DocketDetailsPanel({
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Driver</div>
                   <div className="text-sm font-medium text-gray-900">
-                    {!isUnassigned ? docket.driver?.driverName || 'Unassigned' : 'Unassigned'}
+                    {!isUnassigned
+                      ? docket.driver?.driverName || 'Unassigned'
+                      : 'Unassigned'}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Truck (rego)</div>
                   <div className="text-sm font-medium text-gray-900">
-                    {!isUnassigned ? docket.truck?.licensePlate || 'Unassigned' : 'Unassigned'}
+                    {!isUnassigned
+                      ? docket.truck?.licensePlate || 'Unassigned'
+                      : 'Unassigned'}
                   </div>
                 </div>
               </div>

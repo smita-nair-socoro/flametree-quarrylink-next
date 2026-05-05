@@ -371,7 +371,9 @@ export default function DocketForm({
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
-        deliveryCollectionDate: values.deliveryCollectionDate,
+        deliveryCollectionDate: values.deliveryCollectionDate
+          ? format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000")
+          : undefined,
         deliveryCollectionStartTime: startDateTime,
         deliveryCollectionEndTime: endDateTime,
         customerContactName: values.customerContactName,

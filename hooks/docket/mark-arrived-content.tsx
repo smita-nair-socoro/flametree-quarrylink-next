@@ -21,14 +21,12 @@ export function MarkArrivedDescription({
           <span className="text-sm text-[#6A7282]">
             {docket?.jobItem?.product?.productName}
           </span>
-          {docket?.loadSize != null && (
-            <>
-              <span className="text-sm text-[#6A7282] font-extrabold">·</span>
-              <span className="text-sm text-[#6A7282]">
-                {docket.loadSize} {docket.jobItem?.productSellUom}
-              </span>
-            </>
-          )}
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
+          <span className="font-bold">•</span>
+          <span>
+            {docket?.actualLoadSize || docket?.plannedLoadSize}
+            {docket?.jobItem?.productSellUom}
+          </span>
         </div>
       </div>
     </div>

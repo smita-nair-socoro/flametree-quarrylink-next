@@ -7,13 +7,35 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Truck } from 'lucide-react';
+import { ClipboardList, Truck, AlertTriangle, Package } from 'lucide-react';
 import type { DispatchDocket } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
 import type {
   DispatchTruckResource,
   DispatchDriverResource,
+  DispatchBoardTruckRef,
 } from '@/lib/types/docket';
 import { TableBadges } from '@/components/table-badges';
+import { useState, useMemo } from 'react';
+import { Input } from '@/components/ui/input';
+
+function calculateVolumeM3(
+  loadSize: number,
+  uom: string,
+  density: number,
+): number {
+  if (!density) density = 1;
+  const upperUom = uom.toUpperCase();
+  if (upperUom === 'M3' || upperUom === 'BULKA') {
+    return loadSize;
+  }
+  if (upperUom === 'TN') {
+    return loadSize / density;
+  }
+  if (upperUom === 'KG_20' || upperUom === '20KG') {
+    return loadSize / 50 / density;
+  }
+  return loadSize;
+}
 
 interface AssignTruckDriverModalProps {
   open: boolean;
@@ -36,222 +58,422 @@ export function AssignTruckDriverModal({
   onAssign,
   onCancel,
 }: AssignTruckDriverModalProps) {
+  const [adjustingTruck, setAdjustingTruck] =
+    useState<DispatchBoardTruckRef | null>(null);
+
+  const trucksWithStats = useMemo(() => {
+    if (!driver?.trucks || !docket) return [];
+
+    const docketVol = calculateVolumeM3(
+      docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize || 0,
+      docket.productSellUom || 'TN',
+      docket.productDensity || 1,
+    );
+
+    return driver.trucks
+      .map((t) => {
+        const truckVol = t.tankVolumeM3 || 0;
+        const fillPct = truckVol > 0 ? (docketVol / truckVol) * 100 : 0;
+        const isOverVolume = docketVol > truckVol;
+        return { ...t, truckVol, docketVol, fillPct, isOverVolume };
+      })
+      .sort((a, b) => {
+        if (a.isOverVolume && !b.isOverVolume) return 1;
+        if (!a.isOverVolume && b.isOverVolume) return -1;
+        if (!a.isOverVolume && !b.isOverVolume) {
+          return b.fillPct - a.fillPct; // highest fill first
+        }
+        return a.fillPct - b.fillPct; // over volume: lowest fill first
+      });
+  }, [driver?.trucks, docket]);
+
+  const handleModalClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      setAdjustingTruck(null);
+    }
+    onOpenChange(isOpen);
+  };
+
+  const handleCancel = () => {
+    setAdjustingTruck(null);
+    onCancel();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-[425px] md:max-w-[500px] p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-xl font-bold text-gray-900">
-            {viewType === 'trucks' ? 'Select Driver' : 'Select truck'}
-          </DialogTitle>
-          {docket && (
-            <p className="text-gray-500 text-sm mt-1">
-              {viewType === 'trucks' && truck ? (
-                <>
-                  {docket.docketNumber} → {truck.licensePlate}
-                </>
-              ) : viewType === 'drivers' && driver ? (
-                <>
-                  Choose which vehicle to use for{' '}
-                  <span className="font-semibold text-gray-900">
-                    {driver.driverName}
-                  </span>{' '}
-                  on this trip.
-                </>
-              ) : null}
-            </p>
-          )}
-        </DialogHeader>
+        {adjustingTruck && docket ? (
+          <>
+            <DialogHeader className="px-6 border-b border-gray-100 flex flex-row items-center justify-between">
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                Adjust load to use this truck
+              </DialogTitle>
+            </DialogHeader>
+            <div className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar max-h-[75vh]">
+              <p className="text-sm text-gray-500">
+                Reduce the load (same unit as on the docket: tonnes, m³, or bulk
+                bags) so it fits this truck's body and payload limits, then we
+                complete the assignment with the driver you selected.
+              </p>
 
-        {docket && viewType === 'trucks' && truck && (
-          <div className="flex flex-col">
-            <div className="px-6 pb-6">
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center shrink-0">
+                  <Package className="w-5 h-5 text-yellow-700" />
+                </div>
                 <div className="flex flex-col">
-                  <span className="text-sm text-gray-500 mb-1">Load</span>
                   <span className="font-bold text-gray-900">
-                    {docket.loadSize}{' '}
-                    {docket.productSellUom === 'M3'
-                      ? 'm³'
-                      : docket.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : docket.productSellUom || 'TN'}
+                    {docket.docketNumber}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {docket.productName} • {docket.loadSize}{' '}
+                    {docket.productSellUom}
                   </span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-500 mb-1">
-                    Truck limits
+              </div>
+
+              <div className="border-1 rounded-md p-3 bg-yellow-50 border-yellow-200">
+                <div className="flex items-start gap-2 self-stretch">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1 text-orange-800" />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[15px] text-yellow-800 font-medium">
+                      Load vs truck limits
+                    </span>
+                    <span className="text-sm text-yellow-800">
+                      <span className="font-bold">
+                        {docket.loadSize} {docket.productSellUom}
+                      </span>{' '}
+                      exceeds capacity. Truck {adjustingTruck.licensePlate}{' '}
+                      allows up to{' '}
+                      <span className="font-bold">
+                        {adjustingTruck.tankVolumeM3} m³
+                      </span>{' '}
+                      per trip. After you adjust the load, the assignment will
+                      use this truck and your chosen driver.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-blue-800 font-bold text-sm mb-1">
+                  <Truck className="w-4 h-4" />
+                  Target truck
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Registration</span>
+                  <span className="font-bold text-gray-900">
+                    {adjustingTruck.licensePlate}
                   </span>
-                  <span className="font-bold text-gray-900">6 m³ / 8 TN</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-500 mb-1">Trip fill</span>
-                  <span className="font-bold text-gray-900">75%</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Max Capacity</span>
+                  <span className="font-bold text-gray-900">
+                    {adjustingTruck.tankVolumeM3} m³
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <div className="px-6 pb-6">
-              <div className="flex flex-col gap-3">
-                {truck.drivers?.map((d, index) => (
-                  <div
-                    key={d.id ?? d.driverName}
-                    onClick={() => {
-                      if (d.id != null) onAssign(d.id);
-                    }}
-                    className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                      index === 0
-                        ? 'border-purple-400 bg-white'
-                        : 'border-gray-200 bg-white hover:border-purple-300'
-                    }`}
-                  >
-                    <span className="font-bold text-gray-900 text-[15px]">
-                      {d.driverName}
-                    </span>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-md">
-                      AVAILABLE
-                    </span>
-                  </div>
-                ))}
-                {(!truck.drivers || truck.drivers.length === 0) && (
-                  <div className="text-center text-gray-500 text-sm py-8 border border-dashed rounded-xl">
-                    No drivers found for this truck.
-                  </div>
-                )}
+              <div className="border border-gray-200 bg-purple-50/50 rounded-xl p-4 flex flex-col gap-2">
+                <label className="text-[11px] font-bold text-gray-500 tracking-wider uppercase">
+                  NEW LOAD ({docket.productSellUom})
+                </label>
+                <Input
+                  type="number"
+                  defaultValue={Math.floor(
+                    (adjustingTruck.tankVolumeM3 || 0) *
+                      (docket.productDensity || 1),
+                  )}
+                  className="bg-white"
+                />
+                <span className="text-xs text-gray-500">
+                  Enter up to{' '}
+                  {Math.floor(
+                    (adjustingTruck.tankVolumeM3 || 0) *
+                      (docket.productDensity || 1),
+                  )}{' '}
+                  {docket.productSellUom} for this truck.
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-2">
+                <span className="font-bold text-gray-900 text-sm">
+                  When you continue:
+                </span>
+                <ul className="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                  <li>
+                    The docket load amount and display label are updated to the
+                    value you enter (unit unchanged)
+                  </li>
+                  <li>
+                    Your assignment continues (driver selection or drop target)
+                    using the adjusted load
+                  </li>
+                </ul>
               </div>
             </div>
-
-            <div className="px-6 py-4 bg-white border-t border-gray-100 flex justify-end">
+            <div className="p-5 bg-white border-t border-gray-100 grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                onClick={onCancel}
+                onClick={() => setAdjustingTruck(null)}
                 className="px-6 rounded-lg font-medium"
               >
                 Cancel
               </Button>
+              <Button
+                variant="default"
+                className="px-6 rounded-lg font-medium bg-blue-600 hover:bg-blue-700"
+                disabled
+              >
+                Adjust load and continue
+              </Button>
             </div>
-          </div>
-        )}
+          </>
+        ) : (
+          <>
+            <DialogHeader className="px-6 pt-6 pb-4">
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                {viewType === 'trucks' ? 'Select Driver' : 'Select truck'}
+              </DialogTitle>
+              {docket && (
+                <p className="text-gray-500 text-sm mt-1">
+                  {viewType === 'trucks' && truck ? (
+                    <>
+                      {docket.docketNumber} → {truck.licensePlate}
+                    </>
+                  ) : viewType === 'drivers' && driver ? (
+                    <>
+                      Choose which vehicle to use for{' '}
+                      <span className="font-semibold text-gray-900">
+                        {driver.driverName}
+                      </span>{' '}
+                      on this trip.
+                    </>
+                  ) : null}
+                </p>
+              )}
+            </DialogHeader>
 
-        {docket && viewType === 'drivers' && driver && (
-          <div className="flex flex-col">
-            <div className="px-6 pb-6">
-              <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                    <ClipboardList className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 text-[15px]">
-                      {docket.docketNumber}
-                    </span>
-                    <span className="text-gray-500 text-sm">
-                      {docket.customerName || 'Unknown Customer'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-bold text-gray-500 tracking-wider">
-                    LOAD
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-bold text-xl text-gray-900">
-                      {docket.loadSize}
-                    </span>
-                    <span className="font-bold text-gray-900">
-                      {docket.productSellUom === 'M3'
-                        ? 'm³'
-                        : docket.productSellUom === 'KG_20'
-                          ? 'x 20kg'
-                          : docket.productSellUom || 'TN'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100 bg-white">
-              <div className="px-6 py-4">
-                <div className="flex flex-col gap-1 mb-4">
-                  <span className="text-[11px] font-bold text-gray-500 tracking-wider">
-                    FLEET
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    Highest body fill first (best trip efficiency). Over-volume
-                    trucks are listed last.
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
-                  {driver.trucks?.map((t, index) => (
-                    <div
-                      key={t.id ?? t.licensePlate}
-                      onClick={() => {
-                        if (t.id != null) onAssign(t.id);
-                      }}
-                      className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${
-                        index === 0
-                          ? 'border-green-400 bg-green-50/30 hover:bg-green-50/50'
-                          : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
-                          <Truck className="w-5 h-5 text-gray-600" />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-gray-900 text-[15px]">
-                              {t.licensePlate}
-                            </span>
-                            <TableBadges
-                              names={[t.businessType || 'INTERNAL']}
-                            />
-                            {index === 0 && (
-                              <span className="px-2 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded">
-                                BEST FIT
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[13px] text-gray-600">
-                            Capacity: {t.tankVolumeM3} m³
-                          </span>
-                          <span className="text-xs font-medium text-green-700 mt-0.5">
-                            This load:{' '}
-                            {index === 0
-                              ? '75%'
-                              : index === 1
-                                ? '40%'
-                                : index === 2
-                                  ? '21%'
-                                  : '18%'}{' '}
-                            of the tighter truck limit (body or payload)
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-purple-600 text-sm font-medium">
-                        Select
+            {docket && viewType === 'trucks' && truck && (
+              <div className="flex flex-col">
+                <div className="px-6 pb-6">
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 mb-1">Load</span>
+                      <span className="font-bold text-gray-900">
+                        {docket.loadSize}{' '}
+                        {docket.productSellUom === 'M3'
+                          ? 'm³'
+                          : docket.productSellUom === 'KG_20'
+                            ? 'x 20kg'
+                            : docket.productSellUom || 'TN'}
                       </span>
                     </div>
-                  ))}
-                  {(!driver.trucks || driver.trucks.length === 0) && (
-                    <div className="text-center text-gray-500 text-sm py-8 border border-dashed rounded-xl">
-                      No trucks found for this driver.
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 mb-1">
+                        Truck limits
+                      </span>
+                      <span className="font-bold text-gray-900">
+                        6 m³ / 8 TN
+                      </span>
                     </div>
-                  )}
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500 mb-1">
+                        Trip fill
+                      </span>
+                      <span className="font-bold text-gray-900">75%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 pb-6">
+                  <div className="flex flex-col gap-3">
+                    {truck.drivers?.map((d, index) => (
+                      <div
+                        key={d.id ?? d.driverName}
+                        onClick={() => {
+                          if (d.id != null) onAssign(d.id);
+                        }}
+                        className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                          index === 0
+                            ? 'border-purple-400 bg-white'
+                            : 'border-gray-200 bg-white hover:border-purple-300'
+                        }`}
+                      >
+                        <span className="font-bold text-gray-900 text-[15px]">
+                          {d.driverName}
+                        </span>
+                        <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-md">
+                          AVAILABLE
+                        </span>
+                      </div>
+                    ))}
+                    {(!truck.drivers || truck.drivers.length === 0) && (
+                      <div className="text-center text-gray-500 text-sm py-8 border border-dashed rounded-xl">
+                        No drivers found for this truck.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="px-6 py-4 bg-white border-t border-gray-100 flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={onCancel}
+                    className="px-6 rounded-lg font-medium"
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </div>
+            )}
 
-              <div className="px-6 py-4 bg-white border-t border-gray-100 flex justify-end">
-                <Button
-                  variant="outline"
-                  onClick={onCancel}
-                  className="px-6 rounded-lg font-medium"
-                >
-                  Cancel
-                </Button>
+            {docket && viewType === 'drivers' && driver && (
+              <div className="flex flex-col">
+                <div className="px-6 pb-6">
+                  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                        <ClipboardList className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-gray-900 text-[15px]">
+                          {docket.docketNumber}
+                        </span>
+                        <span className="text-gray-500 text-sm">
+                          {docket.customerName || 'Unknown Customer'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] font-bold text-gray-500 tracking-wider">
+                        LOAD
+                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-bold text-xl text-gray-900">
+                          {docket.loadSize}
+                        </span>
+                        <span className="font-bold text-gray-900">
+                          {docket.productSellUom === 'M3'
+                            ? 'm³'
+                            : docket.productSellUom === 'KG_20'
+                              ? 'x 20kg'
+                              : docket.productSellUom || 'TN'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 bg-white">
+                  <div className="px-6 py-4">
+                    <div className="flex flex-col gap-1 mb-4">
+                      <span className="text-[11px] font-bold text-gray-500 tracking-wider">
+                        FLEET
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Highest body fill first (best trip efficiency).
+                        Over-volume trucks are listed last.
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
+                      {trucksWithStats.map((t, index) => (
+                        <div
+                          key={t.id ?? t.licensePlate}
+                          onClick={() => {
+                            if (t.isOverVolume) {
+                              setAdjustingTruck(t);
+                            } else if (t.id != null) {
+                              onAssign(t.id);
+                            }
+                          }}
+                          className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${
+                            t.isOverVolume
+                              ? 'border-yellow-200 bg-yellow-50/30 hover:bg-yellow-50/50'
+                              : index === 0
+                                ? 'border-green-400 bg-green-50/30 hover:bg-green-50/50'
+                                : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
+                                t.isOverVolume
+                                  ? 'bg-yellow-100 border-yellow-200'
+                                  : 'bg-gray-50 border-gray-100'
+                              }`}
+                            >
+                              <Truck
+                                className={`w-5 h-5 ${t.isOverVolume ? 'text-yellow-700' : 'text-gray-600'}`}
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-900 text-[15px]">
+                                  {t.licensePlate}
+                                </span>
+                                <TableBadges
+                                  names={[t.businessType || 'INTERNAL']}
+                                />
+                                {!t.isOverVolume && index === 0 && (
+                                  <span className="px-2 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded">
+                                    BEST FIT
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[13px] text-gray-600">
+                                Capacity: {t.tankVolumeM3} m³
+                              </span>
+                              {t.isOverVolume ? (
+                                <span className="text-xs font-medium text-red-700 mt-0.5">
+                                  Does not fit — {docket.loadSize}{' '}
+                                  {docket.productSellUom} exceeds capacity
+                                </span>
+                              ) : (
+                                <span className="text-xs font-medium text-green-700 mt-0.5">
+                                  This load: {Math.round(t.fillPct)}% of the
+                                  tighter truck limit (body or payload)
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {t.isOverVolume ? (
+                            <div className="flex flex-col items-end gap-1">
+                              <span className="px-2 py-0.5 bg-red-100 text-red-800 text-[10px] font-bold rounded uppercase">
+                                OVER VOLUME
+                              </span>
+                              <span className="text-xs text-yellow-800 font-medium">
+                                Tap to adjust load
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-purple-600 text-sm font-medium">
+                              Select
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                      {(!driver.trucks || driver.trucks.length === 0) && (
+                        <div className="text-center text-gray-500 text-sm py-8 border border-dashed rounded-xl">
+                          No trucks found for this driver.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="px-6 py-4 bg-white border-t border-gray-100 flex justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={handleCancel}
+                      className="px-6 rounded-lg font-medium"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
       </DialogContent>
     </Dialog>

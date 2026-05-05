@@ -95,7 +95,7 @@ export interface DocketDTO {
   pickUpAddress: Partial<Address>;
   deliveryAddressId: number;
   deliveryAddress: Partial<Address>;
-  deliveryCollectionDate: Date;
+  deliveryCollectionDate: string;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   customerContactName: string;
@@ -300,13 +300,19 @@ export interface DispatchAssignedDocket {
   id: number;
   docketNumber: string;
   docketStatus: DOCKET_STATUS;
+  deliveryCollectionDate?: string;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   customerName: string;
-  pickUpAddress: string;
-  deliveryAddress: string;
+  pickUpSuburb: string;
+  pickUpState: string;
+  deliverySuburb: string;
+  productDensity: number;
+  deliveryState: string;
   productSellUom: string;
 }
 
@@ -314,13 +320,19 @@ export interface DispatchUnassignedDocket {
   id: number;
   docketNumber: string;
   docketStatus: DOCKET_STATUS;
+  deliveryCollectionDate?: string;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   customerName: string;
-  pickUpAddress: string;
-  deliveryAddress: string;
+  pickUpSuburb: string;
+  pickUpState: string;
+  productDensity: number;
+  deliverySuburb: string;
+  deliveryState: string;
   productSellUom: string;
 }
 
