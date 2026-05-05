@@ -52,6 +52,9 @@ export interface CustomerDTO {
 
   accSoftwareContactId?: string | null;
   accSoftwareNotes?: string;
+  lastAccSoftwareSyncDirection?: string | null;
+  lastAccSoftwareSyncStatus?: string | null;
+  lastSyncedAt?: string | null;
 }
 
 export interface CustomerWithAddressResponseDTO {
