@@ -9,5 +9,5 @@ export interface XeroStatusResponseDTO {
 }
 
 export interface XeroConnectResponseDTO {
-  url: string;
+  authorizeUrl: string;
 }

@@ -29,8 +29,8 @@ export function useXeroIntegrationActions() {
     connectXero.mutate(attributes?.email ?? '', {
       onSuccess: (data) => {
         setShowConnectModal(false);
-        if (data?.url) {
-          window.open(data.url, '_blank');
+        if (data?.authorizeUrl) {
+          window.open(data.authorizeUrl, '_blank');
         }
         refetchStatus();
       },
