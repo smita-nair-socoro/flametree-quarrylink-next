@@ -57,13 +57,13 @@ const Base = z.object({
           const url = new URL(candidate);
           // Require a hostname with a TLD
           return Boolean(
-            url.hostname && /\.[A-Za-z]{2,63}$/.test(url.hostname)
+            url.hostname && /\.[A-Za-z]{2,63}$/.test(url.hostname),
           );
         } catch {
           return false;
         }
       },
-      { message: 'Invalid website URL' }
+      { message: 'Invalid website URL' },
     ),
   email: EmailRequired,
   phone: PhoneRequired,
@@ -111,7 +111,7 @@ export const QuarrySupplierFormSchema = Base.superRefine((data, ctx) => {
       code: z.ZodIssueCode.custom,
       message: 'Maximum 256 characters',
     });
-  } else if (!/^[a-zA-Z0-9\s,.&-]+$/.test(data.name)) {
+  } else if (!/^[a-zA-Z0-9\s,.&-']+$/.test(data.name)) {
     ctx.addIssue({
       path: ['name'],
       code: z.ZodIssueCode.custom,

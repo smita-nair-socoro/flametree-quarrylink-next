@@ -8,11 +8,17 @@ import {
   Unplug,
   CircleUser,
 } from 'lucide-react';
+import { useConnectXero, useXeroStatus } from '@/lib/api/xero';
+import { useAuth } from '@/hooks/use-auth';
 
 export function useXeroIntegrationActions() {
-  const [isConnected, setIsConnected] = React.useState(true);
+  const { attributes } = useAuth();
+  const { data: xeroStatus, refetch: refetchStatus } = useXeroStatus();
+  const isConnected = xeroStatus?.connected ?? false;
   const [showConnectModal, setShowConnectModal] = React.useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = React.useState(false);
+
+  const connectXero = useConnectXero();
 
   const actions = {
     connect: () => setShowConnectModal(true),
@@ -20,12 +26,18 @@ export function useXeroIntegrationActions() {
   };
 
   const handleConnect = () => {
-    setIsConnected(true);
-    setShowConnectModal(false);
+    connectXero.mutate(attributes?.email ?? '', {
+      onSuccess: (data) => {
+        setShowConnectModal(false);
+        if (data?.authorizeUrl) {
+          window.open(data.authorizeUrl, '_blank');
+        }
+        refetchStatus();
+      },
+    });
   };
 
   const handleDisconnect = () => {
-    setIsConnected(false);
     setShowDisconnectModal(false);
   };
 
@@ -71,6 +83,7 @@ export function useXeroIntegrationActions() {
       confirmCustomColor="#13B5EA"
       confirmCustomClass="flex-row-reverse"
       confirmIcon={<ArrowRight className="w-4 h-4" />}
+      confirmDisabled={connectXero.isPending}
       onConfirmAction={handleConnect}
     />
   );

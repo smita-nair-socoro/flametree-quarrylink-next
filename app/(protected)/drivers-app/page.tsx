@@ -4,6 +4,11 @@ import * as React from 'react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
+import {
+  DriverChecklistTemplateQueryOptions,
+  TruckChecklistTemplateQueryOptions,
+} from '@/lib/api/checklist';
+import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
@@ -16,20 +21,54 @@ import { useAuth } from '@/hooks/use-auth';
 
 export default function DriversAppPage() {
   const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
-  const [checklistType, setChecklistType] = useState<'pre-start' | 'vehicle-inspection'>('pre-start');
-  const [checklistTruckLicensePlate, setChecklistTruckLicensePlate] = useState<string | undefined>();
+  const [checklistType, setChecklistType] = useState<
+    'pre-start' | 'vehicle-inspection'
+  >('pre-start');
+  const [checklistTruckLicensePlate, setChecklistTruckLicensePlate] = useState<
+    string | undefined
+  >();
+  const [checklistDocketId, setChecklistDocketId] = useState<
+    number | undefined
+  >();
+  const [checklistTruckId, setChecklistTruckId] = useState<
+    number | undefined
+  >();
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
   const router = useRouter();
 
-  const { data: dockets = [] } = useQuery(DriverAppAssignedDocketsQueryOptions());
+  const { data: dockets = [] } = useQuery(
+    DriverAppAssignedDocketsQueryOptions(),
+  );
+
+  const setDriverTemplate = useChecklistTemplateStore(
+    (s) => s.setDriverTemplate,
+  );
+  const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
+
+  const { data: driverTemplate } = useQuery(
+    DriverChecklistTemplateQueryOptions(),
+  );
+  const { data: truckTemplate } = useQuery(
+    TruckChecklistTemplateQueryOptions(),
+  );
+
+  React.useEffect(() => {
+    if (driverTemplate) setDriverTemplate(driverTemplate);
+  }, [driverTemplate, setDriverTemplate]);
+
+  React.useEffect(() => {
+    if (truckTemplate) setTruckTemplate(truckTemplate);
+  }, [truckTemplate, setTruckTemplate]);
 
   const isDailyChecklistRequired = React.useMemo(() => {
     const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
     if (!lastCompleted) return true;
     const todayUTCDateStr = new Date().toISOString().split('T')[0];
-    const lastCompletedDateStr = new Date(lastCompleted).toISOString().split('T')[0];
+    const lastCompletedDateStr = new Date(lastCompleted)
+      .toISOString()
+      .split('T')[0];
     return todayUTCDateStr !== lastCompletedDateStr;
   }, [dockets]);
 
@@ -45,7 +84,7 @@ export default function DriversAppPage() {
   return (
     <div className="flex h-screen">
       <div className="w-full shadow-xl bg-white h-full flex flex-col relative">
-        <div className="`overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex-1 overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {activeTab !== 'calendar' && (
             <div className="flex flex-col px-6 pt-6 pb-4 shadow-sm  border-b border-gray-100 gap-1 bg-white">
               <div className="flex items-center justify-between">
@@ -64,10 +103,13 @@ export default function DriversAppPage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <span className="text-[14px] text-[#64748B]">Welcome back,</span>
+                <span className="text-[14px] text-[#64748B]">
+                  Welcome back,
+                </span>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[18px] font-bold text-[#0F172A]">{userName}</span>
-                  <span className="text-[12px] text-gray-400 font-medium">ID: DRV-001</span>
+                  <span className="text-[18px] font-bold text-[#0F172A]">
+                    {userName}
+                  </span>
                 </div>
               </div>
 
@@ -75,15 +117,26 @@ export default function DriversAppPage() {
                 <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
                   <FileText className="h-[16px] w-[16px] text-gray-600" />
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[14px] font-bold text-[#0F172A] leading-none">3</span>
-                    <span className="text-[12px] text-[#64748B] font-medium leading-none">Assigned</span>
+                    <span className="text-[14px] font-bold text-[#0F172A] leading-none">
+                      {dockets.length}
+                    </span>
+                    <span className="text-[12px] text-[#64748B] font-medium leading-none">
+                      Assigned
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-2 bg-[#F1F5F9] w-[117px] h-[32px] px-3 rounded-lg border border-gray-100">
                   <StopCircleIcon className="h-[16px] w-[16px] text-gray-600" />
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-[14px] font-bold text-[#0F172A] leading-none">0</span>
-                    <span className="text-[13px] text-[#64748B] font-medium leading-none">Stopped</span>
+                    <span className="text-[14px] font-bold text-[#0F172A] leading-none">
+                      {
+                        dockets.filter((d) => d.docketStatus === 'STOPPED')
+                          .length
+                      }
+                    </span>
+                    <span className="text-[13px] text-[#64748B] font-medium leading-none">
+                      Stopped
+                    </span>
                   </div>
                 </div>
               </div>
@@ -96,7 +149,9 @@ export default function DriversAppPage() {
               <div className="mx-4 mt-4 p-4 rounded-xl border border-[#B9F8CF] bg-[#F0FDF4] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Info className="h-5 w-5 text-green-600" />
-                  <span className="text-[15px] font-medium text-green-700">Daily Checklist Required</span>
+                  <span className="text-[15px] font-medium text-green-700">
+                    Daily Checklist Required
+                  </span>
                 </div>
                 <Button
                   variant="outline"
@@ -104,6 +159,9 @@ export default function DriversAppPage() {
                   size="xs"
                   onClick={() => {
                     setChecklistType('pre-start');
+                    setChecklistTruckLicensePlate(undefined);
+                    setChecklistDocketId(undefined);
+                    setChecklistTruckId(undefined);
                     setIsChecklistPromptOpen(true);
                   }}
                 >
@@ -115,14 +173,21 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
-                onOpenChecklist={(type, truckLicensePlate) => {
+                onOpenChecklist={(
+                  type,
+                  truckLicensePlate,
+                  docketId,
+                  truckId,
+                ) => {
                   setChecklistType(type);
                   setChecklistTruckLicensePlate(truckLicensePlate);
+                  setChecklistDocketId(docketId);
+                  setChecklistTruckId(truckId);
                   setIsChecklistPromptOpen(true);
                 }}
               />
             )}
-            {activeTab === 'calendar' && <CalendarTab />}
+            {activeTab === 'calendar' && <CalendarTab dockets={dockets} />}
           </div>
         </div>
 
@@ -132,20 +197,36 @@ export default function DriversAppPage() {
             <button
               onClick={() => setActiveTab('dockets')}
               className={cn(
-                "flex flex-col items-center gap-1",
-                activeTab === 'dockets' ? "text-[#8E51FF]" : "text-gray-400 hover:text-gray-600"
+                'flex flex-col items-center gap-1',
+                activeTab === 'dockets'
+                  ? 'text-[#8E51FF]'
+                  : 'text-gray-400 hover:text-gray-600',
               )}
             >
-              <div className={cn(
-                "p-2 rounded-md transition-colors",
-                activeTab === 'dockets' ? "bg-[#F3E8FF]" : "bg-transparent"
-              )}>
-                <FileText className={cn("h-[20px] w-[20px]", activeTab === 'dockets' ? "text-[#8E51FF]" : "text-gray-400")} strokeWidth={2.5} />
+              <div
+                className={cn(
+                  'p-2 rounded-md transition-colors',
+                  activeTab === 'dockets' ? 'bg-[#F3E8FF]' : 'bg-transparent',
+                )}
+              >
+                <FileText
+                  className={cn(
+                    'h-[20px] w-[20px]',
+                    activeTab === 'dockets'
+                      ? 'text-[#8E51FF]'
+                      : 'text-gray-400',
+                  )}
+                  strokeWidth={2.5}
+                />
               </div>
-              <span className={cn(
-                "text-[13px] font-semibold tracking-wide",
-                activeTab === 'dockets' ? "text-[#8E51FF] border-b-2 border-[#8E51FF]" : "text-gray-400"
-              )}>
+              <span
+                className={cn(
+                  'text-[13px] font-semibold tracking-wide',
+                  activeTab === 'dockets'
+                    ? 'text-[#8E51FF] border-b-2 border-[#8E51FF]'
+                    : 'text-gray-400',
+                )}
+              >
                 Dockets
               </span>
             </button>
@@ -155,20 +236,36 @@ export default function DriversAppPage() {
             <button
               onClick={() => setActiveTab('calendar')}
               className={cn(
-                "flex flex-col items-center gap-1",
-                activeTab === 'calendar' ? "text-[#8E51FF]" : "text-gray-400 hover:text-gray-600"
+                'flex flex-col items-center gap-1',
+                activeTab === 'calendar'
+                  ? 'text-[#8E51FF]'
+                  : 'text-gray-400 hover:text-gray-600',
               )}
             >
-              <div className={cn(
-                "p-2 rounded-md transition-colors",
-                activeTab === 'calendar' ? "bg-[#F3E8FF]" : "bg-transparent"
-              )}>
-                <Calendar className={cn("h-[20px] w-[20px]", activeTab === 'calendar' ? "text-[#8E51FF]" : "text-gray-400")} strokeWidth={2.5} />
+              <div
+                className={cn(
+                  'p-2 rounded-md transition-colors',
+                  activeTab === 'calendar' ? 'bg-[#F3E8FF]' : 'bg-transparent',
+                )}
+              >
+                <Calendar
+                  className={cn(
+                    'h-[20px] w-[20px]',
+                    activeTab === 'calendar'
+                      ? 'text-[#8E51FF]'
+                      : 'text-gray-400',
+                  )}
+                  strokeWidth={2.5}
+                />
               </div>
-              <span className={cn(
-                "text-[13px] font-semibold tracking-wide",
-                activeTab === 'calendar' ? "text-[#8E51FF] border-b-2 border-[#8E51FF]" : "text-gray-400"
-              )}>
+              <span
+                className={cn(
+                  'text-[13px] font-semibold tracking-wide',
+                  activeTab === 'calendar'
+                    ? 'text-[#8E51FF] border-b-2 border-[#8E51FF]'
+                    : 'text-gray-400',
+                )}
+              >
                 Calendar
               </span>
             </button>
@@ -182,6 +279,9 @@ export default function DriversAppPage() {
         type={checklistType}
         truckLicensePlate={checklistTruckLicensePlate}
         driverName={dockets[0]?.driver?.driverName}
+        driverId={dockets[0]?.driverId}
+        truckId={checklistTruckId}
+        docketId={checklistDocketId}
         onCompleteExternally={() => setIsChecklistPromptOpen(false)}
         onCompleteNow={() => setIsChecklistPromptOpen(false)}
       />

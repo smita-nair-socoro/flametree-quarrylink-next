@@ -178,14 +178,12 @@ export function AssignDocketDescription({
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          {docket?.loadSize != null && (
-            <>
-              <span className="font-bold">•</span>
-              <span>
-                {docket.loadSize} {docket.jobItem?.productSellUom}
-              </span>
-            </>
-          )}
+          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
+          <span className="font-bold">•</span>
+          <span>
+            {docket?.actualLoadSize || docket?.plannedLoadSize}
+            {docket?.jobItem?.productSellUom}
+          </span>
         </div>
       </div>
     </div>
@@ -210,7 +208,7 @@ export function AssignDocketContent({
     ...HaulierDriversQueryOptions(haulerSelection ?? 0),
     enabled: !!haulerSelection && !!truckSelection,
   });
-  const tenantName = useClientStore((state) => state.getTenantName());
+  const businessName = useClientStore((state) => state.getBusinessName());
   const [haulerOpen, setHaulerOpen] = React.useState(false);
 
   const allDockets: DocketDTO[] = React.useMemo(() => {
@@ -272,16 +270,16 @@ export function AssignDocketContent({
   }, [availableTrucks, availableDrivers, docket?.deliveryCollectionDate]);
 
   const internalOptions = React.useMemo(() => {
-    const h = hauliers.find((h) => h.haulierName === tenantName);
+    const h = hauliers.find((h) => h.haulierName === businessName);
     return h ? [{ label: `${h.haulierName} (Internal)`, value: h.id }] : [];
-  }, [hauliers, tenantName]);
+  }, [hauliers, businessName]);
 
   const externalOptions = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== tenantName)
+        .filter((h) => h.haulierName !== businessName)
         .map((h) => ({ label: h.haulierName, value: h.id })),
-    [hauliers, tenantName],
+    [hauliers, businessName],
   );
 
   const selectedHaulerLabel = [...internalOptions, ...externalOptions].find(
@@ -293,7 +291,11 @@ export function AssignDocketContent({
     const density = docket?.jobItem?.product?.densityTonnagePerM3 || 1;
     const uom = docket?.jobItem?.productSellUom ?? 'M3';
     return calculateConvertedQty(loadSize, uom, 'M3', density);
-  }, [loadSize, docket?.jobItem?.product?.densityTonnagePerM3, docket?.jobItem?.productSellUom]);
+  }, [
+    loadSize,
+    docket?.jobItem?.product?.densityTonnagePerM3,
+    docket?.jobItem?.productSellUom,
+  ]);
 
   const truckColorOptions = React.useMemo((): ColorSelectOption[] => {
     if (!haulerSelection) return [];

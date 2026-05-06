@@ -45,6 +45,10 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
+import {
+  ChecklistReportModal,
+  CHECKLIST_TYPE,
+} from '@/components/checklist-report-modal';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
@@ -86,6 +90,8 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
+  const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
+  const [checklistModalType, setChecklistModalType] = React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
   const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
     typeof DocketFormSchema
   > | null>(null);
@@ -365,7 +371,9 @@ export default function DocketForm({
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
-        deliveryCollectionDate: values.deliveryCollectionDate,
+        deliveryCollectionDate: values.deliveryCollectionDate
+          ? format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000")
+          : undefined,
         deliveryCollectionStartTime: startDateTime,
         deliveryCollectionEndTime: endDateTime,
         customerContactName: values.customerContactName,
@@ -422,6 +430,20 @@ export default function DocketForm({
 
   return (
     <>
+      <ChecklistReportModal
+        open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.DRIVER}
+        onOpenChange={setChecklistModalOpen}
+        type={CHECKLIST_TYPE.DRIVER}
+        submissionId={selectedDocket?.driverChecklist?.id ?? 0}
+      />
+      <ChecklistReportModal
+        open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.TRUCK}
+        onOpenChange={setChecklistModalOpen}
+        type={CHECKLIST_TYPE.TRUCK}
+        submissionId={selectedDocket?.truckChecklist?.id ?? 0}
+        truckLicensePlate={selectedDocket?.truck?.licensePlate}
+      />
+
       <ActionDialog
         open={timeConflictOpen}
         onOpenChangeAction={setTimeConflictOpen}
@@ -1111,6 +1133,72 @@ export default function DocketForm({
                         </span>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Checklist Section */}
+              {isEditing && (selectedDocket?.driverChecklist || selectedDocket?.truckChecklist) && (
+                <div className="border rounded-md p-4 flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    <span className="text-[17px] font-medium">Checklists</span>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {selectedDocket?.driverChecklist && (
+                      <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium">Pre-Start Checklist</span>
+                          <span className={`text-xs font-semibold ${
+                            selectedDocket.driverChecklist.checklistStatus === 'PASS'
+                              ? 'text-green-600'
+                              : selectedDocket.driverChecklist.checklistStatus === 'FAIL'
+                                ? 'text-red-600'
+                                : 'text-muted-foreground'
+                          }`}>
+                            {selectedDocket.driverChecklist.checklistStatus ?? 'Pending'}
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setChecklistModalType(CHECKLIST_TYPE.DRIVER);
+                            setChecklistModalOpen(true);
+                          }}
+                        >
+                          View Report
+                        </Button>
+                      </div>
+                    )}
+                    {selectedDocket?.truckChecklist && (
+                      <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium">Truck Inspection</span>
+                          <span className={`text-xs font-semibold ${
+                            selectedDocket.truckChecklist.checklistStatus === 'PASS'
+                              ? 'text-green-600'
+                              : selectedDocket.truckChecklist.checklistStatus === 'FAIL'
+                                ? 'text-red-600'
+                                : 'text-muted-foreground'
+                          }`}>
+                            {selectedDocket.truckChecklist.checklistStatus ?? 'Pending'}
+                          </span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setChecklistModalType(CHECKLIST_TYPE.TRUCK);
+                            setChecklistModalOpen(true);
+                          }}
+                        >
+                          View Report
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

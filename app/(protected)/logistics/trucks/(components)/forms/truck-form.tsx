@@ -90,19 +90,19 @@ export default function TruckForm({
   const updateTruck = useUpdateTruck();
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const tenantName = useClientStore((state) => state.getTenantName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === tenantName);
+  const businessName = useClientStore((state) => state.getBusinessName());
+  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== tenantName)
+        .filter((h) => h.haulierName !== businessName)
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, tenantName],
+    [hauliers, businessName],
   );
 
   const isInternal = truckOwnerType === TRUCK_BUSINESS_TYPE.INTERNAL;
@@ -180,7 +180,8 @@ export default function TruckForm({
   React.useEffect(() => {
     if (isEditing && truckData) {
       const isInternalTruck =
-        truckData.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL;
+        !!truckData.haulier?.haulierName &&
+        truckData.haulier.haulierName === businessName;
       setTruckOwnerType(
         isInternalTruck
           ? TRUCK_BUSINESS_TYPE.INTERNAL
@@ -200,7 +201,7 @@ export default function TruckForm({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, truckData]);
+  }, [isEditing, truckData, businessName]);
 
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
@@ -351,7 +352,7 @@ export default function TruckForm({
                       <Input
                         value={
                           selectedHaulierInfo?.haulierName ??
-                          tenantName ??
+                          businessName ??
                           'My Company Haulier'
                         }
                         disabled
@@ -383,7 +384,7 @@ export default function TruckForm({
                     <Input
                       value={
                         internalHaulier?.haulierName ??
-                        tenantName ??
+                        businessName ??
                         'My Company Haulier'
                       }
                       disabled
@@ -565,12 +566,12 @@ export default function TruckForm({
           )}
           {isEditing ? (
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between w-full gap-2">
                 <h2 className="text-lg font-bold">Driver Assignment</h2>
                 <Button
                   type="button"
                   size="sm"
-                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
                   onClick={() => driverActions.assignDriver()}
                 >
                   Assign Drivers
@@ -586,14 +587,14 @@ export default function TruckForm({
                   {assignedDrivers.map((driver) => (
                     <div
                       key={driver.id}
-                      className="flex items-center justify-between rounded-md px-4 py-3 bg-[#F9FAFB]"
+                      className="flex items-center justify-between gap-3 rounded-md px-4 py-3 bg-[#F9FAFB]"
                     >
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm text-muted-foreground truncate">
                             {driver.licenseNumber}
                           </span>
-                          <span className="font-medium">
+                          <span className="font-medium truncate">
                             {driver.driverName}
                           </span>
                         </div>
@@ -606,7 +607,7 @@ export default function TruckForm({
                         type="button"
                         variant="destructive"
                         size="sm"
-                        className="cursor-pointer"
+                        className="cursor-pointer shrink-0"
                         onClick={() =>
                           driverActions.unassignDriver({
                             id: driver.id,
@@ -648,11 +649,13 @@ export default function TruckForm({
                 <Separator />
                 <h2 className="text-lg font-bold">Truck Inspections</h2>
               </div>
-              <DataTableClient
-                columns={inspectionColumns}
-                data={inspectionRecords}
-                searchPlaceHolder="Search by keyword..."
-              />
+              <div className="w-full overflow-x-auto">
+                <DataTableClient
+                  columns={inspectionColumns}
+                  data={inspectionRecords}
+                  searchPlaceHolder="Search by keyword..."
+                />
+              </div>
             </div>
           )}
 
@@ -665,62 +668,33 @@ export default function TruckForm({
             />
           )}
 
-          {isDesktop && (
-            <div className="flex justify-end gap-3 pt-2 mb-6">
-              <Button
-                variant="outline"
-                type="button"
-                className="cursor-pointer"
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-              <Button
-                form="truck-form"
-                type="submit"
-                disabled={isSubmitting}
-                className="cursor-pointer"
-              >
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {isSubmitting
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Truck...'
-                  : isEditing
-                    ? 'Update Truck'
-                    : 'Add Truck'}
-              </Button>
-            </div>
-          )}
-
-          {!isDesktop && (
-            <div className="flex flex-col gap-3 my-6">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {isSubmitting
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Truck...'
-                  : isEditing
-                    ? 'Update Truck'
-                    : 'Add Truck'}
-              </Button>
-              <Button
-                form="truck-form"
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                disabled={isSubmitting}
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
+          <div className="flex flex-wrap justify-end gap-3 pt-2 mb-6">
+            <Button
+              variant="outline"
+              type="button"
+              className="cursor-pointer flex-1 sm:flex-none"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              form="truck-form"
+              type="submit"
+              disabled={isSubmitting}
+              className="cursor-pointer flex-1 sm:flex-none"
+            >
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {isSubmitting
+                ? isEditing
+                  ? 'Saving Changes...'
+                  : 'Adding Truck...'
+                : isEditing
+                  ? 'Update Truck'
+                  : 'Add Truck'}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

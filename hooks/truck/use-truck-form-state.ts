@@ -12,15 +12,15 @@ export function useTruckFormState(id: number | undefined, isEditing: boolean) {
   });
 
   const setSelectedTruck = useTruckStore((s) => s.setSelectedTruck);
-  const tenantName = useClientStore((s) => s.getTenantName());
+  const businessName = useClientStore((s) => s.getBusinessName());
 
-  // Backend doesn't send truckBusinessType — derive it from haulier name vs tenant
+  // Backend doesn't send truckBusinessType — derive it from haulier name vs tenant business name
   // and push onto the store so FormDialog's secondary badge can render.
   React.useEffect(() => {
     if (!truckData?.id) return;
     const haulierName = truckData.haulier?.haulierName;
     const truckBusinessType: TRUCK_BUSINESS_TYPE =
-      haulierName && tenantName && haulierName === tenantName
+      haulierName && businessName && haulierName === businessName
         ? TRUCK_BUSINESS_TYPE.INTERNAL
         : TRUCK_BUSINESS_TYPE.EXTERNAL;
 
@@ -28,7 +28,7 @@ export function useTruckFormState(id: number | undefined, isEditing: boolean) {
     if (current?.id !== truckData.id) return;
     if (current.truckBusinessType === truckBusinessType) return;
     setSelectedTruck({ ...current, truckBusinessType });
-  }, [truckData, tenantName, setSelectedTruck]);
+  }, [truckData, businessName, setSelectedTruck]);
 
   return { truckData };
 }

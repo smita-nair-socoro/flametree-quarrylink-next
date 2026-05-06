@@ -1,32 +1,42 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { BaseChecklist, Question } from './base-checklist';
-import { TruckChecklistTemplateQueryOptions } from '@/lib/api/checklist';
+import { BaseChecklist, Question, BaseChecklistAnswer } from './base-checklist';
+import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
+import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
+import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 
 export default function TruckInspectionChecklist({
   onSubmit,
   onBack,
   truckLicensePlate,
+  truckId,
+  driverId,
+  docketId,
 }: {
   onSubmit?: () => void;
   onBack?: () => void;
   truckLicensePlate?: string;
+  truckId: number;
+  driverId?: number;
+  docketId?: number;
 }) {
-  const { data: template, isLoading } = useQuery(TruckChecklistTemplateQueryOptions());
+  const template = useChecklistTemplateStore((s) => s.truckTemplate);
+  const submitChecklist = useSubmitChecklist();
+  const isLoading = !template;
 
   const questions: Question[] = (template?.sections ?? [])
     .slice()
     .sort((a, b) => a.displayOrder - b.displayOrder)
     .flatMap((section) =>
-      section.questions
+      (section.questions ?? [])
         .slice()
         .sort((a, b) => a.displayOrder - b.displayOrder)
         .map((q) => ({
           id: String(q.id),
           text: q.questionText,
           category: section.title,
+          failOnAnswer: q.failOnAnswer,
         })),
     );
 
@@ -39,6 +49,30 @@ export default function TruckInspectionChecklist({
     );
   }
 
+  const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
+    if (!template) return;
+    const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
+    await submitChecklist.mutateAsync({
+      templateId: template.id,
+      checklistType: CHECKLIST_TYPE.TRUCK,
+      truckId,
+      driverId,
+      docketId,
+      confirmed: false,
+      answers: answers.map((a) => {
+        const failOn = failOnAnswerMap.get(a.questionId);
+        return {
+          questionId: a.questionId,
+          answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
+          failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
+          comment: a.notes?.trim() || null,
+          photos: [],
+        };
+      }),
+    });
+    onSubmit?.();
+  };
+
   return (
     <BaseChecklist
       title={template?.name ?? 'Vehicle Inspection Checklist'}
@@ -49,7 +83,7 @@ export default function TruckInspectionChecklist({
         : 'Complete vehicle inspection before starting deliveries'}
       submitButtonText="Confirm & Start Delivery"
       onBack={onBack}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       needPhotoAndDetails={true}
     />
   );

@@ -49,21 +49,21 @@ export type ResourceFilterOption = {
 };
 
 export type DispatchBoardFilterState = {
-  jobStatus: string;
+  jobStatuses: string[];
   driverIds: string[];
   driverStatuses: DRIVER_STATUS[];
-  truckBusinessType: TRUCK_BUSINESS_TYPE | null;
-  haulierId: string | null;
-  truckId: string | null;
+  truckBusinessTypes: TRUCK_BUSINESS_TYPE[];
+  haulierIds: string[];
+  truckIds: string[];
 };
 
 export const DEFAULT_DISPATCH_BOARD_FILTER: DispatchBoardFilterState = {
-  jobStatus: JOB_STATUS_FILTER_ALL,
+  jobStatuses: [],
   driverIds: [],
   driverStatuses: [],
-  truckBusinessType: null,
-  haulierId: null,
-  truckId: null,
+  truckBusinessTypes: [],
+  haulierIds: [],
+  truckIds: [],
 };
 
 type Props = {
@@ -90,8 +90,14 @@ export function DispatchDriversTrucksFilter({
   };
 
   const toggleJobStatus = (status: string) => {
+    if (status === JOB_STATUS_FILTER_ALL) {
+      setFilter({ jobStatuses: [] });
+      return;
+    }
     setFilter({
-      jobStatus: filter.jobStatus === status ? JOB_STATUS_FILTER_ALL : status,
+      jobStatuses: filter.jobStatuses.includes(status)
+        ? filter.jobStatuses.filter((s) => s !== status)
+        : [...filter.jobStatuses, status],
     });
   };
 
@@ -113,20 +119,25 @@ export function DispatchDriversTrucksFilter({
 
   const toggleTruckBusinessType = (t: TRUCK_BUSINESS_TYPE) => {
     setFilter({
-      truckBusinessType:
-        filter.truckBusinessType === t ? null : t,
+      truckBusinessTypes: filter.truckBusinessTypes.includes(t)
+        ? filter.truckBusinessTypes.filter((x) => x !== t)
+        : [...filter.truckBusinessTypes, t],
     });
   };
 
   const toggleHaulierId = (id: string) => {
     setFilter({
-      haulierId: filter.haulierId === id ? null : id,
+      haulierIds: filter.haulierIds.includes(id)
+        ? filter.haulierIds.filter((h) => h !== id)
+        : [...filter.haulierIds, id],
     });
   };
 
   const toggleTruckId = (id: string) => {
     setFilter({
-      truckId: filter.truckId === id ? null : id,
+      truckIds: filter.truckIds.includes(id)
+        ? filter.truckIds.filter((t) => t !== id)
+        : [...filter.truckIds, id],
     });
   };
 
@@ -134,9 +145,12 @@ export function DispatchDriversTrucksFilter({
     onFilterChange({ ...DEFAULT_DISPATCH_BOARD_FILTER });
   };
 
-  const jobStatusLabel =
-    JOB_STATUS_OPTIONS.find((o) => o.value === filter.jobStatus)?.label ??
-    'Status';
+  const isAllJobStatus = filter.jobStatuses.length === 0;
+  const jobStatusLabel = isAllJobStatus
+    ? 'All (Except Unassigned)'
+    : filter.jobStatuses.length === 1
+      ? JOB_STATUS_OPTIONS.find((o) => o.value === filter.jobStatuses[0])?.label
+      : `${filter.jobStatuses.length} selected`;
 
   return (
     <div className="border-b bg-white px-6 py-3 flex items-center gap-6">
@@ -150,15 +164,15 @@ export function DispatchDriversTrucksFilter({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.jobStatus !== JOB_STATUS_FILTER_ALL ? 'border-gray-300' : 'border-gray-200'}`}
+                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${!isAllJobStatus ? 'border-gray-300' : 'border-gray-200'}`}
               >
                 <Plus className="w-4 h-4 text-gray-500" />
                 <span
-                  className={`font-medium text-gray-700 ${filter.jobStatus !== JOB_STATUS_FILTER_ALL ? 'mr-1' : ''}`}
+                  className={`font-medium text-gray-700 ${!isAllJobStatus ? 'mr-1' : ''}`}
                 >
                   Status
                 </span>
-                {filter.jobStatus !== JOB_STATUS_FILTER_ALL && (
+                {!isAllJobStatus && (
                   <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[180px] truncate">
                     {jobStatusLabel}
                   </span>
@@ -169,19 +183,25 @@ export function DispatchDriversTrucksFilter({
               <Command>
                 <CommandList>
                   <CommandGroup>
-                    {JOB_STATUS_OPTIONS.map((opt) => (
-                      <CommandItem
-                        key={opt.value}
-                        onSelect={() => toggleJobStatus(opt.value)}
-                        className="flex items-center gap-2 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={filter.jobStatus === opt.value}
-                          className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                        />
-                        <span>{opt.label}</span>
-                      </CommandItem>
-                    ))}
+                    {JOB_STATUS_OPTIONS.map((opt) => {
+                      const isChecked =
+                        opt.value === JOB_STATUS_FILTER_ALL
+                          ? isAllJobStatus
+                          : filter.jobStatuses.includes(opt.value);
+                      return (
+                        <CommandItem
+                          key={opt.value}
+                          onSelect={() => toggleJobStatus(opt.value)}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                          />
+                          <span>{opt.label}</span>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 </CommandList>
               </Command>
@@ -322,21 +342,21 @@ export function DispatchDriversTrucksFilter({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.truckBusinessType ? 'border-gray-300' : 'border-gray-200'}`}
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.truckBusinessTypes.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
                     >
                       <Plus className="w-4 h-4 text-gray-500" />
                       <span
-                        className={`font-medium text-gray-700 ${filter.truckBusinessType ? 'mr-1' : ''}`}
+                        className={`font-medium text-gray-700 ${filter.truckBusinessTypes.length > 0 ? 'mr-1' : ''}`}
                       >
                         Truck type
                       </span>
-                      {filter.truckBusinessType && (
+                      {filter.truckBusinessTypes.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                          {
-                            TRUCK_BUSINESS_TYPE_OPTIONS.find(
-                              (o) => o.value === filter.truckBusinessType,
-                            )?.label
-                          }
+                          {filter.truckBusinessTypes.length === 1
+                            ? TRUCK_BUSINESS_TYPE_OPTIONS.find(
+                                (o) => o.value === filter.truckBusinessTypes[0],
+                              )?.label
+                            : `${filter.truckBusinessTypes.length} selected`}
                         </span>
                       )}
                     </button>
@@ -354,7 +374,7 @@ export function DispatchDriversTrucksFilter({
                               className="flex items-center gap-2 cursor-pointer"
                             >
                               <Checkbox
-                                checked={filter.truckBusinessType === opt.value}
+                                checked={filter.truckBusinessTypes.includes(opt.value)}
                                 className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
                               />
                               <span>{opt.label}</span>
@@ -372,18 +392,19 @@ export function DispatchDriversTrucksFilter({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierId ? 'border-gray-300' : 'border-gray-200'}`}
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
                     >
                       <Plus className="w-4 h-4 text-gray-500" />
                       <span
-                        className={`font-medium text-gray-700 ${filter.haulierId ? 'mr-1' : ''}`}
+                        className={`font-medium text-gray-700 ${filter.haulierIds.length > 0 ? 'mr-1' : ''}`}
                       >
                         Haulier
                       </span>
-                      {filter.haulierId && (
+                      {filter.haulierIds.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
-                          {haulierOptions.find((h) => h.id === filter.haulierId)
-                            ?.label ?? filter.haulierId}
+                          {filter.haulierIds.length === 1
+                            ? haulierOptions.find((h) => h.id === filter.haulierIds[0])?.label ?? filter.haulierIds[0]
+                            : `${filter.haulierIds.length} selected`}
                         </span>
                       )}
                     </button>
@@ -412,7 +433,7 @@ export function DispatchDriversTrucksFilter({
                             >
                               <div className="flex items-center gap-2">
                                 <Checkbox
-                                  checked={filter.haulierId === haulier.id}
+                                  checked={filter.haulierIds.includes(haulier.id)}
                                   className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
                                 />
                                 <span>{haulier.label}</span>
@@ -429,18 +450,19 @@ export function DispatchDriversTrucksFilter({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.truckId ? 'border-gray-300' : 'border-gray-200'}`}
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.truckIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
                     >
                       <Plus className="w-4 h-4 text-gray-500" />
                       <span
-                        className={`font-medium text-gray-700 ${filter.truckId ? 'mr-1' : ''}`}
+                        className={`font-medium text-gray-700 ${filter.truckIds.length > 0 ? 'mr-1' : ''}`}
                       >
                         Trucks
                       </span>
-                      {filter.truckId && (
+                      {filter.truckIds.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
-                          {truckOptions.find((t) => t.id === filter.truckId)
-                            ?.label ?? filter.truckId}
+                          {filter.truckIds.length === 1
+                            ? truckOptions.find((t) => t.id === filter.truckIds[0])?.label ?? filter.truckIds[0]
+                            : `${filter.truckIds.length} selected`}
                         </span>
                       )}
                     </button>
@@ -467,7 +489,7 @@ export function DispatchDriversTrucksFilter({
                             >
                               <div className="flex items-center gap-2">
                                 <Checkbox
-                                  checked={filter.truckId === truck.id}
+                                  checked={filter.truckIds.includes(truck.id)}
                                   className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
                                 />
                                 <span>{truck.label}</span>

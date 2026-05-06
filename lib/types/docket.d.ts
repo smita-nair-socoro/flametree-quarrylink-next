@@ -5,6 +5,7 @@ import { Address } from './address';
 import { DriverDTO } from './driver';
 import { CustomerDTO } from './customer';
 import { TruckDTO } from './truck';
+import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from './truck-enums';
 
 export interface Docket {
   id: number;
@@ -94,7 +95,7 @@ export interface DocketDTO {
   pickUpAddress: Partial<Address>;
   deliveryAddressId: number;
   deliveryAddress: Partial<Address>;
-  deliveryCollectionDate: Date;
+  deliveryCollectionDate: string;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   customerContactName: string;
@@ -260,6 +261,9 @@ export interface DocketDTO {
 export interface DispatchTruckResource {
   id: number;
   licensePlate: string;
+  tankVolumeM3: number;
+  truckStatus: TRUCK_STATUS;
+  truckBusinessType: TRUCK_BUSINESS_TYPE;
   drivers?: DriverDTO[];
   dockets?: DispatchAssignedDocket[];
 }
@@ -270,6 +274,8 @@ export interface DispatchBoardTruckRef {
   licensePlate: string;
   truckType?: string;
   truckStatus?: string;
+  businessType?: string;
+  tankVolumeM3?: number;
 }
 
 /** Driver row from GET scheduler/drivers */
@@ -294,13 +300,19 @@ export interface DispatchAssignedDocket {
   id: number;
   docketNumber: string;
   docketStatus: DOCKET_STATUS;
+  deliveryCollectionDate?: string;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   customerName: string;
-  pickUpAddress: string;
-  deliveryAddress: string;
+  pickUpSuburb: string;
+  pickUpState: string;
+  deliverySuburb: string;
+  productDensity: number;
+  deliveryState: string;
   productSellUom: string;
 }
 
@@ -308,13 +320,19 @@ export interface DispatchUnassignedDocket {
   id: number;
   docketNumber: string;
   docketStatus: DOCKET_STATUS;
+  deliveryCollectionDate?: string;
   deliveryCollectionStartTime: string;
   deliveryCollectionEndTime: string;
   productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
   loadSize: number;
   customerName: string;
-  pickUpAddress: string;
-  deliveryAddress: string;
+  pickUpSuburb: string;
+  pickUpState: string;
+  productDensity: number;
+  deliverySuburb: string;
+  deliveryState: string;
   productSellUom: string;
 }
 

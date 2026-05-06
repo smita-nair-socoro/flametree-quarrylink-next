@@ -20,11 +20,12 @@ import {
 } from '@/lib/api/job';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
 import {
-  extractErrorMessage,
-  extractErrorResponse,
-} from '@/lib/utils/error-message-helper';
+  centsToDollarsNum,
+  dollarsToCents,
+  roundToTwoDecimals,
+} from '@/lib/utils/currency';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { JobItem } from '@/lib/types/job';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
@@ -466,7 +467,7 @@ export function useJobLineItemFormState({
       { label: 'Flatbed', value: 'FLATBED' },
       { label: 'Tipper', value: 'TIPPER' },
       { label: 'Tandem', value: 'TANDEM' },
-      { label: 'QUAD', value: 'QUAD' },
+      { label: 'Quad', value: 'QUAD' },
       { label: 'Tri-Axle', value: 'TRI_AXLE' },
       { label: 'Tautliner', value: 'TAUTLINER' },
       { label: 'Crane Truck', value: 'CRANE_TRUCK' },
@@ -580,7 +581,7 @@ export function useJobLineItemFormState({
     const tn = toTn(qty, from, density);
     const converted = fromTn(tn, to, density);
     const roundedConverted = Number.isFinite(converted)
-      ? parseFloat(converted.toFixed(2))
+      ? roundToTwoDecimals(converted)
       : 0;
     form.setValue('productCostQty', roundedConverted, {
       shouldDirty: false,
@@ -828,7 +829,7 @@ export function useJobLineItemFormState({
     const tn = toTn(productSellQty, productSellUom, density);
     const converted = fromTn(tn, currentTruckSellUom, density);
     const roundedConverted = Number.isFinite(converted)
-      ? parseFloat(converted.toFixed(2))
+      ? roundToTwoDecimals(converted)
       : 0;
     form.setValue('truckSellQty', roundedConverted, { shouldDirty: false });
   }, [
@@ -868,7 +869,7 @@ export function useJobLineItemFormState({
     const tn = toTn(productSellQty, productSellUom, density);
     const converted = fromTn(tn, currentTruckCostUom, density);
     const roundedConverted = Number.isFinite(converted)
-      ? parseFloat(converted.toFixed(2))
+      ? roundToTwoDecimals(converted)
       : 0;
     form.setValue('truckCostQty', roundedConverted, { shouldDirty: false });
   }, [
@@ -907,24 +908,34 @@ export function useJobLineItemFormState({
   const truckSellPrice = form.watch('truckSellPrice');
   React.useEffect(() => {
     const values = form.getValues();
-    const totalProductCostPrice =
-      (values.productCostQty || 0) * (values.productCostPrice || 0);
-    const totalTruckCostPrice =
-      (values.truckCostQty || 0) * (values.truckCostPrice || 0);
-    const totalProductSellPrice =
-      (values.productSellQty || 0) * (values.productSellPrice || 0);
-    const totalTruckSellPrice =
-      (values.truckSellQty || 0) * (values.truckSellPrice || 0);
-    const costSubtotalExGST = totalProductCostPrice + totalTruckCostPrice;
-    const costGst = costSubtotalExGST * 0.1;
-    const totalCost = costSubtotalExGST + costGst;
-    const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
-    const invoiceGst = totalInvoice * 0.1;
-    const totalInvoiceInclGst = totalInvoice + invoiceGst;
+    const totalProductCostPrice = roundToTwoDecimals(
+      (values.productCostQty || 0) * (values.productCostPrice || 0),
+    );
+    const totalTruckCostPrice = roundToTwoDecimals(
+      (values.truckCostQty || 0) * (values.truckCostPrice || 0),
+    );
+    const totalProductSellPrice = roundToTwoDecimals(
+      (values.productSellQty || 0) * (values.productSellPrice || 0),
+    );
+    const totalTruckSellPrice = roundToTwoDecimals(
+      (values.truckSellQty || 0) * (values.truckSellPrice || 0),
+    );
+    const costSubtotalExGST = roundToTwoDecimals(
+      totalProductCostPrice + totalTruckCostPrice,
+    );
+    const costGst = roundToTwoDecimals(costSubtotalExGST * 0.1);
+    const totalCost = roundToTwoDecimals(costSubtotalExGST + costGst);
+    const totalInvoice = roundToTwoDecimals(
+      totalProductSellPrice + totalTruckSellPrice,
+    );
+    const invoiceGst = roundToTwoDecimals(totalInvoice * 0.1);
+    const totalInvoiceInclGst = roundToTwoDecimals(totalInvoice + invoiceGst);
     // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
-    const grossProfit = totalInvoiceInclGst - totalCost;
+    const grossProfit = roundToTwoDecimals(totalInvoiceInclGst - totalCost);
     const grossProfitPercentage =
-      totalInvoiceInclGst > 0 ? (grossProfit / totalInvoiceInclGst) * 100 : 0;
+      totalInvoiceInclGst > 0
+        ? roundToTwoDecimals((grossProfit / totalInvoiceInclGst) * 100)
+        : 0;
 
     setPricingBreakdown({
       totalProductCostPrice,

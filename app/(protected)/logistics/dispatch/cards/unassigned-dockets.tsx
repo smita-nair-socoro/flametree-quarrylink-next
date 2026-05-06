@@ -55,7 +55,10 @@ function normalizedLoadM3ForSort(docket: DispatchDocket): number {
 
 type UnassignedSortKey = 'time' | 'size' | 'customer';
 
-function matchesUnassignedSearch(docket: DispatchDocket, query: string): boolean {
+function matchesUnassignedSearch(
+  docket: DispatchDocket,
+  query: string,
+): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   const num = (docket.docketNumber || '').toLowerCase();
@@ -82,10 +85,11 @@ function DraggableDocketCard({
     <div
       ref={setNodeRef}
       onClick={onSelect}
-      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected
-        ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
-        : 'border-[#E2E8F0]'
-        } ${isDragging ? 'opacity-50' : ''}`}
+      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${
+        isSelected
+          ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
+          : 'border-[#E2E8F0]'
+      } ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Drag Handle Area */}
       <div
@@ -103,7 +107,7 @@ function DraggableDocketCard({
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {docket.loadSize}{' '}
+            {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -120,7 +124,7 @@ function DraggableDocketCard({
         <div className="">
           {activeTab === 'all_dates' && (
             <span className="px-2 py-0.5 rounded-full border border-[#E9D5FF] text-[12px] font-semibold text-[#6D28D9] bg-[#FAF5FF] whitespace-nowrap">
-              {formatDate(docket.deliveryCollectionStartTime)}
+              {formatDate(docket.deliveryCollectionDate)}
             </span>
           )}
         </div>
@@ -140,7 +144,7 @@ function DraggableDocketCard({
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.pickUpAddress}
+              {docket.pickUpSuburb}, {docket.pickUpState}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -148,7 +152,7 @@ function DraggableDocketCard({
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.deliveryAddress}
+              {docket.deliverySuburb}, {docket.deliveryState}
             </span>
           </div>
         </div>
@@ -172,7 +176,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {docket.loadSize}{' '}
+            {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -202,7 +206,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
               PICKUP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.pickUpAddress}
+              {docket.pickUpSuburb}, {docket.pickUpState}
             </span>
           </div>
           <div className="bg-[#F8FAFC] rounded-lg p-2.5 flex flex-col gap-0.5">
@@ -210,7 +214,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
               DROP
             </span>
             <span className="text-[14px] font-semibold text-[#0F172A] truncate">
-              {docket.deliveryAddress}
+              {docket.deliverySuburb}, {docket.deliveryState}
             </span>
           </div>
         </div>
@@ -244,9 +248,8 @@ export default function UnassignedDockets({
     if (!isUnassigned) return false;
 
     if (activeTab === 'this_day') {
-      // chnage to deliveryCollectionDate once we have the data
-      // const docketDate = new Date(d.deliveryCollectionDate);
-      const docketDate = new Date(d.deliveryCollectionStartTime);
+      if (!d.deliveryCollectionDate) return false;
+      const docketDate = new Date(d.deliveryCollectionDate);
       return (
         docketDate.getFullYear() === date.getFullYear() &&
         docketDate.getMonth() === date.getMonth() &&
@@ -264,11 +267,9 @@ export default function UnassignedDockets({
     const list = [...filtered];
     list.sort((a, b) => {
       let cmp = 0;
-      if (
-        activeTab === 'all_dates' &&
-        sortBy === 'customer'
-      ) {
-        cmp = dayBucketMs(a.deliveryCollectionStartTime) -
+      if (activeTab === 'all_dates' && sortBy === 'customer') {
+        cmp =
+          dayBucketMs(a.deliveryCollectionStartTime) -
           dayBucketMs(b.deliveryCollectionStartTime);
         if (cmp !== 0) return cmp;
       }
@@ -279,8 +280,7 @@ export default function UnassignedDockets({
             parseCollectionStartMs(b.deliveryCollectionStartTime);
           break;
         case 'size':
-          cmp =
-            normalizedLoadM3ForSort(a) - normalizedLoadM3ForSort(b);
+          cmp = normalizedLoadM3ForSort(a) - normalizedLoadM3ForSort(b);
           break;
         case 'customer':
           cmp = (a.customerName || '').localeCompare(
@@ -331,19 +331,21 @@ export default function UnassignedDockets({
         <div className="flex w-full rounded-lg border border-[#FDE68A] bg-[#FEFCE8]/30">
           <button
             onClick={() => setActiveTab('this_day')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
-              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-              : 'text-[#B45309] hover:bg-[#FEFCE8]'
-              }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
+              activeTab === 'this_day'
+                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+                : 'text-[#B45309] hover:bg-[#FEFCE8]'
+            }`}
           >
             This day
           </button>
           <button
             onClick={() => setActiveTab('all_dates')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
-              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-              : 'text-[#B45309] hover:bg-[#FEFCE8]'
-              }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
+              activeTab === 'all_dates'
+                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+                : 'text-[#B45309] hover:bg-[#FEFCE8]'
+            }`}
           >
             All dates
           </button>
@@ -351,7 +353,8 @@ export default function UnassignedDockets({
 
         {activeTab === 'all_dates' && (
           <p className="text-[13px] text-[#64748B] leading-relaxed">
-            Sorted by date, then by your sort option. Dragging onto the board schedules on{' '}
+            Sorted by date, then by your sort option. Dragging onto the board
+            schedules on{' '}
             <span className="font-bold text-[#0F172A]">
               {format(date, 'EEEE, d MMMM yyyy')}
             </span>

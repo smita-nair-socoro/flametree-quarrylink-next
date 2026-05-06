@@ -1,6 +1,6 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { DriverKeys } from './keys';
+import { DriverKeys, UserKeys } from './keys';
 import type { DriverDTO, PutDriverDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO } from '../types/driver';
 
 export const DriversListQueryOptions = () =>
@@ -42,6 +42,9 @@ export const useCreateDriver = () => {
     mutationFn: (data: DriverDTO) => APIClient.drivers.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
+      // TEMP: Invalidate users list so the email→sub map stays fresh for
+      // resend invitation. Remove once backend adds userSub to DriverDTO.
+      queryClient.invalidateQueries({ queryKey: UserKeys.list() });
     },
   });
 };

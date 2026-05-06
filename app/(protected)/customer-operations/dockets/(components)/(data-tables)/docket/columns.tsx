@@ -40,7 +40,12 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Type" />;
     },
     cell: ({ row }) => {
-      return <TableBadges names={[row.original.jobItem?.jobItemType]} visibleCount={1} />;
+      return (
+        <TableBadges
+          names={[row.original.jobItem?.jobItemType]}
+          visibleCount={1}
+        />
+      );
     },
     meta: 'Type',
   },
@@ -141,12 +146,16 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'loadSize',
-    accessorFn: (row) => row.plannedLoadSize ?? row.loadSize,
+    accessorFn: (row) =>
+      row.plannedLoadSize ?? row.actualLoadSize ?? row.loadSize,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quantity" />;
     },
     cell: ({ row }) => {
-      const loadSize = row.original.plannedLoadSize ?? row.original.loadSize;
+      const loadSize =
+        row.original.plannedLoadSize ??
+        row.original.actualLoadSize ??
+        row.original.loadSize;
       const productUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productUom === 'TN'

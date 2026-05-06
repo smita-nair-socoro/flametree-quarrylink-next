@@ -84,19 +84,49 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
   ) => {
     const [displayValue, setDisplayValue] = React.useState('');
 
+    const isFocused = React.useRef(false);
+
     // Initialize display value
     React.useEffect(() => {
-      const stringValue = String(value || '');
+      const stringValue = String(value ?? '');
 
       if (type === 'abn') {
+        if (isFocused.current) {
+          const newRaw = stringValue.replace(/\D/g, '').slice(0, 11);
+          const currentRaw = displayValue.replace(/\D/g, '').slice(0, 11);
+          if (newRaw === currentRaw) return;
+        }
         setDisplayValue(formatABN(stringValue));
       } else {
-        // Remove non-numeric characters
-        // " $1,234.50 abc " -> "1234.50"
-        const cleanValue = stringValue.replace(/[^\d.-]/g, '');
+        let cleanValue = stringValue.replace(/[^\d.-]/g, '');
+
+        if (isFocused.current) {
+          const newNumeric = parseFloat(cleanValue);
+          const currentNumeric = parseFloat(
+            displayValue.replace(/[^\d.-]/g, ''),
+          );
+
+          // If the parent value matches our current numeric value, don't reformat
+          // This allows users to type decimals like "122." without it jumping to "122.00"
+          if (
+            (isNaN(newNumeric) && isNaN(currentNumeric)) ||
+            newNumeric === currentNumeric
+          ) {
+            return;
+          }
+        }
+
+        if (cleanValue !== '' && decimalPlaces !== false) {
+          const num = parseFloat(cleanValue);
+          if (!isNaN(num)) {
+            cleanValue = num.toFixed(decimalPlaces);
+          }
+        }
+
         setDisplayValue(formatNumber(cleanValue, thousandSeparator));
       }
-    }, [value, type, thousandSeparator]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value, type, thousandSeparator, decimalPlaces]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
@@ -135,6 +165,28 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
       onChange?.(e);
     };
 
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      isFocused.current = true;
+      props.onFocus?.(e);
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      isFocused.current = false;
+      if (type !== 'abn' && decimalPlaces !== false && displayValue !== '') {
+        const cleanValue = displayValue.replace(/[^\d.-]/g, '');
+        const numericValue = parseFloat(cleanValue);
+        if (!isNaN(numericValue)) {
+          setDisplayValue(
+            formatNumber(
+              numericValue.toFixed(decimalPlaces),
+              thousandSeparator,
+            ),
+          );
+        }
+      }
+      props.onBlur?.(e);
+    };
+
     // Set appropriate inputMode for mobile keyboards
     const getInputMode =
       (): React.HTMLAttributes<HTMLInputElement>['inputMode'] => {
@@ -155,6 +207,8 @@ const InputMask = React.forwardRef<HTMLInputElement, InputMaskProps>(
       ref,
       value: displayValue,
       onChange: handleChange,
+      onFocus: handleFocus,
+      onBlur: handleBlur,
       inputMode: getInputMode(),
       className: cn(prefix || suffix ? '' : '', className),
     };

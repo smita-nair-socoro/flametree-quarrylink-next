@@ -216,8 +216,11 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-0 h-full p-1.5 transition-colors ${isOver ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80' : 'bg-transparent'
-        }`}
+      className={`min-h-0 h-full p-1.5 transition-colors ${
+        isOver
+          ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
+          : 'bg-transparent'
+      }`}
     >
       {children}
     </div>
@@ -227,34 +230,118 @@ function DroppableSlot({
 const getStatusColors = (status?: string) => {
   switch (status) {
     case 'UNASSIGNED':
-      return { bg: 'bg-white', border: 'border-gray-300', text: 'text-gray-900', textMuted: 'text-gray-600', handleBg: 'bg-gray-50' };
+      return {
+        bg: 'bg-white',
+        border: 'border-gray-300',
+        text: 'text-gray-900',
+        textMuted: 'text-gray-600',
+        handleBg: 'bg-gray-50',
+      };
     case 'PENDING':
-      return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', textMuted: 'text-yellow-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-300',
+        text: 'text-yellow-900',
+        textMuted: 'text-yellow-700',
+        handleBg: 'bg-white/60',
+      };
     case 'PREPARING':
-      return { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-900', textMuted: 'text-blue-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-blue-50',
+        border: 'border-blue-300',
+        text: 'text-blue-900',
+        textMuted: 'text-blue-700',
+        handleBg: 'bg-white/60',
+      };
     case 'READY':
-      return { bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-900', textMuted: 'text-pink-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-pink-50',
+        border: 'border-pink-300',
+        text: 'text-pink-900',
+        textMuted: 'text-pink-700',
+        handleBg: 'bg-white/60',
+      };
     case 'COLLECTED':
-      return { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-900', textMuted: 'text-green-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-green-50',
+        border: 'border-green-300',
+        text: 'text-green-900',
+        textMuted: 'text-green-700',
+        handleBg: 'bg-white/60',
+      };
     case 'ASSIGNED':
-      return { bg: 'bg-cyan-50', border: 'border-cyan-300', text: 'text-cyan-900', textMuted: 'text-cyan-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-cyan-50',
+        border: 'border-cyan-300',
+        text: 'text-cyan-900',
+        textMuted: 'text-cyan-700',
+        handleBg: 'bg-white/60',
+      };
     case 'IN_TRANSIT':
-      return { bg: 'bg-indigo-50', border: 'border-indigo-300', text: 'text-indigo-900', textMuted: 'text-indigo-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-indigo-50',
+        border: 'border-indigo-300',
+        text: 'text-indigo-900',
+        textMuted: 'text-indigo-700',
+        handleBg: 'bg-white/60',
+      };
     case 'STOPPED':
-      return { bg: 'bg-orange-50', border: 'border-orange-300', text: 'text-orange-900', textMuted: 'text-orange-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-orange-50',
+        border: 'border-orange-300',
+        text: 'text-orange-900',
+        textMuted: 'text-orange-700',
+        handleBg: 'bg-white/60',
+      };
     case 'ARRIVED':
-      return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', textMuted: 'text-yellow-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-300',
+        text: 'text-yellow-900',
+        textMuted: 'text-yellow-700',
+        handleBg: 'bg-white/60',
+      };
     case 'DELIVERED':
-      return { bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-900', textMuted: 'text-green-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-green-50',
+        border: 'border-green-300',
+        text: 'text-green-900',
+        textMuted: 'text-green-700',
+        handleBg: 'bg-white/60',
+      };
     case 'INVOICED':
-      return { bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-900', textMuted: 'text-purple-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-purple-50',
+        border: 'border-purple-300',
+        text: 'text-purple-900',
+        textMuted: 'text-purple-700',
+        handleBg: 'bg-white/60',
+      };
     case 'CANCELLED':
     case 'VOIDED':
-      return { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-900', textMuted: 'text-red-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-red-50',
+        border: 'border-red-300',
+        text: 'text-red-900',
+        textMuted: 'text-red-700',
+        handleBg: 'bg-white/60',
+      };
     case 'CASH_SALE':
-      return { bg: 'bg-yellow-50', border: 'border-yellow-300', text: 'text-yellow-900', textMuted: 'text-yellow-700', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-yellow-50',
+        border: 'border-yellow-300',
+        text: 'text-yellow-900',
+        textMuted: 'text-yellow-700',
+        handleBg: 'bg-white/60',
+      };
     default:
-      return { bg: 'bg-[#F0FDF4]', border: 'border-[#A7F3D0]', text: 'text-[#0F766E]', textMuted: 'text-[#0F766E]/80', handleBg: 'bg-white/60' };
+      return {
+        bg: 'bg-[#F0FDF4]',
+        border: 'border-[#A7F3D0]',
+        text: 'text-[#0F766E]',
+        textMuted: 'text-[#0F766E]/80',
+        handleBg: 'bg-white/60',
+      };
   }
 };
 
@@ -276,7 +363,8 @@ function DocketCard({
   const [resizeDelta, setResizeDelta] = React.useState(0);
   const [isResizing, setIsResizing] = React.useState(false);
 
-  const isLocked = docket.docketStatus !== 'UNASSIGNED' && docket.docketStatus !== 'ASSIGNED';
+  const isLocked =
+    docket.docketStatus !== 'UNASSIGNED' && docket.docketStatus !== 'ASSIGNED';
   const colors = getStatusColors(docket.docketStatus);
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -366,11 +454,11 @@ function DocketCard({
     endBoundaryHour >= GRID_SPAN_HOURS - 1e-6
       ? '00:00'
       : TIME_SLOTS[
-      Math.min(
-        Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
-        TIME_SLOTS.length - 1,
-      )
-      ];
+          Math.min(
+            Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
+            TIME_SLOTS.length - 1,
+          )
+        ];
 
   return (
     <div
@@ -400,7 +488,9 @@ function DocketCard({
             <div className={`font-bold ${colors.text} truncate text-[15px]`}>
               {docket.docketNumber}{' '}
               <span className={`${colors.text} font-semibold text-[12px] ml-1`}>
-                {docket.loadSize}{' '}
+                {docket.actualLoadSize ||
+                  docket.plannedLoadSize ||
+                  docket.loadSize}{' '}
                 {docket.productSellUom === 'M3'
                   ? 'm³'
                   : docket.productSellUom === 'KG_20'
@@ -409,11 +499,13 @@ function DocketCard({
               </span>
             </div>
           </div>
-          <div className={`${colors.text} font-medium text-[13px] truncate mt-1`}>
+          <div
+            className={`${colors.text} font-medium text-[13px] truncate mt-1`}
+          >
             {docket.customerName || 'Unknown Customer'}
           </div>
           <div className={`${colors.textMuted} text-[12px] truncate`}>
-            {docket.pickUpAddress}
+            {docket.pickUpSuburb}, {docket.pickUpState}
           </div>
 
           <div className="flex items-center justify-between mt-auto pt-2">
@@ -484,8 +576,9 @@ export default function AssignedDockets({
     return (
       <div
         key={truck.id}
-        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
-          }`}
+        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${
+          isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
+        }`}
       >
         {/* Header */}
         <div className="p-4 border-b border-[#E2E8F0] bg-white flex flex-col gap-3 shrink-0">
@@ -495,9 +588,11 @@ export default function AssignedDockets({
                 <h3 className="text-[22px] font-bold text-[#0F172A]">
                   {viewType === 'trucks' ? truck.name : truck.drivers}
                 </h3>
-                <TableBadges names={[truck.type || 'INTERNAL']} />
+                <TableBadges names={[truck.businessType || 'INTERNAL']} />
               </div>
-              <p className="text-[14px] text-[#64748B] mt-0.5">Metro Haulage</p>
+              <p className="text-[14px] text-[#64748B] mt-0.5">
+                {truck.haulierName || ''}
+              </p>
             </div>
             <button
               onClick={() => setExpandedTruckId(isExpanded ? null : truck.id)}
@@ -517,7 +612,7 @@ export default function AssignedDockets({
               <>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
                   <span className="text-[18px] font-bold text-[#0F172A]">
-                    {truck.capacity}
+                    {truck.capacity} m³
                   </span>
                   <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
                     Capacity

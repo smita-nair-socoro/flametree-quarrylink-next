@@ -21,7 +21,6 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Plus } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
@@ -534,15 +533,15 @@ export function FormDialog({
         )}
       </DialogHeader>
       {headerSeparator && <Separator className="-mt-3" />}
-      <ScrollArea
+      <div
         className={clsx(
           getScrollAreaMaxHeight(),
-          'rounded-md overflow-auto px-5',
+          'overflow-y-auto overflow-x-hidden px-5',
           contentClass,
         )}
       >
-        <div>{contentNode}</div>
-      </ScrollArea>
+        {contentNode}
+      </div>
     </>
   );
 

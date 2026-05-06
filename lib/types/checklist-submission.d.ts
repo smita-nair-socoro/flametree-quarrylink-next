@@ -18,7 +18,32 @@ export interface ChecklistSubmissionSection {
   answers: ChecklistSubmissionAnswer[];
 }
 
+export interface ChecklistSubmitPhotoRequest {
+  photoKey: string;
+  displayOrder: number;
+}
+
+export interface ChecklistSubmitAnswerRequest {
+  questionId: number;
+  answerValue: ANSWER_VALUE;
+  comment: string | null;
+  failed: boolean;
+  photos: ChecklistSubmitPhotoRequest[];
+}
+
+export interface ChecklistSubmitRequest {
+  templateId: number;
+  checklistType: CHECKLIST_TYPE;
+  truckId?: number;
+  driverId?: number;
+  docketId?: number;
+  confirmed: boolean;
+  snapshotJson?: string;
+  answers: ChecklistSubmitAnswerRequest[];
+}
+
 export interface ChecklistSubmission {
+  id?: number;
   submissionId: number;
   submissionNumber: string;
   checklistType: CHECKLIST_TYPE;

@@ -12,7 +12,7 @@ import {
   isSameDay,
 } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
-import { DocketsListQueryOptions } from '@/lib/api/docket';
+import { SchedulerTrucksQueryOptions } from '@/lib/api/scheduler';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
 import {
   Dialog,
@@ -21,10 +21,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
-import { DocketDTO } from '@/lib/types/docket';
+import {
+  DispatchBoardDocketRow,
+  DispatchTruckResource,
+} from '@/lib/types/docket';
 import { ScheduleFilter } from './schedule-filter';
+
+type MonthViewDocket = DispatchBoardDocketRow & {
+  driverName?: string;
+  truckName?: string;
+};
 
 function getChipColor(status: DOCKET_STATUS) {
   switch (status) {
@@ -66,18 +73,13 @@ function DocketChip({
   onClick,
   isSelected = false,
 }: {
-  docket: DocketDTO;
+  docket: MonthViewDocket;
   onClick: () => void;
   index: number;
   isSelected?: boolean;
 }) {
-  const customerName =
-    docket.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
-      ? docket.job?.customerDto?.businessName
-      : docket.job?.contactPersonName;
-
-  const location =
-    docket.deliveryAddress?.city || docket.deliveryAddress?.suburb || 'TBD';
+  const customerName = docket.customerName || 'Unknown Customer';
+  const location = docket.deliverySuburb + ', ' + docket.deliveryState || 'TBD';
   const colorClass = getChipColor(docket.docketStatus);
 
   return (
@@ -93,28 +95,23 @@ function DocketChip({
           {docket.docketNumber || 'No Number'}
         </span>
         <span>
-          {docket.loadSize}{' '}
-          {docket.jobItem?.productSellUom === 'M3'
+          {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
+          {docket.productSellUom === 'M3'
             ? 'm³'
-            : docket.jobItem?.productSellUom === 'KG_20'
+            : docket.productSellUom === 'KG_20'
               ? 'x 20kg'
-              : docket.jobItem?.productSellUom}
+              : docket.productSellUom}
         </span>
       </div>
       <div className="truncate text-gray-700">{customerName}</div>
       <div className="truncate text-gray-500 mb-1">{location}</div>
-      {(docket.driverId || docket.driver) && (
+      {docket.driverName && (
         <div className="truncate text-gray-500 mt-1">
-          Driver:{' '}
-          {docket.driver
-            ? docket.driver.driverName || 'Assigned'
-            : 'Unassigned'}
+          Driver: {docket.driverName}
         </div>
       )}
-      {(docket.truckId || docket.truckType) && (
-        <div className="truncate text-gray-500">
-          Truck: {docket.truckId || docket.truckType || 'No Truck'}
-        </div>
+      {docket.truckName && (
+        <div className="truncate text-gray-500">Truck: {docket.truckName}</div>
       )}
     </div>
   );
@@ -136,40 +133,77 @@ export function ScheduleMonthView({
     setSelectedDate(date);
   }, [date]);
 
-  const { data: docketsData } = useQuery(DocketsListQueryOptions());
+  const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(monthStart);
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 }); // 0 = Sunday
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
-  const dockets: DocketDTO[] = useMemo(() => {
-    if (!docketsData) return [];
-    const allDockets = (
-      'content' in docketsData ? docketsData.content : docketsData
-    ) as DocketDTO[];
+  const startIso = startDate.toISOString();
+  const endIso = endDate.toISOString();
 
-    if (allDockets.length > 0) {
-      return allDockets;
-    } else {
-      return [];
-    }
-  }, [docketsData]);
+  const { data: trucksData } = useQuery(
+    SchedulerTrucksQueryOptions(startIso, endIso),
+  );
+
+  const dockets: MonthViewDocket[] = useMemo(() => {
+    if (!trucksData) return [];
+
+    const assigned = (trucksData.resources || []).flatMap((r) => {
+      const truck = r as DispatchTruckResource;
+      return (truck.dockets || []).map((d) => ({
+        ...d,
+        truckName: truck.licensePlate,
+        driverName: truck.drivers?.[0]?.driverName,
+      }));
+    });
+
+    const unassigned = (trucksData.unassignedDockets || []).map((d) => ({
+      ...d,
+    }));
+
+    return [...assigned, ...unassigned];
+  }, [trucksData]);
 
   const docketsByDate = useMemo(() => {
-    const grouped: Record<string, DocketDTO[]> = {};
+    const grouped: Record<string, MonthViewDocket[]> = {};
     dockets.forEach((docket) => {
       if (!docket.deliveryCollectionDate) return;
       // Format as YYYY-MM-DD for grouping
-      const dateKey = format(
-        new Date(docket.deliveryCollectionDate),
-        'yyyy-MM-dd',
-      );
+      const localTimeStr = docket.deliveryCollectionDate.includes('T')
+        ? docket.deliveryCollectionDate.replace('Z', '')
+        : docket.deliveryCollectionDate;
+      const dateKey = format(new Date(localTimeStr), 'yyyy-MM-dd');
       if (!grouped[dateKey]) grouped[dateKey] = [];
       grouped[dateKey].push(docket);
     });
     return grouped;
   }, [dockets]);
 
-  const monthStart = startOfMonth(date);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 }); // 0 = Sunday
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const headerStats = useMemo(() => {
+    const assignedDockets = dockets.filter(
+      (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
+    );
+    const trucksBooked = new Set(
+      assignedDockets
+        .map((d) => d.truckName)
+        .filter((name): name is string => Boolean(name)),
+    ).size;
+
+    const onTripDriverNames = new Set<string>();
+    for (const d of dockets) {
+      if (
+        d.docketStatus === DOCKET_STATUS.IN_TRANSIT ||
+        d.docketStatus === DOCKET_STATUS.ARRIVED
+      ) {
+        if (d.driverName) onTripDriverNames.add(d.driverName);
+      }
+    }
+
+    return {
+      trucksBooked,
+      driversOnTrips: onTripDriverNames.size,
+    };
+  }, [dockets]);
 
   const dateFormat = 'd';
   const days = eachDayOfInterval({
@@ -198,22 +232,19 @@ export function ScheduleMonthView({
           <span className="text-[12px] font-medium text-[#64748B]">
             {format(date, 'EEE dd MMM').toUpperCase()}
           </span>
-          <div className="border bg-green-50 border-green-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              13/17
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Assigned
-            </span>
-          </div>
+
           <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">2</span>{' '}
+            <span className="text-[12px] font-semibold tracking-wider">
+              {headerStats.trucksBooked}
+            </span>{' '}
             <span className="text-[12px] font-medium text-gray-700 tracking-wider">
               Trucks booked this month
             </span>
           </div>
           <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">2</span>{' '}
+            <span className="text-[12px] font-semibold tracking-wider">
+              {headerStats.driversOnTrips}
+            </span>{' '}
             <span className="text-[12px] font-medium text-gray-700 tracking-wider">
               Drivers on trips
             </span>
@@ -271,12 +302,13 @@ export function ScheduleMonthView({
                       onDateChange(day);
                     }}
                     className={`p-2 flex flex-col rounded-xl border cursor-pointer transition-colors
-                    ${isSelectedDate
+                    ${
+                      isSelectedDate
                         ? 'ring-1 ring-purple-400 border-purple-400 bg-purple-200/10 z-10'
                         : !isCurrentMonth
                           ? 'bg-gray-50/40 border-gray-100'
                           : 'bg-white border-gray-200 shadow-sm'
-                      }
+                    }
                     ${dayDockets.length > 0 ? 'min-h-[150px]' : 'min-h-[100px]'}`}
                   >
                     <div className="flex flex-col mb-3">
@@ -294,7 +326,20 @@ export function ScheduleMonthView({
                             {dayDockets.length !== 1 ? 's' : ''}
                           </div>
                           <div>
-                            {Math.floor(Math.random() * 3) + 1} drivers on trips
+                            {
+                              new Set(
+                                dayDockets
+                                  .filter(
+                                    (d) =>
+                                      d.docketStatus ===
+                                        DOCKET_STATUS.IN_TRANSIT ||
+                                      d.docketStatus === DOCKET_STATUS.ARRIVED,
+                                  )
+                                  .map((d) => d.driverName)
+                                  .filter(Boolean),
+                              ).size
+                            }{' '}
+                            drivers on trips
                           </div>
                         </div>
                       )}
@@ -317,7 +362,7 @@ export function ScheduleMonthView({
                               +{dayDockets.length - 2} more
                             </button>
                           </DialogTrigger>
-                          <DialogContent className="overflow-y-auto">
+                          <DialogContent className="overflow-y-auto max-h-[60vh] max-w-lg">
                             <DialogHeader>
                               <DialogTitle>
                                 All Dockets ({dayDockets.length})
@@ -352,7 +397,7 @@ export function ScheduleMonthView({
         {selectedDocket && (
           <div className="w-[23vw] shrink-0 border-l border-[#E2E8F0] bg-white shadow-sm overflow-y-auto flex flex-col">
             <DocketDetailsPanel
-              docket={selectedDocket}
+              docketId={selectedDocket.id}
               onClose={() => setSelectedDocketId(undefined)}
               onUnassign={handleUnassign}
             />

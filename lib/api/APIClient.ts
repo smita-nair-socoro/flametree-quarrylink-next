@@ -44,6 +44,7 @@ import {
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
+import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
 import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
@@ -65,7 +66,10 @@ import {
   PutDriverDTO,
 } from '../types/driver';
 import { ChecklistTemplate } from '../types/checklist-template';
-import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  ChecklistSubmission,
+  ChecklistSubmitRequest,
+} from '../types/checklist-submission';
 
 type RequestBody =
   | BodyInit
@@ -469,24 +473,10 @@ export const APIClient = {
       appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
         body: data,
       }),
-    deleteProduct: (id: number) => {
-      return appClient
-        .Delete<{ blockingQuoteDtos?: unknown[] }>(
-          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
-        )
-        .then((res) => {
-          console.log('[APIClient] products.delete response:', res);
-          const len = Array.isArray(res?.blockingQuoteDtos)
-            ? res!.blockingQuoteDtos!.length
-            : 0;
-          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
-          return res;
-        })
-        .catch((err) => {
-          console.error('[APIClient] products.delete error:', err);
-          throw err;
-        });
-    },
+    deleteProduct: (id: number) =>
+      appClient.Delete<{ blockingQuotes?: unknown[] }>(
+        `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
+      ),
   },
   quarries: {
     reporting: () =>
@@ -524,19 +514,18 @@ export const APIClient = {
       appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
     delete: (id: number) => {
       return appClient
-        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+        .Delete<{ blockingQuotes?: unknown[] }>(
           `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
         )
         .then((res) => {
           console.log('[APIClient] quarries.delete response:', res);
-          const len = Array.isArray(res?.blockingQuoteDtos)
-            ? res!.blockingQuoteDtos!.length
+          const len = Array.isArray(res?.blockingQuotes)
+            ? res!.blockingQuotes!.length
             : 0;
-          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          console.log('[APIClient] blockingQuotes length from delete:', len);
           return res;
         })
         .catch((err) => {
-          console.error('[APIClient] quarries.delete error:', err);
           throw err;
         });
     },
@@ -581,7 +570,7 @@ export const APIClient = {
       ),
     delete: (quarrySupplierId: number, productId: number) => {
       return appClient
-        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+        .Delete<{ blockingQuotes?: unknown[] }>(
           `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
         )
         .then((res) => {
@@ -589,17 +578,13 @@ export const APIClient = {
             '[APIClient] quarrySupplierProducts.delete response:',
             res,
           );
-          const len = Array.isArray(res?.blockingQuoteDtos)
-            ? res!.blockingQuoteDtos!.length
+          const len = Array.isArray(res?.blockingQuotes)
+            ? res!.blockingQuotes!.length
             : 0;
-          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          console.log('[APIClient] blockingQuotes length from delete:', len);
           return res;
         })
         .catch((err) => {
-          console.error(
-            '[APIClient] quarrySupplierProducts.delete error:',
-            err,
-          );
           throw err;
         });
     },
@@ -794,10 +779,7 @@ export const APIClient = {
       }),
     update: (data: Partial<QuotationDTO>) =>
       appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${data.id}`, {
-        body: (() => {
-          console.log('📡 [APIClient][PUT] Full Request Payload:', data);
-          return data;
-        })(),
+        body: data,
       }),
     extendExpiryDate: (id: number, expiryDate: Date) =>
       appClient.Put<QuotationDTO>(
@@ -967,20 +949,24 @@ export const APIClient = {
   checklists: {
     getTruckTemplate: () =>
       appClient.Get<ChecklistTemplate>(
-        `/socoro/quarrylink/api/checklists/template/truck`,
+        `/socoro/quarrylink/api/checklists/truck/template`,
       ),
     getDriverTemplate: () =>
       appClient.Get<ChecklistTemplate>(
-        `/socoro/quarrylink/api/checklists/template/driver`,
+        `/socoro/quarrylink/api/checklists/driver/template`,
       ),
     getTruckSubmission: (submissionId: number) =>
       appClient.Get<ChecklistSubmission>(
-        `/socoro/quarrylink/api/checklists/submissions/truck/${submissionId}`,
+        `/socoro/quarrylink/api/checklists/truck-submissions/${submissionId}`,
       ),
     getDriverSubmission: (submissionId: number) =>
       appClient.Get<ChecklistSubmission>(
-        `/socoro/quarrylink/api/checklists/submissions/driver/${submissionId}`,
+        `/socoro/quarrylink/api/checklists/driver-submissions/${submissionId}`,
       ),
+    submit: (data: ChecklistSubmitRequest) =>
+      appClient.Post<ChecklistSubmission>(`/socoro/quarrylink/api/checklists`, {
+        body: data,
+      }),
   },
 
   users: {
@@ -1016,6 +1002,8 @@ export const APIClient = {
       appClient.Post<PasswordResetResponse>(
         `/socoro/quarrylink/api/users/${id}/reset-password`,
       ),
+    resendInvitation: (sub: string) =>
+      appClient.Post(`/socoro/quarrylink/api/users/${sub}/resend-invitation`),
   },
 
   jobs: {
@@ -1285,6 +1273,49 @@ export const APIClient = {
       ),
   },
 
+  xero: {
+    connect: async (userEmail: string) => {
+      const [tenantId, authUser] = await Promise.all([
+        getTenantId(),
+        getUser(),
+      ]);
+      const response = await fetch(
+        `${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/connect`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authUser?.access_token}`,
+          },
+          body: JSON.stringify({ tenantId, userEmail }),
+        },
+      );
+      if (!response.ok)
+        throw new Error(`Xero connect failed: ${response.status}`);
+      return response.json() as Promise<XeroConnectResponseDTO>;
+    },
+    getStatus: async () => {
+      const [tenantId, authUser] = await Promise.all([
+        getTenantId(),
+        getUser(),
+      ]);
+      const response = await fetch(
+        `${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: '*/*',
+            Authorization: `Bearer ${authUser?.access_token}`,
+          },
+        },
+      );
+      if (!response.ok)
+        throw new Error(`Xero status failed: ${response.status}`);
+      return response.json() as Promise<XeroStatusResponseDTO>;
+    },
+  },
+
   invoices: {
     getAll: (jobId: number) =>
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
@@ -1296,12 +1327,18 @@ export const APIClient = {
 
   driverApp: {
     getAssignedDockets: () =>
-      appClient.Get<DocketDTO[]>(
-        `/socoro/quarrylink/api/driver-app/assigned`,
-      ),
+      appClient.Get<DocketDTO[]>(`/socoro/quarrylink/api/driver-app/assigned`),
     getAssignedDocketById: (docketId: number) =>
-      appClient.Get<DocketDTO>(
-        `/socoro/quarrylink/api/driver-app/${docketId}`,
+      appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
+    operationalUpdate: (id: number, actualLoadSize: number) =>
+      appClient.Put<DocketOperationalUpdateResponse>(
+        `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
+        { body: { actualLoadSize } },
+      ),
+    updateDocketStatus: (id: number, body: object) =>
+      appClient.Put<DocketDTO>(
+        `/socoro/quarrylink/api/driver-app/${id}/status`,
+        { body },
       ),
   },
 

@@ -21,14 +21,18 @@ import {
   useUpdateQuoteItem,
 } from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { centsToDollarsNum, dollarsToCents } from '@/lib/utils/currency';
+import { centsToDollarsNum, dollarsToCents, roundToTwoDecimals } from '@/lib/utils/currency';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
-import { Address, AddressType, CustomerDeliveryAddress } from '@/lib/types/address';
+import {
+  Address,
+  AddressType,
+  CustomerDeliveryAddress,
+} from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
@@ -84,7 +88,7 @@ export function useLineItemFormState({
         selectedLineItem?.quoteItemType ?? QUOTE_ITEM_TYPE.DELIVERY,
       address: isEditing
         ? (selectedLineItem?.customerDeliveryAddress?.address
-          ?.formattedAddress ?? '')
+            ?.formattedAddress ?? '')
         : '',
       productId: isEditing ? (selectedLineItem?.productId ?? 0) : 0,
       quarrySupplierId: isEditing
@@ -463,12 +467,12 @@ export function useLineItemFormState({
       { label: 'Flatbed', value: 'FLATBED' },
       { label: 'Tipper', value: 'TIPPER' },
       { label: 'Tandem', value: 'TANDEM' },
-      { label: 'QUAD', value: 'QUAD' },
+      { label: 'Quad', value: 'QUAD' },
       { label: 'Tri-Axle', value: 'TRI_AXLE' },
       { label: 'Tautliner', value: 'TAUTLINER' },
       { label: 'Crane Truck', value: 'CRANE_TRUCK' },
     ],
-    []
+    [],
   );
 
   // UOM options derived from QSP
@@ -577,7 +581,7 @@ export function useLineItemFormState({
     const tn = toTn(qty, from, density);
     const converted = fromTn(tn, to, density);
     const roundedConverted = Number.isFinite(converted)
-      ? parseFloat(converted.toFixed(2))
+      ? roundToTwoDecimals(converted)
       : 0;
     form.setValue('productCostQty', roundedConverted, {
       shouldDirty: false,
@@ -825,7 +829,7 @@ export function useLineItemFormState({
     const tn = toTn(productSellQty, productSellUom, density);
     const converted = fromTn(tn, currentTruckSellUom, density);
     const roundedConverted = Number.isFinite(converted)
-      ? parseFloat(converted.toFixed(2))
+      ? roundToTwoDecimals(converted)
       : 0;
     form.setValue('truckSellQty', roundedConverted, { shouldDirty: false });
   }, [
@@ -865,7 +869,7 @@ export function useLineItemFormState({
     const tn = toTn(productSellQty, productSellUom, density);
     const converted = fromTn(tn, currentTruckCostUom, density);
     const roundedConverted = Number.isFinite(converted)
-      ? parseFloat(converted.toFixed(2))
+      ? roundToTwoDecimals(converted)
       : 0;
     form.setValue('truckCostQty', roundedConverted, { shouldDirty: false });
   }, [
@@ -904,24 +908,28 @@ export function useLineItemFormState({
   const truckSellPrice = form.watch('truckSellPrice');
   React.useEffect(() => {
     const values = form.getValues();
-    const totalProductCostPrice =
-      (values.productCostQty || 0) * (values.productCostPrice || 0);
-    const totalTruckCostPrice =
-      (values.truckCostQty || 0) * (values.truckCostPrice || 0);
-    const totalProductSellPrice =
-      (values.productSellQty || 0) * (values.productSellPrice || 0);
-    const totalTruckSellPrice =
-      (values.truckSellQty || 0) * (values.truckSellPrice || 0);
-    const costSubtotalExGST = totalProductCostPrice + totalTruckCostPrice;
-    const costGst = costSubtotalExGST * 0.1;
-    const totalCost = costSubtotalExGST + costGst;
-    const totalInvoice = totalProductSellPrice + totalTruckSellPrice;
-    const invoiceGst = totalInvoice * 0.1;
-    const totalInvoiceInclGst = totalInvoice + invoiceGst;
+    const totalProductCostPrice = roundToTwoDecimals(
+      (values.productCostQty || 0) * (values.productCostPrice || 0)
+    );
+    const totalTruckCostPrice = roundToTwoDecimals(
+      (values.truckCostQty || 0) * (values.truckCostPrice || 0)
+    );
+    const totalProductSellPrice = roundToTwoDecimals(
+      (values.productSellQty || 0) * (values.productSellPrice || 0)
+    );
+    const totalTruckSellPrice = roundToTwoDecimals(
+      (values.truckSellQty || 0) * (values.truckSellPrice || 0)
+    );
+    const costSubtotalExGST = roundToTwoDecimals(totalProductCostPrice + totalTruckCostPrice);
+    const costGst = roundToTwoDecimals(costSubtotalExGST * 0.1);
+    const totalCost = roundToTwoDecimals(costSubtotalExGST + costGst);
+    const totalInvoice = roundToTwoDecimals(totalProductSellPrice + totalTruckSellPrice);
+    const invoiceGst = roundToTwoDecimals(totalInvoice * 0.1);
+    const totalInvoiceInclGst = roundToTwoDecimals(totalInvoice + invoiceGst);
     // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
-    const grossProfit = totalInvoiceInclGst - totalCost;
+    const grossProfit = roundToTwoDecimals(totalInvoiceInclGst - totalCost);
     const grossProfitPercentage =
-      totalInvoiceInclGst > 0 ? (grossProfit / totalInvoiceInclGst) * 100 : 0;
+      totalInvoiceInclGst > 0 ? roundToTwoDecimals((grossProfit / totalInvoiceInclGst) * 100) : 0;
 
     setPricingBreakdown({
       totalProductCostPrice,
@@ -979,18 +987,18 @@ export function useLineItemFormState({
       | undefined =
       addressPayload && customerId
         ? {
-          ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
-            ? { id: selectedLineItem.customerDeliveryAddress.id }
-            : {}),
-          customerId,
-          addressId:
-            isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
-              ? selectedLineItem.customerDeliveryAddress.addressId
-              : mappedAddress?.id,
-          address: addressPayload,
-          inUse: true,
-          lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
-        }
+            ...(isEditing && selectedLineItem?.customerDeliveryAddress?.id
+              ? { id: selectedLineItem.customerDeliveryAddress.id }
+              : {}),
+            customerId,
+            addressId:
+              isEditing && selectedLineItem?.customerDeliveryAddress?.addressId
+                ? selectedLineItem.customerDeliveryAddress.addressId
+                : mappedAddress?.id,
+            address: addressPayload,
+            inUse: true,
+            lastUsedAt: selectedLineItem?.customerDeliveryAddress?.lastUsedAt,
+          }
         : undefined;
 
     const quoteItemData: Partial<QuotationLineItem> = {
@@ -1066,8 +1074,9 @@ export function useLineItemFormState({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'add'
-        } line item. Please try again.`,
+          `Failed to ${
+            isEditing ? 'update' : 'add'
+          } line item. Please try again.`,
       );
     }
   }

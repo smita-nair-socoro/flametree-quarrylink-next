@@ -13,13 +13,13 @@ import { APIClient } from '@/lib/api/APIClient';
 import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { toAddressType } from '@/lib/utils/address-helper';
-import { centsToDollarsNum } from '@/lib/utils/currency';
+import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 
 export const calculateConvertedQty = (
   quantity: number,
   fromUom: string,
   toUom: string,
-  density: number = 1
+  density: number = 1,
 ) => {
   if (fromUom === toUom) return quantity;
 
@@ -113,7 +113,7 @@ const TRUCK_TYPE_MAP: Record<string, string> = {
   FLATBED: 'Flatbed',
   TIPPER: 'Tipper',
   TANDEM: 'Tandem',
-  QUAD: 'QUAD',
+  QUAD: 'Quad',
   TRI_AXLE: 'Tri-Axle',
   TAUTLINER: 'Tautliner',
   CRANE_TRUCK: 'Crane Truck',
@@ -239,9 +239,11 @@ export function useDocketFormState({
     if (isEditing) return;
 
     if (selectedJob.deliveryStartDate) {
+      const jobDate = new Date(selectedJob.deliveryStartDate);
+      const todayDate = GetTodaysDate();
       docketForm.setValue(
         'deliveryCollectionDate',
-        new Date(selectedJob.deliveryStartDate),
+        jobDate < todayDate ? todayDate : jobDate,
       );
     }
     if (selectedJob.contactName) {
@@ -296,7 +298,9 @@ export function useDocketFormState({
       ...docketForm.getValues(),
       jobId,
       deliveryCollectionDate: selectedJob.deliveryStartDate
-        ? new Date(selectedJob.deliveryStartDate)
+        ? new Date(selectedJob.deliveryStartDate) < GetTodaysDate()
+          ? GetTodaysDate()
+          : new Date(selectedJob.deliveryStartDate)
         : docketForm.getValues('deliveryCollectionDate'),
       purchaseOrder:
         selectedJob.poNumber || docketForm.getValues('purchaseOrder'),
@@ -416,12 +420,9 @@ export function useDocketFormState({
         setPickUpSearchInput(pickUpAddress.formattedAddress || '');
         docketForm.setValue(
           'pickUpAddressId',
-          details.pickUpAddress.id
-            ? String(details.pickUpAddress.id)
-            : '',
+          details.pickUpAddress.id ? String(details.pickUpAddress.id) : '',
         );
       }
-
     }
   }, [
     docketForm.watch('jobLineItemId'),
@@ -437,7 +438,8 @@ export function useDocketFormState({
     docketForm.reset({
       jobId: selectedDocket.jobId ?? 0,
       jobLineItemId: selectedDocket.jobItemId ?? 0,
-      plannedLoadSize: selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
+      plannedLoadSize:
+        selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
       actualLoadSize: selectedDocket.actualLoadSize ?? 0,
       truckQty: selectedDocket.deliveryDistanceQuantity ?? 0,
       pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
@@ -502,7 +504,6 @@ export function useDocketFormState({
     setIsDirtyTrackingReady(true);
   }, [isEditing, selectedDocket, docketForm, selectedJob.customerEmail]);
 
-
   const productDetailsQuery = useQuery({
     queryKey: ['product', selectedJobLineItemDetails().productId],
     queryFn: () =>
@@ -521,7 +522,9 @@ export function useDocketFormState({
     const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
 
     // details.productSell is already converted to dollars in selectedJobLineItemDetails
-    const productSell = centsToDollarsNum(details.productSell) * (loadSize || 0);
+    const productSell = roundToTwoDecimals(
+      centsToDollarsNum(details.productSell) * (loadSize || 0)
+    );
 
     let calculatedTruckQty = 0;
     if (details.type !== 'COLLECTION') {
@@ -532,17 +535,19 @@ export function useDocketFormState({
           loadSize || 0,
           details.productUom,
           details.truckUom,
-          density
+          density,
         );
       }
     }
 
     // details.truckSell is in cents, so we need to convert it to dollars
-    const truckSell = centsToDollarsNum(details.truckSell) * calculatedTruckQty;
+    const truckSell = roundToTwoDecimals(
+      centsToDollarsNum(details.truckSell) * calculatedTruckQty
+    );
 
-    const subtotal = productSell + truckSell;
-    const gst = subtotal * 0.1;
-    const total = subtotal + gst;
+    const subtotal = roundToTwoDecimals(productSell + truckSell);
+    const gst = roundToTwoDecimals(subtotal * 0.1);
+    const total = roundToTwoDecimals(subtotal + gst);
 
     return {
       productSell,
@@ -562,7 +567,6 @@ export function useDocketFormState({
   );
 
   const today = React.useMemo(() => GetTodaysDate(), []);
-
 
   return {
     docketForm,

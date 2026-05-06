@@ -414,29 +414,11 @@ export function useProductActions(productData?: ProductDetails | null) {
       setViewOpen(true);
     },
 
-    unavailable: createDialogAction('unavailable', () => {
-      console.log('Unavailable product:', activeProductId);
-    }),
-
-    available: createDialogAction('available', () => {
-      console.log('Available product:', activeProductId);
-      // TODO: implement available logic
-    }),
-
-    delete: createDialogAction('delete', () => {
-      console.log('Delete product:', activeProductId);
-      // TODO: implement delete logic
-    }),
-
-    cannotDelete: createDialogAction('cannotDelete', () => {
-      console.log('Cannot delete product:', activeProductId);
-      // This will show the informational modal about why deleting is not possible
-    }),
-
-    removeSupplier: createDialogAction('removeSupplier', () => {
-      console.log('Remove supplier:', activeProductId);
-      // TODO: implement remove supplier logic
-    }),
+    unavailable: createDialogAction('unavailable', () => {}),
+    available: createDialogAction('available', () => {}),
+    delete: createDialogAction('delete', () => {}),
+    cannotDelete: createDialogAction('cannotDelete', () => {}),
+    removeSupplier: createDialogAction('removeSupplier', () => {}),
   };
 
   // Handle delete API call
@@ -458,13 +440,11 @@ export function useProductActions(productData?: ProductDetails | null) {
       const blocked: BlockingQuote[] =
         errorData &&
         typeof errorData === 'object' &&
-        'blockingQuoteDtos' in errorData &&
+        'blockingQuotes' in errorData &&
         Array.isArray(
-          (errorData as { blockingQuoteDtos?: BlockingQuote[] })
-            .blockingQuoteDtos,
+          (errorData as { blockingQuotes?: BlockingQuote[] }).blockingQuotes,
         )
-          ? (errorData as { blockingQuoteDtos: BlockingQuote[] })
-              .blockingQuoteDtos
+          ? (errorData as { blockingQuotes: BlockingQuote[] }).blockingQuotes
           : [];
 
       console.log('blocked', blocked);

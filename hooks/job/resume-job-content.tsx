@@ -19,8 +19,8 @@ export function ResumeJobDescription({ job }: { job?: JobDTO | null }) {
               <span className="text-sm text-[#6A7282] font-extrabold">·</span>
               <span className="text-sm text-[#6A7282]">
                 {job.customerDto.customerType === 'BUSINESS'
-                  ? job.customerDto.businessName
-                  : job.customerDto.individualContactName}
+                  ? (job.customerDto.businessName || job?.contactPersonName)
+                  : (job.customerDto.individualContactName || job?.contactPersonName)}
               </span>
             </>
           )}
