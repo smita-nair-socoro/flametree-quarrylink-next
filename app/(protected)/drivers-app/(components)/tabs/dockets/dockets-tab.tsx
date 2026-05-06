@@ -597,10 +597,8 @@ export default function DocketsTab({
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
               Current:{' '}
               <span className="font-bold">
-                {selectedDocket?.docketStatus === 'ASSIGNED'
-                  ? selectedDocket?.plannedLoadSize
-                  : selectedDocket?.actualLoadSize ||
-                    selectedDocket?.plannedLoadSize}
+                {selectedDocket?.actualLoadSize ||
+                  selectedDocket?.plannedLoadSize}
                 {selectedDocket?.jobItem?.productSellUom === 'TN'
                   ? 'T'
                   : selectedDocket?.jobItem?.productSellUom === 'M3'
