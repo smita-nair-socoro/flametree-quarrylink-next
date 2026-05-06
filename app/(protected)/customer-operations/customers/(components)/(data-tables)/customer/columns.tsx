@@ -65,7 +65,14 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
   },
   {
     id: 'contact_name',
-    accessorFn: (row) => row.individualContactName,
+    accessorFn: (row) => {
+      if (row.customerType === CUSTOMER_TYPE.BUSINESS) {
+        const first = row.contactPersonFirstName ?? '';
+        const last = row.contactPersonLastName ?? '';
+        return `${first} ${last}`.trim() || row.contactPersonName || 'N/A';
+      }
+      return row.individualContactName;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Contact Name" />;
     },

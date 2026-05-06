@@ -36,6 +36,7 @@ export default function TruckInspectionChecklist({
           id: String(q.id),
           text: q.questionText,
           category: section.title,
+          failOnAnswer: q.failOnAnswer,
         })),
     );
 
@@ -50,6 +51,7 @@ export default function TruckInspectionChecklist({
 
   const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
     if (!template) return;
+    const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
     await submitChecklist.mutateAsync({
       templateId: template.id,
       checklistType: CHECKLIST_TYPE.TRUCK,
@@ -57,13 +59,16 @@ export default function TruckInspectionChecklist({
       driverId,
       docketId,
       confirmed: false,
-      answers: answers.map((a) => ({
-        questionId: a.questionId,
-        answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
-        failed: a.answer === 'no',
-        comment: a.notes?.trim() || null,
-        photos: [],
-      })),
+      answers: answers.map((a) => {
+        const failOn = failOnAnswerMap.get(a.questionId);
+        return {
+          questionId: a.questionId,
+          answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
+          failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
+          comment: a.notes?.trim() || null,
+          photos: [],
+        };
+      }),
     });
     onSubmit?.();
   };
