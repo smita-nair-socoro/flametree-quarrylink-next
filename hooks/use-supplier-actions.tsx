@@ -284,18 +284,18 @@ export function useSupplierActions(
                   error: e,
                 });
 
-                // Backend returns 409 with blockingQuoteDtos when deletion is blocked
+                // Backend returns 409 with blockingQuotes when deletion is blocked
                 const errorData = extractErrorData(e);
                 const blocked: BlockingQuote[] =
                   errorData &&
                   typeof errorData === 'object' &&
-                  'blockingQuoteDtos' in errorData &&
+                  'blockingQuotes' in errorData &&
                   Array.isArray(
-                    (errorData as { blockingQuoteDtos?: BlockingQuote[] })
-                      .blockingQuoteDtos,
+                    (errorData as { blockingQuotes?: BlockingQuote[] })
+                      .blockingQuotes,
                   )
-                    ? (errorData as { blockingQuoteDtos: BlockingQuote[] })
-                        .blockingQuoteDtos
+                    ? (errorData as { blockingQuotes: BlockingQuote[] })
+                        .blockingQuotes
                     : [];
 
                 if (blocked.length > 0) {

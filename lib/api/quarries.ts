@@ -100,17 +100,17 @@ export const useUnarchiveQuarry = () => {
  */
 export const useDeleteQuarryAfterEligibilityCheck = () => {
   const queryClient = useQueryClient();
-  return useMutation<{ blockingQuoteDtos?: unknown[] }, Error, { id: number }>({
+  return useMutation<{ blockingQuotes?: unknown[] }, Error, { id: number }>({
     mutationFn: ({ id }: { id: number }) => APIClient.quarries.delete(id),
     onMutate: (variables) => {
       console.log('[Mutation] Delete quarry vars:', variables);
     },
     onSuccess: (response, variables) => {
       console.log('[Mutation] Delete quarry response:', response);
-      const blocking = Array.isArray(response?.blockingQuoteDtos)
-        ? response.blockingQuoteDtos
+      const blocking = Array.isArray(response?.blockingQuotes)
+        ? response.blockingQuotes
         : [];
-      console.log('[Mutation] blockingQuoteDtos length:', blocking.length);
+      console.log('[Mutation] blockingQuotes length:', blocking.length);
       if (blocking.length === 0) {
         queryClient.invalidateQueries({ queryKey: QuarryKeys.list() });
         queryClient.invalidateQueries({
