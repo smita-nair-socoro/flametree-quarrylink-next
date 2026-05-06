@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';
 import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 
@@ -75,7 +76,8 @@ const formatTimeString = (dateString?: string | null) => {
 export const EMPTY_DOCKET_FORM_VALUES = {
   jobId: 0,
   jobLineItemId: 0,
-  loadSize: 0,
+  plannedLoadSize: 0,
+  actualLoadSize: 0,
   truckQty: 0,
   pickUpAddressId: '',
   deliveryAddressId: '',
@@ -122,6 +124,7 @@ export type SelectOption = { label: string; value: number };
 
 type UseDocketFormStateProps = {
   id?: number;
+  initialDocket?: DocketDTO | null;
   isQuickDocket?: boolean;
   jobId?: number;
   onDirtyChange?: (isDirty: boolean) => void;
@@ -143,6 +146,7 @@ const TRUCK_TYPE_MAP: Record<string, string> = {
 
 export function useDocketFormState({
   id,
+  initialDocket,
   isQuickDocket = true,
   jobId,
   onDirtyChange,
@@ -154,9 +158,37 @@ export function useDocketFormState({
   const docketForm = useForm<FormValues>({
     resolver: zodResolver(DocketFormSchema),
     mode: 'onChange',
-    defaultValues: isJobLocked
-      ? { ...EMPTY_DOCKET_FORM_VALUES, jobId: jobId! }
-      : EMPTY_DOCKET_FORM_VALUES,
+    defaultValues: initialDocket
+      ? {
+          jobId: initialDocket.jobId ?? 0,
+          jobLineItemId: initialDocket.jobItemId ?? 0,
+          plannedLoadSize:
+            initialDocket.plannedLoadSize ?? initialDocket.loadSize ?? 0,
+          actualLoadSize: initialDocket.actualLoadSize ?? 0,
+          truckQty: initialDocket.deliveryDistanceQuantity ?? 0,
+          pickUpAddressId: String(initialDocket.pickUpAddress?.id ?? ''),
+          deliveryAddressId: initialDocket.deliveryAddress?.id
+            ? String(initialDocket.deliveryAddress.id)
+            : '',
+          purchaseOrder: initialDocket.purchaseOrder ?? '',
+          productEstimatedVolume: initialDocket.productEstimatedVolume ?? 0,
+          deliveryCollectionDate: initialDocket.deliveryCollectionDate
+            ? parseAsUTC(initialDocket.deliveryCollectionDate as unknown as string)
+            : undefined,
+          deliveryCollectionStartTime: formatTimeString(
+            initialDocket.deliveryCollectionStartTime,
+          ),
+          deliveryCollectionEndTime: formatTimeString(
+            initialDocket.deliveryCollectionEndTime,
+          ),
+          customerContactName: initialDocket.customerContactName ?? '',
+          customerContactPhone: initialDocket.customerContactPhone ?? '',
+          docketEmail: initialDocket.docketEmailRecipients?.join(', ') ?? '',
+          notes: initialDocket.notes ?? '',
+        }
+      : isJobLocked
+        ? { ...EMPTY_DOCKET_FORM_VALUES, jobId: jobId! }
+        : EMPTY_DOCKET_FORM_VALUES,
   });
 
   const [pickUpAddress, setPickUpAddress] =
@@ -457,6 +489,8 @@ export function useDocketFormState({
   React.useEffect(() => {
     if (!isEditing || !selectedDocket) return;
 
+    const currentCustomerEmail = selectedJob.customerEmail;
+
     docketForm.reset({
       jobId: selectedDocket.jobId ?? 0,
       jobLineItemId: selectedDocket.jobItemId ?? 0,
@@ -483,7 +517,7 @@ export function useDocketFormState({
       customerContactPhone: selectedDocket.customerContactPhone ?? '',
       docketEmail:
         selectedDocket.docketEmailRecipients
-          ?.filter((email) => email !== selectedJob.customerEmail)
+          ?.filter((email) => email !== currentCustomerEmail)
           .join(', ') ?? '',
       notes: selectedDocket.notes ?? '',
     });
@@ -524,7 +558,8 @@ export function useDocketFormState({
       setDeliverySearchInput(mappedDelivery.formattedAddress);
     }
     setIsDirtyTrackingReady(true);
-  }, [isEditing, selectedDocket, docketForm, selectedJob.customerEmail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, selectedDocket, docketForm]);
 
   const productDetailsQuery = useQuery({
     queryKey: ['product', selectedJobLineItemDetails().productId],
