@@ -342,31 +342,28 @@ export default function DocketsTab({
                       </span>
                       <div className="grid grid-cols-2 items-center">
                         <span className="text-[14px] font-bold text-gray-900">
-                          {selectedDocket.docketStatus === 'ASSIGNED'
-                            ? selectedDocket.plannedLoadSize
-                            : selectedDocket.actualLoadSize ||
-                              selectedDocket.plannedLoadSize}
+                          {selectedDocket.actualLoadSize ||
+                            selectedDocket.plannedLoadSize}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
                               ? 'm³'
                               : selectedDocket.jobItem?.productSellUom}
                         </span>
-                        <Button
-                          variant="ghost"
-                          className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
-                          onClick={() => {
-                            const displayLoad =
-                              selectedDocket.docketStatus === 'ASSIGNED'
-                                ? selectedDocket.plannedLoadSize
-                                : selectedDocket.actualLoadSize ||
-                                  selectedDocket.plannedLoadSize;
-                            setUpdateValue(displayLoad?.toString() || '');
-                            setIsUpdateDrawerOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-2 w-2" size="xs" /> Update
-                        </Button>
+                        {selectedDocket.docketStatus !== 'ASSIGNED' && (
+                          <Button
+                            variant="ghost"
+                            className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
+                            onClick={() => {
+                              setUpdateValue(
+                                (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize)?.toString() || '',
+                              );
+                              setIsUpdateDrawerOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-2 w-2" size="xs" /> Update
+                          </Button>
+                        )}
                       </div>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
