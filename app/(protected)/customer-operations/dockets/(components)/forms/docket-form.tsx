@@ -145,13 +145,13 @@ export default function DocketForm({
   const currentStatus = selectedDocket?.docketStatus;
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
 
-  const canEditPlannedLoadSize = isEditing && (isDelivery
+  const canEditPlannedLoadSize = !isEditing || (isDelivery
     ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
     currentStatus === DOCKET_STATUS.ASSIGNED
     : currentStatus === DOCKET_STATUS.PENDING);
 
   const canEditDocketEmail =
-    isEditing &&
+    !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
       currentStatus === DOCKET_STATUS.ASSIGNED ||
@@ -761,6 +761,7 @@ export default function DocketForm({
                                       isNumber
                                       max={maxLoadSize}
                                       disabled={
+                                        isReadOnly ||
                                         !jobLineItemId ||
                                         !canEditPlannedLoadSize
                                       }
