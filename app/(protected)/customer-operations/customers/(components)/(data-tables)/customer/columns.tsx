@@ -69,7 +69,7 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
       if (row.customerType === CUSTOMER_TYPE.BUSINESS) {
         const first = row.contactPersonFirstName ?? '';
         const last = row.contactPersonLastName ?? '';
-        return `${first} ${last}`.trim() || row.contactPersonName || 'N/A';
+        return `${first} ${last}`.trim() || 'N/A';
       }
       return row.individualContactName;
     },
@@ -127,26 +127,29 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
       if (row.original.paymentType === 'CREDIT') {
         const cents = parseFloat(row.original.creditLimit.toString());
         const formatted = centsToDollars(cents);
-        return <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div className="py-2 font-medium w-36 max-w-36 truncate">
-              ${formatted}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>${formatted}</p>
-          </TooltipContent>
-        </Tooltip>
-      }
-      else {
-        return <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>N/A</p>
-          </TooltipContent>
-        </Tooltip>
+        return (
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <div className="py-2 font-medium w-36 max-w-36 truncate">
+                ${formatted}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>${formatted}</p>
+            </TooltipContent>
+          </Tooltip>
+        );
+      } else {
+        return (
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <div className="py-2 font-medium w-36 max-w-36 truncate">N/A</div>
+            </TooltipTrigger>
+            <TooltipContent variant="white">
+              <p>N/A</p>
+            </TooltipContent>
+          </Tooltip>
+        );
       }
     },
     meta: 'Credit Limit',
