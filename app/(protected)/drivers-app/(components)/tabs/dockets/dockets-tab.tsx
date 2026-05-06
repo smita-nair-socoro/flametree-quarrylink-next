@@ -33,6 +33,8 @@ import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions';
 import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
+import { usePreStartChecklistStatusStore } from '@/app/stores/checklist-status-store';
+import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
@@ -81,6 +83,12 @@ export default function DocketsTab({
   const { actions, confirmDialogs, isDialogOpen } =
     useDriverAppDocketActions(selectedDocket);
   const operationalUpdate = useDriverAppOperationalUpdate();
+  const isPreStartPassedToday = usePreStartChecklistStatusStore(
+    (s) => s.isPreStartPassedToday,
+  );
+  const isTruckInspectionPassed = useTruckInspectionStatusStore(
+    (s) => s.isTruckInspectionPassed,
+  );
 
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
@@ -115,10 +123,13 @@ export default function DocketsTab({
     }
   }, [selectedDocket]);
 
-  const checklistsComplete =
-    selectedDocket?.driverChecklist?.checklistStatus ===
-      CHECKLIST_STATUS.PASS &&
-    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS;
+  const driverChecklistPassed =
+    selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
+    isPreStartPassedToday();
+  const truckChecklistPassed =
+    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
+    (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
+  const checklistsComplete = driverChecklistPassed && truckChecklistPassed;
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -457,7 +468,8 @@ export default function DocketsTab({
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
                   {selectedDocket.driverChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS && (
+                    CHECKLIST_STATUS.PASS &&
+                    !isPreStartPassedToday() && (
                     <Button
                       variant="outline"
                       className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -472,7 +484,8 @@ export default function DocketsTab({
                     </Button>
                   )}
                   {selectedDocket.truckChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS && (
+                    CHECKLIST_STATUS.PASS &&
+                    !isTruckInspectionPassed(selectedDocket.id) && (
                     <Button
                       variant="outline"
                       className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"

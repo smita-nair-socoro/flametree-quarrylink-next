@@ -4,7 +4,9 @@ import { BaseChecklist, Question, BaseChecklistAnswer } from './base-checklist';
 import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
 import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
+import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { usePreStartChecklistStatusStore } from '@/app/stores/checklist-status-store';
 
 export default function DriverPreStartChecklist({
   onSubmit,
@@ -18,6 +20,7 @@ export default function DriverPreStartChecklist({
   driverId: number;
 }) {
   const template = useChecklistTemplateStore((s) => s.driverTemplate);
+  const setPreStartPassed = usePreStartChecklistStatusStore((s) => s.setPreStartPassed);
   const submitChecklist = useSubmitChecklist();
   const isLoading = !template;
 
@@ -48,7 +51,7 @@ export default function DriverPreStartChecklist({
   const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
     if (!template) return;
     const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
-    await submitChecklist.mutateAsync({
+    const result = await submitChecklist.mutateAsync({
       templateId: template.id,
       checklistType: CHECKLIST_TYPE.DRIVER,
       driverId,
@@ -64,6 +67,9 @@ export default function DriverPreStartChecklist({
         };
       }),
     });
+    if (result.status === CHECKLIST_STATUS.PASS) {
+      setPreStartPassed();
+    }
     onSubmit?.();
   };
 

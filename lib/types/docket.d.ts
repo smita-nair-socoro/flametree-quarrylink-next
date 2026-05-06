@@ -57,6 +57,21 @@ export interface DocketAssignRequest {
   plannedLoadSize?: number;
 }
 
+export interface DriverAppStatusUpdateRequest {
+  docketStatus: DOCKET_STATUS;
+  reason?: string;
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
+  deliveredProductsConfirmed?: boolean;
+  receiverOnSite?: boolean;
+  receiverName?: string;
+  signatureImage?: string;
+  deliveryNotes?: string;
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
+}
+
 export interface DocketOperationalUpdateRequest {
   checkWindowTimeConflict: boolean;
   docketEmailRecipients?: string[];

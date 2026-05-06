@@ -51,6 +51,7 @@ import {
   DocketDTO,
   DocketOperationalUpdateRequest,
   DocketOperationalUpdateResponse,
+  DriverAppStatusUpdateRequest,
   DispatchDocketDTO,
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
@@ -1342,7 +1343,7 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
         { body: { actualLoadSize } },
       ),
-    updateDocketStatus: (id: number, body: object) =>
+    updateDocketStatus: (id: number, body: DriverAppStatusUpdateRequest) =>
       appClient.Put<DocketDTO>(
         `/socoro/quarrylink/api/driver-app/${id}/status`,
         { body },

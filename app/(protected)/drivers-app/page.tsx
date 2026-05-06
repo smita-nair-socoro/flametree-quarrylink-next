@@ -9,6 +9,7 @@ import {
   TruckChecklistTemplateQueryOptions,
 } from '@/lib/api/checklist';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { usePreStartChecklistStatusStore } from '@/app/stores/checklist-status-store';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
@@ -46,6 +47,9 @@ export default function DriversAppPage() {
     (s) => s.setDriverTemplate,
   );
   const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
+  const isPreStartPassedToday = usePreStartChecklistStatusStore(
+    (s) => s.isPreStartPassedToday,
+  );
 
   const { data: driverTemplate } = useQuery(
     DriverChecklistTemplateQueryOptions(),
@@ -63,6 +67,7 @@ export default function DriversAppPage() {
   }, [truckTemplate, setTruckTemplate]);
 
   const isDailyChecklistRequired = React.useMemo(() => {
+    if (isPreStartPassedToday()) return false;
     const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
     if (!lastCompleted) return true;
     const todayUTCDateStr = new Date().toISOString().split('T')[0];
@@ -70,7 +75,7 @@ export default function DriversAppPage() {
       .toISOString()
       .split('T')[0];
     return todayUTCDateStr !== lastCompletedDateStr;
-  }, [dockets]);
+  }, [dockets, isPreStartPassedToday]);
 
   const handleLogout = async () => {
     try {
