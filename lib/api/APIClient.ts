@@ -140,7 +140,6 @@ export interface HttpConfig {
    * This treats backend datetimes as UTC. Default: true.
    */
   normalizeUtc?: boolean;
-
 }
 
 /**
@@ -474,24 +473,10 @@ export const APIClient = {
       appClient.Put<Product>(`/socoro/quarrylink/api/product/${id}`, {
         body: data,
       }),
-    deleteProduct: (id: number) => {
-      return appClient
-        .Delete<{ blockingQuoteDtos?: unknown[] }>(
-          `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
-        )
-        .then((res) => {
-          console.log('[APIClient] products.delete response:', res);
-          const len = Array.isArray(res?.blockingQuoteDtos)
-            ? res!.blockingQuoteDtos!.length
-            : 0;
-          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
-          return res;
-        })
-        .catch((err) => {
-          console.error('[APIClient] products.delete error:', err);
-          throw err;
-        });
-    },
+    deleteProduct: (id: number) =>
+      appClient.Delete<{ blockingQuotes?: unknown[] }>(
+        `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
+      ),
   },
   quarries: {
     reporting: () =>
@@ -529,19 +514,18 @@ export const APIClient = {
       appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
     delete: (id: number) => {
       return appClient
-        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+        .Delete<{ blockingQuotes?: unknown[] }>(
           `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
         )
         .then((res) => {
           console.log('[APIClient] quarries.delete response:', res);
-          const len = Array.isArray(res?.blockingQuoteDtos)
-            ? res!.blockingQuoteDtos!.length
+          const len = Array.isArray(res?.blockingQuotes)
+            ? res!.blockingQuotes!.length
             : 0;
-          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          console.log('[APIClient] blockingQuotes length from delete:', len);
           return res;
         })
         .catch((err) => {
-          console.error('[APIClient] quarries.delete error:', err);
           throw err;
         });
     },
@@ -586,7 +570,7 @@ export const APIClient = {
       ),
     delete: (quarrySupplierId: number, productId: number) => {
       return appClient
-        .Delete<{ blockingQuoteDtos?: unknown[] }>(
+        .Delete<{ blockingQuotes?: unknown[] }>(
           `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
         )
         .then((res) => {
@@ -594,17 +578,13 @@ export const APIClient = {
             '[APIClient] quarrySupplierProducts.delete response:',
             res,
           );
-          const len = Array.isArray(res?.blockingQuoteDtos)
-            ? res!.blockingQuoteDtos!.length
+          const len = Array.isArray(res?.blockingQuotes)
+            ? res!.blockingQuotes!.length
             : 0;
-          console.log('[APIClient] blockingQuoteDtos length from delete:', len);
+          console.log('[APIClient] blockingQuotes length from delete:', len);
           return res;
         })
         .catch((err) => {
-          console.error(
-            '[APIClient] quarrySupplierProducts.delete error:',
-            err,
-          );
           throw err;
         });
     },
@@ -799,10 +779,7 @@ export const APIClient = {
       }),
     update: (data: Partial<QuotationDTO>) =>
       appClient.Put<QuotationDTO>(`/socoro/quarrylink/api/quote/${data.id}`, {
-        body: (() => {
-          console.log('📡 [APIClient][PUT] Full Request Payload:', data);
-          return data;
-        })(),
+        body: data,
       }),
     extendExpiryDate: (id: number, expiryDate: Date) =>
       appClient.Put<QuotationDTO>(
@@ -1298,29 +1275,43 @@ export const APIClient = {
 
   xero: {
     connect: async (userEmail: string) => {
-      const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
-      const response = await fetch(`${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/connect`, {
-        method: 'POST',
-        headers: {
-          Accept: '*/*',
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authUser?.access_token}`,
+      const [tenantId, authUser] = await Promise.all([
+        getTenantId(),
+        getUser(),
+      ]);
+      const response = await fetch(
+        `${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/connect`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: '*/*',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authUser?.access_token}`,
+          },
+          body: JSON.stringify({ tenantId, userEmail }),
         },
-        body: JSON.stringify({ tenantId, userEmail }),
-      });
-      if (!response.ok) throw new Error(`Xero connect failed: ${response.status}`);
+      );
+      if (!response.ok)
+        throw new Error(`Xero connect failed: ${response.status}`);
       return response.json() as Promise<XeroConnectResponseDTO>;
     },
     getStatus: async () => {
-      const [tenantId, authUser] = await Promise.all([getTenantId(), getUser()]);
-      const response = await fetch(`${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`, {
-        method: 'GET',
-        headers: {
-          Accept: '*/*',
-          Authorization: `Bearer ${authUser?.access_token}`,
+      const [tenantId, authUser] = await Promise.all([
+        getTenantId(),
+        getUser(),
+      ]);
+      const response = await fetch(
+        `${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: '*/*',
+            Authorization: `Bearer ${authUser?.access_token}`,
+          },
         },
-      });
-      if (!response.ok) throw new Error(`Xero status failed: ${response.status}`);
+      );
+      if (!response.ok)
+        throw new Error(`Xero status failed: ${response.status}`);
       return response.json() as Promise<XeroStatusResponseDTO>;
     },
   },

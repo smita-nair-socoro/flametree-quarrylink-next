@@ -87,7 +87,7 @@ export const useUpdateQuarrySupplierProduct = () => {
 export const useDeleteQuarrySupplierProduct = () => {
   const queryClient = useQueryClient();
   return useMutation<
-    { blockingQuoteDtos?: unknown[] },
+    { blockingQuotes?: unknown[] },
     Error,
     { quarrySupplierId: number; productId: number }
   >({
@@ -106,10 +106,10 @@ export const useDeleteQuarrySupplierProduct = () => {
         '[Mutation] Delete quarry-supplier-product response:',
         response
       );
-      const blocking = Array.isArray(response?.blockingQuoteDtos)
-        ? response.blockingQuoteDtos
+      const blocking = Array.isArray(response?.blockingQuotes)
+        ? response.blockingQuotes
         : [];
-      console.log('[Mutation] blockingQuoteDtos length:', blocking.length);
+      console.log('[Mutation] blockingQuotes length:', blocking.length);
       // If not blocked (empty list), deletion occurred -> invalidate caches
       if (blocking.length === 0) {
         queryClient.invalidateQueries({
