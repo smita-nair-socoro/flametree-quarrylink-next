@@ -38,7 +38,7 @@ import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useCreateDocket, useUpdateDocket } from '@/lib/api/docket';
+import { useCreateDocket, useUpdateDocket, useOperationalUpdateDocket } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
@@ -58,6 +58,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { DocketOperationalUpdateRequest } from '@/lib/types/docket';
 
 const DUMMY_CONFLICTING_DOCKETS = [
   { id: -1, docketNumber: 'DO-2342' },
@@ -98,7 +99,7 @@ export default function DocketForm({
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
-
+  const operationalUpdateDocket = useOperationalUpdateDocket();
   const {
     docketForm,
     isEditing,
@@ -141,27 +142,36 @@ export default function DocketForm({
     return toUTCDateTimeWithoutZ(combined);
   };
 
-  const currentStatus = selectedDocket?.docketStatus ?? null;
+  const currentStatus = selectedDocket?.docketStatus;
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
 
-  const canEditPlannedLoadSize =
-    !isEditing || !currentStatus
-      ? true
-      : isDelivery
-        ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-          currentStatus === DOCKET_STATUS.ASSIGNED
-        : currentStatus === DOCKET_STATUS.PENDING;
+  const canEditPlannedLoadSize = isEditing && (isDelivery
+    ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
+    currentStatus === DOCKET_STATUS.ASSIGNED
+    : currentStatus === DOCKET_STATUS.PENDING);
+
+  const canEditDocketEmail =
+    isEditing &&
+    (isDelivery
+      ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
+      : currentStatus === DOCKET_STATUS.PENDING ||
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
+
 
   const canActualLoadSize =
     isEditing &&
-    currentStatus !== null &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -227,7 +237,43 @@ export default function DocketForm({
   }, [isEditing, selectedDocket]);
 
   async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
-    if (isReadOnly && !canActualLoadSize) return;
+    if (isReadOnly) {
+      if (isEditing && (canActualLoadSize || canEditDocketEmail)) {
+        const actualLoadSize = values.actualLoadSize;
+        const docketEmails = values.docketEmail ? values.docketEmail.split(',').map((e) => e.trim()) : [];
+        const payload: DocketOperationalUpdateRequest = {
+          checkWindowTimeConflict: false,
+        };
+        if (canEditDocketEmail) {
+          payload.docketEmailRecipients = docketEmails;
+        }
+        if (canActualLoadSize) {
+          if (!actualLoadSize) {
+            notifyError('Actual load size is required');
+            return;
+          }
+          payload.actualLoadSize = actualLoadSize;
+        }
+        try {
+          setIsSubmitting(true);
+          await operationalUpdateDocket.mutateAsync({
+            id: selectedDocket?.id ?? 0,
+            data: payload,
+          });
+          notifySuccess('Docket updated successfully');
+          onSaved?.();
+          onSuccess?.();
+          return;
+        } catch (error) {
+          console.error('Error updating docket:', error);
+          notifyError(extractErrorMessage(error));
+          return;
+        } finally {
+          setIsSubmitting(false);
+        }
+      }
+      return;
+    }
 
     // For ASSIGNED dockets, always show the conflict confirmation dialog first (API check TBD)
     if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
@@ -251,9 +297,9 @@ export default function DocketForm({
       const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -356,18 +402,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -715,7 +761,6 @@ export default function DocketForm({
                                       isNumber
                                       max={maxLoadSize}
                                       disabled={
-                                        isReadOnly ||
                                         !jobLineItemId ||
                                         !canEditPlannedLoadSize
                                       }
@@ -1073,7 +1118,7 @@ export default function DocketForm({
                               label="Press Enter or comma to add email addresses for docket notifications"
                               {...field}
                               disabled={
-                                isReadOnly || docketForm.watch('jobId') === 0
+                                docketForm.watch('jobId') === 0 || !canEditDocketEmail
                               }
                             />
                           </FormControl>
@@ -1149,13 +1194,12 @@ export default function DocketForm({
                       <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
                         <div className="flex flex-col gap-0.5">
                           <span className="text-sm font-medium">Pre-Start Checklist</span>
-                          <span className={`text-xs font-semibold ${
-                            selectedDocket.driverChecklist.checklistStatus === 'PASS'
-                              ? 'text-green-600'
-                              : selectedDocket.driverChecklist.checklistStatus === 'FAIL'
-                                ? 'text-red-600'
-                                : 'text-muted-foreground'
-                          }`}>
+                          <span className={`text-xs font-semibold ${selectedDocket.driverChecklist.checklistStatus === 'PASS'
+                            ? 'text-green-600'
+                            : selectedDocket.driverChecklist.checklistStatus === 'FAIL'
+                              ? 'text-red-600'
+                              : 'text-muted-foreground'
+                            }`}>
                             {selectedDocket.driverChecklist.checklistStatus ?? 'Pending'}
                           </span>
                         </div>
@@ -1176,13 +1220,12 @@ export default function DocketForm({
                       <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
                         <div className="flex flex-col gap-0.5">
                           <span className="text-sm font-medium">Truck Inspection</span>
-                          <span className={`text-xs font-semibold ${
-                            selectedDocket.truckChecklist.checklistStatus === 'PASS'
-                              ? 'text-green-600'
-                              : selectedDocket.truckChecklist.checklistStatus === 'FAIL'
-                                ? 'text-red-600'
-                                : 'text-muted-foreground'
-                          }`}>
+                          <span className={`text-xs font-semibold ${selectedDocket.truckChecklist.checklistStatus === 'PASS'
+                            ? 'text-green-600'
+                            : selectedDocket.truckChecklist.checklistStatus === 'FAIL'
+                              ? 'text-red-600'
+                              : 'text-muted-foreground'
+                            }`}>
                             {selectedDocket.truckChecklist.checklistStatus ?? 'Pending'}
                           </span>
                         </div>
@@ -1267,7 +1310,7 @@ export default function DocketForm({
                   className="cursor-pointer"
                   type="button"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={(isReadOnly && !canActualLoadSize) || isSubmitting}
+                  disabled={(isReadOnly && !canActualLoadSize && !canEditDocketEmail) || isSubmitting}
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>
@@ -1280,7 +1323,7 @@ export default function DocketForm({
                   type="button"
                   className="cursor-pointer"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={(isReadOnly && !canActualLoadSize) || isSubmitting}
+                  disabled={(isReadOnly && !canActualLoadSize && !canEditDocketEmail) || isSubmitting}
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>

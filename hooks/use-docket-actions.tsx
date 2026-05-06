@@ -758,7 +758,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     );
   });
 
-  const canEdit = ['UNASSIGNED', 'ASSIGNED', 'PENDING'].includes(
+  const canEdit = ['UNASSIGNED', 'PENDING'].includes(
     (docketData ?? selectedDocket)?.docketStatus ?? '',
   );
   const viewDialog = viewOpen ? (
