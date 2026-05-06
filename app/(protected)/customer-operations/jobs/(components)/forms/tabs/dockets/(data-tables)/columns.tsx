@@ -67,7 +67,7 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productName = row.original.jobItem.product.productName;
+      const productName = row.original.jobItem.product.productName || 'N/A';
       return <div className="py-2">{productName}</div>;
     },
     meta: 'Product',
@@ -80,21 +80,23 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      const productSellQty =
-        row.original.plannedLoadSize ??
-        row.original.actualLoadSize ??
-        row.original.loadSize;
+      let loadSize: number = 0;
+      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
+        loadSize = row.original.actualLoadSize || 0;
+      } else {
+        loadSize = row.original.plannedLoadSize || 0;
+      }
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productSellUom === 'TN'
-          ? `${productSellQty} TN`
+          ? `${loadSize} TN`
           : productSellUom === 'M3'
-            ? `${productSellQty} m³`
+            ? `${loadSize} m³`
             : productSellUom === 'KG_20'
-              ? `${productSellQty} x 20kg`
+              ? `${loadSize} x 20kg`
               : productSellUom === 'BULKA'
-                ? `${productSellQty} Bulka`
-                : productSellQty;
+                ? `${loadSize} Bulka`
+                : loadSize;
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>

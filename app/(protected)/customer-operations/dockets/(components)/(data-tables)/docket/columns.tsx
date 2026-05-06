@@ -110,12 +110,12 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'product',
-    accessorFn: (row) => row.jobItem.product.productName,
+    accessorFn: (row) => row.jobItem.product?.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productName = row.original.jobItem.product.productName;
+      const productName = row.original.jobItem.product?.productName || 'N/A';
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -152,10 +152,12 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       return <TableClientSortableHeader column={column} title="Quantity" />;
     },
     cell: ({ row }) => {
-      const loadSize =
-        row.original.plannedLoadSize ??
-        row.original.actualLoadSize ??
-        row.original.loadSize;
+      let loadSize: number = 0;
+      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
+        loadSize = row.original.actualLoadSize || 0;
+      } else {
+        loadSize = row.original.plannedLoadSize || 0;
+      }
       const productUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productUom === 'TN'
