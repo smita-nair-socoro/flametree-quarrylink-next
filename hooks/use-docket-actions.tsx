@@ -52,7 +52,11 @@ import {
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
 import { useDocketStore } from '@/app/stores/docket-store';
-import { useUpdateDocketStatus, useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
+import {
+  useUpdateDocketStatus,
+  useAssignDocket,
+  useUnassignDocket,
+} from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
@@ -85,11 +89,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
@@ -124,9 +128,15 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const unassignDocketMutation = useUnassignDocket();
 
   // Assign state
-  const [assignHauler, setAssignHauler] = React.useState<number | undefined>(undefined);
-  const [assignTruck, setAssignTruck] = React.useState<number | undefined>(undefined);
-  const [assignDriver, setAssignDriver] = React.useState<number | undefined>(undefined);
+  const [assignHauler, setAssignHauler] = React.useState<number | undefined>(
+    undefined,
+  );
+  const [assignTruck, setAssignTruck] = React.useState<number | undefined>(
+    undefined,
+  );
+  const [assignDriver, setAssignDriver] = React.useState<number | undefined>(
+    undefined,
+  );
 
   const resetAssignState = React.useCallback(() => {
     setAssignHauler(undefined);
@@ -163,7 +173,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         receiptPhoto,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.DELIVERED,
       });
       notifySuccess('Docket marked as Delivered');
@@ -187,7 +197,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
       notifySuccess('Docket status updated to In Transit');
@@ -223,7 +233,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         longitude,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.ARRIVED,
       });
       notifySuccess('Docket marked as Arrived');
@@ -241,7 +251,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.IN_TRANSIT,
       });
       notifySuccess('Docket transit resumed');
@@ -259,7 +269,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.COLLECTED,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.COLLECTED,
       });
       notifySuccess('Docket marked as Collected');
@@ -291,7 +301,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.PREPARING,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.PREPARING,
       });
       notifySuccess('Docket status updated to Preparing');
@@ -314,7 +324,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         notes: stopNotes.trim() || undefined,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.STOPPED,
       });
       notifySuccess('Docket transit stopped');
@@ -350,7 +360,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         reason: composedReason,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.VOIDED,
       });
       notifySuccess('Docket voided');
@@ -374,7 +384,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         reason: composedReason,
       });
       setSelectedDocket({
-        ...selectedDocket as DocketDTO,
+        ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.CANCELLED,
       });
       notifySuccess('Docket cancelled');
@@ -758,7 +768,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     );
   });
 
-  const canEdit = ['UNASSIGNED', 'PENDING'].includes(
+  const canEdit = ['UNASSIGNED', 'PENDING', 'ASSIGNED'].includes(
     (docketData ?? selectedDocket)?.docketStatus ?? '',
   );
   const viewDialog = viewOpen ? (
@@ -782,7 +792,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         useSelectedDocket: true,
       }}
     >
-      <DocketForm canEdit={canEdit} initialDocket={docketData ?? selectedDocket} />
+      <DocketForm
+        canEdit={canEdit}
+        initialDocket={docketData ?? selectedDocket}
+      />
     </FormDialog>
   ) : null;
 
