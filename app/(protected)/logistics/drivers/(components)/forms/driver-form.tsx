@@ -453,7 +453,7 @@ export default function DriverForm({
                 <FormMultiSelect
                   control={driverForm.control}
                   name="assignedTrucks"
-                  label="Assigned Trucks (Optional)"
+                  label="Assign Trucks"
                   options={selectedHaulierId || isInternal ? truckOptions : []}
                   placeholder={
                     !selectedHaulierId && !isInternal
