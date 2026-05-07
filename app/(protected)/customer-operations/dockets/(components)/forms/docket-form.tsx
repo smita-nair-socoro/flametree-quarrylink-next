@@ -31,7 +31,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { toUTCDateTimeWithoutZ, formatLocalDateTime } from '@/lib/utils/date';
+import { toLocalDateTime, formatLocalDateTime } from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
@@ -142,16 +142,18 @@ export default function DocketForm({
     const combined = new Date(date);
     combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-    return toUTCDateTimeWithoutZ(combined);
+    return toLocalDateTime(combined);
   };
 
   const currentStatus = selectedDocket?.docketStatus;
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
 
-  const canEditPlannedLoadSize = !isEditing || (isDelivery
-    ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-    currentStatus === DOCKET_STATUS.ASSIGNED
-    : currentStatus === DOCKET_STATUS.PENDING);
+  const isAssigned = currentStatus === DOCKET_STATUS.ASSIGNED;
+  const canEditPlannedLoadSize =
+    !isEditing ||
+    currentStatus === DOCKET_STATUS.UNASSIGNED ||
+    currentStatus === DOCKET_STATUS.PENDING ||
+    currentStatus === DOCKET_STATUS.ASSIGNED;
 
   const canEditDocketEmail =
     !isEditing ||
@@ -696,7 +698,7 @@ export default function DocketForm({
                                   {...field}
                                   value={field.value ?? ''}
                                   isNumber
-                                  disabled={isReadOnly}
+                                  disabled={isReadOnly || isAssigned}
                                   suffix={
                                     details.truckUom === 'Hourly'
                                       ? 'hrs'
@@ -911,7 +913,7 @@ export default function DocketForm({
                             <Input
                               className="w-full"
                               {...field}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly || isAssigned}
                             />
                           </FormControl>
                           <FormMessage />
@@ -927,17 +929,17 @@ export default function DocketForm({
                             Pick Up Address
                           </FormLabel>
                           <FormControl>
-                            <AddressAutoComplete
-                              address={pickUpAddress}
-                              setAddress={setPickUpAddress}
-                              searchInput={pickUpSearchInput}
-                              setSearchInput={setPickUpSearchInput}
-                              dialogTitle="Pick Up Address"
-                              placeholder="Enter site address..."
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              readOnly={isReadOnly}
-                            />
+                              <AddressAutoComplete
+                                address={pickUpAddress}
+                                setAddress={setPickUpAddress}
+                                searchInput={pickUpSearchInput}
+                                setSearchInput={setPickUpSearchInput}
+                                dialogTitle="Pick Up Address"
+                                placeholder="Enter site address..."
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                readOnly={isReadOnly || isAssigned}
+                              />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -963,7 +965,7 @@ export default function DocketForm({
                                 placeholder="Enter site address..."
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
-                                readOnly={isReadOnly}
+                                readOnly={isReadOnly || isAssigned}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1073,7 +1075,7 @@ export default function DocketForm({
                             <Input
                               className="w-full"
                               {...field}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly || isAssigned}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1092,7 +1094,7 @@ export default function DocketForm({
                               className="w-full"
                               defaultCountry="AU"
                               {...field}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly || isAssigned}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1146,7 +1148,7 @@ export default function DocketForm({
                             className="w-full min-h-[80px]"
                             placeholder="Enter important FYI notes"
                             {...field}
-                            disabled={isReadOnly}
+                            disabled={isReadOnly || isAssigned}
                           />
                         </FormControl>
                         <FormMessage />

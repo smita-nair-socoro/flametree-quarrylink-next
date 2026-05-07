@@ -1,6 +1,6 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
-import { toUTCDateTimeWithoutZ } from './date';
+import { toLocalDateTime } from './date';
 import { centsToDollars } from './currency';
 import { formatPhoneNumber } from './phone-helper';
 
@@ -42,7 +42,7 @@ const combineDateAndTime = (
   const combined = new Date(date);
   combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-  return toUTCDateTimeWithoutZ(combined);
+  return toLocalDateTime(combined);
 };
 
 export const transformFormDataToQuoteDto = (
@@ -72,7 +72,7 @@ export const transformFormDataToQuoteDto = (
     phone: formatPhoneNumber(formData.phone as string) || '',
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
-    expiryDate: toUTCDateTimeWithoutZ(expiryDate),
+    expiryDate: toLocalDateTime(expiryDate),
     accountManagerSub: additionalData.accountManagerSub,
     accountManagerName: additionalData.accountManagerName,
     version: 1,
@@ -80,7 +80,7 @@ export const transformFormDataToQuoteDto = (
   };
 
   if (deliveryDate) {
-    transformed.deliveryStartDate = toUTCDateTimeWithoutZ(deliveryDate);
+    transformed.deliveryStartDate = toLocalDateTime(deliveryDate);
   }
 
   const windowStart = combineDateAndTime(
