@@ -64,9 +64,8 @@ interface DialogConfig {
 
 interface CancelBlockerState {
   type: CannotCancelBlockerType;
-  activeDeliveryCount?: number;
-  deliveredDocketCount?: number;
-  collectedDocketCount?: number;
+  activeCount?: number;
+  unfinalisedCount?: number;
 }
 
 export function useJobActions(jobData?: JobDetails | null) {
@@ -147,9 +146,8 @@ export function useJobActions(jobData?: JobDetails | null) {
         content: cannotCancelBlocker ? (
           <CannotCancelJobContent
             blockerType={cannotCancelBlocker.type}
-            activeDeliveryCount={cannotCancelBlocker.activeDeliveryCount}
-            deliveredDocketCount={cannotCancelBlocker.deliveredDocketCount}
-            collectedDocketCount={cannotCancelBlocker.collectedDocketCount}
+            activeCount={cannotCancelBlocker.activeCount}
+            unfinalisedCount={cannotCancelBlocker.unfinalisedCount}
           />
         ) : null,
         confirmActionNeeded: false,
@@ -287,33 +285,24 @@ export function useJobActions(jobData?: JobDetails | null) {
       setCannotCancelBlocker(null);
       useJobStore.getState().setSelectedJob(updated);
     } catch (error: unknown) {
-      const data = extractErrorData(
-        error,
-      ) as Partial<CancelBlockerState> | null;
-      const activeDeliveryCount = data?.activeDeliveryCount ?? 0;
-      const deliveredDocketCount = data?.deliveredDocketCount ?? 0;
-      const collectedDocketCount = data?.collectedDocketCount ?? 0;
+      const data = extractErrorData(error) as {
+        activeCount?: number;
+        unfinalisedCount?: number;
+      } | null;
+      const activeCount = data?.activeCount ?? 0;
+      const unfinalisedCount = data?.unfinalisedCount ?? 0;
 
-      const hasBlockers =
-        activeDeliveryCount > 0 ||
-        deliveredDocketCount > 0 ||
-        collectedDocketCount > 0;
+      const hasBlockers = activeCount > 0 || unfinalisedCount > 0;
 
       if (hasBlockers) {
         const blockerType: CannotCancelBlockerType =
-          activeDeliveryCount > 0 &&
-          (deliveredDocketCount > 0 || collectedDocketCount > 0)
+          activeCount > 0 && unfinalisedCount > 0
             ? 'multiple_blockers'
-            : activeDeliveryCount > 0
+            : activeCount > 0
               ? 'active_drivers'
               : 'unfinalised_dockets';
 
-        setCannotCancelBlocker({
-          type: blockerType,
-          activeDeliveryCount,
-          deliveredDocketCount,
-          collectedDocketCount,
-        });
+        setCannotCancelBlocker({ type: blockerType, activeCount, unfinalisedCount });
         setActiveDialog('cannot_cancel');
       } else {
         setActiveDialog(null);

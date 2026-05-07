@@ -43,14 +43,12 @@ export type CannotCancelBlockerType =
 
 export function CannotCancelJobContent({
   blockerType,
-  activeDeliveryCount = 0,
-  deliveredDocketCount = 0,
-  collectedDocketCount = 0,
+  activeCount = 0,
+  unfinalisedCount = 0,
 }: {
   blockerType: CannotCancelBlockerType;
-  activeDeliveryCount?: number;
-  deliveredDocketCount?: number;
-  collectedDocketCount?: number;
+  activeCount?: number;
+  unfinalisedCount?: number;
 }) {
   const blockerMessage =
     blockerType === 'active_drivers'
@@ -62,29 +60,19 @@ export function CannotCancelJobContent({
   const blockingItems: string[] = [];
   if (
     (blockerType === 'active_drivers' || blockerType === 'multiple_blockers') &&
-    activeDeliveryCount > 0
+    activeCount > 0
   ) {
     blockingItems.push(
-      `${activeDeliveryCount} ${activeDeliveryCount === 1 ? 'delivery is' : 'deliveries are'} currently active (assigned or in transit)`,
+      `${activeCount} ${activeCount === 1 ? 'delivery is' : 'deliveries are'} currently active (assigned or in transit)`,
     );
   }
-  if (blockerType === 'unfinalised_dockets' || blockerType === 'multiple_blockers') {
-    if (deliveredDocketCount > 0 && collectedDocketCount > 0) {
-      blockingItems.push(
-        `${deliveredDocketCount} delivered ${deliveredDocketCount === 1 ? 'docket' : 'dockets'} and ${collectedDocketCount} collected ${collectedDocketCount === 1 ? 'docket' : 'dockets'} haven't been finalised`,
-      );
-    } else {
-      if (deliveredDocketCount > 0) {
-        blockingItems.push(
-          `${deliveredDocketCount} delivered ${deliveredDocketCount === 1 ? 'docket' : 'dockets'} ${deliveredDocketCount === 1 ? "hasn't" : "haven't"} been finalised`,
-        );
-      }
-      if (collectedDocketCount > 0) {
-        blockingItems.push(
-          `${collectedDocketCount} collected ${collectedDocketCount === 1 ? 'docket' : 'dockets'} ${collectedDocketCount === 1 ? "hasn't" : "haven't"} been finalised`,
-        );
-      }
-    }
+  if (
+    (blockerType === 'unfinalised_dockets' || blockerType === 'multiple_blockers') &&
+    unfinalisedCount > 0
+  ) {
+    blockingItems.push(
+      `${unfinalisedCount} ${unfinalisedCount === 1 ? 'docket' : 'dockets'} ${unfinalisedCount === 1 ? "hasn't" : "haven't"} been finalised`,
+    );
   }
 
   const actionItems: string[] = [];
@@ -92,12 +80,8 @@ export function CannotCancelJobContent({
     actionItems.push('Stop or unassign all active deliveries');
   }
   if (blockerType === 'unfinalised_dockets' || blockerType === 'multiple_blockers') {
-    if (deliveredDocketCount > 0) {
-      actionItems.push('Invoice or void delivered dockets');
-    }
-    if (collectedDocketCount > 0) {
-      actionItems.push('Invoice, mark as cash sale, or void collected dockets');
-    }
+    actionItems.push('Invoice or void delivered dockets');
+    actionItems.push('Invoice, mark as cash sale, or void collected dockets');
   }
 
   return (
