@@ -7,6 +7,8 @@ import { invoicesColumns } from './(data-tables)/columns';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
+import { FormDialog } from '@/components/form-dialog';
+import InvoiceForm from '../../invoice-form';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -23,9 +25,9 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
         )}
       >
         <span className="text-lg font-semibold">Invoices</span>
-        {/* <FormDialog dialogTitle="Add New Docket" buttonTitle="Add New Docket">
-					<DocketForm isQuickDocket={false} jobId={jobId} />
-				</FormDialog> */}
+        <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
+          <InvoiceForm jobId={jobId} />
+        </FormDialog>
       </div>
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
@@ -33,7 +35,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
           columns={invoicesColumns}
           data={invoices ?? []}
           simpleTable={true}
-          defaultSorting={[{ id: 'docketNumber', desc: false }]}
+          defaultSorting={[{ id: 'invoiceNumber', desc: false }]}
         />
       </div>
     </div>

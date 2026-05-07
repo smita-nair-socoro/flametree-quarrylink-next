@@ -61,8 +61,10 @@ function TabsContent({
 // Wrapper component with your desired props
 interface TabItem {
   name: string;
+  value?: string;
   content: React.ReactNode;
   icon?: React.ReactNode;
+  rightElement?: React.ReactNode;
 }
 
 interface CustomTabsProps {
@@ -89,7 +91,7 @@ function Tab({
   variant = 'default',
   enableDropdownOnMobile = false,
 }: CustomTabsProps) {
-  const defaultValue = defaultTab || tabs[0]?.name || '';
+  const defaultValue = defaultTab || tabs[0]?.value || tabs[0]?.name || '';
   const [internalValue, setInternalValue] = React.useState(defaultValue);
   const currentValue = controlledValue ?? internalValue;
   const handleValueChange = React.useCallback(
@@ -116,7 +118,7 @@ function Tab({
         <>
           <div className="w-full max-[910px]:block min-[911px]:hidden">
             <MobileScrollableTabs
-              tabs={tabs.map((t) => ({ value: t.name, label: t.name, icon: t.icon }))}
+              tabs={tabs.map((t) => ({ value: t.value || t.name, label: t.name, icon: t.icon }))}
               value={currentValue}
               onValueChange={handleValueChange}
             />
@@ -127,7 +129,7 @@ function Tab({
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.name}
-                value={tab.name}
+                value={tab.value || tab.name}
                 className={cn(
                   variant === 'default' && 'w-full',
                   triggerStyles,
@@ -138,11 +140,13 @@ function Tab({
                   <>
                     {tab.icon}
                     <span>{tab.name}</span>
+                    {tab.rightElement}
                   </>
                 ) : (
                   <div className="flex items-center gap-2">
                     {tab.icon}
                     <span>{tab.name}</span>
+                    {tab.rightElement}
                   </div>
                 )}
               </TabsTrigger>
@@ -154,7 +158,7 @@ function Tab({
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.name}
-              value={tab.name}
+              value={tab.value || tab.name}
               className={cn(
                 variant === 'default' && 'w-full',
                 triggerStyles,
@@ -165,11 +169,13 @@ function Tab({
                 <>
                   {tab.icon}
                   <span>{tab.name}</span>
+                  {tab.rightElement}
                 </>
               ) : (
                 <div className="flex items-center gap-2">
                   {tab.icon}
                   <span>{tab.name}</span>
+                  {tab.rightElement}
                 </div>
               )}
             </TabsTrigger>
@@ -178,7 +184,7 @@ function Tab({
       )}
 
       {tabs.map((tab) => (
-        <TabsContent key={tab.name} value={tab.name}>
+        <TabsContent key={tab.name} value={tab.value || tab.name}>
           {tab.content}
         </TabsContent>
       ))}

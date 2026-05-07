@@ -31,7 +31,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './button';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Select,
   SelectContent,
@@ -238,7 +245,8 @@ export function DataTableClient<TData, TValue>({
       }
     };
     window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
-    return () => window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
+    return () =>
+      window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
   }, [getStorageKey]);
 
   const syncErrorRecordIdsSet = useMemo(
@@ -634,8 +642,14 @@ export function DataTableClient<TData, TValue>({
       const selectedRows = selectedRowIds
         .map((id) => {
           // Use table.getRow to get the row by its ID (which could be the actual row id or index)
-          const row = table.getRow(id);
-          return row?.original;
+          try {
+            const row = table.getRow(id);
+            return row?.original;
+          } catch (e) {
+            // Row might not exist in current data model (e.g. after filtering/tab switch)
+            console.error(e);
+            return undefined;
+          }
         })
         .filter((row): row is TData => row !== undefined);
       onRowSelectionChange(selectedRows);
@@ -754,12 +768,19 @@ export function DataTableClient<TData, TValue>({
                   title={filter.title}
                   options={filter.options}
                   counts={filter.counts}
-                  filterValues={(columnFilters.find((f) => f.id === filter.column)?.value as string[]) || []}
+                  filterValues={
+                    (columnFilters.find((f) => f.id === filter.column)
+                      ?.value as string[]) || []
+                  }
                   onFilterChange={() => {}}
                 />
               ))}
               {columnFilters.length > 0 && (
-                <Button variant="outline" size="sm" className="h-8 border-dashed">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border-dashed"
+                >
                   <X size={16} className="mr-2" />
                   Clear All
                 </Button>
@@ -815,12 +836,14 @@ export function DataTableClient<TData, TValue>({
                     <Accordion type="multiple" className="w-full">
                       {facetedWithCounts.map((filter) => {
                         const currentFilterValues =
-                          (tempColumnFilters.find(
-                            (f) => f.id === filter.column,
-                          )?.value as string[]) || [];
+                          (tempColumnFilters.find((f) => f.id === filter.column)
+                            ?.value as string[]) || [];
 
                         return (
-                          <AccordionItem key={filter.column} value={filter.column}>
+                          <AccordionItem
+                            key={filter.column}
+                            value={filter.column}
+                          >
                             <AccordionTrigger className="text-left">
                               <div className="flex items-center justify-between w-full pr-4">
                                 <span className="text-lg">{filter.title}</span>
@@ -835,11 +858,18 @@ export function DataTableClient<TData, TValue>({
                               <div className="space-y-2 pt-2">
                                 {[...filter.options]
                                   .sort((a, b) =>
-                                    a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
+                                    a.label
+                                      .toLowerCase()
+                                      .localeCompare(b.label.toLowerCase()),
                                   )
                                   .map((option) => {
-                                    const isSelected = currentFilterValues.includes(option.value);
-                                    const displayLabel = option.label.includes('_')
+                                    const isSelected =
+                                      currentFilterValues.includes(
+                                        option.value,
+                                      );
+                                    const displayLabel = option.label.includes(
+                                      '_',
+                                    )
                                       ? option.label.replace(/_/g, ' ')
                                       : option.label;
 
@@ -849,27 +879,43 @@ export function DataTableClient<TData, TValue>({
                                         className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                                         onClick={() => {
                                           const newValues = isSelected
-                                            ? currentFilterValues.filter((v) => v !== option.value)
-                                            : [...currentFilterValues, option.value];
-                                          handleTempFilterChange(filter.column, newValues);
+                                            ? currentFilterValues.filter(
+                                                (v) => v !== option.value,
+                                              )
+                                            : [
+                                                ...currentFilterValues,
+                                                option.value,
+                                              ];
+                                          handleTempFilterChange(
+                                            filter.column,
+                                            newValues,
+                                          );
                                         }}
                                       >
                                         <div className="flex items-center space-x-3">
                                           <div
                                             className={cn(
                                               'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
-                                              isSelected ? 'bg-primary text-primary-foreground' : 'opacity-50',
+                                              isSelected
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'opacity-50',
                                             )}
                                           >
-                                            {isSelected && <Check className="h-3 w-3" />}
+                                            {isSelected && (
+                                              <Check className="h-3 w-3" />
+                                            )}
                                           </div>
-                                          <span className="text-sm">{displayLabel}</span>
-                                        </div>
-                                        {filter.counts && filter.counts[option.value] != null && (
-                                          <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                                            {filter.counts[option.value]}
+                                          <span className="text-sm">
+                                            {displayLabel}
                                           </span>
-                                        )}
+                                        </div>
+                                        {filter.counts &&
+                                          filter.counts[option.value] !=
+                                            null && (
+                                            <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                                              {filter.counts[option.value]}
+                                            </span>
+                                          )}
                                       </div>
                                     );
                                   })}
@@ -911,8 +957,13 @@ export function DataTableClient<TData, TValue>({
                     title={filter.title}
                     options={filter.options}
                     counts={filter.counts}
-                    filterValues={(columnFilters.find((f) => f.id === filter.column)?.value as string[]) || []}
-                    onFilterChange={(vals) => handleFilterChange(filter.column, vals)}
+                    filterValues={
+                      (columnFilters.find((f) => f.id === filter.column)
+                        ?.value as string[]) || []
+                    }
+                    onFilterChange={(vals) =>
+                      handleFilterChange(filter.column, vals)
+                    }
                   />
                 ))}
                 {columnFilters.length > 0 && (
@@ -955,7 +1006,9 @@ export function DataTableClient<TData, TValue>({
                           <DropdownMenuCheckboxItem
                             key={col.id}
                             checked={col.getIsVisible()}
-                            onCheckedChange={(val) => col.toggleVisibility(!!val)}
+                            onCheckedChange={(val) =>
+                              col.toggleVisibility(!!val)
+                            }
                           >
                             {displayName}
                           </DropdownMenuCheckboxItem>
@@ -977,9 +1030,12 @@ export function DataTableClient<TData, TValue>({
                   options={filter.options}
                   counts={filter.counts}
                   filterValues={
-                    (columnFilters.find((f) => f.id === filter.column)?.value as string[]) || []
+                    (columnFilters.find((f) => f.id === filter.column)
+                      ?.value as string[]) || []
                   }
-                  onFilterChange={(vals) => handleFilterChange(filter.column, vals)}
+                  onFilterChange={(vals) =>
+                    handleFilterChange(filter.column, vals)
+                  }
                 />
               ))}
               {columnFilters.length > 0 && (
