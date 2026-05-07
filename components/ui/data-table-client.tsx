@@ -31,7 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './button';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -355,6 +355,13 @@ export function DataTableClient<TData, TValue>({
   const [mobilePageInput, setMobilePageInput] = useState('1');
   const MOBILE_PAGE_SIZE = 10;
 
+  // Inline filter layout measurement
+  const rowRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const showHideRef = useRef<HTMLDivElement>(null);
+  const filterMeasureRef = useRef<HTMLDivElement>(null);
+  const [filtersInline, setFiltersInline] = useState(false);
+
   // Sync temp filters when drawer opens
   useEffect(() => {
     if (drawerOpen) {
@@ -654,6 +661,27 @@ export function DataTableClient<TData, TValue>({
 
   const facetedWithCounts = useFacets(table, facetDefinition);
 
+  // Decide whether desktop filters fit in the gap between search bar and Show/Hide button
+  useLayoutEffect(() => {
+    if (isMobile) return;
+
+    const calculate = () => {
+      if (!rowRef.current || !filterMeasureRef.current) return;
+      const containerWidth = rowRef.current.offsetWidth;
+      const searchWidth = searchRef.current?.offsetWidth ?? 0;
+      const showHideWidth = showHideRef.current?.offsetWidth ?? 0;
+      const filterWidth = filterMeasureRef.current.scrollWidth;
+      const gap = 8; // gap-2 = 8px
+      const available = containerWidth - searchWidth - showHideWidth - gap * 2;
+      setFiltersInline(filterWidth > 0 && filterWidth <= available);
+    };
+
+    calculate();
+    const observer = new ResizeObserver(calculate);
+    if (rowRef.current) observer.observe(rowRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, facetedWithCounts.length, columnFilters.length]);
+
   function handleFilterChange(columnId: string, values: string[]) {
     setColumnFilters((old) => {
       const others = old.filter((f) => f.id !== columnId);
@@ -712,10 +740,35 @@ export function DataTableClient<TData, TValue>({
   return (
     <div className="space-y-6 md:space-y-4">
       {!simpleTable && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 relative">
+          {/* Hidden measurement div — renders filters off-screen to measure their total width */}
+          {!isMobile && facetedWithCounts.length > 0 && (
+            <div
+              ref={filterMeasureRef}
+              className="absolute invisible pointer-events-none flex gap-2 flex-nowrap top-0 left-0"
+              aria-hidden="true"
+            >
+              {facetedWithCounts.map((filter) => (
+                <DataTableFacetedFilter
+                  key={filter.column}
+                  title={filter.title}
+                  options={filter.options}
+                  counts={filter.counts}
+                  filterValues={(columnFilters.find((f) => f.id === filter.column)?.value as string[]) || []}
+                  onFilterChange={() => {}}
+                />
+              ))}
+              {columnFilters.length > 0 && (
+                <Button variant="outline" size="sm" className="h-8 border-dashed">
+                  <X size={16} className="mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+          )}
           {/* Row 1: Search bar + Show/Hide Columns */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 min-w-0">
+          <div ref={rowRef} className="flex flex-wrap items-center gap-2">
+            <div ref={searchRef} className="flex-1 min-w-0 max-w-xl">
               <InputIcon
                 placeholder={searchPlaceHolder}
                 type="search"
@@ -849,41 +902,73 @@ export function DataTableClient<TData, TValue>({
               </Drawer>
             )}
 
-            {isShowHideColumns && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 flex-shrink-0">
-                    Show/Hide Columns
-                    <ChevronDown size={16} className="ml-1" />
+            {/* Inline filters — shown here when they fit in the gap */}
+            {!isMobile && filtersInline && facetedWithCounts.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {facetedWithCounts.map((filter) => (
+                  <DataTableFacetedFilter
+                    key={filter.column}
+                    title={filter.title}
+                    options={filter.options}
+                    counts={filter.counts}
+                    filterValues={(columnFilters.find((f) => f.id === filter.column)?.value as string[]) || []}
+                    onFilterChange={(vals) => handleFilterChange(filter.column, vals)}
+                  />
+                ))}
+                {columnFilters.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-dashed"
+                    onClick={() => {
+                      setColumnFilters([]);
+                      saveToStorage('columnFilters', []);
+                    }}
+                  >
+                    <X size={16} className="mr-2" />
+                    Clear All
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {table
-                    .getAllColumns()
-                    .filter((col) => col.getCanHide())
-                    .map((col) => {
-                      const displayName =
-                        (col.columnDef.meta as string) ||
-                        col.id
-                          .replace(/_/g, ' ')
-                          .replace(/\b\w/g, (char) => char.toUpperCase());
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={col.id}
-                          checked={col.getIsVisible()}
-                          onCheckedChange={(val) => col.toggleVisibility(!!val)}
-                        >
-                          {displayName}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+              </div>
+            )}
+
+            {isShowHideColumns && (
+              <div ref={showHideRef} className="ml-auto flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8">
+                      Show/Hide Columns
+                      <ChevronDown size={16} className="ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {table
+                      .getAllColumns()
+                      .filter((col) => col.getCanHide())
+                      .map((col) => {
+                        const displayName =
+                          (col.columnDef.meta as string) ||
+                          col.id
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (char) => char.toUpperCase());
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={col.id}
+                            checked={col.getIsVisible()}
+                            onCheckedChange={(val) => col.toggleVisibility(!!val)}
+                          >
+                            {displayName}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
           </div>
 
-          {/* Row 2: Desktop filters (flex-wrap so they never overflow) */}
-          {!isMobile && facetedWithCounts.length > 0 && (
+          {/* Row 2: Desktop filters — only when they don't fit inline on row 1 */}
+          {!isMobile && !filtersInline && facetedWithCounts.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {facetedWithCounts.map((filter) => (
                 <DataTableFacetedFilter
