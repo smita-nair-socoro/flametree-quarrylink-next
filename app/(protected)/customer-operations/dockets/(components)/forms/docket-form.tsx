@@ -58,7 +58,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { DocketOperationalUpdateRequest } from '@/lib/types/docket';
+import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
 const DUMMY_CONFLICTING_DOCKETS = [
   { id: -1, docketNumber: 'DO-2342' },
@@ -75,6 +75,7 @@ interface FormProps {
   isQuickDocket?: boolean;
   jobId?: number;
   canEdit?: boolean;
+  initialDocket?: DocketDTO | null;
 }
 
 export default function DocketForm({
@@ -87,6 +88,7 @@ export default function DocketForm({
   isQuickDocket = true,
   jobId,
   canEdit = true,
+  initialDocket,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -124,6 +126,7 @@ export default function DocketForm({
     selectedDocket,
   } = useDocketFormState({
     id,
+    initialDocket,
     isQuickDocket,
     jobId,
     onDirtyChange,
@@ -145,13 +148,13 @@ export default function DocketForm({
   const currentStatus = selectedDocket?.docketStatus;
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
 
-  const canEditPlannedLoadSize = isEditing && (isDelivery
+  const canEditPlannedLoadSize = !isEditing || (isDelivery
     ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
     currentStatus === DOCKET_STATUS.ASSIGNED
     : currentStatus === DOCKET_STATUS.PENDING);
 
   const canEditDocketEmail =
-    isEditing &&
+    !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
       currentStatus === DOCKET_STATUS.ASSIGNED ||
@@ -691,6 +694,7 @@ export default function DocketForm({
                                 <Input
                                   className="w-full"
                                   {...field}
+                                  value={field.value ?? ''}
                                   isNumber
                                   disabled={isReadOnly}
                                   suffix={
@@ -758,9 +762,11 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
+                                      value={field.value ?? ''}
                                       isNumber
                                       max={maxLoadSize}
                                       disabled={
+                                        isReadOnly ||
                                         !jobLineItemId ||
                                         !canEditPlannedLoadSize
                                       }
@@ -796,6 +802,7 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
+                                      value={field.value ?? ''}
                                       isNumber
                                       disabled={!canActualLoadSize}
                                     />
@@ -998,7 +1005,7 @@ export default function DocketForm({
                           <FormLabel>Start Time Window</FormLabel>
                           <FormControl>
                             <Select
-                              value={field.value || undefined}
+                              value={field.value}
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
@@ -1031,7 +1038,7 @@ export default function DocketForm({
                           <FormLabel>End Time Window</FormLabel>
                           <FormControl>
                             <Select
-                              value={field.value || undefined}
+                              value={field.value}
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >

@@ -782,7 +782,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         useSelectedDocket: true,
       }}
     >
-      <DocketForm canEdit={canEdit} />
+      <DocketForm canEdit={canEdit} initialDocket={docketData ?? selectedDocket} />
     </FormDialog>
   ) : null;
 
