@@ -37,7 +37,9 @@ export function InvoiceActions({
   selectedDockets,
   onClearSelection,
 }: InvoicesBulkActionsProps) {
-  const [dialogType, setDialogType] = React.useState<'bulk' | 'individual' | null>(null);
+  const [dialogType, setDialogType] = React.useState<
+    'bulk' | 'individual' | null
+  >(null);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [includeDeliveryPrices, setIncludeDeliveryPrices] =
     React.useState(false);
@@ -49,6 +51,7 @@ export function InvoiceActions({
     onSuccess: () => {
       toast.success('Invoices created successfully');
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['dockets'] });
       setDialogType(null);
       onClearSelection();
     },
@@ -71,7 +74,10 @@ export function InvoiceActions({
 
   return (
     <>
-      <Dialog open={dialogType !== null} onOpenChange={(open) => !open && setDialogType(null)}>
+      <Dialog
+        open={dialogType !== null}
+        onOpenChange={(open) => !open && setDialogType(null)}
+      >
         <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-md">
           <div className="px-6 pt-5 pb-1 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center">
@@ -83,7 +89,9 @@ export function InvoiceActions({
             </div>
             <DialogHeader className="items-center space-y-2 text-center">
               <DialogTitle className="text-xl font-bold text-gray-900">
-                {isIndividual ? 'Create Individual Invoices' : 'Create Bulk Invoice'}
+                {isIndividual
+                  ? 'Create Individual Invoices'
+                  : 'Create Bulk Invoice'}
               </DialogTitle>
               <DialogDescription className="text-[15px] text-slate-600 mb-4">
                 {isIndividual
@@ -222,9 +230,7 @@ export function InvoiceActions({
                   aria-hidden
                 />
                 <div className="flex min-w-0 flex-col gap-0.5 text-left">
-                  <span className="text-[13px] font-medium">
-                    Bulk Invoice
-                  </span>
+                  <span className="text-[13px] font-medium">Bulk Invoice</span>
                   <span className="text-[11px] font-medium leading-snug text-slate-500">
                     All dockets as line items in one invoice
                   </span>
