@@ -221,11 +221,6 @@ export default function DriverForm({
         .map((t) => ({
           label: t.licensePlate.replace(/-\d+$/, ''),
           value: String(t.id),
-          group:
-            t.haulier?.haulierName ??
-            selectedHaulierInfo?.haulierName ??
-            businessName ??
-            'Trucks',
         }))
         .sort((a, b) => a.label.localeCompare(b.label)),
     [haulierTrucks, selectedHaulierInfo, businessName],
