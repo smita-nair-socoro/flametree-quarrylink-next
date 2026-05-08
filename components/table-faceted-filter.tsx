@@ -122,7 +122,7 @@ export function DataTableFacetedFilter({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="start" side="bottom" className="w-[200px] p-0">
+      <PopoverContent align="start" side="bottom" className="w-[210px] p-0">
         <Command>
           <CommandInput placeholder={`Filter ${title}…`} />
           <CommandList>
