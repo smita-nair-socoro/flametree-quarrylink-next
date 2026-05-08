@@ -169,7 +169,8 @@ export default function DocketForm({
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
 
   const isAssigned = currentStatus === DOCKET_STATUS.ASSIGNED;
-  const canEditTruckType = !isEditing || currentStatus === DOCKET_STATUS.UNASSIGNED;
+  const canEditTruckType =
+    !isEditing || currentStatus === DOCKET_STATUS.UNASSIGNED;
   const canEditPlannedLoadSize =
     !isEditing ||
     currentStatus === DOCKET_STATUS.UNASSIGNED ||
@@ -453,7 +454,9 @@ export default function DocketForm({
         customerContactPhone: values.customerContactPhone,
         docketEmailRecipients,
         notes: values.notes,
-        truckType: isCollection ? undefined : (values.truckType || lineItemDetails.truckType || undefined),
+        truckType: isCollection
+          ? undefined
+          : values.truckType || lineItemDetails.truckType || undefined,
         plannedLoadSize: values.plannedLoadSize,
         actualLoadSize: values.actualLoadSize,
         grossTruckWeight: 100,
@@ -743,7 +746,7 @@ export default function DocketForm({
                             <FormSelect
                               control={docketForm.control}
                               name="truckType"
-                              label="Truck Type"
+                              label="Suggested Truck Type"
                               searchLabel="Truck Type"
                               options={truckTypeOptions}
                               placeholder="Select Truck Type"
