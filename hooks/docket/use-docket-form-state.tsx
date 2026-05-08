@@ -27,40 +27,37 @@ export const calculateConvertedQty = (
   let quantityInTn = quantity;
   const normalizedFrom = fromUom.toLowerCase();
   const normalizedTo = toUom.toLowerCase();
+
   if (normalizedFrom === 'm3' || normalizedFrom === 'bulka') {
     quantityInTn = quantity * density;
   } else if (normalizedFrom === '20kg' || normalizedFrom === 'kg_20') {
     quantityInTn = quantity / 50;
   }
+
   if (normalizedTo === 'm3' || normalizedTo === 'bulka') {
     return quantityInTn / density;
   } else if (normalizedTo === '20kg' || normalizedTo === 'kg_20') {
     return quantityInTn * 50;
   }
 
-  return quantityInTn; // Default to TN
+  return quantityInTn;
 };
 
-// Helper to format Date to HH:MM time string
 const formatTimeString = (dateString?: string | null) => {
   if (!dateString) return '';
 
-  // If it's already just a time string like "14:00" or "14:00:00"
   if (/^\d{2}:\d{2}(:\d{2})?$/.test(dateString)) {
     return dateString.substring(0, 5);
   }
 
-  // If it's an ISO string, we can just extract the time part to avoid timezone shifts
   if (dateString.includes('T')) {
     const timePart = dateString.split('T')[1];
-    if (timePart) {
-      return timePart.substring(0, 5);
-    }
-  } else if (dateString.includes(' ')) {
+    return timePart ? timePart.substring(0, 5) : '';
+  }
+
+  if (dateString.includes(' ')) {
     const timePart = dateString.split(' ')[1];
-    if (timePart) {
-      return timePart.substring(0, 5);
-    }
+    return timePart ? timePart.substring(0, 5) : '';
   }
 
   const date = new Date(dateString);
@@ -83,7 +80,7 @@ export const EMPTY_DOCKET_FORM_VALUES = {
   deliveryAddressId: '',
   purchaseOrder: '',
   productEstimatedVolume: 0,
-  deliveryCollectionDate: undefined,
+  deliveryCollectionDate: GetTodaysDate(),
   deliveryCollectionStartTime: '',
   deliveryCollectionEndTime: '',
   customerContactName: '',
@@ -105,19 +102,6 @@ export const EMPTY_ADDRESS: AddressType = {
   googlePlaceId: '',
 };
 
-const MOCK_PICK_UP_ADDRESS: AddressType = {
-  address1: '123 George St',
-  address2: 'Unit 5',
-  formattedAddress: '123 George St Unit 5, Sydney, NSW 2000 Australia',
-  city: 'Sydney',
-  region: 'NSW',
-  postalCode: '2000',
-  country: 'Australia',
-  lat: -33.86785,
-  lng: 151.20732,
-  googlePlaceId: '123456789012',
-};
-
 type FormValues = z.infer<typeof DocketFormSchema>;
 
 export type SelectOption = { label: string; value: number };
@@ -128,6 +112,21 @@ type UseDocketFormStateProps = {
   isQuickDocket?: boolean;
   jobId?: number;
   onDirtyChange?: (isDirty: boolean) => void;
+};
+
+type SelectedJobPrefill = {
+  deliveryStartDate: string;
+  startTimeWindow: string;
+  endTimeWindow: string;
+  poNumber: string;
+  contactName: string;
+  contactPhone: string;
+  customerEmail: string;
+  additionalDocketEmails: string;
+  createdBy: string;
+  lastModifiedBy: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const TRUCK_TYPE_MAP: Record<string, string> = {
@@ -144,6 +143,103 @@ const TRUCK_TYPE_MAP: Record<string, string> = {
   CRANE_TRUCK: 'Crane Truck',
 };
 
+const getSafeDeliveryDate = (dateString?: string) => {
+  const todayDate = GetTodaysDate();
+  if (!dateString) return todayDate;
+
+  const jobDate = new Date(dateString);
+  return jobDate < todayDate ? todayDate : jobDate;
+};
+
+const mapDocketAddressToAddressType = (
+  address?: DocketDTO['pickUpAddress'] | DocketDTO['deliveryAddress'] | null,
+): AddressType => {
+  if (!address) return EMPTY_ADDRESS;
+
+  return {
+    address1: address.streetDetailsPrimary || '',
+    address2: address.streetDetailsOptional || '',
+    formattedAddress: address.formattedAddress || '',
+    city: address.city || '',
+    region: address.state || '',
+    postalCode: address.postcode || '',
+    country: address.country || '',
+    lat: address.latitude || 0,
+    lng: address.longitude || 0,
+    googlePlaceId: address.googlePlaceId || '',
+  };
+};
+
+const mapDocketToFormValues = (
+  docket: DocketDTO,
+  currentCustomerEmail = '',
+): FormValues => ({
+  jobId: docket.jobId ?? 0,
+  jobLineItemId: docket.jobItemId ?? 0,
+  plannedLoadSize: docket.plannedLoadSize ?? docket.loadSize ?? 0,
+  actualLoadSize: docket.actualLoadSize ?? 0,
+  truckQty: docket.deliveryDistanceQuantity ?? 0,
+  pickUpAddressId: String(docket.pickUpAddress?.id ?? ''),
+  deliveryAddressId: docket.deliveryAddress?.id
+    ? String(docket.deliveryAddress.id)
+    : '',
+  purchaseOrder: docket.purchaseOrder ?? '',
+  productEstimatedVolume: docket.productEstimatedVolume ?? 0,
+  deliveryCollectionDate: docket.deliveryCollectionDate
+    ? parseAsUTC(docket.deliveryCollectionDate as unknown as string)
+    : GetTodaysDate(),
+  deliveryCollectionStartTime: formatTimeString(
+    docket.deliveryCollectionStartTime,
+  ),
+  deliveryCollectionEndTime: formatTimeString(docket.deliveryCollectionEndTime),
+  customerContactName: docket.customerContactName ?? '',
+  customerContactPhone: docket.customerContactPhone ?? '',
+  docketEmail:
+    docket.docketEmailRecipients
+      ?.filter((email) => email !== currentCustomerEmail)
+      .join(', ') ?? '',
+  notes: docket.notes ?? '',
+  truckType: docket.truckType ?? '',
+});
+
+const mapSelectedJobToFormValues = (
+  currentValues: FormValues,
+  selectedJob: SelectedJobPrefill,
+  nextJobId: number,
+): FormValues => ({
+  ...currentValues,
+  jobId: nextJobId,
+  deliveryCollectionDate:
+    getSafeDeliveryDate(selectedJob.deliveryStartDate) ??
+    currentValues.deliveryCollectionDate,
+  purchaseOrder: selectedJob.poNumber || currentValues.purchaseOrder,
+  customerContactName:
+    selectedJob.contactName || currentValues.customerContactName,
+  customerContactPhone:
+    selectedJob.contactPhone || currentValues.customerContactPhone,
+  docketEmail:
+    selectedJob.additionalDocketEmails || currentValues.docketEmail,
+
+  deliveryCollectionStartTime:
+    formatTimeString(selectedJob.startTimeWindow) ||
+    currentValues.deliveryCollectionStartTime,
+
+  deliveryCollectionEndTime:
+    formatTimeString(selectedJob.endTimeWindow) ||
+    currentValues.deliveryCollectionEndTime,
+});
+
+const resetJobDependentFields = (values: FormValues): FormValues => ({
+  ...values,
+  jobLineItemId: 0,
+  plannedLoadSize: 0,
+  actualLoadSize: 0,
+  truckQty: 0,
+  pickUpAddressId: '',
+  deliveryAddressId: '',
+  productEstimatedVolume: 0,
+});
+
 export function useDocketFormState({
   id,
   initialDocket,
@@ -152,44 +248,52 @@ export function useDocketFormState({
   onDirtyChange,
 }: UseDocketFormStateProps) {
   const isEditing = Boolean(id);
-  const isJobLocked = !isQuickDocket && !!jobId;
-  const [isDirtyTrackingReady, setIsDirtyTrackingReady] = React.useState(false);
+
+  /**
+   * - isQuickDocket=true means the user selects jobId manually.
+   * - isQuickDocket=false means jobId is passed in.
+   */
+  const isJobLocked = !isEditing && !isQuickDocket && !!jobId;
+
+  const [isDirtyTrackingReady, setIsDirtyTrackingReady] =
+    React.useState(false);
+
+  const hydratedKeyRef = React.useRef<string | null>(null);
+  const previousSelectedJobIdRef = React.useRef<number | null>(null);
 
   const docketForm = useForm<FormValues>({
     resolver: zodResolver(DocketFormSchema),
     mode: 'onChange',
     defaultValues: initialDocket
-      ? {
-          jobId: initialDocket.jobId ?? 0,
-          jobLineItemId: initialDocket.jobItemId ?? 0,
-          plannedLoadSize:
-            initialDocket.plannedLoadSize ?? initialDocket.loadSize ?? 0,
-          actualLoadSize: initialDocket.actualLoadSize ?? 0,
-          truckQty: initialDocket.deliveryDistanceQuantity ?? 0,
-          pickUpAddressId: String(initialDocket.pickUpAddress?.id ?? ''),
-          deliveryAddressId: initialDocket.deliveryAddress?.id
-            ? String(initialDocket.deliveryAddress.id)
-            : '',
-          purchaseOrder: initialDocket.purchaseOrder ?? '',
-          productEstimatedVolume: initialDocket.productEstimatedVolume ?? 0,
-          deliveryCollectionDate: initialDocket.deliveryCollectionDate
-            ? parseAsUTC(initialDocket.deliveryCollectionDate as unknown as string)
-            : undefined,
-          deliveryCollectionStartTime: formatTimeString(
-            initialDocket.deliveryCollectionStartTime,
-          ),
-          deliveryCollectionEndTime: formatTimeString(
-            initialDocket.deliveryCollectionEndTime,
-          ),
-          customerContactName: initialDocket.customerContactName ?? '',
-          customerContactPhone: initialDocket.customerContactPhone ?? '',
-          docketEmail: initialDocket.docketEmailRecipients?.join(', ') ?? '',
-          notes: initialDocket.notes ?? '',
-        }
-      : isJobLocked
-        ? { ...EMPTY_DOCKET_FORM_VALUES, jobId: jobId! }
-        : EMPTY_DOCKET_FORM_VALUES,
+      ? mapDocketToFormValues(initialDocket)
+      : {
+        ...EMPTY_DOCKET_FORM_VALUES,
+        jobId: isJobLocked && jobId ? jobId : 0,
+      },
   });
+
+  React.useEffect(() => {
+    const subscription = docketForm.watch((value, info) => {
+      if (
+        info.name === 'deliveryCollectionStartTime' ||
+        info.name === 'deliveryCollectionEndTime' ||
+        info.name === undefined
+      ) {
+        console.log('[RHF watch change]', {
+          changedField: info.name,
+          type: info.type,
+          start: value.deliveryCollectionStartTime,
+          end: value.deliveryCollectionEndTime,
+          jobId: value.jobId,
+          hydratedKey: hydratedKeyRef.current,
+          previousSelectedJobId: previousSelectedJobIdRef.current,
+        });
+        console.trace('[RHF watch trace]');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [docketForm]);
 
   const [pickUpAddress, setPickUpAddress] =
     React.useState<AddressType>(EMPTY_ADDRESS);
@@ -202,35 +306,6 @@ export function useDocketFormState({
     ...DocketByIdQueryOptions(id || 0),
     enabled: isEditing,
   });
-
-  // Sync jobId when form opens with locked job (isQuickDocket=false + jobId)
-  React.useEffect(() => {
-    if (isJobLocked && jobId && docketForm.getValues('jobId') !== jobId) {
-      docketForm.setValue('jobId', jobId);
-    }
-  }, [isJobLocked, jobId, docketForm]);
-
-  // Reset address state when not editing
-  React.useEffect(() => {
-    if (!isEditing) {
-      setPickUpAddress(EMPTY_ADDRESS);
-      setDeliveryAddress(EMPTY_ADDRESS);
-      setPickUpSearchInput('');
-      setDeliverySearchInput('');
-    }
-  }, [isEditing]);
-
-  // Delay dirty tracking until initial form hydration/prefill is complete
-  React.useEffect(() => {
-    setIsDirtyTrackingReady(false);
-  }, [id, isQuickDocket, jobId]);
-
-  // Report dirty state to parent
-  React.useEffect(() => {
-    onDirtyChange?.(
-      isDirtyTrackingReady ? docketForm.formState.isDirty : false,
-    );
-  }, [docketForm.formState.isDirty, isDirtyTrackingReady, onDirtyChange]);
 
   const selectedJobId = docketForm.watch('jobId');
 
@@ -248,9 +323,11 @@ export function useDocketFormState({
     [jobsList],
   );
 
+  const effectiveJobId = isJobLocked && jobId ? jobId : selectedJobId;
+
   const { data: selectedJobDetails } = useQuery({
-    ...JobItemsQueryOptions(selectedJobId),
-    enabled: !!selectedJobId,
+    ...JobItemsQueryOptions(effectiveJobId),
+    enabled: !!effectiveJobId,
   });
 
   const jobLineItems = React.useMemo(() => {
@@ -268,118 +345,184 @@ export function useDocketFormState({
     [jobLineItems],
   );
 
-  const selectedJob = React.useMemo(() => {
-    const job =
-      selectedJobDetails ?? jobsList.find((job) => job.id === selectedJobId);
+  const selectedJob = React.useMemo<SelectedJobPrefill>(() => {
+    const jobFromList = jobsList.find((job) => job.id === effectiveJobId);
+    const jobDetails = selectedJobDetails;
 
     return {
-      deliveryStartDate: job?.estimatedStartDate ?? '',
-      startTimeWindow: job?.startTimeWindow ?? '',
-      endTimeWindow: job?.endTimeWindow ?? '',
-      poNumber: job?.poNumber ?? '',
-      contactName: job?.contactPersonName ?? '',
-      contactPhone: job?.contactPersonPhone ?? '',
-      customerEmail: job?.customerWithAddressResponse?.email ?? '',
-      additionalDocketEmails: job?.emailRecipients?.join(', ') ?? '',
+      deliveryStartDate:
+        jobDetails?.estimatedStartDate ?? jobFromList?.estimatedStartDate ?? '',
+
+      startTimeWindow:
+        jobDetails?.startTimeWindow ?? jobFromList?.startTimeWindow ?? '',
+
+      endTimeWindow:
+        jobDetails?.endTimeWindow ?? jobFromList?.endTimeWindow ?? '',
+
+      poNumber: jobDetails?.poNumber ?? jobFromList?.poNumber ?? '',
+
+      contactName:
+        jobDetails?.contactPersonName ?? jobFromList?.contactPersonName ?? '',
+
+      contactPhone:
+        jobDetails?.contactPersonPhone ?? jobFromList?.contactPersonPhone ?? '',
+
+      customerEmail:
+        jobDetails?.customerWithAddressResponse?.email ??
+        jobFromList?.customerWithAddressResponse?.email ??
+        '',
+
+      additionalDocketEmails:
+        jobDetails?.emailRecipients?.join(', ') ??
+        jobFromList?.emailRecipients?.join(', ') ??
+        '',
+
       createdBy: '',
       lastModifiedBy: '',
       createdAt: '',
       updatedAt: '',
     };
-  }, [selectedJobId, jobsList, selectedJobDetails]);
+  }, [effectiveJobId, jobsList, selectedJobDetails]);
 
-  // Update form with selected job details (create mode auto-fill)
+  const resetAddressState = React.useCallback(() => {
+    setPickUpAddress(EMPTY_ADDRESS);
+    setDeliveryAddress(EMPTY_ADDRESS);
+    setPickUpSearchInput('');
+    setDeliverySearchInput('');
+  }, []);
+
   React.useEffect(() => {
-    if (isEditing) return;
+    setIsDirtyTrackingReady(false);
+    hydratedKeyRef.current = null;
+    previousSelectedJobIdRef.current = null;
 
-    if (selectedJob.deliveryStartDate) {
-      const jobDate = new Date(selectedJob.deliveryStartDate);
-      const todayDate = GetTodaysDate();
-      docketForm.setValue(
-        'deliveryCollectionDate',
-        jobDate < todayDate ? todayDate : jobDate,
-      );
+    if (!isEditing) {
+      resetAddressState();
     }
-    if (selectedJob.contactName) {
-      docketForm.setValue('customerContactName', selectedJob.contactName);
-    }
-    if (selectedJob.poNumber) {
-      docketForm.setValue('purchaseOrder', selectedJob.poNumber);
-    }
-    if (selectedJob.contactPhone) {
-      docketForm.setValue('customerContactPhone', selectedJob.contactPhone);
-    }
-    docketForm.setValue('docketEmail', selectedJob.additionalDocketEmails);
-    if (selectedJob.startTimeWindow) {
-      docketForm.setValue(
-        'deliveryCollectionStartTime',
-        formatTimeString(selectedJob.startTimeWindow),
-      );
-    }
-    if (selectedJob.endTimeWindow) {
-      docketForm.setValue(
-        'deliveryCollectionEndTime',
-        formatTimeString(selectedJob.endTimeWindow),
-      );
-    }
+  }, [id, isEditing, isQuickDocket, jobId, resetAddressState]);
 
-    // Reset job line item and addresses when job changes
-    if (docketForm.getValues('jobLineItemId') !== 0) {
-      docketForm.setValue('jobLineItemId', 0);
-      docketForm.setValue('truckQty', 0);
-      setPickUpAddress(EMPTY_ADDRESS);
-      setDeliveryAddress(EMPTY_ADDRESS);
-      setPickUpSearchInput('');
-      setDeliverySearchInput('');
-      docketForm.setValue('pickUpAddressId', '');
-      docketForm.setValue('deliveryAddressId', '');
-    }
-  }, [selectedJob, docketForm, isEditing]);
-
-  // Establish a clean baseline for new dockets after initial prefill.
   React.useEffect(() => {
-    if (isEditing || isDirtyTrackingReady) return;
+    onDirtyChange?.(
+      isDirtyTrackingReady ? docketForm.formState.isDirty : false,
+    );
+  }, [docketForm.formState.isDirty, isDirtyTrackingReady, onDirtyChange]);
 
-    if (!isJobLocked) {
-      setIsDirtyTrackingReady(true);
+  /**
+   * 1. Edit mode
+   * Prepopulate from selectedDocket.
+   */
+  React.useEffect(() => {
+    if (!isEditing || !selectedDocket) return;
+
+    const hydrationKey = `edit-${selectedDocket.id}-${selectedDocket.updatedAt ?? ''}`;
+
+    if (hydratedKeyRef.current === hydrationKey) return;
+
+    docketForm.reset(
+      mapDocketToFormValues(selectedDocket, selectedJob.customerEmail),
+    );
+
+    const mappedPickUp = mapDocketAddressToAddressType(
+      selectedDocket.pickUpAddress,
+    );
+    setPickUpAddress(mappedPickUp);
+    setPickUpSearchInput(mappedPickUp.formattedAddress);
+
+    const mappedDelivery = mapDocketAddressToAddressType(
+      selectedDocket.deliveryAddress,
+    );
+    setDeliveryAddress(mappedDelivery);
+    setDeliverySearchInput(mappedDelivery.formattedAddress);
+
+    hydratedKeyRef.current = hydrationKey;
+    setIsDirtyTrackingReady(true);
+  }, [docketForm, isEditing, selectedDocket, selectedJob.customerEmail]);
+
+  /**
+   * 2. Create mode + quick docket
+   * jobId is passed in. Hydrate from the passed jobId and lock the job field.
+   */
+  React.useEffect(() => {
+    if (isEditing || isQuickDocket || !jobId) return;
+
+    const hydrationKey = `locked-create-${jobId}`;
+
+    if (hydratedKeyRef.current === hydrationKey) return;
+
+    const isJobLoaded =
+      selectedJobDetails || jobsList.find((job) => job.id === jobId);
+
+    if (!isJobLoaded) return;
+
+    if (!selectedJob.startTimeWindow || !selectedJob.endTimeWindow) {
       return;
     }
 
-    if (!jobId || docketForm.getValues('jobId') !== jobId) return;
-    if (!jobsData) return;
+    const currentValues = docketForm.getValues();
 
-    docketForm.reset({
-      ...docketForm.getValues(),
-      jobId,
-      deliveryCollectionDate: selectedJob.deliveryStartDate
-        ? new Date(selectedJob.deliveryStartDate) < GetTodaysDate()
-          ? GetTodaysDate()
-          : new Date(selectedJob.deliveryStartDate)
-        : docketForm.getValues('deliveryCollectionDate'),
-      purchaseOrder:
-        selectedJob.poNumber || docketForm.getValues('purchaseOrder'),
-      customerContactName:
-        selectedJob.contactName || docketForm.getValues('customerContactName'),
-      customerContactPhone:
-        selectedJob.contactPhone ||
-        docketForm.getValues('customerContactPhone'),
-      docketEmail: selectedJob.additionalDocketEmails,
-      deliveryCollectionStartTime: selectedJob.startTimeWindow
-        ? formatTimeString(selectedJob.startTimeWindow)
-        : docketForm.getValues('deliveryCollectionStartTime'),
-      deliveryCollectionEndTime: selectedJob.endTimeWindow
-        ? formatTimeString(selectedJob.endTimeWindow)
-        : docketForm.getValues('deliveryCollectionEndTime'),
-    });
+    docketForm.reset(
+      resetJobDependentFields(
+        mapSelectedJobToFormValues(currentValues, selectedJob, jobId),
+      ),
+    );
+
+    resetAddressState();
+
+    hydratedKeyRef.current = hydrationKey;
     setIsDirtyTrackingReady(true);
   }, [
     docketForm,
-    isDirtyTrackingReady,
     isEditing,
-    isJobLocked,
+    isQuickDocket,
     jobId,
-    jobsData,
+    resetAddressState,
     selectedJob,
+    selectedJobDetails,
+    jobsList,
+  ]);
+
+  /**
+   * 3. Create mode + normal docket
+   * User selects jobId from the form, then prefill job-related fields.
+   */
+  React.useEffect(() => {
+    if (isEditing || !isQuickDocket) return;
+
+    setIsDirtyTrackingReady(true);
+
+    if (!selectedJobId) return;
+
+    if (previousSelectedJobIdRef.current === selectedJobId) return;
+
+    const isJobLoaded =
+      selectedJobDetails || jobsList.find((job) => job.id === selectedJobId);
+
+    if (!isJobLoaded) return;
+
+    if (!selectedJob.startTimeWindow || !selectedJob.endTimeWindow) {
+      return;
+    }
+
+    previousSelectedJobIdRef.current = selectedJobId;
+
+    const currentValues = docketForm.getValues();
+
+    docketForm.reset(
+      resetJobDependentFields(
+        mapSelectedJobToFormValues(currentValues, selectedJob, selectedJobId),
+      ),
+    );
+
+    resetAddressState();
+  }, [
+    docketForm,
+    isEditing,
+    isQuickDocket,
+    resetAddressState,
+    selectedJob,
+    selectedJobId,
+    selectedJobDetails,
+    jobsList,
   ]);
 
   const selectedJobLineItemDetails = React.useCallback(() => {
@@ -387,10 +530,12 @@ export function useDocketFormState({
     const selectedJobLineItem = jobLineItems.find(
       (lineItem) => lineItem.id === selectedJobLineItemId,
     );
+
     const restoredAllocatedQty =
       isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
         ? (selectedDocket.loadSize ?? 0)
         : 0;
+
     return {
       pickUpAddress: selectedJobLineItem?.quarrySupplier ?? null,
       customerDeliveryAddress:
@@ -443,18 +588,24 @@ export function useDocketFormState({
     };
   }, [jobLineItems, docketForm, isEditing, selectedDocket]);
 
-  // Update delivery address when job line item changes
+  /**
+   * Update addresses when job line item changes.
+   * Create mode only.
+   */
   React.useEffect(() => {
     if (isEditing) return;
 
     const details = selectedJobLineItemDetails();
+
     if (details.customerDeliveryAddress) {
       const address = details.customerDeliveryAddress.address;
+
       if (address) {
         const mappedAddress = toAddressType(address);
 
         setDeliveryAddress(mappedAddress);
         setDeliverySearchInput(address.formattedAddress || '');
+
         if (details.type !== 'COLLECTION') {
           docketForm.setValue(
             'deliveryAddressId',
@@ -467,16 +618,23 @@ export function useDocketFormState({
     }
 
     if (details.pickUpAddress) {
-      const pickUpAddress = details.pickUpAddress.address;
-      if (pickUpAddress) {
-        const mappedPickupAddress = toAddressType(pickUpAddress);
+      const pickUp = details.pickUpAddress.address;
+
+      if (pickUp) {
+        const mappedPickupAddress = toAddressType(pickUp);
+
         setPickUpAddress(mappedPickupAddress);
-        setPickUpSearchInput(pickUpAddress.formattedAddress || '');
+        setPickUpSearchInput(pickUp.formattedAddress || '');
+
         docketForm.setValue(
           'pickUpAddressId',
           details.pickUpAddress.id ? String(details.pickUpAddress.id) : '',
         );
       }
+    }
+
+    if (details.truckType) {
+      docketForm.setValue('truckType', details.truckType);
     }
   }, [
     docketForm.watch('jobLineItemId'),
@@ -484,82 +642,6 @@ export function useDocketFormState({
     selectedJobLineItemDetails,
     docketForm,
   ]);
-
-  // Populate edit form from docket mock data
-  React.useEffect(() => {
-    if (!isEditing || !selectedDocket) return;
-
-    const currentCustomerEmail = selectedJob.customerEmail;
-
-    docketForm.reset({
-      jobId: selectedDocket.jobId ?? 0,
-      jobLineItemId: selectedDocket.jobItemId ?? 0,
-      plannedLoadSize:
-        selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0,
-      actualLoadSize: selectedDocket.actualLoadSize ?? 0,
-      truckQty: selectedDocket.deliveryDistanceQuantity ?? 0,
-      pickUpAddressId: String(selectedDocket.pickUpAddress?.id ?? ''),
-      deliveryAddressId: selectedDocket.deliveryAddress?.id
-        ? String(selectedDocket.deliveryAddress.id)
-        : '',
-      purchaseOrder: selectedDocket.purchaseOrder ?? '',
-      productEstimatedVolume: selectedDocket.productEstimatedVolume ?? 0,
-      deliveryCollectionDate: selectedDocket.deliveryCollectionDate
-        ? parseAsUTC(selectedDocket.deliveryCollectionDate as unknown as string)
-        : undefined,
-      deliveryCollectionStartTime: formatTimeString(
-        selectedDocket.deliveryCollectionStartTime,
-      ),
-      deliveryCollectionEndTime: formatTimeString(
-        selectedDocket.deliveryCollectionEndTime,
-      ),
-      customerContactName: selectedDocket.customerContactName ?? '',
-      customerContactPhone: selectedDocket.customerContactPhone ?? '',
-      docketEmail:
-        selectedDocket.docketEmailRecipients
-          ?.filter((email) => email !== currentCustomerEmail)
-          .join(', ') ?? '',
-      notes: selectedDocket.notes ?? '',
-    });
-
-    const pickUp = selectedDocket.pickUpAddress;
-    if (pickUp) {
-      const mappedPickUp: AddressType = {
-        address1: pickUp.streetDetailsPrimary || '',
-        address2: pickUp.streetDetailsOptional || '',
-        formattedAddress: pickUp.formattedAddress || '',
-        city: pickUp.city || '',
-        region: pickUp.state || '',
-        postalCode: pickUp.postcode || '',
-        country: pickUp.country || '',
-        lat: pickUp.latitude || 0,
-        lng: pickUp.longitude || 0,
-        googlePlaceId: pickUp.googlePlaceId || '',
-      };
-      setPickUpAddress(mappedPickUp);
-      setPickUpSearchInput(mappedPickUp.formattedAddress);
-    }
-
-    const delivery = selectedDocket.deliveryAddress;
-    if (delivery) {
-      const mappedDelivery: AddressType = {
-        address1: delivery.streetDetailsPrimary || '',
-        address2: delivery.streetDetailsOptional || '',
-        formattedAddress: delivery.formattedAddress || '',
-        city: delivery.city || '',
-        region: delivery.state || '',
-        postalCode: delivery.postcode || '',
-        country: delivery.country || '',
-        lat: delivery.latitude || 0,
-        lng: delivery.longitude || 0,
-        googlePlaceId: delivery.googlePlaceId || '',
-      };
-      setDeliveryAddress(mappedDelivery);
-      setDeliverySearchInput(mappedDelivery.formattedAddress);
-    }
-    setIsDirtyTrackingReady(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, selectedDocket, docketForm]);
 
   const productDetailsQuery = useQuery({
     queryKey: ['product', selectedJobLineItemDetails().productId],
@@ -578,12 +660,12 @@ export function useDocketFormState({
     const details = selectedJobLineItemDetails();
     const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
 
-    // details.productSell is already converted to dollars in selectedJobLineItemDetails
     const productSell = roundToTwoDecimals(
-      centsToDollarsNum(details.productSell) * (loadSize || 0)
+      centsToDollarsNum(details.productSell) * (loadSize || 0),
     );
 
     let calculatedTruckQty = 0;
+
     if (details.type !== 'COLLECTION') {
       if (details.needTruckQty) {
         calculatedTruckQty = truckQty || 0;
@@ -597,9 +679,8 @@ export function useDocketFormState({
       }
     }
 
-    // details.truckSell is in cents, so we need to convert it to dollars
     const truckSell = roundToTwoDecimals(
-      centsToDollarsNum(details.truckSell) * calculatedTruckQty
+      centsToDollarsNum(details.truckSell) * calculatedTruckQty,
     );
 
     const subtotal = roundToTwoDecimals(productSell + truckSell);
@@ -631,7 +712,7 @@ export function useDocketFormState({
     isJobLocked,
     allJobs,
     jobLineItemOptions,
-    selectedJobId,
+    selectedJobId: effectiveJobId,
     selectedJob,
     selectedJobLineItemDetails,
     pricingBreakdown,

@@ -36,4 +36,5 @@ export const DocketFormSchema = z.object({
     }),
   docketEmail: z.string().optional(),
   notes: z.string().optional(),
+  truckType: z.string().optional(),
 });

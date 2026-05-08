@@ -575,7 +575,11 @@ export default function QuotationForm({
                               : 'Enter Recipient Emails'
                           }
                           fixedValues={fixedValues}
-                          validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
+                          validate={(s) =>
+                            /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
+                              s,
+                            )
+                          }
                           label="Press Enter or comma to add email addresses"
                           {...field}
                           disabled={!canEdit}

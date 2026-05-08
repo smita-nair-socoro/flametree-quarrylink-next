@@ -34,7 +34,10 @@ export function MultipleInput({
   disabled,
   type = 'text',
   fixedValues = [],
-  validate,
+  validate = (s) =>
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
+      s,
+    ),
   label,
 }: MultipleInputProps) {
   const [inputValue, setInputValue] = React.useState('');
@@ -58,12 +61,12 @@ export function MultipleInput({
   };
 
   const handleBlur = () => {
-    // If the user clicks away without pressing Enter or Comma, clear the input
-    // This enforces the "only press enter or connect with ','" rule strictly
-    setInputValue('');
+    if (inputValue.trim()) {
+      addValues(inputValue, true);
+    }
   };
 
-  const addValues = (raw: string) => {
+  const addValues = (raw: string, isFromBlur = false) => {
     const cleaned = raw
       .replace(/,\s*$/, '') // Remove trailing comma
       .trim();
@@ -75,22 +78,44 @@ export function MultipleInput({
       .map((s) => s.trim())
       .filter(Boolean);
 
+    let hasInvalid = false;
+
     // Filter out duplicates if needed (check both value and fixedValues)
     const valid = toAdd.filter((s) => {
       const isUnique = !valuesArray.includes(s) && !fixedValues.includes(s);
       const isValid = validate ? validate(s) : true;
+      if (!isValid) hasInvalid = true;
       return isUnique && isValid;
     });
 
     if (valid.length > 0) {
       const next = [...valuesArray, ...valid];
       onChange?.(next.join(', '));
-      setInputValue('');
+      // Only clear if everything was valid
+      if (!hasInvalid) {
+        setInputValue('');
+      } else {
+        // Keep the invalid parts in the input, but clear them if triggered by blur
+        if (isFromBlur) {
+          setInputValue('');
+        } else {
+          setInputValue(toAdd.filter(s => !(validate ? validate(s) : true)).join(', '));
+        }
+      }
     } else if (
       toAdd.length > 0 &&
       toAdd.every((s) => valuesArray.includes(s) || fixedValues.includes(s))
     ) {
       setInputValue('');
+    } else if (hasInvalid) {
+      // It couldn't add anything, and the only reason was invalid inputs.
+      // Leave those inputs in the input bar so the user sees them.
+      // However, if the user clicked away (blur), clear the invalid input entirely.
+      if (isFromBlur) {
+        setInputValue('');
+      } else {
+        setInputValue(toAdd.join(', '));
+      }
     }
   };
 
