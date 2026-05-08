@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { useQuotationStore } from '@/app/stores/quotation-store';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
 interface QuotationLineItemActionButtonsProps {
   quotationLineItem: QuotationLineItem | null | undefined;
@@ -27,6 +28,10 @@ export function QuotationLineItemActionButtons({
 }: QuotationLineItemActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
+  const quoteStatus = useQuotationStore((state) => state.selectedQuotation?.quoteStatus);
+
+  const NON_REMOVABLE_STATUSES = new Set([QUOTE_STATUS.PENDING, QUOTE_STATUS.DECLINED, QUOTE_STATUS.ARCHIVED, QUOTE_STATUS.CONVERTED_TO_JOB]);
+  const canRemove = !isDuplicate && !NON_REMOVABLE_STATUSES.has(quoteStatus as QUOTE_STATUS);
   const { actions, confirmDialogs, viewDialog } =
     useQuotationLineItemActions(quotationLineItem);
 
@@ -46,7 +51,7 @@ export function QuotationLineItemActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
-        {!isDuplicate && (
+        {canRemove && (
           <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -79,7 +84,7 @@ export function QuotationLineItemActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
-      {!isDuplicate && (
+      {canRemove && (
         <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
