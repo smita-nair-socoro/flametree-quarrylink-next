@@ -60,19 +60,23 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
   {
     id: 'total_sell_price',
     accessorFn: (row) => row.totalSellPrice,
-    header: ({ }) => {
+    header: ({ column }) => {
       return (
-        <div className="flex items-center gap-1">
-          Total Sell Price{' '}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>(ex-GST)</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <TableClientSortableHeader column={column} title={
+          <div className="flex items-center gap-1">
+            Total Sell Price{' '}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help" onClick={(e) => e.stopPropagation()}>
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>(ex-GST)</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        } />
       );
     },
     cell: ({ row }) => {
