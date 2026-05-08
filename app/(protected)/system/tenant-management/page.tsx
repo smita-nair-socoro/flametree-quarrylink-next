@@ -4,7 +4,7 @@ import React from 'react';
 import rawJson from '@/lib/tests/clientResponseData.json';
 import { Client } from '@/lib/types/client';
 import { clientColumns } from './(components)/(data-tables)/clients/columns';
-import { Plus, Share } from 'lucide-react';
+import { Share } from 'lucide-react';
 
 import {
   DataTableClient,
@@ -24,9 +24,9 @@ export default function ClientPortalPage() {
   };
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'name', title: 'Client', icon: Plus },
-    { column: 'subscription', title: 'Subscription', icon: Plus },
-    { column: 'client_status', title: 'Client Status', icon: Plus },
+    { column: 'name', title: 'Client' },
+    { column: 'subscription', title: 'Subscription' },
+    { column: 'client_status', title: 'Client Status' },
   ];
 
   const statsCards = [

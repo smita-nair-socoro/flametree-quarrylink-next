@@ -7,7 +7,6 @@ import { Quarry } from '@/lib/types/quarry';
 import { QuarryType, QuarryStatus } from '@/lib/types/quarry-enums';
 import { quarriesSuppliersColumns } from './(components)/(data-tables)/quarries/columns';
 import {
-  Plus,
   DollarSign,
   Building,
   Mountain,
@@ -208,9 +207,9 @@ export default function QuarriesSuppliersPage() {
   );
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'quarry_supplier_type', title: 'Type', icon: Plus },
-    { column: 'status', title: 'Status', icon: Plus },
-    { column: 'suburb', title: 'Suburb', icon: Plus },
+    { column: 'quarry_supplier_type', title: 'Type' },
+    { column: 'status', title: 'Status' },
+    { column: 'suburb', title: 'Suburb' },
   ];
 
   return (

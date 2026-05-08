@@ -6,8 +6,6 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import {
-  Activity,
-  Factory,
   FileText,
   Clock,
   Wallet,
@@ -229,9 +227,9 @@ export default function QuotationsPage() {
   };
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: Factory },
-    { column: 'customer_name', title: 'Customer Name', icon: Activity },
-    { column: 'account_manager', title: 'Account Manager', icon: Factory },
+    { column: 'status', title: 'Status' },
+    { column: 'customer_name', title: 'Customer Name' },
+    { column: 'account_manager', title: 'Account Manager' },
   ];
 
   return (

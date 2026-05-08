@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
-import { Package, FileText, Plus, Wallet, CircleAlert } from 'lucide-react';
+import { Package, FileText, Wallet, CircleAlert } from 'lucide-react';
 import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery } from '@tanstack/react-query';
@@ -126,10 +126,10 @@ export default function DocketsPage() {
   const { actions, viewDialog, confirmDialogs } = useDocketActions();
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: Plus },
-    { column: 'product', title: 'Product', icon: Plus },
-    { column: 'customer', title: 'Customer', icon: Plus },
-    { column: 'docketType', title: 'Type', icon: Plus },
+    { column: 'status', title: 'Status' },
+    { column: 'product', title: 'Product' },
+    { column: 'customer', title: 'Customer' },
+    { column: 'docketType', title: 'Type' },
   ];
 
   const handleRowClick = (row: DocketDTO) => {

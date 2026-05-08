@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus, Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
+import { Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { TrucksListQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
@@ -67,9 +67,9 @@ export default function TrucksPage() {
   }, [trucks]);
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'truckStatus', title: 'Status', icon: Plus },
-    { column: 'truckType', title: 'Truck Type', icon: Plus },
-    { column: 'haulierName', title: 'Haulier', icon: Plus },
+    { column: 'truckStatus', title: 'Status' },
+    { column: 'truckType', title: 'Truck Type' },
+    { column: 'haulierName', title: 'Haulier' },
   ];
 
   return (

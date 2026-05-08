@@ -4,7 +4,6 @@ import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
 import {
-  Plus,
   Gem,
   PackageX,
   TrendingUp,
@@ -181,8 +180,8 @@ export default function ProductsPage() {
   }, [items, linkedProductIdsSet]);
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'material_type', title: 'Material Type', icon: Plus },
-    { column: 'status', title: 'Status', icon: Plus },
+    { column: 'material_type', title: 'Material Type' },
+    { column: 'status', title: 'Status' },
   ];
 
   return (
