@@ -71,7 +71,7 @@ export function CannotCancelJobContent({
     unfinalisedCount > 0
   ) {
     blockingItems.push(
-      `${unfinalisedCount} ${unfinalisedCount === 1 ? 'docket' : 'dockets'} ${unfinalisedCount === 1 ? "hasn't" : "haven't"} been finalised`,
+      `${unfinalisedCount} ${unfinalisedCount === 1 ? 'docket' : 'dockets'} ${unfinalisedCount === 1 ? "hasn't" : "haven't"} been finalised (arrived, stopped, delivered, preparing, ready for collection, or collected)`,
     );
   }
 
