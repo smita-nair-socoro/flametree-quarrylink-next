@@ -12,6 +12,7 @@ import {
 import { useQuotationLineItemActions } from '@/hooks/use-quotations-line-item-actions';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { useQuotationStore } from '@/app/stores/quotation-store';
+import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
 interface QutationLineItemTableActionsProps {
   quotationLineItem: QuotationLineItem;
@@ -22,6 +23,10 @@ export function QuotationLineItemTableActions({
 }: QutationLineItemTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
+  const quoteStatus = useQuotationStore((state) => state.selectedQuotation?.quoteStatus);
+
+  const NON_REMOVABLE_STATUSES = new Set([QUOTE_STATUS.PENDING, QUOTE_STATUS.DECLINED, QUOTE_STATUS.ARCHIVED, QUOTE_STATUS.CONVERTED_TO_JOB]);
+  const canRemove = !isDuplicate && !NON_REMOVABLE_STATUSES.has(quoteStatus as QUOTE_STATUS);
   const { actions, confirmDialogs, viewDialog } =
     useQuotationLineItemActions(quotationLineItem);
 
@@ -55,7 +60,7 @@ export function QuotationLineItemTableActions({
             <Eye className="h-4 w-4 mr-2" />
             View Products
           </DropdownMenuItem>
-          {!isDuplicate && (
+          {canRemove && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem

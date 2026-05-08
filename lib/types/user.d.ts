@@ -84,7 +84,6 @@ export interface UserDeleteQuoteReassignment {
 
 export interface UserDeleteReassignments {
   customers: UserDeleteCustomerReassignment[];
-  quotes: UserDeleteQuoteReassignment[];
 }
 
 export interface UserDelete {

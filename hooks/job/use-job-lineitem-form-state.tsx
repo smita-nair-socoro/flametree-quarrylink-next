@@ -88,7 +88,7 @@ export function useJobLineItemFormState({
       type: jobLineItemData?.jobItemType ?? JOB_LINE_ITEM_TYPE.DELIVERY,
       address: isEditing
         ? (jobLineItemData?.customerDeliveryAddress?.address
-            ?.formattedAddress ?? '')
+          ?.formattedAddress ?? '')
         : '',
       productId: isEditing ? (jobLineItemData?.productId ?? 0) : 0,
       quarrySupplierId: isEditing
@@ -882,6 +882,24 @@ export function useJobLineItemFormState({
     fromTn,
   ]);
 
+  // Auto-sync truck cost qty with truck sell qty if both use the same manual input UOM
+  const watchedTruckSellQty = form.watch('truckSellQty');
+  React.useEffect(() => {
+    const currentTruckCostUom = form.getValues('truckCostUom') || '';
+    const currentTruckSellUom = form.getValues('truckSellUom') || '';
+    const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
+
+    if (
+      manualInputUoms.includes(currentTruckCostUom) &&
+      currentTruckCostUom === currentTruckSellUom
+    ) {
+      form.setValue('truckCostQty', watchedTruckSellQty, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+    }
+  }, [truckCostUom, truckSellUom, watchedTruckSellQty, form]);
+
   // Pricing breakdown calculations
   const [pricingBreakdown, setPricingBreakdown] =
     React.useState<PricingBreakdown>({
@@ -1002,18 +1020,18 @@ export function useJobLineItemFormState({
       | undefined =
       addressPayload && customerId
         ? {
-            ...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
-              ? { id: jobLineItemData.customerDeliveryAddress.id }
-              : {}),
-            customerId,
-            addressId:
-              isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
-                ? jobLineItemData.customerDeliveryAddress.addressId
-                : mappedAddress?.id,
-            address: addressPayload,
-            inUse: true,
-            lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
-          }
+          ...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
+            ? { id: jobLineItemData.customerDeliveryAddress.id }
+            : {}),
+          customerId,
+          addressId:
+            isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
+              ? jobLineItemData.customerDeliveryAddress.addressId
+              : mappedAddress?.id,
+          address: addressPayload,
+          inUse: true,
+          lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
+        }
         : undefined;
 
     const payload: Partial<JobItem> = {

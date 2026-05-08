@@ -2,18 +2,22 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { DocketDTO } from '@/lib/types/docket';
-// import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { TableBadges } from '@/components/table-badges';
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
-import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
+// import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
 
-export const docketsColumns: ColumnDef<DocketDTO>[] = [
+// import {
+//   Tooltip,
+//   TooltipContent,
+//   TooltipTrigger,
+// } from '@/components/ui/tooltip';
+
+export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -33,6 +37,18 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
     meta: 'Docket Number',
   },
   {
+    id: 'product',
+    accessorFn: (row) => row.jobItem.product.productName,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Product" />;
+    },
+    cell: ({ row }) => {
+      const productName = row.original.jobItem.product.productName;
+      return <div className="py-2">{productName}</div>;
+    },
+    meta: 'Product',
+  },
+  {
     id: 'deliveryDate',
     accessorFn: (row) => row.deliveryCollectionDate,
     header: ({ column }) => {
@@ -47,56 +63,26 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
     },
     meta: 'Delivery Date',
   },
-  {
-    id: 'status',
-    accessorFn: (row) => row.docketStatus,
-    header: () => {
-      return <div>Status</div>;
-    },
-    cell: ({ row }) => {
-      return (
-        <TableBadges names={[row.original.docketStatus]} visibleCount={1} />
-      );
-    },
-    meta: 'Status',
-  },
-  {
-    id: 'product',
-    accessorFn: (row) => row.jobItem.product.productName,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Product" />;
-    },
-    cell: ({ row }) => {
-      const productName = row.original.jobItem.product.productName || 'N/A';
-      return <div className="py-2">{productName}</div>;
-    },
-    meta: 'Product',
-  },
+
   {
     id: 'loadSize',
-    accessorFn: (row) =>
-      row.plannedLoadSize ?? row.actualLoadSize ?? row.loadSize,
+    accessorFn: (row) => row.actualLoadSize,
     header: () => {
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      let loadSize: number = 0;
-      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
-        loadSize = row.original.actualLoadSize || 0;
-      } else {
-        loadSize = row.original.plannedLoadSize || 0;
-      }
+      const productSellQty = row.original.actualLoadSize;
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productSellUom === 'TN'
-          ? `${loadSize} TN`
+          ? `${productSellQty} TN`
           : productSellUom === 'M3'
-            ? `${loadSize} m³`
+            ? `${productSellQty} m³`
             : productSellUom === 'KG_20'
-              ? `${loadSize} x 20kg`
+              ? `${productSellQty} x 20kg`
               : productSellUom === 'BULKA'
-                ? `${loadSize} Bulka`
-                : loadSize;
+                ? `${productSellQty} Bulka`
+                : productSellQty || 'N/A';
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>
@@ -113,14 +99,40 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
     },
     meta: 'Product Sell QTY',
   },
+
+  {
+    id: 'totalInvoice',
+    accessorFn: (row) => row.totalInvoice,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Total Invoice Price" />
+      );
+    },
+    cell: () => {
+      // Hardcoded $1000 for now as requested
+      const formatted = '$1,000.00';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Total Invoice Price',
+  },
   {
     id: 'actions',
     header: () => {
       return <div></div>;
     },
-    cell: ({ row }) => {
-      const docket = row.original;
-      return <DocketTableActions docket={docket} />;
+    cell: () => {
+      return <div></div>;
     },
   },
 ];

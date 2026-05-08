@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -127,7 +128,7 @@ export default function QuotationForm({
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
     if (!customers) return [];
     return customers
-      .filter((customer) => customer.id !== undefined)
+      .filter((customer) => customer.id !== undefined && customer.customerStatus !== CUSTOMER_STATUS.ARCHIVED)
       .map((customer) => {
         if (customer.customerType === 'BUSINESS') {
           return {

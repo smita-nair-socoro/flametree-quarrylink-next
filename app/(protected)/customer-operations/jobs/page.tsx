@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import JobForm from './(components)/forms/job-form';
 import { JobDTO } from '@/lib/types/job';
-import { Plus, FileText, Wallet, Package, CircleAlert } from 'lucide-react';
+import { FileText, Wallet, Package, CircleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import {
@@ -101,9 +101,9 @@ export default function CustomersPage() {
   }, [searchParams, items]);
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: Plus },
-    { column: 'customerName', title: 'Customer', icon: Plus },
-    { column: 'accountManagerName', title: 'Account Manager', icon: Plus },
+    { column: 'status', title: 'Status' },
+    { column: 'customerName', title: 'Customer' },
+    { column: 'accountManagerName', title: 'Account Manager' },
   ];
 
   const handleRowClick = (row: JobDTO) => {
@@ -157,7 +157,7 @@ export default function CustomersPage() {
           columns={jobColumns}
           facetDefinition={facetDefs}
           searchPlaceHolder="Search jobs..."
-          defaultSorting={[{ id: 'jobNumber', desc: false }]}
+          defaultSorting={[{ id: 'jobNumber', desc: true }]}
           onRowClick={handleRowClick}
         />
       </div>

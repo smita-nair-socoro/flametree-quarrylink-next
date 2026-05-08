@@ -7,7 +7,6 @@ import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { customerColumns } from './(components)/(data-tables)/customer/columns';
 import {
-  Plus,
   Users,
   UserCheck,
   Activity,
@@ -95,7 +94,7 @@ export default function CustomersPage() {
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Total Business Customers',
+      title: 'Active Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
       description: `${
         reportingData?.businessCustomerQuotesPercent || 0
@@ -106,7 +105,7 @@ export default function CustomersPage() {
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Total Individual Customers',
+      title: 'Active Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
       description: `${
         reportingData?.individualCustomerQuotesPercent || 0
@@ -190,9 +189,9 @@ export default function CustomersPage() {
     }) || [];
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status', icon: Plus },
-    { column: 'customer_type', title: 'Customer Type', icon: Plus },
-    { column: 'account_manager', title: 'Account Manager', icon: Plus },
+    { column: 'status', title: 'Status' },
+    { column: 'customer_type', title: 'Customer Type' },
+    { column: 'account_manager', title: 'Account Manager' },
   ];
 
   return (

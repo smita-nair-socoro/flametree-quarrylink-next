@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Plus, UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
+import { UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions } from '@/lib/api/driver';
 import { UsersListQueryOptions } from '@/lib/api/user';
@@ -41,9 +41,9 @@ export default function DriversPage() {
   }, [drivers]);
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'driverStatus', title: 'Status', icon: Plus },
-    { column: 'driverType', title: 'Driver Type', icon: Plus },
-    { column: 'haulier', title: 'Haulier', icon: Plus },
+    { column: 'driverStatus', title: 'Status' },
+    { column: 'driverType', title: 'Driver Type' },
+    { column: 'haulier', title: 'Haulier' },
   ];
 
   const { actions, confirmDialogs, viewDialog } = useDriverActions();

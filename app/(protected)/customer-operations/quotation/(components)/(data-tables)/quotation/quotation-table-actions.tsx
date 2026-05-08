@@ -11,6 +11,7 @@ import {
   Timer,
   FileSearch,
   Copy,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,6 +54,7 @@ export function QuotationTableActions({
   const handleDecline = createHandler(actions.decline);
   const handleConvertToJob = createHandler(actions.convertToJob);
   const handleDuplicate = createHandler(actions.duplicate);
+  const handleConvertToDraft = createHandler(actions.convertToDraft);
   const handleExtendExpiry = createHandler(actions.extendExpiry);
   // const handlePrint = createHandler(actions.print);
 
@@ -111,6 +113,16 @@ export function QuotationTableActions({
               <DropdownMenuItem onClick={handleDecline}>
                 <ThumbsDown className="h-4 w-4 mr-2" />
                 Decline
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {quotation.quoteStatus === 'DECLINED' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleConvertToDraft}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Convert to Draft
               </DropdownMenuItem>
             </>
           )}

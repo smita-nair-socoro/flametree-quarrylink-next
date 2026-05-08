@@ -19,7 +19,15 @@ export function roundToTwoDecimals(num: number): number {
 
 export function centsToDollars(cents: number): string {
   const dollars = cents / 100;
-  return dollars.toLocaleString('en-US', {
+  return formatDollars(dollars);
+}
+
+export function formatDollars(dollars: number | string): string {
+  const amount = typeof dollars === 'string' ? parseFloat(dollars) : dollars;
+  if (isNaN(amount)) {
+    return 'N/A';
+  }
+  return amount.toLocaleString('en-AU', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

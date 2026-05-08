@@ -3,7 +3,7 @@
 import React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import InviteUserForm from '../forms/invite-user-form';
-import { Plus, RotateCcwSquare, Delete, Loader2 } from 'lucide-react';
+import { RotateCcwSquare, Delete, Loader2 } from 'lucide-react';
 import { PendingInvitation, User } from '@/lib/types/user';
 import { Role, UserStatus } from '@/lib/types/user-enums';
 import { createTeamMemberColumns } from '../(data-tables)/team-member/columns';
@@ -167,7 +167,7 @@ export default function TeamAdminTab() {
   );
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'role', title: 'Role', icon: Plus },
+    { column: 'role', title: 'Role' },
   ];
 
   const renderTeamMemberCard = React.useCallback(

@@ -31,7 +31,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from './button';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Select,
   SelectContent,
@@ -65,7 +72,6 @@ import { Separator } from './separator';
 import { cn, getSessionStorage, setSessionStorage } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useToolbarCompact } from '@/hooks/use-toolbar-compact';
 import Image from 'next/image';
 import { Checkbox } from './checkbox';
 import {
@@ -239,7 +245,8 @@ export function DataTableClient<TData, TValue>({
       }
     };
     window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
-    return () => window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
+    return () =>
+      window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
   }, [getStorageKey]);
 
   const syncErrorRecordIdsSet = useMemo(
@@ -355,6 +362,13 @@ export function DataTableClient<TData, TValue>({
   const [mobileVisibleCount, setMobileVisibleCount] = useState(10);
   const [mobilePageInput, setMobilePageInput] = useState('1');
   const MOBILE_PAGE_SIZE = 10;
+
+  // Inline filter layout measurement
+  const rowRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const showHideRef = useRef<HTMLDivElement>(null);
+  const filterMeasureRef = useRef<HTMLDivElement>(null);
+  const [filtersInline, setFiltersInline] = useState(false);
 
   // Sync temp filters when drawer opens
   useEffect(() => {
@@ -628,8 +642,14 @@ export function DataTableClient<TData, TValue>({
       const selectedRows = selectedRowIds
         .map((id) => {
           // Use table.getRow to get the row by its ID (which could be the actual row id or index)
-          const row = table.getRow(id);
-          return row?.original;
+          try {
+            const row = table.getRow(id);
+            return row?.original;
+          } catch (e) {
+            // Row might not exist in current data model (e.g. after filtering/tab switch)
+            console.error(e);
+            return undefined;
+          }
         })
         .filter((row): row is TData => row !== undefined);
       onRowSelectionChange(selectedRows);
@@ -655,17 +675,26 @@ export function DataTableClient<TData, TValue>({
 
   const facetedWithCounts = useFacets(table, facetDefinition);
 
-  // Use toolbar compact hook for dynamic desktop/mobile filter switching
-  const {
-    containerRef: filtersContainerRef,
-    controlRef: showHideButtonRef,
-    toolbarContainerRef,
-    isCompact: shouldShowMobileFilters,
-    shouldHideControl,
-  } = useToolbarCompact({
-    hasControls: isShowHideColumns,
-    itemCount: facetedWithCounts.length,
-  });
+  // Decide whether desktop filters fit in the gap between search bar and Show/Hide button
+  useLayoutEffect(() => {
+    if (isMobile) return;
+
+    const calculate = () => {
+      if (!rowRef.current || !filterMeasureRef.current) return;
+      const containerWidth = rowRef.current.offsetWidth;
+      const searchWidth = searchRef.current?.offsetWidth ?? 0;
+      const showHideWidth = showHideRef.current?.offsetWidth ?? 0;
+      const filterWidth = filterMeasureRef.current.scrollWidth;
+      const gap = 8; // gap-2 = 8px
+      const available = containerWidth - searchWidth - showHideWidth - gap * 2;
+      setFiltersInline(filterWidth > 0 && filterWidth <= available);
+    };
+
+    calculate();
+    const observer = new ResizeObserver(calculate);
+    if (rowRef.current) observer.observe(rowRef.current);
+    return () => observer.disconnect();
+  }, [isMobile, facetedWithCounts.length, columnFilters.length]);
 
   function handleFilterChange(columnId: string, values: string[]) {
     setColumnFilters((old) => {
@@ -725,18 +754,49 @@ export function DataTableClient<TData, TValue>({
   return (
     <div className="space-y-6 md:space-y-4">
       {!simpleTable && (
-        <div className="space-y-4 md:space-y-3">
-          {/* Single line: Search Bar + Filters + Show/Hide Columns */}
-          <div ref={toolbarContainerRef} className="flex items-center gap-2">
-            {/* Search Bar - Fixed width */}
-            <div className="flex-1 min-w-0 md:flex-shrink-0 md:flex-none">
+        <div className="flex flex-col gap-2 relative">
+          {/* Hidden measurement div — renders filters off-screen to measure their total width */}
+          {!isMobile && facetedWithCounts.length > 0 && (
+            <div
+              ref={filterMeasureRef}
+              className="absolute invisible pointer-events-none flex gap-2 flex-nowrap top-0 left-0"
+              aria-hidden="true"
+            >
+              {facetedWithCounts.map((filter) => (
+                <DataTableFacetedFilter
+                  key={filter.column}
+                  title={filter.title}
+                  options={filter.options}
+                  counts={filter.counts}
+                  filterValues={
+                    (columnFilters.find((f) => f.id === filter.column)
+                      ?.value as string[]) || []
+                  }
+                  onFilterChange={() => {}}
+                />
+              ))}
+              {columnFilters.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border-dashed"
+                >
+                  <X size={16} className="mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+          )}
+          {/* Row 1: Search bar + Show/Hide Columns */}
+          <div ref={rowRef} className="flex flex-wrap items-center gap-2">
+            <div ref={searchRef} className="flex-1 min-w-0 max-w-xl">
               <InputIcon
                 placeholder={searchPlaceHolder}
                 type="search"
                 value={table.getState().globalFilter ?? ''}
                 onChange={(e) => table.setGlobalFilter(String(e.target.value))}
                 startIcon={<Search size={18} />}
-                className="w-full md:w-[350px] lg:w-[450px] bg-white"
+                className="w-full bg-white"
                 endIcon={
                   isSearching ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -745,310 +805,255 @@ export function DataTableClient<TData, TValue>({
               />
             </div>
 
-            {/* Mobile Filter Button - Shown when in compact mode */}
-            {shouldShowMobileFilters && facetedWithCounts.length > 0 && (
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-                  <DrawerTrigger asChild>
+            {/* Mobile filter drawer trigger */}
+            {isMobile && facetedWithCounts.length > 0 && (
+              <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                <DrawerTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-11 flex-shrink-0"
+                  >
+                    <Filter size={16} className="mr-2" />
+                    Filters
+                    {columnFilters.length > 0 && (
+                      <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground ml-2">
+                        {columnFilters.length}
+                      </div>
+                    )}
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle className="text-left font-medium text-[31.67px]">
+                      Filters
+                    </DrawerTitle>
+                  </DrawerHeader>
+                  <div
+                    className="flex-1 overflow-y-auto px-4 py-3"
+                    style={{ maxHeight: 'calc(95vh - 12rem)' }}
+                  >
+                    <Accordion type="multiple" className="w-full">
+                      {facetedWithCounts.map((filter) => {
+                        const currentFilterValues =
+                          (tempColumnFilters.find((f) => f.id === filter.column)
+                            ?.value as string[]) || [];
+
+                        return (
+                          <AccordionItem
+                            key={filter.column}
+                            value={filter.column}
+                          >
+                            <AccordionTrigger className="text-left">
+                              <div className="flex items-center justify-between w-full pr-4">
+                                <span className="text-lg">{filter.title}</span>
+                                {currentFilterValues.length > 0 && (
+                                  <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                                    {currentFilterValues.length}
+                                  </div>
+                                )}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="space-y-2 pt-2">
+                                {[...filter.options]
+                                  .sort((a, b) =>
+                                    a.label
+                                      .toLowerCase()
+                                      .localeCompare(b.label.toLowerCase()),
+                                  )
+                                  .map((option) => {
+                                    const isSelected =
+                                      currentFilterValues.includes(
+                                        option.value,
+                                      );
+                                    const displayLabel = option.label.includes(
+                                      '_',
+                                    )
+                                      ? option.label.replace(/_/g, ' ')
+                                      : option.label;
+
+                                    return (
+                                      <div
+                                        key={option.value}
+                                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                        onClick={() => {
+                                          const newValues = isSelected
+                                            ? currentFilterValues.filter(
+                                                (v) => v !== option.value,
+                                              )
+                                            : [
+                                                ...currentFilterValues,
+                                                option.value,
+                                              ];
+                                          handleTempFilterChange(
+                                            filter.column,
+                                            newValues,
+                                          );
+                                        }}
+                                      >
+                                        <div className="flex items-center space-x-3">
+                                          <div
+                                            className={cn(
+                                              'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
+                                              isSelected
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'opacity-50',
+                                            )}
+                                          >
+                                            {isSelected && (
+                                              <Check className="h-3 w-3" />
+                                            )}
+                                          </div>
+                                          <span className="text-sm">
+                                            {displayLabel}
+                                          </span>
+                                        </div>
+                                        {filter.counts &&
+                                          filter.counts[option.value] !=
+                                            null && (
+                                            <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                                              {filter.counts[option.value]}
+                                            </span>
+                                          )}
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  </div>
+                  <DrawerFooter>
+                    <Button variant="default" onClick={applyTempFilters}>
+                      <Plus size={16} className="mr-2" />
+                      Apply Filters
+                    </Button>
                     <Button
                       variant="outline"
-                      size="sm"
-                      className="h-11 md:h-8"
-                      data-filter-button
+                      onClick={() => {
+                        setColumnFilters([]);
+                        setTempColumnFilters([]);
+                        setDrawerOpen(false);
+                      }}
+                      className="w-full mb-4"
                     >
-                      <Filter size={16} className="mr-2" />
-                      Filters
-                      {columnFilters.length > 0 && (
-                        <>
-                          <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground ml-2">
-                            {columnFilters.length}
-                          </div>
-                        </>
-                      )}
+                      <X size={16} className="mr-2" />
+                      Clear All Filters
                     </Button>
-                  </DrawerTrigger>
-                  <DrawerContent>
-                    <DrawerHeader>
-                      <DrawerTitle className="text-left font-medium text-[31.67px] ">
-                        Filters
-                      </DrawerTitle>
-                    </DrawerHeader>
-                    <div
-                      className="flex-1 overflow-y-auto px-4 py-3"
-                      style={{ maxHeight: 'calc(95vh - 12rem)' }}
-                    >
-                      <Accordion type="multiple" className="w-full">
-                        {facetedWithCounts.map((filter) => {
-                          const currentFilterValues =
-                            (tempColumnFilters.find(
-                              (f) => f.id === filter.column,
-                            )?.value as string[]) || [];
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            )}
 
-                          return (
-                            <AccordionItem
-                              key={filter.column}
-                              value={filter.column}
-                            >
-                              <AccordionTrigger className="text-left">
-                                <div className="flex items-center justify-between w-full pr-4">
-                                  <span className="text-lg">
-                                    {filter.title}
-                                  </span>
-                                  {currentFilterValues.length > 0 && (
-                                    <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                                      {currentFilterValues.length}
-                                    </div>
-                                  )}
-                                </div>
-                              </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="space-y-2 pt-2">
-                                  {[...filter.options]
-                                    .sort((a, b) =>
-                                      a.label
-                                        .toLowerCase()
-                                        .localeCompare(b.label.toLowerCase()),
-                                    )
-                                    .map((option) => {
-                                      const isSelected =
-                                        currentFilterValues.includes(
-                                          option.value,
-                                        );
-                                      const displayLabel =
-                                        option.label.includes('_')
-                                          ? option.label.replace(/_/g, ' ')
-                                          : option.label;
-
-                                      return (
-                                        <div
-                                          key={option.value}
-                                          className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                                          onClick={() => {
-                                            const newValues = isSelected
-                                              ? currentFilterValues.filter(
-                                                  (v) => v !== option.value,
-                                                )
-                                              : [
-                                                  ...currentFilterValues,
-                                                  option.value,
-                                                ];
-                                            handleTempFilterChange(
-                                              filter.column,
-                                              newValues,
-                                            );
-                                          }}
-                                        >
-                                          <div className="flex items-center space-x-3">
-                                            <div
-                                              className={cn(
-                                                'flex h-4 w-4 items-center justify-center border border-primary rounded-sm',
-                                                isSelected
-                                                  ? 'bg-primary text-primary-foreground'
-                                                  : 'opacity-50',
-                                              )}
-                                            >
-                                              {isSelected && (
-                                                <Check className="h-3 w-3" />
-                                              )}
-                                            </div>
-                                            <span className="text-sm">
-                                              {displayLabel}
-                                            </span>
-                                          </div>
-                                          {filter.counts &&
-                                            filter.counts[option.value] !=
-                                              null && (
-                                              <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                                                {filter.counts[option.value]}
-                                              </span>
-                                            )}
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          );
-                        })}
-                      </Accordion>
-                    </div>
-                    <DrawerFooter>
-                      <Button variant="default" onClick={applyTempFilters}>
-                        <Plus size={16} className="mr-2" />
-                        Apply Filters
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setColumnFilters([]);
-                          setTempColumnFilters([]);
-                          if (!isMobile) {
-                            saveToStorage('columnFilters', []);
-                          }
-                          setDrawerOpen(false);
-                        }}
-                        className="w-full mb-4"
-                      >
-                        <X size={16} className="mr-2" />
-                        Clear All Filters
-                      </Button>
-                    </DrawerFooter>
-                  </DrawerContent>
-                </Drawer>
-
-                {/* Show/Hide Columns in compact mode */}
-                {isShowHideColumns && (
-                  <div
-                    className={cn(
-                      'transition-opacity duration-200',
-                      shouldHideControl
-                        ? 'opacity-0 pointer-events-none absolute'
-                        : 'opacity-100',
-                    )}
+            {/* Inline filters — shown here when they fit in the gap */}
+            {!isMobile && filtersInline && facetedWithCounts.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                {facetedWithCounts.map((filter) => (
+                  <DataTableFacetedFilter
+                    key={filter.column}
+                    title={filter.title}
+                    options={filter.options}
+                    counts={filter.counts}
+                    filterValues={
+                      (columnFilters.find((f) => f.id === filter.column)
+                        ?.value as string[]) || []
+                    }
+                    onFilterChange={(vals) =>
+                      handleFilterChange(filter.column, vals)
+                    }
+                  />
+                ))}
+                {columnFilters.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 border-dashed"
+                    onClick={() => {
+                      setColumnFilters([]);
+                      saveToStorage('columnFilters', []);
+                    }}
                   >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          ref={showHideButtonRef}
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                        >
-                          Show/Hide Columns
-                          <ChevronDown size={16} className="ml-1" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        {table
-                          .getAllColumns()
-                          .filter((col) => col.getCanHide())
-                          .map((col) => {
-                            const displayName =
-                              (col.columnDef.meta as string) ||
-                              col.id
-                                .replace(/_/g, ' ')
-                                .replace(/\b\w/g, (char) => char.toUpperCase());
-
-                            return (
-                              <DropdownMenuCheckboxItem
-                                key={col.id}
-                                checked={col.getIsVisible()}
-                                onCheckedChange={(val) =>
-                                  col.toggleVisibility(!!val)
-                                }
-                              >
-                                {displayName}
-                              </DropdownMenuCheckboxItem>
-                            );
-                          })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                    <X size={16} className="mr-2" />
+                    Clear All
+                  </Button>
                 )}
               </div>
             )}
 
-            {/* Desktop Filters - Hidden in compact mode */}
-            {facetedWithCounts.length > 0 && (
-              <>
-                {/* Faceted Filters */}
-                <div
-                  ref={filtersContainerRef}
-                  className={cn(
-                    'flex gap-2 transition-opacity duration-200',
-                    shouldShowMobileFilters
-                      ? 'opacity-0 pointer-events-none absolute'
-                      : 'opacity-100',
-                  )}
-                >
-                  {facetedWithCounts.map((filter) => (
-                    <DataTableFacetedFilter
-                      key={filter.column}
-                      title={filter.title}
-                      options={filter.options}
-                      counts={filter.counts}
-                      filterValues={
-                        (columnFilters.find((f) => f.id === filter.column)
-                          ?.value as string[]) || []
-                      }
-                      onFilterChange={(vals) =>
-                        handleFilterChange(filter.column, vals)
-                      }
-                    />
-                  ))}
-
-                  {/* Clear All Filters Button */}
-                  {columnFilters.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 border-dashed"
-                      onClick={() => {
-                        setColumnFilters([]);
-                        if (!isMobile) {
-                          saveToStorage('columnFilters', []);
-                        }
-                      }}
-                    >
-                      <X size={16} className="mr-2" />
-                      Clear All
+            {isShowHideColumns && (
+              <div ref={showHideRef} className="ml-auto flex-shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8">
+                      Show/Hide Columns
+                      <ChevronDown size={16} className="ml-1" />
                     </Button>
-                  )}
-                </div>
-
-                {/* Show/Hide Columns - Pushed to the right */}
-                {isShowHideColumns && (
-                  <div
-                    className={cn(
-                      'ml-auto flex-shrink-0 transition-opacity duration-200',
-                      shouldShowMobileFilters
-                        ? 'opacity-0 pointer-events-none absolute'
-                        : 'opacity-100',
-                    )}
-                  >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          ref={showHideButtonRef}
-                          variant="outline"
-                          size="sm"
-                          className="h-8"
-                        >
-                          Show/Hide Columns
-                          <ChevronDown size={16} className="ml-1" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        {table
-                          .getAllColumns()
-                          .filter((col) => col.getCanHide())
-                          .map((col) => {
-                            // Use meta property if available, otherwise format the column ID
-                            const displayName =
-                              (col.columnDef.meta as string) ||
-                              col.id
-                                .replace(/_/g, ' ')
-                                .replace(/\b\w/g, (char) => char.toUpperCase());
-
-                            return (
-                              <DropdownMenuCheckboxItem
-                                key={col.id}
-                                checked={col.getIsVisible()}
-                                onCheckedChange={(val) =>
-                                  col.toggleVisibility(!!val)
-                                }
-                              >
-                                {displayName}
-                              </DropdownMenuCheckboxItem>
-                            );
-                          })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
-              </>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {table
+                      .getAllColumns()
+                      .filter((col) => col.getCanHide())
+                      .map((col) => {
+                        const displayName =
+                          (col.columnDef.meta as string) ||
+                          col.id
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, (char) => char.toUpperCase());
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={col.id}
+                            checked={col.getIsVisible()}
+                            onCheckedChange={(val) =>
+                              col.toggleVisibility(!!val)
+                            }
+                          >
+                            {displayName}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
           </div>
+
+          {/* Row 2: Desktop filters — only when they don't fit inline on row 1 */}
+          {!isMobile && !filtersInline && facetedWithCounts.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {facetedWithCounts.map((filter) => (
+                <DataTableFacetedFilter
+                  key={filter.column}
+                  title={filter.title}
+                  options={filter.options}
+                  counts={filter.counts}
+                  filterValues={
+                    (columnFilters.find((f) => f.id === filter.column)
+                      ?.value as string[]) || []
+                  }
+                  onFilterChange={(vals) =>
+                    handleFilterChange(filter.column, vals)
+                  }
+                />
+              ))}
+              {columnFilters.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border-dashed"
+                  onClick={() => {
+                    setColumnFilters([]);
+                    saveToStorage('columnFilters', []);
+                  }}
+                >
+                  <X size={16} className="mr-2" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       )}
 

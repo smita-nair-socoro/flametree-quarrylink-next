@@ -217,16 +217,16 @@ export default function DriverForm({
   );
   const truckOptions = React.useMemo(
     () =>
-      haulierTrucks.map((t) => ({
-        label: t.licensePlate,
-        value: String(t.id),
-        group:
-          t.haulier?.haulierName ??
-          selectedHaulierInfo?.haulierName ??
-          businessName ??
-          'Trucks',
-      })),
-    [haulierTrucks, selectedHaulierInfo, businessName],
+      haulierTrucks
+        .map((t) => ({
+          label:
+            t.model === 'GENERIC' && t.licensePlate.startsWith('GENERIC')
+              ? t.licensePlate.replace(/-\d+$/, '')
+              : t.licensePlate,
+          value: String(t.id),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [haulierTrucks],
   );
 
   const trucks = (driverData?.trucks ?? []).map((t) => ({
@@ -453,7 +453,7 @@ export default function DriverForm({
                 <FormMultiSelect
                   control={driverForm.control}
                   name="assignedTrucks"
-                  label="Assigned Trucks (Optional)"
+                  label="Assign Trucks"
                   options={selectedHaulierId || isInternal ? truckOptions : []}
                   placeholder={
                     !selectedHaulierId && !isInternal
