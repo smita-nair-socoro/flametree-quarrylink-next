@@ -17,7 +17,7 @@ import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
 import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
-import { FormSelect } from '@/components/ui/form-select';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
   Calendar,
@@ -38,7 +38,11 @@ import { Map } from '@/components/ui/map';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Textarea } from '@/components/ui/textarea';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { useCreateDocket, useUpdateDocket, useOperationalUpdateDocket } from '@/lib/api/docket';
+import {
+  useCreateDocket,
+  useUpdateDocket,
+  useOperationalUpdateDocket,
+} from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
@@ -51,6 +55,7 @@ import {
 } from '@/components/checklist-report-modal';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import {
   Select,
   SelectTrigger,
@@ -59,6 +64,20 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
+
+const truckTypeOptions: FormSelectOption[] = [
+  { label: 'Truck', value: TRUCK_TYPE.TRUCK },
+  { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
+  { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
+  { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
+  { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
+  { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
+  { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
+  { label: 'Quad', value: TRUCK_TYPE.QUAD },
+  { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
+  { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
+  { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
+];
 
 const DUMMY_CONFLICTING_DOCKETS = [
   { id: -1, docketNumber: 'DO-2342' },
@@ -94,7 +113,8 @@ export default function DocketForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
-  const [checklistModalType, setChecklistModalType] = React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
+  const [checklistModalType, setChecklistModalType] =
+    React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
   const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
     typeof DocketFormSchema
   > | null>(null);
@@ -149,6 +169,7 @@ export default function DocketForm({
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
 
   const isAssigned = currentStatus === DOCKET_STATUS.ASSIGNED;
+  const canEditTruckType = !isEditing || currentStatus === DOCKET_STATUS.UNASSIGNED;
   const canEditPlannedLoadSize =
     !isEditing ||
     currentStatus === DOCKET_STATUS.UNASSIGNED ||
@@ -159,24 +180,23 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-      currentStatus === DOCKET_STATUS.ASSIGNED ||
-      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.STOPPED ||
-      currentStatus === DOCKET_STATUS.ARRIVED
+        currentStatus === DOCKET_STATUS.ASSIGNED ||
+        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+        currentStatus === DOCKET_STATUS.STOPPED ||
+        currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-      currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY);
-
+        currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.ARRIVED ||
-      currentStatus === DOCKET_STATUS.DELIVERED
+        currentStatus === DOCKET_STATUS.ARRIVED ||
+        currentStatus === DOCKET_STATUS.DELIVERED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY ||
-      currentStatus === DOCKET_STATUS.COLLECTED);
+        currentStatus === DOCKET_STATUS.READY ||
+        currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -245,7 +265,9 @@ export default function DocketForm({
     if (isReadOnly) {
       if (isEditing && (canActualLoadSize || canEditDocketEmail)) {
         const actualLoadSize = values.actualLoadSize;
-        const docketEmails = values.docketEmail ? values.docketEmail.split(',').map((e) => e.trim()) : [];
+        const docketEmails = values.docketEmail
+          ? values.docketEmail.split(',').map((e) => e.trim())
+          : [];
         const payload: DocketOperationalUpdateRequest = {
           checkWindowTimeConflict: false,
         };
@@ -302,9 +324,9 @@ export default function DocketForm({
       const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -407,18 +429,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -431,7 +453,7 @@ export default function DocketForm({
         customerContactPhone: values.customerContactPhone,
         docketEmailRecipients,
         notes: values.notes,
-        truckType: isCollection ? undefined : lineItemDetails.truckType,
+        truckType: isCollection ? undefined : (values.truckType || lineItemDetails.truckType || undefined),
         plannedLoadSize: values.plannedLoadSize,
         actualLoadSize: values.actualLoadSize,
         grossTruckWeight: 100,
@@ -482,7 +504,9 @@ export default function DocketForm({
   return (
     <>
       <ChecklistReportModal
-        open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.DRIVER}
+        open={
+          checklistModalOpen && checklistModalType === CHECKLIST_TYPE.DRIVER
+        }
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.DRIVER}
         submissionId={selectedDocket?.driverChecklist?.id ?? 0}
@@ -716,21 +740,14 @@ export default function DocketForm({
                       <>
                         <div className={cn('grid gap-4', gridCols)}>
                           {isDelivery && (
-                            <FormField
+                            <FormSelect
+                              control={docketForm.control}
                               name="truckType"
-                              render={() => (
-                                <FormItem>
-                                  <FormLabel>Truck Type</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      className="w-full"
-                                      readOnly
-                                      value={details.truckTypeLabel ?? ''}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
+                              label="Truck Type"
+                              searchLabel="Truck Type"
+                              options={truckTypeOptions}
+                              placeholder="Select Truck Type"
+                              disabled={isReadOnly || !canEditTruckType}
                             />
                           )}
 
@@ -929,17 +946,17 @@ export default function DocketForm({
                             Pick Up Address
                           </FormLabel>
                           <FormControl>
-                              <AddressAutoComplete
-                                address={pickUpAddress}
-                                setAddress={setPickUpAddress}
-                                searchInput={pickUpSearchInput}
-                                setSearchInput={setPickUpSearchInput}
-                                dialogTitle="Pick Up Address"
-                                placeholder="Enter site address..."
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                readOnly={isReadOnly || isAssigned}
-                              />
+                            <AddressAutoComplete
+                              address={pickUpAddress}
+                              setAddress={setPickUpAddress}
+                              searchInput={pickUpSearchInput}
+                              setSearchInput={setPickUpSearchInput}
+                              dialogTitle="Pick Up Address"
+                              placeholder="Enter site address..."
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              readOnly={isReadOnly || isAssigned}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1127,7 +1144,8 @@ export default function DocketForm({
                               label="Press Enter or comma to add email addresses for docket notifications"
                               {...field}
                               disabled={
-                                docketForm.watch('jobId') === 0 || !canEditDocketEmail
+                                docketForm.watch('jobId') === 0 ||
+                                !canEditDocketEmail
                               }
                             />
                           </FormControl>
@@ -1192,68 +1210,88 @@ export default function DocketForm({
               )}
 
               {/* Checklist Section */}
-              {isEditing && (selectedDocket?.driverChecklist || selectedDocket?.truckChecklist) && (
-                <div className="border rounded-md p-4 flex flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
-                    <span className="text-[17px] font-medium">Checklists</span>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    {selectedDocket?.driverChecklist && (
-                      <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium">Pre-Start Checklist</span>
-                          <span className={`text-xs font-semibold ${selectedDocket.driverChecklist.checklistStatus === 'PASS'
-                            ? 'text-green-600'
-                            : selectedDocket.driverChecklist.checklistStatus === 'FAIL'
-                              ? 'text-red-600'
-                              : 'text-muted-foreground'
-                            }`}>
-                            {selectedDocket.driverChecklist.checklistStatus ?? 'Pending'}
-                          </span>
+              {isEditing &&
+                (selectedDocket?.driverChecklist ||
+                  selectedDocket?.truckChecklist) && (
+                  <div className="border rounded-md p-4 flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      <span className="text-[17px] font-medium">
+                        Checklists
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {selectedDocket?.driverChecklist && (
+                        <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-medium">
+                              Pre-Start Checklist
+                            </span>
+                            <span
+                              className={`text-xs font-semibold ${
+                                selectedDocket.driverChecklist
+                                  .checklistStatus === 'PASS'
+                                  ? 'text-green-600'
+                                  : selectedDocket.driverChecklist
+                                        .checklistStatus === 'FAIL'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
+                              }`}
+                            >
+                              {selectedDocket.driverChecklist.checklistStatus ??
+                                'Pending'}
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setChecklistModalType(CHECKLIST_TYPE.DRIVER);
+                              setChecklistModalOpen(true);
+                            }}
+                          >
+                            View Report
+                          </Button>
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setChecklistModalType(CHECKLIST_TYPE.DRIVER);
-                            setChecklistModalOpen(true);
-                          }}
-                        >
-                          View Report
-                        </Button>
-                      </div>
-                    )}
-                    {selectedDocket?.truckChecklist && (
-                      <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium">Truck Inspection</span>
-                          <span className={`text-xs font-semibold ${selectedDocket.truckChecklist.checklistStatus === 'PASS'
-                            ? 'text-green-600'
-                            : selectedDocket.truckChecklist.checklistStatus === 'FAIL'
-                              ? 'text-red-600'
-                              : 'text-muted-foreground'
-                            }`}>
-                            {selectedDocket.truckChecklist.checklistStatus ?? 'Pending'}
-                          </span>
+                      )}
+                      {selectedDocket?.truckChecklist && (
+                        <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-medium">
+                              Truck Inspection
+                            </span>
+                            <span
+                              className={`text-xs font-semibold ${
+                                selectedDocket.truckChecklist
+                                  .checklistStatus === 'PASS'
+                                  ? 'text-green-600'
+                                  : selectedDocket.truckChecklist
+                                        .checklistStatus === 'FAIL'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
+                              }`}
+                            >
+                              {selectedDocket.truckChecklist.checklistStatus ??
+                                'Pending'}
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setChecklistModalType(CHECKLIST_TYPE.TRUCK);
+                              setChecklistModalOpen(true);
+                            }}
+                          >
+                            View Report
+                          </Button>
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setChecklistModalType(CHECKLIST_TYPE.TRUCK);
-                            setChecklistModalOpen(true);
-                          }}
-                        >
-                          View Report
-                        </Button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
                 <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
@@ -1319,7 +1357,10 @@ export default function DocketForm({
                   className="cursor-pointer"
                   type="button"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={(isReadOnly && !canActualLoadSize && !canEditDocketEmail) || isSubmitting}
+                  disabled={
+                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
+                    isSubmitting
+                  }
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>
@@ -1332,7 +1373,10 @@ export default function DocketForm({
                   type="button"
                   className="cursor-pointer"
                   onClick={() => docketForm.handleSubmit(onSubmit)()}
-                  disabled={(isReadOnly && !canActualLoadSize && !canEditDocketEmail) || isSubmitting}
+                  disabled={
+                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
+                    isSubmitting
+                  }
                 >
                   {isEditing ? 'Save Changes' : 'Create Docket'}
                 </Button>

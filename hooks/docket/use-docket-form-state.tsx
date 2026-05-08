@@ -478,6 +478,10 @@ export function useDocketFormState({
         );
       }
     }
+
+    if (details.truckType) {
+      docketForm.setValue('truckType', details.truckType);
+    }
   }, [
     docketForm.watch('jobLineItemId'),
     isEditing,
@@ -520,6 +524,7 @@ export function useDocketFormState({
           ?.filter((email) => email !== currentCustomerEmail)
           .join(', ') ?? '',
       notes: selectedDocket.notes ?? '',
+      truckType: selectedDocket.truckType ?? '',
     });
 
     const pickUp = selectedDocket.pickUpAddress;
