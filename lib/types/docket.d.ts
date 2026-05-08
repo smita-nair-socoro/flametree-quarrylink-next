@@ -272,6 +272,19 @@ export interface DocketDTO {
   lastModifiedBy: string;
 }
 
+/** Response from GET /driver-app/assigned */
+export interface DriverAppAssignedDTO extends Omit<DriverDTO, 'trucks'> {
+  latestDriverChecklist?: DocketDTO['driverChecklist'];
+  trucks: {
+    id: number;
+    licensePlate: string;
+    truckType: string;
+    truckStatus: string;
+    tankVolumeM3: number;
+  }[];
+  dockets: DocketDTO[];
+}
+
 /** Truck row from GET scheduler/trucks */
 export interface DispatchTruckResource {
   id: number;

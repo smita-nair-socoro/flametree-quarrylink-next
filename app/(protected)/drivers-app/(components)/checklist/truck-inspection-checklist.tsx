@@ -64,6 +64,7 @@ export default function TruckInspectionChecklist({
       driverId,
       docketId,
       confirmed: false,
+      submittedAt: new Date().toISOString(),
       answers: answers.map((a) => {
         const failOn = failOnAnswerMap.get(a.questionId);
         return {

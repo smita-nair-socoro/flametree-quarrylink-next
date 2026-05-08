@@ -39,9 +39,10 @@ export default function DriversAppPage() {
   const { signOut } = useAuth();
   const router = useRouter();
 
-  const { data: dockets = [] } = useQuery(
+  const { data: driverData } = useQuery(
     DriverAppAssignedDocketsQueryOptions(),
   );
+  const dockets = driverData?.dockets ?? [];
 
   const setDriverTemplate = useChecklistTemplateStore(
     (s) => s.setDriverTemplate,
@@ -68,14 +69,14 @@ export default function DriversAppPage() {
 
   const isDailyChecklistRequired = React.useMemo(() => {
     if (isPreStartPassedToday()) return false;
-    const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
+    const lastCompleted = driverData?.lastChecklistCompleted;
     if (!lastCompleted) return true;
     const todayUTCDateStr = new Date().toISOString().split('T')[0];
     const lastCompletedDateStr = new Date(lastCompleted)
       .toISOString()
       .split('T')[0];
     return todayUTCDateStr !== lastCompletedDateStr;
-  }, [dockets, isPreStartPassedToday]);
+  }, [driverData, dockets, isPreStartPassedToday]);
 
   const handleLogout = async () => {
     try {
@@ -283,8 +284,8 @@ export default function DriversAppPage() {
         onOpenChange={setIsChecklistPromptOpen}
         type={checklistType}
         truckLicensePlate={checklistTruckLicensePlate}
-        driverName={dockets[0]?.driver?.driverName}
-        driverId={dockets[0]?.driverId}
+        driverName={driverData?.driverName}
+        driverId={driverData?.id}
         truckId={checklistTruckId}
         docketId={checklistDocketId}
         onCompleteExternally={() => setIsChecklistPromptOpen(false)}

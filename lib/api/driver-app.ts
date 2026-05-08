@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverAppKeys } from './keys';
-import { DriverAppStatusUpdateRequest } from '../types/docket';
+import { DriverAppStatusUpdateRequest, DriverAppAssignedDTO } from '../types/docket';
 
 export const DriverAppAssignedDocketsQueryOptions = () => ({
   queryKey: DriverAppKeys.assignedDockets(),
