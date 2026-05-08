@@ -927,8 +927,8 @@ export default function QuoteLineItemForm({
                           </div>
                         </div>
                       </div>
-                      {/* Gross Profit */}
 
+                      {/* Gross Profit */}
                       <div className="flex justify-end items-center gap-2 py-3 px-4 bg-gray-200 rounded-lg">
                         <span className="text-lg font-semibold">
                           Gross Profit:
