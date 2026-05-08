@@ -1,5 +1,6 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import type { DRIVER_STATUS } from './driver-enums';
+import { CHECKLIST_STATUS } from './checklist-enums';
 import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
@@ -250,7 +251,7 @@ export interface DocketDTO {
     id: number;
     checklistDate: string;
     completedAt: string;
-    checklistStatus: string;
+    checklistStatus: CHECKLIST_STATUS;
     hasIssues: boolean;
     notes: string;
     version: number;
@@ -259,7 +260,7 @@ export interface DocketDTO {
     id: number;
     checklistDate: string;
     completedAt: string;
-    checklistStatus: string;
+    checklistStatus: CHECKLIST_STATUS;
     hasIssues: boolean;
     notes: string;
     version: number;

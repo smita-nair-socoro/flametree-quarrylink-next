@@ -33,7 +33,6 @@ import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions';
 import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
-import { usePreStartChecklistStatusStore } from '@/app/stores/checklist-status-store';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
@@ -54,6 +53,7 @@ const getCustomerName = (
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
+  isPreStartPassed?: boolean;
   onOpenChecklist?: (
     type: 'pre-start' | 'vehicle-inspection',
     truckLicensePlate?: string,
@@ -71,6 +71,7 @@ type ActionType =
 
 export default function DocketsTab({
   dockets,
+  isPreStartPassed = false,
   onOpenChecklist,
 }: DocketsTabProps) {
   const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
@@ -83,9 +84,6 @@ export default function DocketsTab({
   const { actions, confirmDialogs, isDialogOpen } =
     useDriverAppDocketActions(selectedDocket);
   const operationalUpdate = useDriverAppOperationalUpdate();
-  const isPreStartPassedToday = usePreStartChecklistStatusStore(
-    (s) => s.isPreStartPassedToday,
-  );
   const isTruckInspectionPassed = useTruckInspectionStatusStore(
     (s) => s.isTruckInspectionPassed,
   );
@@ -125,7 +123,7 @@ export default function DocketsTab({
 
   const driverChecklistPassed =
     selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
-    isPreStartPassedToday();
+    isPreStartPassed;
   const truckChecklistPassed =
     selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
     (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
@@ -466,7 +464,7 @@ export default function DocketsTab({
                 <div className="flex flex-col gap-3 pb-2">
                   {selectedDocket.driverChecklist?.checklistStatus !==
                     CHECKLIST_STATUS.PASS &&
-                    !isPreStartPassedToday() && (
+                    !isPreStartPassed && (
                     <Button
                       variant="outline"
                       className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
