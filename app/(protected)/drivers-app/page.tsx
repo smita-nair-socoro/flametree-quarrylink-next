@@ -110,6 +110,11 @@ export default function DriversAppPage() {
                   <span className="text-[18px] font-bold text-[#0F172A]">
                     {userName}
                   </span>
+                  {driverData?.haulier?.haulierName && (
+                    <span className="text-[13px] text-[#64748B]">
+                      {driverData.haulier.haulierName}
+                    </span>
+                  )}
                 </div>
               </div>
 
