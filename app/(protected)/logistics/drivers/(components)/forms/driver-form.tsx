@@ -219,11 +219,14 @@ export default function DriverForm({
     () =>
       haulierTrucks
         .map((t) => ({
-          label: t.model === 'GENERIC' && t.licensePlate.startsWith('GENERIC') ? t.licensePlate.replace(/-\d+$/, '') : t.licensePlate,
+          label:
+            t.model === 'GENERIC' && t.licensePlate.startsWith('GENERIC')
+              ? t.licensePlate.replace(/-\d+$/, '')
+              : t.licensePlate,
           value: String(t.id),
         }))
         .sort((a, b) => a.label.localeCompare(b.label)),
-    [haulierTrucks, selectedHaulierInfo, businessName],
+    [haulierTrucks],
   );
 
   const trucks = (driverData?.trucks ?? []).map((t) => ({

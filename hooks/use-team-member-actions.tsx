@@ -243,27 +243,6 @@ export function useTeamMemberActions(
                 />
               </div>
             )}
-
-            {/* Active Jobs Section */}
-            {activeJobsCount > 0 && (
-              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Briefcase className="h-4 w-4 text-purple-600" />
-                  Assigned to {activeJobsCount} active jobs
-                </div>
-                <SelectOptions
-                  label="Reassign to:"
-                  searchLabel="team member"
-                  options={teamMemberOptions}
-                  value={jobReassignTo}
-                  onChange={setJobReassignTo}
-                  placeholder="Select team member..."
-                  popoverWidthClass="w-[300px]"
-                  error={validationErrors.job}
-                  className="bg-white border-border text-foreground"
-                />
-              </div>
-            )}
           </>
         )}
 
