@@ -323,7 +323,7 @@ export default function QuoteLineItemForm({
                         className="w-full"
                         placeholder="Enter Supplier Product Name"
                         {...field}
-                        disabled={isReadOnly}
+                        disabled={true}
                       />
                     </FormControl>
                     <FormMessage />
