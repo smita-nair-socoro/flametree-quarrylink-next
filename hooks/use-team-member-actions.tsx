@@ -62,29 +62,19 @@ export function useTeamMemberActions(
   // State for delete with dependencies form
   const [accountManagerReassignTo, setAccountManagerReassignTo] =
     React.useState<string | number | undefined>(undefined);
-  const [jobReassignTo, setJobReassignTo] = React.useState<
-    string | number | undefined
-  >(undefined);
   const [deletionReason, setDeletionReason] = React.useState('');
   // Not sure if we need this to be done manually or use zod?
   const [validationErrors, setValidationErrors] = React.useState<{
     accountManager?: string;
-    job?: string;
     reason?: string;
   }>({});
 
   // Live dependency counts from API
-  const counts = userDependencies?.counts;
-  const customerCount = counts?.customers ?? 0;
-  const quotesCount = counts?.quotations ?? 0;
-  const activeJobsCount = 0;
+  const customerCount = userDependencies?.counts?.customers ?? 0;
 
-  // Check if user has dependencies that need reassignment
-  const hasDependencies =
-    userDependencies?.hasDependencies ??
-    (customerCount > 0 || quotesCount > 0 || activeJobsCount > 0);
+  // Only customer reassignment is required before deletion
+  const hasDependencies = customerCount > 0;
 
-  // TODO: Fetch real team members from API for reassignment dropdowns
   const { data: teamMembers } = useQuery(UsersListQueryOptions());
   const filteredTeamMembers = teamMembers?.filter(
     (member) => member.enabled === true,
@@ -104,20 +94,8 @@ export function useTeamMemberActions(
     // If there are customers, must select account manager
     if (customerCount > 0 && !accountManagerReassignTo) return true;
 
-    // If there are quotations, must select new owner
-    if (quotesCount > 0 && !accountManagerReassignTo) return true;
-
-    // If there are jobs, must select job assignee
-    if (activeJobsCount > 0 && !jobReassignTo) return true;
-
     return false;
-  }, [
-    hasDependencies,
-    customerCount,
-    activeJobsCount,
-    accountManagerReassignTo,
-    jobReassignTo,
-  ]);
+  }, [hasDependencies, customerCount, accountManagerReassignTo]);
 
   // Helper function to format role for display
   // groups is an array like ["super_admin", "admin"] containing role names
@@ -222,27 +200,6 @@ export function useTeamMemberActions(
                 />
               </div>
             )}
-
-            {/* Account Manager Section */}
-            {quotesCount > 0 && (
-              <div className="border border-border bg-white rounded-lg p-3 space-y-3">
-                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Users className="h-4 w-4 text-blue-600" />
-                  Account Manager for {quotesCount} quotations
-                </div>
-                <SelectOptions
-                  label="Reassign to:"
-                  searchLabel="team member"
-                  options={teamMemberOptions}
-                  value={accountManagerReassignTo}
-                  onChange={setAccountManagerReassignTo}
-                  placeholder="Select team member..."
-                  popoverWidthClass="w-[300px]"
-                  error={validationErrors.accountManager}
-                  className="bg-white border-border text-foreground"
-                />
-              </div>
-            )}
           </>
         )}
 
@@ -268,7 +225,6 @@ export function useTeamMemberActions(
 
   const resetDeleteForm = () => {
     setAccountManagerReassignTo(undefined);
-    setJobReassignTo(undefined);
     setDeletionReason('');
     setValidationErrors({});
   };
@@ -285,14 +241,6 @@ export function useTeamMemberActions(
     if (hasDependencies) {
       if (customerCount > 0 && !accountManagerReassignTo) {
         errors.accountManager = 'Please select a team member';
-      }
-
-      if (quotesCount > 0 && !accountManagerReassignTo) {
-        errors.accountManager = 'Please select a team member';
-      }
-
-      if (activeJobsCount > 0 && !jobReassignTo) {
-        errors.job = 'Please select a job assignee';
       }
     }
 
@@ -344,7 +292,6 @@ export function useTeamMemberActions(
 
     // Build delete payload:
     // - If there are customer dependencies, map them to { customerId, newAccountManagerSub }
-    // - Quotes can be empty for now
     const customerReassignments =
       hasDependencies && customerCount > 0
         ? (userDependencies?.dependencies?.customers || []).map((c) => ({
@@ -353,18 +300,9 @@ export function useTeamMemberActions(
           }))
         : [];
 
-    const quoteReassignments =
-      hasDependencies && quotesCount > 0
-        ? (userDependencies?.dependencies?.quotations || []).map((q) => ({
-            quoteId: q.id,
-            newOwnerSub: String(accountManagerReassignTo),
-          }))
-        : [];
-
     const payload: UserDelete = {
       reassignments: {
         customers: customerReassignments,
-        quotes: quoteReassignments,
       },
     };
 
@@ -379,7 +317,6 @@ export function useTeamMemberActions(
         teamMemberId,
         hasDependencies,
         accountManagerReassignTo,
-        jobReassignTo,
         deletionReason,
       });
       notifyError('Failed to delete user.');
