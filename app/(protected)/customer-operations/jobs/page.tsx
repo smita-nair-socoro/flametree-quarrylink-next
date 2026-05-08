@@ -157,7 +157,7 @@ export default function CustomersPage() {
           columns={jobColumns}
           facetDefinition={facetDefs}
           searchPlaceHolder="Search jobs..."
-          defaultSorting={[{ id: 'jobNumber', desc: false }]}
+          defaultSorting={[{ id: 'jobNumber', desc: true }]}
           onRowClick={handleRowClick}
         />
       </div>
