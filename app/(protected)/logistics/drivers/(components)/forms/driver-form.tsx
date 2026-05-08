@@ -217,15 +217,17 @@ export default function DriverForm({
   );
   const truckOptions = React.useMemo(
     () =>
-      haulierTrucks.map((t) => ({
-        label: t.licensePlate,
-        value: String(t.id),
-        group:
-          t.haulier?.haulierName ??
-          selectedHaulierInfo?.haulierName ??
-          businessName ??
-          'Trucks',
-      })),
+      haulierTrucks
+        .map((t) => ({
+          label: t.licensePlate,
+          value: String(t.id),
+          group:
+            t.haulier?.haulierName ??
+            selectedHaulierInfo?.haulierName ??
+            businessName ??
+            'Trucks',
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
     [haulierTrucks, selectedHaulierInfo, businessName],
   );
 
