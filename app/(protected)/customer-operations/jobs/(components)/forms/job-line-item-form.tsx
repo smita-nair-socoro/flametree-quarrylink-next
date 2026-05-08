@@ -32,6 +32,7 @@ import { useJobLineItemFormState } from '@/hooks/job/use-job-lineitem-form-state
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
+import { formatDollars } from '@/lib/utils/currency';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
@@ -444,14 +445,14 @@ export default function JobLineItemForm({
                               jobLineItemForm.watch('productSellUom') === 'TN'
                                 ? 'TN'
                                 : jobLineItemForm.watch('productSellUom') ===
-                                    'M3'
+                                  'M3'
                                   ? 'm3'
                                   : jobLineItemForm.watch('productSellUom') ===
-                                      'KG_20'
+                                    'KG_20'
                                     ? 'Bags'
                                     : jobLineItemForm.watch(
-                                          'productSellUom',
-                                        ) === 'BULKA'
+                                      'productSellUom',
+                                    ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -554,14 +555,14 @@ export default function JobLineItemForm({
                               jobLineItemForm.watch('productCostUom') === 'TN'
                                 ? 'TN'
                                 : jobLineItemForm.watch('productCostUom') ===
-                                    'M3'
+                                  'M3'
                                   ? 'm3'
                                   : jobLineItemForm.watch('productCostUom') ===
-                                      'KG_20'
+                                    'KG_20'
                                     ? 'Bags'
                                     : jobLineItemForm.watch(
-                                          'productCostUom',
-                                        ) === 'BULKA'
+                                      'productCostUom',
+                                    ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -576,20 +577,20 @@ export default function JobLineItemForm({
 
               {pricingBreakdown.totalProductCostPrice >
                 pricingBreakdown.totalProductSellPrice && (
-                <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
-                  <div className="flex items-start gap-2">
-                    <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                    <div className="flex-1 text-sm">
-                      <p className="font-semibold">Review Product Pricing</p>
-                      <p className="text-[#364153]">
-                        This line item will generate a loss based on current
-                        costs. If this is expected, you can continue. Otherwise,
-                        adjust the price to restore profitability.
-                      </p>
+                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
+                    <div className="flex items-start gap-2">
+                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                      <div className="flex-1 text-sm">
+                        <p className="font-semibold">Review Product Pricing</p>
+                        <p className="text-[#364153]">
+                          This line item will generate a loss based on current
+                          costs. If this is expected, you can continue. Otherwise,
+                          adjust the price to restore profitability.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
 
             {/* Truck Configuration */}
@@ -693,18 +694,18 @@ export default function JobLineItemForm({
                                 jobLineItemForm.watch('truckSellUom') === 'TN'
                                   ? 'TN'
                                   : jobLineItemForm.watch('truckSellUom') ===
-                                      'M3'
+                                    'M3'
                                     ? 'm3'
                                     : jobLineItemForm.watch('truckSellUom') ===
-                                        'HOURLY'
+                                      'HOURLY'
                                       ? 'HOURLY'
                                       : jobLineItemForm.watch(
-                                            'truckSellUom',
-                                          ) === 'LOAD'
+                                        'truckSellUom',
+                                      ) === 'LOAD'
                                         ? 'LOAD'
                                         : jobLineItemForm.watch(
-                                              'truckSellUom',
-                                            ) === 'KM'
+                                          'truckSellUom',
+                                        ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -747,10 +748,16 @@ export default function JobLineItemForm({
                       render={({ field }) => {
                         const truckCostUom =
                           jobLineItemForm.watch('truckCostUom');
+                        const truckSellUom =
+                          jobLineItemForm.watch('truckSellUom');
                         const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
-                        const isEnabled =
+                        const isManualInput =
                           truckCostUom &&
                           manualInputUoms.includes(truckCostUom);
+                        const isSameAsSell =
+                          isManualInput && truckCostUom === truckSellUom;
+                        const isEnabled = isManualInput && !isSameAsSell;
+
                         return (
                           <FormItem>
                             <FormLabel>QTY*</FormLabel>
@@ -799,18 +806,18 @@ export default function JobLineItemForm({
                                 jobLineItemForm.watch('truckCostUom') === 'TN'
                                   ? 'TN'
                                   : jobLineItemForm.watch('truckCostUom') ===
-                                      'M3'
+                                    'M3'
                                     ? 'm3'
                                     : jobLineItemForm.watch('truckCostUom') ===
-                                        'HOURLY'
+                                      'HOURLY'
                                       ? 'HOURLY'
                                       : jobLineItemForm.watch(
-                                            'truckCostUom',
-                                          ) === 'LOAD'
+                                        'truckCostUom',
+                                      ) === 'LOAD'
                                         ? 'LOAD'
                                         : jobLineItemForm.watch(
-                                              'truckCostUom',
-                                            ) === 'KM'
+                                          'truckCostUom',
+                                        ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -825,20 +832,20 @@ export default function JobLineItemForm({
 
                 {pricingBreakdown.totalTruckCostPrice >
                   pricingBreakdown.totalTruckSellPrice && (
-                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
-                    <div className="flex items-start gap-2">
-                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                      <div className="flex-1 text-sm">
-                        <p className="font-semibold">Review Truck Pricing</p>
-                        <p className="text-[#364153]">
-                          The truck configuration will generate a loss based on
-                          current costs. If this is expected, you can continue.
-                          Otherwise, adjust the price to restore profitability.
-                        </p>
+                    <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
+                      <div className="flex items-start gap-2">
+                        <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                        <div className="flex-1 text-sm">
+                          <p className="font-semibold">Review Truck Pricing</p>
+                          <p className="text-[#364153]">
+                            The truck configuration will generate a loss based on
+                            current costs. If this is expected, you can continue.
+                            Otherwise, adjust the price to restore profitability.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -866,8 +873,8 @@ export default function JobLineItemForm({
                               <span>Product Cost</span>
                               <span>
                                 $
-                                {pricingBreakdown.totalProductCostPrice.toFixed(
-                                  2,
+                                {formatDollars(
+                                  pricingBreakdown.totalProductCostPrice,
                                 )}
                               </span>
                             </div>
@@ -876,8 +883,8 @@ export default function JobLineItemForm({
                                 <span>Truck Cost</span>
                                 <span>
                                   $
-                                  {pricingBreakdown.totalTruckCostPrice.toFixed(
-                                    2,
+                                  {formatDollars(
+                                    pricingBreakdown.totalTruckCostPrice,
                                   )}
                                 </span>
                               </div>
@@ -885,13 +892,13 @@ export default function JobLineItemForm({
                             <div className={`pt-2 ${separatorBorder}`}>
                               <span>Subtotal (ex-GST)</span>
                               <span>
-                                ${pricingBreakdown.costSubtotalExGST.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.costSubtotalExGST)}
                               </span>
                             </div>
                             <div>
                               <span>GST (10%)</span>
                               <span>
-                                ${pricingBreakdown.costGst.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.costGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -899,7 +906,7 @@ export default function JobLineItemForm({
                                 Total Cost
                               </span>
                               <span className="font-bold text-lg">
-                                ${pricingBreakdown.totalCost.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.totalCost)}
                               </span>
                             </div>
                           </div>
@@ -914,8 +921,8 @@ export default function JobLineItemForm({
                               <span>Product Sell</span>
                               <span>
                                 $
-                                {pricingBreakdown.totalProductSellPrice.toFixed(
-                                  2,
+                                {formatDollars(
+                                  pricingBreakdown.totalProductSellPrice,
                                 )}
                               </span>
                             </div>
@@ -924,8 +931,8 @@ export default function JobLineItemForm({
                                 <span>Truck Sell</span>
                                 <span>
                                   $
-                                  {pricingBreakdown.totalTruckSellPrice.toFixed(
-                                    2,
+                                  {formatDollars(
+                                    pricingBreakdown.totalTruckSellPrice,
                                   )}
                                 </span>
                               </div>
@@ -934,15 +941,15 @@ export default function JobLineItemForm({
                               <span>Subtotal (ex-GST)</span>
                               <span>
                                 $
-                                {pricingBreakdown.invoiceSubtotalExGST.toFixed(
-                                  2,
+                                {formatDollars(
+                                  pricingBreakdown.invoiceSubtotalExGST,
                                 )}
                               </span>
                             </div>
                             <div>
                               <span>GST (10%)</span>
                               <span>
-                                ${pricingBreakdown.invoiceGst.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.invoiceGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -951,8 +958,8 @@ export default function JobLineItemForm({
                               </span>
                               <span className="font-bold text-lg">
                                 $
-                                {pricingBreakdown.totalInvoiceInclGst.toFixed(
-                                  2,
+                                {formatDollars(
+                                  pricingBreakdown.totalInvoiceInclGst,
                                 )}
                               </span>
                             </div>
@@ -982,7 +989,7 @@ export default function JobLineItemForm({
                         </span>
                         <span className="text-lg font-medium ml-3">
                           {pricingBreakdown.grossProfit >= 0 ? '' : '-'}$
-                          {Math.abs(pricingBreakdown.grossProfit).toFixed(2)}
+                          {formatDollars(pricingBreakdown.grossProfit)}
                         </span>
                       </div>
                     </>

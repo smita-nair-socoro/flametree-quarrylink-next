@@ -36,6 +36,7 @@ import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { formatDollars } from '@/lib/utils/currency';
 
 interface FormProps {
   id?: number;
@@ -845,9 +846,7 @@ export default function QuoteLineItemForm({
                               <span>Product Cost</span>
                               <span>
                                 $
-                                {pricingBreakdown.totalProductCostPrice.toFixed(
-                                  2,
-                                )}
+                                {formatDollars(pricingBreakdown.totalProductCostPrice)}
                               </span>
                             </div>
                             {!isCollection && (
@@ -855,22 +854,20 @@ export default function QuoteLineItemForm({
                                 <span>Truck Cost</span>
                                 <span>
                                   $
-                                  {pricingBreakdown.totalTruckCostPrice.toFixed(
-                                    2,
-                                  )}
+                                  {formatDollars(pricingBreakdown.totalTruckCostPrice)}
                                 </span>
                               </div>
                             )}
                             <div className={`pt-2 ${separatorBorder}`}>
                               <span>Subtotal (ex-GST)</span>
                               <span>
-                                ${pricingBreakdown.costSubtotalExGST.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.costSubtotalExGST)}
                               </span>
                             </div>
                             <div>
                               <span>GST (10%)</span>
                               <span>
-                                ${pricingBreakdown.costGst.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.costGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -878,7 +875,7 @@ export default function QuoteLineItemForm({
                                 Total Cost
                               </span>
                               <span className="font-bold text-lg">
-                                ${pricingBreakdown.totalCost.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.totalCost)}
                               </span>
                             </div>
                           </div>
@@ -893,9 +890,7 @@ export default function QuoteLineItemForm({
                               <span>Product Sell</span>
                               <span>
                                 $
-                                {pricingBreakdown.totalProductSellPrice.toFixed(
-                                  2,
-                                )}
+                                {formatDollars(pricingBreakdown.totalProductSellPrice)}
                               </span>
                             </div>
                             {!isCollection && (
@@ -903,9 +898,7 @@ export default function QuoteLineItemForm({
                                 <span>Truck Sell</span>
                                 <span>
                                   $
-                                  {pricingBreakdown.totalTruckSellPrice.toFixed(
-                                    2,
-                                  )}
+                                  {formatDollars(pricingBreakdown.totalTruckSellPrice)}
                                 </span>
                               </div>
                             )}
@@ -913,15 +906,13 @@ export default function QuoteLineItemForm({
                               <span>Subtotal (ex-GST)</span>
                               <span>
                                 $
-                                {pricingBreakdown.invoiceSubtotalExGST.toFixed(
-                                  2,
-                                )}
+                                {formatDollars(pricingBreakdown.invoiceSubtotalExGST)}
                               </span>
                             </div>
                             <div>
                               <span>GST (10%)</span>
                               <span>
-                                ${pricingBreakdown.invoiceGst.toFixed(2)}
+                                ${formatDollars(pricingBreakdown.invoiceGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -930,9 +921,7 @@ export default function QuoteLineItemForm({
                               </span>
                               <span className="font-bold text-lg">
                                 $
-                                {pricingBreakdown.totalInvoiceInclGst.toFixed(
-                                  2,
-                                )}
+                                {formatDollars(pricingBreakdown.totalInvoiceInclGst)}
                               </span>
                             </div>
                           </div>
