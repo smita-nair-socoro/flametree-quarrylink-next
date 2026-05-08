@@ -219,7 +219,7 @@ export default function DriverForm({
     () =>
       haulierTrucks
         .map((t) => ({
-          label: t.licensePlate,
+          label: t.licensePlate.replace(/-\d+$/, ''),
           value: String(t.id),
           group:
             t.haulier?.haulierName ??
