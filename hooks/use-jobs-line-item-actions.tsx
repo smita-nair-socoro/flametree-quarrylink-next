@@ -91,7 +91,7 @@ const getDialogConfigs = (
                     Line Item Removal
                   </span>
                   <span className="text-[14px] font-normal text-[#E7000B]">
-                    This line item will be permanently removed from the quote.
+                    This line item will be permanently removed from the job.
                     This action cannot be undone.
                   </span>
                 </div>
