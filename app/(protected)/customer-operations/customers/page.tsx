@@ -95,7 +95,7 @@ export default function CustomersPage() {
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Total Business Customers',
+      title: 'Active Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
       description: `${
         reportingData?.businessCustomerQuotesPercent || 0
@@ -106,7 +106,7 @@ export default function CustomersPage() {
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Total Individual Customers',
+      title: 'Active Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
       description: `${
         reportingData?.individualCustomerQuotesPercent || 0
