@@ -33,6 +33,7 @@ import { UsersListQueryOptions } from '@/lib/api/user';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { JOB_STATUS } from '@/lib/types/job-enums';
+import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { useCreateJob, useUpdateJob } from '@/lib/api/job';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { Spinner } from '@/components/ui/spinner';
@@ -133,7 +134,7 @@ export default function JobForm({
   const customerOptions: FormSelectOption[] = React.useMemo(() => {
     if (!customers) return [];
     return customers
-      .filter((customer) => customer.id !== undefined)
+      .filter((customer) => customer.id !== undefined && customer.customerStatus !== CUSTOMER_STATUS.ARCHIVED)
       .map((customer) => {
         if (customer.customerType === 'BUSINESS') {
           return {
